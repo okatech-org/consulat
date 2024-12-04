@@ -158,11 +158,11 @@ export async function postProfile(
 
       // 2. Créer les documents associés
       if (passport) {
-        const passportDoc = await tx.document.create({
+        const passportDoc = await tx.userDocument.create({
           data: {
             type: DocumentType.PASSPORT,
             fileUrl: passport.url,
-            profileId: profile.id,
+            userId: user.id,
             issuedAt: new Date(basicInfo.passportIssueDate),
             expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
             metadata: {
@@ -183,11 +183,11 @@ export async function postProfile(
 
       // Créer les autres documents si présents
       if (birthCertificate) {
-        const birthCertificateDoc = await tx.document.create({
+        const birthCertificateDoc = await tx.userDocument.create({
           data: {
             type: DocumentType.BIRTH_CERTIFICATE,
             fileUrl: birthCertificate.url,
-            profileId: profile.id
+            userId: user.id
           }
         })
 
@@ -201,13 +201,13 @@ export async function postProfile(
       }
 
       if (residencePermit) {
-        const residencePermitDoc = await tx.document.create({
+        const residencePermitDoc = await tx.userDocument.create({
           data: {
             type: DocumentType.RESIDENCE_PERMIT,
             fileUrl: residencePermit.url,
             issuedAt: now,
             expiresAt: inOneYear,
-            profileId: profile.id
+            userId: user.id
           }
         })
 
@@ -221,13 +221,13 @@ export async function postProfile(
       }
 
       if (addressProof) {
-        const addressProofDoc = await tx.document.create({
+        const addressProofDoc = await tx.userDocument.create({
           data: {
             type: DocumentType.PROOF_OF_ADDRESS,
             fileUrl: addressProof.url,
             issuedAt: now,
             expiresAt: inThreeMonths,
-            profileId: profile.id
+            userId: user.id
           }
         })
 

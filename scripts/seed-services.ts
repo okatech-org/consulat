@@ -34,10 +34,19 @@ async function main() {
                   type: "select",
                   label: "Motif de la demande",
                   required: true,
-                  options: ["FIRST_REQUEST", "RENEWAL", "LOSS", "THEFT"]
+                  options: [{
+                    value: "RENEWAL",
+                    label: "Renouvellement"
+                  }, {
+                    value: "LOSS",
+                    label: "Perte"
+                  }, {
+                    value: "THEFT",
+                    label: "Vol"
+                  }]
                 },
                 {
-                  name: "previousPassportNumber",
+                  name: "passportNumber",
                   type: "text",
                   label: "Numéro du passeport précédent",
                   required: false

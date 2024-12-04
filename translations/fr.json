@@ -146,8 +146,10 @@
     },
     "callbacks": {
       "label": "Vous allez être redirigé sur la page ",
-      "/registration": "Inscription consulaire"
-    }
+      "/registration": "Inscription consulaire",
+      "/dashboard": "Tableau de bord"
+    },
+    "search_country": "Rechercher un pays"
   },
   "feedback": {
     "loading": {
@@ -472,7 +474,8 @@
       "inputs": {
         "phone": {
           "label": "Numéro de téléphone",
-          "placeholder": "+33612345678"
+          "placeholder": "+33612345678",
+          "placeholder-local": "612345678"
         },
         "email": {
           "label": "Adresse email",
@@ -1966,6 +1969,8 @@
         "marriage_registration": "Enregistrement de mariage",
         "consular_card": "Carte consulaire",
         "document_legalization": "Légalisation de document",
+        "identity_certificate": "Certificat d'identité",
+        "identity_photo": "Photo d'identité",
         "power_of_attorney": "Procuration",
         "other": "Autre démarche"
       },
@@ -2070,7 +2075,7 @@
         "main_info": "Informations principales",
         "duration": "Durée estimée",
         "price": "Frais consulaires",
-        "price_value": "{{price}} €",
+        "price_value": "{price} €",
         "price_free": "Gratuit",
         "documents": "Documents",
         "required_documents": "Documents requis",
@@ -2087,7 +2092,25 @@
           "marriage_certificate": "Acte de mariage",
           "passport": "Passeport",
           "identity_card": "Carte d'identité",
-          "residence_permit": "Titre de séjour"
+          "residence_permit": "Titre de séjour",
+          "passport_request": "Demande de passeport",
+          "birth_registration": "Déclaration de naissance",
+          "birth_transcription": "Transcription d'acte de naissance",
+          "marriage_transcription": "Transcription d'acte de mariage",
+          "death_registration": "Déclaration de décès",
+          "death_transcription": "Transcription d'acte de décès",
+          "celibacy_certificate": "Certificat de célibat",
+          "consular_registration": "Inscription consulaire",
+          "address_certificate": "Attestation de résidence",
+          "travel_permit": "Laissez-passer",
+          "marriage_registration": "Enregistrement de mariage",
+          "consular_card": "Carte consulaire",
+          "document_legalization": "Légalisation de document",
+          "identity_certificate": "Certificat d'identité",
+          "nationality_certificate": "Certificat de nationalité",
+          "identity_photo": "Photo d'identité",
+          "power_of_attorney": "Procuration",
+          "other": "Autre démarche"
         },
         "descriptions": {
           "birth_certificate": "Copie intégrale de l'acte de naissance",
@@ -2095,7 +2118,9 @@
           "marriage_certificate": "Copie intégrale de l'acte de mariage",
           "passport": "Passeport en cours de validité",
           "identity_card": "Carte nationale d'identité en cours de validité",
-          "residence_permit": "Titre de séjour en cours de validité"
+          "residence_permit": "Titre de séjour en cours de validité",
+          "identity_photo": "Photo d'identité récente sur fond blanc",
+          "nationality_certificate": "Certificat de nationalité en cours de validité"
         }
       }
     }

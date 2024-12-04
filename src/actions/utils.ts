@@ -40,11 +40,7 @@ export const processFileData: ProcessFileData = async (
         }
       }
 
-      if (file?.data) {
-        return file.data
-      }
-
-      return null
+      return file
     } catch (error) {
       console.error('File processing error:', error)
       throw new Error(

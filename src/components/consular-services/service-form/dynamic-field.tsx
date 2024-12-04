@@ -10,16 +10,33 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { Textarea } from '@/components/ui/textarea'
 
 interface FieldConfig {
   name: string
-  type: 'text' | 'email' | 'tel' | 'date' | 'select'
+  type: 'text' | 'email' | 'tel' | 'date' | 'select' | 'textarea' | 'number'
   label: string
   description?: string
   required?: boolean
   options?: { value: string; label: string }[]
+  placeholder?: string
+  validation?: {
+    min?: number
+    max?: number
+    minLength?: number
+    maxLength?: number
+    pattern?: string
+  }
 }
 
 interface DynamicFieldProps<T extends FieldValues> {
@@ -34,9 +51,83 @@ export function DynamicField({
                                form,
                                isPreFilled,
                                disabled
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                             }: DynamicFieldProps<any>) {
+                             }: DynamicFieldProps<FieldValues>) {
   const t = useTranslations('consular.services.form')
+
+  const renderFieldInput = (formField: FieldValues) => {
+    switch (field.type) {
+      case 'select':
+        return (
+          <Select
+            disabled={disabled}
+            onValueChange={formField.onChange}
+            defaultValue={formField.value}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={field.placeholder || t('select_placeholder')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {field.options?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+
+      case 'tel':
+        return (
+          <PhoneInput
+            {...formField}
+            disabled={disabled}
+            placeholder={field.placeholder}
+            className={cn(
+              isPreFilled && "bg-muted text-muted-foreground"
+            )}
+          />
+        )
+
+      case 'textarea':
+        return (
+          <Textarea
+            {...formField}
+            disabled={disabled}
+            placeholder={field.placeholder}
+            className={cn(
+              isPreFilled && "bg-muted text-muted-foreground"
+            )}
+          />
+        )
+
+      case 'date':
+        return (
+          <Input
+            {...formField}
+            type="date"
+            disabled={disabled}
+            className={cn(
+              isPreFilled && "bg-muted text-muted-foreground"
+            )}
+          />
+        )
+
+      default:
+        return (
+          <Input
+            {...formField}
+            type={field.type}
+            disabled={disabled}
+            placeholder={field.placeholder}
+            className={cn(
+              isPreFilled && "bg-muted text-muted-foreground"
+            )}
+          />
+        )
+    }
+  }
 
   return (
     <FormField
@@ -56,14 +147,7 @@ export function DynamicField({
           </div>
 
           <FormControl>
-            <Input
-              {...formField}
-              type={field.type}
-              disabled={disabled}
-              className={cn(
-                isPreFilled && "bg-muted text-muted-foreground"
-              )}
-            />
+            {renderFieldInput(formField)}
           </FormControl>
 
           {field.description && (

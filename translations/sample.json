@@ -146,8 +146,10 @@
     },
     "callbacks": {
       "label": "",
-      "/registration": ""
-    }
+      "/registration": "",
+      "/dashboard": ""
+    },
+    "search_country": ""
   },
   "feedback": {
     "loading": {
@@ -472,7 +474,8 @@
       "inputs": {
         "phone": {
           "label": "",
-          "placeholder": ""
+          "placeholder": "",
+          "placeholder-local": ""
         },
         "email": {
           "label": "",
@@ -1965,6 +1968,8 @@
         "marriage_registration": "",
         "consular_card": "",
         "document_legalization": "",
+        "identity_certificate": "",
+        "identity_photo": "",
         "power_of_attorney": "",
         "other": ""
       },
@@ -2086,7 +2091,25 @@
           "marriage_certificate": "",
           "passport": "",
           "identity_card": "",
-          "residence_permit": ""
+          "residence_permit": "",
+          "passport_request": "",
+          "birth_registration": "",
+          "birth_transcription": "",
+          "marriage_transcription": "",
+          "death_registration": "",
+          "death_transcription": "",
+          "celibacy_certificate": "",
+          "consular_registration": "",
+          "address_certificate": "",
+          "travel_permit": "",
+          "marriage_registration": "",
+          "consular_card": "",
+          "document_legalization": "",
+          "identity_certificate": "",
+          "nationality_certificate": "",
+          "identity_photo": "",
+          "power_of_attorney": "",
+          "other": ""
         },
         "descriptions": {
           "birth_certificate": "",
@@ -2094,7 +2117,9 @@
           "marriage_certificate": "",
           "passport": "",
           "identity_card": "",
-          "residence_permit": ""
+          "residence_permit": "",
+          "identity_photo": "",
+          "nationality_certificate": ""
         }
       }
     }

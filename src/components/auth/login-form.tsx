@@ -24,6 +24,7 @@ import { ROUTES } from '@/schemas/routes'
 import { LoginInput, LoginSchema } from '@/schemas/user'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, CheckCircle } from 'lucide-react'
+import { PhoneInput } from '@/components/ui/phone-input'
 
 interface LoginFormProps {
   successCallback?: () => void
@@ -110,7 +111,7 @@ export function LoginForm({
   }, [form])
 
   return (
-    <Card className="mx-auto shadow-card flex flex-col justify-center space-y-6 w-full sm:max-w-[400px]">
+    <Card className="mx-auto shadow-card flex flex-col justify-center space-y-6 w-full">
       <CardHeader>
         <CardTitle>{customTitle || t('welcome')}</CardTitle>
         <CardDescription>{customSubTitle || t('description')}</CardDescription>
@@ -137,17 +138,40 @@ export function LoginForm({
                       {t(`inputs.${loginType.toLowerCase()}.label`)}
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        id="identifier"
-                        type={loginType === 'EMAIL' ? 'email' : 'tel'}
-                        placeholder={t(`inputs.${loginType.toLowerCase()}.placeholder`)}
-                        autoComplete={loginType === 'EMAIL' ? 'email' : 'tel'}
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        aria-describedby="identifier-description"
-                      />
+                      <>
+                        {
+                          loginType === 'PHONE' && (
+                            <div className="flex w-full gap-2">
+                              <PhoneInput
+                                {...field}
+                                id="identifier"
+                                type="tel"
+                                placeholder={t(`inputs.phone.placeholder-local`)}
+                                autoComplete="tel"
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                aria-describedby="identifier-description"
+                              />
+                            </div>
+                          )
+                        }
+                        {
+                          loginType === 'EMAIL' && (
+                            <Input
+                              {...field}
+                              id="identifier"
+                              type="email"
+                              placeholder={t(`inputs.email.placeholder`)}
+                              autoComplete="email"
+                              autoCapitalize="none"
+                              autoCorrect="off"
+                              spellCheck={false}
+                              aria-describedby="identifier-description"
+                            />
+                          )
+                        }
+                      </>
                     </FormControl>
                     <TradFormMessage />
                   </FormItem>

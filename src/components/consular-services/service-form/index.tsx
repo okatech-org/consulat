@@ -1,159 +1,155 @@
+// src/components/consular-services/service-form/index.tsx
 'use client'
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { ConsularService, ServiceStep, UserDocument } from '@prisma/client'
-import { StepForm } from './step-form'
-import { DocumentsStep } from './documents-step'
-import { ReviewStep } from './review-step'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Loader } from 'lucide-react'
-import { StepIndicator } from './step-indicator'
+
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  ServiceFormData,
+  ServiceFormSchema,
+  ServiceStepConfig,
+  ServiceStepType
+} from '@/types/consular-service'
 import { FullProfile } from '@/types'
+import { DocumentsStep } from '@/components/consular-services/service-form/documents-step'
+import { StepIndicator } from '@/components/consular-services/service-form/step-indicator'
+import { InformationStep } from '@/components/consular-services/service-form/information-step'
+import { AppointmentStep } from '@/components/consular-services/service-form/appointment-step'
+import { ReviewStep } from '@/components/consular-services/service-form/review-step'
+import { FormNavigation } from '@/components/registration/navigation'
 
 interface ServiceFormProps {
-  service: ConsularService & { steps: ServiceStep[] }
+  service: {
+    id: string
+    steps: ServiceStepConfig[]
+    requiresAppointment: boolean
+  }
   profile: FullProfile | null
-  documents: UserDocument[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValues?: Record<keyof FullProfile, any>
-  isLoading?: boolean
+  defaultValues?: Partial<ServiceFormData>
 }
 
-export function ServiceForm({
-                              service,
-                              profile,
-                              documents,
-                              defaultValues,
-                              isLoading
-                            }: ServiceFormProps) {
-  const t = useTranslations('consular.services.form')
+export function ServiceForm({ service, profile, defaultValues }: ServiceFormProps) {
   const [currentStep, setCurrentStep] = useState(0)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [formData, setFormData] = useState<Record<string, any>>(defaultValues || {})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function onSubmit(data: Record<string, any>) {
-    console.log(data)
-  }
-
-  // Filtrer les documents déjà fournis et ceux à fournir
-  const existingDocuments = service.requiredDocuments.filter(
-    doc => documents?.some(d => d.type === doc)
-  )
-
-  const documentsToProvide = service.requiredDocuments.filter(
-    doc => !existingDocuments.includes(doc)
-  )
-
-  // Gérer la soumission d'une étape
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleStepSubmit = (stepData: Record<string, any>) => {
-    setFormData((prev: Record<string, unknown>) => ({
-      ...prev,
-      ...stepData
-    }))
-
-    if (currentStep < service.steps.length + 1) {
-      setCurrentStep(prev => prev + 1)
-    } else {
-      onSubmit(formData)
+  // Formulaire principal avec validation Zod
+  const form = useForm<ServiceFormData>({
+    resolver: zodResolver(ServiceFormSchema),
+    defaultValues: {
+      documents: {},
+      information: {},
+      ...defaultValues
     }
-  }
+  })
 
-  const handleBack = () => {
-    setCurrentStep(prev => prev - 1)
-  }
+  // Pré-remplir les champs depuis le profil
+  useEffect(() => {
+    if (profile) {
+      const currentStepConfig = service.steps[currentStep]
+      if (currentStepConfig.type === ServiceStepType.INFORMATION) {
+        const prefillData = currentStepConfig.fields?.reduce((acc, field) => {
+          if (field.profileField && profile[field.profileField]) {
+            acc[field.name] = profile[field.profileField]
+          }
+          return acc
+        }, {} as Record<string, any>)
+
+        if (prefillData) {
+          form.reset({ ...form.getValues(), information: prefillData })
+        }
+      }
+    }
+  }, [currentStep, profile, service.steps, form])
 
   // Rendu de l'étape courante
-  const renderStep = () => {
-    // Première étape : Documents
-    if (currentStep === 0) {
-      return (
-        <DocumentsStep
-          existingDocuments={existingDocuments}
-          requiredDocuments={documentsToProvide}
-          optionalDocuments={service.optionalDocuments}
-          onSubmit={handleStepSubmit}
-          defaultValues={formData.documents}
-        />
-      )
-    }
+  const renderCurrentStep = () => {
+    const stepConfig = service.steps[currentStep]
 
-    // Dernière étape : Revue
-    if (currentStep === service.steps.length + 1) {
-      return (
-        <ReviewStep
-          service={service}
-          data={formData}
-          onSubmit={handleStepSubmit}
-        />
-      )
-    }
+    switch (stepConfig.type) {
+      case ServiceStepType.DOCUMENTS:
+        return (
+          <DocumentsStep
+            documents={stepConfig.documents || []}
+            form={form}
+            isSubmitting={isSubmitting}
+          />
+        )
 
-    // Étapes dynamiques du service
-    const step = service.steps[currentStep - 1]
-    return (
-      <StepForm
-        step={step}
-        profile={profile}
-        onSubmit={handleStepSubmit}
-      />
-    )
+      case ServiceStepType.INFORMATION:
+        return (
+          <InformationStep
+            fields={stepConfig.fields || []}
+            form={form}
+            isSubmitting={isSubmitting}
+          />
+        )
+
+      case ServiceStepType.APPOINTMENT:
+        return (
+          <AppointmentStep
+            form={form}
+            isSubmitting={isSubmitting}
+          />
+        )
+
+      case ServiceStepType.REVIEW:
+        return (
+          <ReviewStep
+            service={service}
+            data={form.getValues()}
+            onEdit={setCurrentStep}
+          />
+        )
+
+      default:
+        return null
+    }
+  }
+
+  // Navigation entre les étapes
+  const handleNext = async () => {
+    const isValid = await form.trigger()
+    if (isValid) {
+      if (currentStep === service.steps.length - 1) {
+        await handleSubmit()
+      } else {
+        setCurrentStep(prev => prev + 1)
+      }
+    }
+  }
+
+  // Soumission finale
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true)
+      const data = form.getValues()
+
+      // Logique de soumission...
+
+    } catch (error) {
+      console.error('Submission error:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="space-y-6">
       <StepIndicator
+        steps={service.steps}
         currentStep={currentStep}
-        totalSteps={service.steps.length + 2}
-        steps={[
-          {
-            title: t('steps.documents'),
-            description: t('steps.documents_description')
-          },
-          ...service.steps.map(step => ({
-            title: step.title,
-            description: step.description || ''
-          })),
-          {
-            title: t('steps.review'),
-            description: t('steps.review_description')
-          }
-        ]}
+        onChange={setCurrentStep}
       />
 
-      <Card className="p-6">
-        {renderStep()}
-      </Card>
+      {renderCurrentStep()}
 
-      <div className="flex justify-between">
-        {currentStep > 0 && (
-          <Button
-            onClick={handleBack}
-            variant="outline"
-            disabled={isLoading}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('navigation.previous')}
-          </Button>
-        )}
-
-        <Button
-          onClick={() => handleStepSubmit(formData)}
-          disabled={isLoading}
-          className="ml-auto"
-        >
-          {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-          {currentStep === service.steps.length + 1
-            ? t('navigation.submit')
-            : t('navigation.next')
-          }
-          {!isLoading && currentStep < service.steps.length + 1 && (
-            <ArrowRight className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      </div>
+      <FormNavigation
+        currentStep={currentStep}
+        totalSteps={service.steps.length}
+        onNext={handleNext}
+        onPrevious={() => setCurrentStep(prev => prev - 1)}
+        isLoading={isSubmitting}
+      />
     </div>
   )
 }

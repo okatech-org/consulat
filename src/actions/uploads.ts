@@ -9,31 +9,29 @@ export async function uploadFiles(
 ) {
   try {
     const files = fd.getAll('files') as File[]
-
     if (!files || files.length === 0) {
       throw new Error('No files provided')
     }
 
-    return await utapi.uploadFiles(files)
+    const uploadedFiles = await Promise.all(
+      files.map(async (file) => {
+        const response = await utapi.uploadFiles(file)
+        return response?.data
+      })
+    )
 
+    return uploadedFiles.filter(Boolean)
   } catch (error) {
     console.error('Upload error:', error)
-    throw error instanceof Error
-      ? error
-      : new Error('Failed to upload files')
+    throw error instanceof Error ? error : new Error('Failed to upload files')
   }
 }
 
 export async function deleteFiles(
   keys: string[],
 ) {
-  const promises = []
-  for (const key of keys) {
-    promises.push(utapi.deleteFiles(key))
-  }
-
   try {
-    return Promise.all(promises)
+    await Promise.all(keys.map(key => utapi.deleteFiles(key)))
   } catch (error) {
     throw new Error('Error deleting files')
   }

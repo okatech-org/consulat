@@ -1,119 +1,75 @@
 'use client'
-import { useTranslations } from 'next-intl'
-import { ConsularService, ServiceStep } from '@prisma/client'
+
+import { ServiceFormData, ServiceStepConfig } from '@/types/consular-service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/button'
+import { Pencil } from 'lucide-react'
+import {
+  AppointmentReview,
+  DocumentsReview,
+  InformationReview,
+} from '@/components/consular-services/service-form/review'
 
 interface ReviewStepProps {
-  service: ConsularService & { steps: ServiceStep[] }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: Record<string, any>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSubmit: (data: Record<string, any>) => void
+  service: {
+    steps: ServiceStepConfig[]
+  }
+  data: ServiceFormData
+  onEdit: (step: number) => void
 }
 
-export function ReviewStep({ service, data, onSubmit }: ReviewStepProps) {
+export function ReviewStep({ service, data, onEdit }: ReviewStepProps) {
   const t = useTranslations('consular.services.form')
-
-  const renderDocumentStatus = (type: string) => {
-    const document = data.documents?.[type]
-    const isRequired = service.requiredDocuments.includes(type as any)
-
-    return (
-      <div className="flex items-center justify-between">
-        <span>{t(`documents.types.${type.toLowerCase()}`)}</span>
-        <Badge
-          variant={document
-            ? "success"
-            : isRequired
-              ? "destructive"
-              : "secondary"
-          }
-        >
-          {document
-            ? t('documents.status.uploaded')
-            : isRequired
-              ? t('documents.status.missing')
-              : t('documents.status.optional')
-          }
-        </Badge>
-      </div>
-    )
-  }
-
-  const renderStepData = (step: ServiceStep) => {
-    const stepData = data[`step_${step.id}`]
-    if (!stepData) return null
-
-    return (
-      <div className="space-y-2">
-        {Object.entries(stepData).map(([key, value]) => (
-          <div key={key} className="flex justify-between">
-            <span className="text-muted-foreground">
-              {t(`fields.${key}`)}
-            </span>
-            <span>{value as string}</span>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // Vérifier si tous les documents requis sont fournis
-  const isComplete = service.requiredDocuments.every(
-    type => data.documents?.[type]
-  )
 
   return (
     <div className="space-y-6">
-      {/* Alerte de statut */}
-      <Alert variant={isComplete ? "default" : "destructive"}>
-        {isComplete ? (
-          <CheckCircle2 className="h-4 w-4" />
-        ) : (
-          <AlertTriangle className="h-4 w-4" />
-        )}
-        <AlertTitle>
-          {isComplete
-            ? t('review.complete.title')
-            : t('review.incomplete.title')
-          }
-        </AlertTitle>
-        <AlertDescription>
-          {isComplete
-            ? t('review.complete.description')
-            : t('review.incomplete.description')
-          }
-        </AlertDescription>
-      </Alert>
-
-      {/* Section Documents */}
+      {/* Documents */}
       <Card>
-        <CardHeader>
-          <CardTitle>{t('review.documents.title')}</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{t('review.documents')}</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => onEdit(0)}>
+            <Pencil className="h-4 w-4" />
+            {t('actions.edit')}
+          </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {[...service.requiredDocuments, ...service.optionalDocuments].map(type => (
-            <div key={type}>
-              {renderDocumentStatus(type)}
-            </div>
-          ))}
+        <CardContent>
+          <DocumentsReview documents={data.documents} />
         </CardContent>
       </Card>
 
-      {/* Sections pour chaque étape */}
-      {service.steps.map(step => (
-        <Card key={step.id}>
-          <CardHeader>
-            <CardTitle>{step.title}</CardTitle>
+      {/* Informations */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{t('review.information')}</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => onEdit(1)}>
+            <Pencil className="h-4 w-4" />
+            {t('actions.edit')}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <InformationReview
+            data={data.information}
+            fields={service.steps[1].fields || []}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Rendez-vous si présent */}
+      {data.appointment && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>{t('review.appointment')}</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => onEdit(2)}>
+              <Pencil className="h-4 w-4" />
+              {t('actions.edit')}
+            </Button>
           </CardHeader>
           <CardContent>
-            {renderStepData(step)}
+            <AppointmentReview appointment={data.appointment} />
           </CardContent>
         </Card>
-      ))}
+      )}
     </div>
   )
 }
