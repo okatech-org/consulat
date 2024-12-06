@@ -3,10 +3,12 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
-import { Step } from '@/components/consular-services/service-form/index'
 
 interface StepIndicatorProps {
-  steps:  Step[]
+  steps:  {
+    title: string
+    description: string
+  }[]
   currentStep: number
 }
 

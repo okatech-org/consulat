@@ -252,7 +252,8 @@
       "zipcode_required": "",
       "city_required": "",
       "country_required": "",
-      "update_failed": ""
+      "update_failed": "",
+      "Required": ""
     },
     "profile": {
       "errors": {
@@ -2124,7 +2125,21 @@
         "prefilled": "",
         "appointment": {
           "title": "",
-          "description": ""
+          "description": "",
+          "select_date": "",
+          "select_time": "",
+          "no_slots": "",
+          "no_slots_description": "",
+          "select_another_date": "",
+          "select_another_time": "",
+          "appointment_date": "",
+          "appointment_time": "",
+          "appointment_location": "",
+          "appointment_location_placeholder": "",
+          "appointment_location_description": "",
+          "appointment_details": "",
+          "appointment_details_placeholder": "",
+          "appointment_duration": ""
         },
         "select_placeholder": ""
       },

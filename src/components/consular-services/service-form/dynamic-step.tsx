@@ -1,5 +1,5 @@
 import { ServiceField, ServiceStep } from '@/types/consular-service'
-import { DynamicField } from '@/components/consular-services/service-form/dynamic-field'
+import { DynamicField } from '@/components/ui/dynamic-field'
 import { generateFormSchema } from '@/lib/form/schema-generator'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -26,6 +26,7 @@ interface DynamicStepProps {
 
 
 export default function DynamicStep({fields, navigation, isLoading = false, onSubmit}: DynamicStepProps) {
+  const ref = React.useRef<HTMLFormElement>(null)
   const stepSchema = generateFormSchema(fields)
   type StepSchemaType = z.infer<typeof stepSchema>
   const form = useForm<StepSchemaType>({
@@ -33,13 +34,12 @@ export default function DynamicStep({fields, navigation, isLoading = false, onSu
   })
 
   function handleSubmit(data: StepSchemaType) {
-    console.log("data", data)
     onSubmit(data)
   }
 
  return (
    <Form {...form}>
-     <form onSubmit={form.handleSubmit(handleSubmit)} className={"space-y-4"}>
+     <form ref={ref} onSubmit={form.handleSubmit(handleSubmit)} className={"space-y-4"}>
        <Card className="overflow-hidden">
          <CardContent className={`grid grid-cols-1 gap-4 pt-4 ${fields.length > 1 && 'md:grid-cols-2'}`}>
            {fields.map((item, index) => {
@@ -58,7 +58,9 @@ export default function DynamicStep({fields, navigation, isLoading = false, onSu
              currentStep={navigation.currentStep}
              totalSteps={navigation.steps.length}
              isLoading={isLoading}
-             onNext={navigation.handleNext}
+             onNext={() => {
+               ref.current?.dispatchEvent(new Event('submit', {cancelable: true}))
+             }}
              onPrevious={navigation.handlePrevious}
              isValid={true}
              onSubmit={navigation.handleFinalSubmit}
@@ -75,6 +77,5 @@ export default function DynamicStep({fields, navigation, isLoading = false, onSu
        )}
      </form>
    </Form>
-
  )
 }

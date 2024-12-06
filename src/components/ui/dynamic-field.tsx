@@ -1,27 +1,16 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import { FieldValues, UseFormReturn } from 'react-hook-form'
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage
-} from '@/components/ui/form'
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, TradFormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Textarea } from '@/components/ui/textarea'
-import { ServiceField } from '@/types/consular-service'
+import { ServiceField, ServiceFieldType } from '@/types/consular-service'
+import { DocumentUploadField } from '@/components/ui/document-upload'
+import React from 'react'
 
 interface DynamicFieldProps<T extends FieldValues> {
   data: ServiceField
@@ -40,7 +29,18 @@ export function DynamicField({
 
   const renderFieldInput = (formField: FieldValues) => {
     switch (data.type) {
-      case 'select':
+      case ServiceFieldType.FILE:
+        return (
+          <DocumentUploadField
+            id={data.name}
+            field={data}
+            form={form}
+            label={data.label}
+            description={data.description}
+            required={data.required}
+          />
+        )
+      case ServiceFieldType.SELECT:
         return (
           <Select
             disabled={disabled}
@@ -62,7 +62,8 @@ export function DynamicField({
           </Select>
         )
 
-      case 'phone':
+      case ServiceFieldType.PHONE:
+      case ServiceFieldType.TEL:
         return (
           <PhoneInput
             {...formField}
@@ -74,7 +75,7 @@ export function DynamicField({
           />
         )
 
-      case 'textarea':
+      case ServiceFieldType.TEXTAREA:
         return (
           <Textarea
             {...formField}
@@ -86,7 +87,7 @@ export function DynamicField({
           />
         )
 
-      case 'date':
+      case ServiceFieldType.DATE:
         return (
           <Input
             {...formField}
@@ -137,7 +138,7 @@ export function DynamicField({
           {data.description && (
             <FormDescription>{data.description}</FormDescription>
           )}
-          <FormMessage />
+          <TradFormMessage />
         </FormItem>
       )}
     />

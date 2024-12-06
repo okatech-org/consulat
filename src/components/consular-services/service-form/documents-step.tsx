@@ -18,7 +18,7 @@ interface DocumentsStepProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (Data: any) => void
   isLoading?: boolean
-  formRef?: React.RefObject<HTMLFormElement>
+  formRef: React.RefObject<HTMLFormElement>
   navigation?: {
     steps: ServiceStep[]
     currentStep: number
@@ -37,6 +37,7 @@ export function DocumentsStep({
                                 isLoading = false,
                               }: DocumentsStepProps) {
   const t = useTranslations('consular')
+  const ref = React.useRef<HTMLFormElement>(null)
 
   const documentsFields: ServiceField[] = requiredDocuments.map((name) => {
     const field: ServiceField = {
@@ -57,9 +58,13 @@ export function DocumentsStep({
     resolver: zodResolver(documentsSchema),
   })
 
+  function handleFormSubmit(data: typeof documentsSchema) {
+    onSubmit(data)
+  }
+
   return (
     <Form {...documentsForm}>
-      <form ref={formRef} onSubmit={documentsForm.handleSubmit(onSubmit)} className={"space-y-4"}>
+      <form ref={ref} onSubmit={documentsForm.handleSubmit(handleFormSubmit)} className={"space-y-4"}>
         <Card className="overflow-hidden">
           <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <AnimatePresence mode="sync">
@@ -83,8 +88,6 @@ export function DocumentsStep({
                         required={item.required}
                         description={item.description}
                         form={documentsForm}
-                        disabled={isLoading ?? item.defaultValue ?? false}
-                        existingFile={item.defaultValue}
                       />
                     )}
                   />
@@ -99,7 +102,9 @@ export function DocumentsStep({
               currentStep={navigation.currentStep}
               totalSteps={navigation.steps.length}
               isLoading={isLoading}
-              onNext={navigation.handleNext}
+              onNext={() => {
+                formRef.current?.dispatchEvent(new Event('submit', { cancelable: true }))
+              }}
               onPrevious={navigation.handlePrevious}
               isValid={true}
               onSubmit={navigation.handleFinalSubmit}

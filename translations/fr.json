@@ -252,7 +252,8 @@
       "zipcode_required": "Le code postal est requis",
       "city_required": "La ville est requise",
       "country_required": "Le pays est requis",
-      "update_failed": "Échec de la mise à jour"
+      "update_failed": "Échec de la mise à jour",
+      "Required": "Ce champ est requis"
     },
     "profile": {
       "errors": {
@@ -2125,7 +2126,21 @@
         "prefilled": "Pré-rempli",
         "appointment": {
           "title": "Prenez rendez-vous",
-          "description": "Choisissez une date et un créneau horaire pour votre démarche"
+          "description": "Choisissez une date et un créneau horaire pour votre démarche",
+          "select_date": "Sélectionnez une date",
+          "select_time": "Sélectionnez un créneau horaire",
+          "no_slots": "Aucun créneau disponible",
+          "no_slots_description": "Il n'y a actuellement aucun créneau horaire disponible pour cette démarche",
+          "select_another_date": "Sélectionnez une autre date",
+          "select_another_time": "Sélectionnez un autre créneau horaire",
+          "appointment_date": "Date du rendez-vous",
+          "appointment_time": "Créneau horaire",
+          "appointment_location": "Lieu du rendez-vous",
+          "appointment_location_placeholder": "Sélectionnez un lieu",
+          "appointment_location_description": "Choisissez un lieu pour votre rendez-vous",
+          "appointment_details": "Détails du rendez-vous",
+          "appointment_details_placeholder": "Ajoutez des détails supplémentaires",
+          "appointment_duration": "Durée du rendez-vous"
         },
         "select_placeholder": "Sélectionnez une option"
       },

@@ -1,18 +1,22 @@
 'use client'
 
-import { useForm, UseFormReturn } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { ServiceStep } from '@/types/consular-service'
-import { Calendar } from '@/components/ui/calendar'
-import { TimeSelect } from '@/components/ui/time-select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from 'next-intl'
-import { FormField } from '@/components/ui/form'
+import { Form } from '@/components/ui/form'
 import { FormNavigation } from '@/components/consular-services/service-form/form-navigation'
 import { MobileProgress } from '@/components/registration/mobile-progress'
 import React from 'react'
 
+type AppointmentSchemaInput = {
+  date: string
+  time: string
+  duration: number
+}
+
 interface AppointmentStepProps {
-  isSubmitting: boolean,
+  onSubmit: (data: AppointmentSchemaInput) => void
   isLoading?: boolean
   navigation?: {
     steps: ServiceStep[]
@@ -23,82 +27,57 @@ interface AppointmentStepProps {
   }
 }
 
-export function AppointmentStep({ isSubmitting, navigation, isLoading = false }: AppointmentStepProps) {
+export function AppointmentStep({ navigation, isLoading = false, onSubmit }: AppointmentStepProps) {
+  const formRef = React.useRef<HTMLFormElement>(null)
   const t = useTranslations('consular.services.form')
 
-  const form: UseFormReturn<{
-    appointment: {
-      date?: Date
-      time?: string
-    }
-  }> = useForm({
+  const form = useForm<AppointmentSchemaInput>({
     defaultValues: {
-      appointment: {
-        date: undefined,
-        time: undefined,
-      },
-    },
+      date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`,
+      time: '09:00',
+      duration: 30,
+    }
   })
 
+  function handleSubmit(data: AppointmentSchemaInput) {
+    onSubmit(data)
+  }
+
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('appointment.title')}</CardTitle>
-          <CardDescription>{t('appointment.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <FormField
-            control={form.control}
-            name="appointment.date"
-            render={({ field }) => (
-              <Calendar
-                mode="single"
-                selected={field.value}
-                onSelect={field.onChange}
-                disabled={(date) => {
-                  // Logique pour désactiver certaines dates
-                  return date < new Date() || date.getDay() === 0 || date.getDay() === 6
-                }}
-                initialFocus
-              />
-            )}
-          />
+    <Form {...form}>
+      <form ref={formRef} onSubmit={form.handleSubmit(handleSubmit)} className={"space-y-4"}>
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>{t('appointment.title')}</CardTitle>
+            <CardDescription>{t('appointment.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className={`grid grid-cols-1 gap-4`}>
+          </CardContent>
+        </Card>
+        {navigation && (
+          <>
+            <FormNavigation
+              currentStep={navigation.currentStep}
+              totalSteps={navigation.steps.length}
+              isLoading={isLoading}
+              onNext={() => {
+                formRef.current?.dispatchEvent(new Event('submit', {cancelable: true}))
+              }}
+              onPrevious={navigation.handlePrevious}
+              isValid={true}
+              onSubmit={navigation.handleFinalSubmit}
+            />
 
-          <FormField
-            control={form.control}
-            name="appointment.time"
-            render={({ field }) => (
-              <TimeSelect
-                value={field.value}
-                onChange={field.onChange}
-                disabled={isSubmitting}
-              />
-            )}
-          />
-        </CardContent>
-      </Card>
-      {navigation && (
-        <>
-          <FormNavigation
-            currentStep={navigation.currentStep}
-            totalSteps={navigation.steps.length}
-            isLoading={isLoading}
-            onNext={navigation.handleNext}
-            onPrevious={navigation.handlePrevious}
-            isValid={true}
-            onSubmit={navigation.handleFinalSubmit}
-          />
-
-          {/* Progression mobile */}
-          <MobileProgress
-            currentStep={navigation.currentStep}
-            totalSteps={navigation.steps.length}
-            stepTitle={navigation.steps[navigation.currentStep].title}
-            isOptional={false}
-          />
-        </>
-      )}
-    </div>
+            {/* Progression mobile */}
+            <MobileProgress
+              currentStep={navigation.currentStep}
+              totalSteps={navigation.steps.length}
+              stepTitle={navigation.steps[navigation.currentStep].title}
+              isOptional={false}
+            />
+          </>
+        )}
+      </form>
+    </Form>
   )
 }

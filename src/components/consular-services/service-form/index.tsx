@@ -1,6 +1,6 @@
 'use client'
 
-import { ConsularService, ServiceField, ServiceFormData, ServiceStep } from '@/types/consular-service'
+import { ConsularService, ServiceField, ServiceFieldType, ServiceStep } from '@/types/consular-service'
 import { useTranslations } from 'next-intl'
 import { DocumentsStep } from './documents-step'
 import { StepIndicator } from './step-indicator'
@@ -28,10 +28,15 @@ export function ServiceForm({
   const t = useTranslations('consular.services.form')
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState<ServiceFormData>({
-    documents: {},
-    appointment: undefined,
-  });
+  const currentFormRef = React.useRef<HTMLFormElement>(null)
+  const [documentsForm, setDocumentsForm] = useState<Record<DocumentType, File | undefined>>()
+  const [appointmentForm, setAppointmentForm] = useState<{
+    date: string
+    time: string
+    duration: number
+  }>()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dynamicStepsForm, setDynamicStepsForm] = useState<Record<string, any>>();
   const {toast} = useToast()
 
   // Construire les étapes du formulaire
@@ -44,6 +49,16 @@ export function ServiceForm({
       description: t('steps.documents_description'),
       isComplete: false,
       component: renderDocumentsStep(),
+      fields: service.requiredDocuments.map((name) => {
+        return {
+          name,
+          type: ServiceFieldType.FILE,
+          required: true,
+          label: t(`documents.types.${name.toLowerCase()}`),
+          description: t(`documents.descriptions.${name.toLowerCase()}`),
+          defaultValue: documentsForm?.[name],
+        }
+      })
     })
   }
 
@@ -54,19 +69,27 @@ export function ServiceForm({
       }
 
       steps.push({
-        key: step.key,
+        key: step.id ?? `step-${steps.length + 1}`,
         title: step.title,
         description: step.description ?? '',
         isComplete: false,
+        fields: JSON.parse(step.fields as unknown as string).map((field: ServiceField) => {
+          return {
+            ...field,
+            required: true,
+            defaultValue: dynamicStepsForm?.[field.name],
+          }
+        }),
         component: <DynamicStep
           fields={formatServiceFields(step.fields as unknown as string)}
           onSubmit={data => {
-          setFormData(prev => {
+          setDynamicStepsForm(prev => {
             return {
               ...prev,
-              [step.key]: data
+              [step.key ?? `step-${steps.length + 1}`]: data
             }
           })
+            handleNext()
         }}
           navigation={{
             steps,
@@ -86,8 +109,28 @@ export function ServiceForm({
       title: t('steps.appointment'),
       description: t('steps.appointment_description'),
       isComplete: false,
+      fields: [
+        {
+          name: 'date',
+          type: ServiceFieldType.DATE,
+          required: true,
+          label: t('appointment.appointment_date'),
+          defaultValue: appointmentForm?.date,
+        },
+        {
+          name: 'duration',
+          type: ServiceFieldType.NUMBER,
+          required: true,
+          label: t('appointment.appointment_duration'),
+          defaultValue: appointmentForm?.duration,
+        }
+      ],
       component: <AppointmentStep
-        isSubmitting={isLoading}
+        isLoading={isLoading}
+        onSubmit={(data) => {
+          setAppointmentForm(data)
+          handleNext()
+        }}
         navigation={{
           steps,
           currentStep,
@@ -140,15 +183,11 @@ export function ServiceForm({
     } as Record<DocumentType, string>
     return (
       <DocumentsStep
+        formRef={currentFormRef}
         requiredDocuments={service.requiredDocuments}
         profilDocuments={profileDocuments}
         onSubmit={(data) => {
-          setFormData(prev => {
-            return {
-              ...prev,
-              documents: data
-            }
-          })
+          setDocumentsForm(data)
           handleNext()
         }}
         isLoading={isLoading}
@@ -165,7 +204,6 @@ export function ServiceForm({
 
 
   function handleNext() {
-    console.log(formData)
     setCurrentStep(currentStep + 1)
   }
 

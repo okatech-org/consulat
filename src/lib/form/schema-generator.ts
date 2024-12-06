@@ -1,36 +1,27 @@
 import { ServiceField } from '@/types/consular-service'
 import { z } from 'zod'
+import {
+  DateSchema,
+  DocumentFileSchema,
+  EmailSchema,
+  NumberSchema,
+  PhoneSchema,
+  TextareaSchema,
+} from '@/schemas/inputs'
 
 export function generateFieldSchema(field: ServiceField): z.ZodType {
   // Schéma de base selon le type
   switch (field.type) {
+    case 'file':
+      return DocumentFileSchema
     case 'email':
-      return z.string()
-        .min(1, 'messages.errors.required')
-        .email('messages.errors.invalid_email')
-
+      return EmailSchema
     case 'phone':
-      return z.string()
-        .min(1, 'messages.errors.required')
-        .regex(
-          /^\+?[1-9]\d{1,14}$/,
-          'messages.errors.invalid_phone'
-        )
-
+      return PhoneSchema
     case 'date':
-      return z.string()
-        .min(1, 'messages.errors.required')
-        .refine(
-          (val) => !isNaN(Date.parse(val)),
-          'messages.errors.invalid_date'
-        )
-
+      return DateSchema
     case 'number':
-      return z.number({
-        required_error: 'messages.errors.required',
-        invalid_type_error: 'messages.errors.invalid_number',
-      })
-
+      return NumberSchema
     case 'select':
       if (!field.options?.length) {
         throw new Error('Select field must have options')
@@ -44,9 +35,7 @@ export function generateFieldSchema(field: ServiceField): z.ZodType {
       )
 
     case 'textarea':
-      return z.string()
-        .min(1, 'messages.errors.required')
-        .max(1000, 'messages.errors.text_too_long')
+      return TextareaSchema
 
     default:
       return z.string()

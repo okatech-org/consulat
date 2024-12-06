@@ -6,6 +6,7 @@ import { Pencil } from 'lucide-react'
 import { FormNavigation } from '@/components/consular-services/service-form/form-navigation'
 import { MobileProgress } from '@/components/registration/mobile-progress'
 import React from 'react'
+import { DocumentStatus, InfoField} from '@/components/ui/info-field'
 
 interface ReviewStepProps {
   steps: ServiceStep[]
@@ -40,7 +41,23 @@ export function ReviewStep({ steps, navigation, onEdit, isLoading = false }: Rev
             </Button>
           </CardHeader>
           <CardContent>
-            {/* Rendu des données selon le type d'étape */}
+            {step.fields?.map((field, index) => {
+              if (field.type === "file") {
+                return <DocumentStatus
+                  key={index + field.name}
+                  type={field.label}
+                  isUploaded={!!field.defaultValue}
+                  required={true}
+                />
+              }
+
+              return <InfoField
+                required={true}
+                label={field.label}
+                key={index + field.name}
+                value={field.defaultValue}
+              />
+            })}
           </CardContent>
         </Card>
       ))}
