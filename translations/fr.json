@@ -2125,22 +2125,46 @@
         "prefilled_fields_info": "Les champs pré-remplis sont basés sur les informations de votre profil",
         "prefilled": "Pré-rempli",
         "appointment": {
-          "title": "Prenez rendez-vous",
-          "description": "Choisissez une date et un créneau horaire pour votre démarche",
-          "select_date": "Sélectionnez une date",
-          "select_time": "Sélectionnez un créneau horaire",
+          "title": "Prise de rendez-vous",
+          "description": "Sélectionnez une date et un créneau horaire disponible",
+          "select_date": "Sélectionner une date",
+          "select_time": "Sélectionner un horaire",
           "no_slots": "Aucun créneau disponible",
-          "no_slots_description": "Il n'y a actuellement aucun créneau horaire disponible pour cette démarche",
-          "select_another_date": "Sélectionnez une autre date",
-          "select_another_time": "Sélectionnez un autre créneau horaire",
+          "no_slots_description": "Aucun créneau n'est disponible pour cette date. Veuillez sélectionner une autre date.",
+          "select_another_date": "Sélectionner une autre date",
+          "select_another_time": "Sélectionner un autre horaire",
           "appointment_date": "Date du rendez-vous",
-          "appointment_time": "Créneau horaire",
+          "appointment_time": "Heure du rendez-vous",
+          "appointment_duration": "Durée du rendez-vous",
           "appointment_location": "Lieu du rendez-vous",
-          "appointment_location_placeholder": "Sélectionnez un lieu",
-          "appointment_location_description": "Choisissez un lieu pour votre rendez-vous",
           "appointment_details": "Détails du rendez-vous",
-          "appointment_details_placeholder": "Ajoutez des détails supplémentaires",
-          "appointment_duration": "Durée du rendez-vous"
+          "confirm": "Confirmer le rendez-vous",
+          "type": {
+            "document_submission": "Dépôt de documents",
+            "document_collection": "Retrait de documents",
+            "interview": "Entretien",
+            "other": "Autre"
+          },
+          "status": {
+            "pending": "En attente",
+            "confirmed": "Confirmé",
+            "cancelled": "Annulé",
+            "completed": "Terminé",
+            "missed": "Manqué"
+          }
+        },
+        "schedule": {
+          "title": "Horaires d'ouverture",
+          "days": {
+            "monday": "Lundi",
+            "tuesday": "Mardi",
+            "wednesday": "Mercredi",
+            "thursday": "Jeudi",
+            "friday": "Vendredi"
+          },
+          "closed": "Fermé",
+          "morning": "Matin",
+          "afternoon": "Après-midi"
         },
         "select_placeholder": "Sélectionnez une option"
       },

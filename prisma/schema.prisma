@@ -237,7 +237,9 @@ model Consulate {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  Appointment Appointment[]
+  appointments Appointment[]
+  schedule     ConsulateSchedule[]
+  timeSlots    TimeSlot[]
 }
 
 model Country {
@@ -449,8 +451,7 @@ model ServiceRequest {
   messages  Message[] // Communications
 
   // Rendez-vous associé (si applicable)
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
-  appointmentId String?
+  appointment Appointment?
 
   // Suivi
   submittedAt DateTime?
@@ -474,15 +475,17 @@ model Appointment {
   status   AppointmentStatus @default(PENDING)
 
   // Relations
-  userId      String
-  user        User             @relation(fields: [userId], references: [id])
-  consulateId String
-  consulate   Consulate        @relation(fields: [consulateId], references: [id])
-  requests    ServiceRequest[] // Demandes associées
+  userId           String
+  user             User            @relation(fields: [userId], references: [id])
+  consulateId      String
+  consulate        Consulate       @relation(fields: [consulateId], references: [id])
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String?         @unique
 
   // Métadonnées
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  TimeSlot  TimeSlot[]
 
   @@index([userId])
   @@index([consulateId])
@@ -503,4 +506,28 @@ enum AppointmentType {
   DOCUMENT_COLLECTION
   INTERVIEW
   OTHER
+}
+
+// Horaires d'ouverture du consulat
+model ConsulateSchedule {
+  id          String    @id @default(cuid())
+  consulateId String
+  consulate   Consulate @relation(fields: [consulateId], references: [id])
+  dayOfWeek   Int // 0-6 pour lundi-dimanche
+  openTime    String // Format "HH:mm"
+  closeTime   String
+  isOpen      Boolean   @default(true)
+}
+
+// Créneaux de rendez-vous
+model TimeSlot {
+  id            String       @id @default(cuid())
+  consulateId   String
+  consulate     Consulate    @relation(fields: [consulateId], references: [id])
+  startTime     DateTime
+  endTime       DateTime
+  duration      Int // en minutes
+  isAvailable   Boolean      @default(true)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  appointmentId String?
 }
