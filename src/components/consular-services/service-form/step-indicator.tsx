@@ -3,19 +3,14 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
-
-interface Step {
-  title: string
-  description: string
-}
+import { Step } from '@/components/consular-services/service-form/index'
 
 interface StepIndicatorProps {
-  steps: Step[]
+  steps:  Step[]
   currentStep: number
-  totalSteps: number
 }
 
-export function StepIndicator({ steps, currentStep, totalSteps }: StepIndicatorProps) {
+export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
   return (
     <div className="relative">
       {/* Barre de progression */}
@@ -23,7 +18,7 @@ export function StepIndicator({ steps, currentStep, totalSteps }: StepIndicatorP
         <motion.div
           className="h-full bg-primary"
           initial={{ width: '0%' }}
-          animate={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+          animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           transition={{ duration: 0.3 }}
         />
       </div>

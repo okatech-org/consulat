@@ -21,33 +21,17 @@ import { PhoneInput } from '@/components/ui/phone-input'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Textarea } from '@/components/ui/textarea'
-
-interface FieldConfig {
-  name: string
-  type: 'text' | 'email' | 'tel' | 'date' | 'select' | 'textarea' | 'number'
-  label: string
-  description?: string
-  required?: boolean
-  options?: { value: string; label: string }[]
-  placeholder?: string
-  validation?: {
-    min?: number
-    max?: number
-    minLength?: number
-    maxLength?: number
-    pattern?: string
-  }
-}
+import { ServiceField } from '@/types/consular-service'
 
 interface DynamicFieldProps<T extends FieldValues> {
-  field: FieldConfig
+  data: ServiceField
   form: UseFormReturn<T>
   isPreFilled?: boolean
   disabled?: boolean
 }
 
 export function DynamicField({
-                               field,
+                               data,
                                form,
                                isPreFilled,
                                disabled
@@ -55,7 +39,7 @@ export function DynamicField({
   const t = useTranslations('consular.services.form')
 
   const renderFieldInput = (formField: FieldValues) => {
-    switch (field.type) {
+    switch (data.type) {
       case 'select':
         return (
           <Select
@@ -65,11 +49,11 @@ export function DynamicField({
           >
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder={field.placeholder || t('select_placeholder')} />
+                <SelectValue placeholder={data.placeholder || t('select_placeholder')} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {field.options?.map((option) => (
+              {data.options?.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -78,12 +62,12 @@ export function DynamicField({
           </Select>
         )
 
-      case 'tel':
+      case 'phone':
         return (
           <PhoneInput
             {...formField}
             disabled={disabled}
-            placeholder={field.placeholder}
+            placeholder={data.placeholder}
             className={cn(
               isPreFilled && "bg-muted text-muted-foreground"
             )}
@@ -95,7 +79,7 @@ export function DynamicField({
           <Textarea
             {...formField}
             disabled={disabled}
-            placeholder={field.placeholder}
+            placeholder={data.placeholder}
             className={cn(
               isPreFilled && "bg-muted text-muted-foreground"
             )}
@@ -118,9 +102,9 @@ export function DynamicField({
         return (
           <Input
             {...formField}
-            type={field.type}
+            type={data.type}
             disabled={disabled}
-            placeholder={field.placeholder}
+            placeholder={data.placeholder}
             className={cn(
               isPreFilled && "bg-muted text-muted-foreground"
             )}
@@ -132,12 +116,12 @@ export function DynamicField({
   return (
     <FormField
       control={form.control}
-      name={field.name}
+      name={data.name}
       render={({ field: formField }) => (
         <FormItem>
           <div className="flex items-center justify-between">
             <FormLabel className={cn(isPreFilled && "text-muted-foreground")}>
-              {field.label}
+              {data.label}
             </FormLabel>
             {isPreFilled && (
               <Badge variant="outline" className="text-xs">
@@ -150,8 +134,8 @@ export function DynamicField({
             {renderFieldInput(formField)}
           </FormControl>
 
-          {field.description && (
-            <FormDescription>{field.description}</FormDescription>
+          {data.description && (
+            <FormDescription>{data.description}</FormDescription>
           )}
           <FormMessage />
         </FormItem>

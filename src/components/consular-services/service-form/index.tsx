@@ -1,155 +1,220 @@
-// src/components/consular-services/service-form/index.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  ServiceFormData,
-  ServiceFormSchema,
-  ServiceStepConfig,
-  ServiceStepType
-} from '@/types/consular-service'
+import { ConsularService, ServiceField, ServiceFormData, ServiceStep } from '@/types/consular-service'
+import { useTranslations } from 'next-intl'
+import { DocumentsStep } from './documents-step'
+import { StepIndicator } from './step-indicator'
 import { FullProfile } from '@/types'
-import { DocumentsStep } from '@/components/consular-services/service-form/documents-step'
-import { StepIndicator } from '@/components/consular-services/service-form/step-indicator'
-import { InformationStep } from '@/components/consular-services/service-form/information-step'
+import { DocumentType } from '@prisma/client'
+import React, { useState } from 'react'
 import { AppointmentStep } from '@/components/consular-services/service-form/appointment-step'
+import DynamicStep from '@/components/consular-services/service-form/dynamic-step'
 import { ReviewStep } from '@/components/consular-services/service-form/review-step'
-import { FormNavigation } from '@/components/registration/navigation'
+import { useToast } from '@/hooks/use-toast'
 
 interface ServiceFormProps {
-  service: {
-    id: string
-    steps: ServiceStepConfig[]
-    requiresAppointment: boolean
-  }
+  service: ConsularService
   profile: FullProfile | null
-  defaultValues?: Partial<ServiceFormData>
+  defaultValues?: Record<string, unknown>
+  isLoading?: boolean
+  isComplete?: boolean
 }
 
-export function ServiceForm({ service, profile, defaultValues }: ServiceFormProps) {
+export function ServiceForm({
+                              service,
+                              profile,
+                              defaultValues,
+                            }: ServiceFormProps) {
+  const t = useTranslations('consular.services.form')
   const [currentStep, setCurrentStep] = useState(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [formData, setFormData] = useState<ServiceFormData>({
+    documents: {},
+    appointment: undefined,
+  });
+  const {toast} = useToast()
 
-  // Formulaire principal avec validation Zod
-  const form = useForm<ServiceFormData>({
-    resolver: zodResolver(ServiceFormSchema),
-    defaultValues: {
-      documents: {},
-      information: {},
-      ...defaultValues
-    }
+  // Construire les étapes du formulaire
+  const steps: ServiceStep[] = []
+
+  if (service.requiredDocuments) {
+    steps.push({
+      key: 'documents',
+      title: t('steps.documents'),
+      description: t('steps.documents_description'),
+      isComplete: false,
+      component: renderDocumentsStep(),
+    })
+  }
+
+  if (service.steps.length > 0) {
+    service.steps.forEach((step) => {
+      if (!step.fields) {
+        return
+      }
+
+      steps.push({
+        key: step.key,
+        title: step.title,
+        description: step.description ?? '',
+        isComplete: false,
+        component: <DynamicStep
+          fields={formatServiceFields(step.fields as unknown as string)}
+          onSubmit={data => {
+          setFormData(prev => {
+            return {
+              ...prev,
+              [step.key]: data
+            }
+          })
+        }}
+          navigation={{
+            steps,
+            currentStep,
+            handleFinalSubmit: handleSubmit,
+            handleNext,
+            handlePrevious
+          }}
+        />,
+      })
+    })
+  }
+
+  if (service.requiresAppointment) {
+    steps.push({
+      key: 'appointment',
+      title: t('steps.appointment'),
+      description: t('steps.appointment_description'),
+      isComplete: false,
+      component: <AppointmentStep
+        isSubmitting={isLoading}
+        navigation={{
+          steps,
+          currentStep,
+          handleFinalSubmit: handleSubmit,
+          handleNext,
+          handlePrevious
+        }}
+      />,
+    })
+  }
+
+  steps.push({
+    key: 'review',
+    title: t('steps.review'),
+    description: t('steps.review_description'),
+    isComplete: false,
+    component: <ReviewStep
+      steps={steps}
+      onEdit={(index) => setCurrentStep(index)}
+      isLoading={isLoading}
+      navigation={{
+        steps,
+        currentStep,
+        handleFinalSubmit: handleSubmit,
+        handleNext,
+        handlePrevious
+      }}
+    />,
   })
 
-  // Pré-remplir les champs depuis le profil
-  useEffect(() => {
-    if (profile) {
-      const currentStepConfig = service.steps[currentStep]
-      if (currentStepConfig.type === ServiceStepType.INFORMATION) {
-        const prefillData = currentStepConfig.fields?.reduce((acc, field) => {
-          if (field.profileField && profile[field.profileField]) {
-            acc[field.name] = profile[field.profileField]
-          }
-          return acc
-        }, {} as Record<string, any>)
+  function formatServiceFields(fields: string) {
+    const fieldArray = JSON.parse(fields)
 
-        if (prefillData) {
-          form.reset({ ...form.getValues(), information: prefillData })
-        }
+    return fieldArray.map((field: ServiceField) => {
+      return {
+        ...field,
+        required: true,
+        defaultValue: defaultValues?.[field.name],
       }
+    })
+  }
+
+  function renderDocumentsStep() {
+    const profileDocuments = {
+      [DocumentType.PASSPORT]: profile?.passport?.fileUrl,
+      [DocumentType.PROOF_OF_ADDRESS]: profile?.addressProof?.fileUrl,
+      [DocumentType.RESIDENCE_PERMIT]: profile?.residencePermit?.fileUrl,
+      [DocumentType.IDENTITY_PHOTO]: profile?.identityPicture,
+      [DocumentType.BIRTH_CERTIFICATE]: profile?.birthCertificate?.fileUrl,
+    } as Record<DocumentType, string>
+    return (
+      <DocumentsStep
+        requiredDocuments={service.requiredDocuments}
+        profilDocuments={profileDocuments}
+        onSubmit={(data) => {
+          setFormData(prev => {
+            return {
+              ...prev,
+              documents: data
+            }
+          })
+          handleNext()
+        }}
+        isLoading={isLoading}
+        navigation={{
+          steps,
+          currentStep,
+          handleFinalSubmit: handleSubmit,
+          handleNext,
+          handlePrevious
+        }}
+      />
+    )
+  }
+
+
+  function handleNext() {
+    console.log(formData)
+    setCurrentStep(currentStep + 1)
+  }
+
+  function handlePrevious() {
+    setCurrentStep(currentStep - 1)
+  }
+
+  async function handleSubmit() {
+    setIsLoading(true);
+    try {
+      toast({
+        title: t('success.title'),
+        description: t('success.description'),
+        variant: "success"
+      });
+    } catch (error) {
+      toast({
+        title: t('error.title'),
+        description: error instanceof Error ? error.message : t('error.unknown'),
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }, [currentStep, profile, service.steps, form])
+  }
 
   // Rendu de l'étape courante
   const renderCurrentStep = () => {
-    const stepConfig = service.steps[currentStep]
-
-    switch (stepConfig.type) {
-      case ServiceStepType.DOCUMENTS:
-        return (
-          <DocumentsStep
-            documents={stepConfig.documents || []}
-            form={form}
-            isSubmitting={isSubmitting}
-          />
-        )
-
-      case ServiceStepType.INFORMATION:
-        return (
-          <InformationStep
-            fields={stepConfig.fields || []}
-            form={form}
-            isSubmitting={isSubmitting}
-          />
-        )
-
-      case ServiceStepType.APPOINTMENT:
-        return (
-          <AppointmentStep
-            form={form}
-            isSubmitting={isSubmitting}
-          />
-        )
-
-      case ServiceStepType.REVIEW:
-        return (
-          <ReviewStep
-            service={service}
-            data={form.getValues()}
-            onEdit={setCurrentStep}
-          />
-        )
-
-      default:
-        return null
-    }
-  }
-
-  // Navigation entre les étapes
-  const handleNext = async () => {
-    const isValid = await form.trigger()
-    if (isValid) {
-      if (currentStep === service.steps.length - 1) {
-        await handleSubmit()
-      } else {
-        setCurrentStep(prev => prev + 1)
-      }
-    }
-  }
-
-  // Soumission finale
-  const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true)
-      const data = form.getValues()
-
-      // Logique de soumission...
-
-    } catch (error) {
-      console.error('Submission error:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
+    return steps[currentStep].component
   }
 
   return (
-    <div className="space-y-6">
-      <StepIndicator
-        steps={service.steps}
-        currentStep={currentStep}
-        onChange={setCurrentStep}
-      />
+    <div className={"mb-8 space-y-6"}>
+      <div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold md:text-3xl">
+            {service.title}
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            {service.description}
+          </p>
+        </div>
 
+        <StepIndicator
+          steps={steps}
+          currentStep={currentStep}
+        />
+      </div>
       {renderCurrentStep()}
-
-      <FormNavigation
-        currentStep={currentStep}
-        totalSteps={service.steps.length}
-        onNext={handleNext}
-        onPrevious={() => setCurrentStep(prev => prev - 1)}
-        isLoading={isSubmitting}
-      />
     </div>
   )
 }

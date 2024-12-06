@@ -149,7 +149,30 @@
       "/registration": "Inscription consulaire",
       "/dashboard": "Tableau de bord"
     },
-    "search_country": "Rechercher un pays"
+    "search_country": "Rechercher un pays",
+    "actions": {
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "submit": "Soumettre",
+      "add": "Ajouter",
+      "back": "Retour",
+      "continue": "Continuer",
+      "confirm": "Confirmer",
+      "close": "Fermer",
+      "send": "Envoyer",
+      "view": "Voir",
+      "download": "Télécharger",
+      "upload": "Télécharger",
+      "remove": "Supprimer",
+      "change": "Modifier",
+      "preview": "Prévisualiser",
+      "clear": "Effacer",
+      "mark_as_read": "Marquer comme lu",
+      "clear_all": "Tout effacer",
+      "mark_all_read": "Tout marquer comme lu"
+    }
   },
   "feedback": {
     "loading": {
@@ -1807,13 +1830,21 @@
         "passport": "Passeport",
         "identity_photo": "Photo d'identité",
         "birth_certificate": "Acte de naissance",
-        "proof_of_address": "Justificatif de domicile"
+        "proof_of_address": "Justificatif de domicile",
+        "identity_card": "Carte d'identité",
+        "residence_permit": "Titre de séjour",
+        "marriage_certificate": "Acte de mariage",
+        "death_certificate": "Acte de décès"
       },
       "descriptions": {
         "passport": "Page principale de votre passeport en cours de validité",
-        "identity_photo": "Photo d'identité récente sur fond blanc",
         "birth_certificate": "Copie intégrale de votre acte de naissance",
-        "proof_of_address": "Document de moins de 3 mois (facture électricité, téléphone...)"
+        "proof_of_address": "Document de moins de 3 mois (facture électricité, téléphone...)",
+        "identity_card": "Carte d'identité recto-verso",
+        "residence_permit": "Titre de séjour en cours de validité",
+        "marriage_certificate": "Copie intégrale de l'acte de mariage",
+        "death_certificate": "Copie intégrale de l'acte de décès",
+        "identity_photo": "Photo d'identité récente"
       },
       "help_text": "Pour faciliter votre inscription, préparez vos documents au format numérique (photo ou scan).",
       "help_tips": [
@@ -2012,6 +2043,8 @@
       },
       "form": {
         "steps": {
+          "appointment": "Rendez-vous",
+          "appointment_description": "Choisissez une date et un créneau horaire",
           "documents": "Documents",
           "documents_description": "Téléchargez les documents requis",
           "review": "Récapitulatif",
@@ -2023,21 +2056,41 @@
             "description": "Assurez-vous que vos documents sont lisibles et à jour"
           },
           "types": {
-            "passport": "Passeport",
-            "identity_card": "Carte d'identité",
+            "death_certificate": "Acte de décès",
             "birth_certificate": "Acte de naissance",
-            "residence_permit": "Titre de séjour",
             "proof_of_address": "Justificatif de domicile",
             "marriage_certificate": "Acte de mariage",
-            "death_certificate": "Acte de décès"
+            "passport": "Passeport",
+            "identity_card": "Carte d'identité",
+            "residence_permit": "Titre de séjour",
+            "passport_request": "Demande de passeport",
+            "birth_registration": "Déclaration de naissance",
+            "birth_transcription": "Transcription d'acte de naissance",
+            "marriage_transcription": "Transcription d'acte de mariage",
+            "death_registration": "Déclaration de décès",
+            "death_transcription": "Transcription d'acte de décès",
+            "celibacy_certificate": "Certificat de célibat",
+            "consular_registration": "Inscription consulaire",
+            "address_certificate": "Attestation de résidence",
+            "travel_permit": "Laissez-passer",
+            "marriage_registration": "Enregistrement de mariage",
+            "consular_card": "Carte consulaire",
+            "document_legalization": "Légalisation de document",
+            "identity_certificate": "Certificat d'identité",
+            "nationality_certificate": "Certificat de nationalité",
+            "identity_photo": "Photo d'identité",
+            "power_of_attorney": "Procuration",
+            "other": "Autre démarche"
           },
           "descriptions": {
-            "passport": "Passeport en cours de validité",
-            "identity_card": "Carte d'identité recto-verso",
             "birth_certificate": "Copie intégrale de l'acte de naissance",
-            "residence_permit": "Titre de séjour en cours de validité",
-            "proof_of_address": "Document de moins de 3 mois",
+            "proof_of_address": "Document de moins de 3 mois (facture électricité, gaz, etc.)",
             "marriage_certificate": "Copie intégrale de l'acte de mariage",
+            "passport": "Passeport en cours de validité",
+            "identity_card": "Carte nationale d'identité en cours de validité",
+            "residence_permit": "Titre de séjour en cours de validité",
+            "identity_photo": "Photo d'identité récente sur fond blanc",
+            "nationality_certificate": "Certificat de nationalité en cours de validité",
             "death_certificate": "Copie intégrale de l'acte de décès"
           },
           "status": {
@@ -2069,7 +2122,12 @@
           "submit": "Soumettre la demande"
         },
         "prefilled_fields_info": "Les champs pré-remplis sont basés sur les informations de votre profil",
-        "prefilled": "Pré-rempli"
+        "prefilled": "Pré-rempli",
+        "appointment": {
+          "title": "Prenez rendez-vous",
+          "description": "Choisissez une date et un créneau horaire pour votre démarche"
+        },
+        "select_placeholder": "Sélectionnez une option"
       },
       "details": {
         "main_info": "Informations principales",

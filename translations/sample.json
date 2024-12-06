@@ -149,7 +149,30 @@
       "/registration": "",
       "/dashboard": ""
     },
-    "search_country": ""
+    "search_country": "",
+    "actions": {
+      "edit": "",
+      "delete": "",
+      "save": "",
+      "cancel": "",
+      "submit": "",
+      "add": "",
+      "back": "",
+      "continue": "",
+      "confirm": "",
+      "close": "",
+      "send": "",
+      "view": "",
+      "download": "",
+      "upload": "",
+      "remove": "",
+      "change": "",
+      "preview": "",
+      "clear": "",
+      "mark_as_read": "",
+      "clear_all": "",
+      "mark_all_read": ""
+    }
   },
   "feedback": {
     "loading": {
@@ -1806,13 +1829,21 @@
         "passport": "",
         "identity_photo": "",
         "birth_certificate": "",
-        "proof_of_address": ""
+        "proof_of_address": "",
+        "identity_card": "",
+        "residence_permit": "",
+        "marriage_certificate": "",
+        "death_certificate": ""
       },
       "descriptions": {
         "passport": "",
-        "identity_photo": "",
         "birth_certificate": "",
-        "proof_of_address": ""
+        "proof_of_address": "",
+        "identity_card": "",
+        "residence_permit": "",
+        "marriage_certificate": "",
+        "death_certificate": "",
+        "identity_photo": ""
       },
       "help_text": "",
       "help_tips": [
@@ -2011,6 +2042,8 @@
       },
       "form": {
         "steps": {
+          "appointment": "",
+          "appointment_description": "",
           "documents": "",
           "documents_description": "",
           "review": "",
@@ -2022,21 +2055,41 @@
             "description": ""
           },
           "types": {
-            "passport": "",
-            "identity_card": "",
+            "death_certificate": "",
             "birth_certificate": "",
-            "residence_permit": "",
             "proof_of_address": "",
             "marriage_certificate": "",
-            "death_certificate": ""
+            "passport": "",
+            "identity_card": "",
+            "residence_permit": "",
+            "passport_request": "",
+            "birth_registration": "",
+            "birth_transcription": "",
+            "marriage_transcription": "",
+            "death_registration": "",
+            "death_transcription": "",
+            "celibacy_certificate": "",
+            "consular_registration": "",
+            "address_certificate": "",
+            "travel_permit": "",
+            "marriage_registration": "",
+            "consular_card": "",
+            "document_legalization": "",
+            "identity_certificate": "",
+            "nationality_certificate": "",
+            "identity_photo": "",
+            "power_of_attorney": "",
+            "other": ""
           },
           "descriptions": {
-            "passport": "",
-            "identity_card": "",
             "birth_certificate": "",
-            "residence_permit": "",
             "proof_of_address": "",
             "marriage_certificate": "",
+            "passport": "",
+            "identity_card": "",
+            "residence_permit": "",
+            "identity_photo": "",
+            "nationality_certificate": "",
             "death_certificate": ""
           },
           "status": {
@@ -2068,7 +2121,12 @@
           "submit": ""
         },
         "prefilled_fields_info": "",
-        "prefilled": ""
+        "prefilled": "",
+        "appointment": {
+          "title": "",
+          "description": ""
+        },
+        "select_placeholder": ""
       },
       "details": {
         "main_info": "",

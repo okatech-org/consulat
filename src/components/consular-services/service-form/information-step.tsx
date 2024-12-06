@@ -32,7 +32,7 @@ export function InformationStep({ fields, form, isSubmitting }: InformationStepP
             {fields.map((field) => (
               <DynamicField
                 key={field.name}
-                field={field}
+                data={field}
                 form={form}
                 isPreFilled={!!form.getValues().information[field.name]}
                 disabled={isSubmitting}

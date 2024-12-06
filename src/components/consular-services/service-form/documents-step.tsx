@@ -1,52 +1,120 @@
-'use client'
-
-import { UseFormReturn } from 'react-hook-form'
-import { ServiceDocument, ServiceFormData } from '@/types/consular-service'
-import { DocumentUploadField } from '@/components/ui/document-upload'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { InfoIcon } from 'lucide-react'
-import { FormField } from '@/components/ui/form'
+import { DocumentType } from '@prisma/client'
 import { useTranslations } from 'next-intl'
+import { motion, AnimatePresence } from 'framer-motion'
+import { DocumentUploadField } from '@/components/ui/document-upload'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import React from 'react'
+import { ServiceField, ServiceFieldType, ServiceStep } from '@/types/consular-service'
+import { generateFormSchema } from '@/lib/form/schema-generator'
+import { Form, FormField } from '@/components/ui/form'
+import { Card, CardContent } from '@/components/ui/card'
+import { FormNavigation } from '@/components/consular-services/service-form/form-navigation'
+import { MobileProgress } from '@/components/registration/mobile-progress'
 
 interface DocumentsStepProps {
-  documents: ServiceDocument[]
-  form: UseFormReturn<ServiceFormData>
-  isSubmitting: boolean
+  requiredDocuments: DocumentType[]
+  profilDocuments?: Record<DocumentType, string>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onSubmit: (Data: any) => void
+  isLoading?: boolean
+  formRef?: React.RefObject<HTMLFormElement>
+  navigation?: {
+    steps: ServiceStep[]
+    currentStep: number
+    handleFinalSubmit: () => void
+    handleNext: () => void
+    handlePrevious: () => void
+  }
 }
 
-export function DocumentsStep({ documents, form, isSubmitting }: DocumentsStepProps) {
-  const t = useTranslations('consular.services.form')
+export function DocumentsStep({
+                                requiredDocuments,
+                                onSubmit,
+                                formRef,
+                                profilDocuments,
+                                navigation,
+                                isLoading = false,
+                              }: DocumentsStepProps) {
+  const t = useTranslations('consular')
+
+  const documentsFields: ServiceField[] = requiredDocuments.map((name) => {
+    const field: ServiceField = {
+      name,
+      type: ServiceFieldType.FILE,
+      required: true,
+      label: t(`documents.types.${name.toLowerCase()}`),
+      description: t(`documents.descriptions.${name.toLowerCase()}`),
+      defaultValue: profilDocuments?.[name],
+    }
+
+    return field
+  })
+
+  const documentsSchema = generateFormSchema(documentsFields)
+
+  const documentsForm = useForm<typeof documentsSchema>({
+    resolver: zodResolver(documentsSchema),
+  })
 
   return (
-    <div className="space-y-6">
-      <Alert>
-        <InfoIcon className="h-4 w-4" />
-        <AlertTitle>{t('documents.alert.title')}</AlertTitle>
-        <AlertDescription>{t('documents.alert.description')}</AlertDescription>
-      </Alert>
+    <Form {...documentsForm}>
+      <form ref={formRef} onSubmit={documentsForm.handleSubmit(onSubmit)} className={"space-y-4"}>
+        <Card className="overflow-hidden">
+          <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AnimatePresence mode="sync">
+              {documentsFields.map((item, index) => (
+                <motion.div
+                  key={item.name + index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <FormField
+                    control={documentsForm.control}
+                    name={// eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      item.name as any
+                    }
+                    render={({ field }) => (
+                      <DocumentUploadField
+                        id={item.name}
+                        field={field}
+                        label={item.label}
+                        required={item.required}
+                        description={item.description}
+                        form={documentsForm}
+                        disabled={isLoading ?? item.defaultValue ?? false}
+                        existingFile={item.defaultValue}
+                      />
+                    )}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+        {navigation && (
+          <>
+            <FormNavigation
+              currentStep={navigation.currentStep}
+              totalSteps={navigation.steps.length}
+              isLoading={isLoading}
+              onNext={navigation.handleNext}
+              onPrevious={navigation.handlePrevious}
+              isValid={true}
+              onSubmit={navigation.handleFinalSubmit}
+            />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {documents.map((doc) => (
-          <FormField
-            key={doc.type}
-            control={form.control}
-            name={`documents.${doc.type}`}
-            render={({ field }) => (
-              <DocumentUploadField
-                id={doc.type}
-                label={t(`documents.types.${doc.type.toLowerCase()}`)}
-                description={doc.description}
-                required={doc.required}
-                accept={doc.acceptedFormats?.join(',')}
-                maxSize={doc.maxSize}
-                field={field}
-                form={form}
-                disabled={isSubmitting}
-              />
-            )}
-          />
-        ))}
-      </div>
-    </div>
+            {/* Progression mobile */}
+            <MobileProgress
+              currentStep={navigation.currentStep}
+              totalSteps={navigation.steps.length}
+              stepTitle={navigation.steps[navigation.currentStep].title}
+              isOptional={false}
+            />
+          </>
+        )}
+      </form>
+    </Form>
   )
 }

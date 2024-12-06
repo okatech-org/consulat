@@ -1,67 +1,134 @@
-// src/types/consular-service.ts
-import { z } from 'zod'
-import { DocumentType, ServiceRequestStatus } from '@prisma/client'
-import { FullProfile } from '@/types/profile'
+import { DocumentType, ConsularService as PrismaConsularService } from '@prisma/client'
+import { JSX } from 'react'
 
-// Types des étapes
 export enum ServiceStepType {
-  DOCUMENTS = 'documents',
-  INFORMATION = 'information',
-  APPOINTMENT = 'appointment',
-  REVIEW = 'review'
+  DOCUMENTS = 'DOCUMENTS',
+  FORM = 'FORM',
+  APPOINTMENT = 'APPOINTMENT',
+  REVIEW = 'REVIEW'
 }
 
-// Configuration d'un champ dynamique
+
+// Types pour les champs de formulaire dynamiques
+export enum ServiceFieldType {
+  TEXT = 'text',
+  EMAIL = 'email',
+  PHONE = 'phone',
+  DATE = 'date',
+  SELECT = 'select',
+  RADIO = 'radio',
+  CHECKBOX = 'checkbox',
+  TEXTAREA = 'textarea',
+  NUMBER = 'number',
+  FILE = 'file'
+}
+
 export interface ServiceField {
   name: string
-  type: 'text' | 'email' | 'tel' | 'date' | 'select' | 'textarea'
+  type: ServiceFieldType
   label: string
-  required: boolean
-  options?: { value: string; label: string }[]
-  validation?: z.ZodType
-  profileField?: keyof FullProfile // Pour le pré-remplissage
+  required?: boolean
+  description?: string
+  placeholder?: string
+  defaultValue?: string
+  options?: Array<{
+    value: string
+    label: string
+  }>
+  validation?: {
+    min?: number
+    max?: number
+    minLength?: number
+    maxLength?: number
+    pattern?: string
+    customValidation?: string
+  }
 }
 
-// Configuration d'un document requis
-export interface ServiceDocument {
-  type: DocumentType
-  required: boolean
-  description: string
-  maxSize?: number
-  acceptedFormats?: string[]
+// Configuration des rendez-vous
+export interface AppointmentConfig {
+  duration: number
+  availableDays: number[] // 0-6 pour les jours de la semaine
+  availableHours: {
+    start: string // Format "HH:mm"
+    end: string
+  }
+  bufferTime: number // Temps en minutes entre les RDV
+  location?: string
+  instructions?: string
 }
 
-// Configuration d'une étape
-export interface ServiceStepConfig {
-  type: ServiceStepType
+// Types pour les étapes
+export interface BaseServiceStep {
+  id: string
+  order: number
   title: string
   description?: string
-  fields?: ServiceField[]
-  documents?: ServiceDocument[]
   isRequired: boolean
+  stepType: ServiceStepType
+  createdAt: Date
+  updatedAt: Date
 }
 
-// État du formulaire
-export interface ServiceFormState {
-  documents: Record<DocumentType, File | null>
-  information: Record<string, any>
+export interface FormServiceStep extends BaseServiceStep {
+  stepType: ServiceStepType.FORM
+  fields: ServiceField[]
+}
+
+export interface ServiceStep {
+  key: string
+  title: string
+  description: string
+  isComplete: boolean
+  component: JSX.Element
+  fields?: ServiceField[]
+}
+
+// Type principal pour le service consulaire
+export interface ConsularService extends PrismaConsularService {
+  steps: ServiceStep[]
+  requiresAppointment: boolean
+  appointmentDuration: number | null
+}
+
+// Types pour les formulaires
+export interface ServiceFormData {
+  documents: Record<DocumentType, File>
   appointment?: {
     date: Date
-    time: string
-    type: string
+    duration: number
   }
-  status: ServiceRequestStatus
+  [key: string]: unknown
 }
 
-// Schéma de validation Zod
-export const ServiceFormSchema = z.object({
-  documents: z.record(z.custom<File>()),
-  information: z.record(z.any()),
-  appointment: z.object({
-    date: z.date(),
-    time: z.string(),
-    type: z.string()
-  }).optional()
-})
+// Type pour le state du formulaire
+export interface ServiceFormState {
+  currentStep: number
+  formData: ServiceFormData
+  isSubmitting: boolean
+  error?: string
+  validation: {
+    [key: string]: boolean
+  }
+}
+``
 
-export type ServiceFormData = z.infer<typeof ServiceFormSchema>
+// Type pour les actions du formulaire
+export type ServiceFormAction =
+  | { type: 'SET_STEP'; payload: number }
+  | { type: 'UPDATE_FORM_DATA'; payload: Partial<ServiceFormData> }
+  | { type: 'SET_SUBMITTING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload?: string }
+  | { type: 'UPDATE_VALIDATION'; payload: { field: string; isValid: boolean } }
+  | { type: 'RESET_FORM' }
+
+// Type pour le hook personnalisé
+export interface UseServiceForm {
+  state: ServiceFormState
+  dispatch: React.Dispatch<ServiceFormAction>
+  handleNext: () => Promise<void>
+  handlePrevious: () => void
+  handleSubmit: () => Promise<void>
+  validateStep: (step: number) => Promise<boolean>
+  isStepValid: (step: number) => boolean
+}

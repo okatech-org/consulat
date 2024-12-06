@@ -1,4 +1,4 @@
-import { PrismaClient, ConsularServiceType, DocumentType } from '@prisma/client'
+import { PrismaClient, ConsularServiceType, DocumentType, ServiceStepType } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
@@ -8,78 +8,15 @@ async function main() {
     // Supprimer les services existants
     await prisma.consularService.deleteMany()
 
-    // 1. Demande de passeport
-    await prisma.consularService.create({
-      data: {
-        type: ConsularServiceType.PASSPORT_REQUEST,
-        title: "Demande de passeport",
-        description: "Demande de passeport biométrique pour les ressortissants gabonais",
-        estimatedTime: "4-6 semaines",
-        price: 100,
-        requiredDocuments: [
-          DocumentType.IDENTITY_PHOTO,
-          DocumentType.BIRTH_CERTIFICATE,
-          DocumentType.PROOF_OF_ADDRESS,
-          DocumentType.NATIONALITY_CERTIFICATE
-        ],
-        steps: {
-          create: [
-            {
-              order: 1,
-              title: "Informations personnelles",
-              isRequired: true,
-              fields: JSON.stringify([
-                {
-                  name: "reason",
-                  type: "select",
-                  label: "Motif de la demande",
-                  required: true,
-                  options: [{
-                    value: "RENEWAL",
-                    label: "Renouvellement"
-                  }, {
-                    value: "LOSS",
-                    label: "Perte"
-                  }, {
-                    value: "THEFT",
-                    label: "Vol"
-                  }]
-                },
-                {
-                  name: "passportNumber",
-                  type: "text",
-                  label: "Numéro du passeport précédent",
-                  required: false
-                }
-              ])
-            },
-            {
-              order: 2,
-              title: "Rendez-vous",
-              description: "Choisissez une date pour le dépôt de vos documents",
-              isRequired: true,
-              fields: JSON.stringify([
-                {
-                  name: "appointmentDate",
-                  type: "date",
-                  label: "Date du rendez-vous",
-                  required: true
-                }
-              ])
-            }
-          ]
-        }
-      }
-    })
-
-    // 2. Carte consulaire
+    // 1. Demande de carte consulaire (simple)
     await prisma.consularService.create({
       data: {
         type: ConsularServiceType.CONSULAR_CARD,
-        title: "Carte consulaire",
+        title: "Demande de carte consulaire",
         description: "Demande de carte consulaire pour les ressortissants gabonais",
         estimatedTime: "1-2 semaines",
         price: 50,
+        requiresAppointment: false,
         requiredDocuments: [
           DocumentType.IDENTITY_PHOTO,
           DocumentType.PASSPORT,
@@ -91,18 +28,20 @@ async function main() {
             {
               order: 1,
               title: "Informations de contact",
+              description: "Vos coordonnées actuelles",
+              stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
                 {
-                  name: "phoneGabon",
+                  name: "phone",
                   type: "tel",
-                  label: "Numéro de téléphone au Gabon",
-                  required: false
+                  label: "Numéro de téléphone",
+                  required: true
                 },
                 {
-                  name: "emergencyContact",
-                  type: "text",
-                  label: "Contact d'urgence",
+                  name: "email",
+                  type: "email",
+                  label: "Adresse email",
                   required: true
                 }
               ])
@@ -112,29 +51,89 @@ async function main() {
       }
     })
 
-    // 3. Déclaration de naissance
+    // 2. Demande de passeport (avec rendez-vous)
+    await prisma.consularService.create({
+      data: {
+        type: ConsularServiceType.PASSPORT_REQUEST,
+        title: "Demande de passeport",
+        description: "Demande de passeport biométrique",
+        estimatedTime: "4-6 semaines",
+        price: 100,
+        requiresAppointment: true,
+        appointmentDuration: 30,
+        requiredDocuments: [
+          DocumentType.IDENTITY_PHOTO,
+          DocumentType.BIRTH_CERTIFICATE,
+          DocumentType.PROOF_OF_ADDRESS,
+          DocumentType.NATIONALITY_CERTIFICATE
+        ],
+        steps: {
+          create: [
+            {
+              order: 1,
+              title: "Motif de la demande",
+              description: "Informations sur votre demande",
+              stepType: ServiceStepType.FORM,
+              isRequired: true,
+              fields: JSON.stringify([
+                {
+                  name: "reason",
+                  type: "select",
+                  label: "Motif de la demande",
+                  required: true,
+                  options: [
+                    { value: "FIRST_REQUEST", label: "Première demande" },
+                    { value: "RENEWAL", label: "Renouvellement" },
+                    { value: "LOSS", label: "Perte" },
+                    { value: "THEFT", label: "Vol" }
+                  ]
+                },
+                {
+                  name: "previousPassportNumber",
+                  type: "text",
+                  label: "Numéro du passeport précédent",
+                  required: false
+                }
+              ])
+            }
+          ]
+        }
+      }
+    })
+
+    // 3. Déclaration de naissance (formulaire complexe)
     await prisma.consularService.create({
       data: {
         type: ConsularServiceType.BIRTH_REGISTRATION,
         title: "Déclaration de naissance",
         description: "Enregistrement d'une naissance auprès du consulat",
         estimatedTime: "2-3 semaines",
+        price: 0,
+        requiresAppointment: false,
         requiredDocuments: [
           DocumentType.BIRTH_CERTIFICATE,
-          DocumentType.PROOF_OF_ADDRESS,
-          DocumentType.MARRIAGE_CERTIFICATE
+          DocumentType.MARRIAGE_CERTIFICATE,
+          DocumentType.PROOF_OF_ADDRESS
         ],
         steps: {
           create: [
             {
               order: 1,
               title: "Informations sur l'enfant",
+              description: "État civil de l'enfant",
+              stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
                 {
-                  name: "birthPlace",
+                  name: "childFirstName",
                   type: "text",
-                  label: "Lieu de naissance",
+                  label: "Prénom(s) de l'enfant",
+                  required: true
+                },
+                {
+                  name: "childLastName",
+                  type: "text",
+                  label: "Nom de l'enfant",
                   required: true
                 },
                 {
@@ -142,12 +141,20 @@ async function main() {
                   type: "date",
                   label: "Date de naissance",
                   required: true
+                },
+                {
+                  name: "birthPlace",
+                  type: "text",
+                  label: "Lieu de naissance",
+                  required: true
                 }
               ])
             },
             {
               order: 2,
               title: "Informations sur les parents",
+              description: "État civil des parents",
+              stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
                 {
@@ -169,100 +176,38 @@ async function main() {
       }
     })
 
-    // 4. Enregistrement de mariage
+    // 4. Certificat de capacité juridique (simple avec rendez-vous)
     await prisma.consularService.create({
       data: {
-        type: ConsularServiceType.MARRIAGE_REGISTRATION,
-        title: "Enregistrement de mariage",
-        description: "Enregistrement d'un mariage auprès du consulat",
-        estimatedTime: "3-4 semaines",
-        requiredDocuments: [
-          DocumentType.BIRTH_CERTIFICATE,
-          DocumentType.IDENTITY_CARD,
-          DocumentType.PROOF_OF_ADDRESS
-        ],
-        steps: {
-          create: [
-            {
-              order: 1,
-              title: "Informations sur les époux",
-              isRequired: true,
-              fields: JSON.stringify([
-                {
-                  name: "marriageDate",
-                  type: "date",
-                  label: "Date du mariage",
-                  required: true
-                },
-                {
-                  name: "marriagePlace",
-                  type: "text",
-                  label: "Lieu du mariage",
-                  required: true
-                },
-                {
-                  name: "matrimonialRegime",
-                  type: "select",
-                  label: "Régime matrimonial",
-                  required: true,
-                  options: ["COMMUNAUTE", "SEPARATION", "PARTICIPATION"]
-                }
-              ])
-            }
-          ]
-        }
-      }
-    })
-
-    // 5. Déclaration de décès
-    await prisma.consularService.create({
-      data: {
-        type: ConsularServiceType.DEATH_REGISTRATION,
-        title: "Déclaration de décès",
-        description: "Enregistrement d'un décès auprès du consulat",
+        type: ConsularServiceType.CONSULAR_REGISTRATION,
+        title: "Certificat de capacité juridique",
+        description: "Attestation de capacité juridique pour les ressortissants gabonais",
         estimatedTime: "1-2 semaines",
+        price: 25,
+        requiresAppointment: true,
+        appointmentDuration: 15,
         requiredDocuments: [
-          DocumentType.DEATH_CERTIFICATE,
-          DocumentType.PROOF_OF_ADDRESS
+          DocumentType.PASSPORT,
+          DocumentType.BIRTH_CERTIFICATE
+        ],
+        optionalDocuments: [
+          DocumentType.NATIONALITY_CERTIFICATE
         ],
         steps: {
           create: [
             {
               order: 1,
-              title: "Informations sur le défunt",
+              title: "Motif de la demande",
+              description: "Usage prévu du certificat",
+              stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
                 {
-                  name: "deathDate",
-                  type: "date",
-                  label: "Date du décès",
-                  required: true
-                },
-                {
-                  name: "deathPlace",
-                  type: "text",
-                  label: "Lieu du décès",
-                  required: true
-                },
-                {
-                  name: "deathCause",
-                  type: "text",
-                  label: "Cause du décès",
-                  required: true
-                }
-              ])
-            },
-            {
-              order: 2,
-              title: "Informations du déclarant",
-              isRequired: true,
-              fields: JSON.stringify([
-                {
-                  name: "declarantRelation",
-                  type: "select",
-                  label: "Lien avec le défunt",
+                  name: "purpose",
+                  type: "textarea",
+                  label: "Motif de la demande",
                   required: true,
-                  options: ["SPOUSE", "CHILD", "PARENT", "SIBLING", "OTHER"]
+                  placeholder: "Précisez l'usage prévu du certificat"
                 }
               ])
             }

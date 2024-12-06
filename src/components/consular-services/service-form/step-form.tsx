@@ -65,7 +65,7 @@ export function StepForm({
                 return (
                   <DynamicField
                     key={field.name}
-                    field={field}
+                    data={field}
                     form={form}
                     isPreFilled={isPreFilled}
                     disabled={isPreFilled || isLoading}
