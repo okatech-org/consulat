@@ -9,13 +9,13 @@ import {
   DocumentsSchema,
   ConsularFormData
 } from '@/schemas/registration'
-import { useFormStorage } from '@/lib/form-storage'
+import { createFormStorage } from '@/lib/form-storage'
 
 export function useRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | undefined>()
-  const { saveData, loadSavedData, clearData } = useFormStorage()
+  const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data')
 
   // Initialisation des formulaires avec les données sauvegardées
   const initialData = loadSavedData()

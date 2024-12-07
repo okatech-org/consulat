@@ -6,13 +6,14 @@ import { DocumentsStep } from './documents-step'
 import { StepIndicator } from './step-indicator'
 import { FullProfile } from '@/types'
 import { DocumentType, ConsularService } from '@prisma/client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AppointmentStep } from '@/components/consular-services/service-form/appointment-step'
 import DynamicStep from '@/components/consular-services/service-form/dynamic-step'
 import { ReviewStep } from '@/components/consular-services/service-form/review-step'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/schemas/routes'
+import { createFormStorage } from '@/lib/form-storage'
 
 interface ServiceFormProps {
   service: ConsularService & {
@@ -35,23 +36,56 @@ export function ServiceForm({
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { saveData, loadSavedData, clearData } = createFormStorage('service_form_data');
+  const { saveData: saveDocuments, loadSavedData: loadSaveDocuments, clearData: clearDocuments } = createFormStorage('service_form_documents');
+  const { saveData: saveAppointment, loadSavedData: loadAppointment, clearData: clearAppointment } = createFormStorage('service_form_appointment');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [stepsData, setStepsData] = useState<Record<string, any>>(() => {
+    // Charger les données sauvegardées au montage du composant
+    return loadSavedData() || {};
+  });
   const currentFormRef = React.useRef<HTMLFormElement>(null)
-  const [documentsForm, setDocumentsForm] = useState<Record<DocumentType, File | undefined>>()
+  const [documentsForm, setDocumentsForm] = useState<Record<DocumentType, File | undefined>>(
+    loadSaveDocuments()
+  )
   const [appointmentForm, setAppointmentForm] = useState<{
     date: string
     time: string
     duration: number
-  }>()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dynamicStepsForm, setDynamicStepsForm] = useState<Record<string, any>>();
+  }>(
+    loadAppointment()
+  )
   const {toast} = useToast()
+
+  // Données des étapes dynamiques
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleStepSubmit = (stepKey: string, data: any) => {
+    switch (stepKey) {
+      case 'documents':
+        setDocumentsForm(data)
+        saveDocuments(data)
+        break
+      case 'appointment':
+        setAppointmentForm(data)
+        saveAppointment(data)
+        break
+      default:
+        const updatedData = {
+          ...stepsData,
+          [stepKey]: data
+        }
+        setStepsData(updatedData);
+    }
+
+    handleNext();
+  };
 
   // Construire les étapes du formulaire
   const steps: ServiceStep[] = []
 
   if (service.requiredDocuments) {
     steps.push({
-      key: 'documents',
+      id: 'documents',
       title: t('steps.documents'),
       description: t('steps.documents_description'),
       isComplete: false,
@@ -65,7 +99,8 @@ export function ServiceForm({
           description: t(`documents.descriptions.${name.toLowerCase()}`),
           defaultValue: documentsForm?.[name],
         }
-      })
+      }),
+      defaultValues: documentsForm
     })
   }
 
@@ -76,7 +111,7 @@ export function ServiceForm({
       }
 
       steps.push({
-        key: step.id ?? `step-${steps.length + 1}`,
+        id: step.id,
         title: step.title,
         description: step.description ?? '',
         isComplete: false,
@@ -84,20 +119,12 @@ export function ServiceForm({
           return {
             ...field,
             required: true,
-            defaultValue: dynamicStepsForm?.[field.name],
           }
         }),
+        defaultValues: stepsData[step.id],
         component: <DynamicStep
           fields={formatServiceFields(step.fields as unknown as string)}
-          onSubmit={data => {
-          setDynamicStepsForm(prev => {
-            return {
-              ...prev,
-              [step.key ?? `step-${steps.length + 1}`]: data
-            }
-          })
-            handleNext()
-        }}
+          onSubmit={(data) => handleStepSubmit(step.id, data)}
           navigation={{
             steps,
             currentStep,
@@ -112,7 +139,7 @@ export function ServiceForm({
 
   if (service.requiresAppointment) {
     steps.push({
-      key: 'appointment',
+      id: 'appointment',
       title: t('steps.appointment'),
       description: t('steps.appointment_description'),
       isComplete: false,
@@ -122,23 +149,19 @@ export function ServiceForm({
           type: ServiceFieldType.DATE,
           required: true,
           label: t('appointment.appointment_date'),
-          defaultValue: appointmentForm?.date,
         },
         {
           name: 'duration',
           type: ServiceFieldType.NUMBER,
           required: true,
           label: t('appointment.appointment_duration'),
-          defaultValue: appointmentForm?.duration,
         }
       ],
+      defaultValues: appointmentForm,
       component: <AppointmentStep
         consulateId={consulateId}
         isLoading={isLoading}
-        onSubmit={(data) => {
-          setAppointmentForm(data)
-          handleNext()
-        }}
+        onSubmit={(data) => handleStepSubmit('appointment', data)}
         navigation={{
           steps,
           currentStep,
@@ -151,11 +174,16 @@ export function ServiceForm({
   }
 
   steps.push({
-    key: 'review',
+    id: 'review',
     title: t('steps.review'),
     description: t('steps.review_description'),
     isComplete: false,
     component: <ReviewStep
+      formValues={{
+        ...stepsData,
+        appointment: appointmentForm,
+        documents: documentsForm
+      }}
       steps={steps}
       onEdit={(index) => setCurrentStep(index)}
       isLoading={isLoading}
@@ -194,10 +222,7 @@ export function ServiceForm({
         formRef={currentFormRef}
         requiredDocuments={service.requiredDocuments}
         profilDocuments={profileDocuments}
-        onSubmit={(data) => {
-          setDocumentsForm(data)
-          handleNext()
-        }}
+        onSubmit={(data) => handleStepSubmit('documents', data)}
         isLoading={isLoading}
         navigation={{
           steps,
@@ -209,7 +234,6 @@ export function ServiceForm({
       />
     )
   }
-
 
   function handleNext() {
     setCurrentStep(currentStep + 1)
@@ -233,8 +257,8 @@ export function ServiceForm({
       }
 
       // 3. Ajouter les données des étapes dynamiques
-      if (dynamicStepsForm) {
-        formData.append('dynamicSteps', JSON.stringify(dynamicStepsForm));
+      if (service.steps.length > 0) {
+        formData.append('dynamicSteps', JSON.stringify(stepsData));
       }
 
       // 4. Ajouter les données du rendez-vous si présentes
@@ -262,6 +286,10 @@ export function ServiceForm({
         variant: "success"
       });
 
+      clearData();
+      clearDocuments();
+      clearAppointment();
+
       // 8. Redirection après succès
       router.push(ROUTES.services);
 
@@ -281,6 +309,18 @@ export function ServiceForm({
   const renderCurrentStep = () => {
     return steps[currentStep].component
   }
+
+  useEffect(() => {
+    saveData(stepsData);
+  }, [saveData, stepsData]);
+
+  useEffect(() => {
+    return () => {
+      clearData();
+      clearDocuments();
+      clearAppointment();
+    }
+  }, [clearAppointment, clearData, clearDocuments])
 
   return (
     <div className={"mb-8 space-y-6"}>

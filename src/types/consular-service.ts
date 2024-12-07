@@ -40,13 +40,14 @@ export interface ServiceField {
 }
 
 export interface ServiceStep {
-  id?: string
-  key: string
+  id: string
   title: string
   description: string
   isComplete: boolean
   component: JSX.Element
   fields?: ServiceField[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultValues?: Record<string, any>
 }
 
 // Type principal pour le service consulaire

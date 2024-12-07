@@ -309,6 +309,9 @@ importers:
       typescript:
         specifier: ^5.6.3
         version: 5.6.3
+      uglify-js:
+        specifier: ^3.19.3
+        version: 3.19.3
 
 packages:
 
@@ -4134,6 +4137,11 @@ packages:
   typescript@5.6.3:
     resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
+    hasBin: true
+
+  uglify-js@3.19.3:
+    resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
+    engines: {node: '>=0.8.0'}
     hasBin: true
 
   unbox-primitive@1.0.2:
@@ -8667,6 +8675,8 @@ snapshots:
       possible-typed-array-names: 1.0.0
 
   typescript@5.6.3: {}
+
+  uglify-js@3.19.3: {}
 
   unbox-primitive@1.0.2:
     dependencies:

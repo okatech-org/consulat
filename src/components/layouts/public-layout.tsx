@@ -1,6 +1,9 @@
 import { PublicHeader } from "@/components/public/header"
 import { PublicFooter } from "@/components/public/footer"
-import { BaseLayoutProps } from "@/types/layout"
+
+export interface BaseLayoutProps {
+  children: React.ReactNode
+}
 
 export function PublicLayout({ children }: BaseLayoutProps) {
   return (

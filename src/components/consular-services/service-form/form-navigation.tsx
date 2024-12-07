@@ -31,6 +31,7 @@ export function FormNavigation({
           variant="outline"
           disabled={isLoading}
           className="gap-2"
+          type={"button"}
         >
           <ArrowLeft className="h-4 w-4" />
           {t('navigation.previous')}

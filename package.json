@@ -11,6 +11,7 @@
     "predev": "docker-compose up -d",
     "postinstall": "prisma generate",
     "format": "prettier --write .",
+    "postai-sum": "node ./scripts/minifyMarkdown.js",
     "ai-sum": "pnpx ai-digest -o ai-sum/.code_base.md --whitespace-removal --show-output-files",
     "preai-sum": "node ./scripts/trad.js",
     "db:seed-services": "ts-node --project tsconfig.seed.json scripts/seed-services.ts",
@@ -119,6 +120,7 @@
     "sass": "^1.80.6",
     "tailwindcss": "^3.4.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "uglify-js": "^3.19.3"
   }
 }

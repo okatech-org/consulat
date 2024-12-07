@@ -17,7 +17,6 @@ import { updateFormsFromAnalysis } from '@/lib/form/update-helpers'
 import { FormError, handleFormError } from '@/lib/form/errors'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
-import { AnalysisData } from '@/types'
 import { postProfile } from '@/actions/profile'
 
 export function RegistrationForm() {
@@ -78,7 +77,8 @@ export function RegistrationForm() {
   ]
 
   // Gestionnaire d'analyse des documents
-  const handleDocumentsAnalysis = async (data: AnalysisData) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDocumentsAnalysis = async (data: any) => {
     setIsLoading(true)
     setError(undefined)
 

@@ -2139,6 +2139,7 @@
           "appointment_details": "",
           "confirm": "",
           "type": {
+            "reason": "",
             "document_submission": "",
             "document_collection": "",
             "interview": "",

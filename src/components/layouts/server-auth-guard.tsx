@@ -1,12 +1,15 @@
 'use client'
 
-import { BaseLayoutProps } from "@/types/layout"
 import { checkUserExist } from '@/actions/user'
 import { usePathname, useRouter } from 'next/navigation'
 import { ROUTES } from '@/schemas/routes'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useLayoutEffect } from 'react'
 import { logUserOut } from '@/actions/auth'
+
+export interface BaseLayoutProps {
+  children: React.ReactNode
+}
 
 export function ServerAuthGuard({ children }: BaseLayoutProps) {
   const user = useCurrentUser()
