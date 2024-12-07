@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { Form } from '@/components/ui/form'
 import { z } from 'zod'
 import { Card, CardContent } from '@/components/ui/card'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { FormNavigation } from '@/components/consular-services/service-form/form-navigation'
 import { MobileProgress } from '@/components/registration/mobile-progress'
 
@@ -15,6 +15,7 @@ interface DynamicStepProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (data: any) => void
   isLoading?: boolean
+  defaultValues?: Record<string, unknown>
   navigation?: {
     steps: ServiceStep[]
     currentStep: number
@@ -25,12 +26,13 @@ interface DynamicStepProps {
 }
 
 
-export default function DynamicStep({fields, navigation, isLoading = false, onSubmit}: DynamicStepProps) {
+export default function DynamicStep({fields, defaultValues, navigation, isLoading = false, onSubmit}: DynamicStepProps) {
   const ref = React.useRef<HTMLFormElement>(null)
   const stepSchema = generateFormSchema(fields)
   type StepSchemaType = z.infer<typeof stepSchema>
   const form = useForm<StepSchemaType>({
     resolver: zodResolver(stepSchema),
+    defaultValues
   })
 
   function handleSubmit(data: StepSchemaType) {

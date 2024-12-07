@@ -33,11 +33,26 @@ async function main() {
               stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
-                { name: "childFirstName", type: "text", label: "Prénom(s) de l'enfant", required: true },
-                { name: "childLastName", type: "text", label: "Nom de l'enfant", required: true },
-                { name: "birthDate", type: "date", label: "Date de naissance", required: true },
-                { name: "birthPlace", type: "text", label: "Lieu de naissance", required: true }
-              ])
+                {
+                  name: "childFirstName",
+                  type: "text",
+                  label: "Prénom(s) de l'enfant",
+                  required: true
+                },
+                {
+                  name: "childLastName",
+                  type: "text",
+                  label: "Nom de l'enfant",
+                  required: true
+                }
+              ]),
+              profileFields: JSON.stringify({
+                // Champs à extraire du profil
+                childFirstName: "firstName",
+                childLastName: "lastName",
+                birthDate: "birthDate",
+                birthPlace: "birthPlace"
+              })
             },
             {
               order: 2,
@@ -46,9 +61,24 @@ async function main() {
               stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
-                { name: "fatherFullName", type: "text", label: "Nom complet du père", required: true },
-                { name: "motherFullName", type: "text", label: "Nom complet de la mère", required: true }
-              ])
+                {
+                  name: "fatherFullName",
+                  type: "text",
+                  label: "Nom complet du père",
+                  required: true
+                },
+                {
+                  name: "motherFullName",
+                  type: "text",
+                  label: "Nom complet de la mère",
+                  required: true
+                }
+              ]),
+              profileFields: JSON.stringify({
+                // Champs à extraire du profil
+                fatherFullName: "fatherFullName",
+                motherFullName: "motherFullName"
+              })
             }
           ]
         }

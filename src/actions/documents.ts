@@ -8,6 +8,7 @@ import { pdfToImages } from '@/actions/convert'
 import { getCurrentUser } from '@/actions/user'
 import { db } from '@/lib/prisma'
 import { UserDocument } from '@prisma/client'
+import { AppUserDocument } from '@/types'
 
 // Types
 interface DocumentAnalysisResult {
@@ -344,15 +345,23 @@ function createVisionAnalyzer(model: AIModel): VisionAnalyzer {
   }
 }
 
-export async function getUserDocumentsList(): Promise<UserDocument[]> {
+export async function getUserDocumentsList(): Promise<AppUserDocument[]> {
   try {
     const user = await getCurrentUser()
     if (!user) return []
 
-    return await db.userDocument.findMany({
+    const documents = await db.userDocument.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' }
     })
+
+    return documents.map(document => (
+      {
+        ...document,
+        metadata: JSON.parse(document.metadata as string)
+      }
+    ))
+
   } catch (error) {
     console.error('Error fetching user documents:', error)
     return []

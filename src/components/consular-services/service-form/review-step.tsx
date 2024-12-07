@@ -65,7 +65,7 @@ export function ReviewStep({
                   <DocumentStatus
                     key={fieldIndex + field.name}
                     type={field.label}
-                    isUploaded={!!getFieldValue(step.id, field.name)}
+                    isUploaded={field.defaultValue}
                     required={field.required}
                   />
                 )

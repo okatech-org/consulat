@@ -3,14 +3,14 @@
 import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { DocumentWithMetadata } from '@/types/document'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Eye, Download, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
+import { AppUserDocument } from '@/types'
 
 interface DocumentCardProps {
-  document: DocumentWithMetadata
+  document: AppUserDocument
 }
 
 export function DocumentCard({ document }: DocumentCardProps) {

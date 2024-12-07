@@ -9,6 +9,7 @@ import { Badge, BadgeVariant } from '@/components/ui/badge'
 import { DashboardSectionStats } from '@/types/dashboard'
 import Link from 'next/link'
 import { ROUTES } from '@/schemas/routes'
+import { Key } from 'react'
 
 interface ProfileSectionProps {
   stats: DashboardSectionStats['profile']
@@ -19,7 +20,6 @@ export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
 
 
   const t = useTranslations('dashboard.sections.profile')
-
 
 
   return (
@@ -50,7 +50,7 @@ export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
           <div className="space-y-2">
             <p className="text-sm font-medium">{t('missing_fields')}</p>
             <ul className="space-y-1">
-              {stats.missingFields.slice(0, 2).map((field) => (
+              {stats.missingFields.slice(0, 2).map((field: Key | null | undefined) => (
                 <li key={field} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <AlertCircle className="h-4 w-4 text-warning" />
                   {t(`fields.${field}`)}

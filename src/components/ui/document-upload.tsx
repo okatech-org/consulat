@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl'
 import { Upload, X, FileInput } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { ControllerRenderProps, FieldValues, UseFormReturn } from 'react-hook-form'
+import { FieldValues, UseFormReturn } from 'react-hook-form'
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ interface DocumentUploadFieldProps<T extends FieldValues> {
   id: string
   label?: string
   description?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   field: any
   form: UseFormReturn<T>
   disabled?: boolean

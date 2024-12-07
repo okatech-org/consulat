@@ -172,7 +172,8 @@
       "mark_as_read": "Marquer comme lu",
       "clear_all": "Tout effacer",
       "mark_all_read": "Tout marquer comme lu"
-    }
+    },
+    "no_country_found": "Aucun pays trouvé"
   },
   "feedback": {
     "loading": {
@@ -775,7 +776,9 @@
       "requests": "Mes demandes",
       "profile": "Mon profil",
       "documents": "Mes documents",
-      "procedures": "Démarches"
+      "procedures": "Démarches",
+      "services": "Nouvelle démarche",
+      "my_requests": "Mes démarches"
     }
   },
   "actions": {
@@ -1853,7 +1856,14 @@
         "Les photos doivent être nettes et bien éclairées",
         "Les documents doivent être complets et non coupés",
         "Formats acceptés : JPG, PNG, PDF"
-      ]
+      ],
+      "status": {
+        "pending": "En attente",
+        "validated": "Validé",
+        "rejected": "Rejeté",
+        "expired": "Expiré",
+        "already_provided": "Déjà fourni"
+      }
     },
     "verification": {
       "title": "Vérification du document",
@@ -2167,7 +2177,24 @@
           "morning": "Matin",
           "afternoon": "Après-midi"
         },
-        "select_placeholder": "Sélectionnez une option"
+        "select_placeholder": "Sélectionnez une option",
+        "success": {
+          "title": "Demande soumise avec succès",
+          "description": "Votre demande a été enregistrée et sera traitée dans les meilleurs délais"
+        },
+        "error": {
+          "title": "Erreur lors de la soumission",
+          "description": "Une erreur est survenue lors de la soumission de votre demande",
+          "unknown": "Une erreur inconnue est survenue"
+        },
+        "submission": {
+          "loading": "Soumission en cours...",
+          "error": {
+            "document_required": "Certains documents requis sont manquants",
+            "invalid_appointment": "Le rendez-vous sélectionné n'est plus disponible",
+            "submission_failed": "La soumission a échoué, veuillez réessayer"
+          }
+        }
       },
       "details": {
         "main_info": "Informations principales",
@@ -2219,6 +2246,29 @@
           "residence_permit": "Titre de séjour en cours de validité",
           "identity_photo": "Photo d'identité récente sur fond blanc",
           "nationality_certificate": "Certificat de nationalité en cours de validité"
+        }
+      },
+      "requests": {
+        "title": "Mes démarches",
+        "description": "Suivez l'avancement de vos démarches consulaires",
+        "empty": {
+          "title": "Aucune démarche en cours",
+          "description": "Vous n'avez pas encore initié de démarche consulaire"
+        },
+        "status": {
+          "draft": "Brouillon",
+          "submitted": "Soumise",
+          "in_review": "En cours d'examen",
+          "additional_info_needed": "Informations complémentaires requises",
+          "approved": "Approuvée",
+          "rejected": "Rejetée",
+          "completed": "Terminée",
+          "cancelled": "Annulée"
+        },
+        "submitted_on": "Soumise le {date}",
+        "appointment_on": "Rendez-vous le {date}",
+        "actions": {
+          "view": "Voir les détails"
         }
       }
     }

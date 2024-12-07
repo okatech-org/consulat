@@ -1,8 +1,6 @@
 "use server"
 
 import { signOut } from '@/auth'
-import { ROUTES } from '@/schemas/routes'
-import { redirect } from 'next/navigation'
 import { db } from '@/lib/prisma'
 import { generateOTP } from '@/lib/user/otp'
 import { sendOTPEmail, sendSMSOTP } from '@/actions/email'

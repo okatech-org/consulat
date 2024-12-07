@@ -41,9 +41,10 @@ interface DocumentStatusProps {
   type: string
   isUploaded: boolean
   required?: boolean
+  customText?: string
 }
 
-export function DocumentStatus({ type, isUploaded, required = true }: DocumentStatusProps) {
+export function DocumentStatus({ type, isUploaded, customText, required = true }: DocumentStatusProps) {
   const t = useTranslations('registration.review')
 
   return (
@@ -52,9 +53,9 @@ export function DocumentStatus({ type, isUploaded, required = true }: DocumentSt
         <FileText className="h-4 w-4 text-muted-foreground" />
         <span>{type}</span>
       </div>
-      <Badge variant={isUploaded ? "outline" : required ? "destructive" : "outline"}>
+      <Badge variant={isUploaded ? "valid" : required ? "destructive" : "outline"}>
         {isUploaded
-          ? t('document_uploaded')
+          ? customText ?? t('document_uploaded')
           : required
             ? t('document_missing')
             : t('not_provided')

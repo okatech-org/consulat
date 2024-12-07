@@ -7,6 +7,8 @@ import { ROUTES } from '@/schemas/routes'
 import { getUserDocumentsList } from '@/actions/documents'
 import { getUserFullProfile } from '@/lib/user/getters'
 import { getCurrentUser } from '@/actions/user'
+import { ConsularService, DocumentType } from '@prisma/client'
+import { ServiceStep } from '@/types/consular-service'
 
 interface ServiceStartPageProps {
   params: {
@@ -27,8 +29,6 @@ export default async function ServiceStartPage({ params }: ServiceStartPageProps
     getUserFullProfile(user.id)
   ])
 
-  console.log(user)
-
   if (!service) {
     redirect(ROUTES.services)
   }
@@ -37,11 +37,17 @@ export default async function ServiceStartPage({ params }: ServiceStartPageProps
     redirect(ROUTES.services)
   }
 
+  console.log({ service }, service.steps)
+
   return (
     <div className="container max-w-4xl py-6">
       <Suspense fallback={<LoadingSkeleton />}>
         <ServiceForm
-          service={service}
+          service={service as unknown as ConsularService & {
+            steps: ServiceStep[]
+            requiredDocuments: DocumentType[]
+            requiresAppointment: boolean
+          }}
           documents={documents}
           consulateId={user.consulateId}
           profile={profile}

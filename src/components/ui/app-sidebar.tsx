@@ -40,6 +40,16 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
       title: t_user('nav.procedures'),
       href: ROUTES.services,
       icon: <FileText/>,
+      items: [
+        {
+          title: t_user('nav.services'),
+          href: ROUTES.services,
+        },
+        {
+          title: t_user('nav.requests'),
+          href: ROUTES.requests,
+        }
+      ]
     },
     {
       title: t_user('nav.profile'),

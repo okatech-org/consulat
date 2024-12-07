@@ -43,11 +43,15 @@ export interface ServiceStep {
   id: string
   title: string
   description: string
-  isComplete: boolean
-  component: JSX.Element
+  isComplete?: boolean
+  component?: JSX.Element
+  profileFields?: string
+  defaultValues?: Record<string, unknown>
   fields?: ServiceField[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValues?: Record<string, any>
+}
+
+export interface ProfileFieldMapping {
+  [formField: string]: string
 }
 
 // Type principal pour le service consulaire

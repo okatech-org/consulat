@@ -288,7 +288,6 @@ export async function updateProfile(
   formData: FormData,
   section: keyof UpdateProfileSection
 ): Promise<ActionResult<Profile>> {
-  const uploadedFiles: { key: string; url: string }[] = []
 
   try {
     const t = await getTranslations('messages.profile.errors')
@@ -311,32 +310,6 @@ export async function updateProfile(
     if (!existingProfile) {
       return { error: t('profile_not_found') }
     }
-
-    // Traiter les fichiers si présents
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fileProcessingPromises: Promise<any>[] = []
-    const files = {
-      identityPictureFile: formData.get('identityPictureFile') as File,
-      passportFile: formData.get('passportFile') as File,
-      birthCertificateFile: formData.get('birthCertificateFile') as File,
-      residencePermitFile: formData.get('residencePermitFile') as File,
-      addressProofFile: formData.get('addressProofFile') as File,
-    }
-
-    Object.entries(files).forEach(file => {
-      if (file) {
-        const formData = new FormData()
-        formData.append('files', file[0])
-        fileProcessingPromises.push(processFileData(formData))
-      }
-    })
-
-    const processedFiles = await Promise.all(fileProcessingPromises)
-
-    // Garder une trace des fichiers uploadés pour pouvoir les supprimer en cas d'erreur
-    processedFiles.forEach(file => {
-      if (file) uploadedFiles.push(file)
-    })
 
     // Récupérer les données JSON de la section
     const sectionData = formData.get(section)
@@ -365,7 +338,6 @@ export async function updateProfile(
           passportIssueDate: new Date(data.passportIssueDate),
           passportExpiryDate: new Date(data.passportExpiryDate),
           passportIssueAuthority: data.passportIssueAuthority,
-          ...(processedFiles[0] && { identityPicture: processedFiles[0].url }),
         }
         break
 
@@ -443,14 +415,6 @@ export async function updateProfile(
 
     return { data: updatedProfile }
   } catch (error) {
-    if (uploadedFiles.length > 0) {
-      try {
-        await deleteFiles(uploadedFiles.map(file => file.key))
-      } catch (deleteError) {
-        console.error('Error deleting files:', deleteError)
-      }
-    }
-
     console.error('Update profile error:', error)
     return {
       error: error instanceof Error ? error.message : 'messages.errors.unknown_error'

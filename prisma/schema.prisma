@@ -409,7 +409,8 @@ model ServiceStep {
   stepType ServiceStepType @default(FORM)
 
   // Configuration du formulaire (pour type FORM)
-  fields Json? // Structure des champs à remplir
+  fields        Json? // Structure des champs à remplir
+  profileFields Json? // Champs à extraire du profil
 
   // Configuration du rendez-vous (pour type APPOINTMENT)
   appointmentConfig Json? // Configuration spécifique au RDV

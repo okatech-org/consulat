@@ -11,10 +11,12 @@ import { Form, FormField } from '@/components/ui/form'
 import { Card, CardContent } from '@/components/ui/card'
 import { FormNavigation } from '@/components/consular-services/service-form/form-navigation'
 import { MobileProgress } from '@/components/registration/mobile-progress'
+import { DocumentStatus } from '@/components/ui/info-field'
+import { Separator } from '@/components/ui/separator'
 
 interface DocumentsStepProps {
   requiredDocuments: DocumentType[]
-  profilDocuments?: Record<DocumentType, string>
+  profilDocuments?:  Partial<Record<DocumentType, string>>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (Data: any) => void
   isLoading?: boolean
@@ -66,8 +68,25 @@ export function DocumentsStep({
     <Form {...documentsForm}>
       <form ref={ref} onSubmit={documentsForm.handleSubmit(handleFormSubmit)} className={"space-y-4"}>
         <Card className="overflow-hidden">
-          <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
             <AnimatePresence mode="sync">
+              {profilDocuments && Object.keys(profilDocuments).map((key) => (
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className={"md:col-span-2 space-y-3"}
+                >
+                  <DocumentStatus
+                    type={t(`documents.types.${key.toLowerCase()}`)}
+                    isUploaded={profilDocuments[key as DocumentType] !== undefined}
+                    customText={t('documents.status.already_provided')}
+                  />
+                  <Separator />
+                </motion.div>
+              ))
+              }
               {documentsFields.map((item, index) => (
                 <motion.div
                   key={item.name + index}

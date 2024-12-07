@@ -4,8 +4,8 @@ import { ServiceField, ServiceFieldType, ServiceStep } from '@/types/consular-se
 import { useTranslations } from 'next-intl'
 import { DocumentsStep } from './documents-step'
 import { StepIndicator } from './step-indicator'
-import { FullProfile } from '@/types'
-import { DocumentType, ConsularService } from '@prisma/client'
+import { AppUserDocument, FullProfile, ProfileKey } from '@/types'
+import { DocumentType, ConsularService, DocumentStatus, UserDocument } from '@prisma/client'
 import React, { useEffect, useState } from 'react'
 import { AppointmentStep } from '@/components/consular-services/service-form/appointment-step'
 import DynamicStep from '@/components/consular-services/service-form/dynamic-step'
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/schemas/routes'
 import { createFormStorage } from '@/lib/form-storage'
+import { submitServiceRequest } from '@/actions/consular-services/submit'
 
 interface ServiceFormProps {
   service: ConsularService & {
@@ -21,9 +22,24 @@ interface ServiceFormProps {
     requiredDocuments: DocumentType[]
     requiresAppointment: boolean
   }
+  documents: AppUserDocument[]
   profile: FullProfile | null
   defaultValues?: Record<string, unknown>
   consulateId: string
+}
+
+function mapProfileDocuments(profile: FullProfile) {
+  return {
+    [DocumentType.PASSPORT]: profile.passport,
+    [DocumentType.BIRTH_CERTIFICATE]: profile.birthCertificate,
+    [DocumentType.RESIDENCE_PERMIT]: profile.residencePermit,
+    [DocumentType.PROOF_OF_ADDRESS]: profile.addressProof,
+    [DocumentType.IDENTITY_PHOTO]: profile.identityPicture ? {
+      type: DocumentType.IDENTITY_PHOTO,
+      fileUrl: profile.identityPicture,
+      status: DocumentStatus.PENDING
+    } : null
+  }
 }
 
 export function ServiceForm({
@@ -36,6 +52,27 @@ export function ServiceForm({
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const profileDocuments = React.useMemo(() => {
+    if (profile) {
+      return mapProfileDocuments(profile);
+    }
+    return {} as Record<DocumentType, UserDocument>;
+  }, [profile]);
+
+  // Préparer les valeurs par défaut pour le formulaire des documents
+  const defaultDocumentValues = React.useMemo(() => {
+    const values: Partial<Record<DocumentType, string>> = {};
+
+    service.requiredDocuments.forEach((docType: DocumentType) => {
+      const profileDoc = profileDocuments[docType as keyof typeof profileDocuments];
+      if (profileDoc && profileDoc.fileUrl) {
+        values[docType] = profileDoc.fileUrl;
+      }
+    });
+
+    return values;
+  }, [service.requiredDocuments, profileDocuments]);
+
   const { saveData, loadSavedData, clearData } = createFormStorage('service_form_data');
   const { saveData: saveDocuments, loadSavedData: loadSaveDocuments, clearData: clearDocuments } = createFormStorage('service_form_documents');
   const { saveData: saveAppointment, loadSavedData: loadAppointment, clearData: clearAppointment } = createFormStorage('service_form_appointment');
@@ -45,9 +82,7 @@ export function ServiceForm({
     return loadSavedData() || {};
   });
   const currentFormRef = React.useRef<HTMLFormElement>(null)
-  const [documentsForm, setDocumentsForm] = useState<Record<DocumentType, File | undefined>>(
-    loadSaveDocuments()
-  )
+  const [documentsForm, setDocumentsForm] = useState<Record<DocumentType, File>>(loadSaveDocuments())
   const [appointmentForm, setAppointmentForm] = useState<{
     date: string
     time: string
@@ -70,27 +105,96 @@ export function ServiceForm({
         saveAppointment(data)
         break
       default:
-        const updatedData = {
-          ...stepsData,
+        setStepsData((prevData) => ({
+          ...prevData,
           [stepKey]: data
-        }
-        setStepsData(updatedData);
+        }))
     }
 
-    handleNext();
-  };
+    handleNext()
+  }
+
+
+  const renderDynamicStep = (step: ServiceStep) => {
+    const profileValues = getProfileValues(step)
+    const initialValues = {
+      ...profileValues,
+      ...defaultValues
+    }
+
+    return (
+      <DynamicStep
+        fields={formatServiceFields(step.fields as unknown as string)}
+        onSubmit={(data) => handleStepSubmit(step.id, data)}
+        defaultValues={initialValues}
+        navigation={{
+          steps,
+          currentStep,
+          handleFinalSubmit: handleSubmit,
+          handleNext,
+          handlePrevious
+        }}
+      />
+    )
+  }
+
+
+  // Fonction pour extraire les valeurs du profil selon les profileFields
+  const getProfileValues = (step: ServiceStep) => {
+    if (!profile || !step.profileFields) return {}
+
+    const profileFieldsMap = JSON.parse(step.profileFields as string)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const values = {} as Record<ProfileKey, any>
+
+    Object.entries(profileFieldsMap).forEach(([formField, profileField]) => {
+      // Accéder aux champs imbriqués du profil si nécessaire
+      const value = profile[profileField as ProfileKey]
+
+      if (value !== undefined) {
+        values[formField as ProfileKey] = value
+      }
+
+    })
+
+    return values
+  }
 
   // Construire les étapes du formulaire
   const steps: ServiceStep[] = []
 
   if (service.requiredDocuments) {
+    const requiredDocuments = service.requiredDocuments.filter((field) => !defaultDocumentValues?.[field])
     steps.push({
       id: 'documents',
       title: t('steps.documents'),
       description: t('steps.documents_description'),
       isComplete: false,
-      component: renderDocumentsStep(),
-      fields: service.requiredDocuments.map((name) => {
+      component: <DocumentsStep
+        formRef={currentFormRef}
+        requiredDocuments={requiredDocuments}
+        profilDocuments={defaultDocumentValues}
+        onSubmit={(data) => handleStepSubmit('documents', data)}
+        isLoading={isLoading}
+        navigation={{
+          steps,
+          currentStep,
+          handleFinalSubmit: handleSubmit,
+          handleNext,
+          handlePrevious
+        }}
+      />,
+      fields: [
+        ...Object.keys(defaultDocumentValues).map((name) => {
+          return {
+            name,
+            type: ServiceFieldType.FILE,
+            required: false,
+            label: t(`documents.types.${name.toLowerCase()}`),
+            description: t(`documents.descriptions.${name.toLowerCase()}`),
+            defaultValue: profileDocuments?.[name as keyof typeof profileDocuments]?.fileUrl,
+          }}),
+        ...requiredDocuments.map((name) => {
         return {
           name,
           type: ServiceFieldType.FILE,
@@ -99,7 +203,8 @@ export function ServiceForm({
           description: t(`documents.descriptions.${name.toLowerCase()}`),
           defaultValue: documentsForm?.[name],
         }
-      }),
+      })
+      ],
       defaultValues: documentsForm
     })
   }
@@ -122,17 +227,7 @@ export function ServiceForm({
           }
         }),
         defaultValues: stepsData[step.id],
-        component: <DynamicStep
-          fields={formatServiceFields(step.fields as unknown as string)}
-          onSubmit={(data) => handleStepSubmit(step.id, data)}
-          navigation={{
-            steps,
-            currentStep,
-            handleFinalSubmit: handleSubmit,
-            handleNext,
-            handlePrevious
-          }}
-        />,
+        component: renderDynamicStep(step),
       })
     })
   }
@@ -209,32 +304,6 @@ export function ServiceForm({
     })
   }
 
-  function renderDocumentsStep() {
-    const profileDocuments = {
-      [DocumentType.PASSPORT]: profile?.passport?.fileUrl,
-      [DocumentType.PROOF_OF_ADDRESS]: profile?.addressProof?.fileUrl,
-      [DocumentType.RESIDENCE_PERMIT]: profile?.residencePermit?.fileUrl,
-      [DocumentType.IDENTITY_PHOTO]: profile?.identityPicture,
-      [DocumentType.BIRTH_CERTIFICATE]: profile?.birthCertificate?.fileUrl,
-    } as Record<DocumentType, string>
-    return (
-      <DocumentsStep
-        formRef={currentFormRef}
-        requiredDocuments={service.requiredDocuments}
-        profilDocuments={profileDocuments}
-        onSubmit={(data) => handleStepSubmit('documents', data)}
-        isLoading={isLoading}
-        navigation={{
-          steps,
-          currentStep,
-          handleFinalSubmit: handleSubmit,
-          handleNext,
-          handlePrevious
-        }}
-      />
-    )
-  }
-
   function handleNext() {
     setCurrentStep(currentStep + 1)
   }
@@ -244,57 +313,59 @@ export function ServiceForm({
   }
 
   async function handleSubmit() {
-    setIsLoading(true);
     try {
-      // 1. Préparer les données du formulaire
+      setIsLoading(true);
       const formData = new FormData();
+      const profileDocs: Partial<Record<DocumentType, string>> = {};
 
-      // 2. Ajouter les documents
-      if (documentsForm) {
-        Object.entries(documentsForm).forEach(([key, file]) => {
-          if (file) formData.append(key, file);
-        });
-      }
-
-      // 3. Ajouter les données des étapes dynamiques
-      if (service.steps.length > 0) {
-        formData.append('dynamicSteps', JSON.stringify(stepsData));
-      }
-
-      // 4. Ajouter les données du rendez-vous si présentes
-      if (appointmentForm) {
-        formData.append('appointment', JSON.stringify(appointmentForm));
-      }
-
-      // 5. Ajouter l'ID du service
-      formData.append('serviceId', service.id);
-
-      // 6. Appeler l'API pour soumettre la demande
-      const response = await fetch('/api/services/submit', {
-        method: 'POST',
-        body: formData
+      // Ajouter les documents du profil existants
+      service.requiredDocuments.forEach((docType: DocumentType) => {
+        const profileDoc: UserDocument | null = profileDocuments[docType as keyof typeof profileDocuments] as UserDocument | null;
+        if (profileDoc && profileDoc.id) {
+          profileDocs[docType] = profileDoc.id;
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(t('errors.submission_failed'));
+      // Ajouter les nouveaux documents
+      Object.entries(documentsForm).forEach(([key, file]) => {
+        if (file instanceof File) {
+          formData.append(key, file);
+        }
+      });
+
+      // 5. Appeler la Server Action
+      const result = await submitServiceRequest({
+        requiredDocuments: service.requiredDocuments,
+        serviceId: service.id,
+        consulateId,
+        profileDocuments: Object.entries(profileDocs).map(([, value]) => value),
+        stepsData,
+        documents: formData,
+        appointment: appointmentForm,
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
       }
 
-      // 7. Notification de succès
+      // 6. Gérer le succès
       toast({
         title: t('success.title'),
         description: t('success.description'),
         variant: "success"
       });
 
+      // 7. Nettoyer les données
       clearData();
       clearDocuments();
       clearAppointment();
 
-      // 8. Redirection après succès
-      router.push(ROUTES.services);
+      // 8. Rediriger
+      router.push(ROUTES.requests);
 
     } catch (error) {
-      // Gestion des erreurs
+      console.error('Error submitting service request:', error);
+
       toast({
         title: t('error.title'),
         description: error instanceof Error ? error.message : t('error.unknown'),

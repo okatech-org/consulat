@@ -35,7 +35,6 @@ export async function createConsularService(
         title: input.title,
         description: input.description,
         requiredDocuments: input.requiredDocuments,
-        optionalDocuments: input.optionalDocuments,
         estimatedTime: input.estimatedTime,
         price: input.price,
         steps: {

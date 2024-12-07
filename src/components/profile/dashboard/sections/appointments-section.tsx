@@ -4,13 +4,13 @@ import { useTranslations } from 'next-intl'
 import { Calendar, Clock, MapPin, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DashboardSectionStats } from '@/types/dashboard'
 import { Badge, BadgeVariant } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 interface AppointmentsSectionProps {
-  stats: DashboardSectionStats['appointments']
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stats: any['appointments']
   onAction?: (action: string) => void
 }
 

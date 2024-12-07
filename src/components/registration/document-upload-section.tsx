@@ -15,12 +15,12 @@ import { getFieldsForDocument } from '@/lib/document-fields'
 import { useToast } from '@/components/ui/use-toast'
 import { DocumentField } from '@/lib/utils'
 import { analyzeDocuments } from '@/actions/documents'
-import { AnalysisData } from '@/types'
 
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>
   handleSubmit: (data: DocumentsFormData) => void
-  onAnalysisComplete?: (data: AnalysisData) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onAnalysisComplete?: (data: any) => void
   isLoading?: boolean
   formRef?: React.RefObject<HTMLFormElement>
 }

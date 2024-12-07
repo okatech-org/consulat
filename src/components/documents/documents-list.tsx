@@ -1,13 +1,13 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { DocumentWithMetadata } from '@/types/document'
 import { DocumentCard } from './document-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { FileText } from 'lucide-react'
+import { AppUserDocument } from '@/types'
 
 interface DocumentsListProps {
-  documents: DocumentWithMetadata[]
+  documents: AppUserDocument[]
 }
 
 export function DocumentsList({ documents }: DocumentsListProps) {
