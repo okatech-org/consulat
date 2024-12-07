@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button'
 import { format, isBefore, startOfToday } from 'date-fns'
 import { generateTimeSlots } from '@/actions/appointments'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader } from 'lucide-react'
+import { CalendarIcon, Loader } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 
 interface TimeSlotPickerProps {
   consulateId: string
@@ -77,14 +79,35 @@ export function TimeSlotPicker({
     <div className="space-y-4">
       <Card>
         <CardContent className="pt-4">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleDateSelect}
-            locale={fr}
-            disabled={disableDate}
-            className="rounded-md border"
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type={"button"}
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon />
+                {date ? format(date, "PPP", {
+                  locale: fr
+                }) : <span>
+                  {t('select_date')}
+                </span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={handleDateSelect}
+                locale={fr}
+                disabled={disableDate}
+                className="rounded-md border"
+              />
+            </PopoverContent>
+          </Popover>
         </CardContent>
       </Card>
 
@@ -100,6 +123,7 @@ export function TimeSlotPicker({
                 {t('no_slots')}
                 <p className="text-sm">{t('no_slots_description')}</p>
                 <Button
+                  type={"button"}
                   variant="link"
                   onClick={() => setDate(undefined)}
                 >
@@ -111,6 +135,7 @@ export function TimeSlotPicker({
                 <div className="grid grid-cols-3 gap-2 p-1">
                   {slots.map((slot) => (
                     <Button
+                      type={"button"}
                       key={slot.toISOString()}
                       variant={time === format(slot, 'HH:mm') ? "default" : "outline"}
                       onClick={() => handleTimeSelect(format(slot, 'HH:mm'))}

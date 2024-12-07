@@ -48,7 +48,9 @@ export function AppointmentDetails({
 
         {type && (
           <div className="mt-4 text-sm text-muted-foreground">
-            {t('type')}: {t(`type.${type.toLowerCase()}`)}
+            <span className={"font-semibold"}>
+              {t('type.reason')} :
+            </span> {t(`type.${type.toLowerCase()}`)}
           </div>
         )}
       </CardContent>

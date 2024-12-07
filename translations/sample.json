@@ -2134,12 +2134,36 @@
           "select_another_time": "",
           "appointment_date": "",
           "appointment_time": "",
+          "appointment_duration": "",
           "appointment_location": "",
-          "appointment_location_placeholder": "",
-          "appointment_location_description": "",
           "appointment_details": "",
-          "appointment_details_placeholder": "",
-          "appointment_duration": ""
+          "confirm": "",
+          "type": {
+            "document_submission": "",
+            "document_collection": "",
+            "interview": "",
+            "other": ""
+          },
+          "status": {
+            "pending": "",
+            "confirmed": "",
+            "cancelled": "",
+            "completed": "",
+            "missed": ""
+          }
+        },
+        "schedule": {
+          "title": "",
+          "days": {
+            "monday": "",
+            "tuesday": "",
+            "wednesday": "",
+            "thursday": "",
+            "friday": ""
+          },
+          "closed": "",
+          "morning": "",
+          "afternoon": ""
         },
         "select_placeholder": ""
       },

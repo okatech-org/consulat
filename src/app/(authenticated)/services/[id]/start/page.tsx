@@ -27,7 +27,13 @@ export default async function ServiceStartPage({ params }: ServiceStartPageProps
     getUserFullProfile(user.id)
   ])
 
+  console.log(user)
+
   if (!service) {
+    redirect(ROUTES.services)
+  }
+
+  if (!user.consulateId) {
     redirect(ROUTES.services)
   }
 
@@ -37,6 +43,7 @@ export default async function ServiceStartPage({ params }: ServiceStartPageProps
         <ServiceForm
           service={service}
           documents={documents}
+          consulateId={user.consulateId}
           profile={profile}
           defaultValues={profile ?? {} as Record<string, unknown>}
         />

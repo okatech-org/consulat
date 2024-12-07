@@ -1,33 +1,40 @@
 'use client'
 
-import { ConsularService, ServiceField, ServiceFieldType, ServiceStep } from '@/types/consular-service'
+import { ServiceField, ServiceFieldType, ServiceStep } from '@/types/consular-service'
 import { useTranslations } from 'next-intl'
 import { DocumentsStep } from './documents-step'
 import { StepIndicator } from './step-indicator'
 import { FullProfile } from '@/types'
-import { DocumentType } from '@prisma/client'
+import { DocumentType, ConsularService } from '@prisma/client'
 import React, { useState } from 'react'
 import { AppointmentStep } from '@/components/consular-services/service-form/appointment-step'
 import DynamicStep from '@/components/consular-services/service-form/dynamic-step'
 import { ReviewStep } from '@/components/consular-services/service-form/review-step'
 import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'
+import { ROUTES } from '@/schemas/routes'
 
 interface ServiceFormProps {
-  service: ConsularService
+  service: ConsularService & {
+    steps: ServiceStep[]
+    requiredDocuments: DocumentType[]
+    requiresAppointment: boolean
+  }
   profile: FullProfile | null
   defaultValues?: Record<string, unknown>
-  isLoading?: boolean
-  isComplete?: boolean
+  consulateId: string
 }
 
 export function ServiceForm({
                               service,
                               profile,
                               defaultValues,
+                              consulateId
                             }: ServiceFormProps) {
   const t = useTranslations('consular.services.form')
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
   const currentFormRef = React.useRef<HTMLFormElement>(null)
   const [documentsForm, setDocumentsForm] = useState<Record<DocumentType, File | undefined>>()
   const [appointmentForm, setAppointmentForm] = useState<{
@@ -126,6 +133,7 @@ export function ServiceForm({
         }
       ],
       component: <AppointmentStep
+        consulateId={consulateId}
         isLoading={isLoading}
         onSubmit={(data) => {
           setAppointmentForm(data)
@@ -214,12 +222,51 @@ export function ServiceForm({
   async function handleSubmit() {
     setIsLoading(true);
     try {
+      // 1. Préparer les données du formulaire
+      const formData = new FormData();
+
+      // 2. Ajouter les documents
+      if (documentsForm) {
+        Object.entries(documentsForm).forEach(([key, file]) => {
+          if (file) formData.append(key, file);
+        });
+      }
+
+      // 3. Ajouter les données des étapes dynamiques
+      if (dynamicStepsForm) {
+        formData.append('dynamicSteps', JSON.stringify(dynamicStepsForm));
+      }
+
+      // 4. Ajouter les données du rendez-vous si présentes
+      if (appointmentForm) {
+        formData.append('appointment', JSON.stringify(appointmentForm));
+      }
+
+      // 5. Ajouter l'ID du service
+      formData.append('serviceId', service.id);
+
+      // 6. Appeler l'API pour soumettre la demande
+      const response = await fetch('/api/services/submit', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(t('errors.submission_failed'));
+      }
+
+      // 7. Notification de succès
       toast({
         title: t('success.title'),
         description: t('success.description'),
         variant: "success"
       });
+
+      // 8. Redirection après succès
+      router.push(ROUTES.services);
+
     } catch (error) {
+      // Gestion des erreurs
       toast({
         title: t('error.title'),
         description: error instanceof Error ? error.message : t('error.unknown'),

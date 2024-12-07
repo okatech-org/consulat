@@ -51,6 +51,15 @@ export function ReviewStep({ steps, navigation, onEdit, isLoading = false }: Rev
                 />
               }
 
+              if (field.type === "date") {
+                return <InfoField
+                  required={true}
+                  label={field.label}
+                  key={index + field.name}
+                  value={new Date(field.defaultValue).toLocaleDateString()}
+                />
+              }
+
               return <InfoField
                 required={true}
                 label={field.label}

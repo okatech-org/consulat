@@ -8,6 +8,7 @@ import {
   DocumentType,
   DocumentStatus,
 } from '@prisma/client'
+import { addDays, setHours, setMinutes } from 'date-fns'
 
 const prisma = new PrismaClient()
 
@@ -15,20 +16,26 @@ async function main() {
   try {
     console.log('🌱 Début du seeding...')
 
-    // 1. Créer le consulat
-    console.log('Création du consulat...')
+    console.log('🌱 Début du seeding du consulat...')
+
+    // Supprimer les données existantes
+    await prisma.timeSlot.deleteMany()
+    await prisma.consulateSchedule.deleteMany()
+    await prisma.consulate.deleteMany()
+
+    // Créer le consulat
     const consulat = await prisma.consulate.create({
       data: {
-        name: "Consulat du Gabon en France",
-        email: "contact@consulat-gabon.fr",
-        phone: "+33123456789",
+        name: "Ambassade du Gabon en France",
+        email: "contact@ambagabon-fr.org",
+        phone: "0142996868",
         isGeneral: true,
-        website: "https://consulat-gabon.fr",
+        website: "https://ambagabon-fr.org",
         address: {
           create: {
-            firstLine: "8 rue de la Paix",
+            firstLine: "26bis Avenue Raphaël",
             city: "Paris",
-            zipCode: "75002",
+            zipCode: "75016",
             country: "france"
           }
         },
@@ -38,16 +45,59 @@ async function main() {
             { name: "Belgique", code: "BE" },
             { name: "Luxembourg", code: "LU" }
           ]
+        },
+        // Horaires d'ouverture
+        schedule: {
+          create: [
+            { dayOfWeek: 1, openTime: "09:00", closeTime: "16:30", isOpen: true },  // Lundi
+            { dayOfWeek: 2, openTime: "09:00", closeTime: "16:30", isOpen: true },  // Mardi
+            { dayOfWeek: 3, openTime: "09:00", closeTime: "16:30", isOpen: true },  // Mercredi
+            { dayOfWeek: 4, openTime: "09:00", closeTime: "16:30", isOpen: true },  // Jeudi
+            { dayOfWeek: 5, openTime: "09:00", closeTime: "16:30", isOpen: true },  // Vendredi
+            { dayOfWeek: 6, openTime: "00:00", closeTime: "00:00", isOpen: false }, // Samedi
+            { dayOfWeek: 0, openTime: "00:00", closeTime: "00:00", isOpen: false }  // Dimanche
+          ]
         }
       }
     })
+
+    // Générer des créneaux de rendez-vous pour les 30 prochains jours
+    const startDate = new Date()
+    const numberOfDays = 30
+    const slotDuration = 30 // minutes
+
+    for (let day = 0; day < numberOfDays; day++) {
+      const currentDate = addDays(startDate, day)
+      const dayOfWeek = currentDate.getDay()
+
+      // Vérifier si le consulat est ouvert ce jour
+      if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Lundi à Vendredi
+        // Créer des créneaux entre 9h et 16h30
+        const startTime = setHours(setMinutes(currentDate, 0), 9)
+        const endTime = setHours(setMinutes(currentDate, 30), 16)
+
+        let currentSlot = startTime
+        while (currentSlot < endTime) {
+          await prisma.timeSlot.create({
+            data: {
+              consulateId: consulat.id,
+              startTime: currentSlot,
+              endTime: addMinutes(currentSlot, slotDuration),
+              duration: slotDuration,
+              isAvailable: true
+            }
+          })
+          currentSlot = addMinutes(currentSlot, slotDuration)
+        }
+      }
+    }
 
     // 2. Créer l'utilisateur avec son profil
     console.log('Création de l\'utilisateur et du profil...')
     const user = await prisma.user.create({
       data: {
         email: "itoutouberny@gmail.com",
-        phone: "+33612250393",
+        phone: "+330612250393",
         name: "Berny Itoutou",
         role: UserRole.USER,
         emailVerified: new Date(),
@@ -64,7 +114,7 @@ async function main() {
             birthCountry: "france",
             nationality: "gabon",
             email: "itoutouberny@gmail.com",
-            phone: "+33612250393",
+            phone: "+330612250393",
             maritalStatus: MaritalStatus.SINGLE,
             workStatus: WorkStatus.EMPLOYEE,
             acquisitionMode: NationalityAcquisition.BIRTH,
@@ -138,6 +188,11 @@ async function main() {
     await prisma.$disconnect()
     throw error
   }
+}
+
+// Fonction utilitaire pour ajouter des minutes à une date
+function addMinutes(date: Date, minutes: number): Date {
+  return new Date(date.getTime() + minutes * 60000)
 }
 
 // Exécution avec gestion d'erreur simplifiée

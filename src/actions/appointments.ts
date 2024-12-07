@@ -1,3 +1,5 @@
+'use server'
+
 import { db } from '@/lib/prisma'
 import { addMinutes, setHours, setMinutes, startOfDay } from 'date-fns'
 
@@ -134,6 +136,52 @@ export async function createAppointment({
       type: 'DOCUMENT_SUBMISSION',
       status: 'CONFIRMED',
       serviceRequestId
+    }
+  })
+}
+
+export async function rescheduleAppointment({
+                                              appointmentId,
+                                              newDate,
+                                              newTime
+                                            }: {
+  appointmentId: string
+  newDate: Date
+  newTime: string
+}) {
+  const [hours, minutes] = newTime.split(':').map(Number)
+  const scheduledDate = new Date(newDate)
+  scheduledDate.setHours(hours, minutes)
+
+  return db.appointment.update({
+    where: { id: appointmentId },
+    data: {
+      date: scheduledDate,
+      status: 'PENDING'
+    }
+  })
+}
+
+export async function cancelAppointment(appointmentId: string) {
+  return db.appointment.update({
+    where: { id: appointmentId },
+    data: {
+      status: 'CANCELLED'
+    }
+  })
+}
+
+export async function getUpcomingAppointments(userId: string) {
+  return db.appointment.findMany({
+    where: {
+      userId,
+      date: { gte: new Date() },
+      status: { not: 'CANCELLED' }
+    },
+    orderBy: { date: 'asc' },
+    include: {
+      consulate: true,
+      serviceRequest: true
     }
   })
 }

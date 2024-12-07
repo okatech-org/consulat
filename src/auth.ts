@@ -27,9 +27,14 @@ export const {
     async session({ session, token }) {
       if (token.sub && session.user) {
         const existingUser = await getUserById(token.sub)
+        console.log('existingUser', existingUser)
         if (existingUser) {
           session.user.role = existingUser.role
           session.user.phone = existingUser.phone
+          session.user.lastLogin = existingUser.lastLogin ?? new Date()
+          if (existingUser.consulateId) {
+            session.user.consulateId = existingUser.consulateId
+          }
         }
         session.user.id = token.sub
       }

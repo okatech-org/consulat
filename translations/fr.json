@@ -2140,6 +2140,7 @@
           "appointment_details": "Détails du rendez-vous",
           "confirm": "Confirmer le rendez-vous",
           "type": {
+            "reason": "Motif du rendez-vous",
             "document_submission": "Dépôt de documents",
             "document_collection": "Retrait de documents",
             "interview": "Entretien",

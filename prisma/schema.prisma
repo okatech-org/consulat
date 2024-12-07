@@ -123,7 +123,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Appointment Appointment[]
+  Appointment   Appointment[]
+  notifications AppointmentNotification[]
 }
 
 model Profile {
@@ -482,6 +483,8 @@ model Appointment {
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?         @unique
 
+  notifications AppointmentNotification[]
+
   // Métadonnées
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -530,4 +533,33 @@ model TimeSlot {
   isAvailable   Boolean      @default(true)
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
   appointmentId String?
+}
+
+model AppointmentNotification {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id])
+  appointmentId String
+  appointment   Appointment        @relation(fields: [appointmentId], references: [id])
+  type          NotificationType
+  status        NotificationStatus @default(PENDING)
+  sentAt        DateTime?
+  readAt        DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+enum NotificationType {
+  APPOINTMENT_REMINDER_3_DAYS
+  APPOINTMENT_REMINDER_1_DAY
+  APPOINTMENT_CONFIRMATION
+  APPOINTMENT_MODIFICATION
+  APPOINTMENT_CANCELLATION
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  READ
+  FAILED
 }
