@@ -7,14 +7,251 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Énumérations
+
 enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  MANAGER
   USER
-  SECRET
+  RESPONSIBLE // Responsable (Sous-administrateur)
+  ADMIN // Administratif Consulaire
+  SUPER_ADMIN // Super administrateur
 }
 
+enum RequestType {
+  FIRST_REQUEST
+  RENEWAL
+  MODIFICATION
+  CONSULAR_REGISTRATION
+  PASSPORT_REQUEST
+  ID_CARD_REQUEST
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  COHABITING
+}
+
+enum WorkStatus {
+  EMPLOYEE
+  ENTREPRENEUR
+  UNEMPLOYED
+  RETIRED
+  STUDENT
+  OTHER
+}
+
+enum NationalityAcquisition {
+  BIRTH
+  NATURALIZATION
+  MARRIAGE
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+  EXPIRED
+  EXPIRING
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  INCOMPLETE
+  IN_PROGRESS
+  COMPLETED
+  VALID
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  ADDITIONAL_INFO_NEEDED
+  VALIDATED
+}
+
+enum DocumentType {
+  PASSPORT
+  IDENTITY_CARD
+  BIRTH_CERTIFICATE
+  RESIDENCE_PERMIT
+  PROOF_OF_ADDRESS
+  MARRIAGE_CERTIFICATE
+  DEATH_CERTIFICATE
+  DIVORCE_DECREE
+  NATIONALITY_CERTIFICATE
+  OTHER
+  VISA_PAGES
+  EMPLOYMENT_PROOF
+  NATURALIZATION_DECREE
+  IDENTITY_PHOTO
+}
+
+// Modèles principaux
+model User {
+  id       String   @id @default(cuid())
+  email    String?  @unique
+  phone    String?  @unique
+  password String? // Hashed password if needed
+  name     String?
+  role     UserRole @default(USER)
+
+  // Relations
+  profile     Profile?
+  consulateId String?
+  consulate   Consulate? @relation(fields: [consulateId], references: [id])
+
+  // Auth related
+  emailVerified DateTime?
+  phoneVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+  lastLogin     DateTime?
+  messages      Message[]
+
+  serviceRequests ServiceRequest[]
+
+  documents UserDocument[] @relation("userDocuments")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Appointment   Appointment[]
+  notifications AppointmentNotification[]
+}
+
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Informations personnelles
+  firstName              String
+  lastName               String
+  gender                 Gender
+  birthDate              String
+  birthPlace             String
+  birthCountry           String
+  nationality            String
+  maritalStatus          MaritalStatus?
+  workStatus             WorkStatus?
+  acquisitionMode        NationalityAcquisition? @default(BIRTH)
+  passportNumber         String
+  passportIssueDate      DateTime
+  passportExpiryDate     DateTime
+  passportIssueAuthority String
+  identityPicture        String?
+
+  // Documents
+  passport           UserDocument? @relation("passport", fields: [passportId], references: [id])
+  passportId         String?       @unique
+  birthCertificate   UserDocument? @relation("birthCertificate", fields: [birthCertificateId], references: [id])
+  birthCertificateId String?       @unique
+  residencePermit    UserDocument? @relation("residencePermit", fields: [residencePermitId], references: [id])
+  residencePermitId  String?       @unique
+  addressProof       UserDocument? @relation("addressProof", fields: [addressProofId], references: [id])
+  addressProofId     String?       @unique
+
+  // Contact
+  address          Address?          @relation(fields: [addressId], references: [id])
+  phone            String?
+  email            String?
+  emergencyContact EmergencyContact?
+
+  // Gabonese specific
+  addressInGabon  AddressGabon?
+  activityInGabon String?
+
+  // Informations familiales
+  fatherFullName String?
+  motherFullName String?
+  spouseFullName String?
+
+  // Informations professionnelles
+  profession      String?
+  employer        String?
+  employerAddress String?
+
+  // Métadonnées
+  status    RequestStatus @default(INCOMPLETE)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  addressId String?
+}
+
+model EmergencyContact {
+  id           String  @id @default(cuid())
+  fullName     String
+  relationship String
+  phone        String
+  profile      Profile @relation(fields: [profileId], references: [id])
+  profileId    String  @unique
+}
+
+model AddressGabon {
+  id        String  @id @default(cuid())
+  address   String
+  district  String
+  city      String
+  profile   Profile @relation(fields: [profileId], references: [id])
+  profileId String  @unique
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  firstLine  String
+  secondLine String?
+  city       String
+  zipCode    String?
+  country    String
+
+  // Relations
+  consulate Consulate?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Profile   Profile[]
+}
+
+model Consulate {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  address   Address? @relation(fields: [addressId], references: [id])
+  addressId String?  @unique
+  website   String?
+  isGeneral Boolean  @default(false)
+  logo      String?
+
+  serviceRequests ServiceRequest[]
+
+  // Relations
+  users     User[]
+  countries Country[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  appointments Appointment[]
+  schedule     ConsulateSchedule[]
+  timeSlots    TimeSlot[]
+}
+
+model Country {
+  id          String    @id @default(cuid())
+  name        String
+  code        String
+  consulateId String
+  consulate   Consulate @relation(fields: [consulateId], references: [id])
+}
+
+// Auth related models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -42,24 +279,6 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model User {
-  id                    String         @id @default(cuid())
-  email                 String?        @unique
-  phone                 String?        @unique
-  emailVerified         DateTime?
-  phoneVerified         DateTime?
-  name                  String?
-  image                 String?
-  role                  UserRole       @default(USER)
-  accounts              Account[]
-  sessions              Session[]
-  bio                   String?        @db.Text
-  profile               Profile?
-  Consulate             Consulate[]
-  sentNotifications     Notification[] @relation("SentNotifications")
-  receivedNotifications Notification[] @relation("ReceivedNotifications")
-}
-
 model VerificationToken {
   id         String   @id @default(cuid())
   identifier String
@@ -70,227 +289,278 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-enum Visibility {
-  PUBLIC
-  PRIVATE
+// Mettre à jour le modèle Document
+model UserDocument {
+  id        String         @id @default(cuid())
+  type      DocumentType
+  status    DocumentStatus @default(PENDING)
+  fileUrl   String // URL du fichier stocké
+  issuedAt  DateTime?
+  expiresAt DateTime?
+  metadata  Json? // Métadonnées additionnelles
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  userId String?
+  user   User?   @relation("userDocuments", fields: [userId], references: [id])
+
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String?
+
+  // Relations inverses spécifiques
+  passportProfile         Profile? @relation("passport")
+  birthCertificateProfile Profile? @relation("birthCertificate")
+  residencePermitProfile  Profile? @relation("residencePermit")
+  addressProofProfile     Profile? @relation("addressProof")
 }
 
-model Consulate {
-  id            String         @id @default(cuid())
-  name          String
-  visibility    Visibility     @default(PUBLIC)
-  profiles      Profile[]
-  phone         String
-  email         String
-  address       Address        @relation("consulate_address", fields: [addressId], references: [id])
-  addressId     String
-  website       String?
-  logo          File?          @relation("consulate_logo", fields: [logoId], references: [key])
-  logoId        String?
-  user          User           @relation(fields: [userId], references: [id])
-  userId        String
-  countries     Country[]
-  notifications Notification[]
-  createdAt     DateTime       @default(now())
-  isGeneral     Boolean        @default(false)
+model Message {
+  id      String @id @default(cuid())
+  content String
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String?
+  createdAt        DateTime        @default(now())
 }
 
-model Profile {
-  id     String @id @default(cuid())
-  status Status @default(INCOMPLETE)
+model Note {
+  id      String @id @default(cuid())
+  content String
 
-  // Basic Identity Info
-  gender                 Gender
-  firstName              String
-  lastName               String
-  birthDate              String
-  birthPlace             String
-  birthCountry           String
-  nationality            String
-  nationalityAcquisition NationalityAcquisition
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String?
 
-  // Contact Info
-  email            String?
-  phone            String?
-  address          Address       @relation("profile_address", fields: [addressId], references: [id])
-  addressId        String
-  addressGabon     AddressGabon?
-  residenceCountry String?
+  createdAt DateTime @default(now())
+}
 
-  // Professional Info
-  workStatus        WorkStatus?
-  profession        String?
-  employer          String?
-  employerAddress   String?
-  lastActivityGabon String?
+// Types de démarches disponibles
+enum ConsularServiceType {
+  // Documents d'identité
+  PASSPORT_REQUEST
+  CONSULAR_CARD
 
-  // Family Info
-  maritalStatus  MaritalStatus?
-  fatherFullName String?
-  motherFullName String?
+  // État civil
+  BIRTH_REGISTRATION
+  MARRIAGE_REGISTRATION
+  DEATH_REGISTRATION
+  CONSULAR_REGISTRATION
+}
 
-  // Family Members
-  spouseFullName String?
+// Statut de la démarche
+enum ServiceRequestStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  ADDITIONAL_INFO_NEEDED
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
 
-  // Emergency Contact
-  emergencyContact EmergencyContact?
+// Priorité de la démarche
+enum ServicePriority {
+  STANDARD
+  URGENT
+}
 
-  // Documents
-  applicationNumber  String?      @unique // Numéro de dossier
-  documentType       DocumentType @default(FIRST_REQUEST)
-  passport           File?        @relation("passportFile", fields: [passportId], references: [key])
-  passportId         String?
-  passportNumber     String?
-  passportIssueDate  DateTime?
-  passportExpiryDate DateTime?
+model ConsularService {
+  id          String              @id @default(cuid())
+  type        ConsularServiceType
+  title       String
+  description String?
 
-  birthCertificate   File?   @relation("birthCertificate", fields: [birthCertificateId], references: [key])
-  birthCertificateId String?
+  // Documents requis et optionnels
+  requiredDocuments DocumentType[]
 
-  residencePermit   File?   @relation("residencePermit", fields: [residencePermitId], references: [key])
-  residencePermitId String?
+  // Nouveau: Configuration du rendez-vous
+  requiresAppointment Boolean @default(false)
+  appointmentDuration Int? // Durée en minutes
 
-  addressProof   File?   @relation("addressProof", fields: [addressProofId], references: [key])
-  addressProofId String?
+  // Informations générales
+  estimatedTime String? // Temps estimé de traitement
+  price         Float? // Coût de la démarche
+  isActive      Boolean @default(true)
 
-  identityPicture   File?   @relation("identityPicture", fields: [identityPictureId], references: [key])
-  identityPictureId String?
+  // Configuration du workflow
+  steps        ServiceStep[]
+  requirements Json? // Conditions d'éligibilité
+  validations  Json? // Règles de validation
 
   // Relations
-  consulate   Consulate? @relation(fields: [consulateId], references: [id])
-  consulateId String?
-  user        User       @relation(fields: [userId], references: [id])
-  userId      String     @unique
+  requests ServiceRequest[]
 
-  // Metadata
-  expiredAt DateTime?
-  profileID Int?
-  createdAt DateTime  @default(now())
+  // Métadonnées
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Country {
-  id          String    @id @default(cuid())
-  name        String
-  consulate   Consulate @relation(fields: [consulateId], references: [id])
-  consulateId String
-}
-
-model Address {
-  id            String      @id @default(cuid())
-  firstLine     String
-  secondLine    String?
-  city          String
-  zipCode       String
-  country       String
-  profile_ref   Profile[]   @relation("profile_address")
-  consulate_ref Consulate[] @relation("consulate_address")
-}
-
-model File {
-  key               String      @id @default(cuid())
-  url               String
-  appUrl            String?
-  size              Int
-  name              String
-  type              String
-  customId          String?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  consulate_logo    Consulate[] @relation("consulate_logo")
-  identity_pic_ref  Profile[]   @relation("identityPicture")
-  birth_cert_ref    Profile[]   @relation("birthCertificate")
-  address_proof_ref Profile[]   @relation("addressProof")
-  residence_permit  Profile[]   @relation("residencePermit")
-  passport_ref      Profile[]   @relation("passportFile")
-}
-
-model Notification {
-  id          String           @id @default(cuid())
+// Modèle pour les étapes d'une démarche
+model ServiceStep {
+  id          String  @id @default(cuid())
+  order       Int // Ordre de l'étape
   title       String
-  content     String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  read        Boolean          @default(false)
-  type        NotificationType
-  sender      User             @relation("SentNotifications", fields: [senderId], references: [id])
-  senderId    String
-  recipients  User[]           @relation("ReceivedNotifications")
-  consulate   Consulate?       @relation(fields: [consulateId], references: [id])
-  consulateId String?
-  attachments Attachment[]
-  viewedBy    String[]
+  description String?
+  isRequired  Boolean @default(true)
+
+  // Type d'étape
+  stepType ServiceStepType @default(FORM)
+
+  // Configuration du formulaire (pour type FORM)
+  fields        Json? // Structure des champs à remplir
+  profileFields Json? // Champs à extraire du profil
+
+  // Configuration du rendez-vous (pour type APPOINTMENT)
+  appointmentConfig Json? // Configuration spécifique au RDV
+
+  // Relations
+  serviceId String
+  service   ConsularService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  // Métadonnées
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Attachment {
-  id             String       @id @default(cuid())
-  url            String
-  filename       String
-  mimeType       String
-  notification   Notification @relation(fields: [notificationId], references: [id])
-  notificationId String
+// Nouveau: Types d'étapes possibles
+enum ServiceStepType {
+  FORM // Étape de formulaire standard
+  DOCUMENTS // Étape d'upload de documents
+  APPOINTMENT // Étape de prise de RDV
+  REVIEW // Étape de revue finale
 }
 
-model EmergencyContact {
-  id           String  @id @default(cuid())
-  fullName     String
-  relationship String
-  phone        String
-  profile      Profile @relation(fields: [profileId], references: [id])
-  profileId    String  @unique
+// Modèle pour les demandes de démarches
+model ServiceRequest {
+  id       String               @id @default(cuid())
+  status   ServiceRequestStatus @default(DRAFT)
+  priority ServicePriority      @default(STANDARD)
+
+  // Relations
+  serviceId   String
+  service     ConsularService @relation(fields: [serviceId], references: [id])
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  consulateId String
+  consulate   Consulate       @relation(fields: [consulateId], references: [id])
+
+  // Données de la demande
+  formData  Json? // Données du formulaire
+  documents UserDocument[] // Documents fournis
+  notes     Note[] // Notes administratives
+  messages  Message[] // Communications
+
+  // Rendez-vous associé (si applicable)
+  appointment Appointment?
+
+  // Suivi
+  submittedAt DateTime?
+  completedAt DateTime?
+
+  // Métadonnées
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([consulateId])
 }
 
-model AddressGabon {
-  id        String  @id @default(cuid())
-  address   String
-  district  String // Quartier
-  city      String
-  profile   Profile @relation(fields: [profileId], references: [id])
-  profileId String  @unique
+// Modèle pour les rendez-vous
+model Appointment {
+  id       String            @id @default(cuid())
+  date     DateTime
+  duration Int // en minutes
+  type     AppointmentType
+  status   AppointmentStatus @default(PENDING)
+
+  // Relations
+  userId           String
+  user             User            @relation(fields: [userId], references: [id])
+  consulateId      String
+  consulate        Consulate       @relation(fields: [consulateId], references: [id])
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String?         @unique
+
+  notifications AppointmentNotification[]
+
+  // Métadonnées
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  TimeSlot  TimeSlot[]
+
+  @@index([userId])
+  @@index([consulateId])
 }
 
-enum DocumentType {
-  FIRST_REQUEST
-  RENEWAL
-  MODIFICATION
+// Statuts possibles pour les rendez-vous
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  MISSED
 }
 
-enum NationalityAcquisition {
-  BIRTH
-  NATURALIZATION
-  MARRIAGE
+// Types de rendez-vous
+enum AppointmentType {
+  DOCUMENT_SUBMISSION
+  DOCUMENT_COLLECTION
+  INTERVIEW
   OTHER
+}
+
+// Horaires d'ouverture du consulat
+model ConsulateSchedule {
+  id          String    @id @default(cuid())
+  consulateId String
+  consulate   Consulate @relation(fields: [consulateId], references: [id])
+  dayOfWeek   Int // 0-6 pour lundi-dimanche
+  openTime    String // Format "HH:mm"
+  closeTime   String
+  isOpen      Boolean   @default(true)
+}
+
+// Créneaux de rendez-vous
+model TimeSlot {
+  id            String       @id @default(cuid())
+  consulateId   String
+  consulate     Consulate    @relation(fields: [consulateId], references: [id])
+  startTime     DateTime
+  endTime       DateTime
+  duration      Int // en minutes
+  isAvailable   Boolean      @default(true)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  appointmentId String?
+}
+
+model AppointmentNotification {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id])
+  appointmentId String
+  appointment   Appointment        @relation(fields: [appointmentId], references: [id])
+  type          NotificationType
+  status        NotificationStatus @default(PENDING)
+  sentAt        DateTime?
+  readAt        DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 }
 
 enum NotificationType {
-  INDIVIDUAL
-  CONSULATE
+  APPOINTMENT_REMINDER_3_DAYS
+  APPOINTMENT_REMINDER_1_DAY
+  APPOINTMENT_CONFIRMATION
+  APPOINTMENT_MODIFICATION
+  APPOINTMENT_CANCELLATION
 }
 
-enum Gender {
-  MALE
-  FEMALE
-}
-
-enum Status {
+enum NotificationStatus {
   PENDING
-  APPROVED
-  REJECTED
-  INCOMPLETE
-}
-
-enum MaritalStatus {
-  SINGLE
-  MARRIED
-  DIVORCED
-  WIDOWED
-  COHABITING
-}
-
-enum WorkStatus {
-  EMPLOYEE
-  ENTREPRENEUR
-  UNEMPLOYED
-  RETIRED
-  STUDENT
-  OTHER
+  SENT
+  READ
+  FAILED
 }

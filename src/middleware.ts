@@ -5,57 +5,83 @@ import {
   authRoutes,
   DEFAULT_AUTH_REDIRECT,
   publicRoutes,
+  roleRoutes,
 } from '@/routes'
-import { PAGE_ROUTES } from '@/schemas/app-routes'
+import { ROUTES } from '@/schemas/routes'
+import { nanoid } from 'nanoid'
+import { NextResponse } from 'next/server'
+import { UserRole } from '@prisma/client'
 
 const { auth } = NextAuth(authConfig)
+
 export default auth((req) => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth
+  const userRole = req.auth?.user?.role || UserRole.USER
+
+  // Setup nonce pour la sécurité
+  const nonce = nanoid()
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set('x-nonce', nonce)
+
+  // Vérification des types de routes
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix)
-  const isAuthRoute = authRoutes.some((route) =>
-    nextUrl.pathname.includes(`${route}`)
-  )
-  const isPublicRoute = publicRoutes.some((route) =>
-    nextUrl.pathname.includes(`${route}`)
-  )
+  const isAuthRoute = authRoutes.some((route) => nextUrl.pathname === route)
+  const isPublicRoute = publicRoutes.some((route) => {
+    if (route === ROUTES.base) {
+      return nextUrl.pathname === route
+    }
+    return nextUrl.pathname === route
+  })
 
-  if (isPublicRoute) {
-    return
-  }
-
+  // Autoriser les routes API auth
   if (isApiAuthRoute) {
-    return
+    return NextResponse.next({
+      request: { headers: requestHeaders }
+    })
   }
 
-  if (isAuthRoute) {
-    if (isLoggedIn) {
-      return Response.redirect(new URL(DEFAULT_AUTH_REDIRECT, nextUrl))
+  // Autoriser les routes publiques
+  if (isPublicRoute) {
+    return NextResponse.next({
+      request: { headers: requestHeaders }
+    })
+  }
+
+  // Rediriger les utilisateurs connectés qui tentent d'accéder aux pages d'auth
+  if (isLoggedIn && isAuthRoute) {
+    return Response.redirect(new URL(DEFAULT_AUTH_REDIRECT, nextUrl))
+  }
+
+  // Vérifier l'authentification pour les routes protégées
+  if (!isLoggedIn && !isAuthRoute) {
+    const callbackUrl = nextUrl.pathname
+    return Response.redirect(
+      new URL(`${ROUTES.login}?callbackUrl=${encodeURIComponent(callbackUrl)}`, nextUrl)
+    )
+  }
+
+  // Vérifier les permissions de rôle
+  const isRoleProtectedRoute = roleRoutes.some(route => {
+    if (nextUrl.pathname.startsWith(route.path)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return !route.roles.includes(userRole as any)
     }
+    return false
+  })
 
-    return
+  if (isRoleProtectedRoute) {
+    return Response.redirect(new URL(ROUTES.unauthorized, nextUrl))
   }
 
-  if (!isLoggedIn && nextUrl.pathname === PAGE_ROUTES.base) {
-    return Response.redirect(new URL(PAGE_ROUTES.home, nextUrl))
-  }
-
-  if (!isLoggedIn && !isPublicRoute) {
-    let callbackUrl = nextUrl.pathname
-    if (nextUrl.search) {
-      callbackUrl += nextUrl.search
-    }
-
-    const encodedCallbackUrl = encodeURIComponent(callbackUrl)
-
-    return Response.redirect(new URL(
-      `/auth/login?callbackUrl=${encodedCallbackUrl}`,
-      nextUrl,
-    ))
-  }
+  // Autoriser l'accès pour toutes les autres routes
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 })
-// Optionally, don't invoke Middleware on some paths
-// Read more: https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
+
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }

@@ -21,7 +21,7 @@ export function ChatToggle() {
           {isOpen ? (
             <X className="size-6" />
           ) : (
-            <div className="size-16">
+            <div className="h-auto aspect-square w-20">
               <LottieAnimation
                 src="https://lottie.host/0b163bae-89e4-409f-9f3f-f0f995440a69/INxhyzaLC8.json"
                 loop={true}

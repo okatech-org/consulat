@@ -168,7 +168,7 @@ const TradFormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
-  const t = useTranslations("messages.errors")
+  const t = useTranslations()
   const { error, formMessageId } = useFormField()
   const body = error ? String(error?.message) : children
 

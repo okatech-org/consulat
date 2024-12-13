@@ -17,7 +17,14 @@ const badgeVariants = cva(
         outline: "text-foreground",
         warning:
           'border-transparent bg-orange-100 text-orange-500',
-        valide: 'bg-green-100 text-green-500',
+        pending: 'bg-blue-100 text-blue-500',
+        approved: 'bg-green-100 text-green-500',
+        rejected: 'bg-red-100 text-red-500',
+        in_progress: 'bg-blue-100 text-blue-500',
+        incomplete: 'bg-yellow-100 text-yellow-500',
+        success: 'bg-green-100 text-green-500',
+        info: 'bg-blue-100 text-blue-500',
+        valid: 'bg-green-100 text-green-500',
       },
     },
     defaultVariants: {
@@ -25,6 +32,8 @@ const badgeVariants = cva(
     },
   }
 )
+
+export type BadgeVariant = VariantProps<typeof badgeVariants>[ "variant" ]
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,

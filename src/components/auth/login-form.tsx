@@ -3,26 +3,41 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, TradFormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  TradFormMessage
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
 import * as React from 'react'
 import { signIn } from 'next-auth/react'
-import { DEFAULT_AUTH_REDIRECT } from '@/routes'
 import { Icons } from '@/components/ui/icons'
-import { LoginInput, LoginSchema } from '@/schemas'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { sendOTP } from '@/actions/auth'
-import { PAGE_ROUTES } from '@/schemas/app-routes'
+import { ROUTES } from '@/schemas/routes'
+import { LoginInput, LoginSchema } from '@/schemas/user'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { AlertCircle, CheckCircle } from 'lucide-react'
+import { PhoneInput } from '@/components/ui/phone-input'
 
-export function LoginForm({ customTitle, customSubTitle }: {
-  successCallback?: () => void,
-  customTitle?: string,
+interface LoginFormProps {
+  successCallback?: () => void
+  customTitle?: string
   customSubTitle?: string
-}) {
-  const t = useTranslations('auth')
+}
+
+export function LoginForm({
+                            customTitle,
+                            customSubTitle
+                          }: LoginFormProps) {
+  const t = useTranslations('auth.login')
+  const t_callback = useTranslations('common.callbacks')
   const [isOTPSent, setIsOTPSent] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [success, setSuccess] = useState<string | undefined>()
@@ -38,7 +53,6 @@ export function LoginForm({ customTitle, customSubTitle }: {
     mode: 'onSubmit',
   })
 
-  // Get callbackUrl from URL using URLSearchParams
   const callbackUrl = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('callbackUrl')
     : null
@@ -52,37 +66,31 @@ export function LoginForm({ customTitle, customSubTitle }: {
       setSuccess(undefined)
 
       if (!isOTPSent) {
-        // Send OTP
         const result = await sendOTP(values.identifier, values.type)
-
         if (result && result.error) {
           setError(result.error)
           return
         }
-
         if (result && result.success) {
           setSuccess(t('messages.otp_sent'))
           setIsOTPSent(true)
           return
         }
-
         return
       }
 
-      // Verify OTP and sign in
       const signInResult = await signIn('credentials', {
         identifier: values.identifier,
         type: values.type,
         otp: values.otp,
         redirect: true,
-        redirectTo: callbackUrl || PAGE_ROUTES.base,
+        redirectTo: callbackUrl || ROUTES.dashboard,
       })
 
       if (signInResult?.error) {
         setError(t('messages.otp_invalid'))
         return
       }
-
     } catch (error) {
       console.error('Login error:', error)
       setError(t('messages.something_went_wrong'))
@@ -103,68 +111,72 @@ export function LoginForm({ customTitle, customSubTitle }: {
   }, [form])
 
   return (
-    <div className="mx-auto flex w-full flex-col items-center justify-center">
-      <Card className={'sm:w-[480px]'}>
-        <CardHeader>
-          <div className="flex flex-col space-y-2 text-2xl">
-            <h1>
-              {customTitle ? customTitle : t('page_titles.login')}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {customSubTitle ? customSubTitle : t('messages.enter_credentials')}
-            </p>
-          </div>
-        </CardHeader>
-        <CardContent className={'space-y-6'}>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <Tabs
-                defaultValue="PHONE"
-                value={loginType}
-                onValueChange={handleTabChange}
-              >
-                <TabsList className={'grid w-full grid-cols-2 rounded-full bg-input'}>
-                  <TabsTrigger value={'PHONE'}>
-                    {t('labels.login_with_phone')}
-                  </TabsTrigger>
-                  <TabsTrigger value={'EMAIL'}>
-                    {t('labels.login_with_email')}
-                  </TabsTrigger>
-                </TabsList>
-                <div className="pt-4">
-                  <FormField
-                    control={form.control}
-                    name="identifier"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {loginType === 'EMAIL' ? t('labels.email') : t('labels.phone')}
-                        </FormLabel>
-                        <FormControl>
-                          {loginType === 'PHONE' ? (
+    <Card className="mx-auto shadow-card flex flex-col justify-center space-y-6 w-full">
+      <CardHeader>
+        <CardTitle>{customTitle || t('welcome')}</CardTitle>
+        <CardDescription>{customSubTitle || t('description')}</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <Tabs
+              defaultValue="PHONE"
+              value={loginType}
+              onValueChange={handleTabChange}
+            >
+              <TabsList className="grid w-full mb-2 grid-cols-2">
+                <TabsTrigger value="PHONE">{t('tabs.phone')}</TabsTrigger>
+                <TabsTrigger value="EMAIL">{t('tabs.email')}</TabsTrigger>
+              </TabsList>
+
+              <FormField
+                control={form.control}
+                name="identifier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="identifier">
+                      {t(`inputs.${loginType.toLowerCase()}.label`)}
+                    </FormLabel>
+                    <FormControl>
+                      <>
+                        {
+                          loginType === 'PHONE' && (
+                            <div className="flex w-full gap-2">
+                              <PhoneInput
+                                {...field}
+                                id="identifier"
+                                type="tel"
+                                placeholder={t(`inputs.phone.placeholder-local`)}
+                                autoComplete="tel"
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                aria-describedby="identifier-description"
+                              />
+                            </div>
+                          )
+                        }
+                        {
+                          loginType === 'EMAIL' && (
                             <Input
                               {...field}
-                              autoFocus={loginType === 'PHONE'}
-                              type="tel"
-                              autoComplete={'tel-area-code'}
-                              placeholder={t('labels.phone_placeholder')}
-                            />
-                          ) : (
-                            <Input
-                              {...field}
-                              autoFocus={loginType === 'EMAIL'}
+                              id="identifier"
                               type="email"
-                              placeholder={t('labels.email_placeholder')}
-                              autoComplete="email webauthn"
+                              placeholder={t(`inputs.email.placeholder`)}
+                              autoComplete="email"
+                              autoCapitalize="none"
+                              autoCorrect="off"
+                              spellCheck={false}
+                              aria-describedby="identifier-description"
                             />
-                          )}
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </Tabs>
+                          )
+                        }
+                      </>
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
 
               {isOTPSent && (
                 <FormField
@@ -172,16 +184,18 @@ export function LoginForm({ customTitle, customSubTitle }: {
                   name="otp"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('labels.otp')}</FormLabel>
+                      <FormLabel htmlFor="otp">{t('inputs.otp.label')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder={t('labels.otp_placeholder')}
+                          id="otp"
+                          placeholder={t('inputs.otp.placeholder')}
                           type="text"
                           inputMode="numeric"
                           pattern="[0-9]*"
                           maxLength={6}
-                          required
+                          autoComplete="one-time-code"
+                          aria-describedby="otp-description"
                         />
                       </FormControl>
                       <FormMessage />
@@ -189,78 +203,61 @@ export function LoginForm({ customTitle, customSubTitle }: {
                   )}
                 />
               )}
+            </Tabs>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              {success && <p className="text-sm text-green-500">{success}</p>}
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading || !form.getValues('identifier')}
+            {error && (
+              <div
+                className="flex items-center gap-2 rounded-md bg-destructive/15 p-3 text-sm text-destructive"
+                role="alert"
               >
-                {isLoading ? (
-                  <>
-                    <Icons.Spinner className="mr-2 size-4 animate-spin" />
-                    {t('messages.loading')}
-                  </>
-                ) : (
-                  isOTPSent ? t('actions.verify') : t('actions.send_otp')
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+                <AlertCircle className="h-4 w-4" />
+                <p>{error}</p>
+              </div>
+            )}
 
-export function SocialAuth() {
-  const t = useTranslations('auth')
-  const [isLoading, setIsLoading] = useState<string | null>(null)
+            {success && (
+              <div
+                className="flex items-center gap-2 rounded-md bg-emerald-50 p-3 text-sm text-emerald-500"
+                role="alert"
+              >
+                <CheckCircle className="h-4 w-4" />
+                <p>{success}</p>
+              </div>
+            )}
 
-  const onClick = async (provider: 'google' | 'facebook') => {
-    try {
-      setIsLoading(provider)
-      await signIn(provider, { callbackUrl: DEFAULT_AUTH_REDIRECT })
-    } catch (error) {
-      console.error('Social auth error:', error)
-    } finally {
-      setIsLoading(null)
-    }
-  }
-
-  return (
-    <div className="actions mb-2 flex w-full gap-4">
-      <Button
-        onClick={() => onClick('google')}
-        variant="outline"
-        type="button"
-        className={'w-full'}
-        disabled={isLoading === 'google'}
-      >
-        {isLoading === 'google' ? (
-          <Icons.Spinner className="mr-2 size-4 animate-spin" />
-        ) : (
-          <Icons.Google className="mr-2 size-4" />
-        )}
-        {t('actions.login_with', { provider: 'Google' })}
-      </Button>
-
-      <Button
-        onClick={() => onClick('facebook')}
-        variant="outline"
-        type="button"
-        className={'w-full'}
-        disabled={isLoading === 'facebook'}
-      >
-        {isLoading === 'facebook' ? (
-          <Icons.Spinner className="mr-2 size-4 animate-spin" />
-        ) : (
-          <Icons.Facebook className="mr-2 size-4" />
-        )}
-        {t('actions.login_with', { provider: 'Facebook' })}
-      </Button>
-    </div>
+            <Button
+              type="submit"
+              className="w-full"
+              aria-busy={isLoading}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Icons.Spinner
+                    className="mr-2 h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                  {t('buttons.loading')}
+                </>
+              ) : isOTPSent ? (
+                t('buttons.verify')
+              ) : (
+                t('buttons.get_code')
+              )}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+      {callbackUrl && (
+        <CardFooter>
+          <p className="text-center text-sm text-muted-foreground">
+            {t_callback('label')}
+            <span className={"font-bold"}>
+              {t_callback(`${callbackUrl}`)}
+            </span>
+          </p>
+        </CardFooter>
+      )}
+    </Card>
   )
 }

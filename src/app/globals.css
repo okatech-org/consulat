@@ -4,72 +4,71 @@
 
 @layer base {
   :root {
-    --font-size-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
-    --font-size-lg: clamp(1.2rem, 0.7vw + 1.2rem, 1.5rem);
-    --font-size-xl: clamp(2.44rem, 2.38vw + 1.85rem, 3.75rem);
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --background: 220 25% 97%;
+    --foreground: 222 47% 11%;
+
+    /* Couleur principale #04387E convertie en HSL */
+    --primary: 215 95% 25%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 342, 99%, 45%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+
+    /* Couleurs secondaires dans les tons bleus institutionnels */
+    --secondary: 215 25% 27%;
+    --secondary-foreground: 210 40% 98%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Tons neutres pour le contenu */
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 25% 40%;
+
+    --accent: 215 20% 93%;
+    --accent-foreground: 222 47% 11%;
+
+    /* Rouge institutionnel pour les erreurs */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
+
+    /* Bordures et anneaux */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 1rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-    --space-unit: clamp(1rem, 2vw, 2rem);
-    --safe-bottom: env(safe-area-inset-bottom, 1rem);
-    --safe-top: env(safe-area-inset-top, 1rem);
-    --min-tap-target: 44px;
-    --min-tap-spacing: 8px;
+    --ring: 215 95% 25%;
+
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0, 0%, 13%;
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+
+    /* Version sombre de la couleur principale */
+    --primary: 215 95% 30%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 17.5%;
+
+    --secondary: 215 25% 27%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --muted: 215 20% 20%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 215 20% 17%;
     --accent-foreground: 210 40% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --border: 215 20% 25%;
+    --input: 215 20% 25%;
+    --ring: 215 95% 30%;
   }
 }
 
@@ -171,4 +170,197 @@ html {
 
 .animate-progress {
   animation: progress 2s linear infinite;
+}
+
+.hover-card-content {
+  width: 320px;
+  padding: 1rem;
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hover-card-content p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Styles pour les champs de formulaire validés/invalides */
+.form-field-valid {
+  @apply border-green-500 focus-visible:ring-green-500;
+}
+
+.form-field-error {
+  @apply border-destructive focus-visible:ring-destructive;
+}
+
+/* Animation pour les icônes de validation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.validation-icon {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Transitions fluides */
+.transition-all {
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Animation de chargement */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer utilities {
+  /* Ajuster le padding du container sur mobile */
+  .container {
+    @apply px-4 md:px-6;
+  }
+
+  /* Ajuster la taille des cartes sur mobile */
+  .card {
+    @apply rounded-lg md:rounded-xl overflow-hidden;
+  }
+
+  /* Ajuster l'espacement des éléments sur mobile */
+  .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    @apply my-4 md:my-8;
+  }
+
+  /* Assurer que le contenu ne passe pas sous la navigation mobile */
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+  }
+
+  .btn-mobile {
+    @apply h-8 w-8 p-0 md:h-9 md:w-auto md:px-3;
+  }
+
+  /* Grilles adaptatives */
+  .grid-adaptive {
+    @apply grid-cols-2 md:grid-cols-4;
+  }
+
+  /* Textes responsifs */
+  .text-adaptive {
+    @apply text-sm md:text-base;
+  }
+}
+
+.perspective {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Animation pour la carte */
+.card-flip-enter {
+  opacity: 0;
+  transform: rotateY(-180deg);
+}
+
+.card-flip-enter-active {
+  opacity: 1;
+  transform: rotateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.card-flip-exit {
+  opacity: 1;
+  transform: rotateY(0);
+}
+
+.card-flip-exit-active {
+  opacity: 0;
+  transform: rotateY(180deg);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.card-container {
+  perspective: 1000px;
+  aspect-ratio: 1.58/1;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s;
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }

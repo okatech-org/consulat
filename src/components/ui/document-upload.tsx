@@ -1,119 +1,237 @@
-import React, { useEffect } from 'react'
-import { ACCEPTED_FILE_TYPES } from '@/lib/utils'
-import { UseFormReturn, UseFormRegisterReturn } from 'react-hook-form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import * as React from "react"
 import { useTranslations } from 'next-intl'
-import { FileIcon, UploadIcon } from 'lucide-react'
-import Image from 'next/image'
+import { Upload, X, FileInput } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { FieldValues, UseFormReturn } from 'react-hook-form'
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import Image from "next/image"
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  TradFormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { ReactNode } from 'react'
 
-interface DocumentUploadFieldProps {
-  field: UseFormRegisterReturn;
+interface DocumentUploadFieldProps<T extends FieldValues> {
+  id: string
+  label?: string
+  description?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  form: UseFormReturn<any>;
-  id: string;
-  accept?: string;
-  existingFile?: FileList | null;
-  disabled?: boolean;
-  aspectRatio?: 'document' | 'square';
+  field: any
+  form: UseFormReturn<T>
+  disabled?: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  existingFile?: any
+  aspectRatio?: "square" | "portrait",
+  accept?: string
+  maxSize?: number
+  required?: boolean
 }
 
-const DocumentUploadField = ({
-                               field,
-                               form,
-                               id,
-                               existingFile,
-                               accept = ACCEPTED_FILE_TYPES.join(', '),
-                               disabled = false,
-                               aspectRatio = 'document',
-                             }: DocumentUploadFieldProps) => {
+export function DocumentUploadField<T extends FieldValues>({
+                                      id,
+                                      label,
+                                      description,
+                                      field,
+                                      form,
+                                      disabled,
+  required = false,
+                                      existingFile,
+  maxSize = 1,
+  accept = "image/*,application/pdf",
+                                      aspectRatio = "square"
+                                    }: DocumentUploadFieldProps<T>) {
   const t = useTranslations('common.upload')
-  const [currentValue, setCurrentValue] = React.useState<FileList | null>(null);
-  const [noFile, setNoFile] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null)
+  const [preview, setPreview] = React.useState<string | null>(null)
+  const [pdfPreview, setPdfPreview] = React.useState<ReactNode | null>(null)
+  const [isDragging, setIsDragging] = React.useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    field.onChange(e).then(() => {
-      if (e.target.files) {
-        setCurrentValue(e.target.files);
-      }
-    });
-  };
-
-  function getPreviewUi() {
-    if (!currentValue) return undefined;
-
-    const files = Array.from(currentValue);
-    if (files.length === 0) return undefined;
-    const fileType = files[0].type;
-
-    if (fileType.startsWith('image/')) {
-      return (
-        <Image
-          width={1024}
-          height={1024}
-          src={URL.createObjectURL(files[0])}
-          alt={files[0].name}
-          className={'size-full rounded object-cover'}
-        />
-      );
+  // Gérer la prévisualisation du fichier
+  React.useEffect(() => {
+    if (!field.value && !existingFile) {
+      setPreview(null)
+      return
     }
 
-    if (fileType.startsWith('application/pdf')) {
-      return (
-        <div className={"flex size-full flex-col items-center justify-center gap-2 object-cover p-2"}>
-          <FileIcon className={'size-8 text-gray-400'} />
-          <p className={'text-center text-xs text-gray-400'}>{
-            files[0].name
-          }</p>
-        </div>
-      );
+    // Si c'est un fichier existant (URL)
+    if (existingFile && typeof existingFile === 'string') {
+      setPreview(existingFile)
+      return
+    }
+
+    // Si c'est un nouveau fichier
+    if (field.value instanceof File) {
+      const file = field.value
+      if (file.type.startsWith('image/')) {
+        const url = URL.createObjectURL(file)
+        setPreview(url)
+        return () => URL.revokeObjectURL(url)
+      }
+
+      if (file.type === 'application/pdf') {
+        setPdfPreview(<FileInput/>)
+      }
+    }
+  }, [field.value, existingFile])
+
+  const handleDrop = React.useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      setIsDragging(false)
+
+      if (disabled) return
+
+      const droppedFile = e.dataTransfer.files[0]
+      if (droppedFile) {
+        field.onChange(droppedFile)
+      }
+    },
+    [disabled, field]
+  )
+
+  const removeFile = () => {
+    field.onChange(null)
+    if (inputRef.current) {
+      inputRef.current.value = ''
     }
   }
 
-  useEffect(() => {
-    if (existingFile && (currentValue?.length === 0 || !currentValue)) {
-      setCurrentValue(existingFile);
-    }
-  }, [existingFile, currentValue]);
-
-  useEffect(() => {
-    setNoFile((!currentValue || currentValue.length === 0) && (!existingFile || existingFile.length === 0))
-  }, [currentValue, existingFile])
-
-
   return (
-    <div className={`${aspectRatio === 'document' ?  'aspect-document' : 'aspect-square'} relative rounded border-2 border-dashed p-2`}>
-      <Input
-        {...field}
-        type={'file'}
-        id={id}
-        name={id}
-        accept={accept}
-        onChange={handleChange}
-        disabled={disabled}
-        className={"absolute inset-0 z-0 size-full opacity-0"}
-      />
-      {noFile && (
-        <div className={"flex h-full flex-col items-center justify-center gap-2"}>
-          <UploadIcon className={"size-6 text-gray-400"} />
-          <p className={"text-center text-xs text-gray-400"}>{t('drag_drop_files_or_click')}</p>
-        </div>
-      )
-      }
-      {!noFile && (
-        <>
-          {getPreviewUi()}
-          <Button variant={"ghost"} typeof={"button"} className={"z-1 absolute right-2 top-2 aspect-square size-8 rounded-full bg-red-100 !p-1 text-lg text-red-500"} onClick={() => {
-            const emptyFileList = new DataTransfer();
-            form.setValue(field.name, emptyFileList.files);
-            setCurrentValue(null);
-          }}>
-            x
-          </Button>
-        </>
-      )}
-    </div>
-  );
-};
+    <FormField
+      control={form.control}
+      name={field.name}
+      render={() => (
+        <FormItem>
+          {label && <FormLabel>
+            {label}
+            {required && <span className="text-destructive ml-1">*</span>}
+          </FormLabel>}
+          <FormControl>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault()
+                if (!disabled) setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={cn(
+                "relative rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors",
+                isDragging && "border-primary bg-primary/5",
+                disabled && "cursor-not-allowed opacity-60"
+              )}
+            >
+              <Input
+                id={id}
+                ref={inputRef}
+                type="file"
+                accept={accept}
+                onChange={(e) => field.onChange(e.target.files?.[0])}
+                disabled={disabled}
+                className="hidden"
+                max={maxSize * 1024 * 1024}
+              />
 
-export default DocumentUploadField
+              {!field.value && !existingFile ? (
+                // État vide
+                <div className="flex relative flex-col items-center justify-center p-6 text-center">
+                  <Upload className="mb-4 h-8 w-8 text-muted-foreground" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={disabled}
+                    onClick={() => inputRef.current?.click()}
+                  >
+                    {t('drop_zone.button')}
+                  </Button>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {t('drop_zone.description', { size: 10 })}
+                  </p>
+                </div>
+              ) : (
+                // Fichier sélectionné
+                <div className="relative p-4">
+                  <div className="flex items-center gap-4">
+                    {/* Prévisualisation */}
+                    {preview && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button type={"button"} variant="ghost" className="p-0">
+                            <div className={cn(
+                              "relative overflow-hidden rounded",
+                              aspectRatio === "square" ? "h-16 w-16" : "h-20 w-16"
+                            )}>
+                              <Image
+                                src={preview}
+                                alt="Preview"
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                          <div className={cn(
+                            "relative overflow-hidden rounded-lg",
+                            aspectRatio === "square" ? "aspect-square" : "aspect-[3/4]"
+                          )}>
+                            <Image
+                              src={preview}
+                              alt="Preview"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                    {pdfPreview}
+
+                    {/* Informations du fichier */}
+                    <div className="flex-1 overflow-hidden">
+                      <p className="font-medium text-sm">
+                        {field.value?.name || 'Document téléchargé'}
+                      </p>
+                      {field.value?.size && (
+                        <p className="text-sm text-muted-foreground">
+                          {(field.value.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeFile}
+                        disabled={disabled}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </FormControl>
+          {description && (
+            <p className="text-sm text-muted-foreground">
+              {description}
+            </p>
+          )}
+          <TradFormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}

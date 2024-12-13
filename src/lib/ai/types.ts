@@ -1,10 +1,9 @@
-import { User, Profile, Consulate, Address, Country } from '@prisma/client'
+import { User, Consulate, Country } from '@prisma/client'
+import { FullProfile } from '@/types'
 
 export type UserContext = {
   user: User | null;
-  profile?: Profile & {
-    address: Address;
-  } | null;
+  profile?: FullProfile;
   consulate?: Consulate & {
     countries: Omit<Country, "consulateId">[];
   } | null;

@@ -1,9 +1,205 @@
 {
+  "common": {
+    "languages": {
+      "label": "Langue",
+        "fr": "Français",
+        "fr_short": "FR",
+        "en": "Anglais",
+        "en_short": "EN",
+        "es": "Espagnol",
+        "es_short": "ES"
+    },
+    "nav": {
+      "appointments": "RDV",
+      "home": "Accueil",
+      "profile": "Profil",
+      "settings": "Paramètres",
+      "logout": "Déconnexion",
+      "requests": "Demandes",
+      "documents": "Documents",
+      "procedures": "Démarches"
+    },
+    "form": {
+      "required_field": "Champ requis",
+      "optional_field": "Optionnel",
+      "select_date": "Sélectionner une date",
+      "invalid_format": "Format invalide",
+      "steps": {
+        "complete": "Terminé",
+        "in_progress": "En cours",
+        "pending": "À venir",
+        "status": {
+          "complete": "Terminé",
+          "current": "En cours",
+          "upcoming": "À venir",
+          "error": "Erreur"
+        },
+        "actions": {
+          "next": "Suivant",
+          "previous": "Précédent",
+          "submit": "Soumettre",
+          "save": "Enregistrer"
+        }
+      }
+    },
+    "acquiring_mode": {
+      "birth": "Par naissance",
+      "marriage": "Par mariage",
+      "naturalization": "Par naturalisation",
+      "option": "Par option",
+      "restoration": "Par réintégration",
+      "reacquisition": "Par réacquisition"
+    },
+    "upload": {
+      "drop_zone": {
+        "button": "Sélectionner un fichier",
+        "description": "ou glissez-déposez ici (max {size}MB)",
+        "dragging": "Déposez le fichier ici..."
+      },
+      "success": {
+        "title": "Fichier téléchargé",
+        "description": "Le fichier a été téléchargé avec succès"
+      },
+      "error": {
+        "invalid_type": {
+          "title": "Type de fichier non supporté",
+          "description": "Veuillez sélectionner un fichier au format accepté"
+        },
+        "file_too_large": {
+          "title": "Fichier trop volumineux",
+          "description": "La taille du fichier ne doit pas dépasser {size}MB"
+        },
+        "upload_failed": {
+          "title": "Échec du téléchargement",
+          "description": "Une erreur est survenue lors du téléchargement"
+        }
+      },
+      "preview": {
+        "not_available": "Prévisualisation non disponible",
+        "loading": "Chargement de la prévisualisation..."
+      },
+      "actions": {
+        "remove": "Supprimer",
+        "change": "Modifier",
+        "preview": "Prévisualiser"
+      }
+    },
+    "loading": "Chargement...",
+    "error": {
+      "unknown": "Une erreur est survenue",
+      "try_again": "Veuillez réessayer"
+    },
+    "notifications": {
+      "empty": "Aucune notification",
+      "mark_all_read": "Tout marquer comme lu",
+      "clear_all": "Tout effacer"
+    },
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "processing": "En cours",
+      "expired": "Expiré",
+      "incomplete": "Incomplet",
+      "verified": "Vérifié",
+      "review": "En révision"
+    },
+    "confirm": {
+      "title": "Confirmation",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "delete": {
+        "title": "Confirmer la suppression",
+        "description": "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."
+      }
+    },
+    "documents": {
+      "status": {
+        "required": "Requis",
+        "optional": "Optionnel",
+        "uploaded": "En attente de vérification",
+        "verified": "Vérifié",
+        "rejected": "Rejeté",
+        "expired": "Expiré",
+        "incomplete": "Incomplet",
+        "pending": "En attente"
+      },
+      "expired_on": "Expiré le {date}",
+      "types": {
+        "passport": "Passeport",
+        "id_card": "Carte d'identité",
+        "birth_certificate": "Acte de naissance",
+        "residence_permit": "Titre de séjour",
+        "proof_of_address": "Justificatif de domicile",
+        "marriage_certificate": "Acte de mariage",
+        "death_certificate": "Acte de décès",
+        "divorce_decree": "Jugement de divorce"
+      },
+      "actions": {
+        "upload": "Télécharger",
+        "reupload": "Re-télécharger",
+        "view": "Voir",
+        "delete": "Supprimer",
+        "download": "Télécharger"
+      },
+      "expires_on": "Expire le "
+    },
+    "callbacks": {
+      "label": "Vous allez être redirigé sur la page ",
+      "/registration": "Inscription consulaire",
+      "/dashboard": "Tableau de bord"
+    },
+    "search_country": "Rechercher un pays",
+    "actions": {
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "submit": "Soumettre",
+      "add": "Ajouter",
+      "back": "Retour",
+      "continue": "Continuer",
+      "confirm": "Confirmer",
+      "close": "Fermer",
+      "send": "Envoyer",
+      "view": "Voir",
+      "download": "Télécharger",
+      "upload": "Télécharger",
+      "remove": "Supprimer",
+      "change": "Modifier",
+      "preview": "Prévisualiser",
+      "clear": "Effacer",
+      "mark_as_read": "Marquer comme lu",
+      "clear_all": "Tout effacer",
+      "mark_all_read": "Tout marquer comme lu"
+    },
+    "no_country_found": "Aucun pays trouvé"
+  },
+  "feedback": {
+    "loading": {
+      "default": "Chargement en cours",
+      "saving": "Enregistrement...",
+      "submitting": "Envoi en cours...",
+      "processing": "Traitement en cours..."
+    },
+    "error": {
+      "title": "Erreur",
+      "unknown": "Une erreur inattendue s'est produite",
+      "network": "Erreur de connexion",
+      "validation": "Veuillez corriger les erreurs"
+    },
+    "success": {
+      "title": "Succès",
+      "saved": "Enregistré avec succès",
+      "updated": "Mis à jour avec succès",
+      "deleted": "Supprimé avec succès"
+    }
+  },
   "messages": {
     "errors": {
       "identifier_required": "Identifiant requis",
       "invalid_email": "Email invalide",
-      "invalid_phone": "Numéro de téléphone invalide",
+      "invalid_phone": "Format invalide, veuillez utiliser le format +33XXXXXXXXX",
       "doc_required": "Ce document est requis",
       "doc_one_max": "Un seul document est autorisé",
       "doc_invalid": "Document invalide",
@@ -13,7 +209,70 @@
       "doc_type_image": "Le fichier doit être au format PNG, JPEG ou JPG",
       "doc_type_pdf": "Le fichier doit être au format PDF",
       "doc_type_image_pdf": "Le fichier doit être au format PNG, JPEG, JPG ou PDF",
-      "invalid_phone_number": "Format invalide, veuillez utiliser le format +33XXXXXXXXX"
+      "invalid_phone_number": "Format invalide, veuillez utiliser le format +33XXXXXXXXX",
+      "required": "Ce champ est requis",
+      "invalid_format": "Format invalide",
+      "too_short": "Trop court",
+      "too_long": "Trop long",
+      "gender_required": "Le genre est requis",
+      "first_name_required": "Le prénom est requis",
+      "first_name_too_short": "Le prénom doit contenir au moins 2 caractères",
+      "last_name_required": "Le nom est requis",
+      "last_name_too_short": "Le nom doit contenir au moins 2 caractères",
+      "birth_date_required": "La date de naissance est requise",
+      "birth_place_required": "Le lieu de naissance est requis",
+      "birth_country_required": "Le pays de naissance est requis",
+      "nationality_required": "La nationalité est requise",
+      "acquiring_mode_required": "Le mode d'acquisition de la nationalité est requis",
+      "marital_status_required": "Le statut matrimonial est requis",
+      "number_required": "Le numéro de passeport est requis",
+      "number_too_short": "Le numéro de passeport doit contenir au moins 8 caractères",
+      "number_too_long": "Le numéro de passeport ne peut pas dépasser 9 caractères",
+      "number_invalid_format": "Format de numéro de passeport invalide (lettres majuscules et chiffres uniquement)",
+      "issue_date_required": "La date d'émission est requise",
+      "issue_date_invalid": "Date d'émission invalide",
+      "issue_date_future": "La date d'émission ne peut pas être dans le futur",
+      "issue_date_too_old": "Le passeport a été émis il y a plus de 10 ans",
+      "expiry_date_required": "La date d'expiration est requise",
+      "expiry_date_invalid": "Date d'expiration invalide",
+      "already_expired": "Ce passeport est déjà expiré",
+      "expires_soon": "Le passeport doit être valide au moins 6 mois après la date de demande",
+      "authority_required": "L'autorité émettrice est requise",
+      "authority_too_short": "L'autorité émettrice doit contenir au moins 2 caractères",
+      "authority_too_long": "L'autorité émettrice ne peut pas dépasser 100 caractères",
+      "invalid_validity_period": "La période de validité du passeport est invalide (maximum 10 ans)",
+      "expired": "Le passeport est expiré",
+      "number_invalid": "Format de numéro de passeport invalide",
+      "expiry_date_past": "Le passeport est expiré ou expire bientôt",
+      "authority_invalid": "L'autorité émettrice n'est pas valide",
+      "submission_failed": "Échec de l'envoi du formulaire",
+      "invalid_data": "Données invalides",
+      "required_field": "Ce champ est requis",
+      "try_again": "Veuillez réessayer",
+      "street_required": "La rue est requise",
+      "zipcode_required": "Le code postal est requis",
+      "city_required": "La ville est requise",
+      "country_required": "Le pays est requis",
+      "update_failed": "Échec de la mise à jour",
+      "Required": "Ce champ est requis"
+    },
+    "profile": {
+      "errors": {
+        "update_failed": "Échec de la mise à jour du profil",
+        "user_not_found": "Utilisateur introuvable",
+        "unauthorized": "Vous devez être connecté pour effectuer cette action",
+        "forbidden": "Vous n'avez pas les permissions nécessaires pour effectuer cette action",
+        "session_expired": "Votre session a expiré, veuillez vous reconnecter",
+        "invalid_credentials": "Identifiants invalides",
+        "no_document": "Aucun document"
+      },
+      "success": {
+        "update_title": "Profil mis à jour",
+        "update_success": "Profil mis à jour avec succès",
+        "update_description": "Vos informations de profil ont été mises à jour avec succès",
+        "update_failed": "Échec de la mise à jour du profil",
+        "unknown": "Une erreur inattendue est survenue"
+      }
     }
   },
   "countries": {
@@ -225,7 +484,67 @@
   },
   "auth": {
     "layout": {
+      "step": "01/03",
+      "title": "Carte Consulaire Numérique",
+      "subtitle": "Gérez votre identité consulaire en toute simplicité avec notre plateforme numérique sécurisée",
       "create_card_prompt": "Créez votre carte consulaire gratuitement."
+    },
+    "login": {
+      "welcome": "Bienvenue sur Consulat 👋",
+      "description": "Connectez-vous pour accéder à votre espace",
+      "tabs": {
+        "phone": "Téléphone",
+        "email": "Email"
+      },
+      "inputs": {
+        "phone": {
+          "label": "Numéro de téléphone",
+          "placeholder": "+33612345678",
+          "placeholder-local": "612345678"
+        },
+        "email": {
+          "label": "Adresse email",
+          "placeholder": "nom@exemple.com"
+        },
+        "otp": {
+          "label": "Code de vérification",
+          "placeholder": "123456"
+        }
+      },
+      "buttons": {
+        "get_code": "Recevoir le code",
+        "verify": "Vérifier",
+        "loading": "Chargement..."
+      },
+      "messages": {
+        "otp_sent": "Un code de vérification a été envoyé",
+        "otp_expired": "Le code de vérification a expiré",
+        "otp_invalid": "Code de vérification invalide ou expiré",
+        "otp_required": "Le code de vérification est requis",
+        "CredentialsSignin": "Code de vérification invalide ou expiré",
+        "invalid_credentials": "Email ou mot de passe incorrect",
+        "user_not_found": "Aucun utilisateur trouvé avec cet e-mail",
+        "login_success": "Connexion réussi",
+        "account_created": "Compte créé avec succès",
+        "or_continue_with": "Ou continuer avec",
+        "oauth_account_not_linked": "Compte OAuth non lié",
+        "oauth_account_linked": "Compte OAuth déjà lié",
+        "email_required": "L'email est requis",
+        "invalid_email": "Format d'email invalide",
+        "enter_credentials": "Connectez-vous pour accéder à votre espace",
+        "loading": "Chargement...",
+        "something_went_wrong": "Une erreur est survenue"
+      },
+      "back_home": "Retour à l'accueil",
+      "hero": {
+        "quote": "La carte consulaire est plus qu'un document, c'est le lien qui unit notre diaspora.",
+        "author": "Consulat.ga"
+      },
+      "footer": {
+        "copyright": "© {year} Consulat.ga. Tous droits réservés.",
+        "privacy_policy": "Politique de confidentialité",
+        "terms": "Conditions d'utilisation"
+      }
     },
     "otp": {
       "email_subject": "Code de vérification - Consulat.ga",
@@ -263,25 +582,6 @@
       "login_with_email": "Utiliser l'email",
       "login_with_phone": "Utiliser le tel"
     },
-    "messages": {
-      "otp_sent": "Un code de vérification a été envoyé",
-      "otp_expired": "Le code de vérification a expiré",
-      "otp_invalid": "Code de vérification invalide ou expiré",
-      "otp_required": "Le code de vérification est requis",
-      "CredentialsSignin": "Code de vérification invalide ou expiré",
-      "invalid_credentials": "Email ou mot de passe incorrect",
-      "user_not_found": "Aucun utilisateur trouvé avec cet e-mail",
-      "login_success": "Connexion réussi",
-      "account_created": "Compte créé avec succès",
-      "or_continue_with": "Ou continuer avec",
-      "oauth_account_not_linked": "Compte OAuth non lié",
-      "oauth_account_linked": "Compte OAuth déjà lié",
-      "email_required": "L'email est requis",
-      "invalid_email": "Format d'email invalide",
-      "enter_credentials": "Connectez-vous pour accéder à votre espace",
-      "loading": "Chargement...",
-      "something_went_wrong": "Une erreur est survenue"
-    },
     "page_titles": {
       "login": "S'identifier"
     },
@@ -289,536 +589,6 @@
       "invalid_phone": "Numéro de téléphone invalide",
       "invalid_email": "Adresse email invalide",
       "required_field": "Ce champ est requis"
-    }
-  },
-  "profile": {
-    "loading": "Chargement du profil...",
-    "title": "Mon Profil",
-    "edit_profile": "Modifier mon profil",
-    "create_profile": "Créer mon profil",
-    "tabs": {
-      "view": "Aperçu",
-      "edit": "Modifier",
-      "settings": "Paramètres"
-    },
-    "labels": {
-      "profession": "Profession",
-      "employer": "Employeur",
-      "employer_address": "Adresse de l'employeur",
-      "gabon_activity": "Dernière activité au Gabon",
-      "district": "Quartier",
-      "emergency_contact_name": "Nom complet",
-      "emergency_contact_phone": "Numéro de téléphone",
-      "emergency_contact_relationship": "Lien de parenté",
-      "emergency_contact": "Contact d'urgence",
-      "first_request": "Première demande",
-      "renewal": "Renouvellement",
-      "modification": "Modification",
-      "nationality_birth": "De naissance",
-      "nationality_acquisition": "Mode d'acquisition de la nationalité",
-      "nationality_naturalization": "Par naturalisation",
-      "nationality_marriage": "Par mariage",
-      "nationality_other": "Autre",
-      "document_type": "Type de document",
-      "first_name": "Prénom",
-      "last_name": "Nom",
-      "address_line1": "Adresse",
-      "gabon_address": "Adresse au Gabon",
-      "address_line2": "Complément d'adresse",
-      "name": "Nom",
-      "birth_date": "Date de naissance",
-      "birth_place": "Lieu de naissance",
-      "birth_country": "Pays de naissance",
-      "gender": "Genre",
-      "marital_status": "Situation matrimoniale",
-      "work_status": "Statut professionnel",
-      "phone": "Numéro de téléphone",
-      "address": "Adresse",
-      "city": "Ville",
-      "zip_code": "Code postal",
-      "country": "Pays",
-      "email": "Adresse Email",
-      "profile_status": "Statut du profil",
-      "identity_picture": "Photo d'identité",
-      "logo": "Logo",
-      "consulate": "Consulat",
-      "general": "Général",
-      "passport": "Passeport",
-      "birth_certificate": "Acte de naissance",
-      "residence_permit": "Titre de séjour",
-      "address_proof": "Justificatif de domicile",
-      "political_affiliation": "Affiliation Politique",
-      "financial_situation": "Situation Financière",
-      "properties": "Propriétés et Biens",
-      "social_media_presence": "Présence sur les Réseaux Sociaux",
-      "travel_habits": "Habitudes de Déplacement",
-      "family_situation": "Situation Familiale",
-      "criminal_record": "Casier Judiciaire"
-    },
-    "placeholders": {
-      "address": "Entrez votre adresse",
-      "birth_place": "Entrez votre lieu de naissance",
-      "first_name": "Entrez votre prénom",
-      "last_name": "Entrez votre nom",
-      "email": "votre.email@exemple.com",
-      "phone": "ex: +241612345678",
-      "address_line1": "Numéro et nom de rue",
-      "address_line2": "Appartement, bâtiment, etc.",
-      "city": "Entrez votre ville",
-      "district": "Entrez votre quartier",
-      "zip_code": "Entrez votre code postal",
-      "select_country": "Sélectionnez un pays",
-      "search_country": "Rechercher un pays...",
-      "select_marital_status": "Sélectionnez votre situation",
-      "spouse_name": "Nom complet de votre conjoint(e)",
-      "father_name": "Nom complet de votre père",
-      "mother_name": "Nom complet de votre mère",
-      "emergency_contact_name": "Nom complet du contact",
-      "emergency_contact_relationship": "Ex: Frère, Sœur, Parent...",
-      "emergency_contact_phone": "ex: +33612345678",
-      "select_work_status": "Sélectionnez votre situation",
-      "profession": "Votre profession actuelle",
-      "employer": "Nom de votre employeur",
-      "employer_address": "Adresse de votre lieu de travail",
-      "gabon_activity": "Décrivez brièvement votre dernière activité au Gabon"
-    },
-    "descriptions": {
-      "emergency_contact": "Cette personne sera contactée en cas d'urgence",
-      "gabon_activity": "Si vous avez déjà exercé une activité au Gabon, veuillez la décrire brièvement"
-    },
-    "actions": {
-      "edit": "Modifier",
-      "save": "Enregistrer",
-      "delete": "Supprimer le profil",
-      "share": "Partager",
-      "contact": "Contacter",
-      "download": "Télécharger",
-      "view_card": "Voir la carte",
-      "view": "Voir le profil de {name}",
-      "delete_profile": "Supprimer le profil",
-      "share_profile": "Partager",
-      "save_contact": "Télécharger",
-      "search_country": "Rechercher un pays",
-      "send_message": "Contacter",
-      "show_card": "Voir la carte",
-      "back": "Retour",
-      "create": "Créer",
-      "cancel": "Annuler",
-      "submit": "Soumettre",
-      "next": "Suivant",
-      "previous": "Précédent"
-    },
-    "sections": {
-      "documents": "Documents officiels",
-      "settings": "Paramètres du profil",
-      "consulate": "Consulat de tutelle",
-      "intelligence_file": "Dossier renseignements",
-      "request_type": "Type de demande",
-      "basic_info": "Informations personnelles",
-      "contact_info": "Coordonnées",
-      "family_info": "Informations familiales",
-      "professional_info": "Informations professionnelles"
-    },
-    "status": {
-      "pending": "En traitement",
-      "approved": "Valide",
-      "rejected": "Invalide",
-      "incomplete": "Incomplet"
-    },
-    "marital_status": {
-      "single": "Célibataire",
-      "married": "Marié(e)",
-      "divorced": "Divorcé(e)",
-      "widowed": "Veuf(ve)",
-      "cohabiting": "En concubinage"
-    },
-    "work_status": {
-      "employee": "Salarié",
-      "entrepreneur": "Entrepreneur",
-      "unemployed": "Sans emploi",
-      "student": "Etudiant",
-      "retired": "Retraité",
-      "other": "Autre"
-    },
-    "messages": {
-      "profile_added": "Profil ajouté avec succès",
-      "error_adding": "Erreur lors de l'ajout du profil",
-      "error_updating": "Erreur lors de la mise à jour du profil",
-      "error_deleting": "Erreur lors de la suppression du profil",
-      "not_found": "Le profil auquel vous essayez d'accéder n'existe pas",
-      "unauthorized": "Vous n'êtes pas autorisé à accéder à cette page",
-      "file_size_error": "La taille du fichier doit être inférieure à 3 Mo",
-      "file_type_error": "Le fichier doit être au format PNG, JPEG ou JPG",
-      "add_country": "Ajouter un pays",
-      "share_profile": "Partagez le profil",
-      "contact_request": "Échanger avec {name}",
-      "contact_description": "Saisissez vos informations et un court message et {name} recevra une demande de contact de votre part.",
-      "scan_qr": "Scannez ce code QR pour accéder au profil {name}.",
-      "no_registered_yet": "Vous n'avez pas encore enregistré de profil",
-      "add_profile_to_start": "Ajoutez un profil pour commencer à traiter les profils.",
-      "profile_updated": "Profil mis à jour avec succès",
-      "profile_created": "Profil créé avec succès",
-      "profile_deleted": "Profil supprimé avec succès",
-      "no_country_found": "Aucun pays trouvé",
-      "confirm_delete": "Êtes-vous sûr de vouloir supprimer votre profil ?",
-      "delete_warning": "Cette action est irréversible"
-    },
-    "form": {
-      "select_country": "Choisir un pays",
-      "search_country": "Rechercher un pays",
-      "select_marital_status": "Sélectionnez votre situation",
-      "select_work_status": "Sélectionnez votre statut",
-      "messages": {
-        "profile_creating": "Création de votre profil en cours...",
-        "profile_created": "Votre profil a été créé avec succès !",
-        "view_profile": "Voir mon profil",
-        "profile_updated": "Profil mis à jour avec succès",
-        "profile_deleted": "Profil supprimé avec succès",
-        "error_creating": "Erreur lors de la création du profil",
-        "error_updating": "Erreur lors de la mise à jour du profil",
-        "error_deleting": "Erreur lors de la suppression du profil"
-      },
-      "labels": {
-        "logo": "Logo du consulat",
-        "document_type": "Type de document",
-        "nationality_acquisition": "Mode d'acquisition de la nationalité",
-        "first_request": "Première demande",
-        "renewal": "Renouvellement",
-        "modification": "Modification",
-        "nationality_birth": "De naissance",
-        "nationality_naturalization": "Par naturalisation",
-        "nationality_marriage": "Par mariage",
-        "nationality_other": "Autre",
-
-        "identity_picture": "Photo d'identité",
-        "passport": "Passeport",
-        "birth_certificate": "Acte de naissance",
-        "residence_permit": "Titre de séjour",
-        "address_proof": "Justificatif de domicile",
-
-        "gender": "Genre",
-        "first_name": "Prénom",
-        "last_name": "Nom",
-        "birth_date": "Date de naissance",
-        "birth_place": "Lieu de naissance",
-        "birth_country": "Pays de naissance",
-
-        "email": "Email",
-        "phone": "Téléphone",
-        "address": "Adresse",
-        "address_line1": "Adresse (ligne 1)",
-        "address_line2": "Complément d'adresse (facultatif)",
-        "city": "Ville",
-        "district": "Quartier",
-        "zip_code": "Code postal",
-        "country": "Pays",
-        "gabon_address": "Adresse au Gabon",
-
-        "marital_status": "Situation matrimoniale",
-        "spouse_name": "Nom complet du/de la conjoint(e)",
-        "father_name": "Nom complet du père",
-        "mother_name": "Nom complet de la mère",
-        "emergency_contact": "Contact d'urgence",
-        "emergency_contact_name": "Nom complet",
-        "emergency_contact_relationship": "Lien de parenté",
-        "emergency_contact_phone": "Numéro de téléphone",
-
-        "work_status": "Situation professionnelle",
-        "profession": "Profession",
-        "employer": "Employeur",
-        "employer_address": "Adresse de l'employeur",
-        "gabon_activity": "Dernière activité au Gabon",
-        "profile_status": "Statut du profil"
-      },
-      "create_new_profile": "Créer un nouveau profil",
-      "personal_info": "Informations personnelles",
-      "identity_photo": "Photo d'identité",
-      "contact_info": "Informations de contact",
-      "legal_documents": "Documents légaux",
-      "first_name": "Prénom(s)",
-      "last_name": "Nom(s)",
-      "gender": "Genre",
-      "birth_date": "Date de naissance",
-      "birth_place": "Ville de naissance",
-      "birth_country": "Pays de naissance",
-      "marital_status": "Situation familiale",
-      "work_status": "Statut professionnel",
-      "phone": "N° de téléphone",
-      "email": "Email",
-      "email_placeholder": "name@example.com",
-      "first_line": "Votre adresse",
-      "address": "Adresse",
-      "address_placeholder": "N° et rue",
-      "second_line": "Complément d'adresse",
-      "address_complement_placeholder": "Batiment, étage, porte...",
-      "address_complement": "Batiment, étage, porte...",
-      "city": "Ville",
-      "city_placeholder": "Paris...",
-      "zip_code_placeholder": "0000",
-      "zip_code": "Code postal",
-      "country_of_residence": "Pays de résidence",
-      "passport": "Passeport",
-      "birth_certificate": "Acte de naissance",
-      "residence_permit": "Titre de séjour",
-      "address_proof": "Justificatif de domicile",
-      "choose_identity_photo": "Veuillez choisir une photo d'identité",
-      "save": "Sauvegarder",
-      "submit": "Enregistrer",
-      "basic_info": "Informations personnelles",
-      "documents": "Documents justificatifs",
-      "documents_optional": "Le téléchargement des documents est optionnel à cette étape",
-      "documents_later": "Vous pourrez compléter ces informations plus tard dans votre espace personnel",
-      "country": "Pays",
-      "back": "Retour",
-      "next": "Suivant",
-      "complete_later": "Compléter plus tard",
-      "validate": "Valider"
-    },
-    "business_card": {
-      "consulat_card": "Carte consulaire",
-      "issue_date": "Date d'émission",
-      "expiry_date": "Date d'expiration",
-      "general_consulate": "Général",
-      "tel": "Tel",
-      "consulate_full": "Consulat {isGeneral} {countryPrefixe} {country}"
-    },
-    "identification": {
-      "title": "Identifiez-vous",
-      "description": "Pour créer votre profil consulaire, vous devez d'abord vous identifier",
-      "methods": {
-        "phone": "Par téléphone",
-        "email": "Par email"
-      }
-    },
-    "review": {
-      "document_uploaded": "Document téléchargé",
-      "document_missing": "Document manquant"
-    },
-    "creation": {
-      "title": "Création de votre profil consulaire",
-      "subtitle": "Suivez les étapes pour créer votre profil consulaire",
-      "steps": {
-        "identification": {
-          "title": "Identification",
-          "description": "Vérifiez votre identité",
-          "subtitle": "Connectez-vous ou créez un compte pour commencer"
-        },
-        "basic_info": {
-          "title": "Informations de base",
-          "description": "Vos informations personnelles",
-          "subtitle": "Renseignez vos informations d'identité"
-        },
-        "contact": {
-          "title": "Contact",
-          "description": "Vos coordonnées",
-          "subtitle": "Ajoutez vos informations de contact"
-        },
-        "documents": {
-          "title": "Documents",
-          "description": "Vos documents justificatifs",
-          "subtitle": "Téléchargez vos documents officiels"
-        },
-        "review": {
-          "title": "Récapitulatif",
-          "description": "Vérifiez vos informations",
-          "subtitle": "Vérifiez vos informations avant de les soumettre"
-        }
-      },
-      "documents": {
-        "title": "Documents justificatifs",
-        "description": "Téléchargez vos documents officiels",
-        "optional": "Le téléchargement des documents est optionnel à cette étape",
-        "complete_later": "Vous pourrez compléter ces informations plus tard dans votre espace personnel",
-        "types": {
-          "passport": "Passeport",
-          "birth_certificate": "Acte de naissance",
-          "residence_permit": "Titre de séjour",
-          "address_proof": "Justificatif de domicile"
-        }
-      },
-      "loading": {
-        "title": "Création de votre profil",
-        "description": "Merci de patienter pendant que nous créons votre profil"
-      },
-      "success": {
-        "title": "Profil créé avec succès !",
-        "description": "Vous pouvez maintenant accéder à votre espace personnel",
-        "action": "Accéder à mon profil"
-      },
-      "actions": {
-        "next": "Suivant",
-        "back": "Retour",
-        "complete_later": "Compléter plus tard",
-        "validate": "Valider",
-        "skip": "Passer cette étape"
-      }
-    },
-    "help": {
-      "request_type": "Choisissez le type de document et le mode d'acquisition de votre nationalité",
-      "documents": "Fournissez les documents requis pour votre demande",
-      "basic_info": "Renseignez vos informations personnelles de base",
-      "contact_info": "Indiquez vos coordonnées actuelles",
-      "family_info": "Renseignez les informations concernant votre famille",
-      "professional_info": "Indiquez votre situation professionnelle"
-    },
-    "errors": {
-      "required": "Ce champ est requis",
-      "invalid_email": "Email invalide",
-      "invalid_phone": "Numéro de téléphone invalide",
-      "file_too_large": "Le fichier est trop volumineux",
-      "invalid_file_type": "Type de fichier non supporté",
-      "upload_failed": "L'envoi du fichier a échoué"
-    }
-  },
-  "consulate": {
-    "labels": {
-      "name": "Nom",
-      "email": "Email",
-      "phone": "Téléphone",
-      "website": "Site web",
-      "address": "Adresse",
-      "countries": "Pays pris en charge",
-      "consulate": "Consulat",
-      "general": "Général",
-      "logo": "Logo du consulat",
-      "country_of_residence": "Pays de résidence",
-      "first_line": "Adresse",
-      "second_line": "Complément d'adresse",
-      "city": "Ville",
-      "zip_code": "Code postal",
-      "country": "Pays",
-      "is_general": "Consulat général"
-    },
-    "actions": {
-      "add": "Ajouter un consulat",
-      "edit": "Modifier",
-      "back": "Retour",
-      "save": "Enregistrer",
-      "delete": "Supprimer le consulat",
-      "share": "Partager",
-      "contact": "Contacter",
-      "view_card": "Voir la carte",
-      "visit_website": "Visiter notre site",
-      "delete_confirm": "Êtes-vous sûr de vouloir supprimer ce consulat ?",
-      "delete_warning": "Cette action est irréversible.",
-      "cancel": "Annuler",
-      "confirm_delete": "Confirmer la suppression",
-      "view": "Voir le profil de {name}",
-      "send_message": "Contacter",
-      "show_card": "Voir la carte"
-    },
-    "sections": {
-      "profile_settings": "Paramètres du profil",
-      "basic_info": "Informations de base",
-      "contact_info": "Informations de contact",
-      "settings": "Paramètres du consulat",
-      "about_us": "Plus sur nous",
-      "online_presence": "Sur internet",
-      "legal_documents": "Documents légaux",
-      "covered_countries": "Pays couverts"
-    },
-    "messages": {
-      "consulate_added": "Consulat ajouté avec succès",
-      "consulate_updated": "Consulat mis à jour avec succès",
-      "consulate_deleted": "Consulat supprimé avec succès",
-      "error_adding": "Erreur lors de l'ajout du consulat",
-      "error_updating": "Erreur lors de la mise à jour du consulat",
-      "error_deleting": "Erreur lors de la suppression du consulat",
-      "no_countries": "Aucun pays trouvé",
-      "select_country": "Sélectionner un pays...",
-      "search_country": "Rechercher un pays...",
-      "not_found": "Le consulat  auquel vous essayez d'accéder n'existe pas ou n'est pas accessible.",
-      "file_size_error": "La taille du fichier doit être inférieure à 3 Mo",
-      "file_type_error": "Le fichier doit être au format PNG, JPEG ou JPG",
-      "add_country": "Ajouter un pays",
-      "share_profile": "Partagez le profil",
-      "contact_request": "Échanger avec {name}",
-      "contact_description": "Saisissez vos informations et un court message et {name} recevra une demande de contact de votre part.",
-      "scan_qr": "Scannez ce code QR pour accéder au profil {name}.",
-      "no_registered_yet": "Vous n'avez pas encore enregistré d'entreprise",
-      "add_consulate_to_start": "Ajoutez un consulat pour commencer à traiter les profils."
-    },
-    "placeholders": {
-      "enter_name": "Entrez le nom du consulat",
-      "enter_email": "Entrez l'email du consulat",
-      "enter_phone": "ex: +33612345678",
-      "enter_website": "Entrez l'URL du site web",
-      "enter_address": "Entrez l'adresse",
-      "enter_city": "Entrez la ville",
-      "enter_zip": "Entrez le code postal",
-      "enter_country": "Entrez le pays"
-    },
-    "title": "Mes consulats",
-    "new": {
-      "title": "Ajouter un consulat"
-    },
-    "view": {
-      "title": "Consulat {isGeneral, select, true {Général} other {}} {name}"
-    },
-    "tabs": {
-      "dashboard": "Tableau de bord",
-      "settings": "Paramètres",
-      "overview": "Aperçu"
-    },
-    "form": {
-      "labels": {
-        "logo": "Logo du consulat",
-        "name": "Nom",
-        "email": "Email",
-        "phone": "Téléphone",
-        "website": "Site web",
-        "address": "Adresse",
-        "countries": "Pays pris en charge",
-        "is_general": "Consulat général"
-      },
-      "placeholders": {
-        "enter_name": "Entrez le nom du consulat",
-        "enter_email": "Entrez l'email du consulat",
-        "enter_phone": "+33XXXXXXXX",
-        "enter_website": "Entrez l'URL du site web",
-        "enter_address": "Entrez l'adresse",
-        "enter_city": "Entrez la ville",
-        "enter_zip": "Entrez le code postal",
-        "enter_country": "Entrez le pays"
-      }
-    }
-  },
-  "common": {
-    "loading": "Chargement...",
-    "actions": {
-      "close": "Fermer",
-      "cancel": "Annuler",
-      "confirm": "Confirmer",
-      "back": "Retour",
-      "next": "Suivant",
-      "submit": "Soumettre",
-      "retry": "Réessayer"
-    },
-    "labels": {
-      "loading": "Chargement...",
-      "error": "Erreur",
-      "success": "Succès",
-      "to_complete": "À compléter"
-    },
-    "messages": {
-      "not_found": "Page non trouvée",
-      "access_denied": "Accès refusé",
-      "something_went_wrong": "Une erreur s'est produite",
-      "error": "Erreur",
-      "retry": "Réessayer",
-      "back": "Retour"
-    },
-    "lang_switcher": {
-      "fr": "Français",
-      "en": "English",
-      "es": "Español",
-      "label": "Langue"
-    },
-    "upload": {
-      "drag_drop_files_or_click": "Glissez & déposez ou cliquez pour les télécharger",
-      "clear_files": "Supprimer tous les fichiers",
-      "drop_files": "Déposez vos fichiers",
-      "attached_files": "Fichiers joints"
     }
   },
   "navigation": {
@@ -836,7 +606,16 @@
     "my_applications": "Mes demandes",
     "settings": "Paramètres",
     "help": "Aide",
-    "menu": "Menu principal"
+    "menu": "Menu principal",
+    "logout": "Déconnexion",
+    "back": "Retour",
+    "home": "Accueil",
+    "profile": "Profil",
+    "consular_registration": "Inscription consulaire",
+    "consular_card": "Carte consulaire",
+    "consular_card_request": "Demande de carte consulaire",
+    "feedback": "Feedback",
+    "assistance": "Assistance"
   },
   "home": {
     "consulat": "Consulat",
@@ -850,7 +629,8 @@
       "create_card": "Créer ma carte de visite"
     },
     "nav": {
-      "login": "S'identifier"
+      "login": "S'identifier",
+      "dashboard": "Mon espace"
     },
     "footer": {
       "designed_by": "Conçu et développé par"
@@ -885,22 +665,6 @@
       "incomplete": "Incomplet"
     }
   },
-  "contact_form": {
-    "first_name": "Nom",
-    "last_name": "Prénom",
-    "phone": "Numéro de téléphone",
-    "email": "Email",
-    "company_name": "Nom de l'entreprise",
-    "message": "Votre message",
-    "first_name_placeholder": "Nom",
-    "last_name_placeholder": "Prénom",
-    "phone_placeholder": "ex:+33612340495",
-    "email_placeholder": "Email",
-    "company_name_placeholder": "Nom de l'entreprise",
-    "message_description": "Assurez-vous d'être clair et précis",
-    "send": "Envoyer",
-    "privacy_notice": "En soumettant ce formulaire, vous acceptez que vos informations soient utilisées pour vous recontacter."
-  },
   "add_to_home_screen": {
     "loading": "Chargement..."
   },
@@ -911,40 +675,6 @@
     "scroll_and_click": "Faites défiler et cliquez sur :",
     "add_to_home_screen": "Ajouter à l'écran d'accueil",
     "dont_show_again": "Ne plus afficher"
-  },
-  "notifications": {
-    "title": "Notifications",
-    "sub_title": "Mes notifications",
-    "form": {
-      "title": "Titre",
-      "title_placeholder": "Titre de la notification",
-      "content": "Contenu",
-      "content_placeholder": "Rédigez votre message",
-      "submit": "Envoyer la notification",
-      "type": "Type de destinataire",
-      "type_individual": "Notification pour un profile",
-      "type_consulate": "Notification pour les profils d'un consulat",
-      "consulate": "Consulat destinataire",
-      "select_consulate": "Choisir un consulat",
-      "select_type": "Type de destinataire",
-      "add": "Ajouter une notification",
-      "new_title": "Nouvelle notification",
-      "markdown_support_info": "Le format markdown est prise en charge",
-      "search": "Rechercher",
-      "search_results": "Résultats de recherche",
-      "search_recipients": "Rechercher un profile",
-      "selected_recipients": "Profiles sélectionné",
-      "attachments": "Pièces jointes",
-      "recipients": "Profile destinataires"
-    },
-    "menu": {
-      "notifications": "Notifications"
-    },
-    "messages": {
-      "success": "Notification envoyée avec succès",
-      "error": "Erreur lors de l'envoi de la notification",
-      "no_notification": "Vous n'avez pas de notification pour le moment"
-    }
   },
   "uploads": {
     "drag_drop_files": "Glissez & déposez vos fichiers",
@@ -1003,10 +733,650 @@
       }
     }
   },
+  "errors": {
+    "common": {
+      "error_title": "Erreur",
+      "success_title": "Succès",
+      "unknown_error": "Une erreur inattendue est survenue",
+      "try_again": "Veuillez réessayer plus tard"
+    },
+    "auth": {
+      "update_profile": "Erreur lors de la mise à jour du profil",
+      "user_not_found": "Utilisateur introuvable",
+      "unauthorized": "Vous devez être connecté pour effectuer cette action",
+      "forbidden": "Vous n'avez pas les permissions nécessaires pour effectuer cette action",
+      "session_expired": "Votre session a expiré, veuillez vous reconnecter",
+      "invalid_credentials": "Identifiants invalides"
+    },
+    "form": {
+      "submission_failed": "Échec de l'envoi du formulaire",
+      "invalid_data": "Données invalides",
+      "required_field": "Ce champ est requis",
+      "try_again": "Veuillez réessayer"
+    }
+  },
+  "admin": {
+    "users": {
+      "delete": "Supprimer",
+      "deleting": "Suppression...",
+      "delete_success": "Utilisateur supprimé avec succès",
+      "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
+      "delete_warning": "Cette action est irréversible"
+    },
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "users": "Utilisateurs",
+      "requests": "Demandes",
+      "settings": "Paramètres"
+    }
+  },
+  "user": {
+    "nav": {
+      "dashboard": "Mon espace",
+      "requests": "Mes demandes",
+      "profile": "Mon profil",
+      "documents": "Mes documents",
+      "procedures": "Démarches",
+      "services": "Nouvelle démarche",
+      "my_requests": "Mes démarches"
+    }
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "delete": "Supprimer",
+    "deleting": "Suppression...",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "edit": "Modifier",
+    "close": "Fermer"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "completion": {
+      "missing_fields": "Informations manquantes",
+      "profile_complete": "Votre profil est complet !",
+      "required_field": "Ce champ est requis",
+      "title": "État du profil",
+      "progress": "Progression globale",
+      "required_information": "Informations requises",
+      "optional_information": "Informations optionnelles",
+      "complete_profile": "Compléter mon profil",
+      "required": "Requis",
+      "optional": "Optionnel",
+      "show_more": "Voir {count} de plus",
+      "show_less": "Voir moins"
+    },
+    "last_update": "Dernière mise à jour",
+    "missing_fields": "Champs manquants",
+    "status": {
+      "active": "Actif",
+      "validated": "Validé",
+      "pending": "En attente",
+      "expired": "Expiré",
+      "incomplete": "Incomplet",
+      "rejected": "Rejeté",
+      "valid": "Valide",
+      "complete": "Complet"
+    },
+    "sections": {
+      "basic_info": "Informations personnelles",
+      "personal_info": "Informations personnelles",
+      "contact_info": "Coordonnées",
+      "family_info": "Informations familiales",
+      "professional_info": "Informations professionnelles",
+      "documents": "Documents officiels"
+      },
+    "fields": {
+      "gender": "Genre",
+      "gender_type": {
+        "male": "Masculin",
+        "female": "Féminin"
+      },
+      "address": "Adresse",
+      "address_proof": "Justificatif de domicile",
+      "birth_date": "Date de naissance",
+      "birth_place": "Lieu de naissance",
+      "nationality": "Nationalité",
+      "marital_status": "Situation matrimoniale",
+      "acquiring_mode": "Mode d'acquisition",
+      "residence_permit": "Titre de séjour",
+      "identity_photo": "Photo d'identité",
+      "passport": "Passeport",
+      "birth_certificate": "Acte de naissance",
+      "contact_details": "Coordonnées",
+      "proof_of_residence": "Justificatif de domicile",
+      "emergency_contact": "Contact d'urgence",
+      "all": "Toutes les informations",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "full_name": "Nom complet",
+      "phone": "Téléphone",
+      "profession": "Profession",
+      "employer": "Employeur",
+      "gabon_address": "Adresse au Gabon",
+      "spouse_name": "Nom du conjoint",
+      "gabon_activity": "Activité au Gabon"
+    },
+    "family": {
+      "parents": "Parents",
+      "father": "Père",
+      "mother": "Mère",
+      "marital_status": "Situation matrimoniale",
+      "spouse": "Conjoint(e)",
+      "emergency_contact": "Contact d'urgence"
+    },
+    "contact": {
+      "primary": "Coordonnées principales",
+      "main_address": "Adresse principale",
+      "gabon_address": "Adresse au Gabon"
+    },
+    "professional": {
+      "status": "Statut professionnel",
+      "employer": "Employeur",
+      "work_address": "Adresse professionnelle",
+      "last_activity_gabon": "Dernière activité au Gabon"
+    },
+    "update_success": "Profil mis à jour avec succès",
+    "update_error": "Erreur lors de la mise à jour du profil",
+    "stats": {
+      "title": "Aperçu du profil",
+      "completion": "Complétude du profil",
+      "documents": "Documents",
+      "requests": "Demandes en cours",
+      "last_login": "Dernière connexion",
+      "validated": "Validé",
+      "pending": "En attente",
+      "expired": "Expiré",
+      "rejected": "Rejeté",
+      "incomplete": "Incomplet"
+    },
+    "no_profile": "Aucun profil trouvé",
+    "no_profile_help": "Créez votre profil pour profiter de toutes les fonctionnalités du service consulaire en ligne",
+    "actions": {
+      "title": "Actions requises",
+      "no_actions": "Aucune action requise",
+      "priority": {
+        "low": "Faible priorité",
+        "medium": "Priorité moyenne",
+        "high": "Haute priorité"
+      },
+      "edit": "Modifier",
+      "view": "Voir",
+      "share": "Partager",
+      "download": "Télécharger",
+      "create": "Créer mon profil",
+      "delete": "Supprimer",
+      "save": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "success": {
+      "update_title": "Mise à jour réussie",
+      "update_description": "Vos informations ont été mises à jour avec succès"
+    },
+    "errors": {
+      "update_failed": "Échec de la mise à jour",
+      "unknown": "Une erreur inattendue est survenue"
+    },
+    "documents": {
+      "title": "Mes documents",
+      "empty": "Aucun document téléchargé",
+      "number": "Numéro",
+      "issued_at": "Émis le",
+      "expires_at": "Expire le",
+      "types": {
+        "passport": "Passeport",
+        "id_card": "Carte d'identité",
+        "birth_certificate": "Acte de naissance",
+        "proof_of_address": "Justificatif de domicile",
+        "residence_permit": "Titre de séjour"
+      },
+      "status": {
+        "validated": "Validé",
+        "pending": "En attente",
+        "rejected": "Rejeté",
+        "expired": "Expiré"
+      },
+      "actions": {
+        "add": "Ajouter un document",
+        "add_first": "Ajouter votre premier document",
+        "view": "Voir",
+        "download": "Télécharger",
+        "upload": "Téléverser",
+        "view_all": "Voir tout"
+      },
+      "total": "Total",
+      "valid": "Valides",
+      "expiring_soon": "Expirant bientôt",
+      "expired": "Expirés",
+      "latest": {
+        "title": "Dernier document",
+        "no_documents": "Aucun document"
+      }
+    },
+    "dashboard": {
+      "title": "Tableau de bord",
+      "welcome": "Bienvenue, {name}",
+      "stats": {
+        "profile": {
+          "title": "Profil consulaire",
+          "completion": "Complétude du profil",
+          "last_update": "Dernière mise à jour",
+          "missing_documents": "Documents manquants"
+        },
+        "requests": {
+          "title": "Demandes",
+          "pending": "En attente",
+          "in_progress": "En cours",
+          "completed": "Terminées",
+          "latest": "Dernière demande"
+        },
+        "appointments": {
+          "title": "Rendez-vous",
+          "upcoming": "Prochain rendez-vous",
+          "no_upcoming": "Aucun rendez-vous prévu",
+          "schedule": "Prendre rendez-vous"
+        },
+        "documents": {
+          "title": "Documents",
+          "total": "Total",
+          "expiring_soon": "Expirant bientôt",
+          "expired": "Expirés",
+          "manage": "Gérer mes documents"
+        }
+      },
+      "actions": {
+        "complete_profile": "Compléter mon profil",
+        "submit_request": "Nouvelle demande",
+        "track_requests": "Suivre mes demandes",
+        "schedule_appointment": "Prendre rendez-vous",
+        "manage_documents": "Gérer mes documents",
+        "see_all": "Voir tout",
+        "view_details": "Voir les détails",
+        "edit": "Modifier",
+        "delete": "Supprimer"
+      },
+      "sections": {
+        "profile": {
+          "title": "Profil consulaire",
+          "description": "Gérez vos informations personnelles",
+          "completion": "Complétion du profil",
+          "missing_fields": "Informations manquantes",
+          "fields": {
+            "identity_photo": "Photo d'identité",
+            "passport": "Passeport",
+            "birth_certificate": "Acte de naissance",
+            "proof_of_residence": "Justificatif de domicile",
+            "contact_details": "Coordonnées",
+            "emergency_contact": "Contact d'urgence"
+          },
+          "status": {
+            "active": "Actif",
+            "pending": "En attente",
+            "expired": "Expiré"
+          },
+          "actions": {
+            "view": "Voir le profil",
+            "complete": "Compléter",
+            "update": "Mettre à jour"
+          }
+        },
+        "requests": {
+          "title": "Demandes consulaires",
+          "description": "Gérez vos demandes en cours",
+          "latest_request": "Dernière demande",
+          "no_requests": "Aucune demande",
+          "status": {
+            "pending": "En attente",
+            "in_progress": "En cours",
+            "completed": "Terminées"
+          },
+          "request_types": {
+            "passport_renewal": "Renouvellement de passeport",
+            "consular_card": "Carte consulaire",
+            "birth_registration": "Enregistrement de naissance",
+            "certificate_request": "Demande de certificat"
+          },
+          "actions": {
+            "new": "Nouvelle demande",
+            "view": "Voir les détails",
+            "track": "Suivre",
+            "cancel": "Annuler"
+          }
+        },
+        "appointments": {
+          "title": "Rendez-vous",
+          "description": "Gérez vos rendez-vous consulaires",
+          "next_appointment": "Prochain rendez-vous",
+          "no_upcoming": "Aucun rendez-vous prévu",
+          "type": {
+            "document_submission": "Dépôt de documents",
+            "document_collection": "Retrait de documents",
+            "consultation": "Consultation",
+            "other": "Autre"
+          },
+          "status": {
+            "confirmed": "Confirmé",
+            "pending": "En attente",
+            "cancelled": "Annulé"
+          },
+          "stats": {
+            "past": "Passés",
+            "cancelled": "Annulés"
+          },
+          "actions": {
+            "schedule": "Prendre RDV",
+            "reschedule": "Reporter",
+            "cancel": "Annuler",
+            "view": "Voir détails"
+          }
+        },
+        "documents": {
+          "title": "Documents officiels",
+          "description": "Gérez vos documents consulaires",
+          "validity_status": "État de validité",
+          "valid": "valides",
+          "latest_document": "Dernier document",
+          "expires_on": "Expire le",
+          "status": {
+            "valid": "Valides",
+            "expiring_soon": "À renouveler",
+            "expired": "Expirés"
+          },
+          "document_types": {
+            "passport": "Passeport",
+            "consular_card": "Carte consulaire",
+            "birth_certificate": "Acte de naissance",
+            "marriage_certificate": "Acte de mariage",
+            "nationality_certificate": "Certificat de nationalité",
+            "residence_permit": "Titre de séjour"
+          },
+          "actions": {
+            "upload": "Ajouter",
+            "view": "Voir",
+            "download": "Télécharger",
+            "renew": "Renouveler"
+          }
+        }
+      },
+      "notifications": {
+        "document_expiring": "Document expirant bientôt",
+        "appointment_reminder": "Rappel de rendez-vous",
+        "request_update": "Mise à jour de demande"
+      },
+      "errors": {
+        "load_failed": "Échec du chargement des données",
+        "action_failed": "L'action a échoué",
+        "try_again": "Veuillez réessayer"
+      }
+      },
+    "requests": {
+      "title": "Mes demandes",
+      "total": "Total",
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "completed": "Terminées",
+      "latest": {
+        "title": "Dernière demande",
+        "no_requests": "Aucune demande"
+      },
+      "actions": {
+        "new": "Nouvelle demande",
+        "view_all": "Voir tout"
+      }
+    },
+    "procedures": {
+      "title": "Mes démarches",
+      "active": "En cours",
+      "completed": "Terminées",
+      "next_step": {
+        "title": "Prochaine étape",
+        "no_steps": "Aucune étape en cours"
+      },
+      "actions": {
+        "view_details": "Voir les détails"
+      }
+    },
+    "appointments": {
+      "title": "Mes rendez-vous",
+      "upcoming": {
+        "title": "Prochain rendez-vous",
+        "no_appointments": "Aucun rendez-vous prévu"
+      },
+      "past": "Passés",
+      "cancelled": "Annulés",
+      "actions": {
+        "schedule": "Prendre rendez-vous",
+        "reschedule": "Reprogrammer",
+        "cancel": "Annuler"
+      }
+    },
+    "assets": {
+      "marital_status": {
+        "single": "Célibataire",
+        "married": "Marié(e)",
+        "divorced": "Divorcé(e)",
+        "widowed": "Veuf(ve)",
+        "cohabiting": "En concubinage"
+      },
+      "work_status": {
+        "employee": "Salarié(e)",
+        "entrepreneur": "Entrepreneur(e)",
+        "unemployed": "Sans emploi",
+        "retired": "Retraité(e)",
+        "student": "Étudiant(e)",
+        "other": "Autre"
+      },
+      "gender": {
+        "male": "Homme",
+        "female": "Femme"
+      }
+    },
+    "edit": {
+      "title": "Modifier mon profil",
+      "subtitle": "Mettez à jour vos informations personnelles",
+      "steps": {
+        "documents": "Documents",
+        "documents_description": "Gérez vos documents officiels",
+        "basic": "Identité",
+        "basic_description": "Informations personnelles",
+        "contact": "Contact",
+        "contact_description": "Coordonnées",
+        "family": "Famille",
+        "family_description": "Situation familiale",
+        "professional": "Professionnel",
+        "professional_description": "Situation professionnelle",
+        "review": "Révision",
+        "review_description": "Vérifiez vos modifications"
+      },
+      "navigation": {
+        "previous": "Précédent",
+        "next": "Suivant",
+        "submit": "Enregistrer les modifications"
+      },
+      "success": {
+        "title": "Profil mis à jour",
+        "description": "Vos informations ont été mises à jour avec succès"
+      },
+      "errors": {
+        "update_failed": "Échec de la mise à jour",
+        "unknown": "Une erreur inattendue est survenue"
+      }
+    },
+    "card": {
+      "title": "Carte Consulaire",
+      "preview": "Voir ma carte",
+      "photo_alt": "Photo d'identité",
+      "birth": "Né(e) le",
+      "nationality": "Nationalité",
+      "passport": "Passeport N°",
+      "address": "Adresse",
+      "contact": "Contact",
+      "phone": "Tél",
+      "email": "Email",
+      "legal_notice": "Cette carte est la propriété de l'État gabonais. Elle doit être présentée sur demande des autorités compétentes.",
+      "click_to_flip": "Cliquez sur la carte pour la retourner",
+      "valid_until": "Valide jusqu'au",
+      "actions": {
+        "download": "Télécharger",
+        "share": "Partager",
+        "qr_code": "Code QR",
+        "view": "Voir la carte",
+        "print": "Imprimer",
+        "add_to_wallet": "Ajouter au portefeuille"
+      },
+      "mobile": {
+        "title": "Version mobile",
+        "add_to_wallet": "Ajouter à votre portefeuille mobile",
+        "description": "Accédez à votre carte même hors connexion",
+        "instructions": "Suivez les instructions pour ajouter la carte à votre portefeuille"
+      },
+      "qr_code": {
+        "title": "Code QR de la carte",
+        "description": "Scannez ce code pour accéder à la version numérique de la carte",
+        "instructions": "Utilisez l'appareil photo de votre téléphone pour scanner ce code",
+        "validity": "Ce code est unique et lié à votre carte"
+      },
+      "share": {
+        "title": "Partager la carte",
+        "description": "Choisissez comment partager votre carte consulaire",
+        "email": "Envoyer par email",
+        "download": "Télécharger en PDF",
+        "system": "Partager via...",
+        "message": "Ma carte consulaire numérique",
+        "success": "Carte partagée avec succès",
+        "error": "Erreur lors du partage de la carte"
+      },
+      "download": {
+        "title": "Télécharger la carte",
+        "description": "Format PDF haute qualité",
+        "processing": "Génération du PDF...",
+        "success": "Carte téléchargée avec succès",
+        "error": "Erreur lors du téléchargement"
+      },
+      "status": {
+        "active": "Active",
+        "expired": "Expirée",
+        "pending": "En attente",
+        "suspended": "Suspendue"
+      },
+      "security": {
+        "verified": "Document vérifié",
+        "secure": "Sécurisé",
+        "official": "Document officiel",
+        "watermark": "Avec filigrane numérique"
+      },
+      "info": {
+        "issued_by": "Délivrée par",
+        "issued_on": "Délivrée le",
+        "expires_on": "Expire le",
+        "card_number": "N° de carte"
+      },
+      "validation": {
+        "front_side": "Recto de la carte",
+        "back_side": "Verso de la carte",
+        "official_document": "République Gabonaise",
+        "verify_online": "Vérifier l'authenticité en ligne"
+      }
+    },
+    "assistant": {
+      "title": "Assistant de profil",
+      "hide_suggestions": "Masquer les suggestions",
+      "show_suggestions": "Afficher les suggestions",
+      "no_suggestions": "Votre profil est complet ! Aucune suggestion d'amélioration.",
+      "suggestions": {
+        "missing_photo": "Ajoutez une photo d'identité pour compléter votre profil",
+        "missing_passport": "Le passeport est requis pour la carte consulaire",
+        "missing_contact": "Ajoutez vos coordonnées pour être contactable",
+        "missing_emergency_contact": "Ajoutez un contact d'urgence pour plus de sécurité",
+        "expiring_passport": "Votre passeport expire bientôt, pensez à le renouveler",
+        "incomplete_address": "Complétez votre adresse de résidence",
+        "missing_gabon_address": "Ajoutez votre adresse au Gabon si vous en avez une"
+      },
+      "priorities": {
+        "high": "Priorité haute",
+        "medium": "Priorité moyenne",
+        "low": "Priorité basse"
+      },
+      "actions": {
+        "complete": "Compléter",
+        "update": "Mettre à jour",
+        "add": "Ajouter"
+      },
+      "analyzing": "Analyse en cours..."
+    }
+  },
+  "documents": {
+    "title": "Mes documents",
+    "description": "Gérez vos documents officiels et suivez leur statut",
+    "empty": {
+      "title": "Aucun document",
+      "description": "Vous n'avez pas encore téléchargé de documents"
+    },
+    "types": {
+      "passport": "Passeport",
+      "birth_certificate": "Acte de naissance",
+      "residence_permit": "Titre de séjour",
+      "proof_of_address": "Justificatif de domicile",
+      "identity_card": "Carte d'identité"
+    },
+    "status": {
+      "pending": "En attente",
+      "validated": "Validé",
+      "rejected": "Rejeté",
+      "expired": "Expiré"
+    },
+    "expires_on": "Expire le",
+    "actions": {
+      "view": "Voir",
+      "download": "Télécharger"
+    }
+  },
   "consular_registration": {
-    "header": {
-      "title": "Formulaire d'Inscription",
-      "subtitle": "Suivez les étapes pour créer votre profil consulaire"
+    "form": {
+      "title": "Formulaire d'inscription consulaire",
+      "subtitle": "Suivez les étapes pour créer votre carte consulaire",
+      "gender": "Genre",
+      "first_name": "Prénom(s)",
+      "last_name": "Nom(s)",
+      "first_name_placeholder": "Entrez votre/vos prénom(s)",
+      "last_name_placeholder": "Entrez votre/vos nom(s)",
+      "birth_date": "Date de naissance",
+      "birth_place": "Lieu de naissance",
+      "birth_place_placeholder": "Ville de naissance",
+      "birth_country": "Pays de naissance",
+      "nationality": "Nationalité",
+      "select_nationality": "Sélectionnez votre nationalité",
+      "search_nationality": "Rechercher une nationalité",
+      "no_nationality_found": "Aucune nationalité trouvée",
+      "required_field": "Ce champ est obligatoire",
+      "invalid_date": "Date invalide",
+      "acquiring_mode": "Mode d'acquisition de la nationalité",
+
+      "passport": {
+        "section_title": "Informations du passeport",
+        "section_description": "Renseignez les informations de votre passeport gabonais en cours de validité",
+        "number": {
+          "label": "Numéro de passeport",
+          "placeholder": "Ex: GA123456",
+          "help": "Le numéro se trouve en haut à droite de votre passeport"
+        },
+        "issue_date": {
+          "label": "Date d'émission",
+          "placeholder": "Sélectionnez la date d'émission",
+          "help": "Date à laquelle votre passeport a été émis"
+        },
+        "expiry_date": {
+          "label": "Date d'expiration",
+          "placeholder": "Sélectionnez la date d'expiration",
+          "help": "Date à laquelle votre passeport expire"
+        },
+        "authority": {
+          "label": "Autorité émettrice",
+          "placeholder": "Ex: Ministère de l'Intérieur",
+          "help": "L'organisme qui a délivré votre passeport"
+        }
+      }
     },
     "steps": {
       "request_type": "Type de demande",
@@ -1015,13 +1385,40 @@
       "family": "Famille",
       "contact": "Contact",
       "professional": "Professionnel",
-      "review": "Révision"
+      "review": "Révision",
+      "progress": "Étape {current}/{total}",
+      "status": {
+        "complete": "Terminé",
+        "in_progress": "En cours",
+        "pending": "À venir"
+      }
+    },
+    "documents": {
+      "analysis": {
+        "success": {
+          "title": "Documents analysés avec succès",
+          "description": "Les informations ont été extraites de vos documents. Vous pouvez maintenant passer à l'étape suivante.",
+          "action": "Continuer",
+          "action_hint": "Cliquez pour passer à l'étape suivante"
+        },
+        "error": {
+          "failed_analysis": "L'analyse des documents a échoué",
+          "retry": "Réessayer"
+        }
+      }
     },
     "navigation": {
       "previous": "Précédent",
-      "next": "Suivant"
+      "next": "Suivant",
+      "submit": "Soumettre",
+      "submitting": "Envoi en cours..."
     },
     "validation": {
+      "dates": {
+        "issue_date_future": "La date d'émission ne peut pas être dans le futur",
+        "expiry_date_past": "La date d'expiration doit être dans le futur",
+        "invalid_date_format": "Format de date invalide"
+      },
       "error": {
         "title": "Erreur de validation",
         "description": "Veuillez corriger les erreurs avant de continuer"
@@ -1037,48 +1434,180 @@
       "professional": "Renseignez votre situation professionnelle",
       "review": "Vérifiez toutes les informations avant de soumettre"
     },
+    "success": {
+      "title": "Demande envoyée",
+      "form_submitted": "Votre demande de carte consulaire a été envoyée avec succès"
+    },
+    "errors": {
+      "submission_failed": "Échec de l'envoi du formulaire",
+      "validation_failed": "Certaines informations sont invalides"
+    },
+    "submission": {
+      "success": {
+        "title": "Demande envoyée",
+        "description": "Votre demande a été envoyée avec succès",
+        "action": "Voir mon espace",
+        "action_hint": "Aller à mon espace personnel"
+      },
+      "error": {
+        "title": "Erreur",
+        "unknown": "Une erreur est survenue lors de l'envoi"
+      }
+    }
+  },
+  "tooltips": {
+    "passport": {
+      "number": "Le numéro de passeport se trouve en haut à droite de la page d'identification",
+      "issue_date": "Date à laquelle votre passeport a été émis",
+      "expiry_date": "Date à laquelle votre passeport expire",
+      "authority": "L'organisme gouvernemental qui a délivré votre passeport"
+    }
+  },
+  "registration": {
+    "header": {
+      "title": "Formulaire d'Inscription",
+      "subtitle": "Suivez les étapes pour créer votre profil consulaire"
+    },
+    "steps": {
+      "documents": "Documents",
+      "documents_description": "Téléchargez vos documents d'identité",
+      "identity": "Identité",
+      "identity_description": "Informations personnelles",
+      "family": "Famille",
+      "family_description": "Situation familiale",
+      "contact": "Contact",
+      "contact_description": "Coordonnées",
+      "professional": "Professionnel",
+      "professional_description": "Situation professionnelle",
+      "review": "Révision",
+      "review_description": "Vérification finale",
+      "optional": "Optionnel",
+      "progress": "Étape {current}/{total}"
+    },
+    "navigation": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "submit": "Soumettre"
+    },
+    "validation": {
+      "error": {
+        "title": "Erreur de validation",
+        "description": "Veuillez corriger les erreurs avant de continuer"
+      },
+      "submit": "Soumettre",
+      "required": "Ce champ est requis",
+      "invalid_format": "Format invalide"
+    },
+    "help": {
+      "documents": {
+        "title": "Documents requis",
+        "description": "Veuillez fournir les documents suivants pour votre demande",
+        "tips": {
+          "1": "Utilisez des scans ou photos de haute qualité",
+          "2": "Assurez-vous que tous les textes sont lisibles",
+          "3": "Vérifiez que les documents sont valides",
+          "4": "Les documents doivent être complets"
+        }
+      },
+      "identity": {
+        "title": "Informations d'identité",
+        "description": "Vos informations personnelles telles qu'elles apparaissent sur vos documents officiels",
+        "tips": {
+          "1": "Utilisez exactement les mêmes informations que sur votre passeport",
+          "2": "Écrivez les noms en majuscules sans accents",
+          "3": "La date de naissance doit être au format JJ/MM/AAAA"
+        }
+      },
+      "family": {
+        "title": "Situation familiale",
+        "description": "Informations sur votre situation familiale actuelle",
+        "tips": {
+          "1": "Renseignez les noms complets de vos parents",
+          "2": "Si marié(e), fournissez les informations de votre conjoint(e)",
+          "3": "Le contact d'urgence doit être joignable facilement"
+        }
+      },
+      "contact": {
+        "title": "Coordonnées",
+        "description": "Vos coordonnées actuelles pour vous contacter",
+        "tips": {
+          "1": "Utilisez une adresse email que vous consultez régulièrement",
+          "2": "Le numéro de téléphone doit inclure l'indicatif pays",
+          "3": "L'adresse doit être votre résidence principale actuelle"
+        }
+      },
+      "professional": {
+        "title": "Situation professionnelle",
+        "description": "Informations sur votre activité professionnelle actuelle",
+        "tips": {
+          "1": "Indiquez votre situation professionnelle actuelle",
+          "2": "Si employé(e), fournissez les coordonnées de votre employeur",
+          "3": "Ces informations nous aident à mieux vous accompagner"
+        }
+      },
+      "optional_step": "Cette étape est optionnelle"
+    },
     "messages": {
       "step_under_construction": "Cette étape est en cours de construction"
     },
     "documents": {
-      "analysis": {
-        "button": "Analyser les documents",
-        "analyzing": "Analyse en cours...",
-        "help_text": "Les informations extraites des documents seront pré-remplies dans le formulaire",
-        "success_description": "Les informations ont été extraites avec succès",
-        "in_progress": "Analyse des documents en cours",
-        "error": {
-          "failed_upload": "Échec du chargement du fichier",
-          "failed_fetch": "Échec de la connexion au serveur",
-          "unknown": "Une erreur inconnue s'est produite",
-          "no_documents": "Aucun document n'a été téléchargé"
-        },
-        "success": {
-          "title": "Analyse terminée avec succès !",
-          "description": "Les informations de vos documents ont été extraites avec succès. Vous pouvez maintenant continuer avec le formulaire.",
-          "action": "Continuer"
-        }
-      },
       "passport": {
-        "label": "Passeport gabonais"
-      },
-      "birth_certificate": {
-        "label": "Acte de naissance"
-      },
-      "address_proof": {
-        "label": "Justificatif de domicile"
-      },
-      "residence_permit": {
-        "label": "Titre de séjour"
+        "label": "Passeport",
+        "description": "Page principale de votre passeport en cours de validité"
       },
       "identity_picture": {
-        "label": "Photo d'identité"
+        "label": "Photo d'identité",
+        "description": "Photo récente sur fond blanc aux normes consulaires"
+      },
+      "birth_certificate": {
+        "label": "Acte de naissance",
+        "description": "Copie intégrale de votre acte de naissance"
+      },
+      "address_proof": {
+        "label": "Justificatif de domicile",
+        "description": "Document de moins de 3 mois (facture électricité, téléphone...)"
+      },
+      "residence_permit": {
+        "label": "Titre de séjour",
+        "description": "Titre de séjour en cours de validité"
+      },
+      "analysis": {
+        "start": "Analyser les documents",
+        "analyzing": "Analyse en cours...",
+        "help": "L'analyse automatique des documents permet de pré-remplir vos informations",
+        "success": {
+          "title": "Analyse terminée",
+          "description": "Les informations ont été extraites avec succès",
+          "description_with_sections": "Les sections suivantes ont été mises à jour : {sections}",
+          "action": "Continuer"
+        },
+        "error": {
+          "title": "Erreur d'analyse",
+          "no_documents": "Aucun document à analyser",
+          "no_document": "Aucun document à analyser",
+          "unknown": "Une erreur est survenue lors de l'analyse"
+        }
+      },
+      "tips": {
+        "title": "Conseils pour vos documents",
+        "list": {
+          "quality": "Assurez-vous que les documents sont bien lisibles",
+          "lighting": "Prenez les photos dans un endroit bien éclairé",
+          "reflection": "Évitez les reflets et les ombres sur les documents",
+          "corners": "Vérifiez que tous les coins du document sont visibles",
+          "validity": "Les documents doivent être en cours de validité"
+        }
       }
     },
     "form": {
       "title": "Formulaire d'inscription consulaire",
       "subtitle": "Suivez les étapes pour créer votre carte consulaire",
       "gender": "Genre",
+      "current_address": "Adresse actuelle",
+      "required": "Requis",
+      "optional": "Optionnel",
+      "not_provided": "Non fourni",
+      "basic_info": "Informations personnelles",
       "first_name": "Prénom(s)",
       "last_name": "Nom(s)",
       "first_name_placeholder": "Entrez votre/vos prénom(s)",
@@ -1117,6 +1646,7 @@
       "phone_placeholder": "ex: +33612345678",
       "address": "Adresse de résidence",
       "address_description": "Votre adresse de résidence actuelle",
+      "gabon_address": "Adresse au Gabon",
       "street_address": "Rue et numéro",
       "district": "Quartier",
       "district_placeholder": "Votre quartier de résidence",
@@ -1145,7 +1675,32 @@
       "employer_placeholder": "Nom de votre employeur",
       "work_address": "Adresse professionnelle",
       "work_address_placeholder": "Adresse de votre lieu de travail",
-      "passport": "Passeport",
+      "passport": {
+        "label": "Passeport",
+        "description": "Page principale de votre passeport en cours de validité",
+        "section_title": "Informations du passeport",
+        "section_description": "Renseignez les informations de votre passeport gabonais en cours de validité",
+        "number": {
+          "label": "Numéro de passeport",
+          "placeholder": "Ex: GA123456",
+          "help": "Le numéro se trouve en haut à droite de votre passeport"
+        },
+        "issue_date": {
+          "label": "Date d'émission",
+          "placeholder": "Sélectionnez la date d'émission",
+          "help": "Date à laquelle votre passeport a été émis"
+        },
+        "expiry_date": {
+          "label": "Date d'expiration",
+          "placeholder": "Sélectionnez la date d'expiration",
+          "help": "Date à laquelle votre passeport expire"
+        },
+        "authority": {
+          "label": "Autorité émettrice",
+          "placeholder": "Ex: Ministère de l'Intérieur",
+          "help": "L'organisme qui a délivré votre passeport"
+        }
+      },
       "identity_picture": "Photo d'identité",
       "birth_certificate": "Acte de naissance",
       "residence_permit": "Titre de séjour",
@@ -1224,6 +1779,521 @@
         "approved": "Approuvé",
         "rejected": "Rejeté",
         "incomplete": "Incomplet"
+      }
+    },
+    "errors": {
+      "unknown": "Une erreur inattendue est survenue",
+      "no_documents": "Aucun document n'a été téléchargé"
+    },
+    "nationality_acquisition": {
+      "label": "Mode d'acquisition de la nationalité",
+      "modes":{
+        "birth": "Par naissance",
+        "marriage": "Par mariage",
+        "naturalization": "Par naturalisation",
+        "other": "Autre"
+      }
+    },
+    "sections": {
+      "basicinfo": "Informations personnelles",
+      "contactinfo": "Coordonnées",
+      "familyinfo": "Situation familiale",
+      "professionalinfo": "Situation professionnelle"
+    },
+    "actions": {
+      "edit": "Modifier"
+    },
+    "submission": {
+        "success": {
+            "title": "Demande envoyée",
+            "description": "Votre demande a été envoyée avec succès",
+            "action": "Voir mon espace",
+            "action_hint": "Aller à mon espace personnel"
+        },
+        "error": {
+            "title": "Erreur",
+            "unknown": "Une erreur est survenue lors de l'envoi"
+        }
+    }
+  },
+  "consular": {
+    "documents": {
+      "upload": {
+        "click_to_upload": "Cliquer pour télécharger",
+        "or_drag_and_drop": "ou glisser-déposer",
+        "file_requirements": "PDF, JPG ou PNG jusqu'à {maxSize}MB",
+        "uploading": "Téléchargement en cours...",
+        "success": "Document téléchargé avec succès",
+        "error": {
+          "file_type": "Type de fichier non supporté",
+          "file_size": "Fichier trop volumineux",
+          "upload_failed": "Échec du téléchargement"
+        }
+      },
+      "types": {
+        "passport": "Passeport",
+        "identity_photo": "Photo d'identité",
+        "birth_certificate": "Acte de naissance",
+        "proof_of_address": "Justificatif de domicile",
+        "identity_card": "Carte d'identité",
+        "residence_permit": "Titre de séjour",
+        "marriage_certificate": "Acte de mariage",
+        "death_certificate": "Acte de décès"
+      },
+      "descriptions": {
+        "passport": "Page principale de votre passeport en cours de validité",
+        "birth_certificate": "Copie intégrale de votre acte de naissance",
+        "proof_of_address": "Document de moins de 3 mois (facture électricité, téléphone...)",
+        "identity_card": "Carte d'identité recto-verso",
+        "residence_permit": "Titre de séjour en cours de validité",
+        "marriage_certificate": "Copie intégrale de l'acte de mariage",
+        "death_certificate": "Copie intégrale de l'acte de décès",
+        "identity_photo": "Photo d'identité récente"
+      },
+      "help_text": "Pour faciliter votre inscription, préparez vos documents au format numérique (photo ou scan).",
+      "help_tips": [
+        "Assurez-vous que les documents sont bien lisibles",
+        "Les photos doivent être nettes et bien éclairées",
+        "Les documents doivent être complets et non coupés",
+        "Formats acceptés : JPG, PNG, PDF"
+      ],
+      "status": {
+        "pending": "En attente",
+        "validated": "Validé",
+        "rejected": "Rejeté",
+        "expired": "Expiré",
+        "already_provided": "Déjà fourni"
+      }
+    },
+    "verification": {
+      "title": "Vérification du document",
+      "rules": {
+        "format": "Format du document",
+        "quality": "Qualité de l'image",
+        "completeness": "Document complet",
+        "validity": "Validité du document",
+        "authenticity": "Authenticité"
+      },
+      "messages": {
+        "format_invalid": "Le format du document n'est pas accepté",
+        "quality_low": "La qualité de l'image est trop basse",
+        "incomplete": "Le document est incomplet",
+        "expired": "Le document est expiré",
+        "suspicious": "Le document présente des signes suspects"
+      }
+    },
+    "analysis": {
+      "title": "Analyse des documents",
+      "start_analysis": "Analyser les documents",
+      "analyzing": "Analyse en cours...",
+      "help_text": "L'analyse automatique des documents permet de pré-remplir vos informations. Vérifiez que les documents sont bien lisibles avant de lancer l'analyse.",
+      "steps": {
+        "format": "Vérification du format",
+        "authenticity": "Contrôle d'authenticité",
+        "data_extraction": "Extraction des données",
+        "validation": "Validation finale"
+      },
+      "success": {
+        "title": "Analyse terminée !",
+        "description": "Vos documents ont été analysés avec succès. Les informations extraites vont être utilisées pour pré-remplir le formulaire.",
+        "action": "Continuer",
+        "action_hint": "Cliquer pour passer à l'étape suivante"
+      },
+      "error": {
+        "no_documents": "Aucun document n'a été téléchargé",
+        "failed_analysis": "L'analyse a échoué, veuillez réessayer"
+      },
+      "status": {
+        "pending": "En attente",
+        "processing": "En cours",
+        "success": "Terminé",
+        "error": "Erreur"
+      },
+      "messages": {
+        "format": {
+          "valid": "Format valide",
+          "invalid": "Format non valide"
+        },
+        "authenticity": {
+          "valid": "Document authentique",
+          "invalid": "Document potentiellement falsifié"
+        },
+        "data_extraction": {
+          "success": "Données extraites avec succès",
+          "partial": "Extraction partielle des données",
+          "failed": "Échec de l'extraction des données"
+        },
+        "validation": {
+          "success": "Document validé",
+          "failed": "Validation échouée"
+        }
+      }
+    },
+    "preview": {
+      "zoom_in": "Zoom avant",
+      "zoom_out": "Zoom arrière",
+      "rotate_left": "Rotation gauche",
+      "rotate_right": "Rotation droite",
+      "download": "Télécharger",
+      "fullscreen": "Plein écran",
+      "exit_fullscreen": "Quitter le plein écran",
+      "loading": "Chargement",
+      "document_preview": "Aperçu du document",
+      "types": {
+        "passport": "Passeport",
+        "identity": "Photo d'identité",
+        "proof": "Justificatif",
+        "birth_certificate": "Acte de naissance",
+        "residence_permit": "Titre de séjour"
+      }
+    },
+    "validation": {
+      "confidence": "confiance",
+      "alternatives": "Alternatives",
+      "validate": "Valider",
+      "errors": {
+        "required": "Ce champ est requis"
+      },
+      "fields": {
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "birthDate": "Date de naissance",
+        "birthPlace": "Lieu de naissance",
+        "nationality": "Nationalité",
+        "passportNumber": "Numéro de passeport",
+        "passportIssueDate": "Date d'émission",
+        "passportExpiryDate": "Date d'expiration"
+      }
+    },
+    "photo_cropper": {
+      "instructions": {
+        "title": "Instructions pour la photo",
+        "face_centered": "Le visage doit être centré et visible",
+        "neutral_expression": "Expression neutre, regardant droit devant",
+        "no_accessories": "Pas de lunettes ni d'accessoires",
+        "min_dimensions": "Dimensions minimales : {width}x{height} pixels"
+      },
+      "loading": "Chargement de l'image",
+      "photo_to_crop": "Photo à recadrer",
+      "dimensions": "Dimensions",
+      "validate": "Valider le recadrage",
+      "cancel": "Annuler",
+      "errors": {
+        "canvas_not_supported": "Votre navigateur ne supporte pas le recadrage d'image",
+        "dimensions_too_small": "Les dimensions sont trop petites"
+      }
+    },
+    "services": {
+      "title": "Démarches consulaires",
+      "description": "Retrouvez l'ensemble des démarches consulaires disponibles",
+      "search": {
+        "placeholder": "Rechercher une démarche...",
+        "no_results": "Aucune démarche trouvée",
+        "try_again": "Essayez avec d'autres termes de recherche"
+      },
+      "filter": {
+        "type": {
+          "placeholder": "Type de démarche",
+          "all": "Toutes les démarches"
+        }
+      },
+      "types": {
+        "passport_request": "Demande de passeport",
+        "birth_registration": "Déclaration de naissance",
+        "birth_transcription": "Transcription d'acte de naissance",
+        "marriage_transcription": "Transcription d'acte de mariage",
+        "death_registration": "Déclaration de décès",
+        "death_transcription": "Transcription d'acte de décès",
+        "celibacy_certificate": "Certificat de célibat",
+        "consular_registration": "Inscription consulaire",
+        "address_certificate": "Attestation de résidence",
+        "travel_permit": "Laissez-passer",
+        "marriage_registration": "Enregistrement de mariage",
+        "consular_card": "Carte consulaire",
+        "document_legalization": "Légalisation de document",
+        "identity_certificate": "Certificat d'identité",
+        "identity_photo": "Photo d'identité",
+        "power_of_attorney": "Procuration",
+        "other": "Autre démarche"
+      },
+      "subtypes": {
+        "certificate": {
+          "nationality": "Certificat de nationalité",
+          "life": "Certificat de vie",
+          "celibacy": "Certificat de célibat",
+          "residence": "Certificat de résidence",
+          "custom": "Certificat sur mesure"
+        },
+        "legalization": {
+          "signature": "Légalisation de signature",
+          "copy": "Copie conforme",
+          "translation": "Traduction certifiée",
+          "document": "Document officiel"
+        }
+      },
+      "status": {
+        "available": "Disponible",
+        "unavailable": "Non disponible"
+      },
+      "estimated_time": {
+        "unknown": "Durée non précisée"
+      },
+      "required_documents": "{count} document(s) requis",
+      "messages": {
+        "complete_profile": "Complétez votre profil pour accéder à cette démarche"
+      },
+      "actions": {
+        "start_procedure": "Démarrer la procédure",
+        "complete_profile": "Compléter mon profil",
+        "start": "Commencer la démarche",
+        "view": "Voir les détails"
+      },
+      "empty": {
+        "title": "Aucune démarche disponible",
+        "description": "Il n'y a actuellement aucune démarche disponible"
+      },
+      "form": {
+        "steps": {
+          "appointment": "Rendez-vous",
+          "appointment_description": "Choisissez une date et un créneau horaire",
+          "documents": "Documents",
+          "documents_description": "Téléchargez les documents requis",
+          "review": "Récapitulatif",
+          "review_description": "Vérifiez vos informations"
+        },
+        "documents": {
+          "alert": {
+            "title": "Documents importants",
+            "description": "Assurez-vous que vos documents sont lisibles et à jour"
+          },
+          "types": {
+            "death_certificate": "Acte de décès",
+            "birth_certificate": "Acte de naissance",
+            "proof_of_address": "Justificatif de domicile",
+            "marriage_certificate": "Acte de mariage",
+            "passport": "Passeport",
+            "identity_card": "Carte d'identité",
+            "residence_permit": "Titre de séjour",
+            "passport_request": "Demande de passeport",
+            "birth_registration": "Déclaration de naissance",
+            "birth_transcription": "Transcription d'acte de naissance",
+            "marriage_transcription": "Transcription d'acte de mariage",
+            "death_registration": "Déclaration de décès",
+            "death_transcription": "Transcription d'acte de décès",
+            "celibacy_certificate": "Certificat de célibat",
+            "consular_registration": "Inscription consulaire",
+            "address_certificate": "Attestation de résidence",
+            "travel_permit": "Laissez-passer",
+            "marriage_registration": "Enregistrement de mariage",
+            "consular_card": "Carte consulaire",
+            "document_legalization": "Légalisation de document",
+            "identity_certificate": "Certificat d'identité",
+            "nationality_certificate": "Certificat de nationalité",
+            "identity_photo": "Photo d'identité",
+            "power_of_attorney": "Procuration",
+            "other": "Autre démarche"
+          },
+          "descriptions": {
+            "birth_certificate": "Copie intégrale de l'acte de naissance",
+            "proof_of_address": "Document de moins de 3 mois (facture électricité, gaz, etc.)",
+            "marriage_certificate": "Copie intégrale de l'acte de mariage",
+            "passport": "Passeport en cours de validité",
+            "identity_card": "Carte nationale d'identité en cours de validité",
+            "residence_permit": "Titre de séjour en cours de validité",
+            "identity_photo": "Photo d'identité récente sur fond blanc",
+            "nationality_certificate": "Certificat de nationalité en cours de validité",
+            "death_certificate": "Copie intégrale de l'acte de décès"
+          },
+          "status": {
+            "uploaded": "Document téléchargé",
+            "missing": "Document manquant",
+            "optional": "Optionnel"
+          },
+          "existing": {
+            "title": "Documents déjà fournis",
+            "already_provided": "Document déjà fourni"
+          }
+        },
+        "review": {
+          "complete": {
+            "title": "Dossier complet",
+            "description": "Tous les documents requis ont été fournis"
+          },
+          "incomplete": {
+            "title": "Dossier incomplet",
+            "description": "Certains documents requis sont manquants"
+          },
+          "documents": {
+            "title": "Documents fournis"
+          }
+        },
+        "navigation": {
+          "previous": "Précédent",
+          "next": "Suivant",
+          "submit": "Soumettre la demande"
+        },
+        "prefilled_fields_info": "Les champs pré-remplis sont basés sur les informations de votre profil",
+        "prefilled": "Pré-rempli",
+        "appointment": {
+          "title": "Prise de rendez-vous",
+          "description": "Sélectionnez une date et un créneau horaire disponible",
+          "select_date": "Sélectionner une date",
+          "select_time": "Sélectionner un horaire",
+          "no_slots": "Aucun créneau disponible",
+          "no_slots_description": "Aucun créneau n'est disponible pour cette date. Veuillez sélectionner une autre date.",
+          "select_another_date": "Sélectionner une autre date",
+          "select_another_time": "Sélectionner un autre horaire",
+          "appointment_date": "Date du rendez-vous",
+          "appointment_time": "Heure du rendez-vous",
+          "appointment_duration": "Durée du rendez-vous",
+          "appointment_location": "Lieu du rendez-vous",
+          "appointment_details": "Détails du rendez-vous",
+          "confirm": "Confirmer le rendez-vous",
+          "type": {
+            "reason": "Motif du rendez-vous",
+            "document_submission": "Dépôt de documents",
+            "document_collection": "Retrait de documents",
+            "interview": "Entretien",
+            "other": "Autre"
+          },
+          "status": {
+            "pending": "En attente",
+            "confirmed": "Confirmé",
+            "cancelled": "Annulé",
+            "completed": "Terminé",
+            "missed": "Manqué"
+          }
+        },
+        "schedule": {
+          "title": "Horaires d'ouverture",
+          "days": {
+            "monday": "Lundi",
+            "tuesday": "Mardi",
+            "wednesday": "Mercredi",
+            "thursday": "Jeudi",
+            "friday": "Vendredi"
+          },
+          "closed": "Fermé",
+          "morning": "Matin",
+          "afternoon": "Après-midi"
+        },
+        "select_placeholder": "Sélectionnez une option",
+        "success": {
+          "title": "Demande soumise avec succès",
+          "description": "Votre demande a été enregistrée et sera traitée dans les meilleurs délais"
+        },
+        "error": {
+          "title": "Erreur lors de la soumission",
+          "description": "Une erreur est survenue lors de la soumission de votre demande",
+          "unknown": "Une erreur inconnue est survenue"
+        },
+        "submission": {
+          "loading": "Soumission en cours...",
+          "error": {
+            "document_required": "Certains documents requis sont manquants",
+            "invalid_appointment": "Le rendez-vous sélectionné n'est plus disponible",
+            "submission_failed": "La soumission a échoué, veuillez réessayer"
+          }
+        }
+      },
+      "details": {
+        "main_info": "Informations principales",
+        "duration": "Durée estimée",
+        "price": "Frais consulaires",
+        "price_value": "{price} €",
+        "price_free": "Gratuit",
+        "documents": "Documents",
+        "required_documents": "Documents requis",
+        "required_documents_count": "{count} document(s) requis",
+        "document_provided": "Document fourni",
+        "document_required": "Document requis",
+        "document_optional": "Document optionnel",
+        "document_to_provide": "Document à fournir"
+      },
+      "documents": {
+        "types": {
+          "birth_certificate": "Acte de naissance",
+          "proof_of_address": "Justificatif de domicile",
+          "marriage_certificate": "Acte de mariage",
+          "passport": "Passeport",
+          "identity_card": "Carte d'identité",
+          "residence_permit": "Titre de séjour",
+          "passport_request": "Demande de passeport",
+          "birth_registration": "Déclaration de naissance",
+          "birth_transcription": "Transcription d'acte de naissance",
+          "marriage_transcription": "Transcription d'acte de mariage",
+          "death_registration": "Déclaration de décès",
+          "death_transcription": "Transcription d'acte de décès",
+          "celibacy_certificate": "Certificat de célibat",
+          "consular_registration": "Inscription consulaire",
+          "address_certificate": "Attestation de résidence",
+          "travel_permit": "Laissez-passer",
+          "marriage_registration": "Enregistrement de mariage",
+          "consular_card": "Carte consulaire",
+          "document_legalization": "Légalisation de document",
+          "identity_certificate": "Certificat d'identité",
+          "nationality_certificate": "Certificat de nationalité",
+          "identity_photo": "Photo d'identité",
+          "power_of_attorney": "Procuration",
+          "other": "Autre démarche"
+        },
+        "descriptions": {
+          "birth_certificate": "Copie intégrale de l'acte de naissance",
+          "proof_of_address": "Document de moins de 3 mois (facture électricité, gaz, etc.)",
+          "marriage_certificate": "Copie intégrale de l'acte de mariage",
+          "passport": "Passeport en cours de validité",
+          "identity_card": "Carte nationale d'identité en cours de validité",
+          "residence_permit": "Titre de séjour en cours de validité",
+          "identity_photo": "Photo d'identité récente sur fond blanc",
+          "nationality_certificate": "Certificat de nationalité en cours de validité"
+        }
+      },
+      "requests": {
+        "title": "Mes démarches",
+        "description": "Suivez l'avancement de vos démarches consulaires",
+        "empty": {
+          "title": "Aucune démarche en cours",
+          "description": "Vous n'avez pas encore initié de démarche consulaire"
+        },
+        "status": {
+          "draft": "Brouillon",
+          "submitted": "Soumise",
+          "in_review": "En cours d'examen",
+          "additional_info_needed": "Informations complémentaires requises",
+          "approved": "Approuvée",
+          "rejected": "Rejetée",
+          "completed": "Terminée",
+          "cancelled": "Annulée"
+        },
+        "submitted_on": "Soumise le {date}",
+        "appointment_on": "Rendez-vous le {date}",
+        "actions": {
+          "view": "Voir les détails"
+        }
+      }
+    }
+  },
+  "dashboard": {
+    "sections": {
+      "profile": {
+        "title": "Mon profil",
+        "status": {
+          "pending": "En attente"
+        },
+        "completion": "Complétude du profil",
+        "missing_fields": "Champs manquants :",
+        "fields": {
+          "all": "Tous les champs sont requis",
+          "identity_photo": "Photo d'identité",
+          "passport": "Passeport",
+          "birth_certificate": "Acte de naissance",
+          "residence_permit": "Titre de séjour"
+        },
+        "actions": {
+          "complete": "Compléter mon profil",
+          "view": "Voir le profil"
+        },
+        "and_more": "et {count} autres"
       }
     }
   }

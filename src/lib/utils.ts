@@ -85,9 +85,7 @@ export function generateVCardString(data: VCardData): string {
 
 export const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
 export const ACCEPTED_FILE_TYPES = [
-  'image/png',
-  'image/jpeg',
-  'image/jpg',
+  'image/*',
   'application/pdf',
 ]
 
@@ -208,5 +206,84 @@ export function useFormStorage() {
     loadSavedData,
     saveData,
     clearData,
+  }
+}
+
+import { Profile } from '@prisma/client'
+
+interface ProfileFieldStatus {
+  required: {
+    total: number
+    completed: number
+    fields: Array<{
+      key: string
+      name: string
+      completed: boolean
+    }>
+  }
+  optional: {
+    total: number
+    completed: number
+    fields: Array<{
+      key: string
+      name: string
+      completed: boolean
+    }>
+  }
+}
+
+export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldStatus {
+  if (!profile) {
+    return {
+      required: { total: 0, completed: 0, fields: [] },
+      optional: { total: 0, completed: 0, fields: [] }
+    }
+  }
+
+  const requiredFields = [
+    { key: 'firstName', name: 'first_name' },
+    { key: 'lastName', name: 'last_name' },
+    { key: 'birthDate', name: 'birth_date' },
+    { key: 'nationality', name: 'nationality' },
+    { key: 'gender', name: 'gender' },
+    { key: 'identityPicture', name: 'identity_photo' },
+    { key: 'passport', name: 'passport' },
+    { key: 'birthCertificate', name: 'birth_certificate' },
+    { key: 'phone', name: 'phone' },
+    { key: 'address', name: 'address' },
+    {key: "addressProof", name: "address_proof"}
+  ]
+
+  const optionalFields = [
+    { key: 'profession', name: 'profession' },
+    { key: 'employer', name: 'employer' },
+    { key: 'addressInGabon', name: 'gabon_address' },
+    { key: 'spouseFullName', name: 'spouse_name' },
+    { key: 'activityInGabon', name: 'gabon_activity' },
+    { key: 'maritalStatus', name: 'marital_status' },
+    {key: "residencePermit", name: "residence_permit"}
+  ]
+
+  const requiredStatus = requiredFields.map(field => ({
+    ...field,
+    completed: !!profile[field.key as keyof Profile]
+  }))
+
+  const optionalStatus = optionalFields.map(field => ({
+    ...field,
+    completed: !!profile[field.key as keyof Profile]
+  }))
+
+  return {
+    required: {
+      total: requiredFields.length,
+      completed: requiredStatus.filter(f => f.completed).length,
+      fields: requiredStatus
+    },
+    optional: {
+      total: optionalFields.length,
+      completed: optionalStatus.filter(f => f.completed).length,
+      fields: optionalStatus
+    }
   }
 }

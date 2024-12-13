@@ -46,7 +46,7 @@ Information on consular services:
       prompt += `\n\nInformations de profil:
 - Nom complet: ${this.userContext.profile.firstName} ${this.userContext.profile.lastName}
 - Statut: ${this.userContext.profile.status}
-- Pays de résidence: ${this.userContext.profile.address.country}`;
+- Pays de résidence: ${this.userContext.profile.address?.country}`;
     }
 
     if (hasConsulate && this.userContext.consulate) {

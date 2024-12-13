@@ -1,22 +1,9 @@
-import { SessionProvider } from 'next-auth/react'
-import { auth } from '@/auth'
+import { PublicLayout } from "@/components/layouts/public-layout"
 
-export default async function PublicLayout({
-  children,
-}: Readonly<{
+export default function PublicRootLayout({
+                                           children,
+                                         }: {
   children: React.ReactNode
-}>) {
-  const session = await auth()
-
-  return (
-    <SessionProvider session={session}>
-      <main
-        className={
-          'min-h-screen w-screen overflow-auto overflow-x-hidden bg-muted pb-16 pt-4 md:py-6'
-        }
-      >
-        {children}
-      </main>
-    </SessionProvider>
-  )
+}) {
+  return <PublicLayout>{children}</PublicLayout>
 }

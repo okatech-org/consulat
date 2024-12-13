@@ -5,6 +5,10 @@ import sharp from 'sharp'
 import { DocumentField } from '@/lib/utils'
 import Anthropic from '@anthropic-ai/sdk'
 import { pdfToImages } from '@/actions/convert'
+import { getCurrentUser } from '@/actions/user'
+import { db } from '@/lib/prisma'
+import { UserDocument } from '@prisma/client'
+import { AppUserDocument } from '@/types'
 
 // Types
 interface DocumentAnalysisResult {
@@ -339,4 +343,50 @@ function createVisionAnalyzer(model: AIModel): VisionAnalyzer {
     default:
       throw new Error(`Unsupported model: ${model}`);
   }
+}
+
+export async function getUserDocumentsList(): Promise<AppUserDocument[]> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) return []
+
+    const documents = await db.userDocument.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    return documents.map(document => (
+      {
+        ...document,
+        metadata: JSON.parse(document.metadata as string)
+      }
+    ))
+
+  } catch (error) {
+    console.error('Error fetching user documents:', error)
+    return []
+  }
+}
+
+export async function getUserProfileDocuments(userId: string) {
+  const profileWithDocument = await db.profile.findUnique({
+    where: { userId },
+    include: {
+      passport: true,
+      birthCertificate: true,
+      residencePermit: true,
+      addressProof: true,
+    }
+  })
+
+  if (!profileWithDocument) return []
+
+  const documents = [
+    profileWithDocument.passport,
+    profileWithDocument.birthCertificate,
+    profileWithDocument.residencePermit,
+    profileWithDocument.addressProof
+  ]
+
+  return documents.filter(Boolean) as UserDocument[]
 }

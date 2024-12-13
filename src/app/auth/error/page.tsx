@@ -1,4 +1,4 @@
-import { ErrorCard } from '@/components/error-card'
+import { ErrorCard } from '@/components/ui/error-card'
 
 export default function AuthErrorPage() {
   return <ErrorCard />

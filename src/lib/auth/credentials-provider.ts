@@ -1,6 +1,6 @@
 import { type Provider } from 'next-auth/providers'
 import { db } from '@/lib/prisma'
-import { validateOTP } from '@/lib/otp'
+import { validateOTP } from '@/lib/user/otp'
 
 export interface AuthPayload {
   identifier: string
@@ -19,7 +19,6 @@ export const CredentialsAuthProvider = (): Provider => ({
     otp: { type: 'text' },
     callbackUrl: { type: 'text' },
   },
-
   async authorize(credentials) {
     try {
       if (!credentials) throw new Error('No credentials')
@@ -40,17 +39,21 @@ export const CredentialsAuthProvider = (): Provider => ({
         return null
       }
 
-      // Find or create user
+      // Trouver ou créer l'utilisateur
       const userWhere = type === 'EMAIL'
         ? { email: identifier }
         : { phone: identifier }
 
-      let user = await db.user.findFirst({ where: userWhere })
+      let user = await db.user.findFirst({
+        where: userWhere
+      })
 
       if (!user) {
         user = await db.user.create({
           data: {
-            ...(type === 'EMAIL' ? { email: identifier } : { phone: identifier }),
+            ...(type === 'EMAIL'
+              ? { email: identifier }
+              : { phone: identifier }),
             emailVerified: type === 'EMAIL' ? new Date() : null,
             phoneVerified: type === 'PHONE' ? new Date() : null,
           },

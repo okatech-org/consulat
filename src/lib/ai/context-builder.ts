@@ -1,13 +1,12 @@
-import { User, Profile, Consulate, Address, Country } from '@prisma/client'
+import { User, Consulate, Country } from '@prisma/client'
 import { UserContext } from './types';
+import { FullProfile } from '@/types'
 
 // TypeScript
 export class ContextBuilder {
   static async buildContext(
     user?: User | null,
-    profile?: Profile & {
-      address: Address
-    } | null,
+    profile?: FullProfile | undefined,
     consulate?: Consulate & {
       countries: Omit<Country, "consulateId">[]
     } | null
@@ -15,7 +14,7 @@ export class ContextBuilder {
 
     return {
       user: user || null,
-      profile: profile || null,
+      profile: profile,
       consulate: consulate || null
     };
   }

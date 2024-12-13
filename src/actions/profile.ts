@@ -1,573 +1,423 @@
 'use server'
 
+import { getTranslations } from 'next-intl/server'
+import { ActionResult } from '@/lib/auth/action'
+import { DocumentType, Profile } from '@prisma/client'
 import { db } from '@/lib/prisma'
-import { getCurrentUserOrThrow } from '@/actions/user'
-import { Prisma, Profile, User } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
+import { ROUTES } from '@/schemas/routes'
+import { getCurrentUser } from '@/actions/user'
 import { processFileData } from '@/actions/utils'
-import { FullProfile } from '@/lib/models-types'
-import { notFound } from 'next/navigation'
 import {
-  ProfileDataPostInput,
-  ProfileDataPostSchema,
-} from '@/components/consular/schema'
+  BasicInfoFormData,
+  ContactInfoFormData, DocumentsFormData,
+  FamilyInfoFormData,
+  ProfessionalInfoFormData,
+} from '@/schemas/registration'
 import { deleteFiles } from '@/actions/uploads'
 
-export const postProfile = async (
-  values: ProfileDataPostInput,
-  files: {
-    birthCertificate?: FormData
-    residencePermit?: FormData
-    addressProof?: FormData
-    passport?: FormData
-    identityPicture?: FormData
-  }
-): Promise<Profile> => {
-  const currentUser = await getCurrentUserOrThrow()
-  const uploadedFiles: string[] = []
+export async function postProfile(
+  formData: FormData
+): Promise<ActionResult<{ id: string }>> {
+  const uploadedFiles: { key: string; url: string }[] = []
 
   try {
-    const [profileData, birthCertificateFileData, residencePermitFileData, addressProofFileData, passportFileData, identityPictureFileData] = await Promise.all([
-      createProfileData(values, currentUser),
-      processFileData(files.birthCertificate),
-      processFileData(files.residencePermit),
-      processFileData(files.addressProof),
-      processFileData(files.passport),
-      processFileData(files.identityPicture)
-    ]);
+    const t = await getTranslations('messages.profile')
+    const user = await getCurrentUser()
 
-    if (identityPictureFileData) {
-      profileData.identityPicture = { create: identityPictureFileData }
-      uploadedFiles.push(identityPictureFileData.key)
+    if (!user) {
+      return { error: t('errors.unauthorized') }
     }
 
-    if (birthCertificateFileData) {
-      profileData.birthCertificate = { create: birthCertificateFileData }
-      uploadedFiles.push(birthCertificateFileData.key)
+    const filesPromises = []
+
+    const identityPictureFile = formData.get('identityPictureFile') as File
+
+    if (identityPictureFile) {
+      const formData = new FormData()
+      formData.append('files', identityPictureFile)
+      filesPromises.push(processFileData(formData))
     }
 
-    if (residencePermitFileData) {
-      profileData.residencePermit = { create: residencePermitFileData }
-      uploadedFiles.push(residencePermitFileData.key)
+    const passportFile = formData.get('passportFile') as File
+
+    if (passportFile) {
+      const formData = new FormData()
+      formData.append('files', passportFile)
+      filesPromises.push(processFileData(formData))
     }
 
-    if (addressProofFileData) {
-      profileData.addressProof = { create: addressProofFileData }
-      uploadedFiles.push(addressProofFileData.key)
+    const birthCertificateFile = formData.get('birthCertificateFile') as File
+
+    if (birthCertificateFile) {
+      const formData = new FormData()
+      formData.append('files', birthCertificateFile)
+      filesPromises.push(processFileData(formData))
     }
 
-    if (passportFileData) {
-      profileData.passport = { create: passportFileData }
-      uploadedFiles.push(passportFileData.key)
+    const residencePermitFile = formData.get('residencePermitFile') as File
+
+    if (residencePermitFile) {
+      const formData = new FormData()
+      formData.append('files', residencePermitFile)
+      filesPromises.push(processFileData(formData))
     }
 
-    const linkedCountry = await db.country.findFirst({
-      where: { name: values.contactInfo.address.country },
-      select: { id: true, consulate: { select: { id: true } } },
+    const addressProofFile = formData.get('addressProofFile') as File
+
+    if (addressProofFile) {
+      const formData = new FormData()
+      formData.append('files', addressProofFile)
+      filesPromises.push(processFileData(formData))
+    }
+
+    // Traiter les fichiers uploadés
+    const [
+      identityPicture,
+      passport,
+      birthCertificate,
+      residencePermit,
+      addressProof
+    ] = await Promise.all(filesPromises)
+
+    // Garder une trace des fichiers uploadés pour pouvoir les supprimer en cas d'erreur
+    if (identityPicture) uploadedFiles.push(identityPicture)
+    if (passport) uploadedFiles.push(passport)
+    if (birthCertificate) uploadedFiles.push(birthCertificate)
+    if (residencePermit) uploadedFiles.push(residencePermit)
+    if (addressProof) uploadedFiles.push(addressProof)
+
+    // Récupérer et parser les données du formulaire
+    const basicInfo = JSON.parse(formData.get('basicInfo') as string)
+    const contactInfo = JSON.parse(formData.get('contactInfo') as string)
+    const familyInfo = JSON.parse(formData.get('familyInfo') as string)
+    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string)
+
+    // Créer le profil avec une transaction
+    const profile = await db.$transaction(async (tx) => {
+      // 1. Créer le profil avec toutes ses relations
+
+      const now = new Date()
+      const inThreeMonths = new Date(now.setMonth(now.getMonth() + 3))
+      const inOneYear = new Date(now.setFullYear(now.getFullYear() + 1))
+      const inFiveYears = new Date(now.setFullYear(now.getFullYear() + 5))
+
+      const address = await tx.address.create({
+        data: contactInfo.address
+      })
+
+      const profile = await tx.profile.create({
+        data: {
+          userId: user.id,
+          // Informations de base
+          firstName: basicInfo.firstName,
+          lastName: basicInfo.lastName,
+          gender: basicInfo.gender,
+          birthDate: basicInfo.birthDate,
+          birthPlace: basicInfo.birthPlace,
+          birthCountry: basicInfo.birthCountry,
+          nationality: basicInfo.nationality,
+          acquisitionMode: basicInfo.acquisitionMode,
+          identityPicture: identityPicture?.url,
+
+          // Informations passeport
+          passportNumber: basicInfo.passportNumber,
+          passportIssueDate: new Date(basicInfo.passportIssueDate),
+          passportExpiryDate: new Date(basicInfo.passportExpiryDate),
+          passportIssueAuthority: basicInfo.passportIssueAuthority,
+
+          // Informations familiales
+          maritalStatus: familyInfo.maritalStatus,
+          fatherFullName: familyInfo.fatherFullName,
+          motherFullName: familyInfo.motherFullName,
+          spouseFullName: familyInfo.spouseFullName || null,
+
+          // Contact
+          phone: contactInfo.phone,
+          email: contactInfo.email,
+
+          // Documents
+
+          // Informations professionnelles
+          workStatus: professionalInfo.workStatus,
+          profession: professionalInfo.profession || null,
+          employer: professionalInfo.employer || null,
+          employerAddress: professionalInfo.employerAddress || null,
+          activityInGabon: professionalInfo.lastActivityGabon,
+
+          // Relations
+          addressId: address.id,
+          addressInGabon: contactInfo.addressInGabon ? {
+            create: contactInfo.addressInGabon
+          } : undefined,
+          emergencyContact: familyInfo.emergencyContact ? {
+            create: familyInfo.emergencyContact
+          } : undefined
+        }
+      })
+
+      // 2. Créer les documents associés
+      if (passport) {
+        const passportDoc = await tx.userDocument.create({
+          data: {
+            type: DocumentType.PASSPORT,
+            fileUrl: passport.url,
+            userId: user.id,
+            issuedAt: new Date(basicInfo.passportIssueDate),
+            expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
+            metadata: {
+              documentNumber: basicInfo.passportNumber,
+              issuingAuthority: basicInfo.passportIssueAuthority
+            }
+          }
+        })
+
+        // Mettre à jour le profil avec le document du passeport
+        await tx.profile.update({
+          where: { id: profile.id },
+          data: {
+            passportId: passportDoc.id
+          }
+        })
+      }
+
+      // Créer les autres documents si présents
+      if (birthCertificate) {
+        const birthCertificateDoc = await tx.userDocument.create({
+          data: {
+            type: DocumentType.BIRTH_CERTIFICATE,
+            fileUrl: birthCertificate.url,
+            userId: user.id
+          }
+        })
+
+        // Mettre à jour le profil avec le document du certificat de naissance
+        await tx.profile.update({
+          where: { id: profile.id },
+          data: {
+            birthCertificateId: birthCertificateDoc.id
+          }
+        })
+      }
+
+      if (residencePermit) {
+        const residencePermitDoc = await tx.userDocument.create({
+          data: {
+            type: DocumentType.RESIDENCE_PERMIT,
+            fileUrl: residencePermit.url,
+            issuedAt: now,
+            expiresAt: inOneYear,
+            userId: user.id
+          }
+        })
+
+        // Mettre à jour le profil avec le document du titre de séjour
+        await tx.profile.update({
+          where: { id: profile.id },
+          data: {
+            residencePermitId: residencePermitDoc.id
+          }
+        })
+      }
+
+      if (addressProof) {
+        const addressProofDoc = await tx.userDocument.create({
+          data: {
+            type: DocumentType.PROOF_OF_ADDRESS,
+            fileUrl: addressProof.url,
+            issuedAt: now,
+            expiresAt: inThreeMonths,
+            userId: user.id
+          }
+        })
+
+        // Mettre à jour le profil avec le document de justificatif de domicile
+        await tx.profile.update({
+          where: { id: profile.id },
+          data: {
+            addressProofId: addressProofDoc.id
+          }
+        })
+      }
+
+      return profile
     })
 
-    if (linkedCountry) {
-      profileData.consulate = { connect: { id: linkedCountry.consulate.id } }
-    }
+    // Revalider les pages
+    revalidatePath(ROUTES.profile)
+    revalidatePath(ROUTES.dashboard)
 
-    await db.user.update({
-      where: { id: currentUser.id },
-      data: {
-        name: `${values.basicInfo.firstName} ${values.basicInfo.lastName}`,
-        image: identityPictureFileData?.url ?? undefined,
-      },
-    })
+    return { data: { id: profile.id } }
 
-    return db.profile.create({ data: profileData })
   } catch (error) {
-    // Delete uploaded files in case of an error
-    await deleteFiles(uploadedFiles)
-    throw error
-  }
-}
-
-export const getProfileFromUser = async (
-  id: string
-): Promise<FullProfile | null> => {
-  const profile = await db.profile.findFirst({
-    where: {
-      userId: id,
-    },
-    include: {
-      consulate: {
-        select: {
-          id: true,
-          name: true,
-          isGeneral: true,
-          website: true,
-          logo: {
-            select: {
-              url: true,
-            },
-          },
-          address: true,
-          phone: true,
-        },
-      },
-      address: {
-        select: {
-          id: true,
-          firstLine: true,
-          secondLine: true,
-          country: true,
-          city: true,
-          zipCode: true,
-        },
-      },
-      addressProof: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      birthCertificate: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      residencePermit: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      passport: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      identityPicture: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      emergencyContact: {
-        select: {
-          fullName: true,
-          relationship: true,
-          phone: true,
-        },
+    if (uploadedFiles.length > 0) {
+      try {
+        await deleteFiles(uploadedFiles.map(file => file.key))
+      } catch (deleteError) {
+        console.error('Error deleting files:', deleteError)
       }
-    },
-  })
+    }
 
-  if (!profile) {
-    return null
-  }
-
-  return profile
-}
-
-export const getProfile = async (id: string): Promise<FullProfile> => {
-  const profile = await db.profile.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      consulate: {
-        select: {
-          id: true,
-          name: true,
-          website: true,
-          logo: {
-            select: {
-              url: true,
-            },
-          },
-          isGeneral: true,
-          address: true,
-          phone: true,
-        },
-      },
-      address: {
-        select: {
-          id: true,
-          firstLine: true,
-          secondLine: true,
-          country: true,
-          city: true,
-          zipCode: true,
-        },
-      },
-      addressProof: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      birthCertificate: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      residencePermit: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      passport: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      identityPicture: {
-        select: {
-          url: true,
-          type: true,
-        },
-      },
-      emergencyContact: {
-        select: {
-          fullName: true,
-          relationship: true,
-          phone: true,
-        },
-      }
-    },
-  })
-
-  if (!profile) {
-    notFound()
-  }
-
-  return profile
-}
-
-export const deleteProfile = async (id: string) => {
-  const currentUser = await getCurrentUserOrThrow()
-  const isOwner = await checkIfIsProfileOwner(id, currentUser.id)
-
-  if (!isOwner) {
-    throw new Error("Vous n'êtes pas autorisé à supprimer ce profil")
-  }
-
-  if (!currentUser) {
-    throw new Error('User not found')
-  }
-
-  const profile = await db.profile.findFirst({
-    where: {
-      id,
-      userId: currentUser.id,
-    },
-  })
-
-  if (!profile) {
-    throw new Error('Profile not found')
-  }
-
-  return db.profile.delete({
-    where: {
-      id,
-      userId: currentUser.id,
-    },
-  })
-}
-
-async function createProfileData(
-  values: ProfileDataPostInput,
-  currentUser: User
-): Promise<Prisma.ProfileCreateInput> {
-  const validValues = ProfileDataPostSchema.safeParse(values);
-
-  if (!validValues.success) {
-    throw new Error("Erreur lors de la validation des données");
-  }
-
-  return {
-    user: {
-      connect: {
-        id: currentUser.id,
-      },
-    },
-    firstName: validValues.data.basicInfo.firstName,
-    lastName: validValues.data.basicInfo.lastName,
-    gender: validValues.data.basicInfo.gender,
-    email: validValues.data.contactInfo.email,
-    phone: validValues.data.contactInfo.phone,
-    birthPlace: validValues.data.basicInfo.birthPlace,
-    birthDate: validValues.data.basicInfo.birthDate,
-    birthCountry: validValues.data.basicInfo.birthCountry,
-    maritalStatus: validValues.data.familyInfo.maritalStatus,
-    workStatus: validValues.data.professionalInfo.workStatus,
-    nationality: validValues.data.basicInfo.nationality,
-    address: {
-      create: validValues.data.contactInfo.address,
-    },
-    consulate: {},
-    residenceCountry: validValues.data.contactInfo.address.country,
-    fatherFullName: validValues.data.familyInfo.fatherFullName,
-    motherFullName: validValues.data.familyInfo.motherFullName,
-    emergencyContact: validValues.data.familyInfo.emergencyContact
-      ? {
-        create: validValues.data.familyInfo.emergencyContact,
-      }
-      : undefined,
-    spouseFullName: validValues.data.familyInfo.spouseFullName,
-    profession: validValues.data.professionalInfo.profession,
-    employer: validValues.data.professionalInfo.employer,
-    employerAddress: validValues.data.professionalInfo.employerAddress,
-    lastActivityGabon: validValues.data.professionalInfo.lastActivityGabon,
-    nationalityAcquisition: validValues.data.requestType.nationalityAcquisition,
-  };
-}
-
-export const checkIfIsProfileOwner = async (
-  profileId: string,
-  userId: string
-) => {
-  const profile = await db.profile.findFirst({
-    where: {
-      id: profileId,
-      userId,
-    },
-  })
-
-  return !!profile
-}
-
-/** type PrintOrderData = {
-  metadata: {
-    [key: string]: string
-  }
-  shipTo: {
-    name: string
-    address: {
-      addressLine: string[]
-      city: string
-      postcode: string
-      countryCode: string
+    console.error('Profile creation error:', error)
+    return {
+      error: error instanceof Error ? error.message : 'messages.errors.unknown_error'
     }
   }
-  shippingLetter: string[] // Assuming this is an array of string IDs
-  products: Array<{
-    modelId:
-      | 'ntag424_pvccard_white'
-      | 'ntag424_woodcard'
-      | 'mifare1k_pvccard_white'
-    metadata: {
-      [key: string]: string
-    }
-    nfc: {
-      type: 'empty' | string
-    }
-    printingVisuals: string[] // Assuming this is an array of string IDs or paths
-  }>
 }
 
-export const placePrintOrder = async (
-  profileData: FullProfile,
-  cards: FormData
-) => {
-  const countryCode = await getCountryCode(profileData.address.country)
-  const frontFile = await uploadFileToPrint(cards.get('front') as FormData)
+type UpdateProfileSection = {
+  basicInfo?: BasicInfoFormData
+  contactInfo?: ContactInfoFormData
+  familyInfo?: FamilyInfoFormData
+  professionalInfo?: ProfessionalInfoFormData
+  documents?: DocumentsFormData
+}
 
-  const apiData: PrintOrderData = {
-    metadata: {
-      profileId: profileData.id,
-      userId: profileData.userId,
-    },
-    shipTo: {
-      name: `${profileData.firstName} ${profileData.lastName}`,
-      address: {
-        addressLine: [
-          profileData.address.firstLine,
-          profileData.address.secondLine ?? '',
-        ],
-        city: profileData.address.city,
-        postcode: profileData.address.zipCode,
-        countryCode: countryCode ?? profileData.address.country,
-      },
-    },
-    products: [
-      {
-        modelId: 'ntag424_pvccard_white',
-        metadata: {
-          profileId: profileData.id,
-          userId: profileData.userId,
-        },
-        nfc: {
-          type: `${process.env.NEXT_PUBLIC_URL}/${PAGE_ROUTES.view}/${profileData.id}`,
-        },
-        printingVisuals: [
-          'https://utfs.io/f/710ca127-0479-49b8-bab9-4a507e6cbe26-h9uowm.png',
-          'https://utfs.io/f/710ca127-0479-49b8-bab9-4a507e6cbe26-h9uowm.png',
-        ],
-      },
-    ],
-  }
+/**
+type DocumentUpdate = {
+  fileUrl: string
+  type: DocumentType
+  status?: DocumentStatus
+  issuedAt?: Date
+  expiresAt?: Date
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata?: Record<string, any>
 }*/
 
-export const updateProfile = async (
-  id: string,
-  values: ProfileDataPostInput,
-  files: {
-    birthCertificate?: FormData
-    residencePermit?: FormData
-    addressProof?: FormData
-    passport?: FormData
-    identityPicture?: FormData
-  }
-): Promise<Profile> => {
-  const currentUser = await getCurrentUserOrThrow()
-  const uploadedFiles: string[] = []
+export async function updateProfile(
+  formData: FormData,
+  section: keyof UpdateProfileSection
+): Promise<ActionResult<Profile>> {
 
   try {
-    const isOwner = await checkIfIsProfileOwner(id, currentUser.id)
-    if (!isOwner) {
-      throw new Error("You're not authorized to update this profile")
+    const t = await getTranslations('messages.profile.errors')
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return { error: t('unauthorized') }
     }
 
-    const [profileData, birthCertificateFileData, residencePermitFileData, addressProofFileData, passportFileData, identityPictureFileData] = await Promise.all([
-      createProfileUpdateData(values),
-      processFileData(files.birthCertificate),
-      processFileData(files.residencePermit),
-      processFileData(files.addressProof),
-      processFileData(files.passport),
-      processFileData(files.identityPicture)
-    ]);
-
-    if (identityPictureFileData) {
-      profileData.identityPicture = { create: identityPictureFileData }
-      uploadedFiles.push(identityPictureFileData.key)
-    }
-
-    if (birthCertificateFileData) {
-      profileData.birthCertificate = { create: birthCertificateFileData }
-      uploadedFiles.push(birthCertificateFileData.key)
-    }
-
-    if (residencePermitFileData) {
-      profileData.residencePermit = { create: residencePermitFileData }
-      uploadedFiles.push(residencePermitFileData.key)
-    }
-
-    if (addressProofFileData) {
-      profileData.addressProof = { create: addressProofFileData }
-      uploadedFiles.push(addressProofFileData.key)
-    }
-
-    if (passportFileData) {
-      profileData.passport = { create: passportFileData }
-      uploadedFiles.push(passportFileData.key)
-    }
-
-    const linkedCountry = await db.country.findFirst({
-      where: { name: values.contactInfo.address.country },
-      select: { id: true, consulate: { select: { id: true } } },
+    // Récupérer le profil existant
+    const existingProfile = await db.profile.findUnique({
+      where: { userId: user.id },
+      include: {
+        address: true,
+        addressInGabon: true,
+        emergencyContact: true,
+      }
     })
 
-    if (linkedCountry) {
-      profileData.consulate = { connect: { id: linkedCountry.consulate.id } }
+    if (!existingProfile) {
+      return { error: t('profile_not_found') }
     }
 
-    return db.profile.update({
-      where: { id },
-      data: profileData,
+    // Récupérer les données JSON de la section
+    const sectionData = formData.get(section)
+    if (!sectionData) {
+      return { error: t('invalid_data') }
+    }
+
+    const data = JSON.parse(sectionData as string)
+
+    // Préparer les données de mise à jour en fonction de la section
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let updateData: any = {}
+
+    switch (section) {
+      case 'basicInfo':
+        updateData = {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          gender: data.gender,
+          birthDate: data.birthDate,
+          birthPlace: data.birthPlace,
+          birthCountry: data.birthCountry,
+          nationality: data.nationality,
+          acquisitionMode: data.acquisitionMode,
+          passportNumber: data.passportNumber,
+          passportIssueDate: new Date(data.passportIssueDate),
+          passportExpiryDate: new Date(data.passportExpiryDate),
+          passportIssueAuthority: data.passportIssueAuthority,
+        }
+        break
+
+      case 'contactInfo':
+        updateData = {
+          email: data.email,
+          phone: data.phone,
+          address: {
+            upsert: {
+              create: data.address,
+              update: data.address,
+            },
+          },
+          ...(data.addressInGabon && {
+            addressInGabon: {
+              upsert: {
+                create: data.addressInGabon,
+                update: data.addressInGabon,
+              },
+            },
+          }),
+        }
+        break
+
+      case 'familyInfo':
+        const emergencyContact = {
+          fullName: data.emergencyContact.fullName,
+          relationship: data.emergencyContact.relationship,
+          phone: data.emergencyContact.phone
+        }
+        updateData = {
+          maritalStatus: data.maritalStatus,
+          fatherFullName: data.fatherFullName,
+          motherFullName: data.motherFullName,
+          spouseFullName: data.spouseFullName,
+          ...(data.emergencyContact && {
+            emergencyContact: {
+              upsert: {
+                create: emergencyContact,
+                update: emergencyContact,
+              },
+            },
+          }),
+        }
+        break
+
+      case 'professionalInfo':
+        updateData = {
+          workStatus: data.workStatus,
+          profession: data.profession,
+          employer: data.employer,
+          employerAddress: data.employerAddress,
+          activityInGabon: data.lastActivityGabon,
+        }
+        break
+
+      default:
+        return { error: t('invalid_section') }
+    }
+
+    // Mettre à jour le profil
+    const updatedProfile = await db.profile.update({
+      where: { id: existingProfile.id },
+      data: updateData,
+      include: {
+        address: true,
+        addressInGabon: true,
+        emergencyContact: true,
+      }
     })
+
+    // Revalider les pages qui affichent ces données
+    revalidatePath(ROUTES.profile)
+    revalidatePath(ROUTES.dashboard)
+
+    return { data: updatedProfile }
   } catch (error) {
-    // Delete uploaded files in case of an error
-    await deleteFiles(uploadedFiles)
-    throw error
-  }
-}
-
-async function createProfileUpdateData(
-  values: ProfileDataPostInput
-): Promise<Prisma.ProfileUpdateInput> {
-  const validValues = ProfileDataPostSchema.safeParse(values);
-
-  if (!validValues.success) {
-    const errors = validValues.error.errors
-      // eslint-disable-next-line
-      .map((error: any) => error.message)
-      .join('\n');
-
-    throw new Error(errors);
-  }
-
-  return {
-    firstName: validValues.data.basicInfo.firstName,
-    lastName: validValues.data.basicInfo.lastName,
-    gender: validValues.data.basicInfo.gender,
-    email: validValues.data.contactInfo.email,
-    phone: validValues.data.contactInfo.phone,
-    birthPlace: validValues.data.basicInfo.birthPlace,
-    birthDate: validValues.data.basicInfo.birthDate,
-    birthCountry: validValues.data.basicInfo.birthCountry,
-    maritalStatus: validValues.data.familyInfo.maritalStatus,
-    workStatus: validValues.data.professionalInfo.workStatus,
-    nationality: validValues.data.basicInfo.nationality,
-    address: {
-      update: validValues.data.contactInfo.address,
-    },
-    residenceCountry: validValues.data.contactInfo.address.country,
-    fatherFullName: validValues.data.familyInfo.fatherFullName,
-    motherFullName: validValues.data.familyInfo.motherFullName,
-    emergencyContact: validValues.data.familyInfo.emergencyContact
-      ? {
-        update: validValues.data.familyInfo.emergencyContact,
-      }
-      : undefined,
-    spouseFullName: validValues.data.familyInfo.spouseFullName,
-    profession: validValues.data.professionalInfo.profession,
-    employer: validValues.data.professionalInfo.employer,
-    employerAddress: validValues.data.professionalInfo.employerAddress,
-    lastActivityGabon: validValues.data.professionalInfo.lastActivityGabon,
-    nationalityAcquisition: validValues.data.requestType.nationalityAcquisition,
-  };
-}
-
-export const uploadFileToPrint = async (
-  file: FormData
-): Promise<{
-  id: string
-  mimeType: 'image/png' | 'image/jpeg' | 'image/svg+xml'
-  size: number
-  createdAt: string
-}> => {
-  const headers = new Headers()
-
-  headers.append('Authorization', `Bearer ${process.env.PRINTAG_API_KEY}`)
-
-  try {
-    const fileData = await fetch(
-      `${process.env.PRINTAG_API_URL}/accounts/${process.env.PRINTAG_ACCOUNT_ID}/files`,
-      {
-        headers,
-        body: file,
-      }
-    )
-
-    const fileDataJson = await fileData.json()
-
+    console.error('Update profile error:', error)
     return {
-      id: fileDataJson.files.file.id,
-      mimeType: fileDataJson.files.file.mimeType,
-      size: fileDataJson.files.file.size,
-      createdAt: fileDataJson.files.file.createdAt,
+      error: error instanceof Error ? error.message : 'messages.errors.unknown_error'
     }
-  } catch (error) {
-    throw new Error('Failed to upload file')
   }
-}
-
-export async function hasProfile(userId: string): Promise<boolean> {
-  const profile = await db.profile.findFirst({
-    where: {
-      userId,
-    },
-  })
-
-  return !!profile
 }

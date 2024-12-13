@@ -1,30 +1,39 @@
 import { getTranslations } from 'next-intl/server'
-import { ChatToggle } from '@/components/chat/chat-toggle'
+import Image from 'next/image'
 
-export default async function UnauthenticatedLayout({
-  children,
-}: Readonly<{
+export default async function AuthLayout({
+                                           children,
+                                         }: Readonly<{
   children: React.ReactNode
 }>) {
   const t = await getTranslations('auth.layout')
-  const tHome = await getTranslations('home')
 
   return (
-    <div className="min-h-screen w-full overflow-hidden">
-      <main
-        className={
-          'flex h-screen w-full flex-col items-center justify-center p-4'
-        }
-      >
-        <h1 className="mb-4 font-bold">
-          {tHome('consulat')}
-        </h1>
-        <p className={'mb-6 text-center'}>
-          {t('create_card_prompt')}
-        </p>
+    <div className="grid h-screen overflow-hidden w-full lg:grid-cols-2">
+      <div className="relative hidden max-h-dvh flex-col bg-muted p-10 text-white dark:border-r lg:flex">
+        <div className="absolute inset-0 bg-zinc-900">
+          <Image
+            src="https://utfs.io/f/yMD4lMLsSKvz349tIYw9oyDVxmdLHiTXuO0SKbeYqQUlPghR"
+            alt="Authentication background"
+            priority
+            className="object-cover object-top opacity-80"
+            width={1200}
+            height={800}
+          />
+        </div>
+        <div className="relative z-20 mt-auto">
+          <h1 className="text-4xl font-semibold tracking-tight">
+            {t('title')}
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            {t('subtitle')}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center lg:p-8">
         {children}
-        <ChatToggle />
-      </main>
+      </div>
     </div>
   )
 }

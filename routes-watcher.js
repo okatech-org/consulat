@@ -81,7 +81,7 @@ function updateRoutes(filePath) {
       routes.pagesRoutes[pageName] = pageValue
     }
 
-    // Mettre à jour les enums dans schemas/app-routes.ts (à adapter en fonction de la structure de vos enums)
+    // Mettre à jour les enums dans schemas/routes.ts (à adapter en fonction de la structure de vos enums)
     updateEnums(routes)
   })
 }
@@ -102,7 +102,7 @@ function updateEnums(routes) {
   // Combine the enums into one string
   const enumsString = `${apiRoutesEnum}\n\n${pagesRoutesEnum}`
 
-  // Write the new enums to the app-routes.ts file
+  // Write the new enums to the routes.ts file
   fs.writeFile('src/schemas/app-routes-test.ts', enumsString, 'utf8', (err) => {
     if (err) {
       console.error(

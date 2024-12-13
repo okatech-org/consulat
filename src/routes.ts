@@ -1,42 +1,29 @@
-import {
-  API_ROUTES,
-  ApiRoute,
-  PAGE_ROUTES,
-  PageRoute,
-} from '@/schemas/app-routes'
-import { Route } from 'next'
+import { ROUTES } from '@/schemas/routes'
+import { UserRole } from '@prisma/client'
 
-/**
- * An array of routes that are accessible to the public
- * These routes do not require authentication
- * @type {PAGE_ROUTES[]}
- */
-export const publicRoutes: PageRoute[] | ApiRoute[] = [
-  PAGE_ROUTES.view,
-  PAGE_ROUTES.home,
-  PAGE_ROUTES.profiles,
-  PAGE_ROUTES.new_profile,
-]
+export const publicRoutes = [
+  ROUTES.base,
+  ROUTES.privacy_policy,
+  ROUTES.terms,
+  ROUTES.registration,
+] as const
 
-/**
- * A, array of routes that are used for authentication
- * These routes will redirect to the user settings page if the user is already authenticated
- * @type {PageRoute[]}
- */
-export const authRoutes: PageRoute[] = [
-  PAGE_ROUTES.login,
-]
+export const authRoutes = [
+  ROUTES.login,
+  ROUTES.auth_error,
+] as const
 
-/**
- * The base prefix for the api authentication routes
- * Routes that start with this prefix ase used for authentication
- * @type {ApiRoute}
- */
-export const apiAuthPrefix: ApiRoute = API_ROUTES.base_auth
+export const apiAuthPrefix = '/api/auth'
 
-/**
- * The default redirect route for authenticated users
- * Routes that start with this prefix are used for api routes
- * @type {PageRoute}
- */
-export const DEFAULT_AUTH_REDIRECT: Route = PAGE_ROUTES.base
+export const DEFAULT_AUTH_REDIRECT = ROUTES.dashboard
+
+export const roleRoutes = [
+  {
+    path: ROUTES.admin,
+    roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN]
+  },
+  {
+    path: ROUTES.dashboard,
+    roles: [UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN]
+  }
+] as const
