@@ -21,11 +21,11 @@ export async function PublicHeader() {
         <div className="flex w-max gap-3">
           <LangSwitcher />
           <Link
-            href={ROUTES.dashboard}
+            href={ROUTES.profile}
             className={buttonVariants({ variant: "default" }) + " !rounded-full max-[480px]:!px-2"}
           >
             {isAuth ? (
-              <span>{t('nav.dashboard')}</span>
+              <span>{t('nav.profile')}</span>
             ) : (
               <span>{t('nav.login')}</span>
             )}

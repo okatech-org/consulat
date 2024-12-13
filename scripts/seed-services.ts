@@ -10,46 +10,143 @@ async function main() {
     // Supprimer les services existants
     await prisma.consularService.deleteMany()
 
-    // 1. Transcription d'acte de naissance
+    // 1. Tenant lieu de passeport
     await prisma.consularService.create({
       data: {
-        type: ConsularServiceType.BIRTH_REGISTRATION,
-        title: "Transcription d'acte de naissance",
-        description: "Transcription d'un acte de naissance étranger dans les registres consulaires",
-        estimatedTime: "2-3 semaines",
+        type: ConsularServiceType.PASSPORT_REQUEST,
+        title: "Tenant lieu de passeport",
+        description: "Document provisoire permettant aux ressortissants gabonais résidant en France de régulariser leur situation administrative en l'absence de passeport valide",
+        estimatedTime: "1-2 semaines",
         price: 0,
-        requiresAppointment: false,
+        requiresAppointment: true,
+        appointmentDuration: 30,
         requiredDocuments: [
+          DocumentType.CONSULAR_CARD,
           DocumentType.BIRTH_CERTIFICATE,
           DocumentType.PASSPORT,
-          DocumentType.IDENTITY_CARD
         ],
         steps: {
           create: [
             {
               order: 1,
-              title: "Informations de l'enfant",
-              description: "État civil de l'enfant",
+              title: "Informations personnelles",
+              description: "Vos informations d'identité",
               stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
                 {
-                  name: "childFirstName",
+                  name: "firstName",
                   type: "text",
-                  label: "Prénom(s) de l'enfant",
+                  label: "Prénom(s)",
                   required: true
                 },
                 {
-                  name: "childLastName",
+                  name: "lastName",
                   type: "text",
-                  label: "Nom de l'enfant",
+                  label: "Nom",
+                  required: true
+                },
+                {
+                  name: "birthDate",
+                  type: "date",
+                  label: "Date de naissance",
+                  required: true
+                },
+                {
+                  name: "birthPlace",
+                  type: "text",
+                  label: "Lieu de naissance",
                   required: true
                 }
               ]),
               profileFields: JSON.stringify({
-                // Champs à extraire du profil
-                childFirstName: "firstName",
-                childLastName: "lastName",
+                firstName: "firstName",
+                lastName: "lastName",
+                birthDate: "birthDate",
+                birthPlace: "birthPlace"
+              })
+            },
+            {
+              order: 2,
+              title: "Motif de la demande",
+              description: "Raison de la demande du tenant lieu",
+              stepType: ServiceStepType.FORM,
+              isRequired: true,
+              fields: JSON.stringify([
+                {
+                  name: "reason",
+                  type: "select",
+                  label: "Motif",
+                  required: true,
+                  options: [
+                    { value: "LOST", label: "Perte du passeport" },
+                    { value: "EXPIRED", label: "Passeport expiré" },
+                    { value: "DAMAGED", label: "Passeport endommagé" }
+                  ]
+                },
+                {
+                  name: "details",
+                  type: "textarea",
+                  label: "Détails",
+                  required: true
+                }
+              ])
+            }
+          ]
+        }
+      }
+    })
+
+    // 2. Acte de naissance
+    await prisma.consularService.create({
+      data: {
+        type: ConsularServiceType.BIRTH_REGISTRATION,
+        title: "Demande d'acte de naissance",
+        description: "Obtention d'une copie d'acte de naissance auprès des services consulaires",
+        estimatedTime: "2-3 semaines",
+        price: 0,
+        requiresAppointment: false,
+        requiredDocuments: [
+          DocumentType.IDENTITY_CARD,
+          DocumentType.BIRTH_CERTIFICATE
+        ],
+        steps: {
+          create: [
+            {
+              order: 1,
+              title: "Informations du demandeur",
+              description: "Vos informations personnelles",
+              stepType: ServiceStepType.FORM,
+              isRequired: true,
+              fields: JSON.stringify([
+                {
+                  name: "firstName",
+                  type: "text",
+                  label: "Prénom(s)",
+                  required: true
+                },
+                {
+                  name: "lastName",
+                  type: "text",
+                  label: "Nom",
+                  required: true
+                },
+                {
+                  name: "birthDate",
+                  type: "date",
+                  label: "Date de naissance",
+                  required: true
+                },
+                {
+                  name: "birthPlace",
+                  type: "text",
+                  label: "Lieu de naissance",
+                  required: true
+                }
+              ]),
+              profileFields: JSON.stringify({
+                firstName: "firstName",
+                lastName: "lastName",
                 birthDate: "birthDate",
                 birthPlace: "birthPlace"
               })
@@ -57,7 +154,7 @@ async function main() {
             {
               order: 2,
               title: "Informations des parents",
-              description: "État civil des parents",
+              description: "Informations sur vos parents",
               stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
@@ -75,7 +172,6 @@ async function main() {
                 }
               ]),
               profileFields: JSON.stringify({
-                // Champs à extraire du profil
                 fatherFullName: "fatherFullName",
                 motherFullName: "motherFullName"
               })
@@ -85,33 +181,99 @@ async function main() {
       }
     })
 
-    // 2. Demande de carte consulaire
+    // 3. Certificat de nationalité
     await prisma.consularService.create({
       data: {
-        type: ConsularServiceType.CONSULAR_CARD,
-        title: "Demande de carte consulaire",
-        description: "Demande de carte consulaire pour les ressortissants gabonais",
-        estimatedTime: "1-2 semaines",
-        price: 50,
+        type: ConsularServiceType.NATIONALITY_CERTIFICATE,
+        title: "Certificat de nationalité",
+        description: "Demande de certificat attestant de la nationalité gabonaise",
+        estimatedTime: "3-4 semaines",
+        price: 0,
         requiresAppointment: true,
         appointmentDuration: 30,
         requiredDocuments: [
-          DocumentType.IDENTITY_PHOTO,
           DocumentType.PASSPORT,
-          DocumentType.PROOF_OF_ADDRESS,
-          DocumentType.RESIDENCE_PERMIT
+          DocumentType.BIRTH_CERTIFICATE,
+          DocumentType.IDENTITY_CARD
         ],
         steps: {
           create: [
             {
               order: 1,
-              title: "Vérification d'identité",
-              description: "Validation des informations d'identité",
+              title: "Informations personnelles",
+              description: "Vos informations d'identité",
               stepType: ServiceStepType.FORM,
               isRequired: true,
               fields: JSON.stringify([
-                { name: "passportNumber", type: "text", label: "Numéro de passeport", required: true },
-                { name: "passportExpiry", type: "date", label: "Date d'expiration du passeport", required: true }
+                {
+                  name: "firstName",
+                  type: "text",
+                  label: "Prénom(s)",
+                  required: true
+                },
+                {
+                  name: "lastName",
+                  type: "text",
+                  label: "Nom",
+                  required: true
+                },
+                {
+                  name: "birthDate",
+                  type: "date",
+                  label: "Date de naissance",
+                  required: true
+                },
+                {
+                  name: "birthPlace",
+                  type: "text",
+                  label: "Lieu de naissance",
+                  required: true
+                },
+                {
+                  name: "acquisitionMode",
+                  type: "select",
+                  label: "Mode d'acquisition de la nationalité",
+                  required: true,
+                  options: [
+                    { value: "BIRTH", label: "Naissance" },
+                    { value: "NATURALIZATION", label: "Naturalisation" },
+                    { value: "MARRIAGE", label: "Mariage" }
+                  ]
+                }
+              ]),
+              profileFields: JSON.stringify({
+                firstName: "firstName",
+                lastName: "lastName",
+                birthDate: "birthDate",
+                birthPlace: "birthPlace",
+                acquisitionMode: "acquisitionMode"
+              })
+            },
+            {
+              order: 2,
+              title: "Justification",
+              description: "Motif de la demande du certificat",
+              stepType: ServiceStepType.FORM,
+              isRequired: true,
+              fields: JSON.stringify([
+                {
+                  name: "purpose",
+                  type: "select",
+                  label: "Motif de la demande",
+                  required: true,
+                  options: [
+                    { value: "ADMINISTRATIVE", label: "Démarche administrative" },
+                    { value: "EMPLOYMENT", label: "Emploi" },
+                    { value: "EDUCATION", label: "Études" },
+                    { value: "OTHER", label: "Autre" }
+                  ]
+                },
+                {
+                  name: "details",
+                  type: "textarea",
+                  label: "Précisions sur le motif",
+                  required: true
+                }
               ])
             }
           ]
@@ -123,8 +285,6 @@ async function main() {
   } catch (error) {
     console.error('❌ Error seeding services:', error)
     process.exit(1)
-  } finally {
-    await prisma.$disconnect()
   }
 }
 

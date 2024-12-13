@@ -630,7 +630,7 @@
     },
     "nav": {
       "login": "S'identifier",
-      "dashboard": "Mon espace"
+      "profile": "Mon espace"
     },
     "footer": {
       "designed_by": "Conçu et développé par"
@@ -844,6 +844,7 @@
       "identity_photo": "Photo d'identité",
       "passport": "Passeport",
       "birth_certificate": "Acte de naissance",
+      "nationality_certificate": "Certificat de nationalité",
       "contact_details": "Coordonnées",
       "proof_of_residence": "Justificatif de domicile",
       "emergency_contact": "Contact d'urgence",
@@ -1838,9 +1839,11 @@
         "identity_card": "Carte d'identité",
         "residence_permit": "Titre de séjour",
         "marriage_certificate": "Acte de mariage",
-        "death_certificate": "Acte de décès"
+        "death_certificate": "Acte de décès",
+        "consular_card": "Carte consulaire"
       },
       "descriptions": {
+        "consular_card": "Carte consulaire en cours de validité",
         "passport": "Page principale de votre passeport en cours de validité",
         "birth_certificate": "Copie intégrale de votre acte de naissance",
         "proof_of_address": "Document de moins de 3 mois (facture électricité, téléphone...)",
@@ -2009,6 +2012,7 @@
         "address_certificate": "Attestation de résidence",
         "travel_permit": "Laissez-passer",
         "marriage_registration": "Enregistrement de mariage",
+        "nationality_certificate": "Certificat de nationalité",
         "consular_card": "Carte consulaire",
         "document_legalization": "Légalisation de document",
         "identity_certificate": "Certificat d'identité",
@@ -2245,7 +2249,16 @@
           "identity_card": "Carte nationale d'identité en cours de validité",
           "residence_permit": "Titre de séjour en cours de validité",
           "identity_photo": "Photo d'identité récente sur fond blanc",
-          "nationality_certificate": "Certificat de nationalité en cours de validité"
+          "nationality_certificate": "Certificat de nationalité en cours de validité",
+          "celibacy_certificate": "Certificat de célibat",
+          "consular_registration": "Attestation d'inscription consulaire",
+          "address_certificate": "Attestation de résidence",
+          "travel_permit": "Un laissez-passer en cours de validité",
+          "consular_card": "Votre carte consulaire en cours de validité",
+          "document_legalization": "Légalisation de document",
+          "identity_certificate": "Certificat d'identité",
+          "power_of_attorney": "Procuration",
+          "other": "Autre démarche"
         }
       },
       "requests": {
