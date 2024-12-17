@@ -817,7 +817,10 @@
       "incomplete": "Incomplet",
       "rejected": "Rejeté",
       "valid": "Valide",
-      "complete": "Complet"
+      "complete": "Complet",
+      "draft": "Brouillon",
+      "submitted": "Soumis",
+      "in_review": "En révision",
     },
     "sections": {
       "basic_info": "Informations personnelles",

@@ -1,15 +1,11 @@
 import { useTranslations } from 'next-intl'
-import {
-  Share2,
-  Download,
-  Shield
-} from 'lucide-react'
+import { Share2, Download, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge, BadgeVariant } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { FullProfile } from '@/types'
 import { ConsularCardPreview } from '@/components/profile/consular-card-preview'
+import { ProfileStatusBadge } from './profile-status-badge'
 
 interface ProfileHeaderProps {
   profile: FullProfile
@@ -17,11 +13,7 @@ interface ProfileHeaderProps {
   onDownload?: () => void
 }
 
-export function ProfileHeader({
-                                profile,
-                                onShare,
-                                onDownload
-                              }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, onShare, onDownload }: ProfileHeaderProps) {
   const t = useTranslations('profile')
   const t_countries = useTranslations('countries')
 
@@ -47,12 +39,7 @@ export function ProfileHeader({
               <h1 className="text-2xl font-bold md:text-3xl">
                 {`${profile?.firstName} ${profile?.lastName}`}
               </h1>
-              <Badge
-                variant={profile?.status?.toLowerCase() as BadgeVariant}
-                className="h-6"
-              >
-                {t(`status.${profile?.status?.toLowerCase()}`)}
-              </Badge>
+              <ProfileStatusBadge status={profile?.status || 'DRAFT'} />
             </div>
 
             <p className="mt-1 text-sm text-muted-foreground">
@@ -65,24 +52,14 @@ export function ProfileHeader({
             </p>
 
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onShare}
-              >
+              <Button variant="outline" size="sm" onClick={onShare}>
                 <Share2 className="size-4" />
                 {t('actions.share')}
               </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onDownload}
-              >
+              <Button variant="outline" size="sm" onClick={onDownload}>
                 <Download className="size-4" />
                 {t('actions.download')}
               </Button>
-
               <ConsularCardPreview profile={profile} />
             </div>
           </div>

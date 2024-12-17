@@ -172,7 +172,8 @@
       "mark_as_read": "",
       "clear_all": "",
       "mark_all_read": ""
-    }
+    },
+    "no_country_found": ""
   },
   "feedback": {
     "loading": {
@@ -629,7 +630,7 @@
     },
     "nav": {
       "login": "",
-      "dashboard": ""
+      "profile": ""
     },
     "footer": {
       "designed_by": ""
@@ -775,7 +776,9 @@
       "requests": "",
       "profile": "",
       "documents": "",
-      "procedures": ""
+      "procedures": "",
+      "services": "",
+      "my_requests": ""
     }
   },
   "actions": {
@@ -841,6 +844,7 @@
       "identity_photo": "",
       "passport": "",
       "birth_certificate": "",
+      "nationality_certificate": "",
       "contact_details": "",
       "proof_of_residence": "",
       "emergency_contact": "",
@@ -1834,9 +1838,11 @@
         "identity_card": "",
         "residence_permit": "",
         "marriage_certificate": "",
-        "death_certificate": ""
+        "death_certificate": "",
+        "consular_card": ""
       },
       "descriptions": {
+        "consular_card": "",
         "passport": "",
         "birth_certificate": "",
         "proof_of_address": "",
@@ -1852,7 +1858,14 @@
         "",
         "",
         ""
-      ]
+      ],
+      "status": {
+        "pending": "",
+        "validated": "",
+        "rejected": "",
+        "expired": "",
+        "already_provided": ""
+      }
     },
     "verification": {
       "title": "",
@@ -1998,6 +2011,7 @@
         "address_certificate": "",
         "travel_permit": "",
         "marriage_registration": "",
+        "nationality_certificate": "",
         "consular_card": "",
         "document_legalization": "",
         "identity_certificate": "",
@@ -2166,7 +2180,24 @@
           "morning": "",
           "afternoon": ""
         },
-        "select_placeholder": ""
+        "select_placeholder": "",
+        "success": {
+          "title": "",
+          "description": ""
+        },
+        "error": {
+          "title": "",
+          "description": "",
+          "unknown": ""
+        },
+        "submission": {
+          "loading": "",
+          "error": {
+            "document_required": "",
+            "invalid_appointment": "",
+            "submission_failed": ""
+          }
+        }
       },
       "details": {
         "main_info": "",
@@ -2217,7 +2248,39 @@
           "identity_card": "",
           "residence_permit": "",
           "identity_photo": "",
-          "nationality_certificate": ""
+          "nationality_certificate": "",
+          "celibacy_certificate": "",
+          "consular_registration": "",
+          "address_certificate": "",
+          "travel_permit": "",
+          "consular_card": "",
+          "document_legalization": "",
+          "identity_certificate": "",
+          "power_of_attorney": "",
+          "other": ""
+        }
+      },
+      "requests": {
+        "title": "",
+        "description": "",
+        "empty": {
+          "title": "",
+          "description": ""
+        },
+        "status": {
+          "draft": "",
+          "submitted": "",
+          "in_review": "",
+          "additional_info_needed": "",
+          "approved": "",
+          "rejected": "",
+          "completed": "",
+          "cancelled": ""
+        },
+        "submitted_on": "",
+        "appointment_on": "",
+        "actions": {
+          "view": ""
         }
       }
     }

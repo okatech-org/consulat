@@ -181,7 +181,7 @@ model Profile {
   employerAddress String?
 
   // Métadonnées
-  status    RequestStatus @default(INCOMPLETE)
+  status    RequestStatus @default(DRAFT)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   addressId String?
