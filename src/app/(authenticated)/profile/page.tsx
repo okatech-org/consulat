@@ -19,6 +19,7 @@ import { ContactInfoSection } from '@/components/profile/sections/contact-info-s
 import { FamilyInfoSection } from '@/components/profile/sections/family-info-section'
 import { ProfessionalInfoSection } from '@/components/profile/sections/professional-info-section'
 import { ProfileCompletionAssistant } from '@/components/profile/profile-completion-assistant'
+import { DocumentsSection } from '@/components/profile/sections/documents-section'
 
 export default async function ProfilePage() {
   const user = await getCurrentUser()
@@ -88,6 +89,15 @@ export default async function ProfilePage() {
               />
               <FamilyInfoSection profile={profile} />
               <ProfessionalInfoSection profile={profile} />
+              <DocumentsSection
+                documents={{
+                  passport: profile.passport,
+                  birthCertificate: profile.birthCertificate,
+                  residencePermit: profile.residencePermit,
+                  addressProof: profile.addressProof
+                }}
+                className="md:col-span-2"
+              />
             </>
           )}
 

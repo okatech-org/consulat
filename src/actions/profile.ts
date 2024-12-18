@@ -2,7 +2,7 @@
 
 import { getTranslations } from 'next-intl/server'
 import { ActionResult } from '@/lib/auth/action'
-import { DocumentType, Profile } from '@prisma/client'
+import { DocumentStatus, DocumentType, Profile } from '@prisma/client'
 import { db } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/schemas/routes'
@@ -394,6 +394,71 @@ export async function updateProfile(
         }
         break
 
+      case 'documents':
+        if (section === 'documents') {
+          const documents = {
+            passportFile: formData.get('passportFile') as File,
+            birthCertificateFile: formData.get('birthCertificateFile') as File,
+            residencePermitFile: formData.get('residencePermitFile') as File,
+            addressProofFile: formData.get('addressProofFile') as File,
+          }
+
+          // Traiter chaque document
+          const uploadPromises = Object.entries(documents)
+            .filter(([, file]) => file)
+            .map(async ([key, file]) => {
+              const formDataForUpload = new FormData()
+              formDataForUpload.append('files', file)
+              const uploadedFile = await processFileData(formDataForUpload)
+              return { key, url: uploadedFile?.url }
+            })
+
+          const uploadedFiles = await Promise.all(uploadPromises)
+
+          uploadedFiles.forEach(({ key, url }) => {
+            if (url) {
+              switch (key) {
+                case 'passportFile':
+                  updateData.passport = {
+                    create: {
+                      type: DocumentType.PASSPORT,
+                      fileUrl: url,
+                      status: DocumentStatus.PENDING,
+                    }
+                  }
+                  break
+                case 'birthCertificateFile':
+                  updateData.birthCertificate = {
+                    create: {
+                      type: DocumentType.BIRTH_CERTIFICATE,
+                      fileUrl: url,
+                      status: DocumentStatus.PENDING,
+                    }
+                  }
+                  break
+                case 'residencePermitFile':
+                  updateData.residencePermit = {
+                    create: {
+                      type: DocumentType.RESIDENCE_PERMIT,
+                      fileUrl: url,
+                      status: DocumentStatus.PENDING,
+                    }
+                  }
+                  break
+                case 'addressProofFile':
+                  updateData.addressProof = {
+                    create: {
+                      type: DocumentType.PROOF_OF_ADDRESS,
+                      fileUrl: url,
+                      status: DocumentStatus.PENDING,
+                    }
+                  }
+                  break
+              }
+            }
+        })
+        }
+          break
       default:
         return { error: t('invalid_section') }
     }

@@ -51,6 +51,8 @@
       "reacquisition": "Par réacquisition"
     },
     "upload": {
+      "title": "Télécharger un fichier",
+      "description": "Glissez-déposez un fichier ou cliquez pour télécharger",
       "drop_zone": {
         "button": "Sélectionner un fichier",
         "description": "ou glissez-déposez ici (max {size}MB)",
@@ -119,6 +121,7 @@
         "optional": "Optionnel",
         "uploaded": "En attente de vérification",
         "verified": "Vérifié",
+        "validated": "Validé",
         "rejected": "Rejeté",
         "expired": "Expiré",
         "incomplete": "Incomplet",
@@ -820,7 +823,7 @@
       "complete": "Complet",
       "draft": "Brouillon",
       "submitted": "Soumis",
-      "in_review": "En révision",
+      "in_review": "En révision"
     },
     "sections": {
       "basic_info": "Informations personnelles",
