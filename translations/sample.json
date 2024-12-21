@@ -51,6 +51,8 @@
       "reacquisition": ""
     },
     "upload": {
+      "title": "",
+      "description": "",
       "drop_zone": {
         "button": "",
         "description": "",
@@ -119,6 +121,7 @@
         "optional": "",
         "uploaded": "",
         "verified": "",
+        "validated": "",
         "rejected": "",
         "expired": "",
         "incomplete": "",
@@ -264,7 +267,11 @@
         "forbidden": "",
         "session_expired": "",
         "invalid_credentials": "",
-        "no_document": ""
+        "no_document": "",
+        "profile_not_found": "",
+        "invalid_status": "",
+        "missing_documents": "",
+        "incomplete_profile": ""
       },
       "success": {
         "update_title": "",
@@ -809,6 +816,33 @@
     },
     "last_update": "",
     "missing_fields": "",
+    "submission": {
+      "submit_button": "",
+      "dialog": {
+        "title": "",
+        "description": "",
+        "checklist": {
+          "title": "",
+          "items": {
+            "personal_info": "",
+            "documents": "",
+            "contact_info": "",
+            "emergency_contact": ""
+          }
+        },
+        "cancel": "",
+        "confirm": ""
+      },
+      "success": {
+        "title": "",
+        "description": ""
+      },
+      "error": {
+        "title": "",
+        "unknown": "",
+        "incomplete": ""
+      }
+    },
     "status": {
       "active": "",
       "validated": "",
@@ -817,7 +851,10 @@
       "incomplete": "",
       "rejected": "",
       "valid": "",
-      "complete": ""
+      "complete": "",
+      "draft": "",
+      "submitted": "",
+      "in_review": ""
     },
     "sections": {
       "basic_info": "",

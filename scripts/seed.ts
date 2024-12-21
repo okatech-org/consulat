@@ -46,7 +46,6 @@ async function main() {
             { name: "Luxembourg", code: "LU" }
           ]
         },
-        // Horaires d'ouverture
         schedule: {
           create: [
             { dayOfWeek: 1, openTime: "09:00", closeTime: "16:30", isOpen: true },  // Lundi
@@ -59,6 +58,20 @@ async function main() {
           ]
         }
       }
+    })
+
+    const manager = await prisma.user.create({
+      data: {
+        email: 'manager@consulat.ga',
+        name: 'Manager Consulaire',
+        role: UserRole.ADMIN,
+        emailVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
     })
 
     // Générer des créneaux de rendez-vous pour les 30 prochains jours
@@ -180,7 +193,8 @@ async function main() {
     console.log('✅ Seeding terminé avec succès!')
     console.log('Données créées:', {
       consulat: { id: consulat.id, name: consulat.name },
-      user: { id: user.id, email: user.email }
+      user: { id: user.id, email: user.email },
+      manager: { id: manager.id, email: manager.email }
     })
 
   } catch (error) {
