@@ -20,6 +20,8 @@ import { FamilyInfoSection } from '@/components/profile/sections/family-info-sec
 import { ProfessionalInfoSection } from '@/components/profile/sections/professional-info-section'
 import { ProfileCompletionAssistant } from '@/components/profile/profile-completion-assistant'
 import { DocumentsSection } from '@/components/profile/sections/documents-section'
+import { RequestStatus } from '@prisma/client'
+import { SubmitProfileButton } from '@/components/profile/submit-profile-button'
 
 export default async function ProfilePage() {
   const user = await getCurrentUser()
@@ -101,15 +103,19 @@ export default async function ProfilePage() {
             </>
           )}
 
-          {/**<DocumentsSection
-            documents={{
-              passport: profile.passport,
-              birthCertificate: profile.birthCertificate,
-              residencePermit: profile.residencePermit,
-              addressProof: profile.addressProof
-            }}
-            className="md:col-span-2"
-          />*/}
+          {profile.status === RequestStatus.DRAFT && (
+            <div className={"footer w-full flex flex-col gap-4 col-span-full items-center"}>
+              <SubmitProfileButton
+                profileId={profile.id}
+                isComplete={completionRate === 100}
+              />
+              {completionRate < 100 && (
+                <p className="text-muted-foreground text-sm">
+                  {t('submission.error.incomplete')}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </Suspense>
     </div>

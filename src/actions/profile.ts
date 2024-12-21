@@ -2,7 +2,7 @@
 
 import { getTranslations } from 'next-intl/server'
 import { ActionResult } from '@/lib/auth/action'
-import { DocumentStatus, DocumentType, Profile } from '@prisma/client'
+import { DocumentStatus, DocumentType, Profile, RequestStatus } from '@prisma/client'
 import { db } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/schemas/routes'
@@ -484,5 +484,84 @@ export async function updateProfile(
     return {
       error: error instanceof Error ? error.message : 'messages.errors.unknown_error'
     }
+  }
+}
+
+export async function submitProfileForValidation(
+  profileId: string
+): Promise<ActionResult<Profile>> {
+  try {
+    const t = await getTranslations('messages.profile')
+
+    // Vérifier que le profil existe et est complet
+    const profile = await db.profile.findUnique({
+      where: { id: profileId },
+      include: {
+        passport: true,
+        birthCertificate: true,
+        residencePermit: true,
+        addressProof: true,
+        address: true,
+        emergencyContact: true,
+      }
+    })
+
+    if (!profile) {
+      return { error: t('errors.profile_not_found') }
+    }
+
+    // Vérifier que le profil est en statut DRAFT
+    if (profile.status !== RequestStatus.DRAFT) {
+      return { error: t('errors.invalid_status') }
+    }
+
+    // Vérifier que tous les documents requis sont présents
+    const requiredDocuments = [
+      profile.passport,
+      profile.birthCertificate,
+      profile.addressProof
+    ]
+
+    if (requiredDocuments.some(doc => !doc)) {
+      return { error: t('errors.missing_documents') }
+    }
+
+    // Vérifier que toutes les informations requises sont présentes
+    const requiredFields = [
+      profile.firstName,
+      profile.lastName,
+      profile.birthDate,
+      profile.birthPlace,
+      profile.nationality,
+      profile.address,
+      profile.phone,
+      profile.email,
+      profile.emergencyContact
+    ]
+
+    if (requiredFields.some(field => !field)) {
+      return { error: t('errors.incomplete_profile') }
+    }
+
+    // Mettre à jour le statut du profil
+    const updatedProfile = await db.profile.update({
+      where: { id: profileId },
+      data: {
+        status: RequestStatus.SUBMITTED,
+      },
+      include: {
+        passport: true,
+        birthCertificate: true,
+        residencePermit: true,
+        addressProof: true,
+        address: true,
+        emergencyContact: true,
+      }
+    })
+
+    return { data: updatedProfile }
+  } catch (error) {
+    console.error('Submit profile error:', error)
+    return { error: error instanceof Error ? error.message : 'messages.errors.unknown_error' }
   }
 }

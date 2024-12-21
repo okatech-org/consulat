@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Users, User2, Phone } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { FamilyInfoForm } from '@/components/registration/family-info'
+import { Separator } from '@/components/ui/separator'
 
 interface FamilyInfoSectionProps {
   profile: Profile & {
@@ -178,45 +179,42 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
             />
           </div>
 
-          {/* Contact d'urgence */}
-          <Card className="bg-muted/50">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">{t('form.emergency_contact')}</h4>
-                  {!profile.emergencyContact && (
-                    <Badge variant="destructive">
-                      {t('form.required')}
-                    </Badge>
-                  )}
-                </div>
+          <Separator className="col-span-full" />
 
-                {profile.emergencyContact ? (
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <InfoField
-                      label={t('form.emergency_contact_name')}
-                      value={profile.emergencyContact.fullName}
-                      icon={<User2 className="h-4 w-4" />}
-                    />
-                    <InfoField
-                      label={t('form.emergency_contact_relationship')}
-                      value={profile.emergencyContact.relationship}
-                      icon={<Users className="h-4 w-4" />}
-                    />
-                    <InfoField
-                      label={t('form.emergency_contact_phone')}
-                      value={profile.emergencyContact.phone}
-                      icon={<Phone className="h-4 w-4" />}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {t('form.emergency_contact_description')}
-                  </p>
-                )}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">{t('form.emergency_contact')}</h4>
+              {!profile.emergencyContact && (
+                <Badge variant="destructive">
+                  {t('form.required')}
+                </Badge>
+              )}
+            </div>
+
+            {profile.emergencyContact ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                <InfoField
+                  label={t('form.emergency_contact_name')}
+                  value={profile.emergencyContact.fullName}
+                  icon={<User2 className="h-4 w-4" />}
+                />
+                <InfoField
+                  label={t('form.emergency_contact_relationship')}
+                  value={profile.emergencyContact.relationship}
+                  icon={<Users className="h-4 w-4" />}
+                />
+                <InfoField
+                  label={t('form.emergency_contact_phone')}
+                  value={profile.emergencyContact.phone}
+                  icon={<Phone className="h-4 w-4" />}
+                />
               </div>
-            </CardContent>
-          </Card>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t('form.emergency_contact_description')}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </EditableSection>

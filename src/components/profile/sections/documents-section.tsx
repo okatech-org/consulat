@@ -268,31 +268,29 @@ export function DocumentsSection({ documents, className }: DocumentsSectionProps
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSave)}>
-          <Card>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 py-4 gap-6">
-              {renderDocumentField(
-                'passportFile',
-                t('documents.types.passport'),
-                documents.passport
-              )}
-              {renderDocumentField(
-                'birthCertificateFile',
-                t('documents.types.birth_certificate'),
-                documents.birthCertificate
-              )}
-              {renderDocumentField(
-                'residencePermitFile',
-                t('documents.types.residence_permit'),
-                documents.residencePermit,
-                false
-              )}
-              {renderDocumentField(
-                'addressProofFile',
-                t('documents.types.proof_of_address'),
-                documents.addressProof
-              )}
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 py-4 gap-6">
+            {renderDocumentField(
+              'passportFile',
+              t('documents.types.passport'),
+              documents.passport
+            )}
+            {renderDocumentField(
+              'birthCertificateFile',
+              t('documents.types.birth_certificate'),
+              documents.birthCertificate
+            )}
+            {renderDocumentField(
+              'residencePermitFile',
+              t('documents.types.residence_permit'),
+              documents.residencePermit,
+              false
+            )}
+            {renderDocumentField(
+              'addressProofFile',
+              t('documents.types.proof_of_address'),
+              documents.addressProof
+            )}
+          </div>
         </form>
       </Form>
     </EditableSection>

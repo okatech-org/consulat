@@ -267,7 +267,11 @@
         "forbidden": "Vous n'avez pas les permissions nécessaires pour effectuer cette action",
         "session_expired": "Votre session a expiré, veuillez vous reconnecter",
         "invalid_credentials": "Identifiants invalides",
-        "no_document": "Aucun document"
+        "no_document": "Aucun document",
+        "profile_not_found": "Profil non trouvé",
+        "invalid_status": "Le profil ne peut pas être soumis dans son état actuel",
+        "missing_documents": "Des documents requis sont manquants",
+        "incomplete_profile": "Le profil est incomplet"
       },
       "success": {
         "update_title": "Profil mis à jour",
@@ -812,6 +816,33 @@
     },
     "last_update": "Dernière mise à jour",
     "missing_fields": "Champs manquants",
+    "submission": {
+      "submit_button": "Soumettre pour validation",
+      "dialog": {
+        "title": "Soumettre le profil pour validation",
+        "description": "Votre profil sera examiné par notre équipe. Veuillez vérifier que toutes les informations sont correctes avant de soumettre.",
+        "checklist": {
+          "title": "Avant de soumettre, vérifiez que :",
+          "items": {
+            "personal_info": "Toutes les informations personnelles sont correctes",
+            "documents": "Les documents fournis sont valides et lisibles",
+            "contact_info": "Les coordonnées sont à jour",
+            "emergency_contact": "Le contact d'urgence est renseigné"
+          }
+        },
+        "cancel": "Annuler",
+        "confirm": "Soumettre"
+      },
+      "success": {
+        "title": "Profil soumis avec succès",
+        "description": "Votre profil a été soumis pour validation. Nous vous notifierons une fois qu'il aura été examiné."
+      },
+      "error": {
+        "title": "Erreur lors de la soumission",
+        "unknown": "Une erreur est survenue lors de la soumission du profil",
+        "incomplete": "Veuillez compléter toutes les informations requises avant de soumettre"
+      }
+    },
     "status": {
       "active": "Actif",
       "validated": "Validé",
