@@ -100,11 +100,20 @@
       "pending": "En attente",
       "approved": "Approuvé",
       "rejected": "Rejeté",
+      "in_progress": "En cours",
       "processing": "En cours",
       "expired": "Expiré",
       "incomplete": "Incomplet",
       "verified": "Vérifié",
-      "review": "En révision"
+      "review": "En révision",
+      "valid": "Valide",
+      "draft": "Brouillon",
+      "submitted": "Soumis",
+      "in_review": "En cours d'examen",
+      "additional_info_needed": "À compléter",
+      "completed": "Terminé",
+      "cancelled": "Annulé",
+      "validated": "Validé"
     },
     "confirm": {
       "title": "Confirmation",
@@ -325,6 +334,7 @@
     "cyprus": "Chypre",
     "colombia": "Colombie",
     "comoros": "Comores",
+    "congo": "Congo",
     "republic_of_congo": "République du Congo",
     "democratic_republic_of_congo": "République démocratique du Congo",
     "north_korea": "Corée du Nord",
@@ -622,7 +632,8 @@
     "consular_card": "Carte consulaire",
     "consular_card_request": "Demande de carte consulaire",
     "feedback": "Feedback",
-    "assistance": "Assistance"
+    "assistance": "Assistance",
+    "tasks": "Tâches"
   },
   "home": {
     "consulat": "Consulat",
@@ -775,6 +786,51 @@
       "users": "Utilisateurs",
       "requests": "Demandes",
       "settings": "Paramètres"
+    },
+    "profiles": {
+      "title": "Gestion des profils",
+      "description": "Gérez et suivez les profils des utilisateurs",
+
+      "table": {
+        "name": "Nom complet",
+        "nationality": "Nationalité",
+        "status": "Statut",
+        "submitted_at": "Soumis le",
+        "updated_at": "Mis à jour le",
+        "actions": "Actions",
+        "empty": "Aucun profil trouvé"
+      },
+
+      "filters": {
+        "search": "Rechercher un profil...",
+        "status": "Filtrer par statut",
+        "all": "Tous les statuts",
+        "date": "Date",
+        "reset": "Réinitialiser les filtres",
+        "active_filters": "Filtres actifs"
+      },
+
+      "status": {
+        "draft": "Brouillon",
+        "submitted": "Soumis",
+        "in_review": "En cours de vérification",
+        "validated": "Validé",
+        "rejected": "Rejeté"
+      },
+
+      "actions": {
+        "review": "Examiner",
+        "validate": "Valider",
+        "reject": "Rejeter",
+        "request_changes": "Demander des modifications",
+        "view_details": "Voir les détails",
+        "export": "Exporter"
+      },
+
+      "empty": {
+        "title": "Aucun profil",
+        "description": "Aucun profil ne correspond à vos critères de recherche"
+      }
     }
   },
   "user": {

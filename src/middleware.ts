@@ -10,14 +10,13 @@ import {
 import { ROUTES } from '@/schemas/routes'
 import { nanoid } from 'nanoid'
 import { NextResponse } from 'next/server'
-import { UserRole } from '@prisma/client'
 
 const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth
-  const userRole = req.auth?.user?.role || UserRole.USER
+  const userRole = req.auth
 
   // Setup nonce pour la sécurité
   const nonce = nanoid()
@@ -70,9 +69,10 @@ export default auth((req) => {
     return false
   })
 
-  if (isRoleProtectedRoute) {
+
+  /**if (isRoleProtectedRoute) {
     return Response.redirect(new URL(ROUTES.unauthorized, nextUrl))
-  }
+  }*/
 
   // Autoriser l'accès pour toutes les autres routes
   return NextResponse.next({

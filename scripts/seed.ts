@@ -1,14 +1,23 @@
+import { addDays, setHours, setMinutes, subDays } from 'date-fns'
 import {
   PrismaClient,
   UserRole,
+  DocumentType,
   Gender,
   MaritalStatus,
   WorkStatus,
   NationalityAcquisition,
-  DocumentType,
+  RequestStatus,
   DocumentStatus,
+  User,
 } from '@prisma/client'
-import { addDays, setHours, setMinutes } from 'date-fns'
+
+const PROFILE_COUNT = 10
+
+const SAMPLE_NATIONALITIES = ['gabon', 'france', 'senegal', 'cameroon', 'congo']
+const SAMPLE_CITIES = ['Paris', 'Lyon', 'Marseille', 'Bordeaux', 'Lille']
+const SAMPLE_PROFESSIONS = ['Ingénieur', 'Médecin', 'Enseignant', 'Entrepreneur', 'Étudiant']
+const SAMPLE_EMPLOYERS = ['Total', 'Orange', 'BNP Paribas', 'Carrefour', 'EDF']
 
 const prisma = new PrismaClient()
 
@@ -22,6 +31,13 @@ async function main() {
     await prisma.timeSlot.deleteMany()
     await prisma.consulateSchedule.deleteMany()
     await prisma.consulate.deleteMany()
+    // Supprimer les données existantes
+    await prisma.emergencyContact.deleteMany()
+    await prisma.addressGabon.deleteMany()
+    await prisma.userDocument.deleteMany()
+    await prisma.profile.deleteMany()
+    await prisma.address.deleteMany()
+    await prisma.user.deleteMany()
 
     // Créer le consulat
     const consulat = await prisma.consulate.create({
@@ -197,11 +213,164 @@ async function main() {
       manager: { id: manager.id, email: manager.email }
     })
 
+    for (let i = 0; i < PROFILE_COUNT; i++) {
+      const user = await createSampleProfile(i)
+      await prisma.consulate.update({
+        where: { id: consulat.id },
+        data: {
+          users: {
+            connect: {
+              id: user.id
+            }
+          }
+        }
+      })
+
+      console.log(`Created profile ${i + 1}/${PROFILE_COUNT}`)
+    }
+
   } catch (error) {
     console.error('❌ Erreur pendant le seeding:', error)
     await prisma.$disconnect()
     throw error
   }
+}
+
+
+async function createSampleProfile(index: number): Promise<User> {
+  const now = new Date()
+  const status = [RequestStatus.DRAFT, RequestStatus.SUBMITTED, RequestStatus.IN_REVIEW, RequestStatus.VALIDATED, RequestStatus.REJECTED][index % 5]
+
+  // Créer un utilisateur
+  const user = await prisma.user.create({
+    data: {
+      email: `user${index}@example.com`,
+      phone: `+3361234${(56789 + index).toString().padStart(5, '0')}`,
+      name: `User ${index}`,
+      emailVerified: now,
+      phoneVerified: now,
+    }
+  })
+
+  // Documents communs
+  const commonDocData = {
+    userId: user.id,
+    status: DocumentStatus.PENDING,
+    issuedAt: subDays(now, 365),
+    expiresAt: addDays(now, 365),
+  }
+
+  // Créer les documents
+  const passport = await prisma.userDocument.create({
+    data: {
+      ...commonDocData,
+      type: 'PASSPORT',
+      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
+      metadata: {
+        documentNumber: `PA${index}123456`,
+        issuingAuthority: 'Préfecture de Police',
+      }
+    }
+  })
+
+  const birthCertificate = await prisma.userDocument.create({
+    data: {
+      ...commonDocData,
+      type: 'BIRTH_CERTIFICATE',
+      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
+    }
+  })
+
+  const residencePermit = await prisma.userDocument.create({
+    data: {
+      ...commonDocData,
+      type: 'RESIDENCE_PERMIT',
+      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
+    }
+  })
+
+  const addressProof = await prisma.userDocument.create({
+    data: {
+      ...commonDocData,
+      type: 'PROOF_OF_ADDRESS',
+      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
+    }
+  })
+
+  // Créer l'adresse
+  const address = await prisma.address.create({
+    data: {
+      firstLine: `${index} rue de la Paix`,
+      secondLine: `Apt ${index}`,
+      city: SAMPLE_CITIES[index % SAMPLE_CITIES.length],
+      zipCode: `750${(index % 20).toString().padStart(2, '0')}`,
+      country: 'france'
+    }
+  })
+
+  // Créer le profil
+  await prisma.profile.create({
+    data: {
+      userId: user.id,
+      firstName: `Prénom${index}`,
+      lastName: `Nom${index}`,
+      gender: index % 2 === 0 ? Gender.MALE : Gender.FEMALE,
+      birthDate: subDays(now, 10000 + index * 100).toISOString(),
+      birthPlace: SAMPLE_CITIES[index % SAMPLE_CITIES.length],
+      birthCountry: 'france',
+      nationality: SAMPLE_NATIONALITIES[index % SAMPLE_NATIONALITIES.length],
+      maritalStatus: Object.values(MaritalStatus)[index % Object.values(MaritalStatus).length],
+      workStatus: Object.values(WorkStatus)[index % Object.values(WorkStatus).length],
+      acquisitionMode: Object.values(NationalityAcquisition)[index % Object.values(NationalityAcquisition).length],
+      identityPicture: 'https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB',
+
+      // Documents
+      passportId: passport.id,
+      birthCertificateId: birthCertificate.id,
+      residencePermitId: residencePermit.id,
+      addressProofId: addressProof.id,
+
+      // Informations passeport
+      passportNumber: `PA${index}123456`,
+      passportIssueDate: subDays(now, 365),
+      passportExpiryDate: addDays(now, 365),
+      passportIssueAuthority: 'Préfecture de Police',
+
+      // Contact
+      phone: `+3361234${(56789 + index).toString().padStart(5, '0')}`,
+      email: `user${index}@example.com`,
+      addressId: address.id,
+
+      // Adresse au Gabon
+      addressInGabon: {
+        create: {
+          address: `${index} Boulevard du Bord de Mer`,
+          district: 'Louis',
+          city: 'Libreville'
+        }
+      },
+
+      // Informations professionnelles
+      profession: SAMPLE_PROFESSIONS[index % SAMPLE_PROFESSIONS.length],
+      employer: SAMPLE_EMPLOYERS[index % SAMPLE_EMPLOYERS.length],
+      employerAddress: `${index} rue des Entreprises`,
+      activityInGabon: 'Ancien étudiant à l\'UOB',
+
+      // Contact d'urgence
+      emergencyContact: {
+        create: {
+          fullName: `Contact${index}`,
+          relationship: 'Frère/Sœur',
+          phone: `+3361234${(99999 - index).toString().padStart(5, '0')}`
+        }
+      },
+
+      // Statut
+      status
+    }
+  })
+
+  return user
 }
 
 // Fonction utilitaire pour ajouter des minutes à une date

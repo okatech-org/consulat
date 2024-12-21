@@ -31,8 +31,10 @@ export const ROUTES = {
   admin_users: '/admin/users' as Route<string>,
   admin_requests: '/admin/requests' as Route<string>,
   admin_settings: '/admin/settings' as Route<string>,
+  admin_profiles: '/admin/profiles' as Route<string>,
+  admin_profiles_review: (id: string) => `/admin/profiles/${id}/review` as Route<string>,
 
-  // Pages partagées
+    // Pages partagées
   dashboard: '/dashboard' as Route<string>,
   help: '/help' as Route<string>,
   feedback: '/feedback' as Route<string>,

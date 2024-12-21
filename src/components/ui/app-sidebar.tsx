@@ -1,6 +1,6 @@
 import {
   LifeBuoy,
-  Send,Home, FileText, User, Folder, LayoutDashboard, Users, Settings,
+  Send, Home, FileText, User, Folder, LayoutDashboard, UsersRound,
 } from 'lucide-react'
 
 import { NavMain } from "@/components/ui/nav-main"
@@ -27,7 +27,6 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
   const user = await getCurrentUser()
   const t_nav = await getTranslations("navigation")
   const t_user = await getTranslations("user")
-  const t_admin = await getTranslations("admin")
   const userCountry = "France"
 
   const userMenu: NavItem[] = [
@@ -65,24 +64,14 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
 
   const adminMenu: NavItem[] = [
     {
-      title: t_admin('nav.dashboard'),
+      title: t_nav('dashboard'),
       href: ROUTES.admin_dashboard,
       icon: <LayoutDashboard/>,
     },
     {
-      title: t_admin('nav.users'),
-      href: ROUTES.admin_users,
-      icon: <Users/>,
-    },
-    {
-      title: t_admin('nav.requests'),
-      href: ROUTES.admin_requests,
-      icon: <FileText/>,
-    },
-    {
-      title: t_admin('nav.settings'),
-      href: ROUTES.admin_settings,
-      icon: <Settings/>,
+      title: t_nav('profiles'),
+      href: ROUTES.admin_profiles,
+      icon: <UsersRound/>,
     }
   ]
 

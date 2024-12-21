@@ -26,6 +26,7 @@ next-env.d.ts
 /public
 /ai-sum/.code_base.md
 /src/components/ui
+!/src/components/ui/app-sidebar.tsx
 /src/components/admin
 /src/components/auth
 /src/components/chat

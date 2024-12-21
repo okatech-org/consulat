@@ -23,6 +23,10 @@ export const roleRoutes = [
     roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN]
   },
   {
+    path: ROUTES.admin_profiles,
+    roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN]
+  },
+  {
     path: ROUTES.dashboard,
     roles: [UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN]
   }
