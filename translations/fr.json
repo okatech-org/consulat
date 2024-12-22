@@ -972,6 +972,41 @@
           "description": "Veuillez expliquer la raison du rejet"
         }
       }
+    },
+    "dashboard": {
+      "welcome": "Bonjour, {name}",
+      "subtitle": "Voici un aperçu de l'activité consulaire",
+      "recent_activity": "Activité récente",
+      "pending_tasks": "Tâches en attente",
+      "stats": {
+        "total_profiles": "Profils totaux",
+        "active_profiles": "{count} profils actifs",
+        "pending_reviews": "En attente de revue",
+        "validated_profiles": "Profils validés",
+        "expired_documents": "Documents expirés",
+        "expiring_soon": "{count} expirent bientôt"
+      },
+      "activity": {
+        "title": "Activité récente",
+        "types": {
+          "profile_created": "{user} a créé un profil",
+          "profile_updated": "{user} a mis à jour son profil",
+          "profile_validated": "{user} a validé un profil",
+          "document_uploaded": "{user} a téléchargé un {document}"
+        }
+      },
+      "tasks": {
+        "title": "Tâches en attente",
+        "view_all": "Voir tout",
+        "priority": {
+          "high": "Haute",
+          "medium": "Moyenne",
+          "low": "Basse"
+        },
+        "actions": {
+          "review": "Examiner"
+        }
+      }
     }
   },
   "user": {
