@@ -12,7 +12,9 @@ import { X } from 'lucide-react'
 import { Route } from 'next'
 
 export function ProfilesFilters() {
+  const t_common = useTranslations('common')
   const t = useTranslations('admin.profiles')
+  const profileStatus: RequestStatus[] = ['SUBMITTED', 'APPROVED', 'REJECTED', 'DRAFT']
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -91,9 +93,9 @@ export function ProfilesFilters() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">{t('filters.all')}</SelectItem>
-            {Object.values(RequestStatus).map((status) => (
+            {profileStatus.map((status) => (
               <SelectItem key={status} value={status}>
-                {t(`status.${status.toLowerCase()}`)}
+                {t_common(`status.${status.toLowerCase()}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -123,7 +125,7 @@ export function ProfilesFilters() {
             )}
             {currentStatus && (
               <span className="rounded-full bg-muted px-2 py-1">
-                {t(`status.${currentStatus.toLowerCase()}`)}
+                {t_common(`status.${currentStatus.toLowerCase()}`)}
               </span>
             )}
           </div>

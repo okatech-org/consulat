@@ -53,7 +53,7 @@ export function ProfileCompletion({
       <CardHeader className="pb-3">
         <CardTitle>{t('completion.title')}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Barre de progression globale */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -67,26 +67,23 @@ export function ProfileCompletion({
           <Progress value={completionRate} />
         </div>
 
-        {/* Sections d'informations */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Informations requises */}
-          <FieldsSection
-            title={t('completion.required_information')}
-            fields={fieldStatus.required.fields}
-            completed={fieldStatus.required.completed}
-            total={fieldStatus.required.total}
-            type="required"
-          />
+        {/* Informations requises */}
+        <FieldsSection
+          title={t('completion.required_information')}
+          fields={fieldStatus.required.fields}
+          completed={fieldStatus.required.completed}
+          total={fieldStatus.required.total}
+          type="required"
+        />
 
-          {/* Informations optionnelles */}
-          <FieldsSection
-            title={t('completion.optional_information')}
-            fields={fieldStatus.optional.fields}
-            completed={fieldStatus.optional.completed}
-            total={fieldStatus.optional.total}
-            type="optional"
-          />
-        </div>
+        {/* Informations optionnelles */}
+        <FieldsSection
+          title={t('completion.optional_information')}
+          fields={fieldStatus.optional.fields}
+          completed={fieldStatus.optional.completed}
+          total={fieldStatus.optional.total}
+          type="optional"
+        />
       </CardContent>
     </Card>
   )

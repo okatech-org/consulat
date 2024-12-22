@@ -20,7 +20,7 @@ import { FamilyInfoSection } from '@/components/profile/sections/family-info-sec
 import { ProfessionalInfoSection } from '@/components/profile/sections/professional-info-section'
 import { ProfileCompletionAssistant } from '@/components/profile/profile-completion-assistant'
 import { DocumentsSection } from '@/components/profile/sections/documents-section'
-import { RequestStatus } from '@prisma/client'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SubmitProfileButton } from '@/components/profile/submit-profile-button'
 
 export default async function ProfilePage() {
@@ -70,52 +70,86 @@ export default async function ProfilePage() {
     )
   }
 
+  const profileTabs = [
+    {
+      id: 'basic-info',
+      title: t('sections.basic_info'),
+      content: <BasicInfoSection profile={profile} />,
+    },
+    {
+      id: 'contact-info',
+      title: t('sections.contact_info'),
+      content: <ContactInfoSection profile={profile} />,
+    },
+    {
+      id: 'family-info',
+      title: t('sections.family_info'),
+      content: <FamilyInfoSection profile={profile} />,
+    },
+    {
+      id: 'professional-info',
+      title: t('sections.professional_info'),
+      content: <ProfessionalInfoSection profile={profile} />,
+    },
+    {
+      id: 'documents',
+      title: t('sections.documents'),
+      content: (
+        <DocumentsSection
+          documents={{
+            passport: profile.passport,
+            birthCertificate: profile.birthCertificate,
+            residencePermit: profile.residencePermit,
+            addressProof: profile.addressProof
+          }}
+          className="md:col-span-2"
+        />
+      ),
+    },
+  ]
+
   return (
-    <div className="container space-y-6 py-6 md:py-8">
+    <div className="container space-y-6">
       <Suspense fallback={<LoadingSkeleton />}>
         <ProfileHeaderClient profile={profile} />
-        <ProfileCompletion
-          completionRate={completionRate}
-          fieldStatus={fieldStatus}
-        />
         <ProfileCompletionAssistant
           profile={profile}
         />
-
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-8 gap-4">
           {profile && (
-            <>
-              <BasicInfoSection profile={profile} />
-              <ContactInfoSection
-                profile={profile}
-              />
-              <FamilyInfoSection profile={profile} />
-              <ProfessionalInfoSection profile={profile} />
-              <DocumentsSection
-                documents={{
-                  passport: profile.passport,
-                  birthCertificate: profile.birthCertificate,
-                  residencePermit: profile.residencePermit,
-                  addressProof: profile.addressProof
-                }}
-                className="md:col-span-2"
-              />
-            </>
+            <Tabs
+              className={"col-span-full lg:col-span-6"}
+              defaultValue="basic-info"
+            >
+              <TabsList className="w-full mb-2">
+                <div className="flex gap-2 items-center carousel-zone">
+                  {profileTabs.map((tab) => (
+                    <TabsTrigger key={tab.id} value={tab.id}>
+                      {tab.title}
+                    </TabsTrigger>
+                  ))}
+                </div>
+              </TabsList>
+              {profileTabs.map((tab) => (
+                <TabsContent key={tab.id} value={tab.id}>
+                  {tab.content}
+                </TabsContent>
+              ))}
+            </Tabs>
           )}
+          <div className={"col-span-full flex flex-col gap-4 lg:col-span-2"}>
+            <ProfileCompletion
+              completionRate={completionRate}
+              fieldStatus={fieldStatus}
+            />
 
-          {profile.status === RequestStatus.DRAFT && (
-            <div className={"footer w-full flex flex-col gap-4 col-span-full items-center"}>
+            <div className="flex flex-col items-center">
               <SubmitProfileButton
-                profileId={profile.id}
                 isComplete={completionRate === 100}
+                profileId={profile.id}
               />
-              {completionRate < 100 && (
-                <p className="text-muted-foreground text-sm">
-                  {t('submission.error.incomplete')}
-                </p>
-              )}
             </div>
-          )}
+          </div>
         </div>
       </Suspense>
     </div>

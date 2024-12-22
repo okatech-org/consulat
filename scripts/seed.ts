@@ -244,7 +244,7 @@ async function createSampleProfile(index: number): Promise<User> {
   // Créer un utilisateur
   const user = await prisma.user.create({
     data: {
-      email: `user${index}@example.com`,
+      email: `itoutouberny+${index}@gmail.com`,
       phone: `+3361234${(56789 + index).toString().padStart(5, '0')}`,
       name: `User ${index}`,
       emailVerified: now,
@@ -338,7 +338,7 @@ async function createSampleProfile(index: number): Promise<User> {
 
       // Contact
       phone: `+3361234${(56789 + index).toString().padStart(5, '0')}`,
-      email: `itoutouberny+${index}@example.com`,
+      email: `itoutouberny+${index}@gmail.com`,
       addressId: address.id,
 
       // Adresse au Gabon
