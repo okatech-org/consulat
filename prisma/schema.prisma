@@ -103,6 +103,7 @@ model User {
   password String? // Hashed password if needed
   name     String?
   role     UserRole @default(USER)
+  image    String   @default("https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE")
 
   // Relations
   profile     Profile?
@@ -121,11 +122,35 @@ model User {
 
   documents UserDocument[] @relation("userDocuments")
 
+  Appointment Appointment[]
+
+  // Nouvelles relations
+  authoredNotes ProfileNote[]  @relation("NoteAuthor")
+  notifications Notification[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Appointment   Appointment[]
-  notifications AppointmentNotification[]
+  @@index([consulateId])
+}
+
+model ProfileNote {
+  id        String   @id @default(cuid())
+  content   String   @db.Text // Pour les notes longues
+  type      NoteType
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  createdBy String
+  author    User     @relation(fields: [createdBy], references: [id], name: "NoteAuthor")
+
+  @@index([profileId])
+  @@index([createdBy])
+}
+
+enum NoteType {
+  INTERNAL
+  FEEDBACK
 }
 
 model Profile {
@@ -162,6 +187,7 @@ model Profile {
 
   // Contact
   address          Address?          @relation(fields: [addressId], references: [id])
+  addressId        String?
   phone            String?
   email            String?
   emergencyContact EmergencyContact?
@@ -181,10 +207,16 @@ model Profile {
   employerAddress String?
 
   // Métadonnées
-  status    RequestStatus @default(DRAFT)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  addressId String?
+  status          RequestStatus  @default(DRAFT)
+  validationNotes String?
+  validatedAt     DateTime?
+  validatedBy     String?
+  submittedAt     DateTime?
+  notes           ProfileNote[]
+  notifications   Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EmergencyContact {
@@ -486,7 +518,7 @@ model Appointment {
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?         @unique
 
-  notifications AppointmentNotification[]
+  notifications Notification[] @relation("AppointmentNotifications")
 
   // Métadonnées
   createdAt DateTime   @default(now())
@@ -538,18 +570,23 @@ model TimeSlot {
   appointmentId String?
 }
 
-model AppointmentNotification {
+model Notification {
   id            String             @id @default(cuid())
-  userId        String
-  user          User               @relation(fields: [userId], references: [id])
-  appointmentId String
-  appointment   Appointment        @relation(fields: [appointmentId], references: [id])
   type          NotificationType
-  status        NotificationStatus @default(PENDING)
-  sentAt        DateTime?
-  readAt        DateTime?
+  title         String
+  message       String             @db.Text
+  read          Boolean            @default(false)
+  profileId     String?
+  profile       Profile?           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+  status        NotificationStatus @default(PENDING)
+  appointmentId String?
+  appointment   Appointment?       @relation(fields: [appointmentId], references: [id], name: "AppointmentNotifications")
+
+  @@index([userId])
+  @@index([profileId])
 }
 
 enum NotificationType {
@@ -558,6 +595,9 @@ enum NotificationType {
   APPOINTMENT_CONFIRMATION
   APPOINTMENT_MODIFICATION
   APPOINTMENT_CANCELLATION
+  PROFILE_FEEDBACK
+  PROFILE_VALIDATED
+  PROFILE_REJECTED
 }
 
 enum NotificationStatus {

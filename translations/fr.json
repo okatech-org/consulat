@@ -159,7 +159,8 @@
     "callbacks": {
       "label": "Vous allez être redirigé sur la page ",
       "/registration": "Inscription consulaire",
-      "/dashboard": "Tableau de bord"
+      "/dashboard": "Tableau de bord",
+      "/admin/profiles": "Profils"
     },
     "search_country": "Rechercher un pays",
     "actions": {
@@ -913,7 +914,23 @@
         "notes": {
           "title": "Notes de revue",
           "placeholder": "Ajoutez vos notes concernant ce profil...",
-          "save": "Sauvegarder les notes"
+          "save": "Sauvegarder les notes",
+          "tabs": {
+            "internal": "Notes internes",
+            "feedback": "Retours utilisateur"
+          },
+          "internal_placeholder": "Ajouter une note interne...",
+          "feedback_placeholder": "Ajouter un retour pour l'utilisateur...",
+          "add": "Ajouter",
+          "success": {
+            "title": "Note ajoutée",
+            "description": "La note a été ajoutée avec succès"
+          },
+          "error": {
+            "title": "Erreur",
+            "description": "Impossible d'ajouter la note",
+            "unknown": "Une erreur inconnue est survenue"
+          }
         },
         "no_address": "Aucune adresse renseignée",
         "no_gabon_address": "Aucune adresse au Gabon renseignée",
@@ -932,6 +949,27 @@
           "student": "Étudiant(e)",
           "retired": "Retraité(e)",
           "other": "Autre"
+        },
+        "validation": {
+          "title": "Validation du profil",
+          "description": "Veuillez ajouter des notes ou commentaires concernant votre décision",
+          "notes_placeholder": "Ajouter des notes de validation...",
+          "cancel": "Annuler",
+          "validate": "Valider",
+          "reject": "Rejeter",
+          "success": {
+            "title": "Profil mis à jour",
+            "description": "Le profil a été mis à jour avec succès"
+          },
+          "error": {
+            "title": "Erreur",
+            "description": "Une erreur est survenue lors de la validation",
+            "unknown": "Une erreur inconnue est survenue"
+          }
+        },
+        "rejection": {
+          "title": "Rejet du profil",
+          "description": "Veuillez expliquer la raison du rejet"
         }
       }
     }

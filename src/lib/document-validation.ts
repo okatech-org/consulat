@@ -10,7 +10,7 @@ export interface DocumentValidation {
   required: boolean
 }
 
-export const documentValidations: Record<DocumentType, DocumentValidation> = {
+export const documentValidations: (Partial<Record<DocumentType, DocumentValidation>>) = {
   PASSPORT: {
     required: true,
     rules: [
@@ -43,10 +43,6 @@ export const documentValidations: Record<DocumentType, DocumentValidation> = {
           if (!doc.issuedAt) return false
           const issueDate = new Date(doc.issuedAt)
           const now = new Date()
-          console.log({
-            issueDate: issueDate.toISOString(),
-            now: now.toISOString()
-          })
           return now > issueDate
         },
         message: "L'acte de naissance est postérieur à la date d'aujourd'hui"
@@ -88,26 +84,18 @@ export function validateDocument(doc: UserDocument | null): {
   isValid: boolean
   errors: string[]
 } {
-  const validation = documentValidations[doc.type]
-  const errors: string[] = []
-
-  if (!doc && validation.required) {
+  if (!doc) {
     return {
       isValid: false,
       errors: ['Document requis']
     }
   }
 
-  if (!doc) {
-    return {
-      isValid: true,
-      errors: []
-    }
-  }
+  const validation = documentValidations[doc.type]
+  const errors: string[] = []
 
-  console.log({validation})
 
-  validation.rules.forEach(rule => {
+  validation?.rules.forEach(rule => {
     if (!rule.check(doc)) {
       errors.push(rule.message)
     }

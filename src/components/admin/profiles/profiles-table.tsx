@@ -1,6 +1,5 @@
 "use client"
 
-import { FullProfile } from '@/types'
 import { useTranslations } from 'next-intl'
 import { ProfileStatusBadge } from '@/components/profile/profile-status-badge'
 import { format } from 'date-fns'
@@ -16,13 +15,13 @@ import {
 import Link from 'next/link'
 import { ROUTES } from '@/schemas/routes'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Profile } from '@prisma/client'
 
 interface ProfilesTableProps {
-  profiles: FullProfile[]
+  profiles: Profile[]
 }
 
 export function ProfilesTable({ profiles }: ProfilesTableProps) {
-  const t_countries = useTranslations('countries')
   const t_profiles = useTranslations('admin.profiles')
 
   return (
@@ -31,7 +30,6 @@ export function ProfilesTable({ profiles }: ProfilesTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>{t_profiles('table.name')}</TableHead>
-            <TableHead>{t_profiles('table.nationality')}</TableHead>
             <TableHead>{t_profiles('table.status')}</TableHead>
             <TableHead>{t_profiles('table.submitted_at')}</TableHead>
             <TableHead>{t_profiles('table.updated_at')}</TableHead>
@@ -44,7 +42,6 @@ export function ProfilesTable({ profiles }: ProfilesTableProps) {
               <TableCell className="font-medium">
                 {profile.firstName} {profile.lastName}
               </TableCell>
-              <TableCell>{t_countries(profile.nationality)}</TableCell>
               <TableCell>
                 <ProfileStatusBadge status={profile.status} />
               </TableCell>

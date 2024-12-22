@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle2, AlertCircle, Shield } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Badge } from '@/components/ui/badge'
+import { Badge, BadgeVariant } from '@/components/ui/badge'
 import { DocumentPreview } from '@/components/ui/document-preview'
 import { documentValidations, validateDocument } from '@/lib/document-validation'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DocumentValidationDialog } from '@/components/admin/profiles/review/document-validation-dialog'
 import { useRouter } from 'next/navigation'
+import { DocumentType } from '@prisma/client'
 
 interface ProfileDocumentsProps {
   profile: FullProfile
@@ -84,7 +85,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{label}</p>
-                  {documentValidations[document.type].required && (
+                  {documentValidations?.[document?.type as DocumentType]?.required && (
                     <Badge variant="outline">{t_review('documents.required')}</Badge>
                   )}
                 </div>
@@ -115,7 +116,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
               <div className="flex items-center gap-2">
                 {document && (
                   <>
-                    <Badge variant={document.status.toLowerCase()}>
+                    <Badge variant={document.status.toLowerCase() as BadgeVariant}>
                       {t(`status.${document.status.toLowerCase()}`)}
                     </Badge>
                     <DocumentPreview

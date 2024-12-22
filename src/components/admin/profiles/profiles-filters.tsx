@@ -1,93 +1,96 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RequestStatus } from '@prisma/client'
-import { useCallback, useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useState } from 'react'
 import { debounce } from 'lodash'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
+import { Route } from 'next'
 
 export function ProfilesFilters() {
-  const t = useTranslations('common')
-  const t_profiles = useTranslations('admin.profiles')
+  const t = useTranslations('admin.profiles')
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   // Récupérer les valeurs actuelles des paramètres
   const currentQuery = searchParams.get('q') || ''
-  const currentStatus = searchParams.get('status') || 'ALL'
+  const currentStatus = searchParams.get('status') || ''
 
-  // État local pour la recherche (pour éviter trop de rerenders)
+  // État local pour le champ de recherche
   const [searchQuery, setSearchQuery] = useState(currentQuery)
 
   // Fonction pour mettre à jour l'URL avec les paramètres de recherche
   const updateSearchParams = useCallback((params: { q?: string; status?: string }) => {
-    const newSearchParams = new URLSearchParams(searchParams)
+    const newSearchParams = new URLSearchParams(searchParams.toString())
 
+    // Mettre à jour ou supprimer les paramètres
     Object.entries(params).forEach(([key, value]) => {
-      if (value && value !== 'ALL') {
+      if (value) {
         newSearchParams.set(key, value)
       } else {
         newSearchParams.delete(key)
       }
     })
 
-    router.push(`${pathname}?${newSearchParams.toString()}`)
+    // Construire la nouvelle URL
+    const newUrl = `${pathname}?${newSearchParams.toString()}` as Route
+    router.push(newUrl)
   }, [pathname, router, searchParams])
 
-  // Debounce la recherche pour éviter trop de requêtes
-  const debouncedSearch = debounce((value: string) => {
-    updateSearchParams({ q: value || undefined })
-  }, 300)
+  // Debounce la recherche pour éviter trop de mises à jour
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      updateSearchParams({ q: value || undefined })
+    }, 300),
+    [updateSearchParams]
+  )
 
-  // Mettre à jour la recherche
-  useEffect(() => {
-    return () => {
-      debouncedSearch.cancel()
-    }
-  }, [debouncedSearch])
-
-  // Reset tous les filtres
-  const resetFilters = () => {
-    setSearchQuery('')
-    router.push(pathname)
+  // Mettre à jour la recherche quand l'input change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    debouncedSearch(value)
   }
 
-  const hasFilters = currentQuery || currentStatus !== 'ALL'
+  // Gérer le changement de statut
+  const handleStatusChange = (value: string) => {
+    updateSearchParams({
+      status: value === 'ALL' ? undefined : value,
+      q: searchQuery || undefined
+    })
+  }
+
+  // Réinitialiser les filtres
+  const handleReset = () => {
+    setSearchQuery('')
+    updateSearchParams({})
+  }
+
+  // Vérifier si des filtres sont actifs
+  const hasActiveFilters = searchQuery || currentStatus
 
   return (
     <div className="mb-6 space-y-4">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <Input
-          placeholder={t_profiles('filters.search')}
+          placeholder={t('filters.search')}
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value)
-            debouncedSearch(e.target.value)
-          }}
-          className="md:max-w-[300px]"
+          onChange={(e) => handleSearchChange(e.target.value)}
+          className="sm:max-w-[300px]"
         />
         <Select
-          defaultValue={currentStatus}
-          onValueChange={(value) => {
-            updateSearchParams({ status: value })
-          }}
+          value={currentStatus || 'ALL'}
+          onValueChange={handleStatusChange}
         >
-          <SelectTrigger className="md:max-w-[200px]">
-            <SelectValue placeholder={t_profiles('filters.status')} />
+          <SelectTrigger className="sm:max-w-[200px]">
+            <SelectValue placeholder={t('filters.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">{t_profiles('filters.all')}</SelectItem>
+            <SelectItem value="ALL">{t('filters.all')}</SelectItem>
             {Object.values(RequestStatus).map((status) => (
               <SelectItem key={status} value={status}>
                 {t(`status.${status.toLowerCase()}`)}
@@ -96,33 +99,34 @@ export function ProfilesFilters() {
           </SelectContent>
         </Select>
 
-        {hasFilters && (
+        {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={resetFilters}
+            onClick={handleReset}
             className="gap-2"
           >
             <X className="h-4 w-4" />
-            {t_profiles('filters.reset')}
+            {t('filters.reset')}
           </Button>
         )}
       </div>
 
-      {/* Afficher les filtres actifs */}
-      {hasFilters && (
+      {hasActiveFilters && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{t_profiles('filters.active_filters')}:</span>
-          {currentQuery && (
-            <span>
-              {t_profiles('filters.search')}: &quot;{currentQuery}&quot;
-            </span>
-          )}
-          {currentStatus !== 'ALL' && (
-            <span>
-              {t_profiles('filters.status')}: {t(`status.${currentStatus.toLowerCase()}`)}
-            </span>
-          )}
+          <span>{t('filters.active_filters')}:</span>
+          <div className="flex flex-wrap gap-2">
+            {searchQuery && (
+              <span className="rounded-full bg-muted px-2 py-1">
+                {searchQuery}
+              </span>
+            )}
+            {currentStatus && (
+              <span className="rounded-full bg-muted px-2 py-1">
+                {t(`status.${currentStatus.toLowerCase()}`)}
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -2,32 +2,9 @@
 
 import { db } from '@/lib/prisma'
 import { checkAuth } from '@/lib/auth/action'
-import { Prisma, RequestStatus } from '@prisma/client'
-
-export async function getProfilesForValidation() {
-  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
-  if (authResult.error) {
-    throw new Error(authResult.error)
-  }
-
-  return db.profile.findMany({
-    where: {
-      status: RequestStatus.SUBMITTED
-    },
-    include: {
-      passport: true,
-      birthCertificate: true,
-      residencePermit: true,
-      addressProof: true,
-      address: true,
-      addressInGabon: true,
-      emergencyContact: true,
-    },
-    orderBy: {
-      updatedAt: 'desc'
-    }
-  })
-}
+import { Prisma, Profile, RequestStatus } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
+import { ROUTES } from '@/schemas/routes'
 
 interface GetProfilesOptions {
   status?: RequestStatus
@@ -38,7 +15,16 @@ interface GetProfilesOptions {
   }
 }
 
-export async function getProfiles(options?: GetProfilesOptions) {
+export interface ProfilesResult {
+  profiles: Profile[]
+  total: number
+  filters: {
+    search?: string
+    status?: RequestStatus
+  }
+}
+
+export async function getProfiles(options?: GetProfilesOptions): Promise<ProfilesResult> {
   const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
   if (authResult.error) {
     throw new Error(authResult.error)
@@ -46,9 +32,7 @@ export async function getProfiles(options?: GetProfilesOptions) {
 
   // Construire la requête where
   const where: Prisma.ProfileWhereInput = {
-    ...(options?.status && {
-      status: options.status
-    }),
+    ...(options?.status && { status: options.status }),
     ...(options?.search && {
       OR: [
         { firstName: { contains: options.search, mode: 'insensitive' } },
@@ -70,15 +54,6 @@ export async function getProfiles(options?: GetProfilesOptions) {
     const [profiles, total] = await Promise.all([
       db.profile.findMany({
         where,
-        include: {
-          passport: true,
-          birthCertificate: true,
-          residencePermit: true,
-          addressProof: true,
-          address: true,
-          addressInGabon: true,
-          emergencyContact: true,
-        },
         orderBy
       }),
       db.profile.count({ where })
@@ -114,6 +89,63 @@ export async function getProfileById(id: string) {
       address: true,
       addressInGabon: true,
       emergencyContact: true,
+      notes: {
+        include: {
+          author: {
+            select: {
+              name: true,
+              image: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }
     }
   })
+}
+
+interface ValidateProfileInput {
+  profileId: string
+  status: RequestStatus
+  notes?: string
+}
+
+export async function validateProfile(input: ValidateProfileInput) {
+  try {
+    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
+    if (authResult.error || !authResult.user) {
+      return { error: authResult.error }
+    }
+
+    // Vérifier que le profil existe
+    const profile = await db.profile.findUnique({
+      where: { id: input.profileId }
+    })
+
+    if (!profile) {
+      return { error: 'Profile not found' }
+    }
+
+    // Mettre à jour le profil
+    const updatedProfile = await db.profile.update({
+      where: { id: input.profileId },
+      data: {
+        status: input.status,
+        validationNotes: input.notes,
+        validatedAt: new Date(),
+        validatedBy: authResult.user.id
+      },
+    })
+
+    // Revalider les pages concernées
+    revalidatePath(ROUTES.admin_profiles)
+    revalidatePath(`${ROUTES.admin_profiles}/${profile.id}/review`)
+
+    return { success: true, data: updatedProfile }
+  } catch (error) {
+    console.error('Error validating profile:', error)
+    return { error: 'Failed to validate profile' }
+  }
 }

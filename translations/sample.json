@@ -100,11 +100,20 @@
       "pending": "",
       "approved": "",
       "rejected": "",
+      "in_progress": "",
       "processing": "",
       "expired": "",
       "incomplete": "",
       "verified": "",
-      "review": ""
+      "review": "",
+      "valid": "",
+      "draft": "",
+      "submitted": "",
+      "in_review": "",
+      "additional_info_needed": "",
+      "completed": "",
+      "cancelled": "",
+      "validated": ""
     },
     "confirm": {
       "title": "",
@@ -325,6 +334,7 @@
     "cyprus": "",
     "colombia": "",
     "comoros": "",
+    "congo": "",
     "republic_of_congo": "",
     "democratic_republic_of_congo": "",
     "north_korea": "",
@@ -776,6 +786,185 @@
       "users": "",
       "requests": "",
       "settings": ""
+    },
+    "profiles": {
+      "title": "",
+      "description": "",
+      "table": {
+        "name": "",
+        "nationality": "",
+        "status": "",
+        "submitted_at": "",
+        "updated_at": "",
+        "actions": "",
+        "empty": ""
+      },
+      "filters": {
+        "search": "",
+        "status": "",
+        "all": "",
+        "date": "",
+        "reset": "",
+        "active_filters": ""
+      },
+      "status": {
+        "draft": "",
+        "submitted": "",
+        "in_review": "",
+        "validated": "",
+        "rejected": ""
+      },
+      "actions": {
+        "review": "",
+        "validate": "",
+        "reject": "",
+        "request_changes": "",
+        "view_details": "",
+        "export": ""
+      },
+      "empty": {
+        "title": "",
+        "description": ""
+      },
+      "review": {
+        "title": "",
+        "submitted_on": "",
+        "actions": {
+          "validate": "",
+          "reject": "",
+          "save_notes": ""
+        },
+        "tabs": {
+          "basic": "",
+          "documents": "",
+          "contact": "",
+          "family": "",
+          "professional": ""
+        },
+        "sections": {
+          "basic_info": "",
+          "documents": "",
+          "contact": "",
+          "main_address": "",
+          "gabon_address": "",
+          "civil_status": "",
+          "parents": "",
+          "emergency_contact": "",
+          "work_status": "",
+          "professional_info": "",
+          "gabon_activity": ""
+        },
+        "fields": {
+          "name": "",
+          "birth_date": "",
+          "birth_place": "",
+          "nationality": "",
+          "email": "",
+          "phone": "",
+          "marital_status": "",
+          "father": "",
+          "mother": "",
+          "full_name": "",
+          "relationship": "",
+          "work_status": "",
+          "profession": "",
+          "employer": "",
+          "employer_address": "",
+          "last_activity": ""
+        },
+        "documents": {
+          "passport": "",
+          "birth_certificate": "",
+          "residence_permit": "",
+          "address_proof": "",
+          "required": "",
+          "issued_at": "",
+          "expires_at": "",
+          "valid": "",
+          "validation": {
+            "title": "",
+            "notes_placeholder": "",
+            "cancel": "",
+            "reject": "",
+            "validate": "",
+            "success": {
+              "title": "",
+              "description": ""
+            },
+            "error": {
+              "title": "",
+              "description": ""
+            }
+          }
+        },
+        "document_status": {
+          "pending": "",
+          "validated": "",
+          "rejected": "",
+          "expired": "",
+          "expiring": ""
+        },
+        "notes": {
+          "title": "",
+          "placeholder": "",
+          "save": "",
+          "tabs": {
+            "internal": "",
+            "feedback": ""
+          },
+          "internal_placeholder": "",
+          "feedback_placeholder": "",
+          "add": "",
+          "success": {
+            "title": "",
+            "description": ""
+          },
+          "error": {
+            "title": "",
+            "description": "",
+            "unknown": ""
+          }
+        },
+        "no_address": "",
+        "no_gabon_address": "",
+        "no_emergency_contact": "",
+        "marital_status": {
+          "single": "",
+          "married": "",
+          "divorced": "",
+          "widowed": "",
+          "cohabiting": ""
+        },
+        "work_status": {
+          "employee": "",
+          "entrepreneur": "",
+          "unemployed": "",
+          "student": "",
+          "retired": "",
+          "other": ""
+        },
+        "validation": {
+          "title": "",
+          "description": "",
+          "notes_placeholder": "",
+          "cancel": "",
+          "validate": "",
+          "reject": "",
+          "success": {
+            "title": "",
+            "description": ""
+          },
+          "error": {
+            "title": "",
+            "description": "",
+            "unknown": ""
+          }
+        },
+        "rejection": {
+          "title": "",
+          "description": ""
+        }
+      }
     }
   },
   "user": {

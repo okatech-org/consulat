@@ -548,6 +548,7 @@ export async function submitProfileForValidation(
       where: { id: profileId },
       data: {
         status: RequestStatus.SUBMITTED,
+        submittedAt: new Date()
       },
       include: {
         passport: true,

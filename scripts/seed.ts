@@ -78,7 +78,7 @@ async function main() {
 
     const manager = await prisma.user.create({
       data: {
-        email: 'manager@consulat.ga',
+        email: 'itoutouberny+manager@gmail.com',
         name: 'Manager Consulaire',
         role: UserRole.ADMIN,
         emailVerified: new Date(),
@@ -239,7 +239,7 @@ async function main() {
 
 async function createSampleProfile(index: number): Promise<User> {
   const now = new Date()
-  const status = [RequestStatus.DRAFT, RequestStatus.SUBMITTED, RequestStatus.IN_REVIEW, RequestStatus.VALIDATED, RequestStatus.REJECTED][index % 5]
+  const status = [RequestStatus.DRAFT, RequestStatus.SUBMITTED][index % 2]
 
   // Créer un utilisateur
   const user = await prisma.user.create({
@@ -312,12 +312,12 @@ async function createSampleProfile(index: number): Promise<User> {
   await prisma.profile.create({
     data: {
       userId: user.id,
-      firstName: `Prénom${index}`,
-      lastName: `Nom${index}`,
+      firstName: `Jon-${index}`,
+      lastName: `Doe-${index}`,
       gender: index % 2 === 0 ? Gender.MALE : Gender.FEMALE,
       birthDate: subDays(now, 10000 + index * 100).toISOString(),
       birthPlace: SAMPLE_CITIES[index % SAMPLE_CITIES.length],
-      birthCountry: 'france',
+      birthCountry: 'gabon',
       nationality: SAMPLE_NATIONALITIES[index % SAMPLE_NATIONALITIES.length],
       maritalStatus: Object.values(MaritalStatus)[index % Object.values(MaritalStatus).length],
       workStatus: Object.values(WorkStatus)[index % Object.values(WorkStatus).length],
@@ -338,7 +338,7 @@ async function createSampleProfile(index: number): Promise<User> {
 
       // Contact
       phone: `+3361234${(56789 + index).toString().padStart(5, '0')}`,
-      email: `user${index}@example.com`,
+      email: `itoutouberny+${index}@example.com`,
       addressId: address.id,
 
       // Adresse au Gabon
@@ -366,7 +366,8 @@ async function createSampleProfile(index: number): Promise<User> {
       },
 
       // Statut
-      status
+      status,
+      submittedAt: status === RequestStatus.SUBMITTED ? subDays(now, 1) : null,
     }
   })
 

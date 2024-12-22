@@ -10,10 +10,24 @@ import { ProfileContact } from './review/contact'
 import { ProfileFamily } from './review/family'
 import { ProfileProfessional } from './review/professional'
 import { Button } from '@/components/ui/button'
-import { Check, X } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { ProfileStatusBadge } from '@/components/profile/profile-status-badge'
 import { useState } from 'react'
-import { ReviewNotes } from './review/notes'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { RequestStatus } from '@prisma/client'
+import { Textarea } from '@/components/ui/textarea'
+import { useRouter } from 'next/navigation'
+import { useToast } from '@/hooks/use-toast'
+import { validateProfile } from '@/actions/admin/profiles'
+import { ROUTES } from '@/schemas/routes'
+import { ProfileNotes } from '@/components/admin/profiles/profile-notes'
 
 interface ProfileReviewProps {
   profile: FullProfile
@@ -21,19 +35,49 @@ interface ProfileReviewProps {
 
 export function ProfileReview({ profile }: ProfileReviewProps) {
   const t = useTranslations('admin.profiles.review')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [notes, setNotes] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null)
+  const router = useRouter()
+  const { toast } = useToast()
 
-  const handleValidate = async () => {
-    setIsSubmitting(true)
-    // TODO: Implémenter la validation
-    setIsSubmitting(false)
-  }
+  const handleValidation = async (notes: string) => {
+    try {
+      setIsLoading(true)
 
-  const handleReject = async () => {
-    setIsSubmitting(true)
-    // TODO: Implémenter le rejet
-    setIsSubmitting(false)
+      const result = await validateProfile({
+        profileId: profile.id,
+        status: validationStatus!,
+        notes
+      })
+
+      if (result.error) {
+        toast({
+          title: t('validation.error.title'),
+          description: result.error,
+          variant: "destructive"
+        })
+        return
+      }
+
+      toast({
+        title: t('validation.success.title'),
+        description: t('validation.success.description'),
+        variant: "success"
+      })
+
+      // Fermer le dialogue et rediriger
+      setValidationStatus(null)
+      router.push(ROUTES.admin_profiles)
+
+    } catch (error) {
+      toast({
+        title: t('validation.error.title'),
+        description: t('validation.error.unknown'),
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -53,27 +97,33 @@ export function ProfileReview({ profile }: ProfileReviewProps) {
                 </span>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex justify-end gap-4">
               <Button
-                variant="destructive"
-                onClick={handleReject}
-                disabled={isSubmitting}
+                variant={profile.status === RequestStatus.REJECTED ? "default" : "destructive"}
+                onClick={() => setValidationStatus(RequestStatus.REJECTED)}
+                disabled={isLoading}
               >
-                <X className="mr-2 h-4 w-4" />
-                {t('actions.reject')}
+                {t('validation.reject')}
               </Button>
               <Button
-                variant={"success"}
-                onClick={handleValidate}
-                disabled={isSubmitting}
+                variant={profile.status === RequestStatus.VALIDATED ? "default" : "success"}
+                onClick={() => setValidationStatus(RequestStatus.VALIDATED)}
+                disabled={isLoading}
               >
-                <Check className="mr-2 h-4 w-4" />
-                {t('actions.validate')}
+                {t('validation.validate')}
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      <ValidationDialog
+        isOpen={!!validationStatus}
+        onClose={() => setValidationStatus(null)}
+        onConfirm={handleValidation}
+        status={validationStatus!}
+        isLoading={isLoading}
+      />
 
       {/* Contenu principal */}
       <div className="grid gap-6 md:grid-cols-3">
@@ -111,15 +161,64 @@ export function ProfileReview({ profile }: ProfileReviewProps) {
 
         {/* Panneau latéral pour les notes et validations */}
         <div className="space-y-6">
-          <ReviewNotes
-            notes={notes}
-            onChange={setNotes}
-            onSubmit={() => {
-              // TODO: Sauvegarder les notes
-            }}
+          <ProfileNotes
+            profileId={profile.id}
+            notes={profile.notes}
           />
         </div>
       </div>
     </div>
+  )
+}
+
+interface ValidationDialogProps {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: (notes: string) => void
+  status: RequestStatus
+  isLoading: boolean
+}
+
+const ValidationDialog = ({ isOpen, onClose, onConfirm, status, isLoading }: ValidationDialogProps) => {
+  const [notes, setNotes] = useState('')
+  const t = useTranslations('admin.profiles.review')
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {status === RequestStatus.VALIDATED
+              ? t('validation.title')
+              : t('rejection.title')}
+          </DialogTitle>
+          <DialogDescription>
+            {status === RequestStatus.VALIDATED
+              ? t('validation.description')
+              : t('rejection.description')}
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea
+          placeholder={t('validation.notes_placeholder')}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            {t('validation.cancel')}
+          </Button>
+          <Button
+            variant={status === RequestStatus.VALIDATED ? "default" : "destructive"}
+            onClick={() => onConfirm(notes)}
+            disabled={isLoading}
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {status === RequestStatus.VALIDATED
+              ? t('validation.validate')
+              : t('validation.reject')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
