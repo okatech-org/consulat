@@ -25,8 +25,6 @@ export function ProfilesTable({ profiles }: ProfilesTableProps) {
   const t_countries = useTranslations('countries')
   const t_profiles = useTranslations('admin.profiles')
 
-  console.log(profiles)
-
   return (
     <div className="rounded-md border">
       <Table>

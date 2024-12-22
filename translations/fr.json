@@ -830,6 +830,109 @@
       "empty": {
         "title": "Aucun profil",
         "description": "Aucun profil ne correspond à vos critères de recherche"
+      },
+
+      "review": {
+        "title": "Revue du profil",
+        "submitted_on": "Soumis le",
+        "actions": {
+          "validate": "Valider",
+          "reject": "Rejeter",
+          "save_notes": "Sauvegarder les notes"
+        },
+        "tabs": {
+          "basic": "Informations de base",
+          "documents": "Documents",
+          "contact": "Contact",
+          "family": "Famille",
+          "professional": "Professionnel"
+        },
+        "sections": {
+          "basic_info": "Informations de base",
+          "documents": "Documents",
+          "contact": "Coordonnées",
+          "main_address": "Adresse principale",
+          "gabon_address": "Adresse au Gabon",
+          "civil_status": "État civil",
+          "parents": "Parents",
+          "emergency_contact": "Contact d'urgence",
+          "work_status": "Statut professionnel",
+          "professional_info": "Informations professionnelles",
+          "gabon_activity": "Activité au Gabon"
+        },
+        "fields": {
+          "name": "Nom complet",
+          "birth_date": "Date de naissance",
+          "birth_place": "Lieu de naissance",
+          "nationality": "Nationalité",
+          "email": "Email",
+          "phone": "Téléphone",
+          "marital_status": "Situation matrimoniale",
+          "father": "Père",
+          "mother": "Mère",
+          "full_name": "Nom complet",
+          "relationship": "Lien de parenté",
+          "work_status": "Statut professionnel",
+          "profession": "Profession",
+          "employer": "Employeur",
+          "employer_address": "Adresse de l'employeur",
+          "last_activity": "Dernière activité"
+        },
+        "documents": {
+          "passport": "Passeport",
+          "birth_certificate": "Acte de naissance",
+          "residence_permit": "Titre de séjour",
+          "address_proof": "Justificatif de domicile",
+          "required": "Requis",
+          "issued_at": "Délivré le",
+          "expires_at": "Expire le",
+          "valid": "Valide",
+          "validation": {
+            "title": "Validation du document - {type}",
+            "notes_placeholder": "Ajoutez des notes concernant la validation de ce document...",
+            "cancel": "Annuler",
+            "reject": "Rejeter",
+            "validate": "Valider",
+            "success": {
+              "title": "Document validé",
+              "description": "Le document a été validé avec succès"
+            },
+            "error": {
+              "title": "Erreur",
+              "description": "Une erreur est survenue lors de la validation du document"
+            }
+          }
+        },
+        "document_status": {
+          "pending": "En attente",
+          "validated": "Validé",
+          "rejected": "Rejeté",
+          "expired": "Expiré",
+          "expiring": "Expire bientôt"
+        },
+        "notes": {
+          "title": "Notes de revue",
+          "placeholder": "Ajoutez vos notes concernant ce profil...",
+          "save": "Sauvegarder les notes"
+        },
+        "no_address": "Aucune adresse renseignée",
+        "no_gabon_address": "Aucune adresse au Gabon renseignée",
+        "no_emergency_contact": "Aucun contact d'urgence renseigné",
+        "marital_status": {
+          "single": "Célibataire",
+          "married": "Marié(e)",
+          "divorced": "Divorcé(e)",
+          "widowed": "Veuf/Veuve",
+          "cohabiting": "En concubinage"
+        },
+        "work_status": {
+          "employee": "Salarié(e)",
+          "entrepreneur": "Entrepreneur",
+          "unemployed": "Sans emploi",
+          "student": "Étudiant(e)",
+          "retired": "Retraité(e)",
+          "other": "Autre"
+        }
       }
     }
   },

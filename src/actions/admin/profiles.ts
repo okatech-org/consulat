@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/prisma'
 import { checkAuth } from '@/lib/auth/action'
-import { RequestStatus } from '@prisma/client'
+import { Prisma, RequestStatus } from '@prisma/client'
 
 export async function getProfilesForValidation() {
   const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
@@ -96,4 +96,24 @@ export async function getProfiles(options?: GetProfilesOptions) {
     console.error('Error fetching profiles:', error)
     throw new Error('Failed to fetch profiles')
   }
+}
+
+export async function getProfileById(id: string) {
+  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
+  if (authResult.error) {
+    throw new Error(authResult.error)
+  }
+
+  return db.profile.findUnique({
+    where: { id },
+    include: {
+      passport: true,
+      birthCertificate: true,
+      residencePermit: true,
+      addressProof: true,
+      address: true,
+      addressInGabon: true,
+      emergencyContact: true,
+    }
+  })
 }
