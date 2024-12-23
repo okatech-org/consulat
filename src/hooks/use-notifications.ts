@@ -1,5 +1,3 @@
-// src/hooks/use-notifications.ts
-
 import { useEffect, useState } from 'react'
 import { getUnreadNotificationsCount, markNotificationAsRead } from '@/actions/notifications'
 

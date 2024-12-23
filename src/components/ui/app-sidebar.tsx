@@ -22,6 +22,7 @@ import { getCurrentUser } from '@/actions/user'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import Image from 'next/image'
+import { NotificationsMenu } from '@/components/notifications/notifications-menu'
 
 export default async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = await getCurrentUser()

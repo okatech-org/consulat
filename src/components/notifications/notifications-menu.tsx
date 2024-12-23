@@ -1,0 +1,135 @@
+'use client'
+
+import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Bell, Check, Loader2 } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { useNotifications } from '@/hooks/use-notifications'
+import { Badge } from '@/components/ui/badge'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
+
+interface Notification {
+  id: string
+  type: string
+  title: string
+  message: string
+  read: boolean
+  createdAt: Date
+}
+
+function NotificationItem({ notification, onRead }: {
+  notification: Notification
+  onRead: () => Promise<void>
+}) {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleRead = async () => {
+    setIsLoading(true)
+    try {
+      await onRead()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className={cn(
+      "flex items-start gap-4 p-4 border-b last:border-0",
+      !notification.read && "bg-muted/50"
+    )}>
+      <div className="flex-1">
+        <h4 className="text-sm font-medium">{notification.title}</h4>
+        <p className="text-sm text-muted-foreground">{notification.message}</p>
+        <span className="text-xs text-muted-foreground">
+          {format(new Date(notification.createdAt), 'PPp', { locale: fr })}
+        </span>
+      </div>
+      {!notification.read && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRead}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Check className="h-4 w-4" />
+          )}
+        </Button>
+      )}
+    </div>
+  )
+}
+
+export function NotificationsMenu() {
+  const t = useTranslations('notifications')
+  const { unreadCount, isLoading, markAsRead } = useNotifications()
+  const [notifications, setNotifications] = useState<Notification[]>([])
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    await markAsRead(notificationId)
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === notificationId ? { ...n, read: true } : n
+      )
+    )
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" className="relative p-2 max-w-min">
+          <Bell className="h-5 w-5" />
+          <span>
+            {t('title')}
+          </span>
+          {unreadCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="flex items-center justify-center absolute -right-1 -top-1 h-5 w-5 rounded-full p-0"
+            >
+              {unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="flex items-center justify-between pb-4">
+          <h3 className="font-medium">{t('title')}</h3>
+          {unreadCount > 0 && (
+            <Button variant="ghost" size="sm">
+              {t('mark_all_read')}
+            </Button>
+          )}
+        </div>
+        <ScrollArea className="h-[300px]">
+          {notifications.length > 0 ? (
+            notifications.map(notification => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onRead={() => handleMarkAsRead(notification.id)}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+              <Bell className="h-8 w-8 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">
+                {t('empty')}
+              </p>
+            </div>
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  )
+}

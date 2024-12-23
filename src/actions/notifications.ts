@@ -1,3 +1,5 @@
+'use server'
+
 import { getCurrentUser } from '@/actions/user'
 import { db } from '@/lib/prisma'
 

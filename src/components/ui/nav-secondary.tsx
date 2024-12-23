@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from 'next/link'
 import { NavItem } from '@/types/navigation'
+import { NotificationsMenu } from '@/components/notifications/notifications-menu'
 
 export function NavSecondary({
   items,
@@ -30,6 +31,7 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          <NotificationsMenu />
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

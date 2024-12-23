@@ -22,6 +22,7 @@ import { useTranslations } from 'next-intl'
 import { NavItem } from '@/types/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { NotificationsMenu } from '@/components/notifications/notifications-menu'
 
 export function NavMain({
   items,

@@ -1574,6 +1574,10 @@
         "add": "Ajouter"
       },
       "analyzing": "Analyse en cours..."
+    },
+    "notes": {
+      "title": "Retours administratifs",
+      "empty": "Aucun retour pour le moment"
     }
   },
   "documents": {
@@ -2577,6 +2581,16 @@
         },
         "and_more": "et {count} autres"
       }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "mark_all_read": "Tout marquer comme lu",
+    "types": {
+      "PROFILE_FEEDBACK": "Retour sur votre profil",
+      "PROFILE_VALIDATED": "Profil validé",
+      "PROFILE_REJECTED": "Profil rejeté"
     }
   }
 }
