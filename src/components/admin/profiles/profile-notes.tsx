@@ -1,4 +1,6 @@
-import { useState } from 'react'
+"use client"
+
+import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -24,7 +26,7 @@ interface NoteItemProps {
   note: Note
 }
 
-const NoteItem = ({ note }: NoteItemProps) => {
+export const NoteItem = ({ note }: NoteItemProps) => {
   return (
     <div className="border-b py-4 last:border-0">
       <div className="flex items-center justify-between mb-2">
@@ -34,10 +36,10 @@ const NoteItem = ({ note }: NoteItemProps) => {
           ) : (
             <MessageCircle className="h-4 w-4 text-muted-foreground" />
           )}
-          <span className="font-medium">{note.author.name}</span>
+          <span className="font-medium text-sm">{note.author.name}</span>
         </div>
-        <span className="text-sm text-muted-foreground">
-          {format(new Date(note.createdAt), 'PPp', { locale: fr })}
+        <span className="text-xs text-muted-foreground">
+          {format(new Date(note.createdAt), 'dd/MM/yyyy', { locale: fr })}
         </span>
       </div>
       <p className="text-sm whitespace-pre-wrap">{note.content}</p>
@@ -175,6 +177,25 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
             </div>
           </TabsContent>
         </Tabs>
+      </CardContent>
+    </Card>
+  )
+}
+
+export const NotesList = ({ notes }: { notes: Note[] }) => {
+  const t = useTranslations('admin.profiles.review.notes')
+
+  return (
+    <Card>
+      <CardHeader className={"pb-0"}>
+        <CardTitle>{t('title')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {notes
+          .map(note => (
+            <NoteItem key={note.id} note={note} />
+          ))
+        }
       </CardContent>
     </Card>
   )

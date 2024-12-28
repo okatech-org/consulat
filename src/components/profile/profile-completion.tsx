@@ -43,7 +43,7 @@ export function ProfileCompletion({
   const t = useTranslations('profile')
 
   const getCompletionColor = (rate: number) => {
-    if (rate >= 100) return 'text-success'
+    if (rate >= 100) return 'text-green'
     if (rate >= 70) return 'text-warning'
     return 'text-destructive'
   }
@@ -77,13 +77,19 @@ export function ProfileCompletion({
         />
 
         {/* Informations optionnelles */}
-        <FieldsSection
-          title={t('completion.optional_information')}
-          fields={fieldStatus.optional.fields}
-          completed={fieldStatus.optional.completed}
-          total={fieldStatus.optional.total}
-          type="optional"
-        />
+        {
+          fieldStatus.optional.total > 0 && (
+            <FieldsSection
+              title={t('completion.optional_information')}
+              fields={fieldStatus.optional.fields}
+              completed={fieldStatus.optional.completed}
+              total={fieldStatus.optional.total}
+              type="optional"
+            />
+          )
+        }
+
+
       </CardContent>
     </Card>
   )

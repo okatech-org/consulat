@@ -11,7 +11,7 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
   const t = useTranslations('admin.profiles.review')
 
   const showEmployerInfo = profile.workStatus === 'EMPLOYEE'
-  const showProfessionInfo = ['EMPLOYEE', 'ENTREPRENEUR'].includes(profile.workStatus)
+  const showProfessionInfo = ['EMPLOYEE', 'ENTREPRENEUR'].includes(profile.workStatus || '')
 
   return (
     <div className="space-y-4">
@@ -27,7 +27,7 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
               <p className="text-sm text-muted-foreground">{t('fields.work_status')}</p>
               <div className="flex items-center gap-2">
                 <p className="font-medium">
-                  {t(`work_status.${profile.workStatus.toLowerCase()}`)}
+                  {t(`work_status.${profile.workStatus?.toLowerCase()}`)}
                 </p>
               </div>
             </div>

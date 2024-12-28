@@ -2,16 +2,24 @@ import { Prisma, UserDocument } from '@prisma/client'
 
 export type FullProfile = Prisma.ProfileGetPayload<{
   include: {
-    passport: true
-    birthCertificate: true
-    residencePermit: true
-    address: true
-    addressProof: true
-    addressInGabon: true
-    emergencyContact: true
+    passport: true,
+    birthCertificate: true,
+    residencePermit: true,
+    addressProof: true,
+    address: true,
+    addressInGabon: true,
+    emergencyContact: true,
     notes: {
       include: {
-        author: true
+        author: {
+          select: {
+            name: true,
+            image: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     }
   }

@@ -1,22 +1,32 @@
 import { useEffect, useState } from 'react'
-import { getUnreadNotificationsCount, markNotificationAsRead } from '@/actions/notifications'
+import { Notification } from '@prisma/client'
+import { getNotifications, getUnreadNotificationsCount, markNotificationAsRead } from '@/actions/notifications'
 
 export function useNotifications() {
   const [count, setCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   useEffect(() => {
     const fetchCount = async () => {
       setIsLoading(true)
-      try {
-        const result = await getUnreadNotificationsCount()
-        setCount(result.count)
-      } finally {
-        setIsLoading(false)
-      }
+
+      const result = await getUnreadNotificationsCount()
+      setCount(result.count)
     }
 
-    fetchCount()
+    const fetchNotifications = async () => {
+      setIsLoading(true)
+
+      const result = await getNotifications()
+      setNotifications(result)
+    }
+
+    const promises = [fetchCount(), fetchNotifications()]
+
+    Promise.all(promises).then(() => {
+      setIsLoading(false)
+    })
     const interval = setInterval(fetchCount, 60000)
     return () => clearInterval(interval)
   }, [])
@@ -31,6 +41,7 @@ export function useNotifications() {
 
   return {
     unreadCount: count,
+    notifications,
     isLoading,
     markAsRead
   }

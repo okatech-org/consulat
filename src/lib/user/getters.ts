@@ -65,11 +65,24 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
         passport: true,
         birthCertificate: true,
         residencePermit: true,
-        address: true,
         addressProof: true,
+        address: true,
         addressInGabon: true,
         emergencyContact: true,
-      },
+        notes: {
+          include: {
+            author: {
+              select: {
+                name: true,
+                image: true
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      }
     })
   } catch(e) {
     console.error(e)

@@ -919,6 +919,10 @@
             "internal": "Notes internes",
             "feedback": "Retours utilisateur"
           },
+          "notification": {
+            "title": "Retour administratif",
+            "empty": "Aucun retour pour le moment"
+          },
           "internal_placeholder": "Ajouter une note interne...",
           "feedback_placeholder": "Ajouter un retour pour l'utilisateur...",
           "add": "Ajouter",

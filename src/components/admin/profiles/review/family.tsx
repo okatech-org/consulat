@@ -25,7 +25,7 @@ export function ProfileFamily({ profile }: ProfileFamilyProps) {
               <p className="text-sm text-muted-foreground">{t('fields.marital_status')}</p>
               <div className="flex items-center gap-2">
                 <p className="font-medium">
-                  {t(`marital_status.${profile.maritalStatus.toLowerCase()}`)}
+                  {t(`marital_status.${profile.maritalStatus?.toLowerCase()}`)}
                 </p>
                 {profile.maritalStatus === 'MARRIED' && profile.spouseFullName && (
                   <Badge variant="outline">{profile.spouseFullName}</Badge>

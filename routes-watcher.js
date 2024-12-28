@@ -56,7 +56,7 @@ function updateRoutes(filePath) {
 
     // Check if the file is a route.ts or page.ts file
     const isRouteFile = path.basename(filePath) === 'route.ts'
-    const isPageFile = path.basename(filePath) === 'page.tsx'
+    const isPageFile = path.basename(filePath) === '_page.tsx'
 
     // Update the appropriate enum based on the file location and type
     if (isApiRoute && isRouteFile) {

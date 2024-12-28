@@ -1,12 +1,9 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
-import { buttonVariants } from '@/components/ui/button'
 import LangSwitcher from "@/components/ui/LangSwitcher"
-import { auth } from "@/auth"
 
 export async function PublicHeader() {
-  const isAuth = await auth()
   const t = await getTranslations('home')
 
   return (
@@ -20,16 +17,16 @@ export async function PublicHeader() {
 
         <div className="flex w-max gap-3">
           <LangSwitcher />
-          <Link
+          {/**<Link
             href={ROUTES.profile}
-            className={buttonVariants({ variant: "default" }) + " !rounded-full max-[480px]:!px-2"}
+            className={buttonVariants({ variant: 'default' }) + ' !rounded-full max-[480px]:!px-2'}
           >
             {isAuth ? (
               <span>{t('nav.profile')}</span>
             ) : (
               <span>{t('nav.login')}</span>
             )}
-          </Link>
+          </Link>*/}
         </div>
       </div>
     </header>
