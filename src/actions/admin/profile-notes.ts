@@ -4,8 +4,8 @@ import { db } from '@/lib/prisma'
 import { checkAuth } from '@/lib/auth/action'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/schemas/routes'
-import { createNotification } from '@/lib/notifications'
 import { getTranslations } from 'next-intl/server'
+import { createNotification } from '@/actions/notifications'
 interface AddNoteInput {
   profileId: string
   content: string

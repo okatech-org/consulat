@@ -251,10 +251,13 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
     { key: 'birthCertificate', name: 'birth_certificate' },
     { key: 'phone', name: 'phone' },
     { key: 'address', name: 'address' },
-    {key: "addressProof", name: "address_proof"}
-  ]
-
-  const optionalFields = [
+    {key: "addressProof", name: "address_proof"},
+    { key: 'profession', name: 'profession' },
+    { key: 'employer', name: 'employer' },
+    { key: 'addressInGabon', name: 'gabon_address' },
+    { key: 'activityInGabon', name: 'gabon_activity' },
+    { key: 'maritalStatus', name: 'marital_status' },
+    {key: "residencePermit", name: "residence_permit"},
     { key: 'profession', name: 'profession' },
     { key: 'employer', name: 'employer' },
     { key: 'addressInGabon', name: 'gabon_address' },
@@ -269,11 +272,6 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
     completed: !!profile[field.key as keyof Profile]
   }))
 
-  const optionalStatus = optionalFields.map(field => ({
-    ...field,
-    completed: !!profile[field.key as keyof Profile]
-  }))
-
   return {
     required: {
       total: requiredFields.length,
@@ -281,9 +279,9 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
       fields: requiredStatus
     },
     optional: {
-      total: optionalFields.length,
-      completed: optionalStatus.filter(f => f.completed).length,
-      fields: optionalStatus
+      total: 0,
+      completed: 0,
+      fields: []
     }
   }
 }

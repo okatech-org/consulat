@@ -1,58 +1,134 @@
-import * as React from 'react'
 import Link from 'next/link'
 import { ROUTES } from '@/schemas/routes'
 import { buttonVariants } from '@/components/ui/button'
-import imagePicture from '@/assets/contact-ga-image.png'
-import Image from 'next/image'
-import { getTranslations } from 'next-intl/server'
+import { ArrowRight, CalendarIcon, CheckCircle, ScrollText, Shield, Users } from 'lucide-react'
+import React from 'react'
+import { IdCardIcon } from '@radix-ui/react-icons'
+import { CTASection } from '@/app/(public)/cta-section'
 
-export default async function HomePage() {
-  const t = await getTranslations('home')
+export default async function LandingPage() {
 
   return (
-    <div
-      className="container relative flex grow flex-col-reverse justify-evenly gap-4 py-12 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-      <div className='relative max-w-[70%] space-y-4 md:max-w-full'>
-        <h2 className={'text-lg font-semibold uppercase lg:text-6xl'}>
-          {t('title')}
-        </h2>
-        <p>{t('subtitle')}</p>
-        <div className='actions flex flex-wrap items-center gap-4'>
-          <Link
-            href={ROUTES.registration}
-            className={
-              buttonVariants({
-                variant: 'default',
-              }) +
-              ' !rounded-full !text-lg !p-5 leading-none flex flex-col items-center text-center'
-            }
-          >
-              <span className={'leading-none'}>
-                {t('cta.request_card')}
-              </span>
-          </Link>
+    <div className="flex min-h-screen w-full flex-col">
+      {/* Hero Section */}
+      <section
+        className="relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-gradient-to-b from-primary/10 to-background px-4 py-20">
+        <div className="container relative z-10 mx-auto flex flex-col items-center text-center">
+          <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl">
+            Votre Consulat<br />
+            <span className="text-primary">100% Digital</span>
+          </h1>
+          <p className="mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
+            {"Simplifiez vos démarches consulaires et gérez tous vos documents en ligne, en toute sécurité et depuis n'importe où."}
+          </p>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <Link
+              href="#features"
+              className={buttonVariants({
+                variant: "default",
+                size: "lg",
+                className: "rounded-full"
+              })}
+            >
+              Découvrir les fonctionnalités
+            </Link>
+          </div>
         </div>
-      </div>
-      <div className="image-cover w-full md:max-w-[40%]">
-        <div className="relative w-full max-w-[400px] overflow-hidden rounded md:max-w-[500px]">
-          <iframe
-            className={'absolut left-0 top-0 aspect-[1440/1080] size-full max-w-full object-cover'}
-            src="https://player.vimeo.com/video/1023725393?title=0&amp;byline=0&amp;portrait=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
-            width="1440" height="1080" allow="autoplay; picture-in-picture; clipboard-write"
-            title="Présentation carte consulaire"></iframe>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20">
+        <div className="container">
+          <h2 className="mb-12 text-center text-3xl font-bold md:text-4xl">
+            Tout votre consulat dans votre poche
+          </h2>
+          <div className="grid gap-8 md:grid-cols-3">
+            <FeatureCard
+              icon={<Shield className="h-10 w-10 text-primary" />}
+              title="Sécurisé et Officiel"
+              description="Vos documents et démarches sont traités de manière 100% sécurisée et conforme aux normes consulaires."
+            />
+            <FeatureCard
+              icon={<Users className="h-10 w-10 text-primary" />}
+              title="Communauté Active"
+              description="Rejoignez la communauté des ressortissants et restez connecté avec votre consulat."
+            />
+            <FeatureCard
+              icon={<CheckCircle className="h-10 w-10 text-primary" />}
+              title="Simple et Rapide"
+              description="Effectuez vos démarches en quelques clics et suivez leur avancement en temps réel."
+            />
+          </div>
         </div>
-        <script src="https://player.vimeo.com/api/player.js"></script>
+      </section>
+
+      {/* Services Section */}
+      <section className="bg-muted py-20">
+        <div className="container">
+          <h2 className="mb-12 text-center text-3xl font-bold md:text-4xl">
+            Nos Services
+          </h2>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <ServiceCard
+              title="Carte Consulaire"
+              description="Obtenez votre carte consulaire numérique et gérez vos informations facilement."
+              icon={<IdCardIcon className={"size-8"} />}
+            />
+            <ServiceCard
+              title="Documents Officiels"
+              description="Demandez et renouvelez vos documents officiels en ligne."
+              icon={<ScrollText className={"size-8"}/>}
+            />
+            <ServiceCard
+              title="Rendez-vous"
+              description="Prenez rendez-vous en ligne et évitez les files d'attente."
+              icon={<CalendarIcon className={"size-8"}/>}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <CTASection />
+    </div>
+  )
+}
+
+// Components
+function FeatureCard({
+                       icon,
+                       title,
+                       description
+                     }: {
+  icon: React.ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm transition-all hover:shadow-md">
+      <div className="mb-4">{icon}</div>
+      <h3 className="mb-2 text-xl font-semibold">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  )
+}
+
+function ServiceCard({
+                       title,
+                       description,
+                       icon
+                     }: {
+  title: string
+  description: string
+  icon: React.ReactNode
+}) {
+  return (
+    <div className="rounded-lg bg-background p-6 shadow-sm transition-all hover:shadow-md">
+      <div className="mb-4">
+        {icon}
       </div>
-      <div className="image absolute -right-16 bottom-0 -z-10 w-full max-w-[50%] md:hidden">
-        <Image
-          src={imagePicture}
-          alt={'business card cover'}
-          style={{ objectFit: 'cover' }}
-          className={'!h-full !w-full object-cover'}
-          width={400}
-          height={600}
-        />
-      </div>
+      <h3 className="mb-2 text-xl font-semibold">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   )
 }

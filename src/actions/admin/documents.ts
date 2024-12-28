@@ -36,7 +36,7 @@ export async function validateDocument(input: ValidateDocumentInput) {
 
     // Revalider les pages concernées
     revalidatePath(ROUTES.admin_profiles)
-    revalidatePath(`${ROUTES.admin_profiles}/${document.user.id}/review`)
+    revalidatePath(`${ROUTES.admin_profiles}/${document.user?.id}/review`)
 
     return { success: true, data: document }
   } catch (error) {

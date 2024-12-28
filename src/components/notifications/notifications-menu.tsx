@@ -15,15 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-
-interface Notification {
-  id: string
-  type: string
-  title: string
-  message: string
-  read: boolean
-  createdAt: Date
-}
+import { Notification } from '@prisma/client'
 
 function NotificationItem({ notification, onRead }: {
   notification: Notification
@@ -72,16 +64,10 @@ function NotificationItem({ notification, onRead }: {
 
 export function NotificationsMenu() {
   const t = useTranslations('notifications')
-  const { unreadCount, isLoading, markAsRead } = useNotifications()
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const { unreadCount, markAsRead, notifications } = useNotifications()
 
   const handleMarkAsRead = async (notificationId: string) => {
     await markAsRead(notificationId)
-    setNotifications(prev =>
-      prev.map(n =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    )
   }
 
   return (
