@@ -510,11 +510,6 @@ export async function submitProfileForValidation(
       return { error: t('errors.profile_not_found') }
     }
 
-    // Vérifier que le profil est en statut DRAFT
-    if (profile.status !== RequestStatus.DRAFT) {
-      return { error: t('errors.invalid_status') }
-    }
-
     // Vérifier que tous les documents requis sont présents
     const requiredDocuments = [
       profile.passport,

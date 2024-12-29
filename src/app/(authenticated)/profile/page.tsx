@@ -22,7 +22,7 @@ import { ProfileCompletionAssistant } from '@/components/profile/profile-complet
 import { DocumentsSection } from '@/components/profile/sections/documents-section'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SubmitProfileButton } from '@/components/profile/submit-profile-button'
-import { NoteItem, NotesList, ProfileNotes } from '@/components/admin/profiles/profile-notes'
+import { NotesList } from '@/components/admin/profiles/profile-notes'
 
 export default async function ProfilePage() {
   const user = await getCurrentUser()
