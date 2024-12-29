@@ -37,7 +37,9 @@ export function SubmitProfileButton({
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true)
+      console.log('Submitting profile for validation...')
       const result = await submitProfileForValidation(profileId)
+      console.log('Profile submitted for validation:', result)
 
       if (result.error) {
         toast({
