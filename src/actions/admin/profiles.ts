@@ -5,6 +5,7 @@ import { checkAuth } from '@/lib/auth/action'
 import { Prisma, Profile, RequestStatus } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/schemas/routes'
+import { FullProfile } from '@/types'
 
 interface GetProfilesOptions {
   status?: RequestStatus
@@ -39,7 +40,6 @@ export async function getProfiles(options?: GetProfilesOptions): Promise<Profile
         { lastName: { contains: options.search, mode: 'insensitive' } },
         { nationality: { contains: options.search, mode: 'insensitive' } },
         { email: { contains: options.search, mode: 'insensitive' } },
-        { phone: { contains: options.search, mode: 'insensitive' } },
       ]
     })
   }
@@ -73,7 +73,7 @@ export async function getProfiles(options?: GetProfilesOptions): Promise<Profile
   }
 }
 
-export async function getProfileById(id: string) {
+export async function getProfileById(id: string): Promise<FullProfile | null> {
   const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
   if (authResult.error) {
     throw new Error(authResult.error)
@@ -88,7 +88,18 @@ export async function getProfileById(id: string) {
       addressProof: true,
       address: true,
       addressInGabon: true,
-      emergencyContact: true,
+      identityPicture: true,
+      emergencyContact: {
+        include: {
+          phone: {
+            select: {
+              number: true,
+              countryCode: true
+            }
+          }
+        }
+      },
+      phone: true,
       notes: {
         include: {
           author: {
@@ -102,6 +113,7 @@ export async function getProfileById(id: string) {
           createdAt: 'desc'
         }
       }
+
     }
   })
 }

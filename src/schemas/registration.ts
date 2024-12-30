@@ -259,9 +259,7 @@ export const FamilyInfoSchema = z.object({
       invalid_type_error: 'messages.errors.invalid_relationship',
     }),
 
-    phone: z
-      .string()
-      .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone'),
+    phone: PhoneSchema.optional(),
   }).optional(),
 }).refine(
   (data) => {

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
-import { MaritalStatus } from '@prisma/client'
+import { FamilyLink, MaritalStatus } from '@prisma/client'
 import { FamilyInfoSchema, type FamilyInfoFormData } from '@/schemas/registration'
 import { EditableSection } from '../editable-section'
 import { useToast } from '@/hooks/use-toast'
@@ -73,7 +73,11 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
       fatherFullName: profile.fatherFullName || '',
       motherFullName: profile.motherFullName || '',
       spouseFullName: profile.spouseFullName || '',
-      emergencyContact: profile.emergencyContact || undefined
+      emergencyContact: {
+        fullName: profile.emergencyContact?.fullName || '',
+        relationship: profile.emergencyContact?.relationship || FamilyLink.OTHER,
+        phone: profile.emergencyContact?.phone
+      }
     }
   })
 
