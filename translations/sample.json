@@ -159,7 +159,8 @@
     "callbacks": {
       "label": "",
       "/registration": "",
-      "/dashboard": ""
+      "/dashboard": "",
+      "/admin/profiles": ""
     },
     "search_country": "",
     "actions": {
@@ -912,6 +913,10 @@
             "internal": "",
             "feedback": ""
           },
+          "notification": {
+            "title": "",
+            "empty": ""
+          },
           "internal_placeholder": "",
           "feedback_placeholder": "",
           "add": "",
@@ -963,6 +968,41 @@
         "rejection": {
           "title": "",
           "description": ""
+        }
+      }
+    },
+    "dashboard": {
+      "welcome": "",
+      "subtitle": "",
+      "recent_activity": "",
+      "pending_tasks": "",
+      "stats": {
+        "total_profiles": "",
+        "active_profiles": "",
+        "pending_reviews": "",
+        "validated_profiles": "",
+        "expired_documents": "",
+        "expiring_soon": ""
+      },
+      "activity": {
+        "title": "",
+        "types": {
+          "profile_created": "",
+          "profile_updated": "",
+          "profile_validated": "",
+          "document_uploaded": ""
+        }
+      },
+      "tasks": {
+        "title": "",
+        "view_all": "",
+        "priority": {
+          "high": "",
+          "medium": "",
+          "low": ""
+        },
+        "actions": {
+          "review": ""
         }
       }
     }
@@ -1532,6 +1572,10 @@
         "add": ""
       },
       "analyzing": ""
+    },
+    "notes": {
+      "title": "",
+      "empty": ""
     }
   },
   "documents": {
@@ -2534,6 +2578,16 @@
         },
         "and_more": ""
       }
+    }
+  },
+  "notifications": {
+    "title": "",
+    "empty": "",
+    "mark_all_read": "",
+    "types": {
+      "PROFILE_FEEDBACK": "",
+      "PROFILE_VALIDATED": "",
+      "PROFILE_REJECTED": ""
     }
   }
 }

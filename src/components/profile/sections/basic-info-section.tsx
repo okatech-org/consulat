@@ -55,6 +55,7 @@ function InfoField({ label, value, className = '', required, isCompleted = !!val
 
 export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
   const t = useTranslations('registration')
+  const t_countries = useTranslations('countries')
   const t_messages = useTranslations('messages.profile')
   const t_sections = useTranslations('profile.sections')
   const { toast } = useToast()
@@ -165,7 +166,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
 
             <InfoField
               label={t('form.birth_country')}
-              value={profile.birthCountry}
+              value={t_countries(profile.birthCountry)}
               required
             />
 
@@ -181,7 +182,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             />
             <InfoField
               label={t('form.nationality')}
-              value={profile.nationality}
+              value={t_countries(profile.nationality)}
               required
             />
             <InfoField
@@ -196,7 +197,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             <h4 className="font-medium">
               {t('form.passport.section_title')}
             </h4>
-            <div className="grid gap-4 grid-cols-2">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <InfoField
                 label={t('form.passport.number.label')}
                 value={profile.passportNumber}
@@ -213,11 +214,13 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
                 label={t('form.passport.issue_date.label')}
                 value={format(new Date(profile.passportIssueDate), 'PPP', { locale: fr })}
                 required
+                className={"col-span-2"}
               />
               <InfoField
                 label={t('form.passport.expiry_date.label')}
                 value={format(new Date(profile.passportExpiryDate), 'PPP', { locale: fr })}
                 required
+                className={"col-span-2"}
               />
             </div>
           </div>

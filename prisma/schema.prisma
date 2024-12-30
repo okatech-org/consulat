@@ -38,6 +38,14 @@ enum MaritalStatus {
   COHABITING
 }
 
+enum FamilyLink {
+  FATHER
+  MOTHER
+  SPOUSE
+  CHILD
+  OTHER
+}
+
 enum WorkStatus {
   EMPLOYEE
   ENTREPRENEUR
@@ -95,11 +103,24 @@ enum DocumentType {
   CONSULAR_CARD
 }
 
+model Phone {
+  id               String             @id @default(cuid())
+  number           String             @unique
+  countryCode      String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  User             User[]
+  Profile          Profile[]
+  EmergencyContact EmergencyContact[]
+  Consulate        Consulate[]
+}
+
 // Modèles principaux
 model User {
   id       String   @id @default(cuid())
   email    String?  @unique
-  phone    String?  @unique
+  phone    Phone?   @relation(fields: [phoneId], references: [id])
+  phoneId  String?  @unique
   password String? // Hashed password if needed
   name     String?
   role     UserRole @default(USER)
@@ -188,7 +209,8 @@ model Profile {
   // Contact
   address          Address?          @relation(fields: [addressId], references: [id])
   addressId        String?
-  phone            String?
+  phone            Phone?            @relation(fields: [phoneId], references: [id])
+  phoneId          String?
   email            String?
   emergencyContact EmergencyContact?
 
@@ -220,12 +242,13 @@ model Profile {
 }
 
 model EmergencyContact {
-  id           String  @id @default(cuid())
+  id           String     @id @default(cuid())
   fullName     String
-  relationship String
-  phone        String
-  profile      Profile @relation(fields: [profileId], references: [id])
-  profileId    String  @unique
+  relationship FamilyLink
+  phone        Phone      @relation(fields: [phoneId], references: [id])
+  phoneId      String
+  profile      Profile    @relation(fields: [profileId], references: [id])
+  profileId    String     @unique
 }
 
 model AddressGabon {
@@ -256,7 +279,8 @@ model Consulate {
   id        String   @id @default(cuid())
   name      String
   email     String
-  phone     String
+  phone     Phone    @relation(fields: [phoneId], references: [id])
+  phoneId   String
   address   Address? @relation(fields: [addressId], references: [id])
   addressId String?  @unique
   website   String?

@@ -1,6 +1,5 @@
 import React from 'react'
-import { useForm, UseFormReturn } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { UseFormReturn } from 'react-hook-form'
 import {
   Form,
   FormControl,
@@ -28,7 +27,7 @@ import { useTranslations } from 'next-intl'
 import { countryKeys } from '@/assets/autocomplete-datas'
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
-import { PhoneInput } from '@/components/ui/phone-input'
+import { PhoneInput, PhoneValue } from '@/components/ui/phone-input'
 import { Separator } from '@/components/ui/separator'
 import { ContactInfoFormData } from '@/schemas/registration'
 import { Card, CardContent } from '@/components/ui/card'
@@ -88,9 +87,11 @@ export function ContactInfoForm({
                   <FormLabel>{t('form.phone')}</FormLabel>
                   <FormControl>
                     <PhoneInput
-                      disabled={isLoading}
-                      placeholder={t('form.phone_placeholder')}
                       {...field}
+                      value={field.value as unknown as PhoneValue}
+                      placeholder={t('form.phone_placeholder')}
+                      disabled={isLoading}
+                      error={!!form.formState.errors.phone}
                     />
                   </FormControl>
                   <TradFormMessage />

@@ -16,12 +16,24 @@ export function calculateProfileCompletion(profile: Profile | null): number {
     'passport'
   ]
 
-  const optionalFields = [
+  let optionalFields = [
     'profession',
     'employer',
     'spouseFullName',
     'addressInGabon'
   ]
+
+  if (profile.workStatus === 'EMPLOYEE') {
+    requiredFields.push('employer')
+    optionalFields = optionalFields.filter(field => field !== 'employer')
+  }
+
+  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
+    requiredFields.push('spouseFullName')
+    optionalFields = optionalFields.filter(field => field !== 'spouseFullName')
+  }
+
+  console.log({ requiredFields, optionalFields })
 
   const completedRequired = requiredFields.filter(field =>
     profile[field as keyof Profile] !== null &&

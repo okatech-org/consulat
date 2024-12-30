@@ -210,6 +210,8 @@ export function useFormStorage() {
 }
 
 import { Profile } from '@prisma/client'
+import { phoneCountries } from '@/assets/autocomplete-datas'
+import { FullProfile } from '@/types'
 
 interface ProfileFieldStatus {
   required: {
@@ -240,7 +242,10 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
     }
   }
 
-  const requiredFields = [
+  const requiredFields: {
+    key: keyof FullProfile
+    name: string
+  }[] = [
     { key: 'firstName', name: 'first_name' },
     { key: 'lastName', name: 'last_name' },
     { key: 'birthDate', name: 'birth_date' },
@@ -253,19 +258,23 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
     { key: 'address', name: 'address' },
     {key: "addressProof", name: "address_proof"},
     { key: 'profession', name: 'profession' },
-    { key: 'employer', name: 'employer' },
     { key: 'addressInGabon', name: 'gabon_address' },
     { key: 'activityInGabon', name: 'gabon_activity' },
     { key: 'maritalStatus', name: 'marital_status' },
-    {key: "residencePermit", name: "residence_permit"},
     { key: 'profession', name: 'profession' },
-    { key: 'employer', name: 'employer' },
     { key: 'addressInGabon', name: 'gabon_address' },
-    { key: 'spouseFullName', name: 'spouse_name' },
     { key: 'activityInGabon', name: 'gabon_activity' },
     { key: 'maritalStatus', name: 'marital_status' },
-    {key: "residencePermit", name: "residence_permit"}
   ]
+
+  if (profile.workStatus === 'EMPLOYEE') {
+    requiredFields.push({ key: 'employer', name: 'employer' })
+    requiredFields.push({ key: 'employerAddress', name: 'work_address' })
+  }
+
+  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
+    requiredFields.push({ key: 'spouseFullName', name: 'spouse_name' })
+  }
 
   const requiredStatus = requiredFields.map(field => ({
     ...field,
@@ -276,7 +285,7 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
     required: {
       total: requiredFields.length,
       completed: requiredStatus.filter(f => f.completed).length,
-      fields: requiredStatus
+      fields: requiredStatus.sort((a, b) => a.completed === b.completed ? 0 : a.completed ? 1 : -1)
     },
     optional: {
       total: 0,
@@ -284,4 +293,20 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
       fields: []
     }
   }
+}
+
+export const extractNumber = (fullPhoneNumber: string) => {
+  const countryCodes = phoneCountries.map((country) => country.value)
+  let countryCode = ''
+  let number = fullPhoneNumber
+
+  for (const code of countryCodes) {
+    if (fullPhoneNumber.startsWith(code)) {
+      countryCode = code
+      number = fullPhoneNumber.slice(code.length).trim()
+      break
+    }
+  }
+
+  return { countryCode, number }
 }

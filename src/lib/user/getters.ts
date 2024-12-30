@@ -1,54 +1,16 @@
-import { Profile, User } from '@prisma/client'
 import { db } from '@/lib/prisma'
-import { FullProfile } from '@/types'
+import { FullProfile, FullUser } from '@/types'
 
-export async function getUserByEmail(email: string): Promise<User | null> {
-  try {
-    return await db.user.findFirst({
-      where: {
-        email: email,
-      },
-    })
-  } catch {
-    return null
-  }
-}
-
-export async function getUserById(id: string): Promise<User | null> {
-  try {
-    return await db.user.findFirst({
-      where: {
-        id: id,
-      },
-    })
-  } catch {
-    return null
-  }
-}
-
-export async function getUserByIdWithProfile(id: string): Promise<User & {
-  profile: Profile | null
-} | null> {
+export async function getUserById(id: string): Promise<FullUser | null> {
   try {
     return await db.user.findFirst({
       where: {
         id: id,
       },
       include: {
-        profile: true,
+        phone: true,
+        profile: true
       }
-    })
-  } catch {
-    return null
-  }
-}
-
-export async function getUserProfile(id: string) {
-  try {
-    return await db.profile.findFirst({
-      where: {
-        userId: id,
-      },
     })
   } catch {
     return null
@@ -68,7 +30,12 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
         addressProof: true,
         address: true,
         addressInGabon: true,
-        emergencyContact: true,
+        emergencyContact: {
+          include: {
+            phone: true
+          }
+        },
+        phone: true,
         notes: {
           include: {
             author: {
@@ -82,6 +49,7 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
             createdAt: 'desc'
           }
         }
+
       }
     })
   } catch(e) {

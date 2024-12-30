@@ -1,6 +1,7 @@
 import { type Provider } from 'next-auth/providers'
 import { db } from '@/lib/prisma'
 import { validateOTP } from '@/lib/user/otp'
+import { extractNumber } from '@/lib/utils'
 
 export interface AuthPayload {
   identifier: string
@@ -42,7 +43,7 @@ export const CredentialsAuthProvider = (): Provider => ({
       // Trouver ou créer l'utilisateur
       const userWhere = type === 'EMAIL'
         ? { email: identifier }
-        : { phone: identifier }
+        : { phone: extractNumber(identifier) }
 
       let user = await db.user.findFirst({
         where: userWhere
@@ -53,7 +54,10 @@ export const CredentialsAuthProvider = (): Provider => ({
           data: {
             ...(type === 'EMAIL'
               ? { email: identifier }
-              : { phone: identifier }),
+              : { phone: {
+                create: extractNumber(identifier)
+                }
+            }),
             emailVerified: type === 'EMAIL' ? new Date() : null,
             phoneVerified: type === 'PHONE' ? new Date() : null,
           },

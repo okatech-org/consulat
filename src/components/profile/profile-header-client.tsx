@@ -16,7 +16,7 @@ export function ProfileHeaderClient({ profile }: ProfileHeaderClientProps) {
       firstName: profile.firstName,
       lastName: profile.lastName,
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: profile.phone ? [{ value: profile.phone }] : [],
+      phones: profile.phone ? [{ value: `${profile.phone.countryCode}${profile.phone.number}` }] : [],
       photoUrl: profile.identityPicture || undefined
     }
 
@@ -50,7 +50,7 @@ export function ProfileHeaderClient({ profile }: ProfileHeaderClientProps) {
       firstName: profile.firstName,
       lastName: profile.lastName,
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: profile.phone ? [{ value: profile.phone }] : [],
+      phones: profile.phone ? [{ value: `${profile.phone.countryCode}${profile.phone.number}` }] : [],
       photoUrl: profile.identityPicture || undefined
     }
 

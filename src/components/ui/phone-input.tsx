@@ -19,35 +19,52 @@ import {
 } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { phoneCountries } from '@/assets/autocomplete-datas'
+import { CountryCode, phoneCountries } from '@/assets/autocomplete-datas'
 
-interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
-  value?: string
-  onChange?: (value: string) => void
+export interface PhoneValue {
+  number: string
+  countryCode: CountryCode
 }
 
-export function PhoneInput({ className, value, onChange, ...props }: PhoneInputProps) {
+interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+  value?: PhoneValue
+  onChange?: (value: PhoneValue) => void
+  error?: boolean
+}
+
+export function PhoneInput({
+                             className,
+                             value = { number: '', countryCode: '+33' },
+                             onChange,
+                             error,
+                             ...props
+                           }: PhoneInputProps) {
   const t = useTranslations('common')
   const t_countries = useTranslations('countries')
+  const [phoneValue, setPhoneValue] = React.useState<PhoneValue>(value)
   const [open, setOpen] = React.useState(false)
-  const [countryCode, setCountryCode] = React.useState('+33')
   const [searchValue, setSearchValue] = React.useState('')
-
-  // Extraire le numéro sans l'indicatif
-  const phoneNumber = value?.replace(countryCode, '') || ''
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newNumber = e.target.value.replace(/[^\d]/g, '')
-    onChange?.(countryCode + newNumber)
+    const newValue = {
+      number: newNumber,
+      countryCode: value?.countryCode || '+33'
+    }
+    setPhoneValue(newValue)
+    onChange?.(newValue)
   }
 
-  const handleCountrySelect = (code: string) => {
-    setCountryCode(code)
+  const handleCountrySelect = (code: CountryCode) => {
+    const newValue = {
+      number: phoneValue.number,
+      countryCode: code
+    }
     setOpen(false)
-    onChange?.(code + phoneNumber)
+    setPhoneValue(newValue)
+    onChange?.(newValue)
   }
 
-  // Filter countries based on search value
   const filteredCountries = phoneCountries.filter((country) => {
     const searchTermLower = searchValue.toLowerCase()
     return (
@@ -65,9 +82,12 @@ export function PhoneInput({ className, value, onChange, ...props }: PhoneInputP
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="justify-between"
+            className={cn(
+              "w-[120px] justify-between",
+              error && "border-destructive"
+            )}
           >
-            {countryCode} {phoneCountries.find(c => c.value === countryCode)?.flag}
+            {phoneValue?.countryCode || '+33'} {phoneCountries.find(c => c.value === (value?.countryCode || '+33'))?.flag}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -90,7 +110,7 @@ export function PhoneInput({ className, value, onChange, ...props }: PhoneInputP
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        countryCode === country.value ? "opacity-100" : "opacity-0"
+                        value?.number === country.value ? "opacity-100" : "opacity-0"
                       )}
                     />
                     {country.flag} {t_countries(country.label)} ({country.value})
@@ -103,8 +123,11 @@ export function PhoneInput({ className, value, onChange, ...props }: PhoneInputP
       </Popover>
       <Input
         type="tel"
-        className={className}
-        value={phoneNumber}
+        className={cn(
+          className,
+          error && "border-destructive"
+        )}
+        value={phoneValue.number}
         onChange={handlePhoneChange}
         {...props}
       />

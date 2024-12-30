@@ -15,6 +15,7 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration'
 import { deleteFiles } from '@/actions/uploads'
+import { extractNumber } from '@/lib/utils'
 
 export async function postProfile(
   formData: FormData
@@ -102,9 +103,16 @@ export async function postProfile(
       const inOneYear = new Date(now.setFullYear(now.getFullYear() + 1))
       const inFiveYears = new Date(now.setFullYear(now.getFullYear() + 5))
 
-      const address = await tx.address.create({
-        data: contactInfo.address
-      })
+      const [address, phone] = await Promise.all(
+        [
+          await tx.address.create({
+          data: contactInfo.address
+        }),
+        await tx.phone.findFirst({
+        where: {
+          number: contactInfo.phone.number
+        }})
+      ])
 
       const profile = await tx.profile.create({
         data: {
@@ -133,10 +141,8 @@ export async function postProfile(
           spouseFullName: familyInfo.spouseFullName || null,
 
           // Contact
-          phone: contactInfo.phone,
-          email: contactInfo.email,
-
-          // Documents
+          phoneId: phone?.id || null,
+          email: contactInfo.email || null,
 
           // Informations professionnelles
           workStatus: professionalInfo.workStatus,
@@ -151,7 +157,16 @@ export async function postProfile(
             create: contactInfo.addressInGabon
           } : undefined,
           emergencyContact: familyInfo.emergencyContact ? {
-            create: familyInfo.emergencyContact
+            create: {
+              fullName: familyInfo.emergencyContact.fullName,
+              relationship: familyInfo.emergencyContact.relationship,
+              phone: {
+                connectOrCreate: {
+                  where: { number: extractNumber(familyInfo.emergencyContact.phone).number },
+                  create: extractNumber(familyInfo.emergencyContact.phone),
+                }
+              }
+            }
           } : undefined
         }
       })
@@ -344,7 +359,18 @@ export async function updateProfile(
       case 'contactInfo':
         updateData = {
           email: data.email,
-          phone: data.phone,
+          phone: {
+            upsert: {
+              create: {
+                number: data.phone.number,
+                countryCode: data.phone.countryCode,
+              },
+              update: {
+                number: data.phone.number,
+                countryCode: data.phone.countryCode,
+              }
+            }
+          },
           address: {
             upsert: {
               create: data.address,
@@ -354,8 +380,16 @@ export async function updateProfile(
           ...(data.addressInGabon && {
             addressInGabon: {
               upsert: {
-                create: data.addressInGabon,
-                update: data.addressInGabon,
+                create: {
+                  address: data.addressInGabon.address,
+                  district: data.addressInGabon.district,
+                  city: data.addressInGabon.city,
+                },
+                update: {
+                  address: data.addressInGabon.address,
+                  district: data.addressInGabon.district,
+                  city: data.addressInGabon.city,
+                }
               },
             },
           }),
@@ -363,26 +397,39 @@ export async function updateProfile(
         break
 
       case 'familyInfo':
-        const emergencyContact = {
-          fullName: data.emergencyContact.fullName,
-          relationship: data.emergencyContact.relationship,
-          phone: data.emergencyContact.phone
-        }
+        const emergencyContactData = {
+          upsert: {
+            create: {
+              fullName: data.emergencyContact.fullName,
+              relationship: data.emergencyContact.relationship,
+              phone: {
+                create: {
+                  number: data.emergencyContact.phone.number,
+                  countryCode: data.emergencyContact.phone.countryCode,
+                }
+              }
+            },
+            update: {
+              fullName: data.emergencyContact.fullName,
+              relationship: data.emergencyContact.relationship,
+              phone: {
+                update: {
+                  number: data.emergencyContact.phone.number,
+                  countryCode: data.emergencyContact.phone.countryCode,
+                }
+              }
+            }
+          }
+        };
+
         updateData = {
           maritalStatus: data.maritalStatus,
           fatherFullName: data.fatherFullName,
           motherFullName: data.motherFullName,
           spouseFullName: data.spouseFullName,
-          ...(data.emergencyContact && {
-            emergencyContact: {
-              upsert: {
-                create: emergencyContact,
-                update: emergencyContact,
-              },
-            },
-          }),
-        }
-        break
+          emergencyContact: emergencyContactData
+        };
+        break;
 
       case 'professionalInfo':
         updateData = {
@@ -503,6 +550,7 @@ export async function submitProfileForValidation(
         addressProof: true,
         address: true,
         emergencyContact: true,
+        phone: true,
       }
     })
 

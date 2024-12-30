@@ -1,14 +1,14 @@
 import NextAuth from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { db } from '@/lib/prisma'
-import { User } from '@prisma/client'
 import { ROUTES } from '@/schemas/routes'
 import { getUserById } from '@/lib/user/getters'
 import authConfig from '@/auth.config'
+import { FullUser } from '@/types'
 
 declare module 'next-auth' {
   interface Session {
-    user: User
+    user: FullUser
   }
 }
 

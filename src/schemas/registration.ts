@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { Gender, MaritalStatus, NationalityAcquisition, WorkStatus } from '@prisma/client'
+import { Gender, MaritalStatus, NationalityAcquisition, WorkStatus, FamilyLink } from '@prisma/client'
 
 const FileListSchema = z.any().refine(
   (files) => {
@@ -52,6 +52,11 @@ const DocumentFileSchema = z.union([
     },
     { message: 'messages.errors.doc_required' }
   )
+
+const PhoneSchema = z.object({
+  number: z.string().min(1, 'messages.errors.phone_required'),
+  countryCode: z.string().min(1, 'messages.errors.country_code_required'),
+})
 
 const DocumentFileSchemaOptional = z.union([
   z.null(),
@@ -188,10 +193,7 @@ export const ContactInfoSchema = z.object({
     .max(VALIDATION_RULES.EMAIL_MAX_LENGTH, 'messages.errors.email_too_long')
     .optional(),
 
-  phone: z
-    .string()
-    .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone')
-    .optional(),
+  phone: PhoneSchema.optional(),
 
   address: z.object({
     firstLine: z
@@ -252,9 +254,10 @@ export const FamilyInfoSchema = z.object({
       .min(VALIDATION_RULES.NAME_MIN_LENGTH, 'messages.errors.name_too_short')
       .max(VALIDATION_RULES.NAME_MAX_LENGTH, 'messages.errors.name_too_long'),
 
-    relationship: z
-      .string()
-      .min(1, 'messages.errors.relationship_required'),
+    relationship: z.nativeEnum(FamilyLink, {
+      required_error: 'messages.errors.relationship_required',
+      invalid_type_error: 'messages.errors.invalid_relationship',
+    }),
 
     phone: z
       .string()

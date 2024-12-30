@@ -9,6 +9,7 @@ export type FullProfile = Prisma.ProfileGetPayload<{
     address: true,
     addressInGabon: true,
     emergencyContact: true,
+    phone: true,
     notes: {
       include: {
         author: {
@@ -22,6 +23,13 @@ export type FullProfile = Prisma.ProfileGetPayload<{
         createdAt: 'desc'
       }
     }
+  }
+}>
+
+export type FullUser = Prisma.UserGetPayload<{
+  include: {
+    profile: true
+    phone: true
   }
 }>
 
