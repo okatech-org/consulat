@@ -9,6 +9,7 @@ export type FullProfile = Prisma.ProfileGetPayload<{
     address: true,
     addressInGabon: true,
     emergencyContact: true,
+    identityPicture: true,
     phone: true,
     notes: {
       include: {

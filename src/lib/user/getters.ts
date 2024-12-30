@@ -30,6 +30,7 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
         addressProof: true,
         address: true,
         addressInGabon: true,
+        identityPicture: true,
         emergencyContact: {
           include: {
             phone: true

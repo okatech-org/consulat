@@ -186,7 +186,7 @@ model Profile {
   birthDate              String
   birthPlace             String
   birthCountry           String
-  nationality            String
+  nationality            String                  @default("gabon")
   maritalStatus          MaritalStatus?
   workStatus             WorkStatus?
   acquisitionMode        NationalityAcquisition? @default(BIRTH)
@@ -194,9 +194,10 @@ model Profile {
   passportIssueDate      DateTime
   passportExpiryDate     DateTime
   passportIssueAuthority String
-  identityPicture        String?
 
   // Documents
+  identityPicture    UserDocument? @relation("identityPicture", fields: [identityPictureId], references: [id])
+  identityPictureId  String?       @unique
   passport           UserDocument? @relation("passport", fields: [passportId], references: [id])
   passportId         String?       @unique
   birthCertificate   UserDocument? @relation("birthCertificate", fields: [birthCertificateId], references: [id])
@@ -369,6 +370,7 @@ model UserDocument {
   birthCertificateProfile Profile? @relation("birthCertificate")
   residencePermitProfile  Profile? @relation("residencePermit")
   addressProofProfile     Profile? @relation("addressProof")
+  identityPictureProfile  Profile? @relation("identityPicture")
 }
 
 model Message {

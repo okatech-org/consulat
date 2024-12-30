@@ -24,7 +24,7 @@ export function ProfileHeader({ profile, onShare, onDownload }: ProfileHeaderPro
           <Avatar className="size-24 md:size-32">
             {profile?.identityPicture ? (
               <AvatarImage
-                src={profile?.identityPicture}
+                src={profile?.identityPicture.fileUrl}
                 alt={profile?.firstName || ''}
               />
             ) : (

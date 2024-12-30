@@ -168,7 +168,15 @@ async function main() {
             maritalStatus: MaritalStatus.SINGLE,
             workStatus: WorkStatus.EMPLOYEE,
             acquisitionMode: NationalityAcquisition.BIRTH,
-            identityPicture: "https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB",
+            identityPicture: {
+              create: {
+                type: DocumentType.IDENTITY_PHOTO,
+                status: DocumentStatus.PENDING,
+                fileUrl: "https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB",
+                issuedAt: new Date("2020-01-01"),
+                expiresAt: new Date("2030-01-01"),
+              }
+            },
             profession: "Ingénieur informatique",
             employer: "Decathlon",
             employerAddress: "10 rue de l'Innovation, Paris",
@@ -267,7 +275,15 @@ async function main() {
             maritalStatus: MaritalStatus.SINGLE,
             workStatus: WorkStatus.EMPLOYEE,
             acquisitionMode: NationalityAcquisition.BIRTH,
-            identityPicture: "https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB",
+            identityPicture: {
+              create: {
+                type: DocumentType.IDENTITY_PHOTO,
+                status: DocumentStatus.PENDING,
+                fileUrl: "https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB",
+                issuedAt: new Date("2020-01-01"),
+                expiresAt: new Date("2030-01-01"),
+              }
+            },
             profession: "Ingénieur informatique",
             employer: "Decathlon",
             employerAddress: "10 rue de l'Innovation, Paris",

@@ -30,7 +30,14 @@ export async function postProfile(
       return { error: t('errors.unauthorized') }
     }
 
-    const filesPromises = []
+    // Récupérer et parser les données du formulaire
+    const basicInfo = JSON.parse(formData.get('basicInfo') as string)
+    const contactInfo = JSON.parse(formData.get('contactInfo') as string)
+    const familyInfo = JSON.parse(formData.get('familyInfo') as string)
+    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filesPromises: Array<Promise<any>> = []
 
     const identityPictureFile = formData.get('identityPictureFile') as File
 
@@ -72,6 +79,14 @@ export async function postProfile(
       filesPromises.push(processFileData(formData))
     }
 
+    console.log({
+      identityPictureFile,
+      passportFile,
+      birthCertificateFile,
+      residencePermitFile,
+      addressProofFile
+    })
+
     // Traiter les fichiers uploadés
     const [
       identityPicture,
@@ -88,12 +103,6 @@ export async function postProfile(
     if (residencePermit) uploadedFiles.push(residencePermit)
     if (addressProof) uploadedFiles.push(addressProof)
 
-    // Récupérer et parser les données du formulaire
-    const basicInfo = JSON.parse(formData.get('basicInfo') as string)
-    const contactInfo = JSON.parse(formData.get('contactInfo') as string)
-    const familyInfo = JSON.parse(formData.get('familyInfo') as string)
-    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string)
-
     // Créer le profil avec une transaction
     const profile = await db.$transaction(async (tx) => {
       // 1. Créer le profil avec toutes ses relations
@@ -103,7 +112,7 @@ export async function postProfile(
       const inOneYear = new Date(now.setFullYear(now.getFullYear() + 1))
       const inFiveYears = new Date(now.setFullYear(now.getFullYear() + 5))
 
-      const [address, phone] = await Promise.all(
+      const [address, existingPhone] = await Promise.all(
         [
           await tx.address.create({
           data: contactInfo.address
@@ -113,6 +122,10 @@ export async function postProfile(
           number: contactInfo.phone.number
         }})
       ])
+
+      const phone = existingPhone ? existingPhone : await tx.phone.create({
+        data: contactInfo.phone
+      })
 
       const profile = await tx.profile.create({
         data: {
@@ -126,7 +139,6 @@ export async function postProfile(
           birthCountry: basicInfo.birthCountry,
           nationality: basicInfo.nationality,
           acquisitionMode: basicInfo.acquisitionMode,
-          identityPicture: identityPicture?.url,
 
           // Informations passeport
           passportNumber: basicInfo.passportNumber,
@@ -141,7 +153,7 @@ export async function postProfile(
           spouseFullName: familyInfo.spouseFullName || null,
 
           // Contact
-          phoneId: phone?.id || null,
+          phoneId: phone.id,
           email: contactInfo.email || null,
 
           // Informations professionnelles
@@ -173,84 +185,92 @@ export async function postProfile(
 
       // 2. Créer les documents associés
       if (passport) {
-        const passportDoc = await tx.userDocument.create({
-          data: {
-            type: DocumentType.PASSPORT,
-            fileUrl: passport.url,
-            userId: user.id,
-            issuedAt: new Date(basicInfo.passportIssueDate),
-            expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
-            metadata: {
-              documentNumber: basicInfo.passportNumber,
-              issuingAuthority: basicInfo.passportIssueAuthority
-            }
-          }
-        })
-
         // Mettre à jour le profil avec le document du passeport
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            passportId: passportDoc.id
+            passport: {
+              create: {
+                type: DocumentType.PASSPORT,
+                fileUrl: passport.url,
+                userId: user.id,
+                issuedAt: new Date(basicInfo.passportIssueDate),
+                expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
+                metadata: {
+                  documentNumber: basicInfo.passportNumber,
+                  issuingAuthority: basicInfo.passportIssueAuthority
+                }
+              }
+            }
           }
         })
       }
 
       // Créer les autres documents si présents
       if (birthCertificate) {
-        const birthCertificateDoc = await tx.userDocument.create({
-          data: {
-            type: DocumentType.BIRTH_CERTIFICATE,
-            fileUrl: birthCertificate.url,
-            userId: user.id
-          }
-        })
-
         // Mettre à jour le profil avec le document du certificat de naissance
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            birthCertificateId: birthCertificateDoc.id
+           birthCertificate: {
+             create: {
+               type: DocumentType.BIRTH_CERTIFICATE,
+               fileUrl: birthCertificate.url,
+               userId: user.id
+             }
+           }
           }
         })
       }
 
-      if (residencePermit) {
-        const residencePermitDoc = await tx.userDocument.create({
+      if (identityPicture) {
+        // Mettre à jour le profil avec le document de la photo d'identité
+        await tx.profile.update({
+          where: { id: profile.id },
           data: {
-            type: DocumentType.RESIDENCE_PERMIT,
-            fileUrl: residencePermit.url,
-            issuedAt: now,
-            expiresAt: inOneYear,
-            userId: user.id
+            identityPicture: {
+              create: {
+                type: DocumentType.IDENTITY_PHOTO,
+                fileUrl: identityPicture.url,
+                userId: user.id
+              }
+            }
           }
-        })
+      })
+    }
 
+      if (residencePermit) {
         // Mettre à jour le profil avec le document du titre de séjour
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            residencePermitId: residencePermitDoc.id
+            residencePermit: {
+              create: {
+                type: DocumentType.RESIDENCE_PERMIT,
+                fileUrl: residencePermit.url,
+                issuedAt: now,
+                expiresAt: inOneYear,
+                userId: user.id
+              }
+            }
           }
         })
       }
 
       if (addressProof) {
-        const addressProofDoc = await tx.userDocument.create({
-          data: {
-            type: DocumentType.PROOF_OF_ADDRESS,
-            fileUrl: addressProof.url,
-            issuedAt: now,
-            expiresAt: inThreeMonths,
-            userId: user.id
-          }
-        })
-
         // Mettre à jour le profil avec le document de justificatif de domicile
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            addressProofId: addressProofDoc.id
+            addressProof: {
+              create: {
+                type: DocumentType.PROOF_OF_ADDRESS,
+                fileUrl: addressProof.url,
+                issuedAt: now,
+                expiresAt: inThreeMonths,
+                userId: user.id
+              }
+            }
           }
         })
       }

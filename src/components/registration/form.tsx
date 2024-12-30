@@ -157,7 +157,10 @@ export function RegistrationForm() {
       const formDataToSend = new FormData()
 
       // Ajouter les fichiers
-      const documents = forms.documents.getValues()
+      const documents = {
+        ...forms.documents.getValues(),
+        identityPictureFile: forms.basicInfo.getValues().identityPictureFile,
+      }
       Object.entries(documents).forEach(([key, file]) => {
         if (file) formDataToSend.append(key, file as File)
       })
