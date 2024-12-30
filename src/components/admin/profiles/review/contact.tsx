@@ -10,6 +10,7 @@ interface ProfileContactProps {
 
 export function ProfileContact({ profile }: ProfileContactProps) {
   const t = useTranslations('admin.profiles.review')
+  const t_countries = useTranslations('countries')
 
   const mainAddress = profile.address
   const gabonAddress = profile.addressInGabon
@@ -40,7 +41,9 @@ export function ProfileContact({ profile }: ProfileContactProps) {
               <Phone className="h-5 w-5 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{t('fields.phone')}</p>
-                <p className="font-medium">{profile.phone || '-'}</p>
+                <p className="font-medium">
+                  {profile.phone ? `${profile.phone.countryCode}${profile.phone.number}`: '-'}
+                </p>
               </div>
               {profile.phone ? (
                 <CheckCircle2 className="h-5 w-5 text-success" />
@@ -68,7 +71,7 @@ export function ProfileContact({ profile }: ProfileContactProps) {
                   <p>
                     {mainAddress.zipCode} {mainAddress.city}
                   </p>
-                  <p className="font-medium">{mainAddress.country}</p>
+                  <p className="font-medium">{t_countries(mainAddress.country)}</p>
                 </div>
               ) : (
                 <p className="text-muted-foreground">{t('no_address')}</p>

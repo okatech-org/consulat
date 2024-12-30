@@ -65,12 +65,12 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
 
                         {/* Photo d'identité */}
                         {profile.identityPicture && (
-                          <div className="absolute left-4 top-4 h-32 w-24 overflow-hidden rounded-lg border">
+                          <div className="absolute left-4 top-4 h-auto w-24 aspect-square overflow-hidden rounded-lg border">
                             <Image
-                              src={profile.identityPicture}
+                              src={profile.identityPicture.fileUrl}
                               alt={t('photo_alt')}
                               fill
-                              className="object-cover"
+                              className="object-cover w-full h-full"
                             />
                           </div>
                         )}
@@ -128,7 +128,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                           <div className="space-y-1">
                             <h4 className="font-medium">{t('contact')}</h4>
                             <p className="text-sm">
-                              {profile.phone && <>{t('phone')}: {profile.phone}<br /></>}
+                              {profile.phone && <>{t('phone')}: {`${profile.phone.countryCode}${profile.phone.number}`}<br /></>}
                               {profile.email && <>{t('email')}: {profile.email}</>}
                             </p>
                           </div>

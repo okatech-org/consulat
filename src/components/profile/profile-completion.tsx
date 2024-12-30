@@ -99,13 +99,15 @@ const FieldsList = ({
                       fields,
                       isExpanded,
                       type,
+  toShowCount = 2
                     }: {
   fields: Array<{ key: string; name: string; completed: boolean }>
   isExpanded: boolean
+  toShowCount?: number
   type: 'required' | 'optional'
 }) => {
   const t = useTranslations('profile')
-  const visibleFields = isExpanded ? fields : fields.slice(0, 2)
+  const visibleFields = isExpanded ? fields : fields.slice(0, toShowCount)
 
   return (
     <ul className="space-y-2">
@@ -158,6 +160,7 @@ const FieldsSection = ({
   const t = useTranslations('profile')
   const [isExpanded, setIsExpanded] = useState(false)
   const hasMoreFields = fields.length > 2
+  const toShowCount = fields.filter(f => !f.completed).length
 
   return (
     <div className="space-y-3">
@@ -173,6 +176,7 @@ const FieldsSection = ({
       <FieldsList
         fields={fields}
         isExpanded={isExpanded}
+        toShowCount={toShowCount}
         type={type}
       />
 
@@ -190,7 +194,7 @@ const FieldsSection = ({
             </>
           ) : (
             <>
-              {t('completion.show_more', { count: fields.length - 2 })}
+              {t('completion.show_more', { count: fields.length - toShowCount })}
               <ChevronRight className="ml-2 h-4 w-4" />
             </>
           )}

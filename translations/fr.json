@@ -210,8 +210,11 @@
   },
   "messages": {
     "errors": {
+      "employer_required_if_employee": "Employeur requis si vous êtes salarié",
       "identifier_required": "Identifiant requis",
       "invalid_email": "Email invalide",
+      "relationship_required": "Le lien de parenté est requis",
+      "invalid_relationship": "Le lien de parenté sélectionné n'est pas valide",
       "invalid_phone": "Format invalide, veuillez utiliser le format +33XXXXXXXXX",
       "doc_required": "Ce document est requis",
       "doc_one_max": "Un seul document est autorisé",
@@ -1106,6 +1109,13 @@
         "male": "Masculin",
         "female": "Féminin"
       },
+      "family_link": {
+        "father": "Père",
+        "mother": "Mère",
+        "spouse": "Conjoint(e)",
+        "child": "Enfant",
+        "other": "Autre"
+      },
       "address": "Adresse",
       "address_proof": "Justificatif de domicile",
       "birth_date": "Date de naissance",
@@ -1121,13 +1131,15 @@
       "contact_details": "Coordonnées",
       "proof_of_residence": "Justificatif de domicile",
       "emergency_contact": "Contact d'urgence",
+      "status": "Statut professionnel",
+      "employer": "Employeur",
+      "work_address": "Adresse professionnelle",
       "all": "Toutes les informations",
       "first_name": "Prénom",
       "last_name": "Nom",
       "full_name": "Nom complet",
       "phone": "Téléphone",
       "profession": "Profession",
-      "employer": "Employeur",
       "gabon_address": "Adresse au Gabon",
       "spouse_name": "Nom du conjoint",
       "gabon_activity": "Activité au Gabon"
@@ -1888,6 +1900,7 @@
       "basic_info": "Informations personnelles",
       "first_name": "Prénom(s)",
       "last_name": "Nom(s)",
+      "select_relationship": "Sélectionner le lien de parenté",
       "first_name_placeholder": "Entrez votre/vos prénom(s)",
       "last_name_placeholder": "Entrez votre/vos nom(s)",
       "birth_date": "Date de naissance",

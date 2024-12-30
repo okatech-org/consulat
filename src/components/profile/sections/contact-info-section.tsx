@@ -69,14 +69,17 @@ function AddressDisplay({
 
   return (
     <div className="space-y-1">
-      <div className="font-medium">{title}</div>
+      <div className="flex items-center gap-2">
+        <MapPin className="h-4 w-4" />
+        <span>{title}</span>
+      </div>
       <div className="text-sm">
         {('address' in address && address.address) && (
-          <>, {address.address}</>
+          <>{address.address}</>
         )}
         {
           ('firstLine' in address && address.firstLine) && (
-            <>, {address.firstLine}</>
+            <>{address.firstLine}</>
           )
         }
         {('secondLine' in address && address.secondLine) && (
@@ -115,7 +118,10 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
     resolver: zodResolver(ContactInfoSchema),
     defaultValues: {
       email: profile?.email ?? undefined,
-      phone: profile.phone ?? undefined,
+      phone: profile.phone ? {
+        countryCode: profile.phone.countryCode,
+        number: profile.phone.number
+      } : undefined,
       address: {
         firstLine: profileAddrress?.firstLine ?? undefined,
         secondLine: profileAddrress?.secondLine ?? undefined,
@@ -187,7 +193,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
       ) : (
         <div className="space-y-4">
           {/* Coordonnées principales */}
-          <div className="grid gap-4">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
             <InfoField
               label={t('form.email')}
               value={profile?.email}
@@ -196,19 +202,15 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
             />
             <InfoField
               label={t('form.phone')}
-              value={profile?.phone}
+              value={`${profile?.phone?.countryCode}${profile?.phone?.number}`}
               icon={<Phone className="h-4 w-4" />}
               required
             />
           </div>
 
           {/* Adresses */}
-          <div className="grid gap-4">
+          <div className="grid gap-4 grid gap-4 grid-cols-1 lg:grid-cols-2">
             <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <h4 className="font-medium">{t('form.address')}</h4>
-              </div>
               {profile.address ? (
                 <AddressDisplay
                   address={profile.address}
@@ -222,10 +224,6 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <h4 className="font-medium">{t('form.address_gabon')}</h4>
-              </div>
               {profile.addressInGabon ? (
                 <AddressDisplay
                   address={profile.addressInGabon}

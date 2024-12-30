@@ -157,7 +157,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
             />
             <InfoField
               label={t('form.phone')}
-              value={contactInfo.phone}
+              value={contactInfo.phone ? `${contactInfo.phone.countryCode} ${contactInfo.phone.number}` : undefined}
               icon={<Phone className="h-4 w-4" />}
               required
             />
@@ -244,7 +244,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
                 />
                 <InfoField
                   label={t('form.emergency_contact_phone')}
-                  value={familyInfo.emergencyContact.phone}
+                  value={familyInfo.emergencyContact.phone ? `${familyInfo.emergencyContact.phone.countryCode}${familyInfo.emergencyContact.phone.number}` : undefined}
                   icon={<Phone className="h-4 w-4" />}
                 />
               </div>

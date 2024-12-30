@@ -1,4 +1,4 @@
-import { addDays, setHours, setMinutes, subDays } from 'date-fns'
+import { addDays, setHours, setMinutes } from 'date-fns'
 import {
   PrismaClient,
   UserRole,
@@ -7,17 +7,9 @@ import {
   MaritalStatus,
   WorkStatus,
   NationalityAcquisition,
-  RequestStatus,
   DocumentStatus,
-  User,
+  FamilyLink,
 } from '@prisma/client'
-
-const PROFILE_COUNT = 10
-
-const SAMPLE_NATIONALITIES = ['gabon', 'france', 'senegal', 'cameroon', 'congo']
-const SAMPLE_CITIES = ['Paris', 'Lyon', 'Marseille', 'Bordeaux', 'Lille']
-const SAMPLE_PROFESSIONS = ['Ingénieur', 'Médecin', 'Enseignant', 'Entrepreneur', 'Étudiant']
-const SAMPLE_EMPLOYERS = ['Total', 'Orange', 'BNP Paribas', 'Carrefour', 'EDF']
 
 const prisma = new PrismaClient()
 
@@ -38,13 +30,19 @@ async function main() {
     await prisma.profile.deleteMany()
     await prisma.address.deleteMany()
     await prisma.user.deleteMany()
+    await prisma.phone.deleteMany()
 
     // Créer le consulat
     const consulat = await prisma.consulate.create({
       data: {
         name: "Ambassade du Gabon en France",
         email: "contact@ambagabon-fr.org",
-        phone: "0142996868",
+        phone: {
+          create: {
+            number: "+33145000000",
+            countryCode: "+33"
+          }
+        },
         isGeneral: true,
         website: "https://ambagabon-fr.org",
         address: {
@@ -76,11 +74,57 @@ async function main() {
       }
     })
 
-    const manager = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email: 'itoutouberny+manager@gmail.com',
+        phone: {
+          create: {
+            number: '+33612250393',
+            countryCode: '+33'
+          }
+        },
         name: 'Manager Consulaire',
         role: UserRole.ADMIN,
+        emailVerified: new Date(),
+        phoneVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'iasted+m@me.com',
+        name: 'Asted Manager',
+        role: UserRole.RESPONSIBLE,
+        emailVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'iasted+a@me.com',
+        name: 'Asted Admin',
+        role: UserRole.ADMIN,
+        emailVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'iasted+sa@me.com',
+        name: 'Asted Super Admin',
+        role: UserRole.SUPER_ADMIN,
         emailVerified: new Date(),
         consulate:{
           connect: {
@@ -121,18 +165,31 @@ async function main() {
       }
     }
 
+    const [phone1, phone2] = await Promise.all([
+      prisma.phone.create({ data: { number: '0612250393', countryCode: '+33' } }),
+      prisma.phone.create({ data: { number: '612250393', countryCode: '+33' } }),
+    ])
+
     // 2. Créer l'utilisateur avec son profil
     console.log('Création de l\'utilisateur et du profil...')
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email: "itoutouberny@gmail.com",
-        phone: "+330612250393",
+        phone: {
+          connect: {
+            id: phone1.id
+          }
+        },
         name: "Berny Itoutou",
         role: UserRole.USER,
         emailVerified: new Date(),
         phoneVerified: new Date(),
         lastLogin: new Date(),
-        consulateId: consulat.id,
+        consulate: {
+          connect: {
+            id: consulat.id
+          }
+        },
         profile: {
           create: {
             firstName: "John",
@@ -143,11 +200,23 @@ async function main() {
             birthCountry: "france",
             nationality: "gabon",
             email: "itoutouberny@gmail.com",
-            phone: "+330612250393",
+            phone: {
+              connect: {
+                id: phone1.id
+              }
+            },
             maritalStatus: MaritalStatus.SINGLE,
             workStatus: WorkStatus.EMPLOYEE,
             acquisitionMode: NationalityAcquisition.BIRTH,
-            identityPicture: "https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB",
+            identityPicture: {
+              create: {
+                type: DocumentType.IDENTITY_PHOTO,
+                status: DocumentStatus.PENDING,
+                fileUrl: "https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB",
+                issuedAt: new Date("2020-01-01"),
+                expiresAt: new Date("2030-01-01"),
+              }
+            },
             profession: "Ingénieur informatique",
             employer: "Decathlon",
             employerAddress: "10 rue de l'Innovation, Paris",
@@ -197,8 +266,120 @@ async function main() {
             emergencyContact: {
               create: {
                 fullName: "Jane Doe",
-                relationship: "Sœur",
-                phone: "+33687654321"
+                relationship: FamilyLink.SPOUSE,
+                phone: {
+                  create: {
+                    number: "612343678",
+                    countryCode: "+33"
+                  }
+                }
+              }
+            },
+          }
+        }
+      }
+    })
+    await prisma.user.create({
+      data: {
+        email: "kamauitoutou@gmail.com",
+        phone: {
+          connect: {
+            id: phone2.id
+          }
+        },
+        name: "Kamau François",
+        role: UserRole.USER,
+        emailVerified: new Date(),
+        phoneVerified: new Date(),
+        lastLogin: new Date(),
+        consulate: {
+          connect: {
+            id: consulat.id
+          }
+        },
+        profile: {
+          create: {
+            firstName: "Kamau",
+            lastName: "François",
+            gender: Gender.MALE,
+            birthDate: "1990-01-01",
+            birthPlace: "Paris",
+            birthCountry: "france",
+            nationality: "gabon",
+            email: "kamauitoutou@gmail.com",
+            phone: {
+              connect: {
+                id: phone2.id
+              }
+            },
+            maritalStatus: MaritalStatus.SINGLE,
+            workStatus: WorkStatus.EMPLOYEE,
+            acquisitionMode: NationalityAcquisition.BIRTH,
+            identityPicture: {
+              create: {
+                type: DocumentType.IDENTITY_PHOTO,
+                status: DocumentStatus.PENDING,
+                fileUrl: "https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB",
+                issuedAt: new Date("2020-01-01"),
+                expiresAt: new Date("2030-01-01"),
+              }
+            },
+            profession: "Ingénieur informatique",
+            employer: "Decathlon",
+            employerAddress: "10 rue de l'Innovation, Paris",
+            activityInGabon: "Étudiant",
+            passportNumber: "GA123456",
+            passportIssueDate: new Date("2020-01-01"),
+            passportExpiryDate: new Date("2030-01-01"),
+            passportIssueAuthority: "Ambassade du Gabon",
+            passport: {
+              create: {
+                type: DocumentType.PASSPORT,
+                status: DocumentStatus.PENDING,
+                fileUrl: "https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs",
+                issuedAt: new Date("2020-01-01"),
+                expiresAt: new Date("2030-01-01"),
+                metadata: {
+                  documentNumber: "GA123456",
+                  issuingAuthority: "Ambassade du Gabon",
+                }
+              }
+            },
+            birthCertificate: {
+              create: {
+                type: DocumentType.BIRTH_CERTIFICATE,
+                status: DocumentStatus.PENDING,
+                fileUrl: "https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs",
+                issuedAt: new Date("2020-01-01"),
+                expiresAt: new Date("2030-01-01"),
+              }
+            },
+            address: {
+              create: {
+                firstLine: "15 rue des Lilas",
+                secondLine: "Apt 4B",
+                city: "Paris",
+                zipCode: "75003",
+                country: "france"
+              }
+            },
+            addressInGabon: {
+              create: {
+                address: "123 Boulevard du Bord de Mer",
+                district: "Quartier Louis",
+                city: "Libreville"
+              }
+            },
+            emergencyContact: {
+              create: {
+                fullName: "Jane Doe",
+                relationship: FamilyLink.OTHER,
+                phone: {
+                  create: {
+                    number: "642345678",
+                    countryCode: "+33"
+                  }
+                }
               }
             },
           }
@@ -206,172 +387,11 @@ async function main() {
       }
     })
 
-    console.log('✅ Seeding terminé avec succès!')
-    console.log('Données créées:', {
-      consulat: { id: consulat.id, name: consulat.name },
-      user: { id: user.id, email: user.email },
-      manager: { id: manager.id, email: manager.email }
-    })
-
-    for (let i = 0; i < PROFILE_COUNT; i++) {
-      const user = await createSampleProfile(i)
-      await prisma.consulate.update({
-        where: { id: consulat.id },
-        data: {
-          users: {
-            connect: {
-              id: user.id
-            }
-          }
-        }
-      })
-
-      console.log(`Created profile ${i + 1}/${PROFILE_COUNT}`)
-    }
-
   } catch (error) {
     console.error('❌ Erreur pendant le seeding:', error)
     await prisma.$disconnect()
     throw error
   }
-}
-
-
-async function createSampleProfile(index: number): Promise<User> {
-  const now = new Date()
-  const status = [RequestStatus.DRAFT, RequestStatus.SUBMITTED][index % 2]
-
-  // Créer un utilisateur
-  const user = await prisma.user.create({
-    data: {
-      email: `itoutouberny+${index}@gmail.com`,
-      phone: `+3361234${(56789 + index).toString().padStart(5, '0')}`,
-      name: `User ${index}`,
-      emailVerified: now,
-      phoneVerified: now,
-    }
-  })
-
-  // Documents communs
-  const commonDocData = {
-    userId: user.id,
-    status: DocumentStatus.PENDING,
-    issuedAt: subDays(now, 365),
-    expiresAt: addDays(now, 365),
-  }
-
-  // Créer les documents
-  const passport = await prisma.userDocument.create({
-    data: {
-      ...commonDocData,
-      type: 'PASSPORT',
-      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
-      metadata: {
-        documentNumber: `PA${index}123456`,
-        issuingAuthority: 'Préfecture de Police',
-      }
-    }
-  })
-
-  const birthCertificate = await prisma.userDocument.create({
-    data: {
-      ...commonDocData,
-      type: 'BIRTH_CERTIFICATE',
-      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
-    }
-  })
-
-  const residencePermit = await prisma.userDocument.create({
-    data: {
-      ...commonDocData,
-      type: 'RESIDENCE_PERMIT',
-      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
-    }
-  })
-
-  const addressProof = await prisma.userDocument.create({
-    data: {
-      ...commonDocData,
-      type: 'PROOF_OF_ADDRESS',
-      fileUrl: 'https://utfs.io/f/yMD4lMLsSKvzCwNoT5d18tkLi9WuUPrXjgdzRhvo5IVe4fbs',
-    }
-  })
-
-  // Créer l'adresse
-  const address = await prisma.address.create({
-    data: {
-      firstLine: `${index} rue de la Paix`,
-      secondLine: `Apt ${index}`,
-      city: SAMPLE_CITIES[index % SAMPLE_CITIES.length],
-      zipCode: `750${(index % 20).toString().padStart(2, '0')}`,
-      country: 'france'
-    }
-  })
-
-  // Créer le profil
-  await prisma.profile.create({
-    data: {
-      userId: user.id,
-      firstName: `Jon-${index}`,
-      lastName: `Doe-${index}`,
-      gender: index % 2 === 0 ? Gender.MALE : Gender.FEMALE,
-      birthDate: subDays(now, 10000 + index * 100).toISOString(),
-      birthPlace: SAMPLE_CITIES[index % SAMPLE_CITIES.length],
-      birthCountry: 'gabon',
-      nationality: SAMPLE_NATIONALITIES[index % SAMPLE_NATIONALITIES.length],
-      maritalStatus: Object.values(MaritalStatus)[index % Object.values(MaritalStatus).length],
-      workStatus: Object.values(WorkStatus)[index % Object.values(WorkStatus).length],
-      acquisitionMode: Object.values(NationalityAcquisition)[index % Object.values(NationalityAcquisition).length],
-      identityPicture: 'https://utfs.io/f/yMD4lMLsSKvznrMiNYCVFA1bUs9ixXJIwYke3aRG6qo42vpB',
-
-      // Documents
-      passportId: passport.id,
-      birthCertificateId: birthCertificate.id,
-      residencePermitId: residencePermit.id,
-      addressProofId: addressProof.id,
-
-      // Informations passeport
-      passportNumber: `PA${index}123456`,
-      passportIssueDate: subDays(now, 365),
-      passportExpiryDate: addDays(now, 365),
-      passportIssueAuthority: 'Préfecture de Police',
-
-      // Contact
-      phone: `+3361234${(56789 + index).toString().padStart(5, '0')}`,
-      email: `itoutouberny+${index}@gmail.com`,
-      addressId: address.id,
-
-      // Adresse au Gabon
-      addressInGabon: {
-        create: {
-          address: `${index} Boulevard du Bord de Mer`,
-          district: 'Louis',
-          city: 'Libreville'
-        }
-      },
-
-      // Informations professionnelles
-      profession: SAMPLE_PROFESSIONS[index % SAMPLE_PROFESSIONS.length],
-      employer: SAMPLE_EMPLOYERS[index % SAMPLE_EMPLOYERS.length],
-      employerAddress: `${index} rue des Entreprises`,
-      activityInGabon: 'Ancien étudiant à l\'UOB',
-
-      // Contact d'urgence
-      emergencyContact: {
-        create: {
-          fullName: `Contact${index}`,
-          relationship: 'Frère/Sœur',
-          phone: `+3361234${(99999 - index).toString().padStart(5, '0')}`
-        }
-      },
-
-      // Statut
-      status,
-      submittedAt: status === RequestStatus.SUBMITTED ? subDays(now, 1) : null,
-    }
-  })
-
-  return user
 }
 
 // Fonction utilitaire pour ajouter des minutes à une date

@@ -18,6 +18,7 @@ import { FormError, handleFormError } from '@/lib/form/errors'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { postProfile } from '@/actions/profile'
+import { useState } from 'react'
 
 export function RegistrationForm() {
   const router = useRouter()
@@ -35,8 +36,7 @@ export function RegistrationForm() {
     clearData
   } = useRegistrationForm()
 
-  // Configuration des étapes
-  const steps = [
+  const [steps, setSteps] = useState([
     {
       key: 'documents',
       title: t('steps.documents'),
@@ -59,7 +59,7 @@ export function RegistrationForm() {
       key: 'contact',
       title: t('steps.contact'),
       description: t('steps.contact_description'),
-      isComplete: !!forms.contactInfo.formState.isValid,
+      isComplete: false,
     },
     {
       key: 'professional',
@@ -74,7 +74,7 @@ export function RegistrationForm() {
       description: t('steps.review_description'),
       isComplete: false,
     },
-  ]
+  ])
 
   // Gestionnaire d'analyse des documents
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,6 +136,10 @@ export function RegistrationForm() {
       }
 
       setCurrentStep(prev => prev + 1)
+      setSteps(prev => prev.map((step, index) => ({
+        ...step,
+        isComplete: index <= currentStep,
+      })))
     } catch (error) {
       const { title, description } = handleFormError(error, t)
       toast({ title, description, variant: "destructive" })
@@ -153,7 +157,10 @@ export function RegistrationForm() {
       const formDataToSend = new FormData()
 
       // Ajouter les fichiers
-      const documents = forms.documents.getValues()
+      const documents = {
+        ...forms.documents.getValues(),
+        identityPictureFile: forms.basicInfo.getValues().identityPictureFile,
+      }
       Object.entries(documents).forEach(([key, file]) => {
         if (file) formDataToSend.append(key, file as File)
       })
@@ -279,7 +286,8 @@ export function RegistrationForm() {
           isLoading={isLoading}
           onNext={handleNext}
           onPrevious={handlePrevious}
-          forms={forms}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          forms={forms as any}
         />
       </div>
 

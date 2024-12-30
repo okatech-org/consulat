@@ -14,7 +14,8 @@ export const LoginSchema = z.object({
       })
     }
   } else if (data.type === 'PHONE') {
-    const phoneRegex = /^\+\d{10,15}$/
+    // Mise à jour de la validation du téléphone pour accepter le format international
+    const phoneRegex = /^\+[1-9]\d{1,14}$/
     if (!phoneRegex.test(data.identifier)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

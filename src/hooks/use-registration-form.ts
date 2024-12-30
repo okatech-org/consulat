@@ -7,11 +7,20 @@ import {
   FamilyInfoSchema,
   ProfessionalInfoSchema,
   DocumentsSchema,
-  ConsularFormData
+  ConsularFormData,
+  DocumentsFormData,
+  BasicInfoFormData,
+  FamilyInfoFormData,
+  ContactInfoFormData,
+  ProfessionalInfoFormData,
 } from '@/schemas/registration'
 import { createFormStorage } from '@/lib/form-storage'
+import { Gender, NationalityAcquisition } from '@prisma/client'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 export function useRegistrationForm() {
+  const currentUser = useCurrentUser()
+
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | undefined>()
@@ -20,24 +29,47 @@ export function useRegistrationForm() {
   // Initialisation des formulaires avec les données sauvegardées
   const initialData = loadSavedData()
 
+  function getDefaultPhone() {
+    if (currentUser?.phone) {
+      return {
+        number: currentUser.phone.number,
+        countryCode: currentUser.phone.countryCode
+      }
+    }
+    return initialData?.contactInfo?.phone ?? { number: '', countryCode: '+33' }
+  }
+
   const forms = {
-    documents: useForm({
+    documents: useForm<DocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
       defaultValues: initialData?.documents
     }),
-    basicInfo: useForm({
+    basicInfo: useForm<BasicInfoFormData>({
       resolver: zodResolver(BasicInfoSchema),
-      defaultValues: initialData?.basicInfo
+      defaultValues: {
+        ...initialData?.basicInfo,
+        acquisitionMode: initialData?.basicInfo?.acquisitionMode ?? NationalityAcquisition.BIRTH,
+        gender: initialData?.basicInfo?.gender ?? Gender.MALE,
+        nationality: initialData?.basicInfo?.nationality ?? 'gabon',
+        birthCountry: initialData?.basicInfo?.birthCountry ?? 'gabon'
+      }
     }),
-    familyInfo: useForm({
+    familyInfo: useForm<FamilyInfoFormData>({
       resolver: zodResolver(FamilyInfoSchema),
-      defaultValues: initialData?.familyInfo
+      defaultValues: {
+        ...initialData?.familyInfo,
+        maritalStatus: initialData?.familyInfo?.maritalStatus ?? 'SINGLE'
+      }
     }),
-    contactInfo: useForm({
+    contactInfo: useForm<ContactInfoFormData>({
       resolver: zodResolver(ContactInfoSchema),
-      defaultValues: initialData?.contactInfo
+      defaultValues: {
+        ...initialData?.contactInfo,
+        phone: getDefaultPhone(),
+        email: currentUser?.email ?? initialData?.contactInfo?.email ?? ''
+      }
     }),
-    professionalInfo: useForm({
+    professionalInfo: useForm<ProfessionalInfoFormData>({
       resolver: zodResolver(ProfessionalInfoSchema),
       defaultValues: initialData?.professionalInfo
     })

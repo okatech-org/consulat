@@ -16,8 +16,8 @@ export function ProfileHeaderClient({ profile }: ProfileHeaderClientProps) {
       firstName: profile.firstName,
       lastName: profile.lastName,
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: profile.phone ? [{ value: profile.phone }] : [],
-      photoUrl: profile.identityPicture || undefined
+      phones: profile.phone ? [{ value: `${profile.phone.countryCode}${profile.phone.number}` }] : [],
+      photoUrl: profile.identityPicture?.fileUrl || undefined
     }
 
     const vCard = generateVCardString(vCardData)
@@ -50,8 +50,8 @@ export function ProfileHeaderClient({ profile }: ProfileHeaderClientProps) {
       firstName: profile.firstName,
       lastName: profile.lastName,
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: profile.phone ? [{ value: profile.phone }] : [],
-      photoUrl: profile.identityPicture || undefined
+      phones: profile.phone ? [{ value: `${profile.phone.countryCode}${profile.phone.number}` }] : [],
+      photoUrl: profile.identityPicture?.fileUrl || undefined
     }
 
     const vCard = generateVCardString(vCardData)

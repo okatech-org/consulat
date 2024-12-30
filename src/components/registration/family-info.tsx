@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useTranslations } from 'next-intl'
-import { MaritalStatus } from '@prisma/client'
-import { PhoneInput } from '@/components/ui/phone-input'
+import { FamilyLink, MaritalStatus } from '@prisma/client'
+import { PhoneInput, PhoneValue } from '@/components/ui/phone-input'
 import { FamilyInfoFormData } from '@/schemas/registration'
 import { Separator } from '@/components/ui/separator'
 
@@ -38,10 +38,15 @@ export function FamilyInfoForm({
                                  isLoading = false,
                                }: Readonly<FamilyInfoFormProps>) {
   const t = useTranslations('registration')
+  const t_profile = useTranslations('profile')
   const tAssets = useTranslations('assets')
 
   const maritalStatus = form.watch('maritalStatus')
-  const showSpouseFields = maritalStatus === MaritalStatus.MARRIED
+  const showSpouseFields = maritalStatus === MaritalStatus.MARRIED || maritalStatus === MaritalStatus.COHABITING
+
+  const handlePhoneChange = (phone: PhoneValue) => {
+    form.setValue('emergencyContact.phone', phone)
+  }
 
   return (
     <Form {...form}>
@@ -62,7 +67,7 @@ export function FamilyInfoForm({
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger disabled={isLoading}>
                           <SelectValue placeholder={t('form.select_marital_status')} />
                         </SelectTrigger>
                       </FormControl>
@@ -91,6 +96,7 @@ export function FamilyInfoForm({
                         <FormControl>
                           <Input
                             {...field}
+                            disabled={isLoading}
                             placeholder={t('form.spouse_name_placeholder')}
                           />
                         </FormControl>
@@ -114,6 +120,7 @@ export function FamilyInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        disabled={isLoading}
                         placeholder={t('form.father_name_placeholder')}
                       />
                     </FormControl>
@@ -131,6 +138,7 @@ export function FamilyInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        disabled={isLoading}
                         placeholder={t('form.mother_name_placeholder')}
                       />
                     </FormControl>
@@ -157,6 +165,7 @@ export function FamilyInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        disabled={isLoading}
                         placeholder={t('form.emergency_contact_name_placeholder')}
                       />
                     </FormControl>
@@ -171,12 +180,26 @@ export function FamilyInfoForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('form.emergency_contact_relationship')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder={t('form.emergency_contact_relationship_placeholder')}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={t('form.select_relationship')}
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.values(FamilyLink).map((link) => (
+                          <SelectItem key={link} value={link}>
+                            {t_profile(`fields.family_link.${link.toLowerCase()}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <TradFormMessage />
                   </FormItem>
                 )}
@@ -190,8 +213,11 @@ export function FamilyInfoForm({
                     <FormLabel>{t('form.emergency_contact_phone')}</FormLabel>
                     <FormControl>
                       <PhoneInput
-                        placeholder={t('form.emergency_contact_phone_placeholder')}
                         {...field}
+                        value={field.value as unknown as PhoneValue}
+                        onChange={handlePhoneChange}
+                        placeholder={t('form.emergency_contact_phone_placeholder')}
+                        disabled={isLoading}
                       />
                     </FormControl>
                     <TradFormMessage />

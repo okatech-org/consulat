@@ -4,25 +4,19 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
-import { MaritalStatus, Profile } from '@prisma/client'
+import { FamilyLink, MaritalStatus } from '@prisma/client'
 import { FamilyInfoSchema, type FamilyInfoFormData } from '@/schemas/registration'
 import { EditableSection } from '../editable-section'
 import { useToast } from '@/hooks/use-toast'
 import { updateProfile } from '@/actions/profile'
 import { Badge } from '@/components/ui/badge'
 import { Users, User2, Phone } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { FamilyInfoForm } from '@/components/registration/family-info'
 import { Separator } from '@/components/ui/separator'
+import { FullProfile } from '@/types'
 
 interface FamilyInfoSectionProps {
-  profile: Profile & {
-    emergencyContact?: {
-      fullName: string
-      relationship: string
-      phone: string
-    } | null
-  }
+  profile: FullProfile
 }
 
 interface InfoFieldProps {
@@ -67,7 +61,7 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
   const t = useTranslations('registration')
   const t_messages = useTranslations('messages.profile')
   const t_assets = useTranslations('assets')
-  const t_sections = useTranslations('profile.sections')
+  const t_profile = useTranslations('profile')
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -79,7 +73,11 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
       fatherFullName: profile.fatherFullName || '',
       motherFullName: profile.motherFullName || '',
       spouseFullName: profile.spouseFullName || '',
-      emergencyContact: profile.emergencyContact || undefined
+      emergencyContact: {
+        fullName: profile.emergencyContact?.fullName || '',
+        relationship: profile.emergencyContact?.relationship || FamilyLink.OTHER,
+        phone: profile.emergencyContact?.phone
+      }
     }
   })
 
@@ -125,11 +123,11 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
     setIsEditing(false)
   }
 
-  const showSpouseField = profile.maritalStatus === 'MARRIED'
+  const showSpouseField = profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING'
 
   return (
     <EditableSection
-      title={t_sections('family_info')}
+      title={t_profile('sections.family_info')}
       isEditing={isEditing}
       onEdit={() => setIsEditing(true)}
       onCancel={handleCancel}
@@ -200,12 +198,12 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
                 />
                 <InfoField
                   label={t('form.emergency_contact_relationship')}
-                  value={profile.emergencyContact.relationship}
+                  value={t_profile(`fields.family_link.${profile.emergencyContact.relationship.toLowerCase()}`)}
                   icon={<Users className="h-4 w-4" />}
                 />
                 <InfoField
                   label={t('form.emergency_contact_phone')}
-                  value={profile.emergencyContact.phone}
+                  value={profile.emergencyContact?.phone ? `${profile.emergencyContact.phone?.countryCode}${profile.emergencyContact.phone?.number}` : undefined}
                   icon={<Phone className="h-4 w-4" />}
                 />
               </div>

@@ -15,6 +15,7 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration'
 import { deleteFiles } from '@/actions/uploads'
+import { extractNumber } from '@/lib/utils'
 
 export async function postProfile(
   formData: FormData
@@ -29,7 +30,14 @@ export async function postProfile(
       return { error: t('errors.unauthorized') }
     }
 
-    const filesPromises = []
+    // Récupérer et parser les données du formulaire
+    const basicInfo = JSON.parse(formData.get('basicInfo') as string)
+    const contactInfo = JSON.parse(formData.get('contactInfo') as string)
+    const familyInfo = JSON.parse(formData.get('familyInfo') as string)
+    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filesPromises: Array<Promise<any>> = []
 
     const identityPictureFile = formData.get('identityPictureFile') as File
 
@@ -71,6 +79,14 @@ export async function postProfile(
       filesPromises.push(processFileData(formData))
     }
 
+    console.log({
+      identityPictureFile,
+      passportFile,
+      birthCertificateFile,
+      residencePermitFile,
+      addressProofFile
+    })
+
     // Traiter les fichiers uploadés
     const [
       identityPicture,
@@ -87,12 +103,6 @@ export async function postProfile(
     if (residencePermit) uploadedFiles.push(residencePermit)
     if (addressProof) uploadedFiles.push(addressProof)
 
-    // Récupérer et parser les données du formulaire
-    const basicInfo = JSON.parse(formData.get('basicInfo') as string)
-    const contactInfo = JSON.parse(formData.get('contactInfo') as string)
-    const familyInfo = JSON.parse(formData.get('familyInfo') as string)
-    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string)
-
     // Créer le profil avec une transaction
     const profile = await db.$transaction(async (tx) => {
       // 1. Créer le profil avec toutes ses relations
@@ -102,8 +112,19 @@ export async function postProfile(
       const inOneYear = new Date(now.setFullYear(now.getFullYear() + 1))
       const inFiveYears = new Date(now.setFullYear(now.getFullYear() + 5))
 
-      const address = await tx.address.create({
-        data: contactInfo.address
+      const [address, existingPhone] = await Promise.all(
+        [
+          await tx.address.create({
+          data: contactInfo.address
+        }),
+        await tx.phone.findFirst({
+        where: {
+          number: contactInfo.phone.number
+        }})
+      ])
+
+      const phone = existingPhone ? existingPhone : await tx.phone.create({
+        data: contactInfo.phone
       })
 
       const profile = await tx.profile.create({
@@ -118,7 +139,6 @@ export async function postProfile(
           birthCountry: basicInfo.birthCountry,
           nationality: basicInfo.nationality,
           acquisitionMode: basicInfo.acquisitionMode,
-          identityPicture: identityPicture?.url,
 
           // Informations passeport
           passportNumber: basicInfo.passportNumber,
@@ -133,10 +153,8 @@ export async function postProfile(
           spouseFullName: familyInfo.spouseFullName || null,
 
           // Contact
-          phone: contactInfo.phone,
-          email: contactInfo.email,
-
-          // Documents
+          phoneId: phone.id,
+          email: contactInfo.email || null,
 
           // Informations professionnelles
           workStatus: professionalInfo.workStatus,
@@ -151,91 +169,108 @@ export async function postProfile(
             create: contactInfo.addressInGabon
           } : undefined,
           emergencyContact: familyInfo.emergencyContact ? {
-            create: familyInfo.emergencyContact
+            create: {
+              fullName: familyInfo.emergencyContact.fullName,
+              relationship: familyInfo.emergencyContact.relationship,
+              phone: {
+                connectOrCreate: {
+                  where: { number: extractNumber(familyInfo.emergencyContact.phone).number },
+                  create: extractNumber(familyInfo.emergencyContact.phone),
+                }
+              }
+            }
           } : undefined
         }
       })
 
       // 2. Créer les documents associés
       if (passport) {
-        const passportDoc = await tx.userDocument.create({
-          data: {
-            type: DocumentType.PASSPORT,
-            fileUrl: passport.url,
-            userId: user.id,
-            issuedAt: new Date(basicInfo.passportIssueDate),
-            expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
-            metadata: {
-              documentNumber: basicInfo.passportNumber,
-              issuingAuthority: basicInfo.passportIssueAuthority
-            }
-          }
-        })
-
         // Mettre à jour le profil avec le document du passeport
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            passportId: passportDoc.id
+            passport: {
+              create: {
+                type: DocumentType.PASSPORT,
+                fileUrl: passport.url,
+                userId: user.id,
+                issuedAt: new Date(basicInfo.passportIssueDate),
+                expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
+                metadata: {
+                  documentNumber: basicInfo.passportNumber,
+                  issuingAuthority: basicInfo.passportIssueAuthority
+                }
+              }
+            }
           }
         })
       }
 
       // Créer les autres documents si présents
       if (birthCertificate) {
-        const birthCertificateDoc = await tx.userDocument.create({
-          data: {
-            type: DocumentType.BIRTH_CERTIFICATE,
-            fileUrl: birthCertificate.url,
-            userId: user.id
-          }
-        })
-
         // Mettre à jour le profil avec le document du certificat de naissance
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            birthCertificateId: birthCertificateDoc.id
+           birthCertificate: {
+             create: {
+               type: DocumentType.BIRTH_CERTIFICATE,
+               fileUrl: birthCertificate.url,
+               userId: user.id
+             }
+           }
           }
         })
       }
 
-      if (residencePermit) {
-        const residencePermitDoc = await tx.userDocument.create({
+      if (identityPicture) {
+        // Mettre à jour le profil avec le document de la photo d'identité
+        await tx.profile.update({
+          where: { id: profile.id },
           data: {
-            type: DocumentType.RESIDENCE_PERMIT,
-            fileUrl: residencePermit.url,
-            issuedAt: now,
-            expiresAt: inOneYear,
-            userId: user.id
+            identityPicture: {
+              create: {
+                type: DocumentType.IDENTITY_PHOTO,
+                fileUrl: identityPicture.url,
+                userId: user.id
+              }
+            }
           }
-        })
+      })
+    }
 
+      if (residencePermit) {
         // Mettre à jour le profil avec le document du titre de séjour
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            residencePermitId: residencePermitDoc.id
+            residencePermit: {
+              create: {
+                type: DocumentType.RESIDENCE_PERMIT,
+                fileUrl: residencePermit.url,
+                issuedAt: now,
+                expiresAt: inOneYear,
+                userId: user.id
+              }
+            }
           }
         })
       }
 
       if (addressProof) {
-        const addressProofDoc = await tx.userDocument.create({
-          data: {
-            type: DocumentType.PROOF_OF_ADDRESS,
-            fileUrl: addressProof.url,
-            issuedAt: now,
-            expiresAt: inThreeMonths,
-            userId: user.id
-          }
-        })
-
         // Mettre à jour le profil avec le document de justificatif de domicile
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-            addressProofId: addressProofDoc.id
+            addressProof: {
+              create: {
+                type: DocumentType.PROOF_OF_ADDRESS,
+                fileUrl: addressProof.url,
+                issuedAt: now,
+                expiresAt: inThreeMonths,
+                userId: user.id
+              }
+            }
           }
         })
       }
@@ -344,7 +379,18 @@ export async function updateProfile(
       case 'contactInfo':
         updateData = {
           email: data.email,
-          phone: data.phone,
+          phone: {
+            upsert: {
+              create: {
+                number: data.phone.number,
+                countryCode: data.phone.countryCode,
+              },
+              update: {
+                number: data.phone.number,
+                countryCode: data.phone.countryCode,
+              }
+            }
+          },
           address: {
             upsert: {
               create: data.address,
@@ -354,8 +400,16 @@ export async function updateProfile(
           ...(data.addressInGabon && {
             addressInGabon: {
               upsert: {
-                create: data.addressInGabon,
-                update: data.addressInGabon,
+                create: {
+                  address: data.addressInGabon.address,
+                  district: data.addressInGabon.district,
+                  city: data.addressInGabon.city,
+                },
+                update: {
+                  address: data.addressInGabon.address,
+                  district: data.addressInGabon.district,
+                  city: data.addressInGabon.city,
+                }
               },
             },
           }),
@@ -363,26 +417,39 @@ export async function updateProfile(
         break
 
       case 'familyInfo':
-        const emergencyContact = {
-          fullName: data.emergencyContact.fullName,
-          relationship: data.emergencyContact.relationship,
-          phone: data.emergencyContact.phone
-        }
+        const emergencyContactData = {
+          upsert: {
+            create: {
+              fullName: data.emergencyContact.fullName,
+              relationship: data.emergencyContact.relationship,
+              phone: {
+                create: {
+                  number: data.emergencyContact.phone.number,
+                  countryCode: data.emergencyContact.phone.countryCode,
+                }
+              }
+            },
+            update: {
+              fullName: data.emergencyContact.fullName,
+              relationship: data.emergencyContact.relationship,
+              phone: {
+                update: {
+                  number: data.emergencyContact.phone.number,
+                  countryCode: data.emergencyContact.phone.countryCode,
+                }
+              }
+            }
+          }
+        };
+
         updateData = {
           maritalStatus: data.maritalStatus,
           fatherFullName: data.fatherFullName,
           motherFullName: data.motherFullName,
           spouseFullName: data.spouseFullName,
-          ...(data.emergencyContact && {
-            emergencyContact: {
-              upsert: {
-                create: emergencyContact,
-                update: emergencyContact,
-              },
-            },
-          }),
-        }
-        break
+          emergencyContact: emergencyContactData
+        };
+        break;
 
       case 'professionalInfo':
         updateData = {
@@ -503,6 +570,7 @@ export async function submitProfileForValidation(
         addressProof: true,
         address: true,
         emergencyContact: true,
+        phone: true,
       }
     })
 

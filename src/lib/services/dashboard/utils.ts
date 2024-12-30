@@ -7,34 +7,36 @@ export function calculateProfileCompletion(profile: Profile | null): number {
     'firstName',
     'lastName',
     'birthDate',
-    'birthPlace',
     'nationality',
     'gender',
+    'identityPicture',
+    'passport',
+    'birthCertificate',
     'phone',
     'address',
-    'identityPicture',
-    'passport'
+    'addressProof',
+    'addressInGabon',
+    'activityInGabon',
+    'maritalStatus',
+    'addressInGabon',
+    'activityInGabon',
+    'maritalStatus'
   ]
 
-  const optionalFields = [
-    'profession',
-    'employer',
-    'spouseFullName',
-    'addressInGabon'
-  ]
+  if (profile.workStatus === 'EMPLOYEE') {
+    requiredFields.push('employer')
+    requiredFields.push('profession')
+  }
+
+  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
+    requiredFields.push('spouseFullName')
+  }
 
   const completedRequired = requiredFields.filter(field =>
     profile[field as keyof Profile] !== null &&
     profile[field as keyof Profile] !== ''
   ).length
 
-  const completedOptional = optionalFields.filter(field =>
-    profile[field as keyof Profile] !== null &&
-    profile[field as keyof Profile] !== ''
-  ).length
-
-  const totalWeight = requiredFields.length * 2 + optionalFields.length
-  const completedWeight = completedRequired * 2 + completedOptional
-
-  return Math.round((completedWeight / totalWeight) * 100)
+  const totalWeight = requiredFields.length
+  return Math.round((completedRequired / totalWeight) * 100)
 }

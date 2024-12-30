@@ -17,11 +17,11 @@ export function ProfileCard({ profile, onClick }: ProfileCardProps) {
   const t_countries = useTranslations('countries')
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center space-y-0 gap-4">
-        <Avatar className="h-10 w-10">
+    <Card className="transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+        <Avatar className="size-10">
           {profile.identityPicture ? (
-            <AvatarImage src={profile.identityPicture} alt={profile.firstName} />
+            <AvatarImage src={profile.identityPicture.fileUrl} alt={profile.firstName} />
           ) : (
             <AvatarFallback>{profile.firstName[0]}</AvatarFallback>
           )}
