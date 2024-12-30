@@ -45,8 +45,7 @@ export function FamilyInfoForm({
   const showSpouseFields = maritalStatus === MaritalStatus.MARRIED || maritalStatus === MaritalStatus.COHABITING
 
   const handlePhoneChange = (phone: PhoneValue) => {
-    const fullNumber = phone.countryCode + phone.number
-    form.setValue('emergencyContact.phone', fullNumber)
+    form.setValue('emergencyContact.phone', phone)
   }
 
   return (

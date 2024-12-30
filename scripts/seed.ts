@@ -86,6 +86,46 @@ async function main() {
         name: 'Manager Consulaire',
         role: UserRole.ADMIN,
         emailVerified: new Date(),
+        phoneVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'iasted+m@me.com',
+        name: 'Asted Manager',
+        role: UserRole.RESPONSIBLE,
+        emailVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'iasted+a@me.com',
+        name: 'Asted Admin',
+        role: UserRole.ADMIN,
+        emailVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'iasted+sa@me.com',
+        name: 'Asted Super Admin',
+        role: UserRole.SUPER_ADMIN,
+        emailVerified: new Date(),
         consulate:{
           connect: {
             id: consulat.id

@@ -61,7 +61,8 @@ export function ServiceForm({
 
   // Préparer les valeurs par défaut pour le formulaire des documents
   const defaultDocumentValues = React.useMemo(() => {
-    const values: Partial<Record<DocumentType, string>> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const values: Partial<Record<any, any>> = {};
 
     service.requiredDocuments.forEach((docType: DocumentType) => {
       const profileDoc = profileDocuments[docType as keyof typeof profileDocuments];

@@ -67,7 +67,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                         {profile.identityPicture && (
                           <div className="absolute left-4 top-4 h-auto w-24 aspect-square overflow-hidden rounded-lg border">
                             <Image
-                              src={profile.identityPicture}
+                              src={profile.identityPicture.fileUrl}
                               alt={t('photo_alt')}
                               fill
                               className="object-cover w-full h-full"
