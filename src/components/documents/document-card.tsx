@@ -14,18 +14,18 @@ interface DocumentCardProps {
 }
 
 export function DocumentCard({ document }: DocumentCardProps) {
-  const t = useTranslations('documents')
+  const t = useTranslations('common.documents')
 
   const getStatusIcon = () => {
     switch (document.status) {
       case 'VALIDATED':
-        return <CheckCircle2 className="h-4 w-4 text-success" />
+        return <CheckCircle2 className="text-success size-4" />
       case 'REJECTED':
-        return <AlertTriangle className="h-4 w-4 text-destructive" />
+        return <AlertTriangle className="size-4 text-destructive" />
       case 'EXPIRED':
-        return <AlertTriangle className="h-4 w-4 text-destructive" />
+        return <AlertTriangle className="size-4 text-destructive" />
       default:
-        return <Clock className="h-4 w-4 text-muted-foreground" />
+        return <Clock className="size-4 text-muted-foreground" />
     }
   }
 
@@ -65,8 +65,9 @@ export function DocumentCard({ document }: DocumentCardProps) {
                   ? 'destructive'
                   : 'info'
             }
-            className="ml-2"
+            className="flex gap-1"
           >
+            {getStatusIcon()}
             {t(`status.${document.status.toLowerCase()}`)}
           </Badge>
         </div>
@@ -74,15 +75,13 @@ export function DocumentCard({ document }: DocumentCardProps) {
 
       <CardContent>
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            {getStatusIcon()}
-            <span className="text-sm">
-              {t(`status.${document.status.toLowerCase()}`)}
-            </span>
-          </div>
           {document.expiresAt && (
             <p className="text-sm text-muted-foreground">
-              {t('expires_on')}: {format(new Date(document.expiresAt), 'PPP', { locale: fr })}
+              {t('expires_on', {
+                date: format(new Date(document.expiresAt), 'dd MMMM yyyy', {
+                  locale: fr,
+                }),
+              })}
             </p>
           )}
           {document.metadata?.documentNumber && (
@@ -100,7 +99,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
           className="flex-1"
           onClick={handleView}
         >
-          <Eye className="mr-2 h-4 w-4" />
+          <Eye className="mr-2 size-4" />
           {t('actions.view')}
         </Button>
         <Button
@@ -109,7 +108,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
           className="flex-1"
           onClick={handleDownload}
         >
-          <Download className="mr-2 h-4 w-4" />
+          <Download className="mr-2 size-4" />
           {t('actions.download')}
         </Button>
       </CardFooter>

@@ -47,5 +47,5 @@ export type ProfileKey = keyof FullProfile
 
 export type AppUserDocument = Omit<UserDocument, 'metadata'> & {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: Record<string, any>
+  metadata: Record<string, any> | null
 }
