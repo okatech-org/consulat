@@ -84,7 +84,7 @@ async function main() {
           }
         },
         name: 'Manager Consulaire',
-        role: UserRole.ADMIN,
+        role: UserRole.MANAGER,
         emailVerified: new Date(),
         phoneVerified: new Date(),
         consulate:{
@@ -98,7 +98,7 @@ async function main() {
       data: {
         email: 'iasted+m@me.com',
         name: 'Asted Manager',
-        role: UserRole.RESPONSIBLE,
+        role: UserRole.MANAGER,
         emailVerified: new Date(),
         consulate:{
           connect: {

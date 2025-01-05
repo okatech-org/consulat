@@ -37,7 +37,7 @@ export interface DashboardStatsValues {
 
 export async function getDashboardStats(): Promise<DashboardStatsValues | null> {
   try {
-    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
+    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
     if (authResult.error) {
       return null
     }
