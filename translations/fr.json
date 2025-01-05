@@ -1236,6 +1236,8 @@
       "status": "Statut professionnel",
       "employer": "Employeur",
       "work_address": "Adresse professionnelle",
+      "last_activity": "Dernière activité",
+      "work_status": "Statut professionnel",
       "all": "Toutes les informations",
       "first_name": "Prénom",
       "last_name": "Nom",
@@ -1244,7 +1246,10 @@
       "profession": "Profession",
       "gabon_address": "Adresse au Gabon",
       "spouse_name": "Nom du conjoint",
-      "gabon_activity": "Activité au Gabon"
+      "gabon_activity": "Activité au Gabon",
+      "employer_address": "Adresse de l'employeur",
+      "father_name": "Nom complet du père",
+      "mother_name": "Nom complet de la mère"
     },
     "family": {
       "parents": "Parents",

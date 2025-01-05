@@ -70,7 +70,7 @@ export function ProfileCompletion({
         {/* Informations requises */}
         <FieldsSection
           title={t('completion.required_information')}
-          fields={fieldStatus.required.fields}
+          fields={fieldStatus.required.fields.filter(f => !f.completed)}
           completed={fieldStatus.required.completed}
           total={fieldStatus.required.total}
           type="required"

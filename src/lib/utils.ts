@@ -234,6 +234,31 @@ interface ProfileFieldStatus {
   }
 }
 
+const profileFields: {
+  key: keyof FullProfile
+  name: string
+}[] = [
+  { key: 'firstName', name: 'first_name' },
+  { key: 'lastName', name: 'last_name' },
+  { key: 'birthDate', name: 'birth_date' },
+  { key: 'nationality', name: 'nationality' },
+  { key: 'gender', name: 'gender' },
+  { key: 'identityPicture', name: 'identity_photo' },
+  { key: 'passport', name: 'passport' },
+  { key: 'birthCertificate', name: 'birth_certificate' },
+  { key: 'phone', name: 'phone' },
+  { key: 'address', name: 'address' },
+  {key: "addressProof", name: "address_proof"},
+  { key: 'addressInGabon', name: 'gabon_address' },
+  { key: 'activityInGabon', name: 'gabon_activity' },
+  { key: 'maritalStatus', name: 'marital_status' }, { key: 'addressInGabon', name: 'gabon_address' },
+  { key: 'activityInGabon', name: 'gabon_activity' },
+  { key: 'maritalStatus', name: 'marital_status' },
+  { key: 'workStatus', name: 'work_status' },
+  { key: 'fatherFullName', name: 'father_name' },
+  { key: 'motherFullName', name: 'mother_name' }
+]
+
 export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldStatus {
   if (!profile) {
     return {
@@ -242,33 +267,11 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
     }
   }
 
-  const requiredFields: {
-    key: keyof FullProfile
-    name: string
-  }[] = [
-    { key: 'firstName', name: 'first_name' },
-    { key: 'lastName', name: 'last_name' },
-    { key: 'birthDate', name: 'birth_date' },
-    { key: 'nationality', name: 'nationality' },
-    { key: 'gender', name: 'gender' },
-    { key: 'identityPicture', name: 'identity_photo' },
-    { key: 'passport', name: 'passport' },
-    { key: 'birthCertificate', name: 'birth_certificate' },
-    { key: 'phone', name: 'phone' },
-    { key: 'address', name: 'address' },
-    {key: "addressProof", name: "address_proof"},
-    { key: 'profession', name: 'profession' },
-    { key: 'addressInGabon', name: 'gabon_address' },
-    { key: 'activityInGabon', name: 'gabon_activity' },
-    { key: 'maritalStatus', name: 'marital_status' },
-    { key: 'profession', name: 'profession' },
-    { key: 'addressInGabon', name: 'gabon_address' },
-    { key: 'activityInGabon', name: 'gabon_activity' },
-    { key: 'maritalStatus', name: 'marital_status' },
-  ]
+  const requiredFields = [...profileFields]
 
   if (profile.workStatus === 'EMPLOYEE') {
     requiredFields.push({ key: 'employer', name: 'employer' })
+    requiredFields.push({ key: 'profession', name: 'profession' })
     requiredFields.push({ key: 'employerAddress', name: 'work_address' })
   }
 
@@ -309,4 +312,28 @@ export const extractNumber = (fullPhoneNumber: string) => {
   }
 
   return { countryCode, number }
+}
+
+export function calculateProfileCompletion(profile: Profile | null): number {
+  if (!profile) return 0
+
+  const requiredFields = [...profileFields]
+
+  if (profile.workStatus === 'EMPLOYEE') {
+    requiredFields.push({ key: 'employer', name: 'employer' })
+    requiredFields.push({ key: 'profession', name: 'profession' })
+    requiredFields.push({ key: 'employerAddress', name: 'work_address' })
+  }
+
+  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
+    requiredFields.push({ key: 'spouseFullName', name: 'spouse_name' })
+  }
+
+  const completedRequired = requiredFields.map(item => item.key).filter(field =>
+    profile[field as keyof Profile] !== null &&
+    profile[field as keyof Profile] !== ''
+  ).length
+
+  const totalWeight = requiredFields.length
+  return Math.round((completedRequired / totalWeight) * 100)
 }
