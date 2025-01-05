@@ -84,14 +84,14 @@ export function MenuBarMobile() {
 
   const menus = {
     [UserRole.USER]: userMenu,
-    [UserRole.RESPONSIBLE]: adminMenu,
+    [UserRole.MANAGER]: adminMenu,
     [UserRole.SUPER_ADMIN]: adminMenu,
     [UserRole.ADMIN]: adminMenu,
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 block md:hidden">
-      <nav className="bg-background border-t px-2 py-3">
+    <div className="fixed inset-x-0 bottom-0 z-50 block md:hidden">
+      <nav className="border-t bg-background px-2 py-3">
         <div className="flex items-center justify-around">
           {getCurrentUserMenu().map((item) => {
             const isActive = path === item.href

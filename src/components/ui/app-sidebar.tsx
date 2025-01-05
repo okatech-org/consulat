@@ -98,7 +98,7 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
 
   const menus = {
     [UserRole.USER]: userMenu,
-    [UserRole.RESPONSIBLE]: adminMenu,
+    [UserRole.MANAGER]: adminMenu,
     [UserRole.SUPER_ADMIN]: adminMenu,
     [UserRole.ADMIN]: adminMenu,
   }
