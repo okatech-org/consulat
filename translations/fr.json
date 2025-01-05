@@ -136,7 +136,7 @@
         "incomplete": "Incomplet",
         "pending": "En attente"
       },
-      "validity": "Valide du {start} au {end}",
+      "validity": "Validité: {start} au {end}",
       "expired_on": "Expiré le {date}",
       "issued_on": "Émis le {date}",
       "expires_on": "Expire le {date}",
@@ -218,7 +218,11 @@
       },
       "update": {
         "title": "Modifier le document",
-        "description": "Mettez à jour les informations du document"
+        "description": "Mettez à jour les informations du document",
+        "tabs": {
+          "dates": "Dates de validité",
+          "metadata": "Données du document"
+        }
       },
       "delete": {
         "title": "Supprimer le document",
@@ -234,10 +238,28 @@
       },
       "metadata": {
         "document_number": "Numéro du document",
-        "issuing_authority": "Autorité de délivrance",
-        "issuing_country": "Pays de délivrance",
+        "issuing_authority": "Autorité émettrice",
+        "nationality": "Nationalité",
+        "permit_number": "Numéro du permis",
         "documentNumber": "Numéro de document",
-        "issuingAuthority": "Autorité émettrice"
+        "issuingAuthority": "Autorité émettrice",
+        "permit_type": "Type de permis",
+        "permit_type_options": {
+          "temporary": "Temporaire",
+          "permanent": "Permanent",
+          "student": "Étudiant",
+          "work": "Travail"
+        },
+        "registry_number": "Numéro de registre",
+        "place_of_birth": "Lieu de naissance",
+        "document_type": "Type de document",
+        "document_type_options": {
+          "utility_bill": "Facture d'énergie",
+          "bank_statement": "Relevé bancaire",
+          "tax_notice": "Avis d'imposition",
+          "rental_agreement": "Contrat de location"
+        },
+        "issuer": "Émetteur"
       },
       "dates": {
         "issued_on": "Date de délivrance",
@@ -277,6 +299,7 @@
       "confirm": "Confirmer",
       "close": "Fermer",
       "send": "Envoyer",
+      "uploading": "Téléchargement...",
       "view": "Voir",
       "download": "Télécharger",
       "upload": "Télécharger",

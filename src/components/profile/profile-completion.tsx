@@ -159,8 +159,8 @@ const FieldsSection = ({
 }) => {
   const t = useTranslations('profile')
   const [isExpanded, setIsExpanded] = useState(false)
-  const hasMoreFields = fields.length > 2
-  const toShowCount = fields.filter(f => !f.completed).length
+  const toShowCount = 3
+  const hasMoreFields = fields.length > toShowCount
 
   return (
     <div className="space-y-3">

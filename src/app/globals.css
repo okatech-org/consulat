@@ -188,6 +188,10 @@ html {
   animation: progress 2s linear infinite;
 }
 
+.animate-rotate {
+  animation: rotate 2s linear infinite;
+}
+
 .hover-card-content {
   width: 320px;
   padding: 1rem;
