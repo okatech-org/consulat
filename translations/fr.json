@@ -136,25 +136,127 @@
         "incomplete": "Incomplet",
         "pending": "En attente"
       },
+      "validity": "Valide du {start} au {end}",
       "expired_on": "Expiré le {date}",
+      "issued_on": "Émis le {date}",
+      "expires_on": "Expire le {date}",
       "types": {
-        "passport": "Passeport",
-        "id_card": "Carte d'identité",
         "birth_certificate": "Acte de naissance",
-        "residence_permit": "Titre de séjour",
         "proof_of_address": "Justificatif de domicile",
         "marriage_certificate": "Acte de mariage",
-        "death_certificate": "Acte de décès",
-        "divorce_decree": "Jugement de divorce"
+        "passport": "Passeport",
+        "identity_card": "Carte d'identité",
+        "residence_permit": "Titre de séjour",
+        "passport_request": "Demande de passeport",
+        "birth_registration": "Déclaration de naissance",
+        "birth_transcription": "Transcription d'acte de naissance",
+        "marriage_transcription": "Transcription d'acte de mariage",
+        "death_registration": "Déclaration de décès",
+        "death_transcription": "Transcription d'acte de décès",
+        "celibacy_certificate": "Certificat de célibat",
+        "consular_registration": "Inscription consulaire",
+        "address_certificate": "Attestation de résidence",
+        "travel_permit": "Laissez-passer",
+        "marriage_registration": "Enregistrement de mariage",
+        "consular_card": "Carte consulaire",
+        "document_legalization": "Légalisation de document",
+        "identity_certificate": "Certificat d'identité",
+        "nationality_certificate": "Certificat de nationalité",
+        "identity_photo": "Photo d'identité",
+        "power_of_attorney": "Procuration",
+        "other": "Autre démarche"
+      },
+      "descriptions": {
+        "birth_certificate": "Copie intégrale de l'acte de naissance",
+        "proof_of_address": "Document de moins de 3 mois (facture électricité, gaz, etc.)",
+        "marriage_certificate": "Copie intégrale de l'acte de mariage",
+        "passport": "Passeport en cours de validité",
+        "identity_card": "Carte nationale d'identité en cours de validité",
+        "residence_permit": "Titre de séjour en cours de validité",
+        "identity_photo": "Photo d'identité récente sur fond blanc",
+        "nationality_certificate": "Certificat de nationalité en cours de validité",
+        "celibacy_certificate": "Certificat de célibat",
+        "consular_registration": "Attestation d'inscription consulaire",
+        "address_certificate": "Attestation de résidence",
+        "travel_permit": "Un laissez-passer en cours de validité",
+        "consular_card": "Votre carte consulaire en cours de validité",
+        "document_legalization": "Légalisation de document",
+        "identity_certificate": "Certificat d'identité",
+        "power_of_attorney": "Procuration",
+        "other": "Autre démarche"
+      },
+      "documentNumber": "Numéro de document",
+      "issuingAuthority": "Autorité émettrice",
+      "upload": {
+        "title": "Téléverser un document",
+        "description": "Format JPG, PNG ou PDF. Taille maximale : 10 Mo",
+        "drag_zone": {
+          "title": "Glissez-déposez votre fichier ici",
+          "description": "ou cliquez pour sélectionner",
+          "button": "Sélectionner un fichier"
+        },
+        "success": {
+          "title": "Document téléversé",
+          "description": "Votre document a été téléversé avec succès"
+        },
+        "error": {
+          "title": "Erreur",
+          "file_too_large": "Le fichier est trop volumineux",
+          "invalid_type": "Type de fichier non supporté",
+          "upload_failed": "Échec du téléversement"
+        }
       },
       "actions": {
-        "upload": "Télécharger",
-        "reupload": "Re-télécharger",
+        "upload": "Téléverser",
+        "reupload": "Remplacer",
         "view": "Voir",
         "delete": "Supprimer",
-        "download": "Télécharger"
+        "download": "Télécharger",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "edit": "Modifier"
       },
-      "expires_on": "Expire le "
+      "update": {
+        "title": "Modifier le document",
+        "description": "Mettez à jour les informations du document"
+      },
+      "delete": {
+        "title": "Supprimer le document",
+        "description": "Êtes-vous sûr de vouloir supprimer ce document ?",
+        "confirm": "Supprimer",
+        "cancel": "Annuler"
+      },
+      "validation": {
+        "required": "Ce document est requis",
+        "file_required": "Veuillez sélectionner un fichier",
+        "invalid_type": "Type de fichier non supporté",
+        "file_too_large": "Le fichier est trop volumineux"
+      },
+      "metadata": {
+        "document_number": "Numéro du document",
+        "issuing_authority": "Autorité de délivrance",
+        "issuing_country": "Pays de délivrance",
+        "documentNumber": "Numéro de document",
+        "issuingAuthority": "Autorité émettrice"
+      },
+      "dates": {
+        "issued_on": "Date de délivrance",
+        "expires_on": "Date d'expiration",
+        "valid_until": "Valable jusqu'au"
+      },
+      "preview": {
+        "title": "Aperçu du document",
+        "loading": "Chargement de l'aperçu...",
+        "error": "Impossible de charger l'aperçu"
+      },
+      "messages": {
+        "upload_success": "Document téléversé avec succès",
+        "upload_error": "Erreur lors du téléversement",
+        "delete_success": "Document supprimé avec succès",
+        "delete_error": "Erreur lors de la suppression",
+        "update_success": "Document mis à jour avec succès",
+        "update_error": "Erreur lors de la mise à jour"
+      }
     },
     "callbacks": {
       "label": "Vous allez être redirigé sur la page ",

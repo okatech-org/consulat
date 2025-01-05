@@ -376,6 +376,7 @@ export async function getUserProfileDocuments(userId: string) {
       birthCertificate: true,
       residencePermit: true,
       addressProof: true,
+      identityPicture: true
     }
   })
 

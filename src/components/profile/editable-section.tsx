@@ -11,8 +11,8 @@ interface EditableSectionProps {
   children: React.ReactNode
   onSave?: () => Promise<void>
   isEditing: boolean
-  onEdit: () => void
-  onCancel: () => void
+  onEdit?: () => void
+  onCancel?: () => void
   className?: string
   isLoading?: boolean
 }
@@ -35,46 +35,52 @@ export function EditableSection({
         <CardTitle className="text-base font-semibold md:text-lg">
           {title}
         </CardTitle>
-        {!isEditing ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            className="h-8 px-2"
-          >
-            <Pencil className="h-4 w-4" />
-            <span className="hidden md:inline">
+
+        {onEdit && (
+          <>
+            {!isEditing ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEdit}
+                className="h-8 px-2"
+              >
+                <Pencil className="h-4 w-4" />
+                <span className="hidden md:inline">
               {t('actions.edit')}
             </span>
-          </Button>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCancel}
-              className="h-8 px-2"
-              disabled={isLoading}
-            >
-              <X className="h-4 w-4" />
-              <span className="hidden md:inline">
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onCancel}
+                  className="h-8 px-2"
+                  disabled={isLoading}
+                >
+                  <X className="h-4 w-4" />
+                  <span className="hidden md:inline">
                 {t('actions.cancel')}
               </span>
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={onSave}
-              className="h-8 px-2"
-              disabled={isLoading}
-            >
-              <Save className="h-4 w-4" />
-              <span className="hidden md:inline">
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={onSave}
+                  className="h-8 px-2"
+                  disabled={isLoading}
+                >
+                  <Save className="h-4 w-4" />
+                  <span className="hidden md:inline">
                 {t('actions.save')}
               </span>
-            </Button>
-          </div>
-        )}
+                </Button>
+              </div>
+            )}
+          </>
+        )
+        }
       </CardHeader>
       <CardContent>
         {children}

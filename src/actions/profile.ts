@@ -79,14 +79,6 @@ export async function postProfile(
       filesPromises.push(processFileData(formData))
     }
 
-    console.log({
-      identityPictureFile,
-      passportFile,
-      birthCertificateFile,
-      residencePermitFile,
-      addressProofFile
-    })
-
     // Traiter les fichiers uploadés
     const [
       identityPicture,
@@ -183,27 +175,38 @@ export async function postProfile(
         }
       })
 
+      const createdDoc = []
+
       // 2. Créer les documents associés
       if (passport) {
-        // Mettre à jour le profil avec le document du passeport
+
+        const passportDoc = await tx.userDocument.create({
+          data: {
+            type: DocumentType.PASSPORT,
+            fileUrl: passport.url,
+            userId: user.id,
+            issuedAt: new Date(basicInfo.passportIssueDate),
+            expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
+            metadata: {
+              documentNumber: basicInfo.passportNumber,
+              issuingAuthority: basicInfo.passportIssueAuthority
+            }
+          }
+        })
+
         await tx.profile.update({
           where: { id: profile.id },
           data: {
             passport: {
-              create: {
-                type: DocumentType.PASSPORT,
-                fileUrl: passport.url,
-                userId: user.id,
-                issuedAt: new Date(basicInfo.passportIssueDate),
-                expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
-                metadata: {
-                  documentNumber: basicInfo.passportNumber,
-                  issuingAuthority: basicInfo.passportIssueAuthority
-                }
+              connect: {
+                id: passportDoc.id
               }
             }
           }
         })
+
+        createdDoc.push(passportDoc)
+        // Mettre à jour le profil avec le document du passeport
       }
 
       // Créer les autres documents si présents

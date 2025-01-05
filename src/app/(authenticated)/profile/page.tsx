@@ -46,7 +46,7 @@ export default async function ProfilePage() {
               {t('title')}
             </CardTitle>
           </CardHeader>
-          <CardContent className={"flex flex-col gap-4 items-center"}>
+          <CardContent className={"flex flex-col items-center gap-4"}>
             <p className="text-muted-foreground">{t('no_profile')}</p>
             <Link
               href={ROUTES.registration}
@@ -56,12 +56,12 @@ export default async function ProfilePage() {
                 }) + 'w-max'
               }
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="size-4" />
               {t('actions.create')}
             </Link>
           </CardContent>
         </Card>
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
           <InfoIcon className="size-5 text-primary" />
           <h3 className="font-medium">
             {t('no_profile_help')}
@@ -101,8 +101,10 @@ export default async function ProfilePage() {
             passport: profile.passport,
             birthCertificate: profile.birthCertificate,
             residencePermit: profile.residencePermit,
-            addressProof: profile.addressProof
+            addressProof: profile.addressProof,
+            identityPhoto: profile.identityPicture
           }}
+          profileId={profile.id}
           className="md:col-span-2"
         />
       ),
@@ -110,7 +112,7 @@ export default async function ProfilePage() {
   ]
 
   return (
-    <div className="container space-y-6">
+    <div className="container relative space-y-6">
       <Suspense fallback={<LoadingSkeleton />}>
         <ProfileHeaderClient profile={profile} />
         <ProfileCompletionAssistant
@@ -122,8 +124,8 @@ export default async function ProfilePage() {
               className={"col-span-full lg:col-span-6"}
               defaultValue="basic-info"
             >
-              <TabsList className="w-full mb-2">
-                <div className="flex gap-2 items-center carousel-zone">
+              <TabsList className="mb-2 w-full">
+                <div className="carousel-zone flex items-center gap-2">
                   {profileTabs.map((tab) => (
                     <TabsTrigger key={tab.id} value={tab.id}>
                       {tab.title}
@@ -139,7 +141,9 @@ export default async function ProfilePage() {
             </Tabs>
           )}
           <div className={"col-span-full flex flex-col gap-4 lg:col-span-2"}>
-            <NotesList notes={profile.notes.filter(note => note.type === 'FEEDBACK')} />
+            {profile.notes.filter(note => note.type === 'FEEDBACK').length > 0 && (
+              <NotesList notes={profile.notes.filter(note => note.type === 'FEEDBACK')} />
+            )}
             <ProfileCompletion
               completionRate={completionRate}
               fieldStatus={fieldStatus}
