@@ -14,7 +14,7 @@ interface ValidateDocumentInput {
 
 export async function validateDocument(input: ValidateDocumentInput) {
   try {
-    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
+    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
     if (authResult.error || !authResult.user) {
       return { error: authResult.error }
     }

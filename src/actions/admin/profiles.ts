@@ -26,7 +26,7 @@ export interface ProfilesResult {
 }
 
 export async function getProfiles(options?: GetProfilesOptions): Promise<ProfilesResult> {
-  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN'])
+  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
   if (authResult.error) {
     throw new Error(authResult.error)
   }

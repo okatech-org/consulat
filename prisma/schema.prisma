@@ -10,10 +10,10 @@ generator client {
 // Énumérations
 
 enum UserRole {
-  USER
-  RESPONSIBLE // Responsable (Sous-administrateur)
-  ADMIN // Administratif Consulaire
   SUPER_ADMIN // Super administrateur
+  ADMIN // Administratif Consulaire
+  MANAGER // Responsable (Sous-administrateur)
+  USER
 }
 
 enum RequestType {
