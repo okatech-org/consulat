@@ -18,7 +18,7 @@ export function ProfileHeader({ profile, onShare, onDownload }: ProfileHeaderPro
   const t_countries = useTranslations('countries')
 
   return (
-    <Card className="mb-6">
+    <Card>
       <CardContent className="pt-6">
         <div className="flex flex-col items-center gap-4 md:flex-row md:gap-6">
           <Avatar className="size-24 md:size-32">

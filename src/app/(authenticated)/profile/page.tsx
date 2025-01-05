@@ -11,9 +11,8 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
-import { calculateProfileCompletion } from '@/lib/services/dashboard/utils'
 import { ProfileCompletion } from '@/components/profile/profile-completion'
-import { getProfileFieldsStatus } from '@/lib/utils'
+import { calculateProfileCompletion, getProfileFieldsStatus } from '@/lib/utils'
 import { BasicInfoSection } from '@/components/profile/sections/basic-info-section'
 import { ContactInfoSection } from '@/components/profile/sections/contact-info-section'
 import { FamilyInfoSection } from '@/components/profile/sections/family-info-section'
@@ -114,10 +113,12 @@ export default async function ProfilePage() {
   return (
     <div className="container relative space-y-6">
       <Suspense fallback={<LoadingSkeleton />}>
-        <ProfileHeaderClient profile={profile} />
-        <ProfileCompletionAssistant
-          profile={profile}
-        />
+        <div className="flex flex-col gap-4">
+          <ProfileHeaderClient profile={profile} />
+          <ProfileCompletionAssistant
+            profile={profile}
+          />
+        </div>
         <div className="grid grid-cols-8 gap-4">
           {profile && (
             <Tabs
