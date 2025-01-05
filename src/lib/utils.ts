@@ -298,21 +298,39 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
   }
 }
 
-export const extractNumber = (fullPhoneNumber: string) => {
-  const countryCodes = phoneCountries.map((country) => country.value)
-  let countryCode = ''
-  let number = fullPhoneNumber
-
-  for (const code of countryCodes) {
-    if (fullPhoneNumber.startsWith(code)) {
-      countryCode = code
-      number = fullPhoneNumber.slice(code.length).trim()
-      break
-    }
+export const extractNumber = (fullPhoneNumber: string | { countryCode: string; number: string }) => {
+  // Si c'est déjà un objet avec countryCode et number, le retourner tel quel
+  if (typeof fullPhoneNumber === 'object' && fullPhoneNumber.countryCode && fullPhoneNumber.number) {
+    return {
+      countryCode: fullPhoneNumber.countryCode,
+      number: fullPhoneNumber.number
+    };
   }
 
-  return { countryCode, number }
-}
+  // Si c'est une chaîne, la traiter
+  if (typeof fullPhoneNumber === 'string') {
+    const countryCodes = phoneCountries.map((country) => country.value);
+    let countryCode = '';
+    let number = fullPhoneNumber;
+
+    for (const code of countryCodes) {
+      if (fullPhoneNumber.startsWith(code)) {
+        countryCode = code;
+        number = fullPhoneNumber.slice(code.length).trim();
+        break;
+      }
+    }
+
+    return { countryCode, number };
+  }
+
+  // Valeur par défaut si le format n'est pas reconnu
+  return {
+    countryCode: '',
+    number: ''
+  };
+};
+
 
 export function calculateProfileCompletion(profile: Profile | null): number {
   if (!profile) return 0
