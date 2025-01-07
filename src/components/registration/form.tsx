@@ -185,7 +185,7 @@ export function RegistrationForm() {
         description: t('submission.success.description'),
       })
 
-      router.push(ROUTES.dashboard)
+      router.push(ROUTES.profile)
     } catch (error) {
       const { title, description } = handleFormError(error, t)
       toast({ title, description, variant: "destructive" })
