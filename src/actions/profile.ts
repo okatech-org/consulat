@@ -15,7 +15,7 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration'
 import { deleteFiles } from '@/actions/uploads'
-import { extractNumber } from '@/lib/utils'
+import { calculateProfileCompletion, extractNumber } from '@/lib/utils'
 
 export async function postProfile(
   formData: FormData
@@ -280,6 +280,18 @@ export async function postProfile(
 
       return profile
     })
+
+    const profileCompletion = await calculateProfileCompletion(profile)
+
+    if (profileCompletion === 100) {
+      await db.profile.update({
+        where: { id: profile.id },
+        data: {
+          status: RequestStatus.SUBMITTED,
+          submittedAt: new Date()
+        }
+      })
+    }
 
     // Revalider les pages
     revalidatePath(ROUTES.profile)
