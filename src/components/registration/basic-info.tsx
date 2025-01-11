@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
-import { countryKeys } from '@/assets/autocomplete-datas'
+import { countryKeys } from '@/lib/autocomplete-datas'
 import { NationalityAcquisition } from '@prisma/client'
 import { BasicInfoFormData } from '@/schemas/registration'
 import { DocumentUploadField } from '@/components/ui/document-upload'

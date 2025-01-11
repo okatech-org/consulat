@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { CountryCode, phoneCountries } from '@/assets/autocomplete-datas'
+import { CountryCode, phoneCountries } from '@/lib/autocomplete-datas'
 
 export interface PhoneValue {
   number: string

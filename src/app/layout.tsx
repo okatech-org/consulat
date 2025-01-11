@@ -1,5 +1,5 @@
 import './globals.css'
-import { ThemeProvider } from '@/prodivers/theme-provider'
+import { ThemeProvider } from '@/components/layouts/theme-provider'
 import React from 'react'
 import { GeistSans } from 'geist/font/sans'
 import type { Metadata, Viewport } from 'next'

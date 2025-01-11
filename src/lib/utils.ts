@@ -210,7 +210,7 @@ export function useFormStorage() {
 }
 
 import { Profile } from '@prisma/client'
-import { phoneCountries } from '@/assets/autocomplete-datas'
+import { phoneCountries } from '@/lib/autocomplete-datas'
 import { FullProfile } from '@/types'
 
 interface ProfileFieldStatus {

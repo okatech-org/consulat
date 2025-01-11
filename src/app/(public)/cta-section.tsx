@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { buttonVariants } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
-import { subscribeToWaitlist } from '../../../ src/actions/email-list'
+import { subscribeToWaitlist } from '../../actions/email-list'
 
 export function CTASection() {
   const [email, setEmail] = useState('')

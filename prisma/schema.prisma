@@ -238,6 +238,8 @@ model Profile {
   submittedAt     DateTime?
   notes           ProfileNote[]
   notifications   Notification[]
+  consulate       Consulate?     @relation(fields: [consulateId], references: [id])
+  consulateId     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -297,9 +299,11 @@ model Consulate {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  appointments Appointment[]
-  schedule     ConsulateSchedule[]
-  timeSlots    TimeSlot[]
+  appointments      Appointment[]
+  schedule          ConsulateSchedule[]
+  timeSlots         TimeSlot[]
+  linkedProfiles    Profile[]
+  availableServices ConsularService[]
 }
 
 model Country {
@@ -454,8 +458,10 @@ model ConsularService {
   requests ServiceRequest[]
 
   // Métadonnées
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  Consulate   Consulate? @relation(fields: [consulateId], references: [id])
+  consulateId String?
 }
 
 // Modèle pour les étapes d'une démarche
@@ -655,4 +661,15 @@ enum EmailStatus {
   PENDING
   CONFIRMED
   UNSUBSCRIBED
+}
+
+model AIQuestion {
+  id         String   @id @default(cuid())
+  question   String
+  frequency  Int      @default(1)
+  category   String
+  userRole   UserRole
+  isRelevant Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

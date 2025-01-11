@@ -2,7 +2,7 @@ import { SessionProvider } from 'next-auth/react'
 import { auth } from '@/auth'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { MenuBarMobile } from '@/components/ui/menu-bar-mobile'
-import AppSidebar from '@/components/ui/app-sidebar'
+import AppSidebar from '@/components/layouts/app-sidebar'
 import { ServerAuthGuard } from '@/components/layouts/server-auth-guard'
 
 export default async function AuthenticatedLayout({

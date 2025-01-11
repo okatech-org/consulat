@@ -24,7 +24,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { useTranslations } from 'next-intl'
-import { countryKeys } from '@/assets/autocomplete-datas'
+import { countryKeys } from '@/lib/autocomplete-datas'
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
 import { PhoneInput, PhoneValue } from '@/components/ui/phone-input'

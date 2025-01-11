@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "postai-sum": "node ./scripts/minifyMarkdown.js",
     "ai-sum": "pnpx ai-digest -o ai-sum/.code_base.md --whitespace-removal --show-output-files",
-    "preai-sum": "node ./scripts/trad.js",
+    "trad-sample": "node ./scripts/trad.js",
     "db:seed-services": "ts-node --project tsconfig.seed.json scripts/seed-services.ts",
     "predb:seed": "pnpx prisma db push --force-reset",
     "db:seed": "NODE_ENV=development ts-node --project tsconfig.seed.json scripts/seed.ts"

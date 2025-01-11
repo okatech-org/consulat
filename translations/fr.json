@@ -2743,5 +2743,35 @@
       "PROFILE_VALIDATED": "Profil validé",
       "PROFILE_REJECTED": "Profil rejeté"
     }
+  },
+  "manager": {
+    "dashboard": {
+      "welcome": "Bonjour {name} 👋",
+      "subtitle": "Gérez les demandes consulaires et suivez leur progression",
+      "stats": {
+        "pending_requests": "Demandes en attente",
+        "active_users": "Utilisateurs actifs",
+        "processing_time": "Temps moyen de traitement",
+        "completed_requests": "Demandes traitées",
+        "pending_description": "Demandes à traiter",
+        "users_description": "Utilisateurs inscrits",
+        "time_description": "Moyenne sur 30 jours",
+        "completed_description": "Total des demandes traitées"
+      },
+      "pending_requests": {
+        "title": "Demandes en attente",
+        "empty": "Aucune demande en attente"
+      },
+      "activity": {
+        "title": "Activité récente",
+        "empty": "Aucune activité récente",
+        "types": {
+          "request_submitted": "{user} a soumis une nouvelle demande",
+          "request_validated": "{user} a validé une demande",
+          "request_rejected": "{user} a rejeté une demande",
+          "document_uploaded": "{user} a téléchargé un {document}"
+        }
+      }
+    }
   }
 }
