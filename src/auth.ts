@@ -39,7 +39,10 @@ export const {
       }
       return session
     },
-    async jwt({ token }) {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as FullUser).role
+      }
       return token
     }
   },

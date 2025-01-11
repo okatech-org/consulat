@@ -2,6 +2,7 @@ import { type Provider } from 'next-auth/providers'
 import { db } from '@/lib/prisma'
 import { validateOTP } from '@/lib/user/otp'
 import { extractNumber } from '@/lib/utils'
+import { UserRole } from '@prisma/client'
 
 export interface AuthPayload {
   identifier: string
@@ -23,7 +24,6 @@ export const CredentialsAuthProvider = (): Provider => ({
   async authorize(credentials) {
     try {
       if (!credentials) throw new Error('No credentials')
-
       const { identifier, type, otp } = credentials as unknown as AuthPayload
 
       if (!identifier || !otp) {
@@ -43,24 +43,39 @@ export const CredentialsAuthProvider = (): Provider => ({
       // Trouver ou créer l'utilisateur
       const userWhere = type === 'EMAIL'
         ? { email: identifier }
-        : { phone: extractNumber(identifier) }
+        : { phone: { number: extractNumber(identifier).number } }
 
       let user = await db.user.findFirst({
-        where: userWhere
+        where: userWhere,
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          phone: true,
+          lastLogin: true,
+          consulateId: true,
+        }
       })
 
       if (!user) {
         user = await db.user.create({
           data: {
             ...(type === 'EMAIL'
-              ? { email: identifier }
-              : { phone: {
-                create: extractNumber(identifier)
-                }
-            }),
+                ? { email: identifier }
+                : { phone: { create: extractNumber(identifier) } }
+            ),
             emailVerified: type === 'EMAIL' ? new Date() : null,
             phoneVerified: type === 'PHONE' ? new Date() : null,
+            role: UserRole.USER, // Rôle par défaut
           },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            phone: true,
+            lastLogin: true,
+            consulateId: true,
+          }
         })
       }
 
