@@ -1,0 +1,75 @@
+'use client'
+
+import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { CountryForm } from './country-form'
+import { createCountry } from '@/actions/countries'
+import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'
+import { CreateCountryInput } from '@/types/country'
+
+export function CreateCountryButton() {
+  const t = useTranslations('superadmin.countries')
+  const { toast } = useToast()
+  const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (data: CreateCountryInput) => {
+    setIsLoading(true)
+    try {
+      const result = await createCountry(data)
+      if (result.error) {
+        throw new Error(result.error)
+      }
+
+      toast({
+        title: t('messages.createSuccess'),
+        variant: 'success',
+      })
+
+      setIsOpen(false)
+      router.refresh()
+    } catch (error) {
+      toast({
+        title: t('messages.error.create'),
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          {t('actions.create')}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{t('actions.create')}</DialogTitle>
+          <DialogDescription>
+            {t('form.description')}
+          </DialogDescription>
+        </DialogHeader>
+        <CountryForm
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+        />
+      </DialogContent>
+    </Dialog>
+  )
+}

@@ -321,6 +321,25 @@
       "identity_card": "Carte d'identité",
       "residence_permit": "Titre de séjour",
       "birth_registration": "Déclaration de naissance"
+    },
+    "data_table": {
+        "no_data": "Aucune donnée disponible",
+        "no_results": "Aucun résultat trouvé",
+        "loading": "Chargement...",
+        "rows_per_page": "Lignes par page",
+        "page": "Page",
+        "of": "de",
+        "rows": "lignes",
+        "columns": "Colonnes",
+        "search": "Rechercher",
+        "search_placeholder": "Rechercher...",
+        "actions": "Actions",
+        "selected": "sélectionné",
+        "out_of": "{count} sur ",
+        "selected_rows": "{count} lignes sélectionnées",
+        "select_all": "Tout sélectionner",
+        "clear_selection": "Effacer la sélection",
+        "export": "Exporter"
     }
   },
   "feedback": {
@@ -2834,6 +2853,74 @@
         "approve": "Approuver",
         "reject": "Rejeter",
         "cancel": "Annuler"
+      }
+    }
+  },
+  "superadmin": {
+    "welcome": "Bienvenue {name}",
+    "countries": {
+      "title": "Gestion des Pays",
+      "actions": {
+        "create": "Ajouter un pays",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "update": "Mettre à jour"
+      },
+      "table": {
+        "name": "Nom",
+        "code": "Code",
+        "status": "Statut",
+        "organizationsCount": "Organismes",
+        "usersCount": "Utilisateurs",
+        "actions": "Actions",
+        "empty": "Aucun pays trouvé",
+        "loading": "Chargement des pays..."
+      },
+      "form": {
+        "name": {
+          "label": "Nom du pays",
+          "placeholder": "Ex: France",
+          "error": "Le nom est requis"
+        },
+        "code": {
+          "label": "Code pays",
+          "placeholder": "Ex: FR",
+          "error": "Le code pays doit contenir 2 caractères"
+        },
+        "status": {
+          "label": "Statut",
+          "placeholder": "Sélectionner un statut",
+          "options": {
+            "active": "Actif",
+            "inactive": "Inactif"
+          }
+        },
+        "flag": {
+          "label": "Drapeau",
+          "placeholder": "Sélectionner un fichier"
+        },
+        "description": "Remplissez les informations pour créer un nouveau pays."
+      },
+      "messages": {
+        "createSuccess": "Pays créé avec succès",
+        "updateSuccess": "Pays mis à jour avec succès",
+        "deleteSuccess": "Pays supprimé avec succès",
+        "error": {
+          "create": "Erreur lors de la création du pays",
+          "update": "Erreur lors de la mise à jour du pays",
+          "delete": "Erreur lors de la suppression du pays",
+          "fetch": "Erreur lors du chargement des pays"
+        }
+      },
+      "dialogs": {
+        "delete": {
+          "title": "Supprimer le pays",
+          "description": "Êtes-vous sûr de vouloir supprimer ce pays ? Cette action est irréversible.",
+          "confirm": "Oui, supprimer",
+          "cancel": "Annuler"
+        }
       }
     }
   }

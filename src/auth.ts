@@ -29,8 +29,21 @@ export const {
         const existingUser = await getUserById(token.sub)
         if (existingUser) {
           session.user.role = existingUser.role
-          session.user.phone = existingUser.phone
+
+          if (existingUser.name) {
+            session.user.name = existingUser.name
+          }
+
+          if (existingUser.phone) {
+            session.user.phone = existingUser.phone
+          }
+
+          if (existingUser.email) {
+            session.user.email = existingUser.email
+          }
+
           session.user.lastLogin = existingUser.lastLogin ?? new Date()
+
           if (existingUser.consulateId) {
             session.user.consulateId = existingUser.consulateId
           }

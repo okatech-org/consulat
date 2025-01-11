@@ -27,7 +27,7 @@ export default async function SuperAdminSidebar({ ...props }: React.ComponentPro
   const navigation = [
     {
       title: t('dashboard'),
-      href: ROUTES.superadmin.dashboard,
+      href: ROUTES.superadmin.base,
       icon: <LayoutDashboard className="h-4 w-4" />
     },
     {

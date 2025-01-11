@@ -55,9 +55,9 @@ async function main() {
         },
         countries: {
           create: [
-            { name: "France", code: "FR" },
-            { name: "Belgique", code: "BE" },
-            { name: "Luxembourg", code: "LU" }
+            { name: "France", code: "FR" , flag: `https://flagcdn.com/fr.svg`},
+            { name: "Belgique", code: "BE", flag: "https://flagcdn.com/be.svg" },
+            { name: "Luxembourg", code: "LU", flag: "https://flagcdn.com/lu.svg" },
           ]
         },
         schedule: {
@@ -73,13 +73,38 @@ async function main() {
         }
       }
     })
+    const country = await prisma.country.findFirst({
+      where: {
+        code: "FR"
+      }
+    })
 
     await prisma.user.create({
       data: {
-        email: 'itoutouberny+actions@gmail.com',
+        email: 'itoutouberny+manager@gmail.com',
         phone: {
           create: {
             number: '+33612250393',
+            countryCode: '+33'
+          }
+        },
+        name: 'Manager Consulaire',
+        role: UserRole.MANAGER,
+        emailVerified: new Date(),
+        phoneVerified: new Date(),
+        consulate:{
+          connect: {
+            id: consulat.id
+          }
+        }
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'itoutouberny+sa@gmail.com',
+        phone: {
+          create: {
+            number: '+330612250393',
             countryCode: '+33'
           }
         },
@@ -190,6 +215,11 @@ async function main() {
             id: consulat.id
           }
         },
+        country: {
+          connect: {
+            id: country?.id
+          }
+        },
         profile: {
           create: {
             firstName: "John",
@@ -295,6 +325,11 @@ async function main() {
         consulate: {
           connect: {
             id: consulat.id
+          }
+        },
+        country: {
+          connect: {
+            id: country?.id
           }
         },
         profile: {
