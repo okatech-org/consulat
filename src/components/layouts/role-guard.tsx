@@ -1,22 +1,20 @@
-'use client'
-
-import { useCurrentUser } from '@/hooks/use-current-user'
 import { UserRole } from '@prisma/client'
 
 interface RoleGuardProps {
   children: React.ReactNode
   roles: UserRole[]
+  currentRole?: UserRole
   fallback?: React.ReactNode
 }
 
 export function RoleGuard({
                             children,
                             roles,
+                            currentRole,
                             fallback
                           }: RoleGuardProps) {
-  const user = useCurrentUser()
 
-  if (!user || !roles.includes(user.role)) {
+  if (!currentRole || !roles.includes(currentRole)) {
     return fallback || null
   }
 

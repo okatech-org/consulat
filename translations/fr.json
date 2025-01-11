@@ -748,6 +748,13 @@
     }
   },
   "navigation": {
+    "super_admin": {
+      "dashboard": "Tableau de bord",
+      "countries": "Pays",
+      "organizations": "Organismes",
+      "services": "Services",
+      "users": "Utilisateurs"
+    },
     "my_profile": "Mon profil",
     "my_account": "Mon compte",
     "notifications": "Mes notifications",

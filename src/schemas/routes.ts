@@ -14,6 +14,16 @@ export const ROUTES = {
   login: '/auth/login' as Route<string>,
   auth_error: '/auth/error' as Route<string>,
 
+  // Pages administratives
+  superadmin: {
+    base: '/superadmin' as Route<string>,
+    dashboard: '/superadmin/dashboard' as Route<string>,
+    countries: '/superadmin/countries' as Route<string>,
+    organizations: '/superadmin/organizations' as Route<string>,
+    services: '/superadmin/services' as Route<string>,
+    users: '/superadmin/users' as Route<string>,
+  },
+
   // Pages utilisateur
   profile: '/user/profile' as Route<string>,
   settings: '/user/settings' as Route<string>,
