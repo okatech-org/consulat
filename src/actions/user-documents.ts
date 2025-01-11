@@ -137,7 +137,7 @@ export async function createUserDocument(type: DocumentType, file: FormData, pro
 }
 
 function connectDocumentToProfile(profileId: string, documentId: string, documentType: DocumentType) {
-  console.log('Connecting document to profile:', profileId, documentId, documentType)
+  console.log('Connecting document to components:', profileId, documentId, documentType)
   switch (documentType) {
     case DocumentType.PASSPORT:
       return db.profile.update({

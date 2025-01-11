@@ -19,7 +19,7 @@ export default async function LandingPage() {
             <span className="text-primary">100% Digital</span>
           </h1>
           <p className="mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
-            {"Simplifiez vos démarches consulaires et gérez tous vos documents en ligne, en toute sécurité et depuis n'importe où."}
+            {"Simplifiez vos démarches consulaires et gérez tous vos components en ligne, en toute sécurité et depuis n'importe où."}
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Link

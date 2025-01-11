@@ -51,12 +51,12 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
       ]
     },
     {
-      title: t_user('nav.profile'),
+      title: t_user('nav.components'),
       href: ROUTES.profile,
       icon: <User />,
     },
     {
-      title: t_user('nav.documents'),
+      title: t_user('nav.components'),
       href: ROUTES.documents,
       icon: <Folder/>,
     }

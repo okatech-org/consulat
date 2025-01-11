@@ -290,19 +290,19 @@ describe('SuperAdmin Authority Management', () => {
 // Routes API principales
 const apiRoutes = {
   authorities: {
-    create: 'POST /api/admin/authorities',
-    update: 'PUT /api/admin/authorities/:id',
-    delete: 'DELETE /api/admin/authorities/:id',
-    services: 'PUT /api/admin/authorities/:id/services'
+    create: 'POST /api/actions/authorities',
+    update: 'PUT /api/actions/authorities/:id',
+    delete: 'DELETE /api/actions/authorities/:id',
+    services: 'PUT /api/actions/authorities/:id/services'
   },
   services: {
-    configure: 'POST /api/admin/services/configure',
-    transfer: 'POST /api/admin/services/transfer',
-    disable: 'POST /api/admin/services/disable'
+    configure: 'POST /api/actions/services/configure',
+    transfer: 'POST /api/actions/services/transfer',
+    disable: 'POST /api/actions/services/disable'
   },
   users: {
-    assign: 'POST /api/admin/users/assign',
-    update: 'PUT /api/admin/users/assignment'
+    assign: 'POST /api/actions/users/assign',
+    update: 'PUT /api/actions/users/assignment'
   }
 };
 ```
@@ -375,4 +375,3 @@ Phase 1: Configuration de base
 Phase 2: Fonctionnalités avancées
 Phase 3: Optimisations et améliorations
 Phase 4: Nouvelles fonctionnalités
-

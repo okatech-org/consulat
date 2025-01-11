@@ -494,7 +494,7 @@ model ServiceStep {
 // Nouveau: Types d'étapes possibles
 enum ServiceStepType {
   FORM // Étape de formulaire standard
-  DOCUMENTS // Étape d'upload de documents
+  DOCUMENTS // Étape d'upload de components
   APPOINTMENT // Étape de prise de RDV
   REVIEW // Étape de revue finale
 }

@@ -2,12 +2,12 @@ import { Suspense } from 'react'
 import { getCurrentUser } from '@/actions/user'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { getTranslations } from 'next-intl/server'
-import { DashboardStats } from '@/app/(authenticated)/manager/_components/dashboard/dashboard-stats'
-import { PendingRequests } from '@/app/(authenticated)/manager/_components/dashboard/pending-requests'
-import { RecentActivity } from '@/app/(authenticated)/manager/_components/dashboard/recent-activity'
+import { DashboardStats } from '@/app/(authenticated)/manager/_utils/components/dashboard/dashboard-stats'
+import { PendingRequests } from '@/app/(authenticated)/manager/_utils/components/dashboard/pending-requests'
+import { RecentActivity } from '@/app/(authenticated)/manager/_utils/components/dashboard/recent-activity'
 
 export default async function ManagerDashboardPage() {
-  const t = await getTranslations('manager.dashboard')
+  const t = await getTranslations('actions.dashboard')
   const user = await getCurrentUser()
 
   if (!user) return null

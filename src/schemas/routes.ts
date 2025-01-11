@@ -15,23 +15,23 @@ export const ROUTES = {
   auth_error: '/auth/error' as Route<string>,
 
   // Pages utilisateur
-  profile: '/profile' as Route<string>,
-  profile_edit: '/profile/edit' as Route<string>,
+  profile: '/components' as Route<string>,
+  profile_edit: '/components/edit' as Route<string>,
   settings: '/settings' as Route<string>,
-  documents: '/documents' as Route<string>,
+  documents: '/components' as Route<string>,
   services: '/services' as Route<string>,
   requests: '/services/requests' as Route<string>,
   service_start: (id: string) => `/services/${id}/start` as Route<string>,
   service_edit: (id: string) => `/services/${id}/edit` as Route<string>,
   service_view: (id: string) => `/services/${id}` as Route<string>,
 
-  // Pages admin
-  admin: '/admin' as Route<string>,
-  admin_dashboard: '/admin' as Route<string>,
-  admin_users: '/admin/users' as Route<string>,
-  admin_requests: '/admin/requests' as Route<string>,
-  admin_settings: '/admin/settings' as Route<string>,
-  admin_profiles: '/admin/profiles' as Route<string>,
+  // Pages actions
+  admin: '/actions' as Route<string>,
+  admin_dashboard: '/actions' as Route<string>,
+  admin_users: '/actions/users' as Route<string>,
+  admin_requests: '/actions/requests' as Route<string>,
+  admin_settings: '/actions/settings' as Route<string>,
+  admin_profiles: '/actions/profiles' as Route<string>,
   admin_profiles_review: (id: string) => `/admin/profiles/${id}/review` as Route<string>,
 
     // Pages partagées
@@ -41,9 +41,9 @@ export const ROUTES = {
   appointments: '/appointments' as Route<string>,
 
   // Pages publiques
-  registration: '/registration' as Route<string>,
+  registration: '/components' as Route<string>,
   unauthorized: '/unauthorized' as Route<string>,
-  consular_registration: '/consular-registration' as Route<string>,
+  consular_registration: '/consular-components' as Route<string>,
   privacy_policy: '#' as Route<string>,
   terms: '#' as Route<string>,
 } as const

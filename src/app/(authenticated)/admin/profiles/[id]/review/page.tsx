@@ -1,5 +1,5 @@
-import { getProfileById } from '@/actions/admin/profiles'
-import { ProfileReview } from '@/components/admin/profiles/profile-review'
+import { getProfileById } from '@/app/(authenticated)/admin/_utils/actions/profiles'
+import { ProfileReview } from '@/app/(authenticated)/admin/_utils/profiles/profile-review'
 import { ROUTES } from '@/schemas/routes'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -14,7 +14,7 @@ interface ProfileReviewPageProps {
 }
 
 export default async function ProfileReviewPage({ params }: ProfileReviewPageProps) {
-  const t = await getTranslations('admin.profiles.review')
+  const t = await getTranslations('actions.profiles.review')
   const t_common = await getTranslations('common')
   const profile = await getProfileById(params.id)
 

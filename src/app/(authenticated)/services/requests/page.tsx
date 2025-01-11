@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
-import { getUserServiceRequests } from '@/actions/consular-services/get-requests'
-import { RequestsList } from '@/components/consular-services/requests/requests-list'
+import { getUserServiceRequests } from '@/app/(authenticated)/services/_utils/actions/get-requests'
+import { RequestsList } from '@/app/(authenticated)/services/_utils/consular-services/requests/requests-list'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { getTranslations } from 'next-intl/server'
 

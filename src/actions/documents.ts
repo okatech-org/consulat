@@ -363,7 +363,7 @@ export async function getUserDocumentsList(): Promise<AppUserDocument[]> {
     ))
 
   } catch (error) {
-    console.error('Error fetching user documents:', error)
+    console.error('Error fetching user components:', error)
     return []
   }
 }

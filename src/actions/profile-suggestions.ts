@@ -31,7 +31,7 @@ export async function analyzeProfile(profile: FullProfile) {
     return suggestions
 
   } catch (error) {
-    console.error('Error analyzing profile:', error)
+    console.error('Error analyzing components:', error)
     return {
       suggestions: []
     }

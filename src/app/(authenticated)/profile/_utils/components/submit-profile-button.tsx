@@ -1,0 +1,126 @@
+"use client"
+
+import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/button'
+import { SendHorizonal, Loader2 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { useToast } from '@/hooks/use-toast'
+import { submitProfileForValidation } from '@/app/(authenticated)/profile/_utils/profile'
+import { useRouter } from 'next/navigation'
+
+// Définir les items de la checklist de manière statique
+const CHECKLIST_ITEMS = ['personal_info', 'documents', 'contact_info', 'emergency_contact'] as const
+
+interface SubmitProfileButtonProps {
+  profileId: string
+  isComplete: boolean
+}
+
+export function SubmitProfileButton({
+                                      profileId,
+                                      isComplete,
+                                    }: SubmitProfileButtonProps) {
+  const t = useTranslations('components.submission')
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
+  const router = useRouter()
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true)
+      const result = await submitProfileForValidation(profileId)
+
+      if (result.error) {
+        toast({
+          title: t('error.title'),
+          description: result.error,
+          variant: "destructive"
+        })
+        return
+      }
+
+      toast({
+        title: t('success.title'),
+        description: t('success.description'),
+        variant: "success"
+      })
+
+      setIsDialogOpen(false)
+      router.refresh()
+    } catch (error) {
+      toast({
+        title: t('error.title'),
+        description: t('error.unknown'),
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <Button
+        onClick={() => setIsDialogOpen(true)}
+        className="gap-2"
+        variant="default"
+        disabled={!isComplete}
+      >
+        <SendHorizonal className="h-4 w-4" />
+        {t('submit_button')}
+      </Button>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('dialog.title')}</DialogTitle>
+            <DialogDescription>
+              {t('dialog.description')}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-lg border p-4">
+              <h4 className="font-medium mb-2">{t('dialog.checklist.title')}</h4>
+              <ul className="space-y-2 text-sm">
+                {CHECKLIST_ITEMS.map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    {t(`dialog.checklist.items.${item}`)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              {t('dialog.cancel')}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="gap-2"
+            >
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              {t('dialog.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}

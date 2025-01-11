@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
-import { getServiceById } from '@/actions/consular-services/get'
+import { getServiceById } from '@/app/(authenticated)/services/_utils/actions/get'
 import { getCurrentUser } from '@/actions/user'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { ServiceDetails } from '@/components/consular-services/service-details'
+import { ServiceDetails } from '@/app/(authenticated)/services/_utils/consular-services/service-details'
 import { getUserDocumentsList } from '@/actions/documents'
 
 interface ServiceDetailsPageProps {

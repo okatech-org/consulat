@@ -25,7 +25,7 @@ export function MenuBarMobile() {
 
   const userMenu: NavItem[] = [
     {
-      title: t('nav.profile'),
+      title: t('nav.components'),
       href: ROUTES.profile,
       icon: <User className={"size-5"}/>,
     },
@@ -40,7 +40,7 @@ export function MenuBarMobile() {
       href: ROUTES.appointments
     },
     {
-      title: t('nav.documents'),
+      title: t('nav.components'),
       icon: <FolderOpen className={"size-5"} />,
       href: ROUTES.documents
     },

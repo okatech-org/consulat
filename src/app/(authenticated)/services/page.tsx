@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
-import { getAvailableServices } from '@/actions/consular-services/get'
+import { getAvailableServices } from '@/app/(authenticated)/services/_utils/actions/get'
 import { getCurrentUser } from '@/actions/user'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { ServicesList } from '@/components/consular-services/services-list'
-import { ServicesHeader } from '@/components/consular-services/services-header'
+import { ServicesList } from '@/app/(authenticated)/services/_utils/consular-services/services-list'
+import { ServicesHeader } from '@/app/(authenticated)/services/_utils/consular-services/services-header'
 
 export default async function ServicesPage() {
   const user = await getCurrentUser()

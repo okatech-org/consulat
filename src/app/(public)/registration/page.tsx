@@ -1,4 +1,4 @@
-import { RegistrationForm } from '@/components/registration/form'
+import { RegistrationForm } from '@/app/(public)/registration/_utils/components/form'
 import { ServerAuthGuard } from '@/components/layouts/server-auth-guard'
 import { auth } from '@/auth'
 import { SessionProvider } from 'next-auth/react'

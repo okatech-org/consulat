@@ -18,7 +18,7 @@ export function DocumentBadge({
                                 expiryDate,
                                 className,
                               }: DocumentBadgeProps) {
-  const t = useTranslations('common.documents')
+  const t = useTranslations('common.components')
 
   const statusConfig = {
     required: {

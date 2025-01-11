@@ -4,24 +4,24 @@ import { getCurrentUser } from '@/actions/user'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/schemas/routes'
 
-import { ProfileHeaderClient } from '@/components/profile/profile-header-client'
+import { ProfileHeaderClient } from '@/app/(authenticated)/profile/_utils/components/profile-header-client'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { InfoIcon, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
-import { ProfileCompletion } from '@/components/profile/profile-completion'
+import { ProfileCompletion } from '@/app/(authenticated)/profile/_utils/components/profile-completion'
 import { calculateProfileCompletion, getProfileFieldsStatus } from '@/lib/utils'
-import { BasicInfoSection } from '@/components/profile/sections/basic-info-section'
-import { ContactInfoSection } from '@/components/profile/sections/contact-info-section'
-import { FamilyInfoSection } from '@/components/profile/sections/family-info-section'
-import { ProfessionalInfoSection } from '@/components/profile/sections/professional-info-section'
-import { ProfileCompletionAssistant } from '@/components/profile/profile-completion-assistant'
-import { DocumentsSection } from '@/components/profile/sections/documents-section'
+import { BasicInfoSection } from '@/app/(authenticated)/profile/_utils/components/sections/basic-info-section'
+import { ContactInfoSection } from '@/app/(authenticated)/profile/_utils/components/sections/contact-info-section'
+import { FamilyInfoSection } from '@/app/(authenticated)/profile/_utils/components/sections/family-info-section'
+import { ProfessionalInfoSection } from '@/app/(authenticated)/profile/_utils/components/sections/professional-info-section'
+import { ProfileCompletionAssistant } from '@/app/(authenticated)/profile/_utils/components/profile-completion-assistant'
+import { DocumentsSection } from '@/app/(authenticated)/profile/_utils/components/sections/documents-section'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { SubmitProfileButton } from '@/components/profile/submit-profile-button'
-import { NotesList } from '@/components/admin/profiles/profile-notes'
+import { SubmitProfileButton } from '@/app/(authenticated)/profile/_utils/components/submit-profile-button'
+import { NotesList } from '@/app/(authenticated)/admin/_utils/profiles/profile-notes'
 
 export default async function ProfilePage() {
   const user = await getCurrentUser()
@@ -93,7 +93,7 @@ export default async function ProfilePage() {
     },
     {
       id: 'documents',
-      title: t('sections.documents'),
+      title: t('sections.components'),
       content: (
         <DocumentsSection
           documents={{

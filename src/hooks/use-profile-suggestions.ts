@@ -57,7 +57,7 @@ export function useProfileSuggestions(profile: FullProfile) {
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const t = useTranslations('profile.assistant')
+  const t = useTranslations('components.assistant')
 
   useEffect(() => {
     const fetchSuggestions = async () => {

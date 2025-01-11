@@ -1,4 +1,4 @@
-// src/lib/ai/session-manager.ts
+// src/lib/ai/session-actions.ts
 import { Message } from './types';
 
 const CHAT_SESSION_KEY = 'ray_chat_session';
