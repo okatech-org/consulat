@@ -7,7 +7,7 @@ import { PendingRequests } from '@/app/(authenticated)/manager/_utils/components
 import { RecentActivity } from '@/app/(authenticated)/manager/_utils/components/dashboard/recent-activity'
 
 export default async function ManagerDashboardPage() {
-  const t = await getTranslations('actions.dashboard')
+  const t = await getTranslations('manager.dashboard')
   const user = await getCurrentUser()
 
   if (!user) return null

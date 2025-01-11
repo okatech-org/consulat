@@ -3,7 +3,7 @@ import { FullProfile } from '@/types'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { ProfileStatusBadge } from '@/app/(authenticated)/profile/_utils/components/profile-status-badge'
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/_utils/components/profile-status-badge'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 

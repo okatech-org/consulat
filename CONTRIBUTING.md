@@ -27,6 +27,7 @@
 
 ### Traductions
 - Utiliser des clés de traduction pour tout texte visible
+- Utiliser les clés de traduction disponibles quand possible et en créer de nouvelles seulement si nécessaire
 - Format : `namespace.section.key`
 - Maintenir une structure cohérente dans les fichiers de traduction
 - Fournir les traductions en français par défaut

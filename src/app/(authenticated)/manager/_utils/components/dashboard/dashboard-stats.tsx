@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl'
 import { FileText, Users, Clock, CheckCircle } from 'lucide-react'
 
 export function DashboardStats() {
-  const t = useTranslations('actions.dashboard')
+  const t = useTranslations('manager.dashboard')
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

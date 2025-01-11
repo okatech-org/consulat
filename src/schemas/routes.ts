@@ -15,15 +15,14 @@ export const ROUTES = {
   auth_error: '/auth/error' as Route<string>,
 
   // Pages utilisateur
-  profile: '/components' as Route<string>,
-  profile_edit: '/components/edit' as Route<string>,
-  settings: '/settings' as Route<string>,
-  documents: '/components' as Route<string>,
-  services: '/services' as Route<string>,
-  requests: '/services/requests' as Route<string>,
-  service_start: (id: string) => `/services/${id}/start` as Route<string>,
-  service_edit: (id: string) => `/services/${id}/edit` as Route<string>,
-  service_view: (id: string) => `/services/${id}` as Route<string>,
+  profile: '/user/profile' as Route<string>,
+  settings: '/user/settings' as Route<string>,
+  documents: '/user/components' as Route<string>,
+  services: '/user/services' as Route<string>,
+  requests: '/user/requests' as Route<string>,
+  service_start: (id: string) => `/user/services/${id}/start` as Route<string>,
+  service_edit: (id: string) => `/user/services/${id}/edit` as Route<string>,
+  service_view: (id: string) => `/user/services/${id}` as Route<string>,
 
   // Pages actions
   admin: '/actions' as Route<string>,

@@ -1,12 +1,12 @@
 import { Suspense } from 'react'
-import { getUserDocumentsList } from '@/actions/documents'
-import { DocumentsList } from '@/app/(authenticated)/manager/_utils/components/documents-list'
+import { getUserServiceRequests } from '@/app/(authenticated)/user/services/_utils/actions/get-requests'
+import { RequestsList } from '@/app/(authenticated)/user/services/_utils/consular-services/requests/requests-list'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { getTranslations } from 'next-intl/server'
 
-export default async function DocumentsPage() {
-  const t = await getTranslations('documents')
-  const documents = await getUserDocumentsList()
+export default async function ServiceRequestsPage() {
+  const t = await getTranslations('consular.services.requests')
+  const requests = await getUserServiceRequests()
 
   return (
     <div className="container py-6">
@@ -16,7 +16,7 @@ export default async function DocumentsPage() {
       </div>
 
       <Suspense fallback={<LoadingSkeleton />}>
-        <DocumentsList documents={documents} />
+        <RequestsList requests={requests} />
       </Suspense>
     </div>
   )

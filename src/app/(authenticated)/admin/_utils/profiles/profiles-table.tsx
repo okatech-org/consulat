@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from 'next-intl'
-import { ProfileStatusBadge } from '@/app/(authenticated)/profile/_utils/components/profile-status-badge'
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/_utils/components/profile-status-badge'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'

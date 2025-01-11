@@ -16,7 +16,8 @@
     "trad-sample": "node ./scripts/trad.js",
     "db:seed-services": "ts-node --project tsconfig.seed.json scripts/seed-services.ts",
     "predb:seed": "pnpx prisma db push --force-reset",
-    "db:seed": "NODE_ENV=development ts-node --project tsconfig.seed.json scripts/seed.ts"
+    "db:seed": "NODE_ENV=development ts-node --project tsconfig.seed.json scripts/seed.ts",
+    "tree": "tree --gitignore -o tree.md"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.29.2",

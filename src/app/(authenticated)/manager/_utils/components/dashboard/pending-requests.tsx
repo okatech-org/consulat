@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ServiceRequestStatus } from '@prisma/client'
 
 export function PendingRequests() {
-  const t = useTranslations('actions.dashboard')
+  const t = useTranslations('manager.dashboard')
 
   return (
     <Card>
@@ -18,7 +18,7 @@ export function PendingRequests() {
           {/* Liste des demandes en attente */}
           <RequestItem
             name="John Doe"
-            type="PASSPORT"
+            type="PASSPORT_REQUEST"
             status="SUBMITTED"
             date="2024-03-20"
           />
@@ -43,6 +43,9 @@ function RequestItem({ name, type, status, date }: {
         <p className="font-medium">{name}</p>
         <p className="text-sm text-muted-foreground">
           {t(`request_types.${type.toLowerCase()}`)}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {date}
         </p>
       </div>
       <div className="flex items-center gap-2">

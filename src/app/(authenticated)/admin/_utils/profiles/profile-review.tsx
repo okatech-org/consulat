@@ -11,7 +11,7 @@ import { ProfileFamily } from './review/family'
 import { ProfileProfessional } from './review/professional'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import { ProfileStatusBadge } from '@/app/(authenticated)/profile/_utils/components/profile-status-badge'
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/_utils/components/profile-status-badge'
 import { useState } from 'react'
 import {
   Dialog,

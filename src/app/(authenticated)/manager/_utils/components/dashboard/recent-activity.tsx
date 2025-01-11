@@ -23,7 +23,7 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ activities = [] }: RecentActivityProps) {
-  const t = useTranslations('actions.dashboard.activity')
+  const t = useTranslations('manager.dashboard.activity')
 
   return (
     <Card>
