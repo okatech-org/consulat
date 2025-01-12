@@ -3,10 +3,10 @@
 ## 1. Gestion des Pays
 
 ### Fonctionnalités Principales
-- [ ] Création et configuration des pays
-- [ ] Visualisation de la liste des pays
-- [ ] Modification des informations des pays
-- [ ] Désactivation/Activation des pays
+- [X] Création et configuration des pays
+- [X] Visualisation de la liste des pays
+- [X] Modification des informations des pays
+- [X] Désactivation/Activation des pays
 - [ ] Consultation des statistiques par pays
 
 ### Données Gérées
@@ -18,8 +18,8 @@
 ## 2. Gestion des Organismes
 
 ### Fonctionnalités Principales
-- [ ] Création d'organismes (consulats, ambassades)
-- [ ] Attribution des organismes aux pays
+- [X] Création d'organismes (consulats, ambassades)
+- [X] Attribution des organismes aux pays
 - [ ] Configuration des paramètres des organismes
 - [ ] Supervision des organismes
 - [ ] Gestion des accès et permissions
