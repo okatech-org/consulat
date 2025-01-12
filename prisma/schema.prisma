@@ -144,7 +144,8 @@ model User {
 
   documents UserDocument[] @relation("userDocuments")
 
-  Appointment Appointment[]
+  Appointment          Appointment[]
+  managedOrganizations Organization[]
 
   // Nouvelles relations
   authoredNotes ProfileNote[]  @relation("NoteAuthor")
@@ -452,10 +453,12 @@ model ConsularService {
   requests ServiceRequest[]
 
   // Métadonnées
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  Consulate   Consulate? @relation(fields: [consulateId], references: [id])
-  consulateId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  Consulate      Consulate?    @relation(fields: [consulateId], references: [id])
+  consulateId    String?
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
 }
 
 // Modèle pour les étapes d'une démarche
@@ -684,10 +687,48 @@ model Country {
   users      User[]
 
   // Metadata
-  metadata Json?
+  metadata      Json?
+  organizations Organization[]
 }
 
 enum CountryStatus {
   ACTIVE
   INACTIVE
+}
+
+// prisma/schema.prisma
+
+enum OrganizationType {
+  EMBASSY // Ambassade
+  CONSULATE // Consulat
+  GENERAL_CONSULATE // Consulat général
+  HONORARY_CONSULATE // Consulat honoraire
+  OTHER
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Organization {
+  id     String             @id @default(cuid())
+  name   String
+  type   OrganizationType
+  status OrganizationStatus @default(ACTIVE)
+
+  countries Country[]
+
+  // Relations inverses
+  services ConsularService[]
+
+  // Métadonnées
+  metadata  Json? // Pour des données flexibles supplémentaires
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+
+  @@map("organizations")
 }

@@ -298,7 +298,9 @@
       "continue": "Continuer",
       "confirm": "Confirmer",
       "close": "Fermer",
+      "create": "Créer",
       "send": "Envoyer",
+      "update": "Mettre à jour",
       "uploading": "Téléchargement...",
       "view": "Voir",
       "download": "Télécharger",
@@ -332,6 +334,8 @@
         "rows": "lignes",
         "columns": "Colonnes",
         "search": "Rechercher",
+        "previous": "Précédent",
+        "next": "Suivant",
         "search_placeholder": "Rechercher...",
         "actions": "Actions",
         "selected": "sélectionné",
@@ -340,6 +344,17 @@
         "select_all": "Tout sélectionner",
         "clear_selection": "Effacer la sélection",
         "export": "Exporter"
+    }
+  },
+  "inputs": {
+    "phone": {
+      "label": "Numéro de téléphone",
+      "placeholder": "0612345678",
+      "placeholder-local": "612345678"
+    },
+    "email": {
+      "label": "Adresse email",
+      "placeholder": "email@example.com"
     }
   },
   "feedback": {
@@ -364,6 +379,17 @@
   },
   "messages": {
     "errors": {
+      "name_min": "Le nom doit contenir au moins 2 caractères",
+      "type_required": "Le type d'organisme est requis",
+      "type_invalid": "Type d'organisme invalide",
+      "email_invalid": "Format d'email invalide",
+      "phone_required": "Le numéro de téléphone est requis",
+      "country_code_required": "L'indicatif téléphonique est requis",
+      "address_line_required": "L'adresse est requise",
+      "address_country_required": "Le pays de l'adresse est requis",
+      "website_invalid": "Format d'URL invalide",
+      "id_required": "L'identifiant est requis",
+      "status_invalid": "Statut invalide",
       "employer_required_if_employee": "Employeur requis si vous êtes salarié",
       "identifier_required": "Identifiant requis",
       "invalid_email": "Email invalide",
@@ -2921,6 +2947,94 @@
           "confirm": "Oui, supprimer",
           "cancel": "Annuler"
         }
+      }
+    },
+    "organizations": {
+      "title": "Gestion des Organismes",
+      "types": {
+        "EMBASSY": "Ambassade",
+        "CONSULATE": "Consulat",
+        "GENERAL_CONSULATE": "Consulat général",
+        "HONORARY_CONSULATE": "Consulat honoraire",
+        "OTHER": "Autre"
+      },
+      "status": {
+        "ACTIVE": "Actif",
+        "INACTIVE": "Inactif",
+        "SUSPENDED": "Suspendu"
+      },
+      "actions": {
+        "create": "Ajouter un organisme",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "suspend": "Suspendre",
+        "activate": "Activer"
+      },
+      "table": {
+        "name": "Nom",
+        "type": "Type",
+        "country": "Pays",
+        "status": "Statut",
+        "users": "Utilisateurs",
+        "services": "Services",
+        "actions": "Actions"
+      },
+      "form": {
+        "create_title": "Ajouter un organisme",
+        "basic_info": "Informations de base",
+        "name": {
+          "label": "Nom de l'organisme",
+          "placeholder": "Ex: Consulat du Gabon à Paris"
+        },
+        "type": {
+          "label": "Type d'organisme",
+          "placeholder": "Sélectionner un type"
+        },
+        "status": {
+          "label": "Statut",
+          "placeholder": "Sélectionner un statut"
+        },
+        "countries": {
+          "label": "Pays de rattachement",
+          "placeholder": "Sélectionner un pays",
+          "search": "Rechercher un pays"
+        },
+        "admin_email": {
+            "label": "Email de l'administrateur",
+            "placeholder": "Ex: admin@example.com"
+        },
+        "country": {
+          "label": "Pays de rattachement",
+          "placeholder": "Sélectionner un pays"
+        },
+        "contact": {
+          "title": "Coordonnées",
+          "email": "Email",
+          "phone": "Téléphone",
+          "phone_placeholder": "Ex: 01 23 45 67 89",
+          "website": "Site web"
+        },
+        "address": {
+          "title": "Adresse",
+          "street": "Rue",
+          "city": "Ville",
+          "zipCode": "Code postal",
+          "country": "Pays"
+        }
+      },
+      "messages": {
+        "createSuccess": "Organisme créé avec succès",
+        "updateSuccess": "Organisme mis à jour avec succès",
+        "deleteSuccess": "Organisme supprimé avec succès",
+        "error": {
+          "create": "Erreur lors de la création",
+          "update": "Erreur lors de la mise à jour",
+          "delete": "Erreur lors de la suppression"
+        }
+      },
+      "dialog": {
+        "create_title": "Ajouter un organisme",
+        "edit_title": "Modifier l'organisme"
       }
     }
   }

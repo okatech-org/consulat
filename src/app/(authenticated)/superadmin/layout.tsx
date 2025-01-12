@@ -2,7 +2,7 @@ import { auth } from '@/auth'
 import { RoleGuard } from '@/components/layouts/role-guard'
 import { Unauthorized } from '@/components/layouts/unauthorized'
 import { UserRole } from '@prisma/client'
-import SuperAdminSidebar from '@/app/(authenticated)/superadmin/_components/sa-sidebar'
+import SuperAdminSidebar from '@/app/(authenticated)/superadmin/_utils/components/sa-sidebar'
 import { MenuBarMobile } from '@/components/ui/menu-bar-mobile'
 
 export default async function SuperAdminLayout({

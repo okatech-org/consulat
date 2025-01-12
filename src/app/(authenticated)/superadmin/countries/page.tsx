@@ -1,7 +1,7 @@
 import { getCountries } from '@/actions/countries'
 import { getTranslations } from 'next-intl/server'
-import { CountriesList } from '@/app/(authenticated)/superadmin/_components/countries-list'
-import { CreateCountryButton } from '@/app/(authenticated)/superadmin/_components/create-country-button'
+import { CountriesList } from '@/app/(authenticated)/superadmin/_utils/components/countries-list'
+import { CreateCountryButton } from '@/app/(authenticated)/superadmin/_utils/components/create-country-button'
 
 export default async function CountriesPage() {
   const t = await getTranslations('superadmin.countries')
