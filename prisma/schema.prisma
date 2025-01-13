@@ -715,6 +715,7 @@ enum OrganizationStatus {
 model Organization {
   id     String             @id @default(cuid())
   name   String
+  logo   String?
   type   OrganizationType
   status OrganizationStatus @default(ACTIVE)
 

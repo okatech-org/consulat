@@ -16,7 +16,7 @@ export async function getCountries() {
       include: {
         _count: {
           select: {
-            consulates: true,
+            organizations: true,
             users: true
           }
         }

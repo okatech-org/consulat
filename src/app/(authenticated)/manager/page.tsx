@@ -1,35 +1,20 @@
-import { Suspense } from 'react'
-import { getCurrentUser } from '@/actions/user'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { getTranslations } from 'next-intl/server'
-import { DashboardStats } from '@/app/(authenticated)/manager/_utils/components/dashboard/dashboard-stats'
-import { PendingRequests } from '@/app/(authenticated)/manager/_utils/components/dashboard/pending-requests'
-import { RecentActivity } from '@/app/(authenticated)/manager/_utils/components/dashboard/recent-activity'
+import { DashboardStats } from '@/app/(authenticated)/manager/_utils/components/dashboard-stats'
+import { RequestsQueue } from '@/app/(authenticated)/manager/_utils/components/requests-queue'
+import { ImportantAlerts } from '@/app/(authenticated)/manager/_utils/components/important-alerts'
 
-export default async function ManagerDashboardPage() {
+export default async function ManagerDashboard() {
   const t = await getTranslations('manager.dashboard')
-  const user = await getCurrentUser()
-
-  if (!user) return null
 
   return (
-    <div className="container space-y-8 py-8">
-      <div>
-        <h1 className="text-3xl font-bold">
-          {t('welcome', { name: user.name })}
-        </h1>
-        <p className="text-muted-foreground">
-          {t('subtitle')}
-        </p>
-      </div>
+    <div className="container space-y-8">
+      <h1 className="text-3xl font-bold">{t('title')}</h1>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        <DashboardStats />
-      </Suspense>
+      <DashboardStats />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <PendingRequests />
-        <RecentActivity />
+      <div className="grid gap-6 md:grid-cols-2">
+        <RequestsQueue />
+        <ImportantAlerts />
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { getUserDocumentsList } from '@/actions/documents'
-import { DocumentsList } from '@/app/(authenticated)/manager/_utils/components/documents-list'
+import { DocumentsList } from '@/actions/manager/_utils/components/documents-list'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { getTranslations } from 'next-intl/server'
 

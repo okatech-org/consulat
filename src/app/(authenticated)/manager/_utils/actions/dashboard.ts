@@ -1,33 +1,71 @@
+'use server'
+
 import { db } from '@/lib/prisma'
 import { checkAuth } from '@/lib/auth/action'
-import { ServiceRequestStatus } from '@prisma/client'
+import { UserRole } from '@prisma/client'
 
-export async function getManagerStats() {
-  const authResult = await checkAuth(['MANAGER'])
-  if (authResult.error) return null
+export async function getDashboardStats() {
+  const authResult = await checkAuth([UserRole.MANAGER])
+  if (authResult.error) return { error: authResult.error }
 
-  const [
-    pendingRequests,
-    activeUsers,
-    completedRequests
-  ] = await Promise.all([
-    db.serviceRequest.count({ where: { status: ServiceRequestStatus.SUBMITTED } }),
-    db.user.count(),
-    db.serviceRequest.count({ where: { status: ServiceRequestStatus.COMPLETED } })
-  ])
+  try {
+    const [pending, processing, completed] = await Promise.all([
+      db.serviceRequest.count({
+        where: { status: 'PENDING' }
+      }),
+      db.serviceRequest.count({
+        where: { status: 'IN_PROGRESS' }
+      }),
+      db.serviceRequest.count({
+        where: { status: 'COMPLETED' }
+      })
+    ])
 
-  // Calculer le temps moyen de traitement
-  const averageProcessingTime = await calculateAverageProcessingTime()
-
-  return {
-    pendingRequests,
-    activeUsers,
-    completedRequests,
-    averageProcessingTime
+    return {
+      data: {
+        pending,
+        processing,
+        completed
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error)
+    return { error: 'Failed to fetch dashboard stats' }
   }
 }
 
-async function calculateAverageProcessingTime() {
-  // Logique de calcul du temps moyen
-  return 2.5 // en jours
+export async function getQueueItems() {
+  const authResult = await checkAuth([UserRole.MANAGER])
+  if (authResult.error) return { error: authResult.error }
+
+  try {
+    const requests = await db.serviceRequest.findMany({
+      where: {
+        status: 'PENDING',
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 10
+    })
+
+    return { data: requests }
+  } catch (error) {
+    console.error('Error fetching queue items:', error)
+    return { error: 'Failed to fetch queue items' }
+  }
+}
+
+export async function getImportantAlerts() {
+  const authResult = await checkAuth([UserRole.MANAGER])
+  if (authResult.error) return { error: authResult.error }
+
+  try {
+    // TODO: Implémenter la logique des alertes
+    // Par exemple : demandes urgentes, documents expirants, etc.
+    return { data: [] }
+  } catch (error) {
+    console.error('Error fetching alerts:', error)
+    return { error: 'Failed to fetch alerts' }
+  }
 }

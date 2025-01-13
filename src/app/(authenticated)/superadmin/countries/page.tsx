@@ -17,7 +17,7 @@ export default async function CountriesPage() {
       {error ? (
         <div className="text-destructive">{t('messages.error.fetch')}</div>
       ) : (
-        <CountriesList countries={countries} />
+        <CountriesList countries={countries ?? []} />
       )}
     </div>
   )

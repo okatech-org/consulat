@@ -4,7 +4,7 @@ export interface Country {
   code: string
   status: 'ACTIVE' | 'INACTIVE'
   flag?: string
-  consulatesCount: number
+  organizationsCount: number
   usersCount: number
   createdAt: Date
   updatedAt: Date

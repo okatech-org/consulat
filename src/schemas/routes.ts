@@ -24,6 +24,17 @@ export const ROUTES = {
     users: '/superadmin/users' as Route<string>,
   },
 
+  // Manager
+  manager: {
+    dashboard: '/manager/dashboard' as Route<string>,
+    requests: '/manager/requests' as Route<string>,
+    appointments: '/manager/appointments' as Route<string>,
+    users: '/manager/users' as Route<string>,
+    messages: '/manager/messages' as Route<string>,
+    notifications: '/manager/notifications' as Route<string>,
+    settings: '/manager/settings' as Route<string>,
+  },
+
   // Pages utilisateur
   profile: '/user/profile' as Route<string>,
   settings: '/user/settings' as Route<string>,

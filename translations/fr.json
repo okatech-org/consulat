@@ -476,6 +476,14 @@
     }
   },
   "countries": {
+    "fr": "France",
+    "ad": "Andorre",
+    "ae": "Émirats arabes unis",
+    "af": "Afghanistan",
+    "gb": "Royaume-Uni",
+    "ga": "Gabon",
+    "be": "Belgique",
+    "de": "Allemagne",
     "afghanistan": "Afghanistan",
     "south_africa": "Afrique du Sud",
     "albania": "Albanie",
@@ -799,6 +807,15 @@
       "organizations": "Organismes",
       "services": "Services",
       "users": "Utilisateurs"
+    },
+    "manager": {
+      "dashboard": "Tableau de bord",
+      "requests": "Demandes",
+      "appointments": "Rendez-vous",
+      "users": "Utilisateurs",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "settings": "Paramètres"
     },
     "my_profile": "Mon profil",
     "my_account": "Mon compte",
@@ -2806,82 +2823,6 @@
       "PROFILE_REJECTED": "Profil rejeté"
     }
   },
-  "manager": {
-    "dashboard": {
-      "welcome": "Bonjour {name} 👋",
-      "subtitle": "Gérez les demandes consulaires et suivez leur progression",
-      "stats": {
-        "pending_requests": "Demandes en attente",
-        "active_users": "Utilisateurs actifs",
-        "processing_time": "Temps moyen de traitement",
-        "completed_requests": "Demandes traitées",
-        "pending_description": "Demandes à traiter",
-        "users_description": "Utilisateurs inscrits",
-        "time_description": "Moyenne sur 30 jours",
-        "completed_description": "Total des demandes traitées"
-      },
-      "pending_requests": {
-        "title": "Demandes en attente",
-        "empty": "Aucune demande en attente"
-      },
-      "activity": {
-        "title": "Activité récente",
-        "empty": "Aucune activité récente",
-        "types": {
-          "request_submitted": "{user} a soumis une nouvelle demande",
-          "request_validated": "{user} a validé une demande",
-          "request_rejected": "{user} a rejeté une demande",
-          "document_uploaded": "{user} a téléchargé un {document}"
-        }
-      }
-    },
-    "requests": {
-      "title": "Gestion des demandes",
-      "description": "Gérez et traitez les demandes consulaires",
-
-      "table": {
-        "requester": "Demandeur",
-        "type": "Type de demande",
-        "status": "Statut",
-        "submitted_at": "Soumis le",
-        "actions": "Actions"
-      },
-
-      "filters": {
-        "search": "Rechercher une demande...",
-        "status": "Filtrer par statut",
-        "all": "Tous les statuts",
-        "reset": "Réinitialiser les filtres"
-      },
-
-      "status": {
-        "pending": "En attente",
-        "in_progress": "En cours",
-        "completed": "Terminé",
-        "rejected": "Rejeté"
-      },
-
-      "validation": {
-        "title": "Validation de la demande",
-        "notes_placeholder": "Ajoutez un commentaire (optionnel)",
-        "success": {
-          "title": "Demande traitée",
-          "description": "La demande a été mise à jour avec succès"
-        },
-        "error": {
-          "title": "Erreur",
-          "description": "Une erreur est survenue lors du traitement de la demande"
-        }
-      },
-
-      "actions": {
-        "view": "Voir les détails",
-        "approve": "Approuver",
-        "reject": "Rejeter",
-        "cancel": "Annuler"
-      }
-    }
-  },
   "superadmin": {
     "welcome": "Bienvenue {name}",
     "countries": {
@@ -3035,6 +2976,115 @@
       "dialog": {
         "create_title": "Ajouter un organisme",
         "edit_title": "Modifier l'organisme"
+      }
+    }
+  },
+  "manager": {
+    "dashboard": {
+      "title": "Tableau de bord",
+      "overview": {
+        "title": "Vue d'ensemble",
+        "pending_requests": "Demandes en attente",
+        "processing_requests": "Demandes en cours",
+        "completed_requests": "Demandes traitées"
+      },
+      "stats": {
+        "daily": "Statistiques journalières",
+        "weekly": "Statistiques hebdomadaires",
+        "monthly": "Statistiques mensuelles",
+        "processing_time": "Temps moyen de traitement",
+        "completion_rate": "Taux de complétion",
+        "pending_requests": "Demandes en attente",
+        "pending_description": "Demandes nécessitant une action",
+        "active_users": "Utilisateurs actifs",
+        "users_description": "Utilisateurs connectés aujourd'hui",
+        "average_time": "Temps moyen de traitement",
+        "time_description": "Durée moyenne de traitement des demandes",
+        "completed_requests": "Demandes traitées",
+        "completed_description": "Demandes finalisées ce mois"
+      },
+      "queue": {
+        "title": "Files d'attente",
+        "by_type": "Par type de démarche",
+        "empty": "Aucune demande en attente"
+      },
+      "alerts": {
+        "title": "Alertes importantes",
+        "empty": "Aucune alerte"
+      },
+      "priority": {
+        "high": "Urgent",
+        "medium": "Normal",
+        "low": "Faible"
+      },
+      "requests": {
+        "types": {
+          "passport_request": "Demande de passeport",
+          "visa_request": "Demande de visa",
+          "birth_registration": "Déclaration de naissance",
+          "marriage_registration": "Déclaration de mariage",
+          "death_registration": "Déclaration de décès",
+          "certificate_request": "Demande de certificat",
+          "consular_card": "Carte consulaire",
+          "document_legalization": "Légalisation de document"
+        }
+      }
+    },
+    "settings": {
+      "title": "Paramètres de l'organisation",
+      "copy_config": "Copier la configuration",
+      "copy_from": "Copier depuis",
+      "copy_to": "Copier vers",
+      "copy_success": "Configuration copiée avec succès",
+      "organization": {
+        "title": "Informations de l'organisme",
+        "configForCountry": "Configuration - {country}",
+        "general": {
+          "logo": "Logo",
+          "name": "Nom de l'organisme",
+          "email": "Adresse email",
+          "phone": "Numéro de téléphone",
+          "website": "Site web",
+          "address_line1": "Adresse - Ligne 1",
+          "address_line2": "Adresse - Ligne 2 (optionnel)",
+          "city": "Ville",
+          "zip_code": "Code postal",
+          "placeholders": {
+            "name": "Nom de l'organisme",
+            "address": "Numéro et nom de rue"
+          },
+        "schedule": {
+          "title": "Horaires d'ouverture",
+          "days": {
+            "monday": "Lundi",
+            "tuesday": "Mardi",
+            "wednesday": "Mercredi",
+            "thursday": "Jeudi",
+            "friday": "Vendredi",
+            "saturday": "Samedi",
+            "sunday": "Dimanche"
+          },
+          "periods": {
+            "morning": "Matin",
+            "afternoon": "Après-midi"
+          },
+          "closed": "Fermé",
+          "open": "Ouvert"
+        },
+        "holidays": {
+          "title": "Jours fériés",
+          "add": "Ajouter un jour férié",
+          "name": "Nom",
+          "date": "Date"
+        },
+        "closures": {
+          "title": "Fermetures exceptionnelles",
+          "add": "Ajouter une fermeture",
+          "reason": "Motif",
+          "start_date": "Date de début",
+          "end_date": "Date de fin"
+        }
+      }
       }
     }
   }

@@ -7,8 +7,6 @@ export default async function SuperAdminDashboard() {
   const session = await auth()
   const t = await getTranslations('superadmin')
 
-  console.log(session)
-
   return (
     <div className="container space-y-8 py-8">
       <div className="space-y-6">
@@ -38,8 +36,6 @@ export default async function SuperAdminDashboard() {
             icon={Users}
           />
         </div>
-
-        {/* Autres sections du dashboard */}
       </div>
     </div>
   )
