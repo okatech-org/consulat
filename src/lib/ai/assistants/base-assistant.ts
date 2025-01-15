@@ -1,18 +1,18 @@
 import { OpenAI } from 'openai';
-import { AssistantResponse, Message, UserContext } from '@/lib/ai/types'
+import { AssistantResponse, ChatContext, Message } from '@/lib/ai/types'
 import { SessionManager } from '@/lib/ai/session-manager'
 
 export class BaseAssistant {
   protected readonly openai: OpenAI;
-  protected readonly userContext: UserContext;
+  protected readonly userContext: ChatContext;
 
-  constructor(openai: OpenAI, userContext: UserContext) {
+  constructor(openai: OpenAI, userContext: ChatContext) {
     this.openai = openai;
     this.userContext = userContext;
   }
 
   protected async getSystemPrompt(): Promise<string> {
-    const isAuthenticated = !!this.userContext.user;
+    const isAuthenticated = !!this.userContext?.user;
     const hasProfile = !!this.userContext.profile;
     const hasConsulate = !!this.userContext.consulate;
 
@@ -37,23 +37,15 @@ Information on consular services:
 - Birth certificates: Can be obtained by providing proof of identity and birth details.`;
 
     if (isAuthenticated && this.userContext.user) {
-      prompt += `\n\nContexte utilisateur:
-- Nom: ${this.userContext.user.name || 'Non renseigné'}
-- Rôle: ${this.userContext.user.role}`;
+      prompt += `\n\nContexte utilisateur: ${JSON.stringify(this.userContext.user, null, 2)}`;
     }
 
     if (hasProfile && this.userContext.profile) {
-      prompt += `\n\nInformations de profil:
-- Nom complet: ${this.userContext.profile.firstName} ${this.userContext.profile.lastName}
-- Statut: ${this.userContext.profile.status}
-- Pays de résidence: ${this.userContext.profile.address?.country}`;
+      prompt += `\n\nInformations de profil: ${JSON.stringify(this.userContext.profile, null, 2)}`;
     }
 
     if (hasConsulate && this.userContext.consulate) {
-      prompt += `\n\nConsulat de rattachement:
-- Nom: ${this.userContext.consulate.name}
-- Type: ${this.userContext.consulate.isGeneral ? 'Général' : 'Consulat'}
-- Pays couverts: ${this.userContext.consulate.countries.join(', ')}`;
+      prompt += `\n\nConsulat de rattachement: ${JSON.stringify(this.userContext.consulate, null, 2)}`;
     }
 
     return prompt;

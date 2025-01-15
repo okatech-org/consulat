@@ -3,11 +3,14 @@ import { Label } from '@/components/ui/label'
 import { TimeSelect } from '@/components/ui/time-select'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
+import { Key } from 'react'
 
 export const DaySchedule = ({ day, countryCode, form, t }: {
   day: string
   countryCode: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any
 }) => {
   const slots = form.watch(`metadata.${countryCode}.settings.schedule.${day}.slots`) || []
@@ -28,7 +31,7 @@ export const DaySchedule = ({ day, countryCode, form, t }: {
 
       {form.watch(`metadata.${countryCode}.settings.schedule.${day}.isOpen`) && (
         <div className="space-y-3">
-          {slots.map((_, index) => (
+          {slots.map((_: never, index: Key | null | undefined) => (
             <div key={index} className="flex items-center gap-2">
               <div className="flex items-center gap-2 flex-1">
                 <div className="space-y-1 flex-1">
@@ -58,7 +61,7 @@ export const DaySchedule = ({ day, countryCode, form, t }: {
                   const currentSlots = form.watch(`metadata.${countryCode}.settings.schedule.${day}.slots`)
                   form.setValue(
                     `metadata.${countryCode}.settings.schedule.${day}.slots`,
-                    currentSlots.filter((_: any, i: number) => i !== index)
+                    currentSlots.filter((_: never, i: number) => i !== index)
                   )
                 }}
               >

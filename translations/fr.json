@@ -330,8 +330,11 @@
         "no_results": "Aucun résultat trouvé",
         "loading": "Chargement...",
         "rows_per_page": "Lignes par page",
+        "page_of_total": "Page {page} sur {total}",
         "page": "Page",
         "of": "de",
+      "resetFilters": "Réinitialiser",
+      "viewOptions": "Voir les options",
         "rows": "lignes",
         "columns": "Colonnes",
         "search": "Rechercher",
@@ -340,11 +343,12 @@
         "search_placeholder": "Rechercher...",
         "actions": "Actions",
         "selected": "sélectionné",
-        "out_of": "{count} sur ",
-        "selected_rows": "{count} lignes sélectionnées",
+        "selected_rows": "{selected}/{total} lignes sélectionnées",
         "select_all": "Tout sélectionner",
         "clear_selection": "Effacer la sélection",
-        "export": "Exporter"
+        "export": "Exporter",
+      "do_to_first": "Aller à la première page",
+        "do_to_last": "Aller à la dernière page"
     }
   },
   "inputs": {
@@ -2845,7 +2849,9 @@
         "delete": "Supprimer",
         "save": "Enregistrer",
         "cancel": "Annuler",
-        "update": "Mettre à jour"
+        "update": "Mettre à jour",
+        "activate": "Activer",
+        "deactivate": "Suspendre"
       },
       "table": {
         "name": "Nom",

@@ -11,10 +11,10 @@ export async function getDashboardStats() {
   try {
     const [pending, processing, completed] = await Promise.all([
       db.serviceRequest.count({
-        where: { status: 'PENDING' }
+        where: { status: 'SUBMITTED' }
       }),
       db.serviceRequest.count({
-        where: { status: 'IN_PROGRESS' }
+        where: { status: 'IN_REVIEW' }
       }),
       db.serviceRequest.count({
         where: { status: 'COMPLETED' }
@@ -41,7 +41,7 @@ export async function getQueueItems() {
   try {
     const requests = await db.serviceRequest.findMany({
       where: {
-        status: 'PENDING',
+        status: 'SUBMITTED',
       },
       orderBy: {
         createdAt: 'desc'

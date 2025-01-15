@@ -4,10 +4,11 @@ import { AssistantFactory } from '@/lib/ai/assistant-factory'
 import { ContextBuilder } from '@/lib/ai/context-builder'
 import { PROFILE_ANALYSIS_PROMPT } from '@/lib/ai/prompts/profile-suggestions'
 import { FullProfile } from '@/types'
+import { User } from '@prisma/client'
 
-export async function analyzeProfile(profile: FullProfile) {
+export async function analyzeProfile(profile: FullProfile, user: User) {
   try {
-    const context = await ContextBuilder.buildContext(null, profile, null)
+    const context = await ContextBuilder.buildContext(user, profile)
     const assistant = AssistantFactory.createAssistant(context)
 
     const profileData = JSON.stringify(profile, null, 2)

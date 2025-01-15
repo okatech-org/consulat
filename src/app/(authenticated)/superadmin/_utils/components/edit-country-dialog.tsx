@@ -41,10 +41,10 @@ export function EditCountryDialog({ country, open, onOpenChange }: EditCountryDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('actions.edit')}</DialogTitle>
+          <DialogTitle>{t('actions.edit')} - {country.name}</DialogTitle>
         </DialogHeader>
         <CountryForm
-          initialData={country}
+          initialData={country as CreateCountryInput}
           onSubmit={handleSubmit}
         />
       </DialogContent>

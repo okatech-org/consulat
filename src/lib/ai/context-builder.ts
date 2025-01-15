@@ -1,26 +1,14 @@
 import { User } from '@prisma/client'
 import { ChatContext } from './types'
 import { FullProfile } from '@/types'
-import { db } from '@/lib/prisma'
 
 // src/lib/ai/context-builder.ts
 export class ContextBuilder {
-  static async buildContext(user: User | null, profile: FullProfile | null): Promise<ChatContext> {
+  static async buildContext(user?: User, profile?: FullProfile): Promise<ChatContext> {
     const context: ChatContext = {
-      user: {
-        isAuthenticated: !!user,
-        role: user?.role,
-        profile: profile || undefined
-      }
+      user: JSON.parse(JSON.stringify(user)),
+      profile: JSON.parse(JSON.stringify(profile))
     };
-
-    if (user?.consulateId) {
-      const consulate = await db.consulate.findUnique({
-        where: { id: user.consulateId },
-        include: { availableServices: true }
-      });
-      context.consulate = consulate || undefined;
-    }
 
     return context;
   }

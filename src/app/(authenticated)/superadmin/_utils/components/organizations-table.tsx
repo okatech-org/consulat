@@ -1,16 +1,20 @@
 'use client'
 
 import { Organization } from '@/types/organization'
-import { DataTable } from '@/components/ui/data-table'
 import { useTranslations } from 'next-intl'
 import { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { OrganizationActions } from './organization-actions'
+import { DataTable } from '@/components/data-table/data-table'
+import { Country } from '@/types/country'
+import { OrganizationStatus, OrganizationType } from '@prisma/client'
 
 export function OrganizationsTable({
-                                     organizations
+                                     organizations,
+  countries
                                    }: {
-  organizations: Organization[]
+  organizations: Organization[],
+  countries: Country[]
 }) {
   const t = useTranslations('superadmin.organizations')
 
@@ -18,6 +22,7 @@ export function OrganizationsTable({
     {
       accessorKey: 'name',
       header: t('table.name'),
+      enableSorting: true,
     },
     {
       accessorKey: 'type',
@@ -27,7 +32,11 @@ export function OrganizationsTable({
     {
       accessorKey: 'countries',
       header: t('table.country'),
-      cell: ({ row }) => row.original.countries.map((country) => country.name).join(', '),
+      cell: ({ row }) => row.original.countries.map((country) => (
+        <Badge className={"mr-1"} key={country.code} variant="secondary">
+          {country.name}
+        </Badge>
+      )),
     },
     {
       accessorKey: 'status',
@@ -55,6 +64,40 @@ export function OrganizationsTable({
 
   return (
     <DataTable
+      filters={[
+        {
+          type: 'search',
+          value: 'name',
+          label: t('table.name'),
+        },
+        {
+          type: 'radio',
+          value: 'type',
+          label: t('table.type'),
+          options: Object.values(OrganizationType).map((type) => ({
+            value: type,
+            label: t(`types.${type}`),
+          })),
+        },
+        {
+          type: 'radio',
+          value: 'countries',
+          label: t('table.country'),
+          options: countries.map((country) => ({
+            value: country.code,
+            label: country.name,
+          })),
+        },
+        {
+          type: 'radio',
+          value: 'status',
+          label: t('table.status'),
+          options: Object.values(OrganizationStatus).map((status) => ({
+            value: status,
+            label: t(`status.${status}`),
+          })),
+        },
+      ]}
       columns={columns}
       data={organizations}
     />

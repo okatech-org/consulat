@@ -12,11 +12,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import React, { useState } from 'react'
 import { ProfileSuggestion, useProfileSuggestions } from '@/hooks/use-profile-suggestions'
 import { Icons } from '@/components/ui/icons'
+import { User } from '@prisma/client'
 
-export function ProfileCompletionAssistant({ profile }: { profile: FullProfile }) {
+export function ProfileCompletionAssistant({ profile, user }: { profile: FullProfile, user: User }) {
   const t = useTranslations('components.assistant')
   const [isOpen, setIsOpen] = useState(false)
-  const { suggestions, isLoading, error } = useProfileSuggestions(profile)
+  const { suggestions, isLoading, error } = useProfileSuggestions(profile, user)
 
   return (
     <Card>

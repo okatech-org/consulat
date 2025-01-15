@@ -117,6 +117,7 @@ export default async function ProfilePage() {
           <ProfileHeaderClient profile={profile} />
           <ProfileCompletionAssistant
             profile={profile}
+            user={user}
           />
         </div>
         <div className="grid grid-cols-8 gap-4">

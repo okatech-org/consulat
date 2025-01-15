@@ -11,7 +11,6 @@ import {
 } from '@/lib/utils'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
-import { ChatToggle } from '@/components/chat/chat-toggle'
 import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
@@ -84,7 +83,6 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             {children}
-            <ChatToggle />
             <Toaster  />
           </ThemeProvider>
         </NextIntlClientProvider>

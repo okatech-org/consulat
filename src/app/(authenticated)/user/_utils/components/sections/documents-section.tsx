@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl'
 import { UserDocument as PrismaUserDocument, DocumentType } from '@prisma/client'
 import { EditableSection } from '../editable-section'
-import { UserDocument } from '@/actions/manager/_utils/components/user-document'
 import { AppUserDocument } from '@/types'
+import { UserDocument } from '@/components/user-document'
 
 interface DocumentsSectionProps {
   documents: {

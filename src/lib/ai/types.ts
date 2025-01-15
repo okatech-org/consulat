@@ -1,13 +1,11 @@
-import { User, Consulate, Country, UserRole } from '@prisma/client'
+import { Consulate, Country, User } from '@prisma/client'
 import { FullProfile } from '@/types'
 import { ConsularService } from '@/types/consular-service'
 
-export type UserContext = {
-  user: User | null;
+export type ChatContext = {
+  user?: User;
   profile?: FullProfile;
-  consulate?: Consulate & {
-    countries: Omit<Country, "consulateId">[];
-  } | null;
+  consulate?: Consulate & { availableServices: ConsularService[], countries: Country[] };
 };
 
 export type Message = {
@@ -20,21 +18,3 @@ export type AssistantResponse = {
   suggestedActions?: string[];
   error?: string;
 };
-
-// src/lib/ai/types.ts
-export interface ChatContext {
-  user: {
-    isAuthenticated: boolean;
-    role?: UserRole;
-    profile?: FullProfile;
-  };
-  consulate?: {
-    name: string;
-    availableServices: ConsularService[];
-  };
-}
-
-export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}

@@ -32,7 +32,13 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
 
   const form = useForm<CreateCountryInput>({
     resolver: zodResolver(countrySchema),
-    defaultValues: initialData
+    defaultValues: {
+      id: initialData?.id,
+      code: initialData?.code,
+      name: initialData?.name,
+      flag: initialData?.flag ?? undefined,
+      status: initialData?.status || 'ACTIVE'
+    }
   })
 
   useEffect(() => {
@@ -41,6 +47,10 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
       setIsLoadingCountries(false)
     })
   }, [locale])
+
+  useEffect(() => {
+    console.log(form.formState.errors)
+  }, [form.formState.errors])
 
   function getSelectedCountry(code: string) {
     return countries.find((country) => country.code === code)
@@ -76,7 +86,7 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
                         "w-full justify-between",
                         !field.value && "text-muted-foreground"
                       )}
-                      disabled={isLoading || isLoadingCountries}
+                      disabled={isLoading || isLoadingCountries || !!initialData?.code}
                       type="button"
                     >
                       {isLoadingCountries ? (

@@ -18,7 +18,7 @@ export default async function OrganizationsPage() {
           countries={countries ?? []}
         />
       </div>
-      <OrganizationsTable organizations={organizations ?? []} />
+      <OrganizationsTable countries={countries ?? []} organizations={organizations ?? []} />
       <OrganizationDialog countries={countries ?? []} />
     </div>
   )

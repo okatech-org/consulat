@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { FullProfile } from '@/types'
 import { analyzeProfile } from '@/actions/profile-suggestions'
+import { User } from '@prisma/client'
 
 const STORAGE_KEY = 'profile_suggestions'
 
@@ -53,7 +54,7 @@ function getFromStorage(): StoredData | null {
   }
 }
 
-export function useProfileSuggestions(profile: FullProfile) {
+export function useProfileSuggestions(profile: FullProfile, user: User) {
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -79,7 +80,7 @@ export function useProfileSuggestions(profile: FullProfile) {
         }
 
         // Sinon, faire l'analyse
-        const result = await analyzeProfile(profile)
+        const result = await analyzeProfile(profile, user)
 
         if (result.suggestions) {
           // Traduire les messages
