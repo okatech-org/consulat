@@ -3,6 +3,7 @@ import { OrganizationType, OrganizationStatus, Country, ConsularService, User } 
 export interface Organization {
   id: string
   name: string
+  logo: string | null
   type: OrganizationType
   status: OrganizationStatus
   countries: Country[]

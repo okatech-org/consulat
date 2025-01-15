@@ -291,6 +291,7 @@
       "edit": "Modifier",
       "delete": "Supprimer",
       "save": "Enregistrer",
+      "saving": "Enregistrement...",
       "cancel": "Annuler",
       "submit": "Soumettre",
       "add": "Ajouter",
@@ -350,7 +351,8 @@
     "phone": {
       "label": "Numéro de téléphone",
       "placeholder": "0612345678",
-      "placeholder-local": "612345678"
+      "placeholder-local": "612345678",
+      "placeholder-international": "+33612345678"
     },
     "email": {
       "label": "Adresse email",
@@ -379,6 +381,14 @@
   },
   "messages": {
     "errors": {
+      "start_time_required": "L'heure de début est requise",
+      "end_time_required": "L'heure de fin est requise",
+      "invalid_url": "L'URL n'est pas valide",
+      "date_required": "La date est requise",
+      "name_required": "Le nom est requis",
+      "start_date_required": "La date de début est requise",
+      "end_date_required": "La date de fin est requise",
+      "reason_required": "Le motif est requis",
       "name_min": "Le nom doit contenir au moins 2 caractères",
       "type_required": "Le type d'organisme est requis",
       "type_invalid": "Type d'organisme invalide",
@@ -476,6 +486,8 @@
     }
   },
   "countries": {
+    "search": "Rechercher un pays",
+    "empty": "Aucun pays trouvé",
     "fr": "France",
     "ad": "Andorre",
     "ae": "Émirats arabes unis",
@@ -2868,7 +2880,11 @@
           "label": "Drapeau",
           "placeholder": "Sélectionner un fichier"
         },
-        "description": "Remplissez les informations pour créer un nouveau pays."
+        "description": "Remplissez les informations pour créer un nouveau pays.",
+        "placeholder": "Sélectionner un pays",
+        "search": "Rechercher un pays",
+        "label": "Pays",
+        "empty": "Aucun pays trouvé"
       },
       "messages": {
         "createSuccess": "Pays créé avec succès",
@@ -3032,10 +3048,15 @@
     },
     "settings": {
       "title": "Paramètres de l'organisation",
+      "description": "Personnalisez les paramètres de votre organisation",
       "copy_config": "Copier la configuration",
       "copy_from": "Copier depuis",
       "copy_to": "Copier vers",
       "copy_success": "Configuration copiée avec succès",
+      "tabs": {
+        "organization": "Informations de l'organisme",
+        "general": "Paramètres généraux"
+      },
       "organization": {
         "title": "Informations de l'organisme",
         "configForCountry": "Configuration - {country}",
@@ -3084,7 +3105,68 @@
           "start_date": "Date de début",
           "end_date": "Date de fin"
         }
-      }
+      },
+        "schedule": {
+          "title": "Horaires d'ouverture",
+          "days": {
+            "monday": "Lundi",
+            "tuesday": "Mardi",
+            "wednesday": "Mercredi",
+            "thursday": "Jeudi",
+            "friday": "Vendredi",
+            "saturday": "Samedi",
+            "sunday": "Dimanche"
+          },
+          "add_slot": "+ Ajouter un créneau",
+          "from": "De",
+          "to": "À"
+        },
+        "contact": {
+          "title": "Coordonnées",
+          "email": "Email",
+          "phone": "Téléphone",
+          "website": "Site web"
+        },
+        "holidays": {
+          "title": "Jours fériés",
+          "add": "Ajouter un jour férié",
+          "name": "Nom",
+          "date": "Date"
+        },
+        "closures": {
+          "title": "Fermetures exceptionnelles",
+          "add": "Ajouter une fermeture",
+          "reason": "Motif",
+          "start_date": "Date de début",
+          "end_date": "Date de fin"
+        }
+      },
+      "general": {
+        "title": "Paramètres généraux",
+        "description": "Personnalisez les paramètres généraux de l'organisation",
+        "notifications": {
+          "sms": "Notifications SMS",
+          "sms_description": "Recevez des notifications par SMS pour les demandes en attente et les rendez-vous",
+          "email": "Notifications Email",
+          "email_description": "Recevez des notifications par email pour les demandes en attente et les rendez-vous"
+        },
+        "sms": {
+          "title": "Notifications SMS",
+          "enabled": "Activer les notifications SMS",
+          "description": "Recevez des notifications par SMS pour les demandes en attente et les rendez-vous"
+        },
+        "save": "Enregistrer les paramètres",
+        "saving": "Enregistrement en cours..."
+      },
+      "messages": {
+        "success": {
+          "update": "Paramètres mis à jour",
+          "update_description": "Les paramètres de l'organisation ont été mis à jour avec succès"
+        },
+        "error": {
+          "update": "Erreur lors de la mise à jour",
+          "unknown": "Une erreur inconnue est survenue"
+        }
       }
     }
   }

@@ -5,7 +5,7 @@ export const ContentSecurityPolicy = `
   frame-src 'self' https://player.vimeo.com;
   style-src 'self' 'unsafe-inline';
   font-src 'self' data:;
-  img-src 'self' https://placehold.co https://utfs.io blob: data:;
+  img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io blob: data:;
   media-src 'self' https://player.vimeo.com;
   connect-src 'self' 
     https://api.openai.com 
@@ -16,6 +16,7 @@ export const ContentSecurityPolicy = `
     https://api.twilio.com
     https://lottie.host
     https://player.vimeo.com
+    https://flagcdn.com
     ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''}
     wss://*.uploadthing.com;
   frame-ancestors 'none';

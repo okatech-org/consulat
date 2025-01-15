@@ -6,6 +6,8 @@ import { DataTable } from '@/components/ui/data-table'
 import { CountryActions } from './country-actions'
 import { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
+import * as React from 'react'
 
 interface CountriesListProps {
   countries: Country[]
@@ -19,7 +21,22 @@ export function CountriesList({ countries, isLoading }: CountriesListProps) {
     {
       accessorKey: 'name',
       header: t('table.name'),
-      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+      cell: ({ row }) => {
+        const name = row.getValue('name') as string
+        const code = row.getValue('code') as string
+        return (
+          <div className="flex items-center gap-2">
+            <Image
+              src={`https://flagcdn.com/${code.toLowerCase()}.svg`}
+              alt={name || ''}
+              width={20}
+              height={15}
+              className="rounded object-contain"
+            />
+            <span>{name}</span>
+          </div>
+        )
+      },
     },
     {
       accessorKey: 'code',

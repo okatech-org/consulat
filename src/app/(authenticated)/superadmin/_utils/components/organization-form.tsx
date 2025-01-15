@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -24,7 +24,6 @@ import {
 } from '@/schemas/organization'
 import { Organization } from '@/types/organization'
 import { useOrganizationActions } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-actions'
-import { useEffect } from 'react'
 import { InfoField } from '@/components/ui/info-field'
 
 interface CountryOption {
@@ -96,7 +95,6 @@ export function OrganizationForm({
   }
 
   async function handleUpdateSubmit(data: UpdateOrganizationInput) {
-    console.log("submitting update")
     try {
       // On s'assure que l'organisation existe
       if (!organization) {
@@ -114,10 +112,6 @@ export function OrganizationForm({
       console.error('Failed to update organization:', error)
     }
   }
-
-  useEffect(() => {
-    console.log(form.formState.errors)
-  }, [form.formState.errors])
 
   return (
     <Form {...form}>
@@ -208,6 +202,7 @@ export function OrganizationForm({
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
+                      type={"button"}
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
@@ -241,29 +236,31 @@ export function OrganizationForm({
                       onValueChange={setSearchValue}
                     />
                     <CommandEmpty>{t('form.countries.empty')}</CommandEmpty>
-                    <CommandGroup className="max-h-64 overflow-auto">
-                      {filteredCountries.map((country) => (
-                        <CommandItem
-                          key={country.id}
-                          value={country.name}
-                          onSelect={() => {
-                            const current = field.value
-                            const updated = current.includes(country.id)
-                              ? current.filter(id => id !== country.id)
-                              : [...current, country.id]
-                            field.onChange(updated)
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value.includes(country.id) ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {country.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                    <CommandList>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {filteredCountries.map((country) => (
+                          <CommandItem
+                            key={country.id}
+                            value={country.name}
+                            onSelect={() => {
+                              const current = field.value
+                              const updated = current.includes(country.id)
+                                ? current.filter(id => id !== country.id)
+                                : [...current, country.id]
+                              field.onChange(updated)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value.includes(country.id) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {country.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>

@@ -68,7 +68,7 @@ export const GenderSchema = z.nativeEnum(Gender, {
 export const PictureFileSchema = DocumentFileSchema
 
 export const EmailSchema = z
-  .string()
+  .string({invalid_type_error: "messages.errors.invalid_email", required_error: "messages.errors.email_required"})
   .email('messages.errors.invalid_email')
   .max(VALIDATION_RULES.EMAIL_MAX_LENGTH, 'messages.errors.email_too_long')
 
@@ -94,7 +94,7 @@ export const AddressSchema = z.object({
 })
 
 export const PhoneSchema = z
-  .string()
+  .string({required_error: 'messages.errors.phone_required'})
   .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone')
 
 export const NameSchema = z.string({

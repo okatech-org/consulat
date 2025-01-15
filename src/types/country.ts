@@ -3,9 +3,11 @@ export interface Country {
   name: string
   code: string
   status: 'ACTIVE' | 'INACTIVE'
-  flag?: string
-  organizationsCount: number
-  usersCount: number
+  flag?: string | null
+  _count?: {
+    organizations: number
+    users: number
+  }
   createdAt: Date
   updatedAt: Date
 }

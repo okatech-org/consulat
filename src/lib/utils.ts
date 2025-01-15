@@ -116,14 +116,16 @@ export const APP_TITLE_TEMPLATE = '%s - Consulat'
 export const APP_DESCRIPTION =
   'Consulat vous permet de partager vos informations de contact simplement et sans contact par QR Code, en NFC ou en lien direct. Vous pouvez aussi acceder à un vaste réseau de professionnels et d\'entreprises gabonais.'
 
-type CountryItem = {
+export type CountryItem = {
   name: string
   code: string
+  flag?: string
 }
 export async function getApiCountries(): Promise<CountryItem[]> {
   const response = await fetch(
-    'https://restcountries.com/v3.1/all?fields=name,cca2'
+    'https://countryapi.io/api/all?apikey=RE7Qb252spEs0eBJvTemFwaH4SE0C5lcmyzYuwkX'
   )
+
   const data = await response.json()
 
   return data.map((country: { name: { common: string }; cca2: string }) => ({
@@ -140,6 +142,8 @@ export async function getCountryCode(name: string): Promise<string | null> {
 
   return data[0]?.cca2 ?? name
 }
+
+export const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 export interface DocumentField {
   name: string
@@ -331,7 +335,6 @@ export const extractNumber = (fullPhoneNumber: string | { countryCode: string; n
   };
 };
 
-
 export function calculateProfileCompletion(profile: Profile | null): number {
   if (!profile) return 0
 
@@ -354,4 +357,16 @@ export function calculateProfileCompletion(profile: Profile | null): number {
 
   const totalWeight = requiredFields.length
   return Math.round((completedRequired / totalWeight) * 100)
+}
+
+export async function getWorldCountries(locale: string): Promise<CountryItem[]> {
+  const items = await fetch(`https://flagcdn.com/${locale}/codes.json`)
+
+  const jsonItems: Record<string, string> =  await items.json()
+
+  return Object.entries(jsonItems).map(([key, value]) => ({
+    name: value,
+    code: key,
+    flag: `https://flagcdn.com/${key.toLowerCase()}.svg`
+  }))
 }
