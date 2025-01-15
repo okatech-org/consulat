@@ -7,8 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Énumérations
-
 enum UserRole {
   SUPER_ADMIN // Super administrateur
   ADMIN // Administratif Consulaire
@@ -695,8 +693,6 @@ enum CountryStatus {
   ACTIVE
   INACTIVE
 }
-
-// prisma/schema.prisma
 
 enum OrganizationType {
   EMBASSY // Ambassade

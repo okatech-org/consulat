@@ -38,6 +38,8 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
+  console.log(JSON.stringify(organization, null, 2))
+
   const form = useForm<OrganizationSettingsFormData>({
     resolver: zodResolver(schema),
     defaultValues: getDefaultValues(organization),
@@ -258,7 +260,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                         {t('organization.schedule.title')}
                       </h3>
 
-                      <div className="grid gap-4 md:grid-cols-3">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                         {weekDays.map((day) => (
                           <DaySchedule
                             key={day}
@@ -293,11 +295,11 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                         </Button>
                       </div>
 
-                      <div className="grid gap-4">
+                      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                         {// eslint-disable-next-line
                           form.watch(`metadata.${country.code}.settings.holidays`)?.map((_: any, index: React.Key | null | undefined) => (
                           <Card key={index}>
-                            <CardContent className="pt-6">
+                            <CardContent className="relative p-4">
                               <div className="grid gap-4">
                                 <div className="flex items-start justify-between">
                                   <div className="grid flex-1 gap-4">
@@ -336,6 +338,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                                     type="button"
                                     variant="ghost"
                                     size="icon"
+                                    className={"absolute right-2 top-2"}
                                     onClick={() => {
                                       const holidays = form.getValues(`metadata.${country.code}.settings.holidays`)
                                       form.setValue(
@@ -377,12 +380,12 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                         </Button>
                       </div>
 
-                      <div className="grid gap-4">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
                         {// eslint-disable-next-line
                           form.watch(`metadata.${country.code}.settings.closures`)?.map((_: any, index: React.Key | null | undefined) => (
                           <Card key={index}>
-                            <CardContent className="pt-6">
+                            <CardContent className="relative p-4">
                               <div className="grid gap-4">
                                 <div className="flex items-start justify-between">
                                   <div className="grid flex-1 gap-4">
@@ -440,6 +443,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                                     type="button"
                                     variant="ghost"
                                     size="icon"
+                                    className={"absolute right-2 top-2"}
                                     onClick={() => {
                                       const closures = form.getValues(`metadata.${country.code}.settings.closures`)
                                       form.setValue(

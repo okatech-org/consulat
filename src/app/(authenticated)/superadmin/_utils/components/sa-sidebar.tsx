@@ -18,6 +18,7 @@ import { getCurrentUser } from '@/actions/user'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import Image from 'next/image'
+import { UserNav } from '@/components/layouts/user-nav'
 
 export default async function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = await getCurrentUser()
@@ -82,11 +83,7 @@ export default async function SuperAdminSidebar({ ...props }: React.ComponentPro
         <NavMain items={navigation} />
       </SidebarContent>
       {user && <SidebarFooter>
-        <NavUser user={{
-          name: user.name ?? '',
-          identifier: user?.email ?? '',
-          avatar: undefined
-        }} />
+        <UserNav user={user}/>
       </SidebarFooter>}
     </Sidebar>
   )

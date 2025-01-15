@@ -3,7 +3,6 @@ import { RoleGuard } from '@/components/layouts/role-guard'
 import { Unauthorized } from '@/components/layouts/unauthorized'
 import { UserRole } from '@prisma/client'
 import SuperAdminSidebar from '@/app/(authenticated)/superadmin/_utils/components/sa-sidebar'
-import { MenuBarMobile } from '@/components/ui/menu-bar-mobile'
 
 export default async function SuperAdminLayout({
                                                     children,
@@ -18,7 +17,6 @@ export default async function SuperAdminLayout({
       <main className={'min-h-screen w-screen overflow-auto overflow-x-hidden bg-muted pb-24 pt-4 md:py-6'}>
         {children}
       </main>
-      <MenuBarMobile />
     </RoleGuard>
 )
 }

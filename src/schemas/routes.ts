@@ -26,7 +26,7 @@ export const ROUTES = {
 
   // Manager
   manager: {
-    dashboard: '/manager/dashboard' as Route<string>,
+    dashboard: '/manager' as Route<string>,
     requests: '/manager/requests' as Route<string>,
     appointments: '/manager/appointments' as Route<string>,
     users: '/manager/users' as Route<string>,

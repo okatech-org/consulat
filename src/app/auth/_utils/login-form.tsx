@@ -143,6 +143,7 @@ export function LoginForm() {
                       <FormLabel>{t('inputs.email.label')}</FormLabel>
                       <FormControl>
                         <Input
+                          autoFocus={true}
                           {...field}
                           type="email"
                           placeholder={t('inputs.email.placeholder')}
@@ -164,6 +165,7 @@ export function LoginForm() {
                       <FormLabel>{t('inputs.phone.label')}</FormLabel>
                       <FormControl>
                         <PhoneInput
+                          autoFocus={true}
                           value={field.value as unknown as PhoneValue}
                           onChange={handlePhoneChange}
                           placeholder={t('inputs.phone.placeholder')}
@@ -187,6 +189,7 @@ export function LoginForm() {
                     <FormLabel>{t('inputs.otp.label')}</FormLabel>
                     <FormControl>
                       <Input
+                        autoFocus={true}
                         {...field}
                         placeholder={t('inputs.otp.placeholder')}
                         disabled={isLoading}

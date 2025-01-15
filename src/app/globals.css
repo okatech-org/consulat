@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: 220 25% 97%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
 
     /* Couleur principale #04387E convertie en HSL */
     --primary: 215 95% 25%;
