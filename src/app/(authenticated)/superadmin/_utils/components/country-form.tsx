@@ -48,10 +48,6 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
     })
   }, [locale])
 
-  useEffect(() => {
-    console.log(form.formState.errors)
-  }, [form.formState.errors])
-
   function getSelectedCountry(code: string) {
     return countries.find((country) => country.code === code)
   }

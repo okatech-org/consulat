@@ -299,6 +299,26 @@ html {
     @apply rounded-lg md:rounded-xl overflow-hidden;
   }
 
+  .size-icon {
+    @apply !h-5 !w-5;
+  }
+
+  .mobile-hide {
+    @apply hidden sm:block;
+  }
+
+  .mobile-hide-inline {
+    @apply hidden sm:inline;
+  }
+
+  .mobile-show {
+    @apply block sm:hidden;
+  }
+
+  .mobile-show-inline {
+    @apply inline sm:hidden;
+  }
+
   /* Ajuster l'espacement des éléments sur mobile */
   .space-y-8 > :not([hidden]) ~ :not([hidden]) {
     @apply my-4 md:my-8;

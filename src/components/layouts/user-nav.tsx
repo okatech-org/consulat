@@ -11,10 +11,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User } from '@prisma/client'
 import { logUserOut } from '@/actions/auth'
 import { useTranslations } from 'next-intl'
+import DarkModeToggle from '@/components/ui/darkmode-toggle'
+import { useTheme } from 'next-themes'
+import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
 
 
 export function UserNav({user}:{user: User}) {
   const t = useTranslations('auth.actions')
+  const { setTheme, resolvedTheme } = useTheme()
 
   return (
     // eslint-disable-next-line react/jsx-no-undef
@@ -52,7 +56,25 @@ export function UserNav({user}:{user: User}) {
             Settings
             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem>New Team</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => {
+            if (resolvedTheme === 'dark') {
+              setTheme('light')
+            } else {
+              setTheme('dark')
+            }
+          }}>
+            {resolvedTheme === 'dark' ? (
+              <>
+                <SunIcon className={"w-4"} />
+                <span>Mode clair</span>
+              </>
+            ) : (
+              <>
+                <MoonIcon className={"w-4"} />
+                <span>Mode sombre</span>
+              </>
+            )}
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={async () => {

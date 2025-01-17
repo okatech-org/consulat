@@ -4,6 +4,7 @@ import { OrganizationDialog } from '@/app/(authenticated)/superadmin/_utils/comp
 import { getCountries } from '@/actions/countries'
 import { CreateOrganizationButton } from '@/app/(authenticated)/superadmin/_utils/components/create-organization-button'
 import { getTranslations } from 'next-intl/server'
+import CardContainer from '@/components/layouts/card-container'
 
 export default async function OrganizationsPage() {
   const { data: organizations } = await getOrganizations()
@@ -12,14 +13,13 @@ export default async function OrganizationsPage() {
 
   return (
     <div className="container space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
-        <CreateOrganizationButton
-          countries={countries ?? []}
-        />
-      </div>
-      <OrganizationsTable countries={countries ?? []} organizations={organizations ?? []} />
-      <OrganizationDialog countries={countries ?? []} />
+      <CardContainer
+        title={<h1 className="text-3xl font-bold">{t('title')}</h1>}
+        action={<CreateOrganizationButton countries={countries ?? []} />}
+      >
+        <OrganizationsTable countries={countries ?? []} organizations={organizations ?? []} />
+        <OrganizationDialog countries={countries ?? []} />
+      </CardContainer>
     </div>
   )
 }

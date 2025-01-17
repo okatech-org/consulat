@@ -15,7 +15,7 @@ interface DataTableToolbarProps<TData> {
 }
 
 export type FilterOption = {
-  type?: "search" | "radio"
+  type?: "search" | "radio" | "checkbox"
   value: string
   label: string
   options?: FilterOption[]
@@ -31,9 +31,9 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        {filters?.map((filter) => {
-          if (filter.type === "search") {
-            return (
+        {filters?.map((filter) => (
+          <>
+            {filter.type === "search" && (
               <Input
                 key={filter.value}
                 placeholder={filter.label}
@@ -43,19 +43,29 @@ export function DataTableToolbar<TData>({
                 }
                 className="h-8 w-[150px] lg:w-[250px]"
               />
-            )
-          } else if (filter.type === "radio" && filter.options) {
-            return (
+            )}
+
+            {filter.type === "radio" && filter.options && (
               <DataTableFacetedFilter
+                type={filter.type}
                 key={filter.value}
                 column={table.getColumn(filter.value)}
                 title={filter.label}
                 options={filter.options}
               />
-            )
-          }
-          return null
-        })}
+            )}
+
+            {filter.type === "checkbox" && filter.options && (
+              <DataTableFacetedFilter
+                type={filter.type}
+                key={filter.value}
+                column={table.getColumn(filter.value)}
+                title={filter.label}
+                options={filter.options}
+              />
+            )}
+          </>
+        ))}
         {isFiltered && (
           <Button
             variant="ghost"

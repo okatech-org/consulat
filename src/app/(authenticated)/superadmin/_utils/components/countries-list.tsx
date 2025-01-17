@@ -186,6 +186,10 @@ export function CountriesList({ countries }: CountriesListProps) {
             ],
           },
         ]}
+        onRowClick={(row) => {
+          setCountry(row)
+          setShowEditDialog(true)
+        }}
       />
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

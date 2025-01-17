@@ -33,7 +33,7 @@ export function OrganizationsTable({
       accessorKey: 'countries',
       header: t('table.country'),
       cell: ({ row }) => row.original.countries.map((country) => (
-        <Badge className={"mr-1"} key={country.code} variant="secondary">
+        <Badge className={"mr-1"} key={country.code} variant="info">
           {country.name}
         </Badge>
       )),
@@ -44,7 +44,7 @@ export function OrganizationsTable({
       cell: ({ row }) => (
         <Badge variant={
           row.original.status === 'ACTIVE' ? 'success' :
-            row.original.status === 'INACTIVE' ? 'secondary' :
+            row.original.status === 'INACTIVE' ? 'outline' :
               'destructive'
         }>
           {t(`status.${row.original.status}`)}

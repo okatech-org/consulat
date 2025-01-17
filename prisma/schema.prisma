@@ -14,6 +14,15 @@ enum UserRole {
   USER
 }
 
+enum ServiceCategory {
+  IDENTITY // Passeport, carte consulaire
+  CIVIL_STATUS // Actes de naissance, mariage, décès
+  VISA // Visas touristiques, affaires
+  CERTIFICATION // Légalisation de documents
+  REGISTRATION // Inscription consulaire
+  OTHER
+}
+
 enum RequestType {
   FIRST_REQUEST
   RENEWAL
@@ -21,6 +30,20 @@ enum RequestType {
   CONSULAR_REGISTRATION
   PASSPORT_REQUEST
   ID_CARD_REQUEST
+}
+
+enum ProcessingMode {
+  ONLINE_ONLY
+  PRESENCE_REQUIRED
+  HYBRID
+  BY_PROXY
+}
+
+enum DeliveryMode {
+  IN_PERSON
+  POSTAL
+  ELECTRONIC
+  BY_PROXY
 }
 
 enum Gender {
@@ -300,11 +323,10 @@ model Consulate {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  appointments      Appointment[]
-  schedule          ConsulateSchedule[]
-  timeSlots         TimeSlot[]
-  linkedProfiles    Profile[]
-  availableServices ConsularService[]
+  appointments   Appointment[]
+  schedule       ConsulateSchedule[]
+  timeSlots      TimeSlot[]
+  linkedProfiles Profile[]
 }
 
 // Auth related models
@@ -425,41 +447,48 @@ enum ServicePriority {
 }
 
 model ConsularService {
-  id          String              @id @default(cuid())
-  type        ConsularServiceType
-  title       String
+  id          String          @id @default(cuid())
+  name        String
   description String?
+  category    ServiceCategory
+  isActive    Boolean         @default(true)
 
-  // Documents requis et optionnels
-  requiredDocuments DocumentType[]
+  // Configuration
+  requiredDocuments       DocumentType[] // Types de documents requis
+  optionalDocuments       DocumentType[] // Types de documents optionnels
+  requiresAppointment     Boolean        @default(false)
+  appointmentDuration     Int? // Durée en minutes
+  appointmentInstructions String?
 
-  // Nouveau: Configuration du rendez-vous
-  requiresAppointment Boolean @default(false)
-  appointmentDuration Int? // Durée en minutes
+  // Workflow et formulaires
+  steps  ServiceStep[] // Étapes du service
+  fields Json? // Configuration des champs de formulaire
 
-  // Informations générales
-  estimatedTime String? // Temps estimé de traitement
-  price         Float? // Coût de la démarche
-  isActive      Boolean @default(true)
-
-  // Configuration du workflow
-  steps        ServiceStep[]
-  requirements Json? // Conditions d'éligibilité
-  validations  Json? // Règles de validation
+  // Tarification
+  price    Float?
+  currency String? @default("EUR")
 
   // Relations
-  requests ServiceRequest[]
+  organization   Organization?    @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  requests       ServiceRequest[] // Demandes pour ce service
+
+  processingMode ProcessingMode @default(PRESENCE_REQUIRED)
+  deliveryMode   DeliveryMode[]
+
+  allowsProxy       Boolean @default(false)
+  proxyRequirements String?
+
+  postalDeliveryAvailable Boolean @default(false)
+  postalRequirements      String?
+  postalFees              Float?
 
   // Métadonnées
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  Consulate      Consulate?    @relation(fields: [consulateId], references: [id])
-  consulateId    String?
-  Organization   Organization? @relation(fields: [organizationId], references: [id])
-  organizationId String?
+  metadata  Json? // Données additionnelles flexibles
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Modèle pour les étapes d'une démarche
 model ServiceStep {
   id          String  @id @default(cuid())
   order       Int // Ordre de l'étape
@@ -467,31 +496,25 @@ model ServiceStep {
   description String?
   isRequired  Boolean @default(true)
 
-  // Type d'étape
-  stepType ServiceStepType @default(FORM)
-
-  // Configuration du formulaire (pour type FORM)
-  fields        Json? // Structure des champs à remplir
-  profileFields Json? // Champs à extraire du profil
-
-  // Configuration du rendez-vous (pour type APPOINTMENT)
-  appointmentConfig Json? // Configuration spécifique au RDV
+  // Configuration
+  type        ServiceStepType @default(FORM)
+  fields      Json? // Configuration des champs pour cette étape
+  validations Json? // Règles de validation
 
   // Relations
-  serviceId String
   service   ConsularService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
 
-  // Métadonnées
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// Nouveau: Types d'étapes possibles
 enum ServiceStepType {
-  FORM // Étape de formulaire standard
-  DOCUMENTS // Étape d'upload de components
-  APPOINTMENT // Étape de prise de RDV
-  REVIEW // Étape de revue finale
+  FORM // Étape de formulaire
+  DOCUMENTS // Upload de documents
+  APPOINTMENT // Prise de rendez-vous
+  PAYMENT // Paiement
+  REVIEW // Revue finale
 }
 
 // Modèle pour les demandes de démarches
@@ -517,6 +540,17 @@ model ServiceRequest {
   // Rendez-vous associé (si applicable)
   appointment Appointment?
 
+  chosenProcessingMode ProcessingMode
+  chosenDeliveryMode   DeliveryMode
+
+  proxyName            String?
+  proxyIdentityDoc     String?
+  proxyPowerOfAttorney String?
+
+  deliveryAddress String?
+  trackingNumber  String?
+  deliveryStatus  String?
+
   // Suivi
   submittedAt DateTime?
   completedAt DateTime?
@@ -532,11 +566,12 @@ model ServiceRequest {
 
 // Modèle pour les rendez-vous
 model Appointment {
-  id       String            @id @default(cuid())
-  date     DateTime
-  duration Int // en minutes
-  type     AppointmentType
-  status   AppointmentStatus @default(PENDING)
+  id           String            @id @default(cuid())
+  date         DateTime
+  instructions String?
+  duration     Int // en minutes
+  type         AppointmentType
+  status       AppointmentStatus @default(PENDING)
 
   // Relations
   userId           String

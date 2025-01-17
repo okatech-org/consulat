@@ -22,6 +22,7 @@ export const ROUTES = {
     organizations: '/superadmin/organizations' as Route<string>,
     services: '/superadmin/services' as Route<string>,
     users: '/superadmin/users' as Route<string>,
+    edit_service: (id: string) => `/superadmin/services/${id}/edit` as Route<string>,
   },
 
   // Manager

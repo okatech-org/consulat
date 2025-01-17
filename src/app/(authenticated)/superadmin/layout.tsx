@@ -14,7 +14,7 @@ export default async function SuperAdminLayout({
   return (
     <RoleGuard roles={[UserRole.SUPER_ADMIN]} currentRole={session?.user.role} fallback={<Unauthorized />}>
       <SuperAdminSidebar />
-      <main className={'min-h-screen w-screen overflow-auto overflow-x-hidden bg-muted pb-24 pt-4 md:py-6'}>
+      <main className={'min-h-screen w-screen overflow-auto overflow-x-hidden pb-24 pt-4 md:py-6'}>
         {children}
       </main>
     </RoleGuard>

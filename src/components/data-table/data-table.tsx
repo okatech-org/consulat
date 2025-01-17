@@ -13,8 +13,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+  useReactTable, RowData,
+} from '@tanstack/react-table'
 
 import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar, FilterOption } from './data-table-toolbar'
@@ -24,13 +24,15 @@ import { useTranslations } from 'next-intl'
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  filters?: FilterOption[]
+  filters?: FilterOption[],
+  onRowClick?: (row: RowData<TData>) => void
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  filters
+  filters,
+  onRowClick
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table')
   const [rowSelection, setRowSelection] = React.useState({})
@@ -70,7 +72,9 @@ export function DataTable<TData, TValue>({
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} onClick={() => {
+
+              }}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id} colSpan={header.colSpan}>
@@ -92,6 +96,9 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => {
+                    onRowClick?.(row)
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

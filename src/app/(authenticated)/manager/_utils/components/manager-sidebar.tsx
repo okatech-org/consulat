@@ -1,7 +1,16 @@
 import { LayoutDashboard, FileText, Calendar, Users, Settings } from 'lucide-react'
 import { NavMain } from "@/components/ui/nav-main"
 import { NavUser } from "@/components/ui/nav-user"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import { ROUTES } from '@/schemas/routes'
 import { getCurrentUser } from '@/actions/user'
 import { getTranslations } from 'next-intl/server'
@@ -18,32 +27,32 @@ export default async function ManagerSidebar({ ...props }: React.ComponentProps<
     {
       title: t('dashboard'),
       href: ROUTES.manager.dashboard,
-      icon: <LayoutDashboard className="h-4 w-4" />
+      icon: <LayoutDashboard className="size-4" />
     },
     {
       title: t('requests'),
       href: ROUTES.manager.requests,
-      icon: <FileText className="h-4 w-4" />
+      icon: <FileText className="size-4" />
     },
     {
       title: t('appointments'),
       href: ROUTES.manager.appointments,
-      icon: <Calendar className="h-4 w-4" />
+      icon: <Calendar className="size-4" />
     },
     {
       title: t('users'),
       href: ROUTES.manager.users,
-      icon: <Users className="h-4 w-4" />
+      icon: <Users className="size-4" />
     },
     {
       title: t('settings'),
       href: ROUTES.manager.settings,
-      icon: <Settings className="h-4 w-4" />,
+      icon: <Settings className="size-4" />,
     }
   ]
 
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar collapsible={"icon"} variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -56,7 +65,7 @@ export default async function ManagerSidebar({ ...props }: React.ComponentProps<
                     width={128}
                     height={128}
                     priority
-                    className={"rounded"}
+                    className={"rounded object-center"}
                   />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -75,6 +84,7 @@ export default async function ManagerSidebar({ ...props }: React.ComponentProps<
 
       {user && <SidebarFooter>
         <UserNav user={user}/>
+        <SidebarTrigger className="rotate-180" />
       </SidebarFooter>}
     </Sidebar>
   )

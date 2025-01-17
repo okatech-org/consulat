@@ -1,30 +1,15 @@
-import { ConsularService as PrismaConsularService } from '@prisma/client'
-import { JSX } from 'react'
+import { ConsularService, ServiceCategory, ServiceStepType } from '@prisma/client'
 
 // Types pour les champs de formulaire dynamiques
-export enum ServiceFieldType {
-  TEXT = 'text',
-  EMAIL = 'email',
-  PHONE = 'phone',
-  DATE = 'date',
-  SELECT = 'select',
-  TEL = 'tel',
-  RADIO = 'radio',
-  CHECKBOX = 'checkbox',
-  TEXTAREA = 'textarea',
-  NUMBER = 'number',
-  FILE = 'file'
-}
-
 export interface ServiceField {
   name: string
-  type: ServiceFieldType
+  type: 'text' | 'email' | 'phone' | 'date' | 'select' | 'file' | 'number'
   label: string
   required?: boolean
   description?: string
   placeholder?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValue?: any
+  defaultValue?: Record<string, any>
   options?: Array<{
     value: string
     label: string
@@ -40,23 +25,55 @@ export interface ServiceField {
 }
 
 export interface ServiceStep {
-  id: string
+  id?: string
+  order: number
   title: string
-  description: string
-  isComplete?: boolean
-  component?: JSX.Element
-  profileFields?: string
-  defaultValues?: Record<string, unknown>
+  description?: string
+  type: ServiceStepType
+  isRequired: boolean
   fields?: ServiceField[]
+  validations?: Record<string, unknown>
+}
+
+export interface ConsularServiceWithRelations extends ConsularService {
+  steps: ServiceStep[]
+  organization: {
+    id: string
+    name: string
+  }
+}
+
+export interface CreateServiceInput {
+  name: string
+  description?: string
+  category: ServiceCategory
+  requiredDocuments: DocumentType[]
+  optionalDocuments?: DocumentType[]
+  requiresAppointment: boolean
+  appointmentDuration?: number
+  price?: number
+  currency?: string
+  steps: Omit<ServiceStep, 'id'>[]
+}
+
+export interface UpdateServiceInput extends Partial<CreateServiceInput> {
+  id: string
+  isActive?: boolean
 }
 
 export interface ProfileFieldMapping {
   [formField: string]: string
 }
 
-// Type principal pour le service consulaire
-export interface ConsularService extends PrismaConsularService {
-  steps: ServiceStep[]
-  requiresAppointment: boolean
-  appointmentDuration: number | null
+export interface ServiceStore {
+  services: ConsularServiceWithRelations[]
+  selectedService: ConsularServiceWithRelations | null
+  isLoading: boolean
+  error: string | null
+
+  // Actions
+  setServices: (services: ConsularServiceWithRelations[]) => void
+  setSelectedService: (service: ConsularServiceWithRelations | null) => void
+  setLoading: (loading: boolean) => void
+  setError: (error: string | null) => void
 }

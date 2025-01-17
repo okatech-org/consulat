@@ -16,7 +16,7 @@ export default async function ManagerLayout({
       fallback={<Unauthorized />}
     >
       <ManagerSidebar />
-      <main className={'min-h-screen w-screen overflow-auto overflow-x-hidden bg-muted pb-24 pt-4 md:py-6'}>
+      <main className={'min-h-screen w-screen overflow-auto overflow-x-hidden pb-24 pt-4 md:py-6'}>
         {children}
       </main>
     </RoleGuard>

@@ -97,6 +97,7 @@
       "clear_all": "Tout effacer"
     },
     "status": {
+      "not_assigned": "Non attribué",
       "pending": "En attente",
       "approved": "Approuvé",
       "rejected": "Rejeté",
@@ -113,7 +114,10 @@
       "additional_info_needed": "À compléter",
       "completed": "Terminé",
       "cancelled": "Annulé",
-      "validated": "Validé"
+      "validated": "Validé",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "suspended": "Suspendu"
     },
     "confirm": {
       "title": "Confirmation",
@@ -326,6 +330,8 @@
       "birth_registration": "Déclaration de naissance"
     },
     "data_table": {
+        "go_to_last": "Aller à la dernière page",
+        "go_to_first": "Aller à la première page",
         "no_data": "Aucune donnée disponible",
         "no_results": "Aucun résultat trouvé",
         "loading": "Chargement...",
@@ -333,12 +339,14 @@
         "page_of_total": "Page {page} sur {total}",
         "page": "Page",
         "of": "de",
-      "resetFilters": "Réinitialiser",
-      "viewOptions": "Voir les options",
+        "resetFilters": "Réinitialiser",
+        "viewOptions": "Voir les options",
+        "selectedCount": "{selected} sélectionné(s)",
         "rows": "lignes",
         "columns": "Colonnes",
         "search": "Rechercher",
         "previous": "Précédent",
+        "noResults": "Aucun résultat",
         "next": "Suivant",
         "search_placeholder": "Rechercher...",
         "actions": "Actions",
@@ -346,8 +354,9 @@
         "selected_rows": "{selected}/{total} lignes sélectionnées",
         "select_all": "Tout sélectionner",
         "clear_selection": "Effacer la sélection",
+        "clearFilters": "Effacer les filtres",
         "export": "Exporter",
-      "do_to_first": "Aller à la première page",
+        "do_to_first": "Aller à la première page",
         "do_to_last": "Aller à la dernière page"
     }
   },
@@ -361,6 +370,34 @@
     "email": {
       "label": "Adresse email",
       "placeholder": "email@example.com"
+    },
+    "appointment": {
+      "date": {
+        "label": "Date du rendez-vous",
+        "placeholder": "Sélectionner une date"
+      },
+      "time": {
+        "label": "Heure du rendez-vous",
+        "placeholder": "Sélectionner une heure"
+      },
+      "reason": {
+        "label": "Motif du rendez-vous",
+        "placeholder": "Sélectionner un motif"
+      },
+      "required": {
+        "label": "Rendez-vous requis",
+        "description": "Ce service nécessite-t-il un rendez-vous ?"
+      },
+      "duration": {
+        "label": "Durée du rendez-vous (en minutes)",
+        "placeholder": "30",
+        "description": "Durée en minutes"
+      },
+      "instructions": {
+        "label": "Instructions",
+        "placeholder": "Instructions spécifiques pour le rendez-vous...",
+        "description": "Instructions qui seront affichées aux utilisateurs lors de la prise de rendez-vous"
+      }
     }
   },
   "feedback": {
@@ -2999,6 +3036,237 @@
         "create_title": "Ajouter un organisme",
         "edit_title": "Modifier l'organisme"
       }
+    },
+    "services": {
+      "title": "Services Consulaires",
+      "messages": {
+        "createSuccess": "Service créé avec succès",
+        "updateSuccess": "Service mis à jour avec succès",
+        "deleteSuccess": "Service supprimé avec succès",
+        "error": {
+          "create": "Erreur lors de la création du service",
+          "update": "Erreur lors de la mise à jour du service",
+          "delete": "Erreur lors de la suppression du service",
+          "fetch": "Erreur lors de la récupération des services"
+        }
+      },
+      "actions": {
+        "create": "Créer un service",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "activate": "Activer",
+        "deactivate": "Désactiver",
+        "update": "Mettre à jour"
+      },
+      "tabs": {
+        "general": "Informations générales",
+        "documents": "Documents",
+        "appointment": "Rendez-vous",
+        "delivery": "Livraison",
+        "pricing": "Tarification",
+        "steps": "Étapes"
+      },
+      "form": {
+        "create_title": "Nouveau service",
+        "edit_title": "Modifier le service",
+        "name": {
+          "label": "Nom du service",
+          "placeholder": "Entrez le nom du service"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Décrivez le service"
+        },
+        "category": {
+          "label": "Catégorie",
+          "placeholder": "Sélectionnez une catégorie"
+        },
+        "organization": {
+          "label": "Organisation",
+          "placeholder": "Sélectionnez une organisation"
+        },
+        "required_documents": {
+          "label": "Documents requis",
+          "placeholder": "Sélectionner",
+          "search": "Rechercher un document",
+          "empty": "Aucun document trouvé"
+        },
+        "optional_documents": {
+          "label": "Documents optionnels",
+          "placeholder": "Sélectionner",
+          "search": "Rechercher un document",
+          "empty": "Aucun document trouvé"
+        },
+        "requires_appointment": {
+          "label": "Rendez-vous requis",
+          "description": "Ce service nécessite-t-il un rendez-vous ?"
+        },
+        "appointment_duration": {
+          "label": "Durée du rendez-vous",
+          "placeholder": "Durée en minutes"
+        },
+        "price": {
+          "label": "Prix",
+          "placeholder": "0.00"
+        },
+        "general": {
+          "name": {
+            "label": "Nom du service",
+            "placeholder": "Ex: Demande de passeport"
+          },
+          "description": {
+            "label": "Description",
+            "placeholder": "Description détaillée du service..."
+          },
+          "category": {
+            "label": "Catégorie",
+            "placeholder": "Sélectionner une catégorie"
+          },
+          "processing_mode": {
+            "label": "Mode de traitement",
+            "options": {
+              "online_only": "En ligne uniquement",
+              "presence_required": "Présence requise",
+              "hybrid": "Hybride",
+              "by_proxy": "Par procuration"
+            }
+          }
+        },
+        "documents": {
+          "required": {
+            "label": "Documents requis",
+            "placeholder": "Sélectionner les documents requis"
+          },
+          "optional": {
+            "label": "Documents optionnels",
+            "placeholder": "Sélectionner les documents optionnels"
+          }
+        },
+        "appointment": {
+          "requires_appointment": {
+            "label": "Nécessite un rendez-vous",
+            "description": "Activer si ce service nécessite un rendez-vous"
+          },
+          "duration": {
+            "label": "Durée du rendez-vous",
+            "placeholder": "30",
+            "description": "Durée en minutes"
+          },
+          "instructions": {
+            "label": "Instructions",
+            "placeholder": "Instructions spécifiques pour le rendez-vous",
+            "description": "Instructions qui seront affichées lors de la prise de rendez-vous"
+          }
+        },
+        "delivery": {
+          "modes": {
+            "label": "Modes de livraison",
+            "options": {
+              "in_person": "En personne",
+              "postal": "Par courrier",
+              "electronic": "Électronique",
+              "by_proxy": "Par procuration"
+            }
+          },
+          "proxy": {
+            "allows": "Autoriser la procuration",
+            "requirements": {
+              "label": "Conditions de procuration",
+              "placeholder": "Conditions et documents requis pour la procuration..."
+            }
+          },
+          "postal": {
+            "available": "Livraison postale disponible",
+            "requirements": {
+              "label": "Conditions d'envoi postal",
+              "placeholder": "Conditions et restrictions pour l'envoi postal..."
+            },
+            "fees": {
+              "label": "Frais d'envoi",
+              "placeholder": "0.00"
+            }
+          }
+        },
+        "pricing": {
+          "price": {
+            "label": "Prix",
+            "placeholder": "0.00"
+          },
+          "currency": {
+            "label": "Devise",
+            "placeholder": "EUR"
+          }
+        },
+        "steps": {
+          "add": "Ajouter une étape",
+          "edit": "Modifier l'étape",
+          "delete": "Supprimer l'étape",
+          "step": {
+            "title": {
+              "label": "Titre de l'étape",
+              "placeholder": "Ex: Informations personnelles"
+            },
+            "description": {
+              "label": "Description",
+              "placeholder": "Description de l'étape..."
+            },
+            "type": {
+              "label": "Type d'étape",
+              "options": {
+                "form": "Formulaire",
+                "documents": "Documents",
+                "appointment": "Rendez-vous",
+                "payment": "Paiement",
+                "review": "Révision"
+              }
+            },
+            "required": "Étape obligatoire",
+            "fields": {
+              "add": "Ajouter un champ",
+              "edit": "Modifier le champ",
+              "delete": "Supprimer le champ"
+            }
+          }
+        }
+      },
+      "categories": {
+        "identity": "Documents d'identité",
+        "civil_status": "État civil",
+        "visa": "Visas",
+        "certification": "Certification",
+        "registration": "Inscription consulaire",
+        "other": "Autre"
+      },
+      "documents": {
+        "passport": "Passeport",
+        "identity_card": "Carte d'identité",
+        "birth_certificate": "Acte de naissance",
+        "residence_permit": "Titre de séjour",
+        "proof_of_address": "Justificatif de domicile",
+        "marriage_certificate": "Acte de mariage",
+        "death_certificate": "Acte de décès",
+        "divorce_decree": "Jugement de divorce",
+        "nationality_certificate": "Certificat de nationalité",
+        "other": "Autre document",
+        "visa_pages": "Pages de visa",
+        "identity_photo": "Photo d'identité",
+        "consular_card": "Carte consulaire",
+        "naturalization_decree": "Décret de naturalisation",
+        "employment_proof": "Justificatif d'emploi"
+      },
+      "table": {
+        "name": "Nom",
+        "category": "Catégorie",
+        "organization": "Organisation",
+        "status": "Statut",
+        "requests": "Demandes",
+        "actions": "Actions"
+      },
+      "quick_edit": {
+        "title": "Modification rapide",
+        "continue": "Continuer l'édition"
+      },
+      "edit_title": "Édition du service"
     }
   },
   "manager": {
@@ -3173,6 +3441,45 @@
           "update": "Erreur lors de la mise à jour",
           "unknown": "Une erreur inconnue est survenue"
         }
+      }
+    }
+  },
+  "services": {
+    "categories": {
+      "identity": "Documents d'identité",
+      "civil_status": "État civil",
+      "visa": "Visas",
+      "certification": "Certification",
+      "registration": "Inscription",
+      "other": "Autre"
+    },
+    "processing": {
+      "title": "Mode de traitement",
+      "processing_mode": {
+        "title": "Comment souhaitez-vous effectuer cette démarche ?",
+        "modes": {
+          "online_only": "100% en ligne",
+          "presence_required": "Présence physique requise",
+          "hybrid": "Hybride (en ligne + présence)",
+          "by_proxy": "Par procuration"
+        }
+      },
+      "delivery_mode": {
+        "title": "Mode de réception du document",
+        "modes": {
+          "in_person": "Retrait sur place",
+          "postal": "Envoi postal",
+          "electronic": "Document électronique",
+          "by_proxy": "Retrait par procuration"
+        }
+      },
+      "proxy": {
+        "requirements": "Documents requis pour la procuration : pièce d'identité et procuration légalisée",
+        "information": "La personne mandatée devra présenter les documents originaux"
+      },
+      "postal": {
+        "information": "Des frais d'envoi supplémentaires peuvent s'appliquer",
+        "requirements": "Adresse de livraison complète requise"
       }
     }
   }

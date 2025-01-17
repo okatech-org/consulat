@@ -3,10 +3,11 @@ import { buttonVariants } from '@/components/ui/button'
 import { ROUTES } from '@/schemas/routes'
 import { ArrowLeft } from 'lucide-react'
 import React from 'react'
+import { LogoutButton } from '@/components/ui/logout-button'
 
 export function Unauthorized() {
   return (
-    <div className={"flex flex-col w-full h-full items-center justify-center gap-4"}>
+    <div className={"flex size-full flex-col items-center justify-center gap-4"}>
       <h1>
         Accès refusé
       </h1>
@@ -21,11 +22,12 @@ export function Unauthorized() {
         }
         href={ROUTES.base}
       >
-        <ArrowLeft className="mr-2 h-5 w-5" />
+        <ArrowLeft className="mr-2 size-5" />
         <span>
           {'Retour à l\'accueil'}
         </span>
       </Link>
+      <LogoutButton />
     </div>
   )
 }

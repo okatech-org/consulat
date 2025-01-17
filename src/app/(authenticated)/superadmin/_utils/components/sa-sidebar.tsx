@@ -3,7 +3,6 @@ import {
 } from 'lucide-react'
 
 import { NavMain } from "@/components/ui/nav-main"
-import { NavUser } from "@/components/ui/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +10,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+  SidebarMenuItem, SidebarTrigger,
+} from '@/components/ui/sidebar'
 import { ROUTES } from '@/schemas/routes'
 import { getCurrentUser } from '@/actions/user'
 import { getTranslations } from 'next-intl/server'
@@ -29,32 +28,32 @@ export default async function SuperAdminSidebar({ ...props }: React.ComponentPro
     {
       title: t('dashboard'),
       href: ROUTES.superadmin.base,
-      icon: <LayoutDashboard className="h-4 w-4" />
+      icon: <LayoutDashboard className="size-icon" />
     },
     {
       title: t('countries'),
       href: ROUTES.superadmin.countries,
-      icon: <Globe className="h-4 w-4" />
+      icon: <Globe className="size-icon" />
     },
     {
       title: t('organizations'),
       href: ROUTES.superadmin.organizations,
-      icon: <Building2 className="h-4 w-4" />
+      icon: <Building2 className="size-icon" />
     },
     {
       title: t('services'),
       href: ROUTES.superadmin.services,
-      icon: <Settings className="h-4 w-4" />
+      icon: <Settings className="size-icon" />
     },
     {
       title: t('users'),
       href: ROUTES.superadmin.users,
-      icon: <Users className="h-4 w-4" />
+      icon: <Users className="size-icon" />
     }
   ]
 
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar collapsible={"icon"} variant="inset" className={"bg-background"} {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -84,6 +83,7 @@ export default async function SuperAdminSidebar({ ...props }: React.ComponentPro
       </SidebarContent>
       {user && <SidebarFooter>
         <UserNav user={user}/>
+        <SidebarTrigger className="rotate-180" />
       </SidebarFooter>}
     </Sidebar>
   )

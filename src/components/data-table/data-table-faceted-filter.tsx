@@ -16,10 +16,12 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
+import { useTranslations } from 'next-intl'
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>
   title?: string
+  type?: "radio" | "checkbox"
   options: {
     label: string
     value: string
@@ -31,7 +33,9 @@ export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
   options,
+  type = "checkbox",
 }: DataTableFacetedFilterProps<TData, TValue>) {
+  const t = useTranslations("common.data_table")
   const facets = column?.getFacetedUniqueValues()
   const selectedValues = new Set(column?.getFilterValue() as string[])
 
@@ -56,11 +60,19 @@ export function DataTableFacetedFilter<TData, TValue>({
                     variant="secondary"
                     className="rounded-sm px-1 font-normal"
                   >
-                    {selectedValues.size} selected
+                    {t("selectedCount", { count: selectedValues.size })}
                   </Badge>
                 ) : (
                   options
-                    .filter((option) => selectedValues.has(option.value))
+                    .filter((option) => {
+                      if (type === "radio") {
+                        return option.value === column?.getFilterValue()
+                      }
+
+                      if (type === "checkbox") {
+                        return selectedValues.has(option.value)
+                      }
+                    })
                     .map((option) => (
                       <Badge
                         variant="secondary"
@@ -80,7 +92,9 @@ export function DataTableFacetedFilter<TData, TValue>({
         <Command>
           <CommandInput placeholder={title} />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>
+              {t("noResults")}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value)
@@ -130,7 +144,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     onSelect={() => column?.setFilterValue(undefined)}
                     className="justify-center text-center"
                   >
-                    Clear filters
+                    {t("clearFilters")}
                   </CommandItem>
                 </CommandGroup>
               </>

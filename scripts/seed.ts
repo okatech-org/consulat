@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, OrganizationType, OrganizationStatus } from '@prisma/client'
+import { PrismaClient, UserRole, OrganizationType, ServiceCategory, DocumentType, OrganizationStatus } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
@@ -266,6 +266,92 @@ async function main() {
               }
             }
           }
+        }
+      })
+    ])
+
+    console.log('Creating consular services...')
+    await Promise.all([
+      // Service 1: Demande de passeport
+      prisma.consularService.create({
+        data: {
+          name: "Demande de passeport",
+          description: "Service de demande et de renouvellement de passeport pour les ressortissants gabonais",
+          category: ServiceCategory.IDENTITY,
+          isActive: true,
+          requiredDocuments: [
+            DocumentType.IDENTITY_PHOTO,
+            DocumentType.BIRTH_CERTIFICATE,
+            DocumentType.PROOF_OF_ADDRESS,
+            DocumentType.NATIONALITY_CERTIFICATE
+          ],
+          optionalDocuments: [
+            DocumentType.RESIDENCE_PERMIT
+          ],
+          requiresAppointment: true,
+          appointmentDuration: 30,
+          price: 50000,
+          currency: "EUR",
+          organization: { connect: { id: organizations[0].id } }
+        }
+      }),
+
+      // Service 2: Inscription consulaire
+      prisma.consularService.create({
+        data: {
+          name: "Inscription consulaire",
+          description: "Enregistrement auprès du consulat pour les Gabonais résidant à l'étranger",
+          category: ServiceCategory.REGISTRATION,
+          isActive: true,
+          requiredDocuments: [
+            DocumentType.PASSPORT,
+            DocumentType.PROOF_OF_ADDRESS,
+            DocumentType.RESIDENCE_PERMIT
+          ],
+          requiresAppointment: false,
+          price: 0,
+          organization: { connect: { id: organizations[1].id } }
+        }
+      }),
+
+      // Service 3: Transcription d'acte de naissance
+      prisma.consularService.create({
+        data: {
+          name: "Transcription d'acte de naissance",
+          description: "Transcription d'un acte de naissance étranger dans les registres consulaires",
+          category: ServiceCategory.CIVIL_STATUS,
+          organization: { connect: { id: organizations[2].id } },
+          isActive: true,
+          requiredDocuments: [
+            DocumentType.BIRTH_CERTIFICATE,
+            DocumentType.PASSPORT,
+            DocumentType.PROOF_OF_ADDRESS
+          ],
+          optionalDocuments: [
+            DocumentType.MARRIAGE_CERTIFICATE
+          ],
+          requiresAppointment: true,
+          appointmentDuration: 45,
+          price: 25000,
+          currency: "EUR",
+        }
+      }),
+
+      // Service 4: Légalisation de documents
+      prisma.consularService.create({
+        data: {
+          name: "Légalisation de documents",
+          description: "Service de légalisation et d'authentification de documents officiels",
+          category: ServiceCategory.CERTIFICATION,
+          organization: { connect: { id: organizations[0].id } },
+          isActive: true,
+          requiredDocuments: [
+            DocumentType.IDENTITY_CARD,
+            DocumentType.PROOF_OF_ADDRESS
+          ],
+          requiresAppointment: false,
+          price: 15000,
+          currency: "EUR"
         }
       })
     ])
