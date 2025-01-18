@@ -10,6 +10,7 @@ export interface ServiceField {
   placeholder?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaultValue?: Record<string, any>
+  profileField?: string
   options?: Array<{
     value: string
     label: string

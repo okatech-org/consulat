@@ -21,6 +21,7 @@ interface MultiSelectProps<T> {
   searchPlaceholder?: string
   emptyText?: string
   type?: "single" | "multiple"
+  disabled?: boolean
 }
 
 export function MultiSelect<T extends string | number>({
@@ -30,7 +31,8 @@ export function MultiSelect<T extends string | number>({
                                                          placeholder = "Sélectionner...",
                                                          searchPlaceholder = "Rechercher...",
                                                          emptyText = "Aucun résultat trouvé.",
-                                                         type = "multiple"
+                                                         type = "multiple",
+                                                         disabled = false
                                                        }: MultiSelectProps<T>) {
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
@@ -64,6 +66,7 @@ export function MultiSelect<T extends string | number>({
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between"
+            disabled={disabled}
           >
             <div className="flex flex-wrap gap-1">
               {type === 'multiple' && <span className="opacity-50">{placeholder}</span>}
@@ -77,7 +80,7 @@ export function MultiSelect<T extends string | number>({
                 </>
               )}
             </div>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
@@ -94,7 +97,12 @@ export function MultiSelect<T extends string | number>({
                   <CommandItem
                     key={String(option.value)}
                     value={option.label}
-                    onSelect={() => toggleOption(option.value)}
+                    onSelect={() => {
+                      toggleOption(option.value)
+                      if (type === "single") {
+                        setOpen(false)
+                      }
+                    }}
                   >
                     <Check
                       className={cn(

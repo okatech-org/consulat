@@ -6,15 +6,22 @@ import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ServiceCategory, DocumentType, ProcessingMode, DeliveryMode } from '@prisma/client'
+import {
+  ServiceCategory,
+  DocumentType,
+  ProcessingMode,
+  DeliveryMode,
+  ServiceStepType,
+  ConsularService,
+} from '@prisma/client'
 import { CreateServiceSchema } from '@/schemas/consular-service'
 import { Organization } from '@/types/organization'
 import { Switch } from '@/components/ui/switch'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, ArrowUp, Trash } from 'lucide-react'
 import { CreateServiceInput } from '@/types/consular-service'
 import { MultiSelect } from '@/components/ui/multi-select'
-import { useState } from 'react'
-import { createService } from '@/app/(authenticated)/superadmin/_utils/actions/services'
+import { useEffect, useState } from 'react'
+import { createService, updateService } from '@/app/(authenticated)/superadmin/_utils/actions/services'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -28,10 +35,13 @@ import {
   TradFormMessage,
 } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DynamicFieldsEditor } from '@/app/(authenticated)/superadmin/_utils/components/dynamic-fields-editor'
+import { profileFields } from '@/types/profile'
 
 interface ServiceFormProps {
   organizations: Organization[]
-  service?: Partial<CreateServiceInput>
+  service: ConsularService
 }
 
 export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
@@ -66,13 +76,15 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
       // Tarification
       price: service?.price || 0,
       currency: service?.currency || 'EUR',
+      steps: service?.steps || [],
     }
   })
 
   const handleSubmit = form.handleSubmit(async (data: CreateServiceInput) => {
     setIsLoading(true)
     try {
-      const result = await createService(data)
+      console.log("CreateServiceInput", data)
+      const result = await updateService(service.id, data)
       if (result.error) {
         throw new Error(result.error)
       }
@@ -92,6 +104,11 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
     }
   })
 
+  useEffect(() => {
+    console.log(form.getValues())
+    console.log(form.formState.errors)
+  }, [form.formState])
+
 
   return (
     <Form {...form}>
@@ -103,6 +120,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
             <TabsTrigger value="appointment">{t('tabs.appointment')}</TabsTrigger>
             <TabsTrigger value="delivery">{t('tabs.delivery')}</TabsTrigger>
             <TabsTrigger value="pricing">{t('tabs.pricing')}</TabsTrigger>
+            <TabsTrigger value="steps">{t('tabs.steps')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className={"space-y-6"}>
@@ -324,74 +342,109 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                         value: mode,
                       }))}
                       selected={field.value}
-                      onChange={field.onChange}
+                      onChange={(value) => {
+                        field.onChange(value)
+
+                        // Si le mode de livraison par proxy est sélectionné, on active l'option de proxy
+                        if (value.includes(DeliveryMode.BY_PROXY)) {
+                          form.setValue('allowsProxy', true)
+                        } else {
+                          form.setValue('allowsProxy', false)
+                        }
+
+                        // Si le mode de livraison par poste est sélectionné, on active l'option de livraison postale
+                        if (value.includes(DeliveryMode.POSTAL)) {
+                          form.setValue('postalDeliveryAvailable', true)
+                        } else {
+                          form.setValue('postalDeliveryAvailable', false)
+                        }
+                      }}
                     />
                     <TradFormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Options de procuration */}
-              <FormField
-                control={form.control}
-                name="allowsProxy"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel>{t('form.delivery.proxy.allows')}</FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {/* Options de proxy */}
+              {form.watch('deliveryMode').includes(DeliveryMode.BY_PROXY) && (
+                <div className={"rounded-lg border p-4 space-y-4"}>
+                  <FormField
+                    control={form.control}
+                    name="allowsProxy"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <FormLabel>{t('form.delivery.proxy.allows')}</FormLabel>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={(value) => {
+                              const deliveryMode = form.getValues('deliveryMode')
+                              field.onChange(value)
 
-              {form.watch('allowsProxy') && (
-                <FormField
-                  control={form.control}
-                  name="proxyRequirements"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('form.delivery.proxy.requirements.label')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder={t('form.delivery.proxy.requirements.placeholder')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
+                              if (value) {
+                                form.setValue('deliveryMode', [...deliveryMode, DeliveryMode.BY_PROXY])
+                              } else {
+                                form.setValue('deliveryMode', deliveryMode.filter((mode) => mode !== DeliveryMode.BY_PROXY))
+                              }
+                            }}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="proxyRequirements"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('form.delivery.proxy.requirements.label')}</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder={t('form.delivery.proxy.requirements.placeholder')}
+                          />
+                        </FormControl>
+                        <TradFormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               )}
 
-              {/* Options d'envoi postal */}
-              <FormField
-                control={form.control}
-                name="postalDeliveryAvailable"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel>{t('form.delivery.postal.available')}</FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {form.watch('deliveryMode').includes(DeliveryMode.POSTAL) && (
+                <div className={"rounded-lg border p-4 space-y-4"}>
+                  <FormField
+                    control={form.control}
+                    name="postalDeliveryAvailable"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <FormLabel>{t('form.delivery.postal.available')}</FormLabel>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={true}
+                            onCheckedChange={(value) => {
+                              const deliveryMode = form.getValues('deliveryMode')
+                              field.onChange(value)
 
-              {form.watch('postalDeliveryAvailable') && (
-                <>
+                              if (value) {
+                                form.setValue('deliveryMode', [...deliveryMode, DeliveryMode.POSTAL])
+                              } else {
+                                form.setValue('deliveryMode', deliveryMode.filter((mode) => mode !== DeliveryMode.POSTAL))
+                              }
+                            }}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="postalRequirements"
@@ -427,8 +480,9 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                       </FormItem>
                     )}
                   />
-                </>
-              )}
+                </div>
+              )
+              }
             </div>
           </TabsContent>
 
@@ -475,6 +529,120 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="steps">
+            <div className="space-y-6">
+              {/* Liste des étapes existantes */}
+              <div className="space-y-4">
+                {form.watch('steps')?.map((step, index) => (
+                  <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-base">
+                        {step.title || t('form.steps.untitled')}
+                      </CardTitle>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            const steps = form.getValues('steps');
+                            if (index > 0) {
+                              const newSteps = [...steps];
+                              [newSteps[index - 1], newSteps[index]] = [newSteps[index], newSteps[index - 1]];
+                              form.setValue('steps', newSteps);
+                            }
+                          }}
+                          disabled={index === 0}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            const steps = form.getValues('steps');
+                            const newSteps = steps.filter((_, i) => i !== index);
+                            form.setValue('steps', newSteps);
+                          }}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name={`steps.${index}.title`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('form.steps.title')}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder={t('form.steps.step.title.placeholder')}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <TradFormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`steps.${index}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('form.steps.step.description.label')}</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder={t('form.steps.step.description.placeholder')}
+                                  {...field} />
+                              </FormControl>
+                              <TradFormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        {/* Éditeur de champs dynamiques */}
+                        {step.type === ServiceStepType.FORM && (
+                          <DynamicFieldsEditor
+                            fields={step.fields || []}
+                            onChange={(fields) => {
+                              form.setValue(`steps.${index}.fields`, fields);
+                            }}
+                            profileFields={profileFields}
+                          />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Bouton pour ajouter une étape */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const steps = form.getValues('steps') || [];
+                  form.setValue('steps', [
+                    ...steps,
+                    {
+                      title: '',
+                      type: ServiceStepType.FORM,
+                      isRequired: true,
+                      order: steps.length,
+                      fields: []
+                    }
+                  ]);
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t('form.steps.add')}
+              </Button>
             </div>
           </TabsContent>
         </Tabs>

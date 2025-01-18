@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { ServiceCategory, ServiceStepType, DocumentType } from '@prisma/client'
 
-const ServiceFieldSchema = z.object({
+export const ServiceFieldSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
   type: z.enum(['text', 'email', 'phone', 'date', 'select', 'file', 'number']),
   label: z.string().min(1, 'Le label est requis'),
@@ -9,6 +9,7 @@ const ServiceFieldSchema = z.object({
   description: z.string().optional(),
   placeholder: z.string().optional(),
   defaultValue: z.any().optional(),
+  profileField: z.string().optional(),
   options: z.array(
     z.object({
       value: z.string(),

@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import React, { useEffect } from 'react'
 import { Label } from '@/components/ui/label'
+import { useTranslations } from 'next-intl'
 
 type TagsInputProps = {
   onTagAdded?: (tag: string) => void
@@ -12,6 +13,7 @@ export default function TagsInput({
   onTagAdded,
   onTagDeleted,
 }: Readonly<TagsInputProps>) {
+  const t = useTranslations('common')
   const [tags, setTags] = React.useState<string[]>([])
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -66,14 +68,14 @@ export default function TagsInput({
           }}
           type={'button'}
         >
-          Add
+          {t('actions.add')}
         </Button>
       </Label>
       <div className="tags flex gap-2">
         {tags.map((tag) => (
           <div
             key={tag.toLowerCase()}
-            className="tag flex items-center gap-x-2 rounded-md bg-primary px-2 text-primary-foreground"
+            className="tag flex items-center gap-x-2 rounded-md bg-foreground px-2 text-primary-foreground"
           >
             <span>{tag}</span>
             <Button

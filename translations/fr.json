@@ -358,6 +358,23 @@
         "export": "Exporter",
         "do_to_first": "Aller à la première page",
         "do_to_last": "Aller à la dernière page"
+    },
+    "field_types": {
+      "text": "Texte",
+      "number": "Nombre",
+      "date": "Date",
+      "email": "Email",
+      "phone": "Téléphone",
+      "select": "Sélection",
+      "checkbox": "Case à cocher",
+      "radio": "Bouton radio",
+      "textarea": "Zone de texte",
+      "file": "Fichier",
+      "address": "Adresse",
+      "country": "Pays",
+      "password": "Mot de passe",
+      "time": "Heure",
+      "datetime": "Date et heure"
     }
   },
   "inputs": {
@@ -398,6 +415,56 @@
         "placeholder": "Instructions spécifiques pour le rendez-vous...",
         "description": "Instructions qui seront affichées aux utilisateurs lors de la prise de rendez-vous"
       }
+    },
+    "profile": {
+      "gender": "Genre",
+      "gender_type": {
+        "male": "Masculin",
+        "female": "Féminin"
+      },
+      "family_link": {
+        "father": "Père",
+        "mother": "Mère",
+        "spouse": "Conjoint(e)",
+        "child": "Enfant",
+        "other": "Autre"
+      },
+      "address": "Adresse",
+      "address_proof": "Justificatif de domicile",
+      "birth_date": "Date de naissance",
+      "birth_place": "Lieu de naissance",
+      "nationality": "Nationalité",
+      "marital_status": "Situation matrimoniale",
+      "acquiring_mode": "Mode d'acquisition",
+      "residence_permit": "Titre de séjour",
+      "identity_photo": "Photo d'identité",
+      "passport": "Passeport",
+      "birth_certificate": "Acte de naissance",
+      "nationality_certificate": "Certificat de nationalité",
+      "contact_details": "Coordonnées",
+      "proof_of_residence": "Justificatif de domicile",
+      "emergency_contact": "Contact d'urgence",
+      "status": "Statut professionnel",
+      "employer": "Employeur",
+      "work_address": "Adresse professionnelle",
+      "last_activity": "Dernière activité",
+      "work_status": "Statut professionnel",
+      "all": "Toutes les informations",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "lastName": "Nom",
+      "full_name": "Nom complet",
+      "phone": "Téléphone",
+      "profession": "Profession",
+      "gabon_address": "Adresse au Gabon",
+      "spouse_name": "Nom du conjoint",
+      "gabon_activity": "Activité au Gabon",
+      "employer_address": "Adresse de l'employeur",
+      "father_name": "Nom complet du père",
+      "mother_name": "Nom complet de la mère",
+      "email": "Email",
+      "firstName": "Prénom",
+      "birthPlace": "Lieu de naissance"
     }
   },
   "feedback": {
@@ -3038,6 +3105,9 @@
       }
     },
     "services": {
+      "name": {
+        "placeholder": "Ex: Demande de passeport"
+      },
       "title": "Services Consulaires",
       "messages": {
         "createSuccess": "Service créé avec succès",
@@ -3222,10 +3292,37 @@
             },
             "required": "Étape obligatoire",
             "fields": {
-              "add": "Ajouter un champ",
+              "name": "Nom du champ",
+              "label": "Label affiché",
+              "type": "Type de champ",
+              "required": "Champ obligatoire",
+              "types": {
+                "text": "Texte",
+                "email": "Email",
+                "phone": "Téléphone",
+                "date": "Date",
+                "select": "Liste déroulante",
+                "number": "Nombre"
+              },
+              "options" : "Options",
+              "add" : "Ajouter un champ",
               "edit": "Modifier le champ",
-              "delete": "Supprimer le champ"
+              "profile_mapping": "Mapping avec le profil",
+              "profile_mapping_description": "Associer ce champ à un champ du profil utilisateur",
+              "select_profile_field": "Sélectionner un champ",
+              "no_mapping": "Pas de mapping",
+              "mapped_to": "Mappé à : {field}"
             }
+          },
+          "title": "Titre",
+          "type": "Type d'étape",
+          "untitled": "Sans titre",
+          "types": {
+            "form": "Formulaire",
+            "documents": "Documents",
+            "appointment": "Rendez-vous",
+            "payment": "Paiement",
+            "review": "Révision"
           }
         }
       },

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint src && tsc",
     "prisma-studio": "pnpx prisma studio",
-    "predev": "docker-compose up -d",
+    "dev:database": "docker-compose up -d",
     "postinstall": "prisma generate",
     "format": "prettier --write .",
     "postai-sum": "node ./scripts/minifyMarkdown.js",
