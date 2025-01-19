@@ -48,6 +48,9 @@ export const CreateServiceSchema = z.object({
   requiresAppointment: z.boolean().default(false),
   appointmentDuration: z.number().min(5).optional(),
   appointmentInstructions: z.string().optional(),
+  deliveryAppointment: z.boolean().default(false),
+  deliveryAppointmentInstructions: z.string().optional(),
+  deliveryAppointmentDuration: z.number().min(15).optional(),
   price: z.number().min(0).optional(),
   currency: z.string().default("EUR"),
   steps: z.array(ServiceStepSchema)

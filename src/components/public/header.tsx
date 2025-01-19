@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
-import LangSwitcher from "@/components/ui/LangSwitcher"
+//import LangSwitcher from "@/components/ui/LangSwitcher"
 
 export async function PublicHeader() {
   const t = await getTranslations('home')
@@ -16,8 +16,9 @@ export async function PublicHeader() {
         </span>
 
         <div className="flex w-max gap-3">
-          <LangSwitcher />
-          {/**<Link
+
+          {/**<LangSwitcher />
+           <Link
             href={ROUTES.components}
             className={buttonVariants({ variant: 'default' }) + ' !rounded-full max-[480px]:!px-2'}
           >

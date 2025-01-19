@@ -29,9 +29,8 @@ import { useToast } from '@/hooks/use-toast'
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MetadataForm } from '@/components/metadata-form'
-import { LoadingSuspense } from '@/components/ui/loading-suspense'
 import { ReloadIcon } from '@radix-ui/react-icons'
+import { MetadataForm } from '@/components/metadata-form'
 
 interface UserDocumentProps {
   document?: AppUserDocument | null
@@ -55,7 +54,7 @@ export function UserDocument({
                                document,
                                label,
                                description,
-                                profileId,
+                               profileId,
                                expectedType = DocumentType.IDENTITY_PHOTO,
                                required = false,
                                disabled = false,
@@ -330,7 +329,7 @@ export function UserDocument({
               <div className="flex items-center bg-muted rounded-md justify-center aspect-document w-auto h-full max-h-[150px]">
                 <FileInput className="size-10 opacity-20" />
               </div>
-              )}
+            )}
 
             {/* Actions */}
             <div className="absolute right-1 top-1 flex items-center gap-2">

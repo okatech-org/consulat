@@ -1,19 +1,29 @@
+'use client'
+
 import { useTranslations } from 'next-intl'
+import { StatsCard } from './stats-card'
 import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react'
-import { StatsCard } from '@/components/ui/stats-card'
-import { DashboardStatsValues } from '@/app/(authenticated)/admin/_utils/actions/dashboard'
+import { useQuery } from '@tanstack/react-query'
 
-interface DashboardStatsProps {
-  stats: DashboardStatsValues | null
-}
+export function DashboardStats() {
+  const t = useTranslations('admin.dashboard')
 
-export function DashboardStats({ stats }: DashboardStatsProps) {
-  const t = useTranslations('actions.dashboard')
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['adminStats'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/stats')
+      if (!response.ok) throw new Error('Failed to fetch stats')
+      return response.json()
+    }
+  })
 
-  if (!stats) {
-    return null
+  if (isLoading) {
+    return <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="h-[120px] animate-pulse rounded-lg bg-muted" />
+      ))}
+    </div>
   }
-
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

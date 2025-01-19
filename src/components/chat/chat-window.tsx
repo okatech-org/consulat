@@ -11,6 +11,7 @@ import { Icons } from '../ui/icons'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import { SessionManager } from '@/lib/ai/session-manager'
+import { chatWithAssistant } from '@/lib/ai/actions'
 
 type Message = {
   id: string
@@ -89,10 +90,7 @@ export function ChatWindow() {
     setIsLoading(true)
 
     try {
-      const response: {
-        message?: string
-        error?: string
-      } = {error: 'Not implemented'} // await assistant.handleMessage(input)
+      const response = await chatWithAssistant(input)
 
       if (response.error) {
         throw new Error(response.error)

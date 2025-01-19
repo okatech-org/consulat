@@ -56,6 +56,61 @@ export async function updateUserDocument(documentId: string, data: UpdateDocumen
   }
 }
 
+export async function reuploadUserDocument(documentId: string, file: File) {
+  try {
+    const authResult = await checkAuth()
+    if (authResult.error || !authResult.user) {
+      return { error: authResult.error }
+    }
+
+    // Vérifier que le document appartient à l'utilisateur
+    const existingDocument = await db.userDocument.findFirst({
+      where: {
+        id: documentId,
+        userId: authResult.user.id
+      }
+    })
+
+    if (!existingDocument) {
+      return { error: 'Document not found' }
+    }
+
+    // Upload du nouveau fichier
+    const formData = new FormData()
+    formData.append('files', file)
+    const uploadedFile = await processFileData(formData)
+
+    if (!uploadedFile?.url) {
+      throw new Error('Failed to upload file')
+    }
+
+    // Supprimer l'ancien fichier si c'est un fichier uploadthing
+    if (existingDocument.fileUrl.includes('utfs.io')) {
+      const key = existingDocument.fileUrl.split('/').pop()
+      if (key) {
+        await deleteFiles([key])
+      }
+    }
+
+    // Mettre à jour le document
+    const updatedDocument = await db.userDocument.update({
+      where: { id: documentId },
+      data: {
+        fileUrl: uploadedFile.url,
+        status: DocumentStatus.PENDING,
+      }
+    })
+
+    revalidatePath(ROUTES.profile)
+    revalidatePath(ROUTES.documents)
+
+    return { success: true, data: updatedDocument }
+  } catch (error) {
+    console.error('Error reuploading document:', error)
+    return { error: 'Failed to reupload document' }
+  }
+}
+
 export async function deleteUserDocument(documentId: string) {
   try {
     const authResult = await checkAuth()
@@ -137,7 +192,7 @@ export async function createUserDocument(type: DocumentType, file: FormData, pro
 }
 
 function connectDocumentToProfile(profileId: string, documentId: string, documentType: DocumentType) {
-  console.log('Connecting document to components:', profileId, documentId, documentType)
+  console.log('Connecting document to profile:', profileId, documentId, documentType)
   switch (documentType) {
     case DocumentType.PASSPORT:
       return db.profile.update({
