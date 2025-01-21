@@ -1,15 +1,16 @@
-import { getService } from '@/app/(authenticated)/superadmin/_utils/actions/services'
 import { ServiceEditForm } from '@/app/(authenticated)/superadmin/_utils/components/service-edit-form'
 import { getTranslations } from 'next-intl/server'
 import CardContainer from '@/components/layouts/card-container'
+import { getFullService } from '@/app/(authenticated)/superadmin/_utils/actions/services'
 import { getOrganizations } from '@/app/(authenticated)/superadmin/_utils/actions/organizations'
+import NotFound from 'next/dist/client/components/not-found-error'
 
 export default async function EditServicePage({ params }: { params: { id: string } }) {
   const [
     { data: service, error: serviceError },
     { data: organizations, error: organizationsError }
   ] = await Promise.all([
-    getService(params.id),
+    getFullService(params.id),
     getOrganizations()
   ])
   const t = await getTranslations('superadmin.services')
@@ -18,12 +19,16 @@ export default async function EditServicePage({ params }: { params: { id: string
     return <div>Error: {serviceError || organizationsError}</div>
   }
 
+  if (!service) {
+    return <NotFound />
+  }
+
   return (
     <div className="container h-full space-y-6">
       <CardContainer
-        title={<h2 className="text-3xl font-bold tracking-tight">
+        title={<span className="text-3xl font-bold tracking-tight">
           {t('edit_title')} - {service.name}
-        </h2>}
+        </span>}
       >
         <ServiceEditForm service={service} organizations={organizations ?? []} />
       </CardContainer>

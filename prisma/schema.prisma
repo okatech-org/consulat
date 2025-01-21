@@ -454,17 +454,20 @@ model ConsularService {
   isActive    Boolean         @default(true)
 
   // Configuration
-  requiredDocuments       DocumentType[] // Types de documents requis
-  optionalDocuments       DocumentType[] // Types de documents optionnels
-  requiresAppointment     Boolean        @default(false)
-  appointmentDuration     Int? // Durée en minutes
-  appointmentInstructions String?
+  requiredDocuments           DocumentType[] // Types de documents requis
+  optionalDocuments           DocumentType[] // Types de documents optionnels
+  requiresAppointment         Boolean        @default(false)
+  appointmentDuration         Int? // Durée en minutes
+  appointmentInstructions     String?
+  deliveryAppointment         Boolean        @default(false)
+  deliveryAppointmentDuration Int?
+  deliveryAppointmentDesc     String?
 
   // Workflow et formulaires
-  steps  ServiceStep[] // Étapes du service
-  fields Json? // Configuration des champs de formulaire
+  steps ServiceStep[] // Étapes du service
 
   // Tarification
+  isFree   Boolean @default(true)
   price    Float?
   currency String? @default("EUR")
 
@@ -473,15 +476,10 @@ model ConsularService {
   organizationId String?
   requests       ServiceRequest[] // Demandes pour ce service
 
-  processingMode ProcessingMode @default(PRESENCE_REQUIRED)
-  deliveryMode   DeliveryMode[]
-
-  allowsProxy       Boolean @default(false)
-  proxyRequirements String?
-
-  postalDeliveryAvailable Boolean @default(false)
-  postalRequirements      String?
-  postalFees              Float?
+  processingMode     ProcessingMode @default(PRESENCE_REQUIRED)
+  deliveryMode       DeliveryMode[]
+  proxyRequirements  String?
+  postalRequirements String?
 
   // Métadonnées
   metadata  Json? // Données additionnelles flexibles

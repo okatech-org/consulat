@@ -1,9 +1,9 @@
-import { ConsularService, ServiceCategory, ServiceStepType } from '@prisma/client'
+import { ConsularService, ServiceCategory, ServiceStepType, Organization, ServiceRequest } from '@prisma/client'
 
 // Types pour les champs de formulaire dynamiques
 export interface ServiceField {
   name: string
-  type: 'text' | 'email' | 'phone' | 'date' | 'select' | 'file' | 'number'
+  type: 'text' | 'email' | 'phone' | 'date' | 'select' | 'file' | 'number' | 'address'
   label: string
   required?: boolean
   description?: string
@@ -26,55 +26,48 @@ export interface ServiceField {
 }
 
 export interface ServiceStep {
-  id?: string
+  id: string | null
   order: number
   title: string
-  description?: string
+  description: string | null
   type: ServiceStepType
   isRequired: boolean
-  fields?: ServiceField[]
-  validations?: Record<string, unknown>
+  fields: ServiceField[]
+  validations: Record<string, unknown> | null
 }
 
-export interface ConsularServiceWithRelations extends ConsularService {
+export interface ConsularServiceItem extends Omit<ConsularService, "fields"> {
   steps: ServiceStep[]
-  organization: {
-    id: string
-    name: string
-  }
+  organization: Organization | null
 }
 
-export interface CreateServiceInput {
-  name: string
-  description?: string
-  category: ServiceCategory
-  requiredDocuments: DocumentType[]
-  optionalDocuments?: DocumentType[]
-  requiresAppointment: boolean
-  appointmentDuration?: number
-  price?: number
-  currency?: string
-  steps: Omit<ServiceStep, 'id'>[]
-}
-
-export interface UpdateServiceInput extends Partial<CreateServiceInput> {
-  id: string
-  isActive?: boolean
-}
+export interface UpdateServiceInput extends Partial<ConsularServiceItem> {}
 
 export interface ProfileFieldMapping {
   [formField: string]: string
 }
 
 export interface ServiceStore {
-  services: ConsularServiceWithRelations[]
-  selectedService: ConsularServiceWithRelations | null
+  services: ConsularServiceItem[]
+  selectedService: ConsularServiceItem | null
   isLoading: boolean
   error: string | null
 
   // Actions
-  setServices: (services: ConsularServiceWithRelations[]) => void
-  setSelectedService: (service: ConsularServiceWithRelations | null) => void
+  setServices: (services: ConsularServiceItem[]) => void
+  setSelectedService: (service: ConsularServiceItem | null) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
+}
+
+export interface ConsularServiceListingItem {
+  id: string
+  name: string
+  description: string | null
+  category: ServiceCategory
+  isActive: boolean
+  organization: {
+    id: string
+    name: string
+  } | null
 }

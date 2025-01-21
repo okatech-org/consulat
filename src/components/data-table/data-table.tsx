@@ -13,7 +13,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable, RowData,
+  useReactTable, Row,
 } from '@tanstack/react-table'
 
 import { DataTablePagination } from "./data-table-pagination"
@@ -25,7 +25,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   filters?: FilterOption[],
-  onRowClick?: (row: RowData<TData>) => void
+  onRowClick?: (row: Row<TData>) => void
 }
 
 export function DataTable<TData, TValue>({

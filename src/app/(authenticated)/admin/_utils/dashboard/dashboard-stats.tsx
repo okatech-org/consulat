@@ -1,9 +1,9 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { StatsCard } from './stats-card'
 import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { StatsCard } from '@/components/ui/stats-card'
 
 export function DashboardStats() {
   const t = useTranslations('admin.dashboard')

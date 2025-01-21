@@ -405,6 +405,10 @@
         "label": "Rendez-vous requis",
         "description": "Ce service nécessite-t-il un rendez-vous ?"
       },
+      "presidential": {
+        "label": "Présence requise",
+        "description": "La présence du demandeur est-elle requise pour ce service ?"
+      },
       "duration": {
         "label": "Durée du rendez-vous (en minutes)",
         "placeholder": "30",
@@ -3134,7 +3138,7 @@
         "appointment": "Rendez-vous",
         "delivery": "Présence & Livraison",
         "pricing": "Tarification",
-        "steps": "Étapes"
+        "steps": "Étapes supplémentaires"
       },
       "form": {
         "create_title": "Nouveau service",
@@ -3230,7 +3234,7 @@
         },
         "delivery": {
           "modes": {
-            "label": "Modes de livraison",
+            "label": "Modes de remise",
             "options": {
               "in_person": "En personne",
               "postal": "Par courrier",
@@ -3255,9 +3259,17 @@
               "label": "Frais d'envoi",
               "placeholder": "0.00"
             }
+          },
+          "appointment": {
+            "label": "Rendez-vous pour la remise",
+            "instructions": "Instructions de remise",
+            "placeholder": "Instructions spécifiques pour la remise des documents",
+            "description": "Instructions qui seront affichées lors de la prise de rendez-vous"
           }
         },
         "pricing": {
+          "label": "Frais de service",
+          "description": "Définissez les frais de service pour ce service ou laissez le champ vide pour un service gratuit",
           "price": {
             "label": "Prix",
             "placeholder": "0.00"
@@ -3302,7 +3314,8 @@
                 "phone": "Téléphone",
                 "date": "Date",
                 "select": "Liste déroulante",
-                "number": "Nombre"
+                "number": "Nombre",
+                "address": "Adresse"
               },
               "options" : "Options",
               "add" : "Ajouter un champ",

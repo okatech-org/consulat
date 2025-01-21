@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { ServiceCategory, ServiceStepType, DocumentType } from '@prisma/client'
+import { ServiceCategory, ServiceStepType, DocumentType, ProcessingMode, DeliveryMode } from '@prisma/client'
 
 export const ServiceFieldSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
-  type: z.enum(['text', 'email', 'phone', 'date', 'select', 'file', 'number']),
+  type: z.enum(['text', 'email', 'phone', 'date', 'select', 'file', 'number', 'address']),
   label: z.string().min(1, 'Le label est requis'),
   required: z.boolean().optional(),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   placeholder: z.string().optional(),
   defaultValue: z.any().optional(),
   profileField: z.string().optional(),
@@ -33,15 +33,16 @@ export const ServiceStepSchema = z.object({
   isRequired: z.boolean().default(true),
   order: z.number().min(0),
   fields: z.array(ServiceFieldSchema).optional(),
-  validations: z.record(z.unknown()).optional()
 })
 
-export const CreateServiceSchema = z.object({
+export const ServiceSchema = z.object({
+  id: z.string(),
   name: z.string().min(1, 'Le nom doit contenir au moins 2 caractères'),
   description: z.string().optional(),
   category: z.nativeEnum(ServiceCategory, {
     required_error: "La catégorie est requise"
   }),
+  isActive: z.boolean().optional(),
   organizationId: z.string().optional(),
   requiredDocuments: z.array(z.nativeEnum(DocumentType)).optional(),
   optionalDocuments: z.array(z.nativeEnum(DocumentType)).optional(),
@@ -49,30 +50,26 @@ export const CreateServiceSchema = z.object({
   appointmentDuration: z.number().min(5).optional(),
   appointmentInstructions: z.string().optional(),
   deliveryAppointment: z.boolean().default(false),
-  deliveryAppointmentInstructions: z.string().optional(),
+  deliveryAppointmentDesc: z.string().optional(),
   deliveryAppointmentDuration: z.number().min(15).optional(),
+  processingMode: z.nativeEnum(ProcessingMode).optional(),
+  deliveryMode: z.array(z.nativeEnum(DeliveryMode)).optional(),
+  proxyRequirements: z.string().optional(),
+  isFree: z.boolean().default(true),
   price: z.number().min(0).optional(),
   currency: z.string().default("EUR"),
   steps: z.array(ServiceStepSchema)
 })
 
-export const UpdateServiceSchema = CreateServiceSchema.partial().extend({
-  id: z.string(),
-  isActive: z.boolean().optional()
-})
 
-export const AssignServiceSchema = z.object({
-  serviceId: z.string(),
-  organizationId: z.string()
-})
+export const ServiceSchemaInput = z.infer<typeof ServiceSchema>
 
-export const CreateServiceInput = z.infer<typeof CreateServiceSchema>
-
-export const quickEditSchema = z.object({
+export const NewServiceSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Le nom est requis'),
   category: z.nativeEnum(ServiceCategory),
-  description: z.string().optional()
+  description: z.string().optional(),
+  organizationId: z.string().optional(),
 })
 
-export const quickEditInput = z.infer<typeof quickEditSchema>
+export const NewServiceSchemaInput = z.infer<typeof NewServiceSchema>

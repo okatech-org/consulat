@@ -1,11 +1,11 @@
 import { Suspense } from 'react'
 import { getCurrentUser } from '@/actions/user'
-import { DashboardStats } from '@/components/admin/dashboard/dashboard-stats'
-import { RecentActivity } from '@/components/admin/dashboard/recent-activity'
-import { PendingTasks } from '@/components/admin/dashboard/pending-tasks'
-import { getTranslations } from 'next-intl/server'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { getDashboardStats } from '@/actions/admin/dashboard'
+import { getTranslations } from 'next-intl/server'
+import { getDashboardStats } from '@/app/(authenticated)/admin/_utils/actions/dashboard'
+import { DashboardStats } from '@/app/(authenticated)/admin/_utils/dashboard/dashboard-stats'
+import { RecentActivity } from '@/components/dashboard/recent-activity'
+import { PendingTasks } from '@/app/(authenticated)/admin/_utils/dashboard/pending-tasks'
 
 export default async function AdminDashboardPage() {
   const t = await getTranslations('admin.dashboard')

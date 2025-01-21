@@ -1,44 +1,54 @@
-'use client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import React, { useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { useTranslations } from 'next-intl'
+import { Badge } from '@/components/ui/badge'
 
 type TagsInputProps = {
+  value: string[]
+  onChange: (values: string[]) => void
   onTagAdded?: (tag: string) => void
   onTagDeleted?: (tag: string) => void
 }
+
 export default function TagsInput({
+  value,
+  onChange,
   onTagAdded,
   onTagDeleted,
 }: Readonly<TagsInputProps>) {
   const t = useTranslations('common')
-  const [tags, setTags] = React.useState<string[]>([])
+  const [tags, setTags] = React.useState<string[]>(value)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     inputRef.current?.focus()
-  })
+  }, [])
+
+  useEffect(() => {
+    setTags(value)
+  }, [value])
 
   function addTag() {
-    const value = inputRef.current?.value
+    const newTag = inputRef.current?.value
 
-    if (!value) {
+    if (!newTag) {
       inputRef.current?.focus()
       return
     }
-    if (tags.includes(value)) {
+    if (tags.includes(newTag)) {
       inputRef.current.value = ''
       inputRef.current?.focus()
       return
     }
 
-    setTags([...tags, value])
-
+    const newTags = [...tags, newTag]
+    setTags(newTags)
+    onChange(newTags)
     inputRef.current.value = ''
     inputRef.current?.focus()
-    onTagAdded?.(value)
+    onTagAdded?.(newTag)
   }
 
   function onInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -49,7 +59,9 @@ export default function TagsInput({
   }
 
   function deleteTag(tag: string) {
-    setTags(tags.filter((t) => t !== tag))
+    const newTags = tags.filter((t) => t !== tag)
+    setTags(newTags)
+    onChange(newTags)
     onTagDeleted?.(tag)
   }
 
@@ -63,9 +75,7 @@ export default function TagsInput({
           type={'text'}
         />
         <Button
-          onClick={() => {
-            addTag()
-          }}
+          onClick={addTag}
           type={'button'}
         >
           {t('actions.add')}
@@ -73,22 +83,9 @@ export default function TagsInput({
       </Label>
       <div className="tags flex gap-2">
         {tags.map((tag) => (
-          <div
-            key={tag.toLowerCase()}
-            className="tag flex items-center gap-x-2 rounded-md bg-foreground px-2 text-primary-foreground"
-          >
-            <span>{tag}</span>
-            <Button
-              onClick={() => {
-                deleteTag(tag)
-              }}
-              type={'button'}
-              variant={'ghost'}
-              className={'h-8 p-2'}
-            >
-              X
-            </Button>
-          </div>
+          <Badge variant={"info"} key={tag.toLowerCase()} onClick={() => deleteTag(tag)}>
+            {tag}
+          </Badge>
         ))}
       </div>
     </div>
