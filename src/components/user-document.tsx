@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from 'next-intl'
-import { Upload, X, FileInput, Calendar, Eye, Pencil, PenIcon } from 'lucide-react'
+import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {

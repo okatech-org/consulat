@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { ROUTES } from '@/schemas/routes'
 import { buttonVariants } from '@/components/ui/button'
-import { ArrowRight, CalendarIcon, CheckCircle, ScrollText, Shield, Users } from 'lucide-react'
+import { CalendarIcon, CheckCircle, ScrollText, Shield, Users } from 'lucide-react'
 import React from 'react'
 import { IdCardIcon } from '@radix-ui/react-icons'
 import { CTASection } from '@/app/(public)/cta-section'

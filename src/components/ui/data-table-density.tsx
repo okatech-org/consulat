@@ -1,4 +1,3 @@
-// src/components/ui/data-table/data-table-density.tsx
 import { Button } from '@/components/ui/button'
 import { TableRowsSplit } from 'lucide-react'
 

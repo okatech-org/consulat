@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useTranslations } from 'next-intl'
-import { Calendar, Clock, X } from 'lucide-react'
+import { Calendar, X } from 'lucide-react'
 
 interface AppointmentActionsProps {
   appointmentId: string
@@ -12,7 +12,6 @@ interface AppointmentActionsProps {
 }
 
 export function AppointmentActions({
-                                     appointmentId,
                                      onReschedule,
                                      onCancel
                                    }: AppointmentActionsProps) {

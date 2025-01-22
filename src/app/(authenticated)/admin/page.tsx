@@ -5,7 +5,6 @@ import { RecentActivity } from '@/app/(authenticated)/admin/_utils/dashboard/rec
 import { PendingTasks } from '@/app/(authenticated)/admin/_utils/dashboard/pending-tasks'
 import { getTranslations } from 'next-intl/server'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { getDashboardStats } from '@/app/(authenticated)/admin/_utils/actions/dashboard'
 
 export default async function AdminDashboardPage() {
   const t = await getTranslations('actions.dashboard')

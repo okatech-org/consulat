@@ -11,8 +11,7 @@ interface AppointmentReminderProps {
 }
 
 export function AppointmentReminder({
-                                      appointmentDate,
-                                      onDismiss
+                                      appointmentDate
                                     }: AppointmentReminderProps) {
   const t = useTranslations('consular.services.form.appointment')
   const [shouldShow, setShouldShow] = useState(false)
@@ -20,8 +19,7 @@ export function AppointmentReminder({
   useEffect(() => {
     const now = new Date()
     const threeDaysBefore = addDays(appointmentDate, -3)
-    const oneDayBefore = addDays(appointmentDate, -1)
-
+    addDays(appointmentDate, -1)
     setShouldShow(now >= threeDaysBefore && now <= appointmentDate)
   }, [appointmentDate])
 

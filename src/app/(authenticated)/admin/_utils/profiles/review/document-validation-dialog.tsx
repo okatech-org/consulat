@@ -42,9 +42,7 @@ export function DocumentValidationDialog({
         notes: notes.trim() || undefined,
       })
 
-      if (result.error) {
-        throw new Error(result.error)
-      }
+      if (result.error) throw new Error(result.error)
 
       toast({
         title: t('validation.success.title'),

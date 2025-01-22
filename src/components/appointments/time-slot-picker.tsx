@@ -24,7 +24,6 @@ export function TimeSlotPicker({
                                  consulateId,
                                  duration,
                                  onSelect,
-                                 isLoading,
                                  selectedDate,
                                  selectedTime
                                }: TimeSlotPickerProps) {

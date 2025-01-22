@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Download, Maximize2, RotateCw, ZoomIn, ZoomOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useTranslations } from 'next-intl'
 
 interface DocumentPreviewProps {
   url: string
@@ -14,8 +13,7 @@ interface DocumentPreviewProps {
   onDownload?: () => void
 }
 
-export function DocumentPreview({ url, title, type, onDownload }: DocumentPreviewProps) {
-  const t = useTranslations('common.document_preview')
+export function DocumentPreview({ url, title, onDownload }: DocumentPreviewProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)

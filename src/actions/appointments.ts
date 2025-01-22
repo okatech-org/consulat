@@ -2,13 +2,6 @@
 
 import { db } from '@/lib/prisma'
 import { addMinutes, setHours, setMinutes, startOfDay } from 'date-fns'
-
-interface GetAvailableSlotsParams {
-  consulateId: string
-  date: Date
-  duration: number
-}
-
 export async function getConsulateSchedule(consulateId: string) {
   return db.consulateSchedule.findMany({
     where: { consulateId }
