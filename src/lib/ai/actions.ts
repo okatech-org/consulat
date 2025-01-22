@@ -10,9 +10,8 @@ export async function chatWithAssistant(message: string) {
   try {
     const user = await getCurrentUser();
     const profile = user?.id ? await getUserFullProfile(user.id) ?? user as unknown as FullProfile : user as unknown as FullProfile
-    const consulate = null;
 
-    const context = await ContextBuilder.buildContext(user, profile, consulate);
+    const context = await ContextBuilder.buildContext(user, profile);
     const assistant = AssistantFactory.createAssistant(context);
 
     return await assistant.handleMessage(message);

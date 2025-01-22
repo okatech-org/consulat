@@ -1,9 +1,26 @@
-import { ConsularService, ServiceCategory, ServiceStepType, Organization, ServiceRequest } from '@prisma/client'
+import { ConsularService, ServiceCategory, ServiceStepType, Organization } from '@prisma/client'
+
+
+export const fieldTypes = [
+  'text',
+  'email',
+  'phone',
+  'date',
+  'select',
+  'address',
+  'file',
+  'checkbox',
+  'radio',
+  'textarea',
+  'number'
+] as const
+
+export type ServiceFieldType = typeof fieldTypes[number]
 
 // Types pour les champs de formulaire dynamiques
 export interface ServiceField {
   name: string
-  type: 'text' | 'email' | 'phone' | 'date' | 'select' | 'file' | 'number' | 'address'
+  type: ServiceFieldType
   label: string
   required?: boolean
   description?: string

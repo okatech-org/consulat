@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { FullProfile } from '@/types'
-import { ConsularCardPreview } from '@/app/(authenticated)/user/_utils/components/consular-card-preview'
 import { ProfileStatusBadge } from './profile-status-badge'
+import { ConsularCardPreview } from '@/app/(authenticated)/user/profile/_utils/components/consular-card-preview'
 
 interface ProfileHeaderProps {
   profile: FullProfile

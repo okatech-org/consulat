@@ -1,10 +1,9 @@
 import { useTranslations } from 'next-intl'
-import { DashboardStats } from '@/actions/admin/dashboard'
-import { StatsCard } from './stats-card'
 import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react'
+import { StatsCard } from '@/components/ui/stats-card'
 
 interface DashboardStatsProps {
-  stats: DashboardStats
+  stats: any
 }
 
 export function DashboardStats({ stats }: DashboardStatsProps) {

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { ServiceField } from '@/types/consular-service'
+import { fieldTypes, ServiceField } from '@/types/consular-service'
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -42,7 +42,7 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
     resolver: zodResolver(ServiceFieldSchema),
     defaultValues: {
       name: '',
-      type: 'text',
+      type: "text",
       label: '',
       description: '',
       required: false,
@@ -70,8 +70,6 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
   const handleDeleteField = (index: number) => {
     onChange(fields.filter((_, i) => i !== index))
   }
-
-  const fieldTypeOptions = ['text', 'email', 'phone', 'address', 'date', 'select', 'number']
 
   return (
     <div className="space-y-4">
@@ -214,7 +212,7 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                       <FormControl>
                         <MultiSelect
                           disabled={fieldForm.watch('profileField') !== undefined}
-                          options={fieldTypeOptions.map(type => ({
+                          options={fieldTypes.map(type => ({
                             value: type,
                             label: t_common(`field_types.${type}`)
                           }))}
@@ -232,7 +230,7 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                         />
                       </FormControl>
                       <SelectContent>
-                        {['text', 'email', 'phone', 'date', 'select', 'number', 'address'].map((type) => (
+                        {fieldTypes.map((type) => (
                           <SelectItem key={type} value={type}>
                             {t(`form.steps.step.fields.types.${type}`)}
                           </SelectItem>

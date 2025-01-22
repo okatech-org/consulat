@@ -9,11 +9,5 @@ Instructions principales:
 3. Je redirige vers les services appropriés si nécessaire
 4. Je m'adapte à votre profil et vos droits d'accès`;
 
-  if (context.user.isAuthenticated) {
-    prompt += `\n\nContexte utilisateur:
-- Rôle: ${context.user.role}
--  Profil: ${context.user.profile ? JSON.stringify(context.user.profile) : 'Non renseigné'}`;
-  }
-
   return prompt;
 }

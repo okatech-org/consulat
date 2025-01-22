@@ -71,7 +71,7 @@ ${JSON.stringify(profile, null, 2)}
     if (services.length > 0) {
       context += `
 Services disponibles :
-${services.map(service => `- ${service.title}: ${service.description}`).join('\n')}
+${services.map(service => `- ${service.name}: ${service.description}`).join('\n')}
 `;
     }
 

@@ -1,11 +1,11 @@
 import { Consulate, Country, User } from '@prisma/client'
 import { FullProfile } from '@/types'
-import { ConsularService } from '@/types/consular-service'
+import { ConsularServiceItem } from '@/types/consular-service'
 
 export type ChatContext = {
   user?: User;
   profile?: FullProfile;
-  consulate?: Consulate & { availableServices: ConsularService[], countries: Country[] };
+  consulate?: Consulate & { availableServices: ConsularServiceItem[], countries: Country[] };
 };
 
 export type Message = {

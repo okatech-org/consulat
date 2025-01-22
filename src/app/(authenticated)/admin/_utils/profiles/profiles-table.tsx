@@ -1,7 +1,6 @@
 "use client"
 
 import { useTranslations } from 'next-intl'
-import { ProfileStatusBadge } from '@/app/(authenticated)/user/_utils/components/profile-status-badge'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
@@ -16,6 +15,7 @@ import Link from 'next/link'
 import { ROUTES } from '@/schemas/routes'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Profile } from '@prisma/client'
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge'
 
 interface ProfilesTableProps {
   profiles: Profile[]
@@ -57,13 +57,13 @@ export function ProfilesTable({ profiles }: ProfilesTableProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
+                      <MoreHorizontal className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link href={ROUTES.admin_profiles_review(profile.id)}>
-                        <Eye className="mr-2 h-4 w-4" />
+                        <Eye className="mr-2 size-4" />
                         {t_profiles('actions.review')}
                       </Link>
                     </DropdownMenuItem>

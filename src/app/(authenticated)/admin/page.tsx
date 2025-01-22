@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <Suspense fallback={<LoadingSkeleton />}>
-        <DashboardStats stats={stats} />
+        <DashboardStats />
       </Suspense>
 
       <div className="grid grid-cols-2 gap-4">

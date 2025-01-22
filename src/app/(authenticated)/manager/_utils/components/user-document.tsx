@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from 'next-intl'
-import { Upload, X, FileInput, Calendar, Eye } from "lucide-react"
+import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +28,9 @@ import { createUserDocument, deleteUserDocument, updateUserDocument } from '@/ac
 import { useToast } from '@/hooks/use-toast'
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ReloadIcon } from '@radix-ui/react-icons'
+import { MetadataForm } from '@/components/metadata-form'
 
 interface UserDocumentProps {
   document?: AppUserDocument | null
@@ -56,8 +59,8 @@ export function UserDocument({
                                required = false,
                                disabled = false,
                              }: UserDocumentProps) {
-  const t = useTranslations('common.documents')
-  const t_messages = useTranslations('messages.profile')
+  const t = useTranslations('common.components')
+  const t_messages = useTranslations('messages.components')
   const { toast } = useToast()
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [preview, setPreview] = React.useState<string | null>(null)
@@ -261,7 +264,7 @@ export function UserDocument({
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={cn(
-          "relative rounded-lg border-2 border-dashed transition-colors",
+          "relative aspect-[4/1.5] p-4 rounded-lg border-2 border-dashed transition-colors",
           isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25",
           disabled && "cursor-not-allowed opacity-60"
         )}
@@ -277,15 +280,18 @@ export function UserDocument({
 
         {!document ? (
           // État vide
-          <div className="flex flex-col items-center justify-center p-6 text-center">
+          <div className="flex flex-col items-center justify-center text-center">
             <Upload className="mb-4 size-8 text-muted-foreground" />
             <Button
               type="button"
               variant="outline"
+              className={"gap-1"}
               disabled={disabled || isLoading}
               onClick={() => inputRef.current?.click()}
             >
-              {t('actions.upload')}
+              {isLoading && <ReloadIcon className={'animate-rotate size-6'} />}
+
+              {isLoading ? t('actions.uploading') : t('actions.upload')}
             </Button>
             <p className="mt-2 text-sm text-muted-foreground">
               {t('upload.description')}
@@ -293,87 +299,86 @@ export function UserDocument({
           </div>
         ) : (
           // Document existant
-          <div className="relative p-4">
-            <div className="flex items-center gap-4">
-              {/* Prévisualisation */}
-              {preview ? (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button type="button" variant="ghost" className="p-0">
-                      <div className="relative size-16 overflow-hidden rounded">
-                        <Image
-                          src={preview}
-                          alt="Preview"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-3xl">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-lg">
-                      <Image
-                        src={preview}
-                        alt="Preview"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              ) : (
-                <FileInput className="size-16" />
+          <div className="flex h-full gap-4">
+            {/* Prévisualisation */}
+            {preview ? (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="ghost" className="flex overflow-hidden !p-0 aspect-document w-auto h-full max-h-[150px]">
+                    <Image
+                      src={preview}
+                      alt="Preview"
+                      width={400}
+                      height={600}
+                      className="object-cover w-full h-full"
+                    />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg">
+                  <div className="relative aspect-document overflow-hidden rounded-lg">
+                    <Image
+                      src={preview}
+                      alt="Preview"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <div className="flex items-center bg-muted rounded-md justify-center aspect-document w-auto h-full max-h-[150px]">
+                <FileInput className="size-10 opacity-20" />
+              </div>
               )}
 
-              {/* Actions */}
-              <div className="absolute bottom-0 right-0 flex translate-y-[110%] items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsUpdating(true)}
-                  disabled={disabled || isLoading}
-                >
-                  <Calendar className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => window.open(document.fileUrl, '_blank')}
-                  disabled={disabled || isLoading}
-                >
-                  <Eye className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(document.id)}
-                  disabled={disabled || isLoading}
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
+            {/* Actions */}
+            <div className="absolute right-1 top-1 flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsUpdating(true)}
+                disabled={disabled || isLoading}
+              >
+                <PenIcon className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => window.open(document.fileUrl, '_blank')}
+                disabled={disabled || isLoading}
+              >
+                <Eye className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(document.id)}
+                disabled={disabled || isLoading}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
 
-              {/* Informations */}
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground">
-                    {t('validity', {
-                      start: document.issuedAt ? format(new Date(document.issuedAt), 'dd-MM-yyyy', { locale: fr }) : "N/A",
-                      end: document.expiresAt ? format(new Date(document.expiresAt), 'dd-MM-yyyy', { locale: fr }) : "N/A",
-                    })}
-                  </p>
+            {/* Informations */}
+            <div className="flex-1 grow flex flex-col justify-end space-y-1 pt-6">
+              <p className="text-sm text-muted-foreground">
+                {(document.issuedAt || document.expiresAt) && (<>
+                  {t('validity', {
+                    start: document.issuedAt ? format(new Date(document.issuedAt), 'dd-MM-yyyy', { locale: fr }) : 'N/A',
+                    end: document.expiresAt ? format(new Date(document.expiresAt), 'dd-MM-yyyy', { locale: fr }) : 'N/A',
+                  })}
+                </>)}
+              </p>
+              {document.metadata && (
+                <div className="text-sm text-muted-foreground">
+                  {Object.entries(document.metadata).map(([key, value]) => (
+                    <p key={key}>{t(`metadata.${key}`)}: {value}</p>
+                  ))}
                 </div>
-                {document.metadata && (
-                  <div className="text-sm text-muted-foreground">
-                    {Object.entries(document.metadata).map(([key, value]) => (
-                      <p key={key}>{t(`metadata.${key}`)}: {value}</p>
-                    ))}
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -385,46 +390,66 @@ export function UserDocument({
           <DialogHeader>
             <DialogTitle>{t('update.title')}</DialogTitle>
           </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onUpdate)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="issuedAt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('dates.issued_on')}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="expiresAt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('dates.expires_on')}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsUpdating(false)}
-                >
-                  {t('actions.cancel')}
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {t('actions.save')}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+          <Tabs defaultValue="dates">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="dates">{t('update.tabs.dates')}</TabsTrigger>
+              <TabsTrigger value="metadata">{t('update.tabs.metadata')}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="dates">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onUpdate)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="issuedAt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('dates.issued_on')}</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="expiresAt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('dates.expires_on')}</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsUpdating(false)}
+                    >
+                      {t('actions.cancel')}
+                    </Button>
+                    <Button type="submit" disabled={isLoading}>
+                      {t('actions.save')}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </TabsContent>
+            <TabsContent value="metadata">
+              {document && (
+                <MetadataForm
+                  documentType={document.type}
+                  metadata={document.metadata}
+                  onSubmit={async (metadata) => {
+                    await handleUpdate(document.id, { metadata })
+                    setIsUpdating(false)
+                  }}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>

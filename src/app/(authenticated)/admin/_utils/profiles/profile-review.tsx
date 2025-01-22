@@ -11,7 +11,6 @@ import { ProfileFamily } from './review/family'
 import { ProfileProfessional } from './review/professional'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import { ProfileStatusBadge } from '@/app/(authenticated)/user/_utils/components/profile-status-badge'
 import { useState } from 'react'
 import {
   Dialog,
@@ -28,6 +27,7 @@ import { useToast } from '@/hooks/use-toast'
 import { validateProfile } from '@/app/(authenticated)/admin/_utils/actions/profiles'
 import { ROUTES } from '@/schemas/routes'
 import { ProfileNotes } from '@/app/(authenticated)/admin/_utils/profiles/profile-notes'
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge'
 
 interface ProfileReviewProps {
   profile: FullProfile
@@ -212,7 +212,7 @@ const ValidationDialog = ({ isOpen, onClose, onConfirm, status, isLoading }: Val
             onClick={() => onConfirm(notes)}
             disabled={isLoading}
           >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
             {status === RequestStatus.VALIDATED
               ? t('validation.validate')
               : t('validation.reject')}

@@ -57,14 +57,12 @@ export async function createService(data: typeof NewServiceSchemaInput) {
   if (authResult.error) return { error: authResult.error }
 
   try {
-    const validatedData = await ServiceSchema.parseAsync(data)
-
     // Créer le service avec ses étapes
     const service = await db.consularService.create({
       data: {
-        name: validatedData.name,
-        description: validatedData.description,
-        category: validatedData.category,
+        name: data.name,
+        description: data.description,
+        category: data.category,
       }
     })
 

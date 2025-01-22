@@ -187,7 +187,7 @@ export function CountriesList({ countries }: CountriesListProps) {
           },
         ]}
         onRowClick={(row) => {
-          setCountry(row)
+          setCountry(row.original)
           setShowEditDialog(true)
         }}
       />

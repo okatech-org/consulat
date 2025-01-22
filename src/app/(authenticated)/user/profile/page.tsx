@@ -4,24 +4,28 @@ import { getCurrentUser } from '@/actions/user'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/schemas/routes'
 
-import { ProfileHeaderClient } from '@/app/(authenticated)/user/_utils/components/profile-header-client'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { InfoIcon, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
-import { ProfileCompletion } from '@/app/(authenticated)/user/_utils/components/profile-completion'
 import { calculateProfileCompletion, getProfileFieldsStatus } from '@/lib/utils'
-import { BasicInfoSection } from '@/app/(authenticated)/user/_utils/components/sections/basic-info-section'
-import { ContactInfoSection } from '@/app/(authenticated)/user/_utils/components/sections/contact-info-section'
-import { FamilyInfoSection } from '@/app/(authenticated)/user/_utils/components/sections/family-info-section'
-import { ProfessionalInfoSection } from '@/app/(authenticated)/user/_utils/components/sections/professional-info-section'
-import { ProfileCompletionAssistant } from '@/app/(authenticated)/user/_utils/components/profile-completion-assistant'
-import { DocumentsSection } from '@/app/(authenticated)/user/_utils/components/sections/documents-section'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { SubmitProfileButton } from '@/app/(authenticated)/user/_utils/components/submit-profile-button'
 import { NotesList } from '@/app/(authenticated)/admin/_utils/profiles/profile-notes'
+import { BasicInfoSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/basic-info-section'
+import { ContactInfoSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/contact-info-section'
+import { FamilyInfoSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/family-info-section'
+import {
+  ProfessionalInfoSection
+} from '@/app/(authenticated)/user/profile/_utils/components/sections/professional-info-section'
+import { DocumentsSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/documents-section'
+import { ProfileHeaderClient } from '@/app/(authenticated)/user/profile/_utils/components/profile-header-client'
+import {
+  ProfileCompletionAssistant
+} from '@/app/(authenticated)/user/profile/_utils/components/profile-completion-assistant'
+import { ProfileCompletion } from '@/app/(authenticated)/user/profile/_utils/components/profile-completion'
+import { SubmitProfileButton } from '@/app/(authenticated)/user/profile/_utils/components/submit-profile-button'
 
 export default async function ProfilePage() {
   const user = await getCurrentUser()
