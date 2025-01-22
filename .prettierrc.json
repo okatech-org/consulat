@@ -6,21 +6,6 @@
   "useTabs": false,
   "printWidth": 80,
   "plugins": [
-    "prettier-plugin-organize-imports",
-    "prettier-plugin-tailwindcss"
-  ],
-  "overrides": [
-    {
-      "files": "*.json",
-      "options": {
-        "printWidth": 120
-      }
-    },
-    {
-      "files": "*.md",
-      "options": {
-        "proseWrap": "always"
-      }
-    }
+    "prettier-plugin-organize-imports"
   ]
 }
