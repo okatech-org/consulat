@@ -9,7 +9,7 @@ export default async function AuthLayout({
   const t = await getTranslations('auth.layout')
 
   return (
-    <div className="grid h-screen overflow-hidden w-full lg:grid-cols-2">
+    <div className="grid h-screen w-full overflow-hidden lg:grid-cols-2">
       <div className="relative hidden max-h-dvh flex-col bg-muted p-10 text-white dark:border-r lg:flex">
         <div className="absolute inset-0 bg-zinc-900">
           <Image

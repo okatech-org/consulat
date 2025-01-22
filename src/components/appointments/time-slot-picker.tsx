@@ -116,7 +116,7 @@ export function TimeSlotPicker({
           <CardContent className="pt-4">
             {loadingSlots ? (
               <div className="flex h-[200px] items-center justify-center">
-                <Loader className="h-6 w-6 animate-spin" />
+                <Loader className="size-6 animate-spin" />
               </div>
             ) : slots.length === 0 ? (
               <div className="flex h-[200px] items-center justify-center text-muted-foreground">

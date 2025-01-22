@@ -119,8 +119,8 @@ export function ChatWindow() {
   }
 
   return (
-    <div className={"flex flex-col gap-4 h-full"}>
-      <ScrollArea className="overflow-y-auto overflow-x-hidden h-[100%] pr-4">
+    <div className={"flex h-full flex-col gap-4"}>
+      <ScrollArea className="h-full overflow-y-auto overflow-x-hidden pr-4">
         <div className="flex flex-col gap-4">
           {messages.map((message) => (
             <div

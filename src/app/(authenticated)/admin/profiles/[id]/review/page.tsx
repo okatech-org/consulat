@@ -25,12 +25,12 @@ export default async function ProfileReviewPage({ params }: ProfileReviewPagePro
   return (
     <div className="container py-6">
       <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
+        <div className="mb-4 flex items-center gap-4">
           <Link
             href={ROUTES.admin_profiles}
             className={buttonVariants({ variant: 'ghost' })}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 size-4" />
             {t_common('actions.back')}
           </Link>
           <h1 className="text-2xl font-bold">

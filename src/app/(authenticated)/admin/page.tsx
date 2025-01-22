@@ -9,9 +9,8 @@ import { getDashboardStats } from '@/app/(authenticated)/admin/_utils/actions/da
 
 export default async function AdminDashboardPage() {
   const t = await getTranslations('actions.dashboard')
-  const [current, stats] = await Promise.all([
+  const [current] = await Promise.all([
     getCurrentUser(),
-    getDashboardStats()
   ])
 
   if (!current) {

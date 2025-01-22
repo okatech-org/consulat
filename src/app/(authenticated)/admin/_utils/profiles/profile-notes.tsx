@@ -29,20 +29,20 @@ interface NoteItemProps {
 export const NoteItem = ({ note }: NoteItemProps) => {
   return (
     <div className="border-b py-4 last:border-0">
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {note.type === 'INTERNAL' ? (
-            <Lock className="h-4 w-4 text-muted-foreground" />
+            <Lock className="size-4 text-muted-foreground" />
           ) : (
-            <MessageCircle className="h-4 w-4 text-muted-foreground" />
+            <MessageCircle className="size-4 text-muted-foreground" />
           )}
-          <span className="font-medium text-sm">{note.author.name}</span>
+          <span className="text-sm font-medium">{note.author.name}</span>
         </div>
         <span className="text-xs text-muted-foreground">
           {format(new Date(note.createdAt), 'dd/MM/yyyy', { locale: fr })}
         </span>
       </div>
-      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+      <p className="whitespace-pre-wrap text-sm">{note.content}</p>
     </div>
   )
 }
@@ -76,7 +76,7 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
         disabled={isLoading || !content.trim()}
         className="w-full"
       >
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
         {t('add')}
       </Button>
     </div>
@@ -136,16 +136,16 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
         <Tabs defaultValue="internal">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="internal">
-              <Lock className="mr-2 h-4 w-4" />
+              <Lock className="mr-2 size-4" />
               {t('tabs.internal')}
             </TabsTrigger>
             <TabsTrigger value="feedback">
-              <MessageCircle className="mr-2 h-4 w-4" />
+              <MessageCircle className="mr-2 size-4" />
               {t('tabs.feedback')}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="internal" className="space-y-4 mt-4">
+          <TabsContent value="internal" className="mt-4 space-y-4">
             <NoteEditor
               type="INTERNAL"
               onSubmit={handleAddNote}
@@ -161,7 +161,7 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="feedback" className="space-y-4 mt-4">
+          <TabsContent value="feedback" className="mt-4 space-y-4">
             <NoteEditor
               type="FEEDBACK"
               onSubmit={handleAddNote}

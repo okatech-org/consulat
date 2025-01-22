@@ -28,7 +28,7 @@ export function ProfileNotes({ notes }: ProfileNotesProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
+          <MessageCircle className="size-5" />
           {t('title')}
         </CardTitle>
       </CardHeader>
@@ -39,13 +39,13 @@ export function ProfileNotes({ notes }: ProfileNotesProps) {
               key={note.id}
               className="border-b pb-4 last:border-0 last:pb-0"
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="mb-2 flex items-center justify-between">
                 <span className="font-medium">{note.author.name}</span>
                 <span className="text-sm text-muted-foreground">
                   {format(new Date(note.createdAt), 'PPp', { locale: fr })}
                 </span>
               </div>
-              <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+              <p className="whitespace-pre-wrap text-sm">{note.content}</p>
             </div>
           ))}
         </div>

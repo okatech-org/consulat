@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTranslations } from 'next-intl'
-import { Upload, X, FileInput, Calendar, Eye, Pencil, PenIcon } from 'lucide-react'
+import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,7 +30,6 @@ import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MetadataForm } from '@/app/(authenticated)/manager/_utils/components/metadata-form'
-import { LoadingSuspense } from '@/components/ui/loading-suspense'
 import { ReloadIcon } from '@radix-ui/react-icons'
 
 interface UserDocumentProps {
@@ -305,13 +304,13 @@ export function UserDocument({
             {preview ? (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button type="button" variant="ghost" className="flex overflow-hidden !p-0 aspect-document w-auto h-full max-h-[150px]">
+                  <Button type="button" variant="ghost" className="flex aspect-document h-full max-h-[150px] w-auto overflow-hidden !p-0">
                     <Image
                       src={preview}
                       alt="Preview"
                       width={400}
                       height={600}
-                      className="object-cover w-full h-full"
+                      className="size-full object-cover"
                     />
                   </Button>
                 </DialogTrigger>
@@ -327,7 +326,7 @@ export function UserDocument({
                 </DialogContent>
               </Dialog>
             ) : (
-              <div className="flex items-center bg-muted rounded-md justify-center aspect-document w-auto h-full max-h-[150px]">
+              <div className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted">
                 <FileInput className="size-10 opacity-20" />
               </div>
               )}
@@ -364,7 +363,7 @@ export function UserDocument({
             </div>
 
             {/* Informations */}
-            <div className="flex-1 grow flex flex-col justify-end space-y-1 pt-6">
+            <div className="flex flex-1 grow flex-col justify-end space-y-1 pt-6">
               <p className="text-sm text-muted-foreground">
                 {(document.issuedAt || document.expiresAt) && (<>
                   {t('validity', {

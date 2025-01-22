@@ -39,7 +39,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
           ) : (
             activities.map((activity) => (
               <div key={activity.id} className="flex items-center">
-                <Avatar className="h-9 w-9">
+                <Avatar className="size-9">
                   <AvatarImage src={activity.user.image || undefined} />
                   <AvatarFallback>
                     {activity.user.name?.charAt(0) || '?'}

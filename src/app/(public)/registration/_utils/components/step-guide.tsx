@@ -26,7 +26,7 @@ export function StepGuide({
         transition={{ duration: 0.3 }}
       >
         <div className="flex items-start gap-3">
-          <InfoIcon className="mt-1 h-5 w-5 text-primary" />
+          <InfoIcon className="mt-1 size-5 text-primary" />
           <div className="space-y-2">
             <h3 className="font-medium">
               {t(`help.${stepKey}.title`)}
@@ -38,7 +38,7 @@ export function StepGuide({
             {/* Indication optionnelle */}
             {isOptional && (
               <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                <AlertTriangle className="h-4 w-4" />
+                <AlertTriangle className="size-4" />
                 {t('help.optional_step')}
               </div>
             )}

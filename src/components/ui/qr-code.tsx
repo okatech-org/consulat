@@ -8,13 +8,13 @@ interface QRCodeProps {
 
 export function QRCode({ value, size = 128, level = 'M' }: QRCodeProps) {
   return (
-    <div className="bg-white rounded-md">
+    <div className="rounded-md bg-white">
       <QRCodeSVG
         value={value}
         size={size}
         level={level}
         includeMargin
-        className="h-full w-full"
+        className="size-full"
       />
     </div>
   )

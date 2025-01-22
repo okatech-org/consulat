@@ -9,43 +9,6 @@ interface GetAvailableSlotsParams {
   duration: number
 }
 
-export async function getAvailableTimeSlots({
-                                              consulateId,
-                                              date,
-                                              duration
-                                            }: GetAvailableSlotsParams) {
-  // Récupérer les horaires d'ouverture pour ce jour
-  const schedule = await db.consulateSchedule.findFirst({
-    where: {
-      consulateId,
-      dayOfWeek: date.getDay(),
-      isOpen: true
-    }
-  })
-
-  if (!schedule) {
-    return []
-  }
-
-  // Récupérer les créneaux déjà réservés
-  const bookedSlots = await db.timeSlot.findMany({
-    where: {
-      consulateId,
-      startTime: {
-        gte: date,
-        lt: new Date(date.getTime() + 24 * 60 * 60 * 1000)
-      },
-      isAvailable: false
-    }
-  })
-
-  // Générer tous les créneaux possibles en fonction des horaires d'ouverture
-  // et retirer les créneaux déjà réservés
-  // À implémenter selon la logique métier spécifique
-
-  return ['09:00', '09:30', '10:00'] // Example
-}
-
 export async function getConsulateSchedule(consulateId: string) {
   return db.consulateSchedule.findMany({
     where: { consulateId }

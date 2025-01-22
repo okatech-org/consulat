@@ -16,7 +16,7 @@ export const DaySchedule = ({ day, countryCode, form, t }: {
   const slots = form.watch(`metadata.${countryCode}.settings.schedule.${day}.slots`) || []
 
   return (
-    <div className="rounded-lg bg-muted/50 p-4 space-y-4">
+    <div className="space-y-4 rounded-lg bg-muted/50 p-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">
           {t(`organization.schedule.days.${day}`)}
@@ -33,8 +33,8 @@ export const DaySchedule = ({ day, countryCode, form, t }: {
         <div className="space-y-3">
           {slots.map((_: never, index: Key | null | undefined) => (
             <div key={index} className="flex items-center gap-2">
-              <div className="flex items-center gap-2 flex-1">
-                <div className="space-y-1 flex-1">
+              <div className="flex flex-1 items-center gap-2">
+                <div className="flex-1 space-y-1">
                   <Label className="text-xs text-muted-foreground">From</Label>
                   <TimeSelect
                     value={form.watch(`metadata.${countryCode}.settings.schedule.${day}.slots.${index}.start`)}
@@ -43,7 +43,7 @@ export const DaySchedule = ({ day, countryCode, form, t }: {
                     }}
                   />
                 </div>
-                <div className="space-y-1 flex-1">
+                <div className="flex-1 space-y-1">
                   <Label className="text-xs text-muted-foreground">To</Label>
                   <TimeSelect
                     value={form.watch(`metadata.${countryCode}.settings.schedule.${day}.slots.${index}.end`)}
@@ -65,7 +65,7 @@ export const DaySchedule = ({ day, countryCode, form, t }: {
                   )
                 }}
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             </div>
           ))}

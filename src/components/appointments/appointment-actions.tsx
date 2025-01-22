@@ -27,7 +27,7 @@ export function AppointmentActions({
         onClick={onReschedule}
         className="flex items-center gap-2"
       >
-        <Calendar className="h-4 w-4" />
+        <Calendar className="size-4" />
         {t('actions.reschedule')}
       </Button>
 
@@ -37,7 +37,7 @@ export function AppointmentActions({
         onClick={() => setShowCancelDialog(true)}
         className="flex items-center gap-2"
       >
-        <X className="h-4 w-4" />
+        <X className="size-4" />
         {t('actions.cancel')}
       </Button>
 

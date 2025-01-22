@@ -136,14 +136,14 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                         type: label
                       })}
                     >
-                      <Shield className="h-4 w-4" />
+                      <Shield className="size-4" />
                     </Button>
                     <Tooltip>
                       <TooltipTrigger>
                         {validation.isValid ? (
-                          <CheckCircle2 className="h-5 w-5 text-success" />
+                          <CheckCircle2 className="text-success size-5" />
                         ) : (
-                          <AlertCircle className="h-5 w-5 text-destructive" />
+                          <AlertCircle className="size-5 text-destructive" />
                         )}
                       </TooltipTrigger>
                       <TooltipContent>

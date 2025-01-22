@@ -74,43 +74,43 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
             <InfoField
               label={t('form.first_name')}
               value={basicInfo.firstName}
-              icon={<User className="h-4 w-4" />}
+              icon={<User className="size-4" />}
               required
             />
             <InfoField
               label={t('form.last_name')}
               value={basicInfo.lastName}
-              icon={<User className="h-4 w-4" />}
+              icon={<User className="size-4" />}
               required
             />
             <InfoField
               label={t('form.gender')}
               value={basicInfo.gender && t_assets(`gender.${basicInfo.gender.toLowerCase()}`)}
-              icon={<User className="h-4 w-4" />}
+              icon={<User className="size-4" />}
               required
             />
             <InfoField
               label={t('form.birth_date')}
               value={basicInfo.birthDate && format(new Date(basicInfo.birthDate), 'PPP', { locale: fr })}
-              icon={<Calendar className="h-4 w-4" />}
+              icon={<Calendar className="size-4" />}
               required
             />
             <InfoField
               label={t('form.birth_place')}
               value={basicInfo.birthPlace}
-              icon={<MapPin className="h-4 w-4" />}
+              icon={<MapPin className="size-4" />}
               required
             />
             <InfoField
               label={t('form.birth_country')}
               value={basicInfo.birthCountry}
-              icon={<Globe className="h-4 w-4" />}
+              icon={<Globe className="size-4" />}
               required
             />
             <InfoField
               label={t('form.nationality')}
               value={basicInfo.nationality}
-              icon={<Flag className="h-4 w-4" />}
+              icon={<Flag className="size-4" />}
               required
             />
           </div>
@@ -152,13 +152,13 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
             <InfoField
               label={t('form.email')}
               value={contactInfo.email}
-              icon={<Mail className="h-4 w-4" />}
+              icon={<Mail className="size-4" />}
               required
             />
             <InfoField
               label={t('form.phone')}
               value={contactInfo.phone ? `${contactInfo.phone.countryCode} ${contactInfo.phone.number}` : undefined}
-              icon={<Phone className="h-4 w-4" />}
+              icon={<Phone className="size-4" />}
               required
             />
           </div>
@@ -203,26 +203,26 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
             <InfoField
               label={t('form.marital_status')}
               value={familyInfo.maritalStatus && t_assets(`marital_status.${familyInfo.maritalStatus.toLowerCase()}`)}
-              icon={<Users className="h-4 w-4" />}
+              icon={<Users className="size-4" />}
               required
             />
             {familyInfo.spouseFullName && (
               <InfoField
                 label={t('form.spouse_name')}
                 value={familyInfo.spouseFullName}
-                icon={<User className="h-4 w-4" />}
+                icon={<User className="size-4" />}
               />
             )}
             <InfoField
               label={t('form.father_name')}
               value={familyInfo.fatherFullName}
-              icon={<User className="h-4 w-4" />}
+              icon={<User className="size-4" />}
               required
             />
             <InfoField
               label={t('form.mother_name')}
               value={familyInfo.motherFullName}
-              icon={<User className="h-4 w-4" />}
+              icon={<User className="size-4" />}
               required
             />
           </div>
@@ -231,21 +231,21 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
           {familyInfo.emergencyContact && (
             <div className="mt-4 space-y-2">
               <h4 className="text-sm font-medium">{t('form.emergency_contact')}</h4>
-              <div className="rounded-lg border p-3 space-y-2">
+              <div className="space-y-2 rounded-lg border p-3">
                 <InfoField
                   label={t('form.emergency_contact_name')}
                   value={familyInfo.emergencyContact.fullName}
-                  icon={<User className="h-4 w-4" />}
+                  icon={<User className="size-4" />}
                 />
                 <InfoField
                   label={t('form.emergency_contact_relationship')}
                   value={familyInfo.emergencyContact.relationship}
-                  icon={<Users className="h-4 w-4" />}
+                  icon={<Users className="size-4" />}
                 />
                 <InfoField
                   label={t('form.emergency_contact_phone')}
                   value={familyInfo.emergencyContact.phone ? `${familyInfo.emergencyContact.phone.countryCode}${familyInfo.emergencyContact.phone.number}` : undefined}
-                  icon={<Phone className="h-4 w-4" />}
+                  icon={<Phone className="size-4" />}
                 />
               </div>
             </div>
@@ -261,14 +261,14 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
             <InfoField
               label={t('form.work_status')}
               value={professionalInfo.workStatus && t_assets(`work_status.${professionalInfo.workStatus.toLowerCase()}`)}
-              icon={<Briefcase className="h-4 w-4" />}
+              icon={<Briefcase className="size-4" />}
               required
             />
             {professionalInfo.profession && (
               <InfoField
                 label={t('form.profession')}
                 value={professionalInfo.profession}
-                icon={<Briefcase className="h-4 w-4" />}
+                icon={<Briefcase className="size-4" />}
               />
             )}
             {professionalInfo.employer && (
@@ -276,19 +276,19 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
                 <InfoField
                   label={t('form.employer')}
                   value={professionalInfo.employer}
-                  icon={<Building className="h-4 w-4" />}
+                  icon={<Building className="size-4" />}
                 />
                 <InfoField
                   label={t('form.work_address')}
                   value={professionalInfo.employerAddress}
-                  icon={<MapPin className="h-4 w-4" />}
+                  icon={<MapPin className="size-4" />}
                 />
               </>
             )}
             <InfoField
               label={t('form.gabon_activity')}
               value={professionalInfo.lastActivityGabon}
-              icon={<Briefcase className="h-4 w-4" />}
+              icon={<Briefcase className="size-4" />}
             />
           </div>
         </div>

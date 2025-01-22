@@ -27,7 +27,7 @@ export async function getRequests(options?: {
   return requests
 }
 
-export async function validateRequest(requestId: string, status: 'APPROVED' | 'REJECTED', notes?: string) {
+export async function validateRequest(requestId: string, status: 'APPROVED' | 'REJECTED') {
   const authResult = await checkAuth(['MANAGER'])
   if (authResult.error) return null
 

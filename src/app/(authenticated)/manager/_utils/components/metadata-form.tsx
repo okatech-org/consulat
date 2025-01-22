@@ -10,8 +10,8 @@ import { DocumentType } from '@prisma/client'
 
 interface MetadataFormProps {
   documentType: DocumentType
-  metadata: Record<string, any> | null
-  onSubmit: (metadata: Record<string, any>) => void
+  metadata: Record<string, unknown> | null
+  onSubmit: (metadata: Record<string, unknown>) => void
 }
 
 export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormProps) {
@@ -50,7 +50,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
   }
 
   const fields = getMetadataFields(documentType)
-  const form = useForm<Record<string, any>>({
+  const form = useForm<Record<string, unknown>>({
     defaultValues: metadata || {},
   })
 

@@ -39,7 +39,7 @@ export function RequestsQueue() {
               {queueItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex items-center justify-between rounded-lg border p-4"
                 >
                   <div>
                     <p className="font-medium">{t(`requests.types.${item.type.toLowerCase()}`)}</p>
@@ -62,7 +62,7 @@ export function RequestsQueue() {
               ))}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex h-full items-center justify-center">
               <p className="text-muted-foreground">{t('queue.empty')}</p>
             </div>
           )}

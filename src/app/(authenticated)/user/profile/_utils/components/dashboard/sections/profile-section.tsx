@@ -6,13 +6,13 @@ import { Progress } from '@/components/ui/progress'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge, BadgeVariant } from '@/components/ui/badge'
-import { DashboardSectionStats } from '@/types/dashboard'
 import Link from 'next/link'
 import { ROUTES } from '@/schemas/routes'
 import { Key } from 'react'
 
 interface ProfileSectionProps {
-  stats: DashboardSectionStats['profile']
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stats: any
   onAction?: (action: string) => void
 }
 
@@ -27,7 +27,7 @@ export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-            <UserCircle className="h-5 w-5" />
+            <UserCircle className="size-5" />
             {t('title')}
           </CardTitle>
           <Badge variant={stats?.status as BadgeVariant}>
@@ -52,7 +52,7 @@ export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
             <ul className="space-y-1">
               {stats.missingFields.slice(0, 2).map((field: Key | null | undefined) => (
                 <li key={field} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <AlertCircle className="h-4 w-4 text-warning" />
+                  <AlertCircle className="text-warning size-4" />
                   {t(`fields.${field}`)}
                 </li>
               ))}

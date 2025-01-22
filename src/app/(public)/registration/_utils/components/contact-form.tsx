@@ -56,13 +56,13 @@ export function ContactInfoForm({
     <Form {...form}>
       <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
-          <CardContent className="pt-4 grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-2 gap-4 pt-4">
             {/* Email */}
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="w-full col-span-full md:col-span-1">
+                <FormItem className="col-span-full w-full md:col-span-1">
                   <FormLabel>{t('form.email')}</FormLabel>
                   <FormControl>
                     <Input
@@ -83,7 +83,7 @@ export function ContactInfoForm({
               control={form.control}
               name="phone"
               render={({ field }) => (
-                <FormItem className="w-full col-span-full md:col-span-1">
+                <FormItem className="col-span-full w-full md:col-span-1">
                   <FormLabel>{t('form.phone')}</FormLabel>
                   <FormControl>
                     <PhoneInput

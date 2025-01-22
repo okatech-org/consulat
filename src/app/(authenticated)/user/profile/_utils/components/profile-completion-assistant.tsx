@@ -24,12 +24,12 @@ export function ProfileCompletionAssistant({ profile, user }: { profile: FullPro
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base font-medium">
           <div className="flex items-center gap-2">
-            <Bot className="h-4 w-4" />
+            <Bot className="size-4" />
             {t('title')}
           </div>
         </CardTitle>
         {!isLoading && suggestions.length === 0 && (
-          <CheckCircle2 className="h-5 w-5 text-success" />
+          <CheckCircle2 className="text-success size-5" />
         )}
       </CardHeader>
       <CardContent>
@@ -54,11 +54,11 @@ export function ProfileCompletionAssistant({ profile, user }: { profile: FullPro
           <CollapsibleContent className="space-y-4">
             {isLoading ? (
               <div className="flex items-center justify-center py-4">
-                <Icons.Spinner className="h-6 w-6 animate-spin" />
+                <Icons.Spinner className="size-6 animate-spin" />
               </div>
             ) : error ? (
               <div className="flex items-center gap-2 text-sm text-destructive">
-                <AlertTriangle className="h-4 w-4" />
+                <AlertTriangle className="size-4" />
                 <p>{error}</p>
               </div>
             ) : suggestions.length === 0 ? (
@@ -97,11 +97,11 @@ function SuggestionCard({ suggestion }: { suggestion: ProfileSuggestion }) {
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'high':
-        return <XCircle className="h-4 w-4 text-destructive" />
+        return <XCircle className="size-4 text-destructive" />
       case 'medium':
-        return <HelpCircle className="h-4 w-4 text-warning" />
+        return <HelpCircle className="text-warning size-4" />
       case 'low':
-        return <Circle className="h-4 w-4 text-muted-foreground" />
+        return <Circle className="size-4 text-muted-foreground" />
       default:
         return null
     }

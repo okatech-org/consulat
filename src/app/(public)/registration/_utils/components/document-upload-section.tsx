@@ -120,7 +120,7 @@ export function DocumentUploadSection({
       <form ref={formRef} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         {/* Section des components */}
         <Card className="overflow-hidden">
-          <CardContent className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 pt-4">
+          <CardContent className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
             <AnimatePresence mode="sync">
               {requiredDocuments.map((doc, index) => (
                 <motion.div
@@ -151,7 +151,7 @@ export function DocumentUploadSection({
             </AnimatePresence>
           </CardContent>
           <CardFooter>
-            <div className={"space-y-4 w-full"}>
+            <div className={"w-full space-y-4"}>
               {/* Section d'analyse */}
               <Card className="overflow-hidden">
                 <CardContent className="p-6">
@@ -166,13 +166,13 @@ export function DocumentUploadSection({
                         <>
                           <LottieAnimation
                             src="https://lottie.host/3dcbeb73-3c3f-4dbe-93de-a973430b6c4c/aX6F1INJXN.json"
-                            className="h-5 w-5"
+                            className="size-5"
                           />
                           {t('components.analysis.analyzing')}
                         </>
                       ) : (
                         <>
-                          <ScanBarcode className="h-5 w-5" />
+                          <ScanBarcode className="size-5" />
                           {t('components.analysis.start')}
                         </>
                       )}
@@ -219,7 +219,7 @@ function DocumentUploadGuide() {
             transition={{ delay: index * 0.1 }}
             className="flex items-center gap-2"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <span className="size-1.5 rounded-full bg-primary" />
             {tip}
           </motion.li>
         ))}

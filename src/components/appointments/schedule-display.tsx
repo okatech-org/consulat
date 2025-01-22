@@ -31,7 +31,7 @@ export function ScheduleDisplay({ schedule }: ConsulateScheduleProps) {
           {days.map((day, index) => {
             const daySchedule = schedule.find(s => s.dayOfWeek === index)
             return (
-              <div key={day} className="flex justify-between items-center py-2 border-b">
+              <div key={day} className="flex items-center justify-between border-b py-2">
                 <span className="font-medium">{day}</span>
                 <span>
                   {daySchedule?.isOpen

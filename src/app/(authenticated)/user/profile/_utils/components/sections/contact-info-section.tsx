@@ -70,7 +70,7 @@ function AddressDisplay({
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4" />
+        <MapPin className="size-4" />
         <span>{title}</span>
       </div>
       <div className="text-sm">
@@ -193,23 +193,23 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
       ) : (
         <div className="space-y-4">
           {/* Coordonnées principales */}
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <InfoField
               label={t('form.email')}
               value={profile?.email}
-              icon={<Mail className="h-4 w-4" />}
+              icon={<Mail className="size-4" />}
               required
             />
             <InfoField
               label={t('form.phone')}
               value={`${profile?.phone?.countryCode}${profile?.phone?.number}`}
-              icon={<Phone className="h-4 w-4" />}
+              icon={<Phone className="size-4" />}
               required
             />
           </div>
 
           {/* Adresses */}
-          <div className="grid gap-4 grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="space-y-6">
               {profile.address ? (
                 <AddressDisplay

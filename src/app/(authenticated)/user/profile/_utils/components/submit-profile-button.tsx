@@ -75,7 +75,7 @@ export function SubmitProfileButton({
         variant="default"
         disabled={!isComplete}
       >
-        <SendHorizonal className="h-4 w-4" />
+        <SendHorizonal className="size-4" />
         {t('submit_button')}
       </Button>
 
@@ -90,11 +90,11 @@ export function SubmitProfileButton({
 
           <div className="space-y-4">
             <div className="rounded-lg border p-4">
-              <h4 className="font-medium mb-2">{t('dialog.checklist.title')}</h4>
+              <h4 className="mb-2 font-medium">{t('dialog.checklist.title')}</h4>
               <ul className="space-y-2 text-sm">
                 {CHECKLIST_ITEMS.map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    <div className="size-1.5 rounded-full bg-primary" />
                     {t(`dialog.checklist.items.${item}`)}
                   </li>
                 ))}
@@ -115,7 +115,7 @@ export function SubmitProfileButton({
               disabled={isSubmitting}
               className="gap-2"
             >
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isSubmitting && <Loader2 className="size-4 animate-spin" />}
               {t('dialog.confirm')}
             </Button>
           </DialogFooter>

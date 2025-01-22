@@ -40,20 +40,20 @@ export function CountryActions({ country }: { country: Country }) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant="ghost" className="size-8 p-0">
+            <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
-            <Pencil className="mr-2 h-4 w-4" />
+            <Pencil className="mr-2 size-4" />
             {t('actions.edit')}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setShowDeleteDialog(true)}
             className="text-destructive"
           >
-            <Trash className="mr-2 h-4 w-4" />
+            <Trash className="mr-2 size-4" />
             {t('actions.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>

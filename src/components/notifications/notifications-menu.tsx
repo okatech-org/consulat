@@ -52,9 +52,9 @@ function NotificationItem({ notification, onRead }: {
           disabled={isLoading}
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : (
-            <Check className="h-4 w-4" />
+            <Check className="size-4" />
           )}
         </Button>
       )}
@@ -73,15 +73,15 @@ export function NotificationsMenu() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" className="relative p-2 max-w-min">
-          <Bell className="h-5 w-5" />
+        <Button variant="ghost" className="relative max-w-min p-2">
+          <Bell className="size-5" />
           <span>
             {t('title')}
           </span>
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="flex items-center justify-center absolute -right-1 -top-1 h-5 w-5 rounded-full p-0"
+              className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full p-0"
             >
               {unreadCount}
             </Badge>
@@ -107,8 +107,8 @@ export function NotificationsMenu() {
               />
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center p-4">
-              <Bell className="h-8 w-8 text-muted-foreground mb-2" />
+            <div className="flex h-full flex-col items-center justify-center p-4 text-center">
+              <Bell className="mb-2 size-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
                 {t('empty')}
               </p>

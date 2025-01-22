@@ -31,7 +31,7 @@ export function EditableSection({
 
   return (
     <Card className={cn("relative", className)}>
-      <CardHeader className="flex-row items-center justify-between space-y-0 mb-2 pb-2">
+      <CardHeader className="mb-2 flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base font-semibold md:text-lg">
           {title}
         </CardTitle>
@@ -45,7 +45,7 @@ export function EditableSection({
                 onClick={onEdit}
                 className="h-8 px-2"
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="size-4" />
                 <span className="hidden md:inline">
               {t('actions.edit')}
             </span>
@@ -59,7 +59,7 @@ export function EditableSection({
                   className="h-8 px-2"
                   disabled={isLoading}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="size-4" />
                   <span className="hidden md:inline">
                 {t('actions.cancel')}
               </span>
@@ -71,7 +71,7 @@ export function EditableSection({
                   className="h-8 px-2"
                   disabled={isLoading}
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="size-4" />
                   <span className="hidden md:inline">
                 {t('actions.save')}
               </span>

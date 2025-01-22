@@ -29,7 +29,7 @@ export function PendingTasks({ tasks }: PendingTasksProps) {
         <Link href={ROUTES.admin_profiles}>
           <Button variant="ghost" size="sm">
             {t('view_all')}
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="ml-2 size-4" />
           </Button>
         </Link>
       </CardHeader>

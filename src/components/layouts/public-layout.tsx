@@ -7,10 +7,10 @@ export interface BaseLayoutProps {
 
 export function PublicLayout({ children }: BaseLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col w-screen overflow-hidden">
+    <div className="flex min-h-screen w-screen flex-col overflow-hidden">
       <PublicHeader />
 
-      <main className={"flex h-full w-full grow"}>
+      <main className={"flex size-full grow"}>
         {children}
       </main>
 

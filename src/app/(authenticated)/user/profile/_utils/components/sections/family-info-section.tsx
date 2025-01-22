@@ -147,7 +147,7 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
             <InfoField
               label={t('form.marital_status')}
               value={t_assets(`marital_status.${profile.maritalStatus?.toLowerCase()}`)}
-              icon={<Users className="h-4 w-4" />}
+              icon={<Users className="size-4" />}
               required
             />
 
@@ -155,7 +155,7 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
               <InfoField
                 label={t('form.spouse_name')}
                 value={profile.spouseFullName}
-                icon={<User2 className="h-4 w-4" />}
+                icon={<User2 className="size-4" />}
                 required
               />
             )}
@@ -166,13 +166,13 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
             <InfoField
               label={t('form.father_name')}
               value={profile.fatherFullName}
-              icon={<User2 className="h-4 w-4" />}
+              icon={<User2 className="size-4" />}
               required
             />
             <InfoField
               label={t('form.mother_name')}
               value={profile.motherFullName}
-              icon={<User2 className="h-4 w-4" />}
+              icon={<User2 className="size-4" />}
               required
             />
           </div>
@@ -194,17 +194,17 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
                 <InfoField
                   label={t('form.emergency_contact_name')}
                   value={profile.emergencyContact.fullName}
-                  icon={<User2 className="h-4 w-4" />}
+                  icon={<User2 className="size-4" />}
                 />
                 <InfoField
                   label={t('form.emergency_contact_relationship')}
                   value={t_profile(`fields.family_link.${profile.emergencyContact.relationship.toLowerCase()}`)}
-                  icon={<Users className="h-4 w-4" />}
+                  icon={<Users className="size-4" />}
                 />
                 <InfoField
                   label={t('form.emergency_contact_phone')}
                   value={profile.emergencyContact?.phone ? `${profile.emergencyContact.phone?.countryCode}${profile.emergencyContact.phone?.number}` : undefined}
-                  icon={<Phone className="h-4 w-4" />}
+                  icon={<Phone className="size-4" />}
                 />
               </div>
             ) : (

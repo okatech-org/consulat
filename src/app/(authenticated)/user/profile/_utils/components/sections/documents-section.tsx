@@ -38,7 +38,7 @@ export function DocumentsSection({ documents, className, profileId }: DocumentsS
       isEditing={false}
       className={className}
     >
-      <div className="grid gap-6 mb-4 lg:grid-cols-2">
+      <div className="mb-4 grid gap-6 lg:grid-cols-2">
         <UserDocument
           label={t_common('components.types.passport')}
           description={t_common('components.descriptions.passport')}

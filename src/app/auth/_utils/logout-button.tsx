@@ -36,9 +36,9 @@ export function LogoutButton({ className }: LogoutButtonProps) {
       disabled={isPending}
     >
       {isPending ? (
-        <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
+        <Icons.Spinner className="mr-2 size-4 animate-spin" />
       ) : (
-        <LogOut className="h-4 w-4" />
+        <LogOut className="size-4" />
       )}
       <span>{t('logout')}</span>
     </Button>

@@ -145,7 +145,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
       ) : (
         <div className="space-y-6">
           {/* Informations d'identité */}
-          <div className="grid gap-4 grid-cols-2">
+          <div className="grid grid-cols-2 gap-4">
             <InfoField
               label={t('form.first_name')}
               value={profile.firstName}
@@ -197,7 +197,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             <h4 className="font-medium">
               {t('form.passport.section_title')}
             </h4>
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               <InfoField
                 label={t('form.passport.number.label')}
                 value={profile.passportNumber}

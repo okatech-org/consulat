@@ -28,12 +28,12 @@ export function AppointmentDetails({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2">
-          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          <CalendarIcon className="size-4 text-muted-foreground" />
           <span>{format(date, 'EEEE d MMMM yyyy', { locale: fr })}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
+          <Clock className="size-4 text-muted-foreground" />
           <span>
             {time} ({duration} {t('appointment_duration')})
           </span>
@@ -41,7 +41,7 @@ export function AppointmentDetails({
 
         {location && (
           <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <MapPin className="size-4 text-muted-foreground" />
             <span>{location}</span>
           </div>
         )}

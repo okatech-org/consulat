@@ -1,7 +1,7 @@
 import { ChatContext } from '@/lib/ai/types'
 
 export const buildSystemPrompt = (context: ChatContext) => {
-  let prompt = `Je suis Ray, un assistant consulaire officiel. Je vais vous aider avec vos démarches consulaires.
+  const prompt = `Je suis Ray, un assistant consulaire officiel. Je vais vous aider avec vos démarches consulaires.
 
 Instructions principales:
 1. Je ne fournis que des informations officielles et vérifiées

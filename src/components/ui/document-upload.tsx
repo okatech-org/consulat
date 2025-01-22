@@ -113,7 +113,7 @@ export function DocumentUploadField<T extends FieldValues>({
         <FormItem>
           {label && <FormLabel>
             {label}
-            {required && <span className="text-destructive ml-1">*</span>}
+            {required && <span className="ml-1 text-destructive">*</span>}
           </FormLabel>}
           <FormControl>
             <div
@@ -142,8 +142,8 @@ export function DocumentUploadField<T extends FieldValues>({
 
               {!field.value && !existingFile ? (
                 // État vide
-                <div className="flex relative flex-col items-center justify-center p-6 text-center">
-                  <Upload className="mb-4 h-8 w-8 text-muted-foreground" />
+                <div className="relative flex flex-col items-center justify-center p-6 text-center">
+                  <Upload className="mb-4 size-8 text-muted-foreground" />
                   <Button
                     type="button"
                     variant="outline"
@@ -197,7 +197,7 @@ export function DocumentUploadField<T extends FieldValues>({
 
                     {/* Informations du fichier */}
                     <div className="flex-1 overflow-hidden">
-                      <p className="font-medium text-sm">
+                      <p className="text-sm font-medium">
                         {field.value?.name || 'Document téléchargé'}
                       </p>
                       {field.value?.size && (
@@ -216,7 +216,7 @@ export function DocumentUploadField<T extends FieldValues>({
                         onClick={removeFile}
                         disabled={disabled}
                       >
-                        <X className="h-4 w-4" />
+                        <X className="size-4" />
                       </Button>
                     </div>
                   </div>

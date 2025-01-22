@@ -57,7 +57,7 @@ export function DocumentBadge({
         className
       )}
     >
-      <IconComponent className="h-4 w-4" />
+      <IconComponent className="size-4" />
       <span className="text-sm font-medium">{name}</span>
       <span className="text-xs">
         {t(`status.${status}`)}

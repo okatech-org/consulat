@@ -30,7 +30,7 @@ export function AppointmentReminder({
   return (
     <Card className="bg-primary/10">
       <CardContent className="flex items-center gap-3 p-4">
-        <Bell className="h-5 w-5 text-primary" />
+        <Bell className="size-5 text-primary" />
         <div className="flex-1">
           <p className="font-medium">
             {t('reminder.title')}

@@ -24,13 +24,13 @@ export function OrganizationActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <MoreHorizontal className="h-4 w-4" />
+        <Button variant="ghost" className="size-8 p-0">
+          <MoreHorizontal className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => openEditDialog(organization)}>
-          <Pencil className="mr-2 h-4 w-4" />
+          <Pencil className="mr-2 size-4" />
           {t('actions.edit')}
         </DropdownMenuItem>
 
@@ -39,7 +39,7 @@ export function OrganizationActions({
             onClick={() => handleStatusChange(organization.id, 'SUSPENDED')}
             disabled={isLoading}
           >
-            <Ban className="mr-2 h-4 w-4" />
+            <Ban className="mr-2 size-4" />
             {t('actions.suspend')}
           </DropdownMenuItem>
         ) : (
@@ -47,7 +47,7 @@ export function OrganizationActions({
             onClick={() => handleStatusChange(organization.id, 'ACTIVE')}
             disabled={isLoading}
           >
-            <CheckCircle className="mr-2 h-4 w-4" />
+            <CheckCircle className="mr-2 size-4" />
             {t('actions.activate')}
           </DropdownMenuItem>
         )}
@@ -57,7 +57,7 @@ export function OrganizationActions({
           className="text-destructive"
           disabled={isLoading}
         >
-          <Trash className="mr-2 h-4 w-4" />
+          <Trash className="mr-2 size-4" />
           {t('actions.delete')}
         </DropdownMenuItem>
       </DropdownMenuContent>

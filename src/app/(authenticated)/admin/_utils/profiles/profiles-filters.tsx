@@ -45,12 +45,9 @@ export function ProfilesFilters() {
   }, [pathname, router, searchParams])
 
   // Debounce la recherche pour éviter trop de mises à jour
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      updateSearchParams({ q: value || undefined })
-    }, 300),
-    [updateSearchParams]
-  )
+  const debouncedSearch = debounce((value: string) => {
+    updateSearchParams({ q: value || undefined })
+  }, 300)
 
   // Mettre à jour la recherche quand l'input change
   const handleSearchChange = (value: string) => {
@@ -108,7 +105,7 @@ export function ProfilesFilters() {
             onClick={handleReset}
             className="gap-2"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
             {t('filters.reset')}
           </Button>
         )}

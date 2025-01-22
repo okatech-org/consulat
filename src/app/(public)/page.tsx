@@ -44,17 +44,17 @@ export default async function LandingPage() {
           </h2>
           <div className="grid gap-8 md:grid-cols-3">
             <FeatureCard
-              icon={<Shield className="h-10 w-10 text-primary" />}
+              icon={<Shield className="size-10 text-primary" />}
               title="Sécurisé et Officiel"
               description="Vos documents et démarches sont traités de manière 100% sécurisée et conforme aux normes consulaires."
             />
             <FeatureCard
-              icon={<Users className="h-10 w-10 text-primary" />}
+              icon={<Users className="size-10 text-primary" />}
               title="Communauté Active"
               description="Rejoignez la communauté des ressortissants et restez connecté avec votre consulat."
             />
             <FeatureCard
-              icon={<CheckCircle className="h-10 w-10 text-primary" />}
+              icon={<CheckCircle className="size-10 text-primary" />}
               title="Simple et Rapide"
               description="Effectuez vos démarches en quelques clics et suivez leur avancement en temps réel."
             />

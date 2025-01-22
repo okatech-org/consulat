@@ -24,7 +24,7 @@ export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProp
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-            <Calendar className="h-5 w-5" />
+            <Calendar className="size-5" />
             {t('title')}
           </CardTitle>
           <Button
@@ -32,7 +32,7 @@ export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProp
             size="sm"
             onClick={() => onAction?.('schedule_appointment')}
           >
-            <Plus className="h-4 w-4 md:mr-2" />
+            <Plus className="size-4 md:mr-2" />
             <span className="hidden md:inline">{t('actions.schedule')}</span>
           </Button>
         </div>
@@ -50,13 +50,13 @@ export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProp
             </div>
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Clock className="size-4 text-muted-foreground" />
                 <span>
                   {format(new Date(stats.upcoming.date), "PPP 'à' HH'h'mm", { locale: fr })}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <MapPin className="size-4 text-muted-foreground" />
                 <span>{t(`type.${stats.upcoming.type.toLowerCase()}`)}</span>
               </div>
             </div>

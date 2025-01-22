@@ -19,7 +19,7 @@ export function MobileProgress({
   const t = useTranslations('registration')
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background p-4 shadow-lg md:hidden">
+    <div className="fixed inset-x-0 bottom-0 bg-background p-4 shadow-lg md:hidden">
       <div className="container space-y-2">
         <div className="flex items-center justify-between">
           <div>

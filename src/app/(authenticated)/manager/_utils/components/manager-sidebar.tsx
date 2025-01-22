@@ -1,6 +1,5 @@
 import { LayoutDashboard, FileText, Calendar, Users, Settings } from 'lucide-react'
 import { NavMain } from "@/components/ui/nav-main"
-import { NavUser } from "@/components/ui/nav-user"
 import {
   Sidebar,
   SidebarContent,

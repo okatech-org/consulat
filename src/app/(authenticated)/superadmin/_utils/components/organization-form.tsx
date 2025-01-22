@@ -224,7 +224,7 @@ export function OrganizationForm({
                           </Badge>
                         ))}
                       </div>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
@@ -304,7 +304,7 @@ export function OrganizationForm({
             {t_common('actions.cancel')}
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
             {organization ? t_common('actions.update') : t_common('actions.add')}
           </Button>
         </div>

@@ -41,7 +41,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
 
         <div className="mt-8 flex flex-col items-center gap-6">
           {/* Carte consulaire */}
-          <div className="relative w-full max-w-md perspective">
+          <div className="perspective relative w-full max-w-md">
             <div
               className={cn(
                 "relative preserve-3d transition-transform duration-500",
@@ -65,12 +65,12 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
 
                         {/* Photo d'identité */}
                         {profile.identityPicture && (
-                          <div className="absolute left-4 top-4 h-auto w-24 aspect-square overflow-hidden rounded-lg border">
+                          <div className="absolute left-4 top-4 aspect-square h-auto w-24 overflow-hidden rounded-lg border">
                             <Image
                               src={profile.identityPicture.fileUrl}
                               alt={t('photo_alt')}
                               fill
-                              className="object-cover w-full h-full"
+                              className="size-full object-cover"
                             />
                           </div>
                         )}
@@ -88,7 +88,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                         </div>
 
                         {/* QR Code */}
-                        <div className="absolute bottom-4 right-4 h-24 w-24">
+                        <div className="absolute bottom-4 right-4 size-24">
                           <QRCode value={`${APP_URL}/view/profile/${profile.id}`}/>
                         </div>
                       </CardContent>
@@ -104,7 +104,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 rotate-y-180 backface-hidden"
+                    className="rotate-y-180 backface-hidden absolute inset-0"
                   >
                     <Card className="aspect-[1.58/1] overflow-hidden">
                       <CardContent className="relative h-full p-4">
@@ -135,7 +135,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                         </div>
 
                         {/* Informations légales */}
-                        <div className="absolute bottom-4 left-4 right-4">
+                        <div className="absolute inset-x-4 bottom-4">
                           <p className="text-xs text-muted-foreground">
                             {t('legal_notice')}
                           </p>

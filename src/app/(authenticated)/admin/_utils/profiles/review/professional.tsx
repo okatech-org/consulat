@@ -22,7 +22,7 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3">
-            <Briefcase className="h-5 w-5 text-muted-foreground" />
+            <Briefcase className="size-5 text-muted-foreground" />
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">{t('fields.work_status')}</p>
               <div className="flex items-center gap-2">
@@ -31,7 +31,7 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
                 </p>
               </div>
             </div>
-            <CheckCircle2 className="h-5 w-5 text-success" />
+            <CheckCircle2 className="text-success size-5" />
           </div>
         </CardContent>
       </Card>
@@ -44,32 +44,32 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
-              <Briefcase className="h-5 w-5 text-muted-foreground" />
+              <Briefcase className="size-5 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{t('fields.profession')}</p>
                 <p className="font-medium">{profile.profession || '-'}</p>
               </div>
-              <CheckCircle2 className="h-5 w-5 text-success" />
+              <CheckCircle2 className="text-success size-5" />
             </div>
 
             {showEmployerInfo && (
               <>
                 <div className="flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <Building2 className="size-5 text-muted-foreground" />
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">{t('fields.employer')}</p>
                     <p className="font-medium">{profile.employer || '-'}</p>
                   </div>
-                  <CheckCircle2 className="h-5 w-5 text-success" />
+                  <CheckCircle2 className="text-success size-5" />
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground" />
+                  <MapPin className="size-5 text-muted-foreground" />
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">{t('fields.employer_address')}</p>
                     <p className="font-medium">{profile.employerAddress || '-'}</p>
                   </div>
-                  <CheckCircle2 className="h-5 w-5 text-success" />
+                  <CheckCircle2 className="text-success size-5" />
                 </div>
               </>
             )}
@@ -84,12 +84,12 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3">
-            <GraduationCap className="h-5 w-5 text-muted-foreground" />
+            <GraduationCap className="size-5 text-muted-foreground" />
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">{t('fields.last_activity')}</p>
               <p className="font-medium">{profile.activityInGabon || '-'}</p>
             </div>
-            {profile.activityInGabon && <CheckCircle2 className="h-5 w-5 text-success" />}
+            {profile.activityInGabon && <CheckCircle2 className="text-success size-5" />}
           </div>
         </CardContent>
       </Card>

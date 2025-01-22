@@ -29,27 +29,27 @@ export function DocumentPreview({ url, title, type, onDownload }: DocumentPrevie
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
-        <Maximize2 className="h-4 w-4" />
+        <Maximize2 className="size-4" />
       </Button>
-      <DialogContent className="max-w-4xl h-[90vh]">
+      <DialogContent className="h-[90vh] max-w-4xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleZoomOut}>
-              <ZoomOut className="h-4 w-4" />
+              <ZoomOut className="size-4" />
             </Button>
             <span className="text-sm">
               {Math.round(zoom * 100)}%
             </span>
             <Button variant="outline" size="sm" onClick={handleZoomIn}>
-              <ZoomIn className="h-4 w-4" />
+              <ZoomIn className="size-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={handleRotate}>
-              <RotateCw className="h-4 w-4" />
+              <RotateCw className="size-4" />
             </Button>
             {onDownload && (
               <Button variant="outline" size="sm" onClick={onDownload}>
-                <Download className="h-4 w-4" />
+                <Download className="size-4" />
               </Button>
             )}
           </div>
@@ -58,11 +58,11 @@ export function DocumentPreview({ url, title, type, onDownload }: DocumentPrevie
           {isPDF ? (
             <iframe
               src={`${url}#toolbar=0`}
-              className="h-full w-full"
+              className="size-full"
               title={title}
             />
           ) : (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex h-full items-center justify-center">
               <div
                 className={cn(
                   "relative transition-transform duration-200",

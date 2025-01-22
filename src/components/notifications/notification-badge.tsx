@@ -13,7 +13,7 @@ export function NotificationBadge() {
   return (
     <Badge
       variant="destructive"
-      className="absolute -right-2 -top-2 h-5 w-5 rounded-full p-0"
+      className="absolute -right-2 -top-2 size-5 rounded-full p-0"
     >
       {unreadCount}
     </Badge>

@@ -10,28 +10,28 @@ export function DashboardStats() {
       <StatsCard
         title={t('stats.pending_requests')}
         value="12"
-        icon={<FileText className="h-4 w-4 text-muted-foreground" />}
+        icon={<FileText className="size-4 text-muted-foreground" />}
         description={t('stats.pending_description')}
       />
 
       <StatsCard
         title={t('stats.active_users')}
         value="45"
-        icon={<Users className="h-4 w-4 text-muted-foreground" />}
+        icon={<Users className="size-4 text-muted-foreground" />}
         description={t('stats.users_description')}
       />
 
       <StatsCard
         title={t('stats.processing_time')}
         value="2.5j"
-        icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+        icon={<Clock className="size-4 text-muted-foreground" />}
         description={t('stats.time_description')}
       />
 
       <StatsCard
         title={t('stats.completed_requests')}
         value="89"
-        icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />}
+        icon={<CheckCircle className="size-4 text-muted-foreground" />}
         description={t('stats.completed_description')}
       />
     </div>

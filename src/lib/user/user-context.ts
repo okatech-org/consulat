@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { User, Profile, Consulate } from '@prisma/client'
 
 export type UserContext = {

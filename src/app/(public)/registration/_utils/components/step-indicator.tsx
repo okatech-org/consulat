@@ -68,7 +68,7 @@ export function StepIndicator({
                 whileTap={canAccess ? { scale: 0.95 } : undefined}
               >
                 {isComplete ? (
-                  <Check className="h-4 w-4" />
+                  <Check className="size-4" />
                 ) : (
                   <span className="text-sm">
                     {index + 1}

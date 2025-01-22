@@ -25,20 +25,20 @@ export function ProfileContact({ profile }: ProfileContactProps) {
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-muted-foreground" />
+              <Mail className="size-5 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{t('fields.email')}</p>
                 <p className="font-medium">{profile.email || '-'}</p>
               </div>
               {profile.email ? (
-                <CheckCircle2 className="h-5 w-5 text-success" />
+                <CheckCircle2 className="text-success size-5" />
               ) : (
-                <XCircle className="h-5 w-5 text-destructive" />
+                <XCircle className="size-5 text-destructive" />
               )}
             </div>
 
             <div className="flex items-center gap-3">
-              <Phone className="h-5 w-5 text-muted-foreground" />
+              <Phone className="size-5 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{t('fields.phone')}</p>
                 <p className="font-medium">
@@ -46,9 +46,9 @@ export function ProfileContact({ profile }: ProfileContactProps) {
                 </p>
               </div>
               {profile.phone ? (
-                <CheckCircle2 className="h-5 w-5 text-success" />
+                <CheckCircle2 className="text-success size-5" />
               ) : (
-                <XCircle className="h-5 w-5 text-destructive" />
+                <XCircle className="size-5 text-destructive" />
               )}
             </div>
           </div>
@@ -62,7 +62,7 @@ export function ProfileContact({ profile }: ProfileContactProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-start gap-3">
-            <MapPin className="mt-1 h-5 w-5 text-muted-foreground" />
+            <MapPin className="mt-1 size-5 text-muted-foreground" />
             <div className="flex-1">
               {mainAddress ? (
                 <div className="space-y-1">
@@ -78,9 +78,9 @@ export function ProfileContact({ profile }: ProfileContactProps) {
               )}
             </div>
             {mainAddress ? (
-              <CheckCircle2 className="h-5 w-5 text-success" />
+              <CheckCircle2 className="text-success size-5" />
             ) : (
-              <XCircle className="h-5 w-5 text-destructive" />
+              <XCircle className="size-5 text-destructive" />
             )}
           </div>
         </CardContent>
@@ -93,7 +93,7 @@ export function ProfileContact({ profile }: ProfileContactProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-start gap-3">
-            <MapPin className="mt-1 h-5 w-5 text-muted-foreground" />
+            <MapPin className="mt-1 size-5 text-muted-foreground" />
             <div className="flex-1">
               {gabonAddress ? (
                 <div className="space-y-1">
@@ -105,7 +105,7 @@ export function ProfileContact({ profile }: ProfileContactProps) {
                 <p className="text-muted-foreground">{t('no_gabon_address')}</p>
               )}
             </div>
-            <CheckCircle2 className="h-5 w-5 text-success" />
+            <CheckCircle2 className="text-success size-5" />
           </div>
         </CardContent>
       </Card>

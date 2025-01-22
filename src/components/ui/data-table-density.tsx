@@ -18,21 +18,21 @@ export function DataTableDensity({
         size="sm"
         onClick={() => onChange('compact')}
       >
-        <TableRowsSplit className="h-4 w-4 rotate-180" />
+        <TableRowsSplit className="size-4 rotate-180" />
       </Button>
       <Button
         variant={density === 'normal' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onChange('normal')}
       >
-        <TableRowsSplit className="h-4 w-4" />
+        <TableRowsSplit className="size-4" />
       </Button>
       <Button
         variant={density === 'comfortable' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onChange('comfortable')}
       >
-        <TableRowsSplit className="h-4 w-4 scale-y-150" />
+        <TableRowsSplit className="size-4 scale-y-150" />
       </Button>
     </div>
   )

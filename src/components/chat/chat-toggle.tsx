@@ -15,17 +15,17 @@ export function ChatToggle() {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <button
-          className="fixed flex flex-col aspect-square h-max items-center translate-y-[-50%] bottom-4 right-4 rounded-full p-0 md:bottom-4 md:right-6"
+          className="fixed bottom-4 right-4 flex aspect-square h-max translate-y-[-50%] flex-col items-center rounded-full p-0 md:bottom-4 md:right-6"
           aria-label={t('chat_with_ray')}
         >
           {isOpen ? (
             <X className="size-6" />
           ) : (
-            <div className="h-auto aspect-square w-20">
+            <div className="aspect-square h-auto w-20">
               <LottieAnimation
                 src="https://lottie.host/0b163bae-89e4-409f-9f3f-f0f995440a69/INxhyzaLC8.json"
                 loop={true}
-                className="w-full h-full"
+                className="size-full"
               />
             </div>
           )}
@@ -35,7 +35,7 @@ export function ChatToggle() {
         <SheetHeader>
           <SheetTitle>{t('chat_with_ray')}</SheetTitle>
         </SheetHeader>
-        <div className="py-6 h-full">
+        <div className="h-full py-6">
           <ChatWindow />
         </div>
       </SheetContent>

@@ -97,7 +97,7 @@ export function DocumentValidationDialog({
             disabled={isSubmitting}
           >
             {isSubmitting && status === DocumentStatus.REJECTED && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             )}
             {t('validation.reject')}
           </Button>
@@ -107,7 +107,7 @@ export function DocumentValidationDialog({
             disabled={isSubmitting}
           >
             {isSubmitting && status === DocumentStatus.VALIDATED && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             )}
             {t('validation.validate')}
           </Button>

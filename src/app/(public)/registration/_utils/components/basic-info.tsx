@@ -166,7 +166,7 @@ export function BasicInfoForm({
             </div>
 
             {/* Date et lieu de naissance */}
-            <div className="grid gap-4 grid-cols-2">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="birthDate"
@@ -290,7 +290,7 @@ export function BasicInfoForm({
                           <FormControl>
                             <RadioGroupItem value={acquisition} />
                           </FormControl>
-                          <FormLabel className="font-normal !mt-0">
+                          <FormLabel className="!mt-0 font-normal">
                             {t(
                               `nationality_acquisition.modes.${acquisition.toLowerCase()}`
                             )}

@@ -23,7 +23,7 @@ export function LoadingSkeleton() {
           <div className="space-y-2">
             {[1, 2].map((i) => (
               <div key={i} className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4" />
+                <Skeleton className="size-4" />
                 <Skeleton className="h-4 w-[160px]" />
               </div>
             ))}
@@ -47,7 +47,7 @@ export function LoadingSkeleton() {
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="text-center">
-                <Skeleton className="mx-auto h-8 w-8" />
+                <Skeleton className="mx-auto size-8" />
                 <Skeleton className="mx-auto mt-2 h-4 w-16" />
               </div>
             ))}
@@ -55,7 +55,7 @@ export function LoadingSkeleton() {
           <div className="rounded-lg border p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4" />
+                <Skeleton className="size-4" />
                 <Skeleton className="h-4 w-[140px]" />
               </div>
               <Skeleton className="h-8 w-[80px]" />
@@ -74,7 +74,7 @@ export function LoadingSkeleton() {
           <div className="grid grid-cols-2 gap-4">
             {[1, 2].map((i) => (
               <div key={i} className="text-center">
-                <Skeleton className="mx-auto h-8 w-8" />
+                <Skeleton className="mx-auto size-8" />
                 <Skeleton className="mx-auto mt-2 h-4 w-16" />
               </div>
             ))}
@@ -82,7 +82,7 @@ export function LoadingSkeleton() {
           <div className="rounded-lg border p-3">
             <div className="flex items-center justify-between">
               <Skeleton className="h-4 w-[120px]" />
-              <Skeleton className="h-8 w-8" />
+              <Skeleton className="size-8" />
             </div>
             <Skeleton className="mt-2 h-4 w-full" />
             <Skeleton className="mt-1 h-3 w-[140px]" />
@@ -106,11 +106,11 @@ export function LoadingSkeleton() {
             </div>
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4" />
+                <Skeleton className="size-4" />
                 <Skeleton className="h-4 w-[180px]" />
               </div>
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4" />
+                <Skeleton className="size-4" />
                 <Skeleton className="h-4 w-[140px]" />
               </div>
             </div>
@@ -122,7 +122,7 @@ export function LoadingSkeleton() {
           <div className="grid grid-cols-2 gap-4">
             {[1, 2].map((i) => (
               <div key={i} className="text-center">
-                <Skeleton className="mx-auto h-8 w-8" />
+                <Skeleton className="mx-auto size-8" />
                 <Skeleton className="mx-auto mt-2 h-4 w-16" />
               </div>
             ))}
@@ -149,7 +149,7 @@ export function LoadingSkeleton() {
           <div className="grid grid-cols-3 gap-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-lg border p-2 text-center">
-                <Skeleton className="mx-auto h-4 w-4" />
+                <Skeleton className="mx-auto size-4" />
                 <Skeleton className="mx-auto mt-1 h-6 w-8" />
                 <Skeleton className="mx-auto mt-1 h-3 w-16" />
               </div>

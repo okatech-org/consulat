@@ -65,11 +65,6 @@ export async function subscribeToWaitlist(email: string) {
 // Fonction utilitaire pour obtenir des statistiques
 export async function getWaitlistStats() {
   try {
-    const stats = await db.subscription.groupBy({
-      by: ['status'],
-      _count: true
-    })
-
     const totalSubscribers = await db.subscription.count()
     const pendingSubscribers = await db.subscription.count({
       where: { status: EmailStatus.PENDING }

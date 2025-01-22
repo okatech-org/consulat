@@ -86,7 +86,7 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
                       type="button"
                     >
                       {isLoadingCountries ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <div className="flex items-center gap-2">
                           {field.value && getSelectedCountry(field.value) ? (
@@ -105,7 +105,7 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
                           )}
                         </div>
                       )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
@@ -174,7 +174,7 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
         />
 
         <Button type="submit" disabled={isLoading || isLoadingCountries}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
           {initialData ? t('actions.update') : t('actions.create')}
         </Button>
       </form>

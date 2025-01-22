@@ -37,7 +37,7 @@ export default function LottieAnimation({
   }, [src]);
 
   if (isLoading) {
-    return <div className="h-6 w-6 animate-pulse bg-muted rounded-full" />;
+    return <div className="size-6 animate-pulse rounded-full bg-muted" />;
   }
 
   if (error || !animationData) {

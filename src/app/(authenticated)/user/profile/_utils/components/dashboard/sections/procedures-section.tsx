@@ -4,10 +4,9 @@ import { useTranslations } from 'next-intl'
 import { ListChecks, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DashboardSectionStats } from '@/types/dashboard'
 
 interface ProceduresSectionProps {
-  stats: DashboardSectionStats['procedures']
+  stats: any
   onAction: (action: string) => void
 }
 
@@ -20,7 +19,7 @@ export function ProceduresSection({ stats, onAction }: ProceduresSectionProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <ListChecks className="h-5 w-5" />
+          <ListChecks className="size-5" />
           {t('title')}
         </CardTitle>
       </CardHeader>
@@ -47,7 +46,7 @@ export function ProceduresSection({ stats, onAction }: ProceduresSectionProps) {
                 size="sm"
                 onClick={() => onAction('view_procedure')}
               >
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="size-4" />
               </Button>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">

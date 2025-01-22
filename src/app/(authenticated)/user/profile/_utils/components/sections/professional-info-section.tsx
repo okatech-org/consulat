@@ -142,7 +142,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
             <InfoField
               label={t('form.work_status')}
               value={t_assets(`work_status.${profile.workStatus?.toLowerCase()}`)}
-              icon={<Briefcase className="h-4 w-4" />}
+              icon={<Briefcase className="size-4" />}
               required
             />
 
@@ -150,7 +150,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
               <InfoField
                 label={t('form.profession')}
                 value={profile.profession}
-                icon={<Briefcase className="h-4 w-4" />}
+                icon={<Briefcase className="size-4" />}
                 required={showEmployerFields}
               />
             )}
@@ -162,13 +162,13 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
               <InfoField
                 label={t('form.employer')}
                 value={profile.employer}
-                icon={<Building2 className="h-4 w-4" />}
+                icon={<Building2 className="size-4" />}
                 required
               />
               <InfoField
                 label={t('form.work_address')}
                 value={profile.employerAddress}
-                icon={<MapPin className="h-4 w-4" />}
+                icon={<MapPin className="size-4" />}
                 required
               />
             </div>

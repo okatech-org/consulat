@@ -26,7 +26,7 @@ export function ReviewNotes({ notes, onChange, onSubmit }: ReviewNotesProps) {
           rows={6}
         />
         <Button onClick={onSubmit} className="w-full">
-          <Save className="mr-2 h-4 w-4" />
+          <Save className="mr-2 size-4" />
           {t('notes.save')}
         </Button>
       </CardContent>

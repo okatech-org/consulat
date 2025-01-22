@@ -80,7 +80,7 @@ function ReviewSection<T extends keyof ConsularFormData>({ title, data, onEdit, 
           size="sm"
           onClick={onEdit}
         >
-          <Pencil className="h-4 w-4" />
+          <Pencil className="size-4" />
           {t('actions.edit')}
         </Button>
       </CardHeader>

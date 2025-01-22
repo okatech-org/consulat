@@ -50,7 +50,7 @@ export function DocumentStatus({ type, isUploaded, customText, required = true }
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <FileText className="h-4 w-4 text-muted-foreground" />
+        <FileText className="size-4 text-muted-foreground" />
         <span>{type}</span>
       </div>
       <Badge variant={isUploaded ? "valid" : required ? "destructive" : "outline"}>

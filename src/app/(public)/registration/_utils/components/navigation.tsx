@@ -44,7 +44,7 @@ export function FormNavigation({
           disabled={isLoading}
           className="gap-2"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="size-4" />
           {t('navigation.previous')}
         </Button>
       )}
@@ -52,16 +52,16 @@ export function FormNavigation({
       <Button
         onClick={handleNext}
         disabled={isLoading}
-        className="gap-2 ml-auto"
+        className="ml-auto gap-2"
       >
         {isLoading ? (
-          <Loader className="h-4 w-4 animate-spin" />
+          <Loader className="size-4 animate-spin" />
         ) : null}
         {currentStep === totalSteps - 1
           ? t('navigation.submit')
           : t('navigation.next')}
         {currentStep !== totalSteps - 1 && (
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="size-4" />
         )}
       </Button>
     </div>

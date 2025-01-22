@@ -12,7 +12,7 @@ export default async function LoginPage() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:px-0">
+    <div className="container relative grid min-h-screen flex-col items-center justify-center lg:max-w-none lg:px-0">
       <Link
         href={ROUTES.base}
         className={
@@ -20,7 +20,7 @@ export default async function LoginPage() {
           ' absolute left-4 top-4 md:left-8 md:top-8'
         }
       >
-        <ArrowLeft className="mr-2 h-4 w-4" />
+        <ArrowLeft className="mr-2 size-4" />
         {t('back_home')}
       </Link>
 
@@ -50,14 +50,14 @@ export default async function LoginPage() {
           <p className="px-8 text-center text-sm text-muted-foreground">
             <Link
               href={ROUTES.privacy_policy}
-              className="hover:text-primary underline underline-offset-4"
+              className="underline underline-offset-4 hover:text-primary"
             >
               {t('footer.privacy_policy')}
             </Link>
             {' · '}
             <Link
               href={ROUTES.terms}
-              className="hover:text-primary underline underline-offset-4"
+              className="underline underline-offset-4 hover:text-primary"
             >
               {t('footer.terms')}
             </Link>

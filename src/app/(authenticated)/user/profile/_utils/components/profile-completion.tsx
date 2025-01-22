@@ -121,7 +121,7 @@ const FieldsList = ({
         >
           <div className="flex items-center gap-2">
             {field.completed ? (
-              <CheckCircle className="h-4 w-4 text-success" />
+              <CheckCircle className="text-success size-4" />
             ) : (
               <AlertCircle className={cn(
                 "h-4 w-4",
@@ -190,12 +190,12 @@ const FieldsSection = ({
           {isExpanded ? (
             <>
               {t('completion.show_less')}
-              <ChevronDown className="ml-2 h-4 w-4" />
+              <ChevronDown className="ml-2 size-4" />
             </>
           ) : (
             <>
               {t('completion.show_more', { count: fields.length - toShowCount })}
-              <ChevronRight className="ml-2 h-4 w-4" />
+              <ChevronRight className="ml-2 size-4" />
             </>
           )}
         </Button>

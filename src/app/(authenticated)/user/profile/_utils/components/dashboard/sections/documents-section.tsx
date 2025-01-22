@@ -4,11 +4,11 @@ import { useTranslations } from 'next-intl'
 import { FileText, AlertTriangle, CheckCircle, Clock, Upload, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DashboardSectionStats } from '@/types/dashboard'
 import { Progress } from '@/components/ui/progress'
 
 interface DocumentsSectionProps {
-  stats: DashboardSectionStats['documents']
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stats: any
   onAction?: (action: string) => void
 }
 

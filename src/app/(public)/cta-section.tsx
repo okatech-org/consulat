@@ -45,7 +45,7 @@ export function CTASection() {
           Laissez-nous votre email pour être notifié dès que la plateforme sera disponible.
         </p>
 
-        <form onSubmit={handleSubmit} className="mx-auto items-center flex max-w-md flex-col gap-4 sm:flex-row">
+        <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col items-center gap-4 sm:flex-row">
           <Input
             type="email"
             placeholder="Votre adresse email"
@@ -64,7 +64,7 @@ export function CTASection() {
           >
             {isLoading ? (
               <>
-                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent"/>
+                <span className="mr-2 size-4 animate-spin rounded-full border-2 border-primary border-r-transparent"/>
                 Inscription...
               </>
             ) : (
