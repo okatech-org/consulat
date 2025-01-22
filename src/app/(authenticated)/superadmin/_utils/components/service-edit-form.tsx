@@ -51,7 +51,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
   const { toast } = useToast()
   const router = useRouter()
 
-  const form = useForm<typeof ServiceSchemaInput>({
+  const form = useForm<typeof ServiceSchema>({
     resolver: zodResolver(ServiceSchema),
     defaultValues: {
       id: service.id,
@@ -77,7 +77,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
     }
   })
 
-  const handleSubmit = async (data: typeof ServiceSchemaInput) => {
+  const handleSubmit = async (data: ServiceSchemaInput) => {
     setIsLoading(true)
     try {
       const editedKeys = ["id", ...Object.keys(form.formState.dirtyFields)]

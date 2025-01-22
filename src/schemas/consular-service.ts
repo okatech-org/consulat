@@ -62,7 +62,7 @@ export const ServiceSchema = z.object({
 })
 
 
-export const ServiceSchemaInput = z.infer<typeof ServiceSchema>
+export type ServiceSchemaInput = z.infer<typeof ServiceSchema>
 
 export const NewServiceSchema = z.object({
   id: z.string().optional(),
@@ -72,4 +72,4 @@ export const NewServiceSchema = z.object({
   organizationId: z.string().optional(),
 })
 
-export const NewServiceSchemaInput = z.infer<typeof NewServiceSchema>
+export type NewServiceSchemaInput = z.infer<typeof NewServiceSchema>
