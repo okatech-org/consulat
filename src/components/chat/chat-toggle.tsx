@@ -15,7 +15,7 @@ export function ChatToggle() {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <button
-          className="fixed bottom-4 right-4 flex aspect-square h-max translate-y-[-50%] flex-col items-center rounded-full p-0 md:bottom-4 md:right-6"
+          className="-translate-y-1/2' or '-translate-y-2/4 fixed bottom-4 right-4 flex aspect-square h-max flex-col items-center rounded-full p-0 md:bottom-4 md:right-6"
           aria-label={t('chat_with_ray')}
         >
           {isOpen ? (

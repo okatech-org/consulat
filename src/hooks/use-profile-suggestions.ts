@@ -108,7 +108,7 @@ export function useProfileSuggestions(profile: FullProfile, user: User) {
     }
 
     fetchSuggestions()
-  }, [profile, t])
+  }, [profile, t, user])
 
   return {
     suggestions,

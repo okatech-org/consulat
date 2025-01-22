@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { UseFormReturn } from 'react-hook-form'
 import {
   BasicInfoFormData,
@@ -56,7 +55,7 @@ function updateNestedField<T>(
 ) {
   if (isValidValue(update.value)) {
     const fieldPath = update.path.join('.')
-    form.setValue(fieldPath as any, update.value, {
+    form.setValue(fieldPath as unknown, update.value, {
       shouldValidate: options.shouldValidate ?? true,
       shouldDirty: options.shouldDirty ?? true,
     })

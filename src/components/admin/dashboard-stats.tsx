@@ -3,6 +3,7 @@ import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react'
 import { StatsCard } from '@/components/ui/stats-card'
 
 interface DashboardStatsProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stats: any
 }
 

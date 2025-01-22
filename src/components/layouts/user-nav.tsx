@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User } from '@prisma/client'
 import { logUserOut } from '@/actions/auth'
 import { useTranslations } from 'next-intl'
-import DarkModeToggle from '@/components/ui/darkmode-toggle'
 import { useTheme } from 'next-themes'
 import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
 

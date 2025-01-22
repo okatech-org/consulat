@@ -1,18 +1,19 @@
-// src/lib/ai/context-manager.ts
 
 import { User, UserRole } from '@prisma/client'
 import { FullProfile } from '@/types'
 import { db } from '@/lib/prisma'
+import { ConsularServiceItem } from '@/types/consular-service'
 
 export interface UserContext {
   user: User | null
   profile: FullProfile | null
   messageCount: number
-  availableServices?: any[] // Type à définir selon votre structure de services
+  availableServices?: ConsularServiceItem[] // Type à définir selon votre structure de services
 }
 
 export class ContextManager {
   private static async getUserServices(userId: string) {
+    ContextManager._userId = userId
     // Récupérer les services disponibles pour l'utilisateur
     return await db.consularService.findMany({
       where: {

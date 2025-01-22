@@ -11,7 +11,7 @@ export async function getRequests(options?: {
   if (authResult.error) return null
 
   // Récupérer les demandes avec pagination et filtres
-  const requests = await db.serviceRequest.findMany({
+  return await db.serviceRequest.findMany({
     where: {
       // Ajouter les filtres
     },
@@ -23,21 +23,17 @@ export async function getRequests(options?: {
     take: options?.limit || 10,
     skip: ((options?.page || 1) - 1) * (options?.limit || 10)
   })
-
-  return requests
 }
 
-export async function validateRequest(requestId: string, status: 'APPROVED' | 'REJECTED', notes?: string) {
+export async function validateRequest(requestId: string, status: 'APPROVED' | 'REJECTED') {
   const authResult = await checkAuth(['MANAGER'])
   if (authResult.error) return null
 
   // Mettre à jour le statut de la demande
-  const updatedRequest = await db.serviceRequest.update({
+  return await db.serviceRequest.update({
     where: { id: requestId },
     data: {
       status
     }
   })
-
-  return updatedRequest
 }
