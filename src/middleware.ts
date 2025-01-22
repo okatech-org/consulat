@@ -5,7 +5,6 @@ import {
   authRoutes,
   DEFAULT_AUTH_REDIRECT,
   publicRoutes,
-  roleRoutes,
 } from '@/routes'
 import { ROUTES } from '@/schemas/routes'
 import { nanoid } from 'nanoid'
@@ -16,7 +15,6 @@ const { auth } = NextAuth(authConfig)
 export default auth((req) => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth
-  const userRole = req.auth
 
   // Setup nonce pour la sécurité
   const nonce = nanoid()
@@ -59,20 +57,6 @@ export default auth((req) => {
       new URL(`${ROUTES.login}?callbackUrl=${encodeURIComponent(callbackUrl)}`, nextUrl)
     )
   }
-
-  // Vérifier les permissions de rôle
-  const isRoleProtectedRoute = roleRoutes.some(route => {
-    if (nextUrl.pathname.startsWith(route.path)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return !route.roles.includes(userRole as any)
-    }
-    return false
-  })
-
-
-  /**if (isRoleProtectedRoute) {
-    return Response.redirect(new URL(ROUTES.unauthorized, nextUrl))
-  }*/
 
   // Autoriser l'accès pour toutes les autres routes
   return NextResponse.next({

@@ -5,7 +5,7 @@ import { checkAuth } from '@/lib/auth/action'
 import { UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/schemas/routes'
-import { NewServiceSchemaInput, ServiceSchema } from '@/schemas/consular-service'
+import { NewServiceSchemaInput } from '@/schemas/consular-service'
 import type {
   ConsularServiceListingItem,
   ConsularServiceItem,
@@ -52,7 +52,7 @@ export async function getServices(): Promise<{
  * Créer un nouveau service
  */
 
-export async function createService(data: typeof NewServiceSchemaInput) {
+export async function createService(data: NewServiceSchemaInput) {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN])
   if (authResult.error) return { error: authResult.error }
 
