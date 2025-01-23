@@ -3,8 +3,8 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import { db } from '@/lib/prisma'
 import { ROUTES } from '@/schemas/routes'
 import { getUserById } from '@/lib/user/getters'
-import authConfig from '@/auth.config'
 import { FullUser } from '@/types'
+import {CredentialsAuthProvider} from "@/lib/auth/credentials-provider";
 
 declare module 'next-auth' {
   interface Session {
@@ -60,5 +60,8 @@ export const {
     }
   },
   session: { strategy: 'jwt' },
-  ...authConfig,
+  trustHost: true,
+  providers: [
+    CredentialsAuthProvider(),
+  ]
 })
