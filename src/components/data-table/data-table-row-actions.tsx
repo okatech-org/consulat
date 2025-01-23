@@ -45,7 +45,10 @@ export function DataTableRowActions<TData>({
               <DropdownMenuSubTrigger>{action.label}</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 {action.subMenu.map((subAction, subIndex) => (
-                  <DropdownMenuItem key={subIndex} onClick={() => subAction.onClick(row.original)}>
+                  <DropdownMenuItem key={subIndex} onClick={(event) => {
+                    event.stopPropagation()
+                    subAction.onClick(row.original)
+                  }}>
                     {subAction.label}
                     {subAction.shortcut && (
                       <DropdownMenuShortcut>{subAction.shortcut}</DropdownMenuShortcut>
@@ -55,7 +58,10 @@ export function DataTableRowActions<TData>({
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           ) : (
-            <DropdownMenuItem key={index} onClick={() => action.onClick(row.original)}>
+            <DropdownMenuItem key={index} onClick={(event) => {
+              event.stopPropagation()
+              action.onClick(row.original)
+            }}>
               {action.label}
               {action.shortcut && (
                 <DropdownMenuShortcut>{action.shortcut}</DropdownMenuShortcut>

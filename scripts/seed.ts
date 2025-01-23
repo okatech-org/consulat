@@ -21,41 +21,81 @@ async function main() {
           name: "France",
           code: "FR",
           flag: "https://flagcdn.com/fr.svg",
-          status: "ACTIVE"
-        }
+          status: "ACTIVE",
+          // Ajout metadata pour la France
+          metadata: JSON.stringify({
+            currency: { code: "EUR", symbol: "€", format: "#,##0.00", symbolPosition: "after" },
+            language: { defaultLocale: "fr", locales: ["fr", "en", "es"] },
+            dateFormat: "DD/MM/YYYY",
+            timeFormat: "24h",
+            timeZone: "Europe/Paris",
+          }),
+        },
       }),
       prisma.country.create({
         data: {
           name: "Belgique",
           code: "BE",
           flag: "https://flagcdn.com/be.svg",
-          status: "ACTIVE"
-        }
+          status: "ACTIVE",
+          // Ajout metadata pour la Belgique
+          metadata: JSON.stringify({
+            currency: { code: "EUR", symbol: "€", format: "#,##0.00", symbolPosition: "after" },
+            language: { defaultLocale: "fr", locales: ["fr", "en", "nl"] },
+            dateFormat: "DD/MM/YYYY",
+            timeFormat: "24h",
+            timeZone: "Europe/Brussels",
+          },)
+        },
       }),
       prisma.country.create({
         data: {
           name: "Suisse",
           code: "CH",
           flag: "https://flagcdn.com/ch.svg",
-          status: "ACTIVE"
-        }
+          status: "ACTIVE",
+          // Ajout metadata pour la Suisse (exemple)
+          metadata: JSON.stringify({
+            currency: { code: "CHF", symbol: "CHF", format: "#,##0.00", symbolPosition: "before" },
+            language: { defaultLocale: "fr", locales: ["fr", "de", "it", "rm"] },
+            dateFormat: "DD.MM.YYYY",
+            timeFormat: "24h",
+            timeZone: "Europe/Zurich",
+          }),
+        },
       }),
       prisma.country.create({
         data: {
           name: "Canada",
           code: "CA",
           flag: "https://flagcdn.com/ca.svg",
-          status: "ACTIVE"
-        }
+          status: "ACTIVE",
+          // Ajout metadata pour le Canada (exemple)
+          metadata: JSON.stringify({
+            currency: { code: "CAD", symbol: "$", format: "#,##0.00", symbolPosition: "before" },
+            language: { defaultLocale: "en", locales: ["en", "fr"] },
+            dateFormat: "YYYY-MM-DD",
+            timeFormat: "12h",
+            timeZone: "America/Toronto",
+          }),
+        },
       }),
       prisma.country.create({
         data: {
           name: "États-Unis",
           code: "US",
           flag: "https://flagcdn.com/us.svg",
-          status: "ACTIVE"
-        }
-      })
+          status: "ACTIVE",
+          // Ajout metadata pour les États-Unis (exemple)
+          metadata: JSON.stringify({
+            currency: { code: "USD", symbol: "$", format: "#,##0.00", symbolPosition: "before" },
+            language: { defaultLocale: "en", locales: ["en", "es"] },
+            dateFormat: "MM/DD/YYYY",
+            timeFormat: "12h",
+            timeZone: "America/New_York",
+          }),
+        },
+      }),
     ])
 
     // Créer les organisations
@@ -72,52 +112,17 @@ async function main() {
               settings: {
                 logo: "https://example.com/logo-france.png",
                 contact: {
-                  address: {
-                    firstLine: "26 Rue de la Faisanderie",
-                    city: "Paris",
-                    zipCode: "75116",
-                    country: "france"
-                  },
+                  address: { firstLine: "26 Rue de la Faisanderie", city: "Paris", zipCode: "75116", country: "france" },
                   phone: "+33145630787",
                   email: "contact@ambagabon-fr.org",
                   website: "https://ambagabon-fr.org"
                 },
                 schedule: {
-                  monday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
-                  tuesday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
-                  wednesday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
-                  thursday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
-                  friday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
+                  monday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  tuesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  wednesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  thursday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  friday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
                   saturday: { isOpen: false },
                   sunday: { isOpen: false }
                 },
@@ -129,11 +134,7 @@ async function main() {
                   { date: "2024-08-17", name: "Fête Nationale du Gabon" }
                 ],
                 closures: [
-                  {
-                    start: "2024-08-01",
-                    end: "2024-08-15",
-                    reason: "Fermeture annuelle d'été"
-                  }
+                  { start: "2024-08-01", end: "2024-08-15", reason: "Fermeture annuelle d'été" }
                 ]
               }
             }
@@ -151,12 +152,7 @@ async function main() {
               settings: {
                 logo: "https://example.com/logo-marseille.png",
                 contact: {
-                  address: {
-                    firstLine: "17 Cours Pierre Puget",
-                    city: "Marseille",
-                    zipCode: "13006",
-                    country: "france"
-                  },
+                  address: { firstLine: "17 Cours Pierre Puget", city: "Marseille", zipCode: "13006", country: "france" },
                   phone: "+33491140290",
                   email: "contact@consulatgabon-marseille.org",
                   website: "https://consulatgabon-marseille.org"
@@ -166,13 +162,7 @@ async function main() {
                   tuesday: { open: "09:00", close: "16:30", isOpen: true },
                   wednesday: { open: "09:00", close: "16:30", isOpen: true },
                   thursday: { open: "09:00", close: "16:30", isOpen: true },
-                  friday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
+                  friday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
                   saturday: { isOpen: false },
                   sunday: { isOpen: false }
                 },
@@ -184,11 +174,7 @@ async function main() {
                   { date: "2024-08-17", name: "Fête Nationale du Gabon" }
                 ],
                 closures: [
-                  {
-                    start: "2024-08-01",
-                    end: "2024-08-15",
-                    reason: "Fermeture annuelle d'été"
-                  }
+                  { start: "2024-08-01", end: "2024-08-15", reason: "Fermeture annuelle d'été" }
                 ]
               }
             }
@@ -206,45 +192,16 @@ async function main() {
               settings: {
                 logo: "https://example.com/logo-belgique.png",
                 contact: {
-                  address: {
-                    firstLine: "Avenue Franklin Roosevelt 196",
-                    city: "Bruxelles",
-                    zipCode: "1050",
-                    country: "belgique"
-                  },
+                  address: { firstLine: "Avenue Franklin Roosevelt 196", city: "Bruxelles", zipCode: "1050", country: "belgique" },
                   phone: "+3226405000",
                   email: "contact@consulatgabon-be.org",
                   website: "https://consulatgabon-be.org"
                 },
                 schedule: {
-                  monday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
-                  tuesday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
-                  wednesday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
-                  thursday: {
-                    isOpen: true,
-                    slots: [{
-                      start: "09:00",
-                      end: "17:00"
-                    }]
-                  },
+                  monday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  tuesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  wednesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  thursday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
                   friday: { open: "09:00", close: "15:30", isOpen: true },
                   saturday: { isOpen: false },
                   sunday: { isOpen: false }
@@ -257,17 +214,13 @@ async function main() {
                   { date: "2024-08-17", name: "Fête Nationale du Gabon" }
                 ],
                 closures: [
-                  {
-                    start: "2024-07-22",
-                    end: "2024-08-15",
-                    reason: "Fermeture annuelle d'été"
-                  }
+                  { start: "2024-07-22", end: "2024-08-15", reason: "Fermeture annuelle d'été" }
                 ]
               }
             }
           }
         }
-      })
+      }),
     ])
 
     console.log('Creating consular services...')

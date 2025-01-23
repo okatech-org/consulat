@@ -20,6 +20,7 @@ import { CreateCountryInput } from '@/types/country'
 
 export function CreateCountryButton() {
   const t = useTranslations('superadmin.countries')
+  const t_messages = useTranslations('messages')
   const { toast } = useToast()
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
@@ -34,7 +35,7 @@ export function CreateCountryButton() {
       }
 
       toast({
-        title: t('messages.createSuccess'),
+        title: t_messages('success.create'),
         variant: 'success',
       })
 
@@ -42,8 +43,9 @@ export function CreateCountryButton() {
       router.refresh()
     } catch (error) {
       toast({
-        title: t('messages.error.create'),
+        title: t_messages('errors.create'),
         variant: 'destructive',
+        description: `${error}`,
       })
     } finally {
       setIsLoading(false)

@@ -292,6 +292,7 @@
     },
     "search_country": "Rechercher un pays",
     "actions": {
+      "edit_settings": "Modifier les paramètres",
       "edit": "Modifier",
       "delete": "Supprimer",
       "duplicate": "Dupliquer",
@@ -531,6 +532,31 @@
       "father_name": "Nom complet du père",
       "mother_name": "Nom complet de la mère",
       "email": "Email"
+    },
+    "regionalSettings": {
+      "currency": "Devise",
+      "currencyCode": "Code Devise",
+      "currencyCodePlaceholder": "Ex: EUR, USD, XAF",
+      "currencySymbol": "Symbole Devise",
+      "currencySymbolPlaceholder": "Ex: $, €, FCFA",
+      "currencyFormat": "Format Devise",
+      "currencyFormatPlaceholder": "Ex: #,##0.00",
+      "currencySymbolPosition": "Position du symbole",
+      "currencySymbolPositionPlaceholder": "Choisir la position",
+      "currencySymbolPositionBefore": "Avant le montant",
+      "currencySymbolPositionAfter": "Après le montant",
+      "language": "Langues",
+      "defaultLocale": "Langue par défaut",
+      "defaultLocalePlaceholder": "Ex: fr, en, es",
+      "locales": "Langues supportées",
+      "localesPlaceholder": "Liste des codes de langue séparés par des virgules (ex: fr,en,es)",
+      "format": "Formats",
+      "dateFormat": "Format de date",
+      "dateFormatPlaceholder": "Ex: DD/MM/YYYY, YYYY-MM-DD",
+      "timeFormat": "Format de l'heure",
+      "timeFormatPlaceholder": "Ex: 12h, 24h",
+      "timeZone": "Fuseau horaire",
+      "timeZonePlaceholder": "Ex: Europe/Paris, America/Toronto"
     }
   },
   "feedback": {
@@ -555,6 +581,8 @@
   },
   "messages": {
     "errors": {
+      "unknown": "Une erreur inattendue est survenue",
+      "create": "Échec de la création",
       "update": "Échec de la mise à jour",
       "duplicate": "Échec de la duplication",
       "start_time_required": "L'heure de début est requise",
@@ -3088,6 +3116,10 @@
           "description": "Êtes-vous sûr de vouloir supprimer ce pays ? Cette action est irréversible.",
           "confirm": "Oui, supprimer",
           "cancel": "Annuler"
+        },
+        "regionalSettings": {
+          "title": "Paramètres régionaux du pays",
+          "description": "Modifier les paramètres régionaux spécifiques à ce pays"
         }
       }
     },

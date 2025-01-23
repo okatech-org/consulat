@@ -30,6 +30,7 @@ interface CountriesListProps {
 
 export function CountriesList({ countries }: CountriesListProps) {
   const t = useTranslations('superadmin.countries')
+  const t_common = useTranslations('common')
   const { toast } = useToast()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -149,14 +150,14 @@ export function CountriesList({ countries }: CountriesListProps) {
       id: "actions",
       cell: ({ row }) => <DataTableRowActions actions={[
         {
-          label: <><Pencil className="mr-1 size-4" /> {t('actions.edit')}</>,
+          label: <><Pencil className="mr-1 size-4" /> {t_common('actions.edit')}</>,
           onClick: (row) => {
             setCountry(row)
             setShowEditDialog(true)
           },
         },
         {
-          label: <><Trash className="mr-1 size-4" /><span className="text-destructive"> {t('actions.delete')}</span></>,
+          label: <><Trash className="mr-1 size-4" /><span className="text-destructive"> {t_common('actions.delete')}</span></>,
           onClick: (row) => {
             setCountry(row)
             setShowDeleteDialog(true)

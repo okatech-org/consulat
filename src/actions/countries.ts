@@ -5,7 +5,8 @@ import { checkAuth } from '@/lib/auth/action'
 import { UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/schemas/routes'
-import { CreateCountryInput, UpdateCountryInput } from '@/types/country'
+import { CountryMetadata, CreateCountryInput } from '@/types/country'
+import { CountrySchemaInput } from '@/schemas/country'
 
 export async function getCountries() {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN])
@@ -23,7 +24,12 @@ export async function getCountries() {
       }
     })
 
-    return { data: countries }
+    console.log('countries:', countries)
+
+    return { data: countries.map(item => ({
+      ...item,
+        metadata: item.metadata ? JSON.parse(item.metadata as string) : {} as CountryMetadata
+      })) }
   } catch (error) {
     console.error('Error fetching countries:', error)
     return { error: 'Failed to fetch countries' }
@@ -51,17 +57,22 @@ export async function createCountry(data: CreateCountryInput) {
   }
 }
 
-export async function updateCountry(data: UpdateCountryInput) {
+export async function updateCountry(data: CountrySchemaInput) {
+  const { id, metadata, ...rest } = data
+
+  if (!id) return { error: 'Country ID is required' }
+
   const authResult = await checkAuth([UserRole.SUPER_ADMIN])
   if (authResult.error) return { error: authResult.error }
 
+
+
   try {
     const country = await db.country.update({
-      where: { id: data.id },
+      where: { id },
       data: {
-        name: data.name,
-        code: data.code?.toUpperCase(),
-        status: data.status
+        ...rest,
+        ...(metadata && { metadata: JSON.stringify(metadata) })
       }
     })
 
