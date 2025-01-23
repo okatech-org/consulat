@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { fieldTypes, ServiceField } from '@/types/consular-service'
+import { fieldTypes, ServiceField, ServiceFieldType } from '@/types/consular-service'
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -80,11 +80,11 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
             <div>
               <h4 className="font-medium">{field.label}</h4>
               <p className="text-sm text-muted-foreground">
-                {t(`form.steps.step.fields.types.${field.type}`)}
+                {t_common(`field_types.${field.type as ServiceFieldType}`)}
                 {field.required && ' • ' + t('form.steps.step.fields.required')}
-                {field.profileField && ' • ' + t('form.steps.step.fields.mapped_to', {
+                {field.profileField && ` • ${t('form.steps.step.fields.mapped_to', {
                   field: t_inputs(`${field.profileField}`)
-                })}
+                })}`}
               </p>
             </div>
             <div className="flex gap-2">
@@ -144,7 +144,7 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                     <FormControl>
                       <MultiSelect
                         options={profileFields.map(f => (
-                          { value: f.key, label: t_inputs(f.label) }
+                          { value: f.key, label: t_inputs(f.key) }
                         ))}
                         selected={field.value ? [field.value] : []}
                         onChange={
@@ -155,7 +155,7 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
 
                             if (pField) {
                               fieldForm.setValue('name', pField.key)
-                              fieldForm.setValue('label', t_inputs(pField?.label))
+                              fieldForm.setValue('label', t_inputs(pField?.key))
                               fieldForm.setValue('type', pField.type)
                               fieldForm.setValue('required', pField?.required)
                             }
@@ -232,7 +232,7 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                       <SelectContent>
                         {fieldTypes.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {t(`form.steps.step.fields.types.${type}`)}
+                            {t_common(`field_types.${type}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>

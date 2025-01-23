@@ -22,9 +22,5 @@ yarn-error.log*
 /ai-sum/*
 /src/assets
 /specs/base
-/src/components/ui
-/src/app/(public)/registration/
-/src/app/(authenticated)/admin/*
-/src/app/(authenticated)/user/*
-/src/app/(authenticated)/manager/*
-/translations/*
+/translations/en.json
+/translations/es.json

@@ -1,4 +1,5 @@
 import { ConsularService, ServiceCategory, ServiceStepType, Organization } from '@prisma/client'
+import { ProfileKey } from '@/types/profile'
 
 
 export const fieldTypes = [
@@ -25,9 +26,8 @@ export interface ServiceField {
   required?: boolean
   description?: string
   placeholder?: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValue?: Record<string, any>
-  profileField?: string
+  defaultValue?: unknown
+  profileField?: ProfileKey
   options?: Array<{
     value: string
     label: string
@@ -58,7 +58,7 @@ export interface ConsularServiceItem extends Omit<ConsularService, "fields"> {
   organization: Organization | null
 }
 
-export interface UpdateServiceInput extends Partial<ConsularServiceItem> {}
+export type UpdateServiceInput = Partial<ConsularServiceItem>
 
 export interface ProfileFieldMapping {
   [formField: string]: string

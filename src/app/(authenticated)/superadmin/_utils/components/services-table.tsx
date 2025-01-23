@@ -47,7 +47,8 @@ export function ServicesTable({
     } catch (error) {
       toast({
         title: t('messages.error.update'),
-        variant: 'destructive'
+        variant: 'destructive',
+        description: `${error}`
       })
     } finally {
       setIsLoading(false)
@@ -68,7 +69,8 @@ export function ServicesTable({
     } catch (error) {
       toast({
         title: t('messages.error.delete'),
-        variant: 'destructive'
+        variant: 'destructive',
+        description: `${error}`
       })
     } finally {
       setIsLoading(false)
@@ -89,7 +91,8 @@ export function ServicesTable({
     } catch (error) {
       toast({
         title: t('messages.error.update'),
-        variant: 'destructive'
+        variant: 'destructive',
+        description: `${error}`
       })
     } finally {
       setSelectedService(null)
@@ -107,7 +110,7 @@ export function ServicesTable({
     {
       accessorKey: 'category',
       header: t('table.category'),
-      cell: ({ row }) => t(`categories.${row.original.category.toLowerCase()}`),
+      cell: ({ row }) => t_common(`service_categories.${row.original.category}`),
       filterFn: "arrIncludesSome"
     },
     {
@@ -165,7 +168,7 @@ export function ServicesTable({
             label: t('table.category'),
             options: Object.values(ServiceCategory).map((category) => ({
               value: category,
-              label: t(`categories.${category.toLowerCase()}`),
+              label: t_common(`service_categories.${category}`),
             })),
           },
           {
