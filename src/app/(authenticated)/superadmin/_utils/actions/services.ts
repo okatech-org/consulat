@@ -288,35 +288,50 @@ export async function getFullService(id: string): Promise<{
   }
 }
 
-export async function duplicateService(id: string): Promise<{ data?: string; error?: string }> {
+export async function duplicateService(serviceId: string): Promise<{ data?: string; error?: string }> {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
   if (authResult.error) return { error: authResult.error };
 
   try {
     const existingService = await db.consularService.findUnique({
-      where: { id },
-      include: { steps: true }, // Inclure les étapes du service à dupliquer
-    });
+      where: { id: serviceId },
+      include: { steps: true },
+    })
 
     if (!existingService) {
       return { error: 'Service non trouvé' };
     }
 
-    // Préparer les données pour le nouveau service (dupliqué)
-    const duplicatedServiceData = {
-      ...existingService,
-      id: undefined, // Important pour qu'un nouvel ID soit généré
-      name: `${existingService.name} (copie)`, // Ajouter "(copie)" au nom pour distinguer
-      isActive: false, // Désactiver la copie par défaut
-      steps: existingService.steps.map(step => ({
-        ...step,
-        id: undefined, // S'assurer que les étapes ont aussi de nouveaux IDs
-      })),
-    };
+    Object.entries(existingService).forEach(([key, value]) => {
+      if (value === null) {
+        delete (existingService as Record<string, unknown>)[key];
+      }
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { organizationId, name, id, steps, isActive, ...serviceData } = existingService;
 
     // Créer le nouveau service
     const duplicatedService = await db.consularService.create({
-      data: duplicatedServiceData as never,
+      data: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...serviceData as unknown as any,
+        name: `${name} (Copie)`,
+        isActive: false,
+        ...(steps && {
+          steps: {
+            createMany: {
+              data: steps.map((step) => ({
+                order: step.order,
+                title: step.title,
+                description: step.description || '',
+                ...(step.fields && { fields: step.fields }),
+                ...(step.validations && { validations: step.validations }),
+              })),
+            },
+          },
+        })
+      },
       include: { steps: true, organization: true },
     });
 

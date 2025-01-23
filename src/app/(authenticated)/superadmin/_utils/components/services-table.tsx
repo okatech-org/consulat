@@ -9,7 +9,8 @@ import { ServiceCategory } from '@prisma/client'
 import { Organization } from '@/types/organization'
 import { ServiceActions } from '@/app/(authenticated)/superadmin/_utils/components/service-actions'
 import {
-  deleteService, duplicateService,
+  deleteService,
+  duplicateService,
   updateService,
   updateServiceStatus,
 } from '@/app/(authenticated)/superadmin/_utils/actions/services'
