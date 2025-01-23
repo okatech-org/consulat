@@ -294,6 +294,9 @@
     "actions": {
       "edit": "Modifier",
       "delete": "Supprimer",
+      "duplicate": "Dupliquer",
+      "deactivate": "Désactiver",
+      "activate": "Activer",
       "save": "Enregistrer",
       "saving": "Enregistrement...",
       "cancel": "Annuler",
@@ -552,6 +555,8 @@
   },
   "messages": {
     "errors": {
+      "update": "Échec de la mise à jour",
+      "duplicate": "Échec de la duplication",
       "start_time_required": "L'heure de début est requise",
       "end_time_required": "L'heure de fin est requise",
       "invalid_url": "L'URL n'est pas valide",
@@ -654,6 +659,12 @@
         "update_failed": "Échec de la mise à jour du profil",
         "unknown": "Une erreur inattendue est survenue"
       }
+    },
+    "success": {
+      "update": "Mise à jour réussie",
+      "delete": "Suppression réussie",
+      "create": "Création réussie",
+      "duplicate": "Duplication réussie"
     }
   },
   "countries": {

@@ -3,19 +3,21 @@
 import { useTranslations } from 'next-intl'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Pencil, Trash, Ban, CheckCircle } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash, Ban, CheckCircle, Copy } from 'lucide-react'
 import { ConsularServiceListingItem } from '@/types/consular-service'
+import { ROUTES } from '@/schemas/routes'
+import Link from 'next/link'
 
 interface ServiceActionsProps {
   service: ConsularServiceListingItem
   onServiceDelete: () => void
-  onServiceEdit: () => void
   onStatusChange: () => void
+  onDuplicateService: () => void
   isLoading: boolean
 }
 
-export function ServiceActions({ service, onServiceDelete, onServiceEdit, onStatusChange, isLoading }: ServiceActionsProps) {
-  const t = useTranslations('superadmin.services')
+export function ServiceActions({ service, onServiceDelete, onDuplicateService, onStatusChange, isLoading }: ServiceActionsProps) {
+  const t = useTranslations('common.actions')
 
   return (
     <DropdownMenu>
@@ -25,35 +27,54 @@ export function ServiceActions({ service, onServiceDelete, onServiceEdit, onStat
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem disabled={isLoading} onClick={() => onServiceEdit()}>
-          <Pencil className="mr-2 size-4" />
-          {t('actions.edit')}
+        <DropdownMenuItem asChild>
+          <Link href={ROUTES.superadmin.edit_service(service.id)} onClick={(event) => {
+            event.stopPropagation()
+          }}>
+            <Pencil className="mr-2 h-4 w-4" />
+            {t('edit')}
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={() => onStatusChange()}
+          onClick={(event) => {
+            event.stopPropagation()
+            onStatusChange()
+          }}
           disabled={isLoading}
         >
           {service.isActive ? (
             <>
               <Ban className="mr-2 size-4" />
-              {t('actions.deactivate')}
+              {t('deactivate')}
             </>
           ) : (
             <>
               <CheckCircle className="mr-2 size-4" />
-              {t('actions.activate')}
+              {t('activate')}
             </>
           )}
         </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={(event) => {
+            event.stopPropagation()
+            onDuplicateService()
+          }}
+        >
+          <Copy className="mr-2 h-4 w-4" />
+          {t('duplicate')}
+        </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={() => onServiceDelete()}
+          onClick={(event) => {
+            event.stopPropagation()
+            onServiceDelete()
+          }}
           className="text-destructive"
           disabled={isLoading}
         >
           <Trash className="mr-2 size-4" />
-          {t('actions.delete')}
+          {t('delete')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -287,3 +287,43 @@ export async function getFullService(id: string): Promise<{
     return { error: 'Failed to fetch service' }
   }
 }
+
+export async function duplicateService(id: string): Promise<{ data?: string; error?: string }> {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    const existingService = await db.consularService.findUnique({
+      where: { id },
+      include: { steps: true }, // Inclure les étapes du service à dupliquer
+    });
+
+    if (!existingService) {
+      return { error: 'Service non trouvé' };
+    }
+
+    // Préparer les données pour le nouveau service (dupliqué)
+    const duplicatedServiceData = {
+      ...existingService,
+      id: undefined, // Important pour qu'un nouvel ID soit généré
+      name: `${existingService.name} (copie)`, // Ajouter "(copie)" au nom pour distinguer
+      isActive: false, // Désactiver la copie par défaut
+      steps: existingService.steps.map(step => ({
+        ...step,
+        id: undefined, // S'assurer que les étapes ont aussi de nouveaux IDs
+      })),
+    };
+
+    // Créer le nouveau service
+    const duplicatedService = await db.consularService.create({
+      data: duplicatedServiceData as never,
+      include: { steps: true, organization: true },
+    });
+
+    revalidatePath(ROUTES.superadmin.services);
+    return { data: duplicatedService.id };
+  } catch (error) {
+    console.error('Error duplicating service:', error);
+    return { error: 'Failed to duplicate service' };
+  }
+}

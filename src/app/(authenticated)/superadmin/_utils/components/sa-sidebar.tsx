@@ -53,7 +53,7 @@ export default async function SuperAdminSidebar({ ...props }: React.ComponentPro
   ]
 
   return (
-    <Sidebar collapsible={"icon"} variant="inset" className={"bg-background"} {...props}>
+    <Sidebar collapsible={"icon"} variant="floating" {...props} >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -83,7 +83,7 @@ export default async function SuperAdminSidebar({ ...props }: React.ComponentPro
       </SidebarContent>
       {user && <SidebarFooter>
         <UserNav user={user}/>
-        <SidebarTrigger className="rotate-180" />
+        <SidebarTrigger className="rotate-180 !size-8" />
       </SidebarFooter>}
     </Sidebar>
   )

@@ -9,7 +9,7 @@ import { ServiceCategory } from '@prisma/client'
 import { Organization } from '@/types/organization'
 import { ServiceActions } from '@/app/(authenticated)/superadmin/_utils/components/service-actions'
 import {
-  deleteService,
+  deleteService, duplicateService,
   updateService,
   updateServiceStatus,
 } from '@/app/(authenticated)/superadmin/_utils/actions/services'
@@ -18,7 +18,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useState } from 'react'
 import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form'
 import { useRouter } from 'next/navigation'
-import { ROUTES } from '@/schemas/routes'
 
 export function ServicesTable({
                                 services}: {
@@ -27,6 +26,7 @@ export function ServicesTable({
 }) {
   const t = useTranslations('superadmin.services')
   const t_common = useTranslations('common')
+  const t_messages = useTranslations('messages')
   const [selectedService, setSelectedService] = useState<ConsularServiceListingItem | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -85,12 +85,12 @@ export function ServicesTable({
       if (result.error) throw new Error(result.error)
 
       toast({
-        title: t('messages.updateSuccess'),
+        title: t_messages('success.update'),
         variant: 'success'
       })
     } catch (error) {
       toast({
-        title: t('messages.error.update'),
+        title: t_messages('errors.update'),
         variant: 'destructive',
         description: `${error}`
       })
@@ -100,6 +100,28 @@ export function ServicesTable({
       setIsLoading(false)
     }
   }
+
+  const handleDuplicateService = async (serviceId: string) => {
+    setIsLoading(true);
+    try {
+      const result = await duplicateService(serviceId);
+      if (result.error) {
+        toast({
+          title: t_messages('errors.duplicate'),
+          description: result.error,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t_messages('success.duplicate'),
+          variant: 'success',
+        });
+        router.refresh();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const columns: ColumnDef<ConsularServiceListingItem>[] = [
     {
@@ -125,13 +147,16 @@ export function ServicesTable({
       accessorKey: 'isActive',
       header: t('table.status'),
       cell: ({ row }) => (
-        <Badge variant={row.original.isActive ? 'success' : 'secondary'}>
+        <Badge variant={row.original.isActive ? 'success' : 'outline'}>
           {t_common(`status.${row.original.isActive ? 'active' : 'inactive'}`)}
         </Badge>
-      )
+      ),
+      enableSorting: true,
+      sortingFn: 'auto',
     },
     {
       id: 'actions',
+      header: t('table.actions'),
       cell: ({ row }) => (
         <ServiceActions
           service={row.original}
@@ -141,10 +166,7 @@ export function ServicesTable({
           onServiceDelete={async () => {
             await handleDelete(row.original.id)
           }}
-          onServiceEdit={() => {
-            setSelectedService(row.original)
-            setShowEditDialog(true)
-          }}
+          onDuplicateService={() => handleDuplicateService(row.original.id)}
           isLoading={isLoading}
         />
       ),
@@ -182,7 +204,8 @@ export function ServicesTable({
           },
         ]}
         onRowClick={(row) => {
-          router.push(ROUTES.superadmin.edit_service(row.original.id))
+          setSelectedService(row.original)
+          setShowEditDialog(true)
         }}
       />
 
