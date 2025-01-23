@@ -2959,7 +2959,8 @@
         "cancel": "Annuler",
         "update": "Mettre à jour",
         "activate": "Activer",
-        "deactivate": "Suspendre"
+        "deactivate": "Suspendre",
+        "deleting": "Suppression en cours...",
       },
       "table": {
         "name": "Nom",

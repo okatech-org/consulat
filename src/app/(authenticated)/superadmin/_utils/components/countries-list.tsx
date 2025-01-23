@@ -36,6 +36,7 @@ export function CountriesList({ countries }: CountriesListProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [country, setCountry] = useState<Country | null>(null)
 
+
   const handleDelete = async (country: Country) => {
     setIsDeleting(true)
     const result = await deleteCountry(country.id)
@@ -128,7 +129,7 @@ export function CountriesList({ countries }: CountriesListProps) {
           <Badge
             variant={status === 'ACTIVE' ? 'success' : 'rejected'}
           >
-            {t(`form.status.options.${status.toLowerCase()}`)}
+            {t(`form.status.options.${status.toLowerCase() as 'active' | 'inactive'}`)}
           </Badge>
         )
       },

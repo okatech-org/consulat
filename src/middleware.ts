@@ -8,7 +8,6 @@ export default auth((req) => {
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set('x-nonce', nonce)
 
-
   // Autoriser l'accès pour toutes les autres routes
   return NextResponse.next({
     request: {
