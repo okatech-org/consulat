@@ -19,6 +19,7 @@ interface ConfirmDialogProps {
   description: string
   confirmText?: string
   cancelText?: string
+  variant?: 'destructive' | 'secondary' | 'success' | 'default'
 }
 
 export function ConfirmDialog({
@@ -29,8 +30,16 @@ export function ConfirmDialog({
                                 description,
                                 confirmText,
                                 cancelText,
+                                variant = 'default'
                               }: ConfirmDialogProps) {
   const t = useTranslations('common.confirm')
+
+  const variantClass = {
+    destructive: '!bg-red-500 text-white',
+    secondary: '!bg-gray-500 text-white',
+    success: '!bg-green-500 text-white',
+    default: '!bg-primary-500 text-white'
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -41,7 +50,7 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelText || t('cancel')}</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
+          <AlertDialogAction onClick={onConfirm} className={variantClass[variant]}>
             {confirmText || t('confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>

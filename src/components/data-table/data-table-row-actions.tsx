@@ -9,11 +9,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { ReactNode } from 'react'
+import { Fragment, ReactNode } from 'react'
 
 type RowAction<T> = {
-  label: ReactNode
-  onClick: (row: T) => void
+  component?: ReactNode
+  label?: ReactNode
+  onClick?: (row: T) => void
   shortcut?: string
   subMenu?: RowAction<T>[]
 }
@@ -27,6 +28,7 @@ export function DataTableRowActions<TData>({
   row,
   actions
 }: DataTableRowActionsProps<TData>) {
+  console.log('actions', actions)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -40,34 +42,46 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         {actions.map((action, index) => (
-          action.subMenu ? (
-            <DropdownMenuSub key={index}>
+          <Fragment key={index}>
+            <DropdownMenuItem asChild>
+              {action.component}
+            </DropdownMenuItem>
+
+            {(action.label && action.onClick && !action.subMenu) && (
+              <DropdownMenuItem onClick={(event) => {
+                event.stopPropagation()
+                action.onClick?.(row.original)
+              }}>
+                {action.label}
+                {action.shortcut && (
+                  <DropdownMenuShortcut>{action.shortcut}</DropdownMenuShortcut>
+                )}
+              </DropdownMenuItem>
+            )}
+
+            {action.subMenu && <DropdownMenuSub key={index}>
               <DropdownMenuSubTrigger>{action.label}</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 {action.subMenu.map((subAction, subIndex) => (
-                  <DropdownMenuItem key={subIndex} onClick={(event) => {
-                    event.stopPropagation()
-                    subAction.onClick(row.original)
-                  }}>
-                    {subAction.label}
-                    {subAction.shortcut && (
-                      <DropdownMenuShortcut>{subAction.shortcut}</DropdownMenuShortcut>
+                  <Fragment key={subIndex + "sub"}>
+                    {action.component}
+
+                    {(subAction.label && subAction.onClick) && (
+                      <DropdownMenuItem onClick={(event) => {
+                        event.stopPropagation()
+                        subAction.onClick?.(row.original)
+                      }}>
+                        {subAction.label}
+                        {subAction.shortcut && (
+                          <DropdownMenuShortcut>{subAction.shortcut}</DropdownMenuShortcut>
+                        )}
+                      </DropdownMenuItem>
                     )}
-                  </DropdownMenuItem>
+                  </Fragment>
                 ))}
               </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          ) : (
-            <DropdownMenuItem key={index} onClick={(event) => {
-              event.stopPropagation()
-              action.onClick(row.original)
-            }}>
-              {action.label}
-              {action.shortcut && (
-                <DropdownMenuShortcut>{action.shortcut}</DropdownMenuShortcut>
-              )}
-            </DropdownMenuItem>
-          )
+            </DropdownMenuSub>}
+          </Fragment>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>

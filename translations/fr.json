@@ -3071,6 +3071,7 @@
         "loading": "Chargement des pays..."
       },
       "form": {
+        "edit_title": "Modifier le pays",
         "name": {
           "label": "Nom du pays",
           "placeholder": "Ex: France",
@@ -3233,7 +3234,8 @@
         "delete": "Supprimer",
         "activate": "Activer",
         "deactivate": "Désactiver",
-        "update": "Mettre à jour"
+        "update": "Mettre à jour",
+        "delete_confirm": "Êtes-vous sûr de vouloir supprimer ce service ?"
       },
       "tabs": {
         "general": "Informations générales",

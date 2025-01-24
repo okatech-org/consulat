@@ -19,7 +19,7 @@ export default async function ServicesPage() {
   return (
     <div className="container space-y-6">
       <CardContainer
-        title={<span className="text-3xl font-bold">{t('title')}</span>}
+        title={<span>{t('title')}</span>}
         action={<CreateServiceButton />}
       >
         {(servicesError || organizationsError) ? (

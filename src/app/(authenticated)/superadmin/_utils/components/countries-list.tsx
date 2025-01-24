@@ -22,6 +22,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { EditCountryDialog } from '@/app/(authenticated)/superadmin/_utils/components/edit-country-dialog'
+import Link from 'next/link'
+import { ROUTES } from '@/schemas/routes'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface CountriesListProps {
   countries: Country[]
@@ -150,20 +153,19 @@ export function CountriesList({ countries }: CountriesListProps) {
       id: "actions",
       cell: ({ row }) => <DataTableRowActions actions={[
         {
-          label: <><Pencil className="mr-1 size-4" /> {t_common('actions.edit')}</>,
-          onClick: (row) => {
-            setCountry(row)
-            setShowEditDialog(true)
-          },
+          component: <Link onClick={e => e.stopPropagation()} href={ROUTES.superadmin.edit_country(row.original.id)}>
+            <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
+          </Link>,
         },
         {
-          label: <><Trash className="mr-1 size-4" /><span className="text-destructive"> {t_common('actions.delete')}</span></>,
+          label: <><Trash className="mr-1 size-4 text-destructive" /><span className="text-destructive"> {t_common('actions.delete')}</span></>,
           onClick: (row) => {
             setCountry(row)
             setShowDeleteDialog(true)
           },
-        },
-      ]} row={row} />,
+        }
+      ]} row={row}
+      />,
     }
   ]
 
@@ -188,34 +190,16 @@ export function CountriesList({ countries }: CountriesListProps) {
             ],
           },
         ]}
-        onRowClick={(row) => {
-          setCountry(row.original)
-          setShowEditDialog(true)
-        }}
       />
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('dialogs.delete.title')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('dialogs.delete.description')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
-              {t('dialogs.delete.cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => handleDelete(country as Country)}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground"
-            >
-              {isDeleting ? t('actions.deleting') : t('dialogs.delete.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={() => handleDelete(country as Country)}
+        title={t('dialogs.delete.title')}
+        description={t('dialogs.delete.description')}
+        variant={'destructive'}
+      />
 
       {country && (
         <EditCountryDialog

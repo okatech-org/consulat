@@ -26,7 +26,7 @@ export default async function EditServicePage({ params }: { params: { id: string
   return (
     <div className="container h-full space-y-6">
       <CardContainer
-        title={<span className="text-3xl font-bold tracking-tight">
+        title={<span>
           {t('edit_title')} - {service.name}
         </span>}
       >

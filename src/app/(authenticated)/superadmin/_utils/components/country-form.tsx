@@ -17,11 +17,13 @@ import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { updateCountry } from '@/actions/countries'
+import { useToast } from '@/hooks/use-toast'
 
 interface CountryFormProps {
   initialData?: Country
   isLoading?: boolean
-  onSubmit: (data: CountrySchemaInput) => Promise<void>
+  onSubmit?: (data: CountrySchemaInput) => Promise<void>
 }
 
 export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormProps) {
@@ -32,6 +34,7 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
   const [open, setOpen] = React.useState(false)
   const [isLoadingCountries, setIsLoadingCountries] = useState(false)
   const locale = useLocale()
+  const { toast } = useToast()
 
   const form = useForm<CountrySchemaInput>({
     resolver: zodResolver(countrySchema),
@@ -66,9 +69,27 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
     setOpen(false)
   }
 
+  const handleSubmit = async (data: CountrySchemaInput) => {
+    if (!data.id) return
+
+    const result = await updateCountry(data)
+
+    if (result.error) {
+      toast({
+        title: t('messages.error.update'),
+        variant: 'destructive'
+      })
+      return
+    }
+
+    toast({
+      title: t('messages.updateSuccess')
+    })
+  }
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit ? onSubmit : handleSubmit)} className="space-y-4">
         {!initialData && (
           <FormField
             control={form.control}

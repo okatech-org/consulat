@@ -1,11 +1,11 @@
 'use server'
 
 import { db } from '@/lib/prisma'
-import { checkAuth } from '@/lib/auth/action'
+import { ActionResult, checkAuth } from '@/lib/auth/action'
 import { UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/schemas/routes'
-import { CountryMetadata, CreateCountryInput } from '@/types/country'
+import { Country, CountryMetadata, CreateCountryInput } from '@/types/country'
 import { CountrySchemaInput } from '@/schemas/country'
 
 export async function getCountries() {
@@ -98,5 +98,26 @@ export async function deleteCountry(id: string) {
   } catch (error) {
     console.error('Error deleting country:', error)
     return { error: 'Failed to delete country' }
+  }
+}
+
+export async function getCountryById(id: string): Promise<ActionResult<Country>> {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    const country = await db.country.findUnique({
+      where: { id },
+      include: { _count: { select: { organizations: true, users: true } } },
+    });
+
+    if (!country) {
+      return { error: 'Country not found' };
+    }
+
+    return { data: { ...country, metadata: country.metadata ? JSON.parse(country.metadata as string) : {} } };
+  } catch (error) {
+    console.error('Error fetching country:', error);
+    return { error: 'Failed to fetch country' };
   }
 }

@@ -14,7 +14,7 @@ export default async function OrganizationsPage() {
   return (
     <div className="container space-y-6">
       <CardContainer
-        title={<span className="text-3xl font-bold">{t('title')}</span>}
+        title={<span>{t('title')}</span>}
         action={<CreateOrganizationButton countries={countries ?? []} />}
       >
         <OrganizationsTable countries={countries ?? []} organizations={organizations ?? []} />

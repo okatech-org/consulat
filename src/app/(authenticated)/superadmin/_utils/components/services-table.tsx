@@ -7,7 +7,6 @@ import { DataTable } from '@/components/data-table/data-table'
 import { ConsularServiceListingItem, UpdateServiceInput } from '@/types/consular-service'
 import { ServiceCategory } from '@prisma/client'
 import { Organization } from '@/types/organization'
-import { ServiceActions } from '@/app/(authenticated)/superadmin/_utils/components/service-actions'
 import {
   deleteService,
   duplicateService,
@@ -19,6 +18,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useState } from 'react'
 import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form'
 import { useRouter } from 'next/navigation'
+import { DataTableRowActions } from '@/components/data-table/data-table-row-actions'
+import Link from 'next/link'
+import { ROUTES } from '@/schemas/routes'
+import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react'
+import * as React from 'react'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export function ServicesTable({
                                 services}: {
@@ -33,6 +38,7 @@ export function ServicesTable({
   const [showEditDialog, setShowEditDialog] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleStatusChange = async (serviceId: string, status: boolean) => {
     setIsLoading(true)
@@ -156,22 +162,50 @@ export function ServicesTable({
       sortingFn: 'auto',
     },
     {
-      id: 'actions',
-      header: t('table.actions'),
-      cell: ({ row }) => (
-        <ServiceActions
-          service={row.original}
-          onStatusChange={async () => {
-            await handleStatusChange(row.original.id, !row.original.isActive)
-          }}
-          onServiceDelete={async () => {
-            await handleDelete(row.original.id)
-          }}
-          onDuplicateService={() => handleDuplicateService(row.original.id)}
-          isLoading={isLoading}
-        />
-      ),
-    },
+      id: "actions",
+      cell: ({ row }) => <DataTableRowActions actions={[
+        {
+          component: <Link onClick={e => e.stopPropagation()} href={ROUTES.superadmin.edit_service(row.original.id)}>
+            <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
+          </Link>,
+        },
+        {
+          label: <>
+            <Copy className="mr-1 size-4" />
+            {t_common('actions.duplicate')}
+          </>,
+          onClick: (row) => {
+            handleDuplicateService(row.id)
+          },
+        },
+        {
+          label: <>
+            {row.original.isActive ? (
+              <>
+                <Ban className="mr-2 size-4" />
+                {t_common('actions.deactivate')}
+              </>
+            ) : (
+              <>
+                <CheckCircle className="mr-2 size-4" />
+                {t_common('actions.activate')}
+              </>
+            )}
+          </>,
+          onClick: (row) => {
+            handleStatusChange(row.id, !row.isActive)
+          },
+        },
+        {
+          label: <><Trash className="mr-1 size-4 text-destructive" /><span className="text-destructive"> {t_common('actions.delete')}</span></>,
+          onClick: (row) => {
+            setSelectedService(row)
+            setShowDeleteDialog(true)
+          },
+        }
+      ]} row={row}
+      />,
+    }
   ]
 
   return (
@@ -225,6 +259,17 @@ export function ServicesTable({
           )}
         </DialogContent>
       </Dialog>
+
+      {selectedService && (
+        <ConfirmDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={() => handleDelete(selectedService?.id)}
+          title={t_common('actions.delete')}
+          description={t('actions.delete_confirm')}
+          variant={'destructive'}
+        />
+      )}
     </>
   )
 }
