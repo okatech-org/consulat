@@ -156,7 +156,7 @@ export function CountriesList({ countries }: CountriesListProps) {
               component: (
                 <Link
                   onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.superadmin.edit_country(row.original.id)}
+                  href={ROUTES.sa.edit_country(row.original.id)}
                 >
                   <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
                 </Link>

@@ -23,7 +23,7 @@ export async function getCountries() {
         },
       },
     });
-    
+
     return {
       data: countries.map((item) => ({
         ...item,
@@ -51,7 +51,7 @@ export async function createCountry(data: CreateCountryInput) {
       },
     });
 
-    revalidatePath(ROUTES.superadmin.countries);
+    revalidatePath(ROUTES.sa.countries);
     return { data: country };
   } catch (error) {
     console.error('Error creating country:', error);
@@ -76,7 +76,7 @@ export async function updateCountry(data: CountrySchemaInput) {
       },
     });
 
-    revalidatePath(ROUTES.superadmin.countries);
+    revalidatePath(ROUTES.sa.countries);
     return { data: country };
   } catch (error) {
     console.error('Error updating country:', error);
@@ -93,7 +93,7 @@ export async function deleteCountry(id: string) {
       where: { id },
     });
 
-    revalidatePath(ROUTES.superadmin.countries);
+    revalidatePath(ROUTES.sa.countries);
     return { success: true };
   } catch (error) {
     console.error('Error deleting country:', error);

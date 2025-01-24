@@ -49,7 +49,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
   );
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-
+  
   console.log(JSON.stringify(organization, null, 2));
 
   const form = useForm<OrganizationSettingsFormData>({
@@ -86,7 +86,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
     } catch (error) {
       toast({
         title: t('messages.error.update'),
-        description: t('messages.error.unknown'),
+        description: t('messages.error.unknown') + error,
         variant: 'destructive',
       });
     } finally {
@@ -154,7 +154,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                 <CardHeader>
                   <CardTitle>
                     {t('organization.configForCountry', {
-                      country: t_countries(country.code.toLowerCase()),
+                      country: t_countries(country.code.toLowerCase() as any),
                     })}
                   </CardTitle>
                 </CardHeader>
@@ -330,8 +330,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                      {// eslint-disable-next-line
-                      form
+                      {form
                         .watch(`metadata.${country.code}.settings.holidays`)
                         ?.map((_: any, index: React.Key | null | undefined) => (
                           <Card key={index}>
@@ -426,8 +425,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {// eslint-disable-next-line
-                      form
+                      {form
                         .watch(`metadata.${country.code}.settings.closures`)
                         ?.map((_: any, index: React.Key | null | undefined) => (
                           <Card key={index}>

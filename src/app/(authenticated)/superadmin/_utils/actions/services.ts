@@ -32,12 +32,7 @@ export async function getServices(): Promise<{
         description: true,
         category: true,
         isActive: true,
-        organization: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        organizationId: true,
       },
     });
 
@@ -66,7 +61,7 @@ export async function createService(data: NewServiceSchemaInput) {
       },
     });
 
-    revalidatePath(ROUTES.superadmin.services);
+    revalidatePath(ROUTES.sa.services);
     return { data: service };
   } catch (error) {
     console.error('Error creating service:', error);
@@ -131,7 +126,7 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
       });
     });
 
-    revalidatePath(ROUTES.superadmin.services);
+    revalidatePath(ROUTES.sa.services);
     return { data: service };
   } catch (error) {
     console.error('Error updating service:', error);
@@ -151,7 +146,7 @@ export async function updateServiceStatus(id: string, isActive: boolean) {
       },
     });
 
-    revalidatePath(ROUTES.superadmin.services);
+    revalidatePath(ROUTES.sa.services);
     return { data: service };
   } catch (error) {
     console.error('Error updating service status:', error);
@@ -191,7 +186,7 @@ export async function deleteService(id: string) {
       where: { id },
     });
 
-    revalidatePath(ROUTES.superadmin.services);
+    revalidatePath(ROUTES.sa.services);
     return { success: true };
   } catch (error) {
     console.error('Error deleting service:', error);
@@ -219,7 +214,7 @@ export async function assignServiceToOrganization(
       },
     });
 
-    revalidatePath(ROUTES.superadmin.services);
+    revalidatePath(ROUTES.sa.services);
     return { success: true };
   } catch (error) {
     console.error('Error assigning service:', error);
@@ -247,7 +242,7 @@ export async function unassignServiceFromOrganization(
       },
     });
 
-    revalidatePath(ROUTES.superadmin.services);
+    revalidatePath(ROUTES.sa.services);
     return { success: true };
   } catch (error) {
     console.error('Error unassigning service:', error);
@@ -343,7 +338,7 @@ export async function duplicateService(
       include: { steps: true, organization: true },
     });
 
-    revalidatePath(ROUTES.superadmin.services);
+    revalidatePath(ROUTES.sa.services);
     return { data: duplicatedService.id };
   } catch (error) {
     console.error('Error duplicating service:', error);

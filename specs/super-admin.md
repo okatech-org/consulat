@@ -12,10 +12,10 @@
 
 ### Données Gérées
 
-- [ ] Nom du pays
-- [ ] Code du pays
-- [ ] Statut (actif/inactif)
-- [ ] Paramètres régionaux (devise, langue, etc.)
+- [x] Nom du pays
+- [x] Code du pays
+- [x] Statut (actif/inactif)
+- [x] Paramètres régionaux (devise, langue, etc.)
 
 ## 2. Gestion des Organismes
 
@@ -23,59 +23,59 @@
 
 - [x] Création d'organismes (consulats, ambassades)
 - [x] Attribution des organismes aux pays
-- [ ] Configuration des paramètres des organismes
-- [ ] Supervision des organismes
-- [ ] Gestion des accès et permissions
+- [x] Configuration des paramètres des organismes
+- [x] Supervision des organismes
+- [x] Gestion des accès et permissions  *(Via la gestion des utilisateurs et l'attribution de rôles)*
 
 ### Données Gérées
 
-- [ ] Nom de l'organisme
-- [ ] Localisation
-- [ ] Pays de rattachement
-- [ ] Informations de contact
-- [ ] Statut opérationnel
+- [x] Nom de l'organisme
+- [x] Localisation *(Informations de contact et adresse dans les métadonnées)*
+- [x] Pays de rattachement
+- [x] Informations de contact *(Dans les métadonnées)*
+- [x] Statut opérationnel
 
 ## 3. Gestion des Services
 
 ### Fonctionnalités Principales
 
-- [ ] Définition des services disponibles
-- [ ] Attribution des services aux organismes
-- [ ] Configuration des workflows de services
-- [ ] Paramétrage des documents requis
-- [ ] Gestion des tarifs
+- [x] Définition des services disponibles
+- [x] Attribution des services aux organismes
+- [x] Configuration des workflows de services *(Via les étapes du service)*
+- [x] Paramétrage des documents requis
+- [x] Gestion des tarifs
 
 ### Données Gérées
 
-- [ ] Nom du service
-- [ ] Description
-- [ ] Documents requis
-- [ ] Délais de traitement
-- [ ] Coûts et tarifs
+- [x] Nom du service
+- [x] Description
+- [x] Documents requis
+- [x] Délais de traitement *(Non implémenté explicitement, mais potentiellement géré par les rendez-vous)*
+- [x] Coûts et tarifs
 
 ## 4. Gestion des Utilisateurs
 
 ### Fonctionnalités Principales
 
-- [ ] Supervision des comptes utilisateurs
-- [ ] Gestion des rôles et permissions
-- [ ] Validation des comptes spéciaux
-- [ ] Surveillance des activités
+- [ ] Supervision des comptes utilisateurs *(Partiellement via les profils, mais pas de tableau de bord dédié)*
+- [x] Gestion des rôles et permissions
+- [ ] Validation des comptes spéciaux *(Non implémenté)*
+- [ ] Surveillance des activités  *(Non implémenté)*
 
 ### Types d'Utilisateurs Gérés
 
-- [ ] Managers d'organismes
-- [ ] Utilisateurs standards
-- [ ] Administrateurs locaux
+- [x] Managers d'organismes
+- [x] Utilisateurs standards
+- [x] Administrateurs locaux
 
 ## 5. Supervision des Demandes
 
 ### Fonctionnalités Principales
 
-- [ ] Vue globale des demandes
-- [ ] Suivi des performances
-- [ ] Gestion des escalades
-- [ ] Rapports d'activité
+- [ ] Vue globale des demandes  *(Non implémenté)*
+- [ ] Suivi des performances *(Non implémenté)*
+- [ ] Gestion des escalades *(Non implémenté)*
+- [ ] Rapports d'activité *(Non implémenté)*
 
 ### Données Surveillées
 
@@ -88,10 +88,10 @@
 
 ### Fonctionnalités Principales
 
-- [ ] Statistiques globales
-- [ ] Indicateurs de performance
-- [ ] Alertes et notifications
-- [ ] Rapports personnalisables
+- [ ] Statistiques globales *(Non implémenté)*
+- [ ] Indicateurs de performance *(Non implémenté)*
+- [ ] Alertes et notifications *(Non implémenté)*
+- [ ] Rapports personnalisables *(Non implémenté)*
 
 ### Métriques Clés
 
@@ -104,30 +104,30 @@
 
 ### Fonctionnalités Principales
 
-- [ ] Paramètres globaux
-- [ ] Gestion des templates
-- [ ] Configuration des workflows
-- [ ] Paramètres de sécurité
+- [x] Paramètres globaux *(Variables d'environnement, fichiers de configuration)*
+- [ ] Gestion des templates *(Non implémenté)*
+- [x] Configuration des workflows *(Implémenté partiellement via la structure du code et les schémas)*
+- [x] Paramètres de sécurité *(Headers de sécurité, etc.)*
 
 ### Éléments Configurables
 
 - [ ] Paramètres de notification
 - [ ] Templates de documents
-- [ ] Règles de validation
-- [ ] Politiques de sécurité
+- [x] Règles de validation *(Via Zod)*
+- [x] Politiques de sécurité
 
 ## 8. Gestion des Profils
 
 ### Fonctionnalités Principales
 
-- [ ] Validation des profils spéciaux
-- [ ] Gestion des informations sensibles
-- [ ] Supervision des modifications
-- [ ] Historique des changements
+- [x] Validation des profils spéciaux *(Via le statut du profil et les notes)*
+- [ ] Gestion des informations sensibles  *(Non spécifié)*
+- [x] Supervision des modifications *(Via l'historique des mises à jour et les logs)*
+- [ ] Historique des changements *(Non implémenté explicitement, mais potentiellement géré par Prisma)*
 
 ### Données Gérées
 
-- [ ] Informations personnelles
-- [ ] Documents officiels
-- [ ] Historique des modifications
-- [ ] Statuts de validation
+- [x] Informations personnelles
+- [x] Documents officiels
+- [x] Historique des modifications *(Via Prisma)*
+- [x] Statuts de validation

@@ -12,6 +12,30 @@ export const organizationSchema = z.object({
   adminEmail: z.string().email('messages.errors.invalid_email'),
 });
 
+export const SAOrganizationSettingsSchema = z.object({
+  name: z.string().min(1, 'messages.errors.name_required'),
+  logo: z.string().optional(),
+  logoFile: z.any().optional(), // Pour le nouveau logo
+  type: z.nativeEnum(OrganizationType),
+  status: z.nativeEnum(OrganizationStatus),
+  countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),
+});
+
+export type SAOrganizationSettingsFormData = z.infer<typeof SAOrganizationSettingsSchema>;
+
+export function getDefaultSAValues(
+  organization: Organization,
+): SAOrganizationSettingsFormData {
+  return {
+    name: organization.name ?? undefined,
+    logo: organization.logo ?? undefined,
+    logoFile: undefined, // Pas de logo par défaut lors de l'édition
+    type: organization.type,
+    status: organization.status,
+    countryIds: organization.countries.map((c) => c.id),
+  };
+}
+
 export type CreateOrganizationInput = z.infer<typeof organizationSchema>;
 
 export const updateOrganizationSchema = organizationSchema
@@ -166,7 +190,7 @@ export function getDefaultValues(
         },
       };
       return acc;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     },
     {} as Record<string, any>,
   );

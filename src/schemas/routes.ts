@@ -15,7 +15,7 @@ export const ROUTES = {
   auth_error: '/auth/error' as Route<string>,
 
   // Pages administratives
-  superadmin: {
+  sa: {
     base: '/superadmin' as Route<string>,
     dashboard: '/superadmin/dashboard' as Route<string>,
     countries: '/superadmin/countries' as Route<string>,

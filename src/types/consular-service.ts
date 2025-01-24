@@ -87,8 +87,5 @@ export interface ConsularServiceListingItem {
   description: string | null;
   category: ServiceCategory;
   isActive: boolean;
-  organization: {
-    id: string;
-    name: string;
-  } | null;
+  organizationId: string | null;
 }

@@ -66,7 +66,7 @@ export async function createOrganization(data: CreateOrganizationInput) {
       });
     }
 
-    revalidatePath(ROUTES.superadmin.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to create organization:', error);
@@ -93,7 +93,7 @@ export async function updateOrganization(id: string, data: UpdateOrganizationInp
       },
     });
 
-    revalidatePath(ROUTES.superadmin.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to update organization:', error);
@@ -113,7 +113,7 @@ export async function updateOrganizationStatus(id: string, status: OrganizationS
       data: { status },
     });
 
-    revalidatePath(ROUTES.superadmin.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to update organization status:', error);
@@ -152,7 +152,7 @@ export async function deleteOrganization(id: string) {
       where: { id },
     });
 
-    revalidatePath(ROUTES.superadmin.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { success: true };
   } catch (error) {
     console.error('Error deleting organization:', error);

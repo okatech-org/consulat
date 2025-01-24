@@ -1,10 +1,5 @@
-import {
-  OrganizationType,
-  OrganizationStatus,
-  Country,
-  ConsularService,
-  User,
-} from '@prisma/client';
+import { OrganizationType, OrganizationStatus, Country, User } from '@prisma/client';
+import { ConsularServiceListingItem } from '@/types/consular-service';
 
 export interface Organization {
   id: string;
@@ -15,7 +10,7 @@ export interface Organization {
   countries: Country[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: any;
-  services?: ConsularService[];
+  services?: ConsularServiceListingItem[];
   createdAt: Date;
   updatedAt: Date;
   User: User | null;

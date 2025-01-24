@@ -24,9 +24,11 @@ import { ROUTES } from '@/schemas/routes';
 import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react';
 import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { getOrganizationFromId } from '@/app/(authenticated)/superadmin/_utils/services';
 
 export function ServicesTable({
   services,
+  organizations = [],
 }: {
   services: ConsularServiceListingItem[];
   organizations: Organization[];
@@ -148,7 +150,7 @@ export function ServicesTable({
       accessorKey: 'organization',
       header: t('table.organization'),
       cell: ({ row }) =>
-        row.original.organization?.name || (
+        getOrganizationFromId(organizations, row.original.organizationId)?.name || (
           <Badge variant="default">{t_common('status.not_assigned')}</Badge>
         ),
     },
@@ -172,7 +174,7 @@ export function ServicesTable({
               component: (
                 <Link
                   onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.superadmin.edit_service(row.original.id)}
+                  href={ROUTES.sa.edit_service(row.original.id)}
                 >
                   <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
                 </Link>

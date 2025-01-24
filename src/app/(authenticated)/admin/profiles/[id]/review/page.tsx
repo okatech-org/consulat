@@ -1,11 +1,11 @@
-import { getProfileById } from '@/app/(authenticated)/admin/_utils/actions/profiles';
-import { ProfileReview } from '@/app/(authenticated)/admin/_utils/profiles/profile-review';
-import { ROUTES } from '@/schemas/routes';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { buttonVariants } from '@/components/ui/button';
 import { getTranslations } from 'next-intl/server';
+import { getProfileById } from '../../../_utils/actions/profiles';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { ROUTES } from '../../../../../../schemas/routes';
+import { buttonVariants } from '../../../../../../components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { ProfileReview } from '../../../_utils/profiles/profile-review';
 
 interface ProfileReviewPageProps {
   params: {

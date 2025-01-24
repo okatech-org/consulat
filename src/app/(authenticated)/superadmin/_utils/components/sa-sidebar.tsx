@@ -28,27 +28,27 @@ export default async function SuperAdminSidebar({
   const navigation = [
     {
       title: t('dashboard'),
-      href: ROUTES.superadmin.base,
+      href: ROUTES.sa.base,
       icon: <LayoutDashboard className="size-icon" />,
     },
     {
       title: t('countries'),
-      href: ROUTES.superadmin.countries,
+      href: ROUTES.sa.countries,
       icon: <Globe className="size-icon" />,
     },
     {
       title: t('organizations'),
-      href: ROUTES.superadmin.organizations,
+      href: ROUTES.sa.organizations,
       icon: <Building2 className="size-icon" />,
     },
     {
       title: t('services'),
-      href: ROUTES.superadmin.services,
+      href: ROUTES.sa.services,
       icon: <Settings className="size-icon" />,
     },
     {
       title: t('users'),
-      href: ROUTES.superadmin.users,
+      href: ROUTES.sa.users,
       icon: <Users className="size-icon" />,
     },
   ];
