@@ -9,11 +9,12 @@
     "lint": "next lint",
     "prisma-studio": "pnpx prisma studio",
     "dev:database": "docker-compose up -d",
-    "format": "prettier --write .",
     "postai-sum": "node ./scripts/minifyMarkdown.js",
     "ai-sum": "pnpx ai-digest -o ai-sum/.code_base.md --whitespace-removal --show-output-files",
     "db:seed": "NODE_ENV=development ts-node --project tsconfig.seed.json scripts/seed.ts",
-    "tree": "tree --gitignore -o tree.md"
+    "tree": "tree --gitignore -o tree.md",
+    "format": "prettier --check './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc.json",
+    "format:fix": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc.json"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.35.0",
@@ -107,6 +108,7 @@
     "@types/react-dom": "^19.0.3",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
+    "@typescript-eslint/parser": "^8.21.0",
     "ai-digest": "^1.0.7",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.18.0",

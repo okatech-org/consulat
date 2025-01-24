@@ -1,24 +1,11 @@
 {
-  "env": {
-    "node": true
-  },
-  "plugins": [
-    "@typescript-eslint",
-    "tailwindcss"
-  ],
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
-    "prettier",
-    "plugin:@next/next/recommended",
-    "plugin:@next/next/recommended",
-    "plugin:tailwindcss/recommended"
+    "plugin:prettier/recommended"
   ],
+  "parser": "@typescript-eslint/parser",
   "rules": {
-    "@typescript-eslint/no-unused-vars": "error",
-    "@typescript-eslint/no-explicit-any": "error",
-    "tailwindcss/classnames-order": "warn",
-    "tailwindcss/enforces-shorthand": "warn",
-    "tailwindcss/no-custom-classname": "off"
+    "@typescript-eslint/no-explicit-any": "error"
   }
 }

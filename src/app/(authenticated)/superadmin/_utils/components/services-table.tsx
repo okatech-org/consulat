@@ -26,7 +26,8 @@ import * as React from 'react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export function ServicesTable({
-                                services}: {
+                                services,
+                              }: {
   services: ConsularServiceListingItem[]
   organizations: Organization[]
 }) {
@@ -49,20 +50,20 @@ export function ServicesTable({
 
       toast({
         title: t('messages.updateSuccess'),
-        variant: 'success'
+        variant: 'success',
       })
     } catch (error) {
       toast({
         title: t('messages.error.update'),
         variant: 'destructive',
-        description: `${error}`
+        description: `${error}`,
       })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDelete = async (serviceId :string) => {
+  const handleDelete = async (serviceId: string) => {
     setIsLoading(true)
     try {
       const result = await deleteService(serviceId)
@@ -71,13 +72,13 @@ export function ServicesTable({
 
       toast({
         title: t('messages.deleteSuccess'),
-        variant: 'success'
+        variant: 'success',
       })
     } catch (error) {
       toast({
         title: t('messages.error.delete'),
         variant: 'destructive',
-        description: `${error}`
+        description: `${error}`,
       })
     } finally {
       setIsLoading(false)
@@ -93,13 +94,13 @@ export function ServicesTable({
 
       toast({
         title: t_messages('success.update'),
-        variant: 'success'
+        variant: 'success',
       })
     } catch (error) {
       toast({
         title: t_messages('errors.update'),
         variant: 'destructive',
-        description: `${error}`
+        description: `${error}`,
       })
     } finally {
       setSelectedService(null)
@@ -109,26 +110,26 @@ export function ServicesTable({
   }
 
   const handleDuplicateService = async (serviceId: string) => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const result = await duplicateService(serviceId);
+      const result = await duplicateService(serviceId)
       if (result.error) {
         toast({
           title: t_messages('errors.duplicate'),
           description: result.error,
           variant: 'destructive',
-        });
+        })
       } else {
         toast({
           title: t_messages('success.duplicate'),
           variant: 'success',
-        });
-        router.refresh();
+        })
+        router.refresh()
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const columns: ColumnDef<ConsularServiceListingItem>[] = [
     {
@@ -140,7 +141,7 @@ export function ServicesTable({
       accessorKey: 'category',
       header: t('table.category'),
       cell: ({ row }) => t_common(`service_categories.${row.original.category}`),
-      filterFn: "arrIncludesSome"
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'organization',
@@ -162,7 +163,7 @@ export function ServicesTable({
       sortingFn: 'auto',
     },
     {
-      id: "actions",
+      id: 'actions',
       cell: ({ row }) => <DataTableRowActions actions={[
         {
           component: <Link onClick={e => e.stopPropagation()} href={ROUTES.superadmin.edit_service(row.original.id)}>
@@ -197,15 +198,16 @@ export function ServicesTable({
           },
         },
         {
-          label: <><Trash className="mr-1 size-4 text-destructive" /><span className="text-destructive"> {t_common('actions.delete')}</span></>,
+          label: <><Trash className="mr-1 size-4 text-destructive" /><span
+            className="text-destructive"> {t_common('actions.delete')}</span></>,
           onClick: (row) => {
             setSelectedService(row)
             setShowDeleteDialog(true)
           },
-        }
+        },
       ]} row={row}
       />,
-    }
+    },
   ]
 
   return (
@@ -267,8 +269,7 @@ export function ServicesTable({
           onConfirm={() => handleDelete(selectedService?.id)}
           title={t_common('actions.delete')}
           description={t('actions.delete_confirm')}
-          variant={'destructive'}
-        />
+          variant={'destructive'} />
       )}
     </>
   )
