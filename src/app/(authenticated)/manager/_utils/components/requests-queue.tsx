@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useTranslations } from "next-intl"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 interface QueueItem {
-  id: string
-  type: string
-  status: string
-  createdAt: Date
-  priority: 'high' | 'medium' | 'low'
+  id: string;
+  type: string;
+  status: string;
+  createdAt: Date;
+  priority: 'high' | 'medium' | 'low';
 }
 
 export function RequestsQueue() {
-  const t = useTranslations('manager.dashboard')
+  const t = useTranslations('manager.dashboard');
 
   // TODO: Remplacer par les vraies données
   const queueItems: QueueItem[] = [
@@ -23,9 +23,9 @@ export function RequestsQueue() {
       type: 'PASSPORT_REQUEST',
       status: 'PENDING',
       createdAt: new Date(),
-      priority: 'high'
-    }
-  ]
+      priority: 'high',
+    },
+  ];
 
   return (
     <Card>
@@ -42,7 +42,9 @@ export function RequestsQueue() {
                   className="flex items-center justify-between rounded-lg border p-4"
                 >
                   <div>
-                    <p className="font-medium">{t(`requests.types.${item.type.toLowerCase()}`)}</p>
+                    <p className="font-medium">
+                      {t(`requests.types.${item.type.toLowerCase()}`)}
+                    </p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(item.createdAt).toLocaleDateString()}
                     </p>
@@ -69,5 +71,5 @@ export function RequestsQueue() {
         </ScrollArea>
       </CardContent>
     </Card>
-  )
+  );
 }

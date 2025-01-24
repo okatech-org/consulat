@@ -1,28 +1,30 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { StatsCard } from '@/components/ui/stats-card'
+import { useTranslations } from 'next-intl';
+import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { StatsCard } from '@/components/ui/stats-card';
 
 export function DashboardStats() {
-  const t = useTranslations('admin.dashboard')
+  const t = useTranslations('admin.dashboard');
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['adminStats'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/stats')
-      if (!response.ok) throw new Error('Failed to fetch stats')
-      return response.json()
-    }
-  })
+      const response = await fetch('/api/admin/stats');
+      if (!response.ok) throw new Error('Failed to fetch stats');
+      return response.json();
+    },
+  });
 
   if (isLoading) {
-    return <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-[120px] animate-pulse rounded-lg bg-muted" />
-      ))}
-    </div>
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-[120px] animate-pulse rounded-lg bg-muted" />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -39,7 +41,7 @@ export function DashboardStats() {
         icon={FileText}
         trend={{
           value: stats.reviewsTrend,
-          isPositive: stats.reviewsTrend < 0
+          isPositive: stats.reviewsTrend < 0,
         }}
       />
       <StatsCard
@@ -54,9 +56,9 @@ export function DashboardStats() {
         icon={CheckCircle}
         trend={{
           value: stats.validationTrend,
-          isPositive: stats.validationTrend > 0
+          isPositive: stats.validationTrend > 0,
         }}
       />
     </div>
-  )
+  );
 }

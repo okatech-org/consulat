@@ -1,12 +1,12 @@
-"use client"
+'use client';
 
-import { ChevronRight } from "lucide-react"
+import { ChevronRight } from 'lucide-react';
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from '@/components/ui/collapsible';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -17,34 +17,32 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
-import { useTranslations } from 'next-intl'
-import { NavItem } from '@/types/navigation'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+} from '@/components/ui/sidebar';
+import { useTranslations } from 'next-intl';
+import { NavItem } from '@/types/navigation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-export function NavMain({
-  items,
-}: {
-  items: NavItem[]
-}) {
-  const path = usePathname()
+export function NavMain({ items }: { items: NavItem[] }) {
+  const path = usePathname();
 
   function isActive(href: string) {
-    return path === href
+    return path === href;
   }
 
-  const t = useTranslations("navigation")
+  const t = useTranslations('navigation');
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>
-        {t("menu")}
-      </SidebarGroupLabel>
+      <SidebarGroupLabel>{t('menu')}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={isActive(item.href)} asChild tooltip={item.title}>
+              <SidebarMenuButton
+                isActive={isActive(item.href)}
+                asChild
+                tooltip={item.title}
+              >
                 <Link href={item.href}>
                   {item.icon}
                   <span>{item.title}</span>
@@ -78,5 +76,5 @@ export function NavMain({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

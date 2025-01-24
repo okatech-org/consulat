@@ -1,23 +1,23 @@
-"use client"
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { Calendar, Clock, MapPin, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge, BadgeVariant } from '@/components/ui/badge'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { useTranslations } from 'next-intl';
+import { Calendar, Clock, MapPin, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge, BadgeVariant } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface AppointmentsSectionProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stats: any['appointments']
-  onAction?: (action: string) => void
+  stats: any['appointments'];
+  onAction?: (action: string) => void;
 }
 
 export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProps) {
-  const t = useTranslations('components.dashboard.sections.appointments')
+  const t = useTranslations('components.dashboard.sections.appointments');
 
-  if (!stats) return null
+  if (!stats) return null;
 
   return (
     <Card>
@@ -52,7 +52,9 @@ export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProp
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="size-4 text-muted-foreground" />
                 <span>
-                  {format(new Date(stats.upcoming.date), "PPP 'à' HH'h'mm", { locale: fr })}
+                  {format(new Date(stats.upcoming.date), "PPP 'à' HH'h'mm", {
+                    locale: fr,
+                  })}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
@@ -81,9 +83,7 @@ export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProp
           </div>
         ) : (
           <div className="rounded-lg border border-dashed p-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              {t('no_upcoming')}
-            </p>
+            <p className="text-sm text-muted-foreground">{t('no_upcoming')}</p>
             <Button
               className="mt-2"
               size="sm"
@@ -107,5 +107,5 @@ export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProp
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

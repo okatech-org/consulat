@@ -1,11 +1,11 @@
-'use server'
+'use server';
 
-import { Resend } from 'resend'
-import { sendSMS } from '@/lib/twilio'
-import { getTranslations } from 'next-intl/server'
+import { Resend } from 'resend';
+import { sendSMS } from '@/lib/twilio';
+import { getTranslations } from 'next-intl/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const resend_sender = process.env.RESEND_SENDER ?? 'contact@update.okacode.com'
+const resend = new Resend(process.env.RESEND_API_KEY);
+const resend_sender = process.env.RESEND_SENDER ?? 'contact@update.okacode.com';
 
 // Design system colors from globals.css
 const colors = {
@@ -17,10 +17,10 @@ const colors = {
   mutedForeground: 'hsl(215.4 16.3% 46.9%)',
   destructive: 'hsl(0 84.2% 60.2%)',
   border: 'hsl(214.3 31.8% 91.4%)',
-}
+};
 
 async function createBaseEmailTemplate(content: string) {
-  const t = await getTranslations('emails.common')
+  const t = await getTranslations('emails.common');
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
@@ -40,12 +40,12 @@ async function createBaseEmailTemplate(content: string) {
         </a>
       </footer>
     </div>
-  `
+  `;
 }
 
 export async function sendOTPEmail(email: string, otp: string) {
-  const otpEmail = await createOTPEmailTemplate(otp)
-  const t = await getTranslations('emails.otp')
+  const otpEmail = await createOTPEmailTemplate(otp);
+  const t = await getTranslations('emails.otp');
 
   try {
     await resend.emails.send({
@@ -59,46 +59,46 @@ export async function sendOTPEmail(email: string, otp: string) {
           value: 'otp-verification',
         },
       ],
-    })
+    });
   } catch (error) {
-    console.error('Failed to send OTP email:', error)
-    throw new Error('Failed to send verification code')
+    console.error('Failed to send OTP email:', error);
+    throw new Error('Failed to send verification code');
   }
 }
 
 export async function sendSMSOTP(phone: string, otp: string) {
-  const t = await getTranslations('sms.otp')
+  const t = await getTranslations('sms.otp');
 
   try {
     if (!process.env.TWILIO_PHONE_NUMBER) {
-      console.error('TWILIO_PHONE_NUMBER not configured')
-      throw new Error('SMS service not properly configured')
+      console.error('TWILIO_PHONE_NUMBER not configured');
+      throw new Error('SMS service not properly configured');
     }
 
     const message = t('message', {
       otp,
       expiry: t('expiry_time'),
       appName: t('app_name'),
-    })
+    });
 
-    await sendSMS(phone, message)
-    console.log(t('logs.success', { phone }))
+    await sendSMS(phone, message);
+    console.log(t('logs.success', { phone }));
   } catch (error) {
-    console.error(t('logs.error'), error)
+    console.error(t('logs.error'), error);
 
     if (error instanceof Error) {
       if (error.message.includes('not a Twilio phone number')) {
-        throw new Error(t('errors.invalid_config'))
+        throw new Error(t('errors.invalid_config'));
       }
-      throw new Error(t('errors.send_failed', { error: error.message }))
+      throw new Error(t('errors.send_failed', { error: error.message }));
     }
 
-    throw new Error(t('errors.unknown'))
+    throw new Error(t('errors.unknown'));
   }
 }
 
 export async function createOTPEmailTemplate(otp: string) {
-  const t = await getTranslations('emails.otp')
+  const t = await getTranslations('emails.otp');
 
   const content = `
     <div style="padding: 20px;">
@@ -124,7 +124,7 @@ export async function createOTPEmailTemplate(otp: string) {
         </p>
       </div>
     </div>
-  `
+  `;
 
-  return createBaseEmailTemplate(content)
+  return createBaseEmailTemplate(content);
 }

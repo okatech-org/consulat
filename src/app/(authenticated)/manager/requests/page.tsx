@@ -1,11 +1,11 @@
-import { Suspense } from 'react'
-import { getTranslations } from 'next-intl/server'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { RequestsFilters } from '../_utils/components/requests/requests-filters'
-import { RequestsTable } from '../_utils/components/requests/requests-table'
+import { Suspense } from 'react';
+import { getTranslations } from 'next-intl/server';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { RequestsFilters } from '../_utils/components/requests/requests-filters';
+import { RequestsTable } from '../_utils/components/requests/requests-table';
 
 export default async function RequestsPage() {
-  const t = await getTranslations('actions.requests')
+  const t = await getTranslations('actions.requests');
 
   return (
     <div className="container py-6">
@@ -20,5 +20,5 @@ export default async function RequestsPage() {
         <RequestsTable />
       </Suspense>
     </div>
-  )
+  );
 }

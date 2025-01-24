@@ -1,19 +1,19 @@
 // src/components/actions/profiles/review/contact.tsx
-import { useTranslations } from 'next-intl'
-import { FullProfile } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle2, XCircle, Mail, Phone, MapPin } from 'lucide-react'
+import { useTranslations } from 'next-intl';
+import { FullProfile } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2, XCircle, Mail, Phone, MapPin } from 'lucide-react';
 
 interface ProfileContactProps {
-  profile: FullProfile
+  profile: FullProfile;
 }
 
 export function ProfileContact({ profile }: ProfileContactProps) {
-  const t = useTranslations('actions.profiles.review')
-  const t_countries = useTranslations('countries')
+  const t = useTranslations('actions.profiles.review');
+  const t_countries = useTranslations('countries');
 
-  const mainAddress = profile.address
-  const gabonAddress = profile.addressInGabon
+  const mainAddress = profile.address;
+  const gabonAddress = profile.addressInGabon;
 
   return (
     <div className="space-y-4">
@@ -42,7 +42,9 @@ export function ProfileContact({ profile }: ProfileContactProps) {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">{t('fields.phone')}</p>
                 <p className="font-medium">
-                  {profile.phone ? `${profile.phone.countryCode}${profile.phone.number}`: '-'}
+                  {profile.phone
+                    ? `${profile.phone.countryCode}${profile.phone.number}`
+                    : '-'}
                 </p>
               </div>
               {profile.phone ? (
@@ -110,5 +112,5 @@ export function ProfileContact({ profile }: ProfileContactProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

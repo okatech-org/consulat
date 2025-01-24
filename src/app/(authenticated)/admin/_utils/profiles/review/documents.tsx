@@ -1,44 +1,44 @@
-import { useTranslations } from 'next-intl'
-import { FullProfile } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle2, AlertCircle, Shield } from 'lucide-react'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { Badge, BadgeVariant } from '@/components/ui/badge'
-import { DocumentPreview } from '@/components/ui/document-preview'
-import { documentValidations, validateDocument } from '@/lib/document-validation'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { DocumentValidationDialog } from '@/app/(authenticated)/admin/_utils/profiles/review/document-validation-dialog'
-import { useRouter } from 'next/navigation'
-import { DocumentType } from '@prisma/client'
+import { useTranslations } from 'next-intl';
+import { FullProfile } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2, AlertCircle, Shield } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Badge, BadgeVariant } from '@/components/ui/badge';
+import { DocumentPreview } from '@/components/ui/document-preview';
+import { documentValidations, validateDocument } from '@/lib/document-validation';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { DocumentValidationDialog } from '@/app/(authenticated)/admin/_utils/profiles/review/document-validation-dialog';
+import { useRouter } from 'next/navigation';
+import { DocumentType } from '@prisma/client';
 
 interface ProfileDocumentsProps {
-  profile: FullProfile
+  profile: FullProfile;
 }
 
 export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
-  const t = useTranslations('common')
-  const t_review = useTranslations('actions.profiles.review')
-  const router = useRouter()
+  const t = useTranslations('common');
+  const t_review = useTranslations('actions.profiles.review');
+  const router = useRouter();
 
   const handleDownload = async (url: string, filename: string) => {
     try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      const downloadUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(downloadUrl)
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      console.error('Error downloading document:', error)
+      console.error('Error downloading document:', error);
     }
-  }
+  };
 
   const documents = [
     {
@@ -61,12 +61,12 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
       label: t_review('components.address_proof'),
       document: profile.addressProof,
     },
-  ]
+  ];
 
   const [selectedDocument, setSelectedDocument] = useState<{
     id: string;
     type: string;
-  } | null>(null)
+  } | null>(null);
 
   return (
     <Card>
@@ -75,7 +75,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {documents.map(({ type, label, document }) => {
-          const validation = validateDocument(document)
+          const validation = validateDocument(document);
 
           return (
             <div
@@ -93,12 +93,14 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                   <div className="space-y-1 text-sm text-muted-foreground">
                     {document.issuedAt && (
                       <p>
-                        {t_review('components.issued_at')}: {format(new Date(document.issuedAt), 'PPP', { locale: fr })}
+                        {t_review('components.issued_at')}:{' '}
+                        {format(new Date(document.issuedAt), 'PPP', { locale: fr })}
                       </p>
                     )}
                     {document.expiresAt && (
                       <p>
-                        {t_review('components.expires_at')}: {format(new Date(document.expiresAt), 'PPP', { locale: fr })}
+                        {t_review('components.expires_at')}:{' '}
+                        {format(new Date(document.expiresAt), 'PPP', { locale: fr })}
                       </p>
                     )}
                   </div>
@@ -123,18 +125,22 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                       url={document.fileUrl}
                       title={label}
                       type={type}
-                      onDownload={() => handleDownload(
-                        document.fileUrl,
-                        `${type.toLowerCase()}.${document.fileUrl.split('.').pop()}`
-                      )}
+                      onDownload={() =>
+                        handleDownload(
+                          document.fileUrl,
+                          `${type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
+                        )
+                      }
                     />
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedDocument({
-                        id: document.id,
-                        type: label
-                      })}
+                      onClick={() =>
+                        setSelectedDocument({
+                          id: document.id,
+                          type: label,
+                        })
+                      }
                     >
                       <Shield className="size-4" />
                     </Button>
@@ -156,7 +162,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                 )}
               </div>
             </div>
-          )
+          );
         })}
       </CardContent>
 
@@ -167,10 +173,10 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
           isOpen={!!selectedDocument}
           onClose={() => setSelectedDocument(null)}
           onValidated={() => {
-            router.refresh()
+            router.refresh();
           }}
         />
       )}
     </Card>
-  )
+  );
 }

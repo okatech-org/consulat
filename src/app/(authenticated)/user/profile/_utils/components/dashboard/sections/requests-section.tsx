@@ -1,20 +1,20 @@
-"use client"
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { FileText, Plus, Clock, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useTranslations } from 'next-intl';
+import { FileText, Plus, Clock, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface RequestsSectionProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stats: any
-  onAction?: (action: string) => void
+  stats: any;
+  onAction?: (action: string) => void;
 }
 
 export function RequestsSection({ stats, onAction }: RequestsSectionProps) {
-  const t = useTranslations('components.dashboard.sections.requests')
+  const t = useTranslations('components.dashboard.sections.requests');
 
-  if (!stats) return null
+  if (!stats) return null;
 
   return (
     <Card>
@@ -54,9 +54,7 @@ export function RequestsSection({ stats, onAction }: RequestsSectionProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="size-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  {t('latest_request')}
-                </span>
+                <span className="text-sm font-medium">{t('latest_request')}</span>
               </div>
               <Button
                 variant="ghost"
@@ -74,12 +72,10 @@ export function RequestsSection({ stats, onAction }: RequestsSectionProps) {
           </div>
         ) : (
           <div className="rounded-lg border border-dashed p-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              {t('no_requests')}
-            </p>
+            <p className="text-sm text-muted-foreground">{t('no_requests')}</p>
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

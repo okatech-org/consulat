@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslations } from 'next-intl'
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import {
   Form,
   FormControl,
@@ -10,25 +10,34 @@ import {
   FormItem,
   FormLabel,
   TradFormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ServiceCategory } from '@prisma/client'
-import { Loader2 } from 'lucide-react'
-import { ConsularServiceListingItem } from '@/types/consular-service'
-import { NewServiceSchema, NewServiceSchemaInput } from '@/schemas/consular-service'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ServiceCategory } from '@prisma/client';
+import { Loader2 } from 'lucide-react';
+import { ConsularServiceListingItem } from '@/types/consular-service';
+import { NewServiceSchema, NewServiceSchemaInput } from '@/schemas/consular-service';
 
 interface ServiceFormProps {
-  initialData?: Partial<ConsularServiceListingItem>
-  handleSubmit: (data: typeof NewServiceSchema) => Promise<void>
-  isLoading?: boolean
+  initialData?: Partial<ConsularServiceListingItem>;
+  handleSubmit: (data: typeof NewServiceSchema) => Promise<void>;
+  isLoading?: boolean;
 }
 
-
-export function NewServiceForm({ initialData, handleSubmit, isLoading }: ServiceFormProps) {
-  const t = useTranslations('superadmin.services')
+export function NewServiceForm({
+  initialData,
+  handleSubmit,
+  isLoading,
+}: ServiceFormProps) {
+  const t = useTranslations('superadmin.services');
 
   const form = useForm<typeof NewServiceSchemaInput>({
     resolver: zodResolver(NewServiceSchema),
@@ -36,8 +45,8 @@ export function NewServiceForm({ initialData, handleSubmit, isLoading }: Service
       name: initialData?.name || '',
       description: initialData?.description || '',
       category: initialData?.category || ServiceCategory.CIVIL_STATUS,
-    }
-  })
+    },
+  });
 
   return (
     <Form {...form}>
@@ -49,7 +58,11 @@ export function NewServiceForm({ initialData, handleSubmit, isLoading }: Service
             <FormItem>
               <FormLabel>{t('form.name.label')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder={t('form.name.placeholder')} disabled={isLoading} />
+                <Input
+                  {...field}
+                  placeholder={t('form.name.placeholder')}
+                  disabled={isLoading}
+                />
               </FormControl>
               <TradFormMessage />
             </FormItem>
@@ -63,7 +76,11 @@ export function NewServiceForm({ initialData, handleSubmit, isLoading }: Service
             <FormItem>
               <FormLabel>{t('form.description.label')}</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder={t('form.description.placeholder')} disabled={isLoading} />
+                <Textarea
+                  {...field}
+                  placeholder={t('form.description.placeholder')}
+                  disabled={isLoading}
+                />
               </FormControl>
               <TradFormMessage />
             </FormItem>
@@ -103,5 +120,5 @@ export function NewServiceForm({ initialData, handleSubmit, isLoading }: Service
         </div>
       </form>
     </Form>
-  )
+  );
 }

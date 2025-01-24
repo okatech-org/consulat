@@ -1,26 +1,26 @@
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import Link from 'next/link'
-import { ROUTES } from '@/schemas/routes'
-import { ArrowRight } from 'lucide-react'
+import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import { ArrowRight } from 'lucide-react';
 
 interface Task {
-  id: string
-  type: 'PROFILE_REVIEW' | 'DOCUMENT_VALIDATION'
-  priority: 'HIGH' | 'MEDIUM' | 'LOW'
-  title: string
-  description: string
-  createdAt: Date
+  id: string;
+  type: 'PROFILE_REVIEW' | 'DOCUMENT_VALIDATION';
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  title: string;
+  description: string;
+  createdAt: Date;
 }
 
 interface PendingTasksProps {
-  tasks: Task[]
+  tasks: Task[];
 }
 
 export function PendingTasks({ tasks }: PendingTasksProps) {
-  const t = useTranslations('actions.dashboard.tasks')
+  const t = useTranslations('actions.dashboard.tasks');
 
   return (
     <Card>
@@ -47,28 +47,24 @@ export function PendingTasks({ tasks }: PendingTasksProps) {
                     {t(`priority.${task.priority.toLowerCase()}`)}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {task.description}
-                </p>
+                <p className="text-sm text-muted-foreground">{task.description}</p>
               </div>
-              <Button size="sm">
-                {t('actions.review')}
-              </Button>
+              <Button size="sm">{t('actions.review')}</Button>
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-function getPriorityVariant(priority: string): "default" | "destructive" | "warning" {
+function getPriorityVariant(priority: string): 'default' | 'destructive' | 'warning' {
   switch (priority) {
     case 'HIGH':
-      return 'destructive'
+      return 'destructive';
     case 'MEDIUM':
-      return 'warning'
+      return 'warning';
     default:
-      return 'default'
+      return 'default';
   }
 }

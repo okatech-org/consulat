@@ -1,30 +1,24 @@
-import { Suspense } from 'react'
-import { getCurrentUser } from '@/actions/user'
-import { DashboardStats } from '@/app/(authenticated)/admin/_utils/dashboard/dashboard-stats'
-import { RecentActivity } from '@/app/(authenticated)/admin/_utils/dashboard/recent-activity'
-import { PendingTasks } from '@/app/(authenticated)/admin/_utils/dashboard/pending-tasks'
-import { getTranslations } from 'next-intl/server'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { Suspense } from 'react';
+import { getCurrentUser } from '@/actions/user';
+import { DashboardStats } from '@/app/(authenticated)/admin/_utils/dashboard/dashboard-stats';
+import { RecentActivity } from '@/app/(authenticated)/admin/_utils/dashboard/recent-activity';
+import { PendingTasks } from '@/app/(authenticated)/admin/_utils/dashboard/pending-tasks';
+import { getTranslations } from 'next-intl/server';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export default async function AdminDashboardPage() {
-  const t = await getTranslations('actions.dashboard')
-  const [current] = await Promise.all([
-    getCurrentUser(),
-  ])
+  const t = await getTranslations('actions.dashboard');
+  const [current] = await Promise.all([getCurrentUser()]);
 
   if (!current) {
-    return null
+    return null;
   }
 
   return (
     <div className="container space-y-8 py-8">
       <div>
-        <h1 className="text-3xl font-bold">
-          {t('welcome', { name: current.name })}
-        </h1>
-        <p className="text-muted-foreground">
-          {t('subtitle')}
-        </p>
+        <h1 className="text-3xl font-bold">{t('welcome', { name: current.name })}</h1>
+        <p className="text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       <Suspense fallback={<LoadingSkeleton />}>
@@ -37,5 +31,5 @@ export default async function AdminDashboardPage() {
         <PendingTasks tasks={[]} />
       </div>
     </div>
-  )
+  );
 }

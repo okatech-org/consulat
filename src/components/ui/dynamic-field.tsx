@@ -1,35 +1,48 @@
-'use client'
-import { useTranslations } from 'next-intl'
-import { FieldValues, UseFormReturn } from 'react-hook-form'
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, TradFormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { PhoneInput } from '@/components/ui/phone-input'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { Textarea } from '@/components/ui/textarea'
-import { ServiceField } from '@/types/consular-service'
-import { DocumentUploadField } from '@/components/ui/document-upload'
-import React from 'react'
+'use client';
+import { useTranslations } from 'next-intl';
+import { FieldValues, UseFormReturn } from 'react-hook-form';
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  TradFormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
+import { ServiceField } from '@/types/consular-service';
+import { DocumentUploadField } from '@/components/ui/document-upload';
+import React from 'react';
 
 interface DynamicFieldProps<T extends FieldValues> {
-  data: ServiceField
-  form: UseFormReturn<T>
-  isPreFilled?: boolean
-  disabled?: boolean
+  data: ServiceField;
+  form: UseFormReturn<T>;
+  isPreFilled?: boolean;
+  disabled?: boolean;
 }
 
 export function DynamicField({
-                               data,
-                               form,
-                               isPreFilled,
-                               disabled
-                             }: DynamicFieldProps<FieldValues>) {
-  const t = useTranslations('consular.services.form')
+  data,
+  form,
+  isPreFilled,
+  disabled,
+}: DynamicFieldProps<FieldValues>) {
+  const t = useTranslations('consular.services.form');
 
   const renderFieldInput = (formField: FieldValues) => {
     switch (data.type) {
-      case "file":
+      case 'file':
         return (
           <DocumentUploadField
             id={data.name}
@@ -39,8 +52,8 @@ export function DynamicField({
             description={data.description}
             required={data.required}
           />
-        )
-      case "select":
+        );
+      case 'select':
         return (
           <Select
             disabled={disabled}
@@ -60,43 +73,37 @@ export function DynamicField({
               ))}
             </SelectContent>
           </Select>
-        )
+        );
 
-      case "phone":
+      case 'phone':
         return (
           <PhoneInput
             {...formField}
             disabled={disabled}
             placeholder={data.placeholder}
-            className={cn(
-              isPreFilled && "bg-muted text-muted-foreground"
-            )}
+            className={cn(isPreFilled && 'bg-muted text-muted-foreground')}
           />
-        )
+        );
 
-      case "textarea":
+      case 'textarea':
         return (
           <Textarea
             {...formField}
             disabled={disabled}
             placeholder={data.placeholder}
-            className={cn(
-              isPreFilled && "bg-muted text-muted-foreground"
-            )}
+            className={cn(isPreFilled && 'bg-muted text-muted-foreground')}
           />
-        )
+        );
 
-      case "date":
+      case 'date':
         return (
           <Input
             {...formField}
             type="date"
             disabled={disabled}
-            className={cn(
-              isPreFilled && "bg-muted text-muted-foreground"
-            )}
+            className={cn(isPreFilled && 'bg-muted text-muted-foreground')}
           />
-        )
+        );
 
       default:
         return (
@@ -105,13 +112,11 @@ export function DynamicField({
             type={data.type}
             disabled={disabled}
             placeholder={data.placeholder}
-            className={cn(
-              isPreFilled && "bg-muted text-muted-foreground"
-            )}
+            className={cn(isPreFilled && 'bg-muted text-muted-foreground')}
           />
-        )
+        );
     }
-  }
+  };
 
   return (
     <FormField
@@ -120,7 +125,7 @@ export function DynamicField({
       render={({ field: formField }) => (
         <FormItem>
           <div className="flex items-center justify-between">
-            <FormLabel className={cn(isPreFilled && "text-muted-foreground")}>
+            <FormLabel className={cn(isPreFilled && 'text-muted-foreground')}>
               {data.label}
             </FormLabel>
             {isPreFilled && (
@@ -130,16 +135,12 @@ export function DynamicField({
             )}
           </div>
 
-          <FormControl>
-            {renderFieldInput(formField)}
-          </FormControl>
+          <FormControl>{renderFieldInput(formField)}</FormControl>
 
-          {data.description && (
-            <FormDescription>{data.description}</FormDescription>
-          )}
+          {data.description && <FormDescription>{data.description}</FormDescription>}
           <TradFormMessage />
         </FormItem>
       )}
     />
-  )
+  );
 }

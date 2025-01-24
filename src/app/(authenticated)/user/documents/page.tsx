@@ -1,12 +1,12 @@
-import { Suspense } from 'react'
-import { getUserDocumentsList } from '@/actions/documents'
-import { DocumentsList } from '@/components/documents-list'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { getTranslations } from 'next-intl/server'
+import { Suspense } from 'react';
+import { getUserDocumentsList } from '@/actions/documents';
+import { DocumentsList } from '@/components/documents-list';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { getTranslations } from 'next-intl/server';
 
 export default async function DocumentsPage() {
-  const t = await getTranslations('documents')
-  const documents = await getUserDocumentsList()
+  const t = await getTranslations('documents');
+  const documents = await getUserDocumentsList();
 
   return (
     <div className="container py-6">
@@ -19,5 +19,5 @@ export default async function DocumentsPage() {
         <DocumentsList documents={documents} />
       </Suspense>
     </div>
-  )
+  );
 }

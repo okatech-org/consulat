@@ -1,36 +1,40 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { useTranslations } from 'next-intl'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ScanBarcode } from 'lucide-react'
-import LottieAnimation from '@/components/ui/lottie-animation'
-import { DocumentsFormData } from '@/schemas/registration'
-import { DocumentUploadField } from '@/components/ui/document-upload'
-import { Form, FormField } from '@/components/ui/form'
-import { UseFormReturn } from 'react-hook-form'
-import { getFieldsForDocument } from '@/lib/document-fields'
-import { useToast } from '@/components/ui/use-toast'
-import { DocumentField } from '@/lib/utils'
-import { analyzeDocuments } from '@/actions/documents'
+import React from 'react';
+import { useTranslations } from 'next-intl';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ScanBarcode } from 'lucide-react';
+import LottieAnimation from '@/components/ui/lottie-animation';
+import { DocumentsFormData } from '@/schemas/registration';
+import { DocumentUploadField } from '@/components/ui/document-upload';
+import { Form, FormField } from '@/components/ui/form';
+import { UseFormReturn } from 'react-hook-form';
+import { getFieldsForDocument } from '@/lib/document-fields';
+import { useToast } from '@/components/ui/use-toast';
+import { DocumentField } from '@/lib/utils';
+import { analyzeDocuments } from '@/actions/documents';
 
 interface DocumentUploadSectionProps {
-  form: UseFormReturn<DocumentsFormData>
-  handleSubmit: (data: DocumentsFormData) => void
+  form: UseFormReturn<DocumentsFormData>;
+  handleSubmit: (data: DocumentsFormData) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onAnalysisComplete?: (data: any) => void
-  isLoading?: boolean
-  formRef?: React.RefObject<HTMLFormElement>
+  onAnalysisComplete?: (data: any) => void;
+  isLoading?: boolean;
+  formRef?: React.RefObject<HTMLFormElement>;
 }
 
 export function DocumentUploadSection({
-                                        form,handleSubmit, isLoading,onAnalysisComplete, formRef
-                                      }: DocumentUploadSectionProps) {
-  const t = useTranslations('registration')
-  const { toast } = useToast()
-  const [isAnalyzing, setIsAnalyzing] = React.useState(false)
+  form,
+  handleSubmit,
+  isLoading,
+  onAnalysisComplete,
+  formRef,
+}: DocumentUploadSectionProps) {
+  const t = useTranslations('registration');
+  const { toast } = useToast();
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
   const requiredDocuments = [
     {
@@ -40,7 +44,7 @@ export function DocumentUploadSection({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
-      analysisFields: getFieldsForDocument('passportFile')
+      analysisFields: getFieldsForDocument('passportFile'),
     },
     {
       id: 'birthCertificateFile' as const,
@@ -49,7 +53,7 @@ export function DocumentUploadSection({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument('birthCertificateFile')
+      analysisFields: getFieldsForDocument('birthCertificateFile'),
     },
     {
       id: 'residencePermitFile' as const,
@@ -58,7 +62,7 @@ export function DocumentUploadSection({
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument('residencePermitFile')
+      analysisFields: getFieldsForDocument('residencePermitFile'),
     },
     {
       id: 'addressProofFile' as const,
@@ -67,57 +71,62 @@ export function DocumentUploadSection({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument('addressProofFile')
-    }
-  ] as const
+      analysisFields: getFieldsForDocument('addressProofFile'),
+    },
+  ] as const;
 
   const handleAnalysis = async () => {
-    const analysisFormData = new FormData()
-    const analysisFields: {key: keyof DocumentsFormData, fields: DocumentField[]}[] = []
+    const analysisFormData = new FormData();
+    const analysisFields: { key: keyof DocumentsFormData; fields: DocumentField[] }[] =
+      [];
 
     // Collecter les components et leurs champs d'analyse respectifs
     Object.entries(form.getValues()).forEach(([key, fileList]) => {
-      const doc = requiredDocuments.find(d => d.id === key)
+      const doc = requiredDocuments.find((d) => d.id === key);
       if (fileList && doc) {
         analysisFields.push({
           key: key as keyof DocumentsFormData,
-          fields: doc.analysisFields
-        })
-        analysisFormData.append(key, fileList)
+          fields: doc.analysisFields,
+        });
+        analysisFormData.append(key, fileList);
       }
-    })
+    });
 
     if (analysisFields.length === 0) {
       toast({
         title: t('components.analysis.error.title'),
         description: t('components.analysis.error.no_documents'),
-        variant: "destructive"
-      })
-      return
+        variant: 'destructive',
+      });
+      return;
     }
 
-    setIsAnalyzing(true)
+    setIsAnalyzing(true);
 
     try {
-      const results = await analyzeDocuments(analysisFormData, analysisFields)
+      const results = await analyzeDocuments(analysisFormData, analysisFields);
 
       if (results.success && results.mergedData) {
-        onAnalysisComplete?.(results.mergedData)
+        onAnalysisComplete?.(results.mergedData);
       }
     } catch (error) {
       toast({
         title: t('components.analysis.error.title'),
         description: error instanceof Error ? error.message : t('errors.unknown'),
-        variant: "destructive"
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsAnalyzing(false)
+      setIsAnalyzing(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form
+        ref={formRef}
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-8"
+      >
         {/* Section des components */}
         <Card className="overflow-hidden">
           <CardContent className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
@@ -151,7 +160,7 @@ export function DocumentUploadSection({
             </AnimatePresence>
           </CardContent>
           <CardFooter>
-            <div className={"w-full space-y-4"}>
+            <div className={'w-full space-y-4'}>
               {/* Section d'analyse */}
               <Card className="overflow-hidden">
                 <CardContent className="p-6">
@@ -191,25 +200,23 @@ export function DocumentUploadSection({
         </Card>
       </form>
     </Form>
-  )
+  );
 }
 
 function DocumentUploadGuide() {
-  const t = useTranslations('registration')
+  const t = useTranslations('registration');
 
   const documentTips = [
     t('components.tips.list.quality'),
     t('components.tips.list.lighting'),
     t('components.tips.list.reflection'),
     t('components.tips.list.corners'),
-    t('components.tips.list.validity')
-  ]
+    t('components.tips.list.validity'),
+  ];
 
   return (
     <div className="rounded-lg bg-muted p-4">
-      <h3 className="font-medium">
-        {t('components.tips.title')}
-      </h3>
+      <h3 className="font-medium">{t('components.tips.title')}</h3>
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
         {documentTips.map((tip, index) => (
           <motion.li
@@ -225,5 +232,5 @@ function DocumentUploadGuide() {
         ))}
       </ul>
     </div>
-  )
+  );
 }

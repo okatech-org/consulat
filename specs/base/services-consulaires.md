@@ -1,24 +1,28 @@
 # Guide des Services Consulaires
 
 ## Condition Préalable Obligatoire
+
 Avant toute demande de service consulaire, vous devez être en possession d'une carte consulaire ou d'une attestation d'inscription consulaire. Ce document fait office de carte d'identité pour les ressortissants gabonais en France.
 
 ### Obtention de la Carte Consulaire
+
 **Documents requis**:
+
 - Lettre adressée au Consul Général du Gabon en France
 - Formulaire rempli (disponible sur le site)
 - Copie de l'acte de naissance gabonais
 - Copie du passeport gabonais
 - Justificatif de situation :
-  * Étudiants : carte d'étudiant de l'année en cours
-  * Stagiaires : attestation de mise en stage
-  * Salariés : attestation d'emploi
+  - Étudiants : carte d'étudiant de l'année en cours
+  - Stagiaires : attestation de mise en stage
+  - Salariés : attestation d'emploi
 - Justificatif de domicile (quittance de loyer, attestation d'hébergement ou facture EDF/GDF)
 - 2 photos d'identité couleur récentes
 
 ## Services d'État Civil
 
 ### 1. Transcription des Actes de Naissance
+
 - **Description**: Transcription d'un acte de naissance français dans les registres gabonais
 - **Documents requis**:
   - Carte consulaire ou attestation d'inscription consulaire
@@ -28,6 +32,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
 - **Note importante**: Mentionner le nom sur la boîte aux lettres
 
 ### 2. Transcription des Actes de Mariage
+
 - **Documents requis**:
   - Carte consulaire ou attestation d'inscription consulaire
   - Copie intégrale de l'acte de mariage
@@ -36,6 +41,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
   - Pour conjoint français: copie intégrale de l'acte de naissance de moins de 3 mois
 
 ### 3. Transcription des Actes de Décès
+
 - **Documents requis**:
   - Carte consulaire ou attestation d'inscription consulaire
   - Déclaration de décès du médecin
@@ -46,6 +52,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
 ## Célébration des Mariages
 
 ### 1. Mariage au Consulat Général
+
 - **Condition**: Les deux époux doivent être gabonais
 - **Documents requis par conjoint**:
   - Carte consulaire ou attestation d'inscription consulaire
@@ -59,6 +66,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
   - Pour veufs: actes de décès, de mariage et certificat de non remariage
 
 ### 2. Certificats pour Mariage en France
+
 - **Types de certificats**:
   - Certificat de coutume
   - Certificat de célibat
@@ -74,6 +82,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
 ## Documents Administratifs
 
 ### 1. Certificat de Vie
+
 - **Description**: Pour les bénéficiaires de pension gabonaise
 - **Présence physique requise**
 - **Documents**:
@@ -82,6 +91,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
   - Copie du titre de pension (retraités)
 
 ### 2. Attestation de Rapatriement de Corps
+
 - **Documents requis**:
   - Carte consulaire ou attestation d'inscription consulaire
   - Copie de l'acte de décès
@@ -92,7 +102,9 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
   - Copie intégrale de l'acte de décès
 
 ### 3. Documents de Voyage
+
 #### a. Tenant Lieu de Passeport
+
 - **Validité**: 1 an
 - **Documents requis**:
   - Carte consulaire ou attestation d'inscription consulaire
@@ -103,6 +115,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
   - Justificatif professionnel/scolaire
 
 #### b. Laissez-passer
+
 - **Validité**: 30 jours
 - **Documents requis**:
   - Carte consulaire ou attestation d'inscription consulaire
@@ -114,6 +127,7 @@ Avant toute demande de service consulaire, vous devez être en possession d'une 
   - 2 photos d'identité
 
 ## Notes Importantes
+
 1. La carte consulaire ou l'attestation d'inscription consulaire est **OBLIGATOIRE** pour toute demande
 2. Les documents doivent être récents (moins de 3 mois pour la plupart)
 3. Les photocopies doivent être lisibles

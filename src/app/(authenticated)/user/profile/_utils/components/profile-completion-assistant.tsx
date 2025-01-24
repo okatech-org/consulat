@@ -1,23 +1,44 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { AlertTriangle, Bot, CheckCircle2, ChevronDown, Circle, HelpCircle, XCircle } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl';
+import {
+  AlertTriangle,
+  Bot,
+  CheckCircle2,
+  ChevronDown,
+  Circle,
+  HelpCircle,
+  XCircle,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { FullProfile } from '@/types'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import React, { useState } from 'react'
-import { ProfileSuggestion, useProfileSuggestions } from '@/hooks/use-profile-suggestions'
-import { Icons } from '@/components/ui/icons'
-import { User } from '@prisma/client'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { FullProfile } from '@/types';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import React, { useState } from 'react';
+import {
+  ProfileSuggestion,
+  useProfileSuggestions,
+} from '@/hooks/use-profile-suggestions';
+import { Icons } from '@/components/ui/icons';
+import { User } from '@prisma/client';
 
-export function ProfileCompletionAssistant({ profile, user }: { profile: FullProfile, user: User }) {
-  const t = useTranslations('components.assistant')
-  const [isOpen, setIsOpen] = useState(false)
-  const { suggestions, isLoading, error } = useProfileSuggestions(profile, user)
+export function ProfileCompletionAssistant({
+  profile,
+  user,
+}: {
+  profile: FullProfile;
+  user: User;
+}) {
+  const t = useTranslations('components.assistant');
+  const [isOpen, setIsOpen] = useState(false);
+  const { suggestions, isLoading, error } = useProfileSuggestions(profile, user);
 
   return (
     <Card>
@@ -45,8 +66,8 @@ export function ProfileCompletionAssistant({ profile, user }: { profile: FullPro
               </span>
               <ChevronDown
                 className={cn(
-                  "h-4 w-4 transition-transform duration-200",
-                  isOpen && "rotate-180"
+                  'h-4 w-4 transition-transform duration-200',
+                  isOpen && 'rotate-180',
                 )}
               />
             </Button>
@@ -76,10 +97,7 @@ export function ProfileCompletionAssistant({ profile, user }: { profile: FullPro
                 className="space-y-2"
               >
                 {suggestions.map((suggestion) => (
-                  <SuggestionCard
-                    key={suggestion.id}
-                    suggestion={suggestion}
-                  />
+                  <SuggestionCard key={suggestion.id} suggestion={suggestion} />
                 ))}
               </motion.div>
             )}
@@ -87,25 +105,25 @@ export function ProfileCompletionAssistant({ profile, user }: { profile: FullPro
         </Collapsible>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // Composant pour afficher une suggestion
 function SuggestionCard({ suggestion }: { suggestion: ProfileSuggestion }) {
-  const t = useTranslations('components.assistant')
+  const t = useTranslations('components.assistant');
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'high':
-        return <XCircle className="size-4 text-destructive" />
+        return <XCircle className="size-4 text-destructive" />;
       case 'medium':
-        return <HelpCircle className="text-warning size-4" />
+        return <HelpCircle className="text-warning size-4" />;
       case 'low':
-        return <Circle className="size-4 text-muted-foreground" />
+        return <Circle className="size-4 text-muted-foreground" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <motion.div
@@ -123,7 +141,7 @@ function SuggestionCard({ suggestion }: { suggestion: ProfileSuggestion }) {
             className="h-auto p-0 text-xs"
             onClick={() => {
               // Implémenter la logique d'action
-              console.log('Action:', suggestion.action)
+              console.log('Action:', suggestion.action);
             }}
             disabled={true}
           >
@@ -132,5 +150,5 @@ function SuggestionCard({ suggestion }: { suggestion: ProfileSuggestion }) {
         )}
       </div>
     </motion.div>
-  )
+  );
 }

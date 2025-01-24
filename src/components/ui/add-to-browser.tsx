@@ -1,16 +1,16 @@
-import React from 'react'
-import { useTranslations } from 'next-intl'
-import { ArrowUp, HomeIcon, TimerIcon } from 'lucide-react'
-import { DotsVerticalIcon } from '@radix-ui/react-icons'
+import React from 'react';
+import { useTranslations } from 'next-intl';
+import { ArrowUp, HomeIcon, TimerIcon } from 'lucide-react';
+import { DotsVerticalIcon } from '@radix-ui/react-icons';
 
 interface Props {
-  closePrompt: () => void
-  doNotShowAgain: () => void
+  closePrompt: () => void;
+  doNotShowAgain: () => void;
 }
 
 export default function AddToBrowser(props: Props) {
-  const { closePrompt, doNotShowAgain } = props
-  const t = useTranslations('add_to_browser')
+  const { closePrompt, doNotShowAgain } = props;
+  const t = useTranslations('add_to_browser');
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 h-3/5 px-4 pt-12 text-white">
@@ -19,9 +19,7 @@ export default function AddToBrowser(props: Props) {
         <button className="absolute right-0 top-0 p-3" onClick={closePrompt}>
           <TimerIcon className="text-2xl" />
         </button>
-        <p className="text-lg">
-          {t('best_experience')}
-        </p>
+        <p className="text-lg">{t('best_experience')}</p>
         <div className="flex items-center gap-2 text-lg">
           <p>{t('click_the')}</p>
           <DotsVerticalIcon className="text-4xl" />
@@ -39,5 +37,5 @@ export default function AddToBrowser(props: Props) {
         </button>
       </div>
     </div>
-  )
+  );
 }

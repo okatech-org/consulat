@@ -1,40 +1,54 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import { EditCountryDialog } from './edit-country-dialog'
-import { Country } from '@/types/country'
-import { deleteCountry } from '@/actions/countries'
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { EditCountryDialog } from './edit-country-dialog';
+import { Country } from '@/types/country';
+import { deleteCountry } from '@/actions/countries';
 
 export function CountryActions({ country }: { country: Country }) {
-  const t = useTranslations('superadmin.countries')
-  const { toast } = useToast()
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const t = useTranslations('superadmin.countries');
+  const { toast } = useToast();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    setIsDeleting(true)
-    const result = await deleteCountry(country.id)
+    setIsDeleting(true);
+    const result = await deleteCountry(country.id);
 
     if (result.error) {
       toast({
         title: t('messages.error.delete'),
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     } else {
       toast({
-        title: t('messages.deleteSuccess')
-      })
-      setShowDeleteDialog(false)
+        title: t('messages.deleteSuccess'),
+      });
+      setShowDeleteDialog(false);
     }
-    setIsDeleting(false)
-  }
+    setIsDeleting(false);
+  };
 
   return (
     <>
@@ -88,5 +102,5 @@ export function CountryActions({ country }: { country: Country }) {
         onOpenChange={setShowEditDialog}
       />
     </>
-  )
+  );
 }

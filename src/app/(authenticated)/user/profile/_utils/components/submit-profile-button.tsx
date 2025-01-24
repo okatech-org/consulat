@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { SendHorizonal, Loader2 } from 'lucide-react'
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
+import { SendHorizonal, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,61 +11,63 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { submitProfileForValidation } from '@/app/(authenticated)/user/_utils/profile'
-import { useRouter } from 'next/navigation'
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { submitProfileForValidation } from '@/app/(authenticated)/user/_utils/profile';
+import { useRouter } from 'next/navigation';
 
 // Définir les items de la checklist de manière statique
-const CHECKLIST_ITEMS = ['personal_info', 'documents', 'contact_info', 'emergency_contact'] as const
+const CHECKLIST_ITEMS = [
+  'personal_info',
+  'documents',
+  'contact_info',
+  'emergency_contact',
+] as const;
 
 interface SubmitProfileButtonProps {
-  profileId: string
-  isComplete: boolean
+  profileId: string;
+  isComplete: boolean;
 }
 
-export function SubmitProfileButton({
-                                      profileId,
-                                      isComplete,
-                                    }: SubmitProfileButtonProps) {
-  const t = useTranslations('components.submission')
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
+export function SubmitProfileButton({ profileId, isComplete }: SubmitProfileButtonProps) {
+  const t = useTranslations('components.submission');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleSubmit = async () => {
     try {
-      setIsSubmitting(true)
-      const result = await submitProfileForValidation(profileId)
+      setIsSubmitting(true);
+      const result = await submitProfileForValidation(profileId);
 
       if (result.error) {
         toast({
           title: t('error.title'),
           description: result.error,
-          variant: "destructive"
-        })
-        return
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
         title: t('success.title'),
         description: t('success.description'),
-        variant: "success"
-      })
+        variant: 'success',
+      });
 
-      setIsDialogOpen(false)
-      router.refresh()
+      setIsDialogOpen(false);
+      router.refresh();
     } catch (error) {
       toast({
         title: t('error.title'),
         description: t('error.unknown'),
-        variant: "destructive"
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <>
@@ -83,9 +85,7 @@ export function SubmitProfileButton({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('dialog.title')}</DialogTitle>
-            <DialogDescription>
-              {t('dialog.description')}
-            </DialogDescription>
+            <DialogDescription>{t('dialog.description')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -110,11 +110,7 @@ export function SubmitProfileButton({
             >
               {t('dialog.cancel')}
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="gap-2"
-            >
+            <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2">
               {isSubmitting && <Loader2 className="size-4 animate-spin" />}
               {t('dialog.confirm')}
             </Button>
@@ -122,5 +118,5 @@ export function SubmitProfileButton({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

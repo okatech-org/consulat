@@ -1,11 +1,11 @@
-import { Route } from 'next'
+import { Route } from 'next';
 
 export const API_ROUTES = {
   base: '/api' as Route<string>,
   base_auth: '/api/auth' as Route<string>,
   register_api: '/api/auth/register' as Route<string>,
   login_api: '/api/auth/login' as Route<string>,
-} as const
+} as const;
 
 export const ROUTES = {
   base: '/' as Route<string>,
@@ -23,7 +23,8 @@ export const ROUTES = {
     services: '/superadmin/services' as Route<string>,
     users: '/superadmin/users' as Route<string>,
     edit_service: (id: string) => `/superadmin/services/${id}/edit` as Route<string>,
-    edit_organization: (id: string) => `/superadmin/organizations/${id}/edit` as Route<string>,
+    edit_organization: (id: string) =>
+      `/superadmin/organizations/${id}/edit` as Route<string>,
     edit_country: (id: string) => `/superadmin/countries/${id}/edit` as Route<string>,
   },
 
@@ -57,7 +58,7 @@ export const ROUTES = {
   admin_profiles: '/actions/profiles' as Route<string>,
   admin_profiles_review: (id: string) => `/admin/profiles/${id}/review` as Route<string>,
 
-    // Pages partagées
+  // Pages partagées
   dashboard: '/dashboard' as Route<string>,
   help: '/help' as Route<string>,
   feedback: '/feedback' as Route<string>,
@@ -69,6 +70,6 @@ export const ROUTES = {
   consular_registration: '/consular-components' as Route<string>,
   privacy_policy: '#' as Route<string>,
   terms: '#' as Route<string>,
-} as const
+} as const;
 
-export type PageRoute = (typeof ROUTES)[keyof typeof ROUTES]
+export type PageRoute = (typeof ROUTES)[keyof typeof ROUTES];

@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import { ServiceStore } from '@/types/consular-service'
+import { create } from 'zustand';
+import { ServiceStore } from '@/types/consular-service';
 
 export const useServiceStore = create<ServiceStore>((set) => ({
   services: [],
@@ -10,5 +10,5 @@ export const useServiceStore = create<ServiceStore>((set) => ({
   setServices: (services) => set({ services }),
   setSelectedService: (service) => set({ selectedService: service }),
   setLoading: (loading) => set({ isLoading: loading }),
-  setError: (error) => set({ error })
-}))
+  setError: (error) => set({ error }),
+}));

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import * as React from 'react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import * as React from 'react';
 
 export default function FormSkeleton() {
   return (
@@ -14,5 +14,5 @@ export default function FormSkeleton() {
         <Skeleton className="h-12 w-full rounded-md" />
       </CardContent>
     </Card>
-  )
+  );
 }

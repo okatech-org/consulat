@@ -1,22 +1,22 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl';
+import { motion } from 'framer-motion';
 
 interface MobileProgressProps {
-  currentStep: number
-  totalSteps: number
-  stepTitle: string
-  isOptional?: boolean
+  currentStep: number;
+  totalSteps: number;
+  stepTitle: string;
+  isOptional?: boolean;
 }
 
 export function MobileProgress({
-                                 currentStep,
-                                 totalSteps,
-                                 stepTitle,
-                                 isOptional
-                               }: MobileProgressProps) {
-  const t = useTranslations('registration')
+  currentStep,
+  totalSteps,
+  stepTitle,
+  isOptional,
+}: MobileProgressProps) {
+  const t = useTranslations('registration');
 
   return (
     <div className="fixed inset-x-0 bottom-0 bg-background p-4 shadow-lg md:hidden">
@@ -44,5 +44,5 @@ export function MobileProgress({
         </div>
       </div>
     </div>
-  )
+  );
 }

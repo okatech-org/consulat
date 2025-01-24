@@ -1,7 +1,7 @@
 // src/lib/ai/question-manager.ts
 
-import { db } from '@/lib/prisma'
-import { UserRole } from '@prisma/client'
+import { db } from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
 
 export class QuestionManager {
   static async storeQuestion(question: string, userRole: UserRole) {
@@ -15,16 +15,16 @@ export class QuestionManager {
       where: {
         question: {
           contains: question,
-          mode: 'insensitive'
-        }
-      }
+          mode: 'insensitive',
+        },
+      },
     });
 
     if (existingQuestion) {
       // Mettre à jour la fréquence
       await db.aIQuestion.update({
         where: { id: existingQuestion.id },
-        data: { frequency: { increment: 1 } }
+        data: { frequency: { increment: 1 } },
       });
     } else {
       // Créer une nouvelle question
@@ -33,8 +33,8 @@ export class QuestionManager {
           question,
           userRole,
           category: await this.categorizeQuestion(question),
-          isRelevant: true
-        }
+          isRelevant: true,
+        },
       });
     }
   }
@@ -43,14 +43,18 @@ export class QuestionManager {
     return db.aIQuestion.findMany({
       where: { isRelevant: true },
       orderBy: { frequency: 'desc' },
-      take: 20
-    })
+      take: 20,
+    });
   }
 
   private static async isQuestionRelevant(question: string): Promise<boolean> {
     // Implémenter la logique pour déterminer si une question est pertinente
     // Par exemple, longueur minimale, mots-clés spécifiques, etc.
-    return question.length >= 10 && !question.includes('bonjour') && !question.includes('merci');
+    return (
+      question.length >= 10 &&
+      !question.includes('bonjour') &&
+      !question.includes('merci')
+    );
   }
 
   private static async categorizeQuestion(question: string): Promise<string> {

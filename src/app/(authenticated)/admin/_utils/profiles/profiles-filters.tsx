@@ -1,76 +1,85 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { RequestStatus } from '@prisma/client'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useState } from 'react'
-import { debounce } from 'lodash'
-import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
-import { Route } from 'next'
+import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { RequestStatus } from '@prisma/client';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { debounce } from 'lodash';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
+import { Route } from 'next';
 
 export function ProfilesFilters() {
-  const t_common = useTranslations('common')
-  const t = useTranslations('actions.profiles')
-  const profileStatus: RequestStatus[] = ['SUBMITTED', 'APPROVED', 'REJECTED', 'DRAFT']
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const t_common = useTranslations('common');
+  const t = useTranslations('actions.profiles');
+  const profileStatus: RequestStatus[] = ['SUBMITTED', 'APPROVED', 'REJECTED', 'DRAFT'];
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Récupérer les valeurs actuelles des paramètres
-  const currentQuery = searchParams.get('q') || ''
-  const currentStatus = searchParams.get('status') || ''
+  const currentQuery = searchParams.get('q') || '';
+  const currentStatus = searchParams.get('status') || '';
 
   // État local pour le champ de recherche
-  const [searchQuery, setSearchQuery] = useState(currentQuery)
+  const [searchQuery, setSearchQuery] = useState(currentQuery);
 
   // Fonction pour mettre à jour l'URL avec les paramètres de recherche
-  const updateSearchParams = useCallback((params: { q?: string; status?: string }) => {
-    const newSearchParams = new URLSearchParams(searchParams.toString())
+  const updateSearchParams = useCallback(
+    (params: { q?: string; status?: string }) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
 
-    // Mettre à jour ou supprimer les paramètres
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) {
-        newSearchParams.set(key, value)
-      } else {
-        newSearchParams.delete(key)
-      }
-    })
+      // Mettre à jour ou supprimer les paramètres
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) {
+          newSearchParams.set(key, value);
+        } else {
+          newSearchParams.delete(key);
+        }
+      });
 
-    // Construire la nouvelle URL
-    const newUrl = `${pathname}?${newSearchParams.toString()}` as Route
-    router.push(newUrl)
-  }, [pathname, router, searchParams])
+      // Construire la nouvelle URL
+      const newUrl = `${pathname}?${newSearchParams.toString()}` as Route;
+      router.push(newUrl);
+    },
+    [pathname, router, searchParams],
+  );
 
   // Debounce la recherche pour éviter trop de mises à jour
   const debouncedSearch = debounce((value: string) => {
-    updateSearchParams({ q: value || undefined })
-  }, 300)
+    updateSearchParams({ q: value || undefined });
+  }, 300);
 
   // Mettre à jour la recherche quand l'input change
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value)
-    debouncedSearch(value)
-  }
+    setSearchQuery(value);
+    debouncedSearch(value);
+  };
 
   // Gérer le changement de statut
   const handleStatusChange = (value: string) => {
     updateSearchParams({
       status: value === 'ALL' ? undefined : value,
-      q: searchQuery || undefined
-    })
-  }
+      q: searchQuery || undefined,
+    });
+  };
 
   // Réinitialiser les filtres
   const handleReset = () => {
-    setSearchQuery('')
-    updateSearchParams({})
-  }
+    setSearchQuery('');
+    updateSearchParams({});
+  };
 
   // Vérifier si des filtres sont actifs
-  const hasActiveFilters = searchQuery || currentStatus
+  const hasActiveFilters = searchQuery || currentStatus;
 
   return (
     <div className="mb-6 space-y-4">
@@ -81,10 +90,7 @@ export function ProfilesFilters() {
           onChange={(e) => handleSearchChange(e.target.value)}
           className="sm:max-w-[300px]"
         />
-        <Select
-          value={currentStatus || 'ALL'}
-          onValueChange={handleStatusChange}
-        >
+        <Select value={currentStatus || 'ALL'} onValueChange={handleStatusChange}>
           <SelectTrigger className="sm:max-w-[200px]">
             <SelectValue placeholder={t('filters.status')} />
           </SelectTrigger>
@@ -99,12 +105,7 @@ export function ProfilesFilters() {
         </Select>
 
         {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleReset}
-            className="gap-2"
-          >
+          <Button variant="ghost" size="sm" onClick={handleReset} className="gap-2">
             <X className="size-4" />
             {t('filters.reset')}
           </Button>
@@ -116,9 +117,7 @@ export function ProfilesFilters() {
           <span>{t('filters.active_filters')}:</span>
           <div className="flex flex-wrap gap-2">
             {searchQuery && (
-              <span className="rounded-full bg-muted px-2 py-1">
-                {searchQuery}
-              </span>
+              <span className="rounded-full bg-muted px-2 py-1">{searchQuery}</span>
             )}
             {currentStatus && (
               <span className="rounded-full bg-muted px-2 py-1">
@@ -129,5 +128,5 @@ export function ProfilesFilters() {
         </div>
       )}
     </div>
-  )
+  );
 }

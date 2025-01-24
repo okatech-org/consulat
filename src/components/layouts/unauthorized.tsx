@@ -1,19 +1,15 @@
-import Link from 'next/link'
-import { buttonVariants } from '@/components/ui/button'
-import { ROUTES } from '@/schemas/routes'
-import { ArrowLeft } from 'lucide-react'
-import React from 'react'
-import { LogoutButton } from '@/components/ui/logout-button'
+import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
+import { ROUTES } from '@/schemas/routes';
+import { ArrowLeft } from 'lucide-react';
+import React from 'react';
+import { LogoutButton } from '@/components/ui/logout-button';
 
 export function Unauthorized() {
   return (
-    <div className={"flex size-full flex-col items-center justify-center gap-4"}>
-      <h1>
-        Accès refusé
-      </h1>
-      <p>
-        {'Vous n\'êtes pas autorisé à accéder à cette page.'}
-      </p>
+    <div className={'flex size-full flex-col items-center justify-center gap-4'}>
+      <h1>Accès refusé</h1>
+      <p>{"Vous n'êtes pas autorisé à accéder à cette page."}</p>
       <Link
         className={
           buttonVariants({
@@ -23,11 +19,9 @@ export function Unauthorized() {
         href={ROUTES.base}
       >
         <ArrowLeft className="mr-2 size-5" />
-        <span>
-          {'Retour à l\'accueil'}
-        </span>
+        <span>{"Retour à l'accueil"}</span>
       </Link>
       <LogoutButton />
     </div>
-  )
+  );
 }

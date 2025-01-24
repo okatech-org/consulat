@@ -1,32 +1,41 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslations } from 'next-intl'
-import { Profile, WorkStatus } from '@prisma/client'
-import { ProfessionalInfoSchema, type ProfessionalInfoFormData } from '@/schemas/registration'
-import { EditableSection } from '../editable-section'
-import { useToast } from '@/hooks/use-toast'
-import { updateProfile } from '@/app/(authenticated)/user/_utils/profile'
-import { Badge } from '@/components/ui/badge'
-import { Briefcase, Building2, MapPin } from 'lucide-react'
-import { ProfessionalInfoForm } from '@/app/(public)/registration/_utils/components/professional-info'
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { Profile, WorkStatus } from '@prisma/client';
+import {
+  ProfessionalInfoSchema,
+  type ProfessionalInfoFormData,
+} from '@/schemas/registration';
+import { EditableSection } from '../editable-section';
+import { useToast } from '@/hooks/use-toast';
+import { updateProfile } from '@/app/(authenticated)/user/_utils/profile';
+import { Badge } from '@/components/ui/badge';
+import { Briefcase, Building2, MapPin } from 'lucide-react';
+import { ProfessionalInfoForm } from '@/app/(public)/registration/_utils/components/professional-info';
 
 interface ProfessionalInfoSectionProps {
-  profile: Profile
+  profile: Profile;
 }
 
 interface InfoFieldProps {
-  label: string
-  value?: string | null
-  required?: boolean
-  isCompleted?: boolean
-  icon?: React.ReactNode
+  label: string;
+  value?: string | null;
+  required?: boolean;
+  isCompleted?: boolean;
+  icon?: React.ReactNode;
 }
 
-function InfoField({ label, value, required, isCompleted = !!value, icon }: InfoFieldProps) {
-  const t = useTranslations('registration')
+function InfoField({
+  label,
+  value,
+  required,
+  isCompleted = !!value,
+  icon,
+}: InfoFieldProps) {
+  const t = useTranslations('registration');
 
   return (
     <div>
@@ -36,10 +45,7 @@ function InfoField({ label, value, required, isCompleted = !!value, icon }: Info
           {label}
         </div>
         {!isCompleted && (
-          <Badge
-            variant={required ? "destructive" : "secondary"}
-            className="text-xs"
-          >
+          <Badge variant={required ? 'destructive' : 'secondary'} className="text-xs">
             {t(required ? 'form.required' : 'form.optional')}
           </Badge>
         )}
@@ -52,17 +58,17 @@ function InfoField({ label, value, required, isCompleted = !!value, icon }: Info
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProps) {
-  const t = useTranslations('registration')
-  const t_assets = useTranslations('assets')
-  const t_messages = useTranslations('messages.components')
-  const t_sections = useTranslations('components.sections')
-  const { toast } = useToast()
-  const [isEditing, setIsEditing] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const t = useTranslations('registration');
+  const t_assets = useTranslations('assets');
+  const t_messages = useTranslations('messages.components');
+  const t_sections = useTranslations('components.sections');
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ProfessionalInfoFormData>({
     resolver: zodResolver(ProfessionalInfoSchema),
@@ -71,54 +77,56 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
       profession: profile.profession || '',
       employer: profile.employer || '',
       employerAddress: profile.employerAddress || '',
-      lastActivityGabon: profile.activityInGabon || ''
-    }
-  })
+      lastActivityGabon: profile.activityInGabon || '',
+    },
+  });
 
   const handleSave = async () => {
     try {
-      setIsLoading(true)
-      const data = form.getValues()
+      setIsLoading(true);
+      const data = form.getValues();
 
-      const formData = new FormData()
-      formData.append('professionalInfo', JSON.stringify(data))
+      const formData = new FormData();
+      formData.append('professionalInfo', JSON.stringify(data));
 
-      const result = await updateProfile(formData, 'professionalInfo')
+      const result = await updateProfile(formData, 'professionalInfo');
 
       if (result.error) {
         toast({
           title: t_messages('errors.update_failed'),
           description: result.error,
-          variant: "destructive"
-        })
-        return
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
-        variant: "success"
-      })
+        variant: 'success',
+      });
 
-      setIsEditing(false)
+      setIsEditing(false);
     } catch (error) {
       toast({
         title: t_messages('errors.update_failed'),
         description: t_messages('errors.unknown'),
-        variant: "destructive"
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    form.reset()
-    setIsEditing(false)
-  }
+    form.reset();
+    setIsEditing(false);
+  };
 
-  const showEmployerFields = profile.workStatus === 'EMPLOYEE'
-  const showProfessionField = ['EMPLOYEE', 'ENTREPRENEUR'].includes(profile.workStatus || '')
+  const showEmployerFields = profile.workStatus === 'EMPLOYEE';
+  const showProfessionField = ['EMPLOYEE', 'ENTREPRENEUR'].includes(
+    profile.workStatus || '',
+  );
 
   return (
     <EditableSection
@@ -130,11 +138,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
       isLoading={isLoading}
     >
       {isEditing ? (
-        <ProfessionalInfoForm
-          form={form}
-          onSubmit={handleSave}
-          isLoading={isLoading}
-        />
+        <ProfessionalInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
       ) : (
         <div className="space-y-6">
           {/* Statut professionnel */}
@@ -179,14 +183,12 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
             <h4 className="font-medium">{t('form.gabon_activity')}</h4>
             <p className="text-sm text-muted-foreground">
               {profile.activityInGabon || (
-                <span className="italic">
-                  {t('form.not_provided')}
-                </span>
+                <span className="italic">{t('form.not_provided')}</span>
               )}
             </p>
           </div>
         </div>
       )}
     </EditableSection>
-  )
+  );
 }

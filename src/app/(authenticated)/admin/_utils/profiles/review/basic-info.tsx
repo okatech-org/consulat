@@ -1,17 +1,17 @@
-import { useTranslations } from 'next-intl'
-import { FullProfile } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl';
+import { FullProfile } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface ProfileBasicInfoProps {
-  profile: FullProfile
+  profile: FullProfile;
 }
 
 export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
-  const t = useTranslations('actions.profiles.review')
-  const t_countries = useTranslations('countries')
+  const t = useTranslations('actions.profiles.review');
+  const t_countries = useTranslations('countries');
 
   const fields = [
     {
@@ -34,7 +34,7 @@ export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
       value: t_countries(profile.nationality),
       isValid: !!profile.nationality,
     },
-  ]
+  ];
 
   return (
     <Card>
@@ -60,5 +60,5 @@ export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,89 +1,99 @@
-import { User, Profile, Consulate } from '@prisma/client'
+import { User, Profile, Consulate } from '@prisma/client';
 
 export type UserContext = {
   user: {
-    name: string | null
-    email: string
-    role: string
-  }
+    name: string | null;
+    email: string;
+    role: string;
+  };
   profile: {
-    firstName: string
-    lastName: string
-    birthDate: string
-    birthPlace: string
-    birthCountry: string
-    gender: string
-    maritalStatus: string
-    workStatus: string
-    phone: string
+    firstName: string;
+    lastName: string;
+    birthDate: string;
+    birthPlace: string;
+    birthCountry: string;
+    gender: string;
+    maritalStatus: string;
+    workStatus: string;
+    phone: string;
     address: {
-      firstLine: string
-      secondLine: string | null
-      city: string
-      zipCode: string
-      country: string
-    }
-    status: string
-  }
+      firstLine: string;
+      secondLine: string | null;
+      city: string;
+      zipCode: string;
+      country: string;
+    };
+    status: string;
+  };
   consulate: {
-    name: string
-    email: string
-    phone: string
-    isGeneral: boolean
+    name: string;
+    email: string;
+    phone: string;
+    isGeneral: boolean;
     address: {
-      firstLine: string
-      secondLine: string | null
-      city: string
-      zipCode: string
-      country: string
-    }
-    website: string | null
-    countries: string[]
-  }
+      firstLine: string;
+      secondLine: string | null;
+      city: string;
+      zipCode: string;
+      country: string;
+    };
+    website: string | null;
+    countries: string[];
+  };
   documents: {
-    hasPassport: boolean
-    hasBirthCertificate: boolean
-    hasResidencePermit: boolean
-    hasAddressProof: boolean
-  }
-}
+    hasPassport: boolean;
+    hasBirthCertificate: boolean;
+    hasResidencePermit: boolean;
+    hasAddressProof: boolean;
+  };
+};
 
-export function createUserContext(user: User, profile: Profile | null, consulate: Consulate | null): UserContext {
+export function createUserContext(
+  user: User,
+  profile: Profile | null,
+  consulate: Consulate | null,
+): UserContext {
   return {
     user: {
       name: user.name,
       email: user.email,
       role: user.role,
     },
-    profile: profile ? {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      birthDate: profile.birthDate,
-      birthPlace: profile.birthPlace,
-      birthCountry: profile.birthCountry,
-      gender: profile.gender,
-      maritalStatus: profile.maritalStatus,
-      workStatus: profile.workStatus,
-      phone: profile.phone,
-      address: profile.address,
-      status: profile.status,
-    } : null,
-    consulate: consulate ? {
-      name: consulate.name,
-      email: consulate.email,
-      phone: consulate.phone,
-      address: consulate.address,
-      website: consulate.website,
-      countries: consulate.countries.map(c => c.name),
-      isGeneral: consulate.isGeneral,
-    } : null,
-    documents: profile ? {
-      hasPassport: !!profile.passport,
-      hasBirthCertificate: !!profile.birthCertificate,
-      hasResidencePermit: !!profile.residencePermit,
-      hasAddressProof: !!profile.addressProof,
-    } : null
-  }
+    profile: profile
+      ? {
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          birthDate: profile.birthDate,
+          birthPlace: profile.birthPlace,
+          birthCountry: profile.birthCountry,
+          gender: profile.gender,
+          maritalStatus: profile.maritalStatus,
+          workStatus: profile.workStatus,
+          phone: profile.phone,
+          address: profile.address,
+          status: profile.status,
+        }
+      : null,
+    consulate: consulate
+      ? {
+          name: consulate.name,
+          email: consulate.email,
+          phone: consulate.phone,
+          address: consulate.address,
+          website: consulate.website,
+          countries: consulate.countries.map((c) => c.name),
+          isGeneral: consulate.isGeneral,
+        }
+      : null,
+    documents: profile
+      ? {
+          hasPassport: !!profile.passport,
+          hasBirthCertificate: !!profile.birthCertificate,
+          hasResidencePermit: !!profile.residencePermit,
+          hasAddressProof: !!profile.addressProof,
+        }
+      : null,
+  };
 }
 
 export const rayContext = `

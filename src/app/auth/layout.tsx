@@ -1,12 +1,12 @@
-import { getTranslations } from 'next-intl/server'
-import Image from 'next/image'
+import { getTranslations } from 'next-intl/server';
+import Image from 'next/image';
 
 export default async function AuthLayout({
-                                           children,
-                                         }: Readonly<{
-  children: React.ReactNode
+  children,
+}: Readonly<{
+  children: React.ReactNode;
 }>) {
-  const t = await getTranslations('auth.layout')
+  const t = await getTranslations('auth.layout');
 
   return (
     <div className="grid h-screen w-full overflow-hidden lg:grid-cols-2">
@@ -22,18 +22,12 @@ export default async function AuthLayout({
           />
         </div>
         <div className="relative z-20 mt-auto">
-          <h1 className="text-4xl font-semibold tracking-tight">
-            {t('title')}
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            {t('subtitle')}
-          </p>
+          <h1 className="text-4xl font-semibold tracking-tight">{t('title')}</h1>
+          <p className="mt-4 text-lg text-muted-foreground">{t('subtitle')}</p>
         </div>
       </div>
 
-      <div className="flex items-center justify-center lg:p-8">
-        {children}
-      </div>
+      <div className="flex items-center justify-center lg:p-8">{children}</div>
     </div>
-  )
+  );
 }

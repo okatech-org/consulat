@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { Badge } from '@/components/ui/badge'
-import { useNotifications } from '@/hooks/use-notifications'
+import { Badge } from '@/components/ui/badge';
+import { useNotifications } from '@/hooks/use-notifications';
 
 export function NotificationBadge() {
-  const { unreadCount, isLoading } = useNotifications()
+  const { unreadCount, isLoading } = useNotifications();
 
   if (isLoading || unreadCount === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -17,5 +17,5 @@ export function NotificationBadge() {
     >
       {unreadCount}
     </Badge>
-  )
+  );
 }

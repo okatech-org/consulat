@@ -1,36 +1,42 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { CountryForm } from './country-form'
-import { useToast } from '@/hooks/use-toast'
-import { Plus } from 'lucide-react'
-import { CreateCountryInput } from '@/types/country'
-import { createCountry } from '@/actions/countries'
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { CountryForm } from './country-form';
+import { useToast } from '@/hooks/use-toast';
+import { Plus } from 'lucide-react';
+import { CreateCountryInput } from '@/types/country';
+import { createCountry } from '@/actions/countries';
 
 export function CreateCountryDialog() {
-  const t = useTranslations('superadmin.countries')
-  const { toast } = useToast()
-  const [open, setOpen] = useState(false)
+  const t = useTranslations('superadmin.countries');
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
 
   const handleSubmit = async (data: CreateCountryInput) => {
-    const result = await createCountry(data)
+    const result = await createCountry(data);
 
     if (result.error) {
       toast({
         title: t('messages.error.create'),
-        variant: 'destructive'
-      })
-      return
+        variant: 'destructive',
+      });
+      return;
     }
 
     toast({
-      title: t('messages.createSuccess')
-    })
-    setOpen(false)
-  }
+      title: t('messages.createSuccess'),
+    });
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -47,5 +53,5 @@ export function CreateCountryDialog() {
         <CountryForm onSubmit={handleSubmit} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

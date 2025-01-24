@@ -1,39 +1,40 @@
-"use client"
+'use client';
 
-import { Input } from '@/components/ui/input'
-import { useState } from 'react'
-import { buttonVariants } from '@/components/ui/button'
-import { toast } from '@/hooks/use-toast'
-import { subscribeToWaitlist } from '@/actions/email-list'
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { buttonVariants } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
+import { subscribeToWaitlist } from '@/actions/email-list';
 
 export function CTASection() {
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await subscribeToWaitlist(email)
+      await subscribeToWaitlist(email);
 
       toast({
-        title: "Inscription réussie !",
-        description: "Nous vous préviendrons dès que le site sera disponible.",
-        variant: "success"
-      })
+        title: 'Inscription réussie !',
+        description: 'Nous vous préviendrons dès que le site sera disponible.',
+        variant: 'success',
+      });
 
-      setEmail('')
+      setEmail('');
     } catch (error) {
       toast({
-        title: "Une erreur est survenue",
-        description: "Impossible de vous inscrire pour le moment. Veuillez réessayer plus tard.",
-        variant: "destructive"
-      })
+        title: 'Une erreur est survenue',
+        description:
+          'Impossible de vous inscrire pour le moment. Veuillez réessayer plus tard.',
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <section className="bg-primary py-20 text-primary-foreground">
@@ -42,10 +43,14 @@ export function CTASection() {
           Soyez les premiers informés
         </h2>
         <p className="mb-8 text-lg opacity-90">
-          Laissez-nous votre email pour être notifié dès que la plateforme sera disponible.
+          Laissez-nous votre email pour être notifié dès que la plateforme sera
+          disponible.
         </p>
 
-        <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col items-center gap-4 sm:flex-row">
+        <form
+          onSubmit={handleSubmit}
+          className="mx-auto flex max-w-md flex-col items-center gap-4 sm:flex-row"
+        >
           <Input
             type="email"
             placeholder="Votre adresse email"
@@ -57,18 +62,18 @@ export function CTASection() {
           <button
             type="submit"
             className={buttonVariants({
-              variant: "secondary",
-              size: "lg"
+              variant: 'secondary',
+              size: 'lg',
             })}
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <span className="mr-2 size-4 animate-spin rounded-full border-2 border-primary border-r-transparent"/>
+                <span className="mr-2 size-4 animate-spin rounded-full border-2 border-primary border-r-transparent" />
                 Inscription...
               </>
             ) : (
-              "Me prévenir"
+              'Me prévenir'
             )}
           </button>
         </form>
@@ -78,5 +83,5 @@ export function CTASection() {
         </p>
       </div>
     </section>
-  )
+  );
 }

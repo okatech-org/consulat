@@ -1,17 +1,17 @@
-import './globals.css'
-import { ThemeProvider } from '@/components/layouts/theme-provider'
-import React from 'react'
-import { GeistSans } from 'geist/font/sans'
-import type { Metadata, Viewport } from 'next'
+import './globals.css';
+import { ThemeProvider } from '@/components/layouts/theme-provider';
+import React from 'react';
+import { GeistSans } from 'geist/font/sans';
+import type { Metadata, Viewport } from 'next';
 import {
   APP_DEFAULT_TITLE,
   APP_DESCRIPTION,
   APP_NAME,
   APP_TITLE_TEMPLATE,
-} from '@/lib/utils'
-import { NextIntlClientProvider } from 'next-intl'
-import { getLocale, getMessages } from 'next-intl/server'
-import { Toaster } from '@/components/ui/toaster'
+} from '@/lib/utils';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
   },
-}
+};
 
 export const viewport: Viewport = {
   themeColor: '#17A34A',
@@ -62,31 +62,31 @@ export const viewport: Viewport = {
   width: 'device-width',
   userScalable: false,
   colorScheme: 'light dark',
-}
+};
 
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
-  const locale = await getLocale()
-  const messages = await getMessages()
+  const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={GeistSans.className + " bg-muted"}>
+      <body className={GeistSans.className + ' bg-muted'}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
-            attribute='class'
-            defaultTheme='light'
+            attribute="class"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >
             {children}
-            <Toaster  />
+            <Toaster />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>
-  )
+  );
 }

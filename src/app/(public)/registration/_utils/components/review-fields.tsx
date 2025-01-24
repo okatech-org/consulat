@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { useTranslations } from 'next-intl';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import {
   MapPin,
   User,
@@ -13,54 +13,62 @@ import {
   Calendar,
   Globe,
   Flag,
-  Building
-} from 'lucide-react'
-import { ConsularFormData } from '@/schemas/registration'
-import { DocumentStatus, InfoField } from '@/components/ui/info-field'
+  Building,
+} from 'lucide-react';
+import { ConsularFormData } from '@/schemas/registration';
+import { DocumentStatus, InfoField } from '@/components/ui/info-field';
 
 interface ReviewFieldsProps<T extends keyof ConsularFormData> {
-  id: T
-  data: ConsularFormData[T]
+  id: T;
+  data: ConsularFormData[T];
 }
 
-export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: ReviewFieldsProps<T>) {
-  const t = useTranslations('registration')
-  const t_assets = useTranslations('assets')
+export function ReviewFields<T extends keyof ConsularFormData>({
+  data,
+  id,
+}: ReviewFieldsProps<T>) {
+  const t = useTranslations('registration');
+  const t_assets = useTranslations('assets');
 
-  const documents: ConsularFormData["documents"] | undefined = id === "documents" ? data as ConsularFormData["documents"] : undefined
-  const basicInfo: ConsularFormData["basicInfo"] | undefined = id === "basicInfo" ? data as ConsularFormData["basicInfo"] : undefined
-  const familyInfo: ConsularFormData["familyInfo"] | undefined = id === "familyInfo" ? data as ConsularFormData["familyInfo"] : undefined
-  const contactInfo: ConsularFormData["contactInfo"] | undefined = id === "contactInfo" ? data as ConsularFormData["contactInfo"] : undefined
-  const professionalInfo: ConsularFormData["professionalInfo"] | undefined = id === "professionalInfo" ? data as ConsularFormData["professionalInfo"] : undefined
+  const documents: ConsularFormData['documents'] | undefined =
+    id === 'documents' ? (data as ConsularFormData['documents']) : undefined;
+  const basicInfo: ConsularFormData['basicInfo'] | undefined =
+    id === 'basicInfo' ? (data as ConsularFormData['basicInfo']) : undefined;
+  const familyInfo: ConsularFormData['familyInfo'] | undefined =
+    id === 'familyInfo' ? (data as ConsularFormData['familyInfo']) : undefined;
+  const contactInfo: ConsularFormData['contactInfo'] | undefined =
+    id === 'contactInfo' ? (data as ConsularFormData['contactInfo']) : undefined;
+  const professionalInfo: ConsularFormData['professionalInfo'] | undefined =
+    id === 'professionalInfo'
+      ? (data as ConsularFormData['professionalInfo'])
+      : undefined;
 
   return (
     <>
-      {
-        documents && (
-          <div className="space-y-4">
-            <h3 className="font-medium">{t('review.components')}</h3>
-            <div className="grid gap-3">
-              <DocumentStatus
-                type={t('components.passport.label')}
-                isUploaded={!documents.passportFile?.length}
-              />
-              <DocumentStatus
-                type={t('components.birth_certificate.label')}
-                isUploaded={!documents.birthCertificateFile?.length}
-              />
-              <DocumentStatus
-                type={t('components.residence_permit.label')}
-                isUploaded={!documents.residencePermitFile?.length}
-                required={false}
-              />
-              <DocumentStatus
-                type={t('components.address_proof.label')}
-                isUploaded={!documents.addressProofFile?.length}
-              />
-            </div>
+      {documents && (
+        <div className="space-y-4">
+          <h3 className="font-medium">{t('review.components')}</h3>
+          <div className="grid gap-3">
+            <DocumentStatus
+              type={t('components.passport.label')}
+              isUploaded={!documents.passportFile?.length}
+            />
+            <DocumentStatus
+              type={t('components.birth_certificate.label')}
+              isUploaded={!documents.birthCertificateFile?.length}
+            />
+            <DocumentStatus
+              type={t('components.residence_permit.label')}
+              isUploaded={!documents.residencePermitFile?.length}
+              required={false}
+            />
+            <DocumentStatus
+              type={t('components.address_proof.label')}
+              isUploaded={!documents.addressProofFile?.length}
+            />
           </div>
-        )
-      }
+        </div>
+      )}
 
       {/* Informations de base */}
       {basicInfo && (
@@ -85,13 +93,18 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
             />
             <InfoField
               label={t('form.gender')}
-              value={basicInfo.gender && t_assets(`gender.${basicInfo.gender.toLowerCase()}`)}
+              value={
+                basicInfo.gender && t_assets(`gender.${basicInfo.gender.toLowerCase()}`)
+              }
               icon={<User className="size-4" />}
               required
             />
             <InfoField
               label={t('form.birth_date')}
-              value={basicInfo.birthDate && format(new Date(basicInfo.birthDate), 'PPP', { locale: fr })}
+              value={
+                basicInfo.birthDate &&
+                format(new Date(basicInfo.birthDate), 'PPP', { locale: fr })
+              }
               icon={<Calendar className="size-4" />}
               required
             />
@@ -131,12 +144,18 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
               />
               <InfoField
                 label={t('form.passport.issue_date.label')}
-                value={basicInfo.passportIssueDate && format(new Date(basicInfo.passportIssueDate), 'PPP', { locale: fr })}
+                value={
+                  basicInfo.passportIssueDate &&
+                  format(new Date(basicInfo.passportIssueDate), 'PPP', { locale: fr })
+                }
                 required
               />
               <InfoField
                 label={t('form.passport.expiry_date.label')}
-                value={basicInfo.passportExpiryDate && format(new Date(basicInfo.passportExpiryDate), 'PPP', { locale: fr })}
+                value={
+                  basicInfo.passportExpiryDate &&
+                  format(new Date(basicInfo.passportExpiryDate), 'PPP', { locale: fr })
+                }
                 required
               />
             </div>
@@ -157,7 +176,11 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
             />
             <InfoField
               label={t('form.phone')}
-              value={contactInfo.phone ? `${contactInfo.phone.countryCode} ${contactInfo.phone.number}` : undefined}
+              value={
+                contactInfo.phone
+                  ? `${contactInfo.phone.countryCode} ${contactInfo.phone.number}`
+                  : undefined
+              }
               icon={<Phone className="size-4" />}
               required
             />
@@ -202,7 +225,10 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
           <div className="grid gap-4">
             <InfoField
               label={t('form.marital_status')}
-              value={familyInfo.maritalStatus && t_assets(`marital_status.${familyInfo.maritalStatus.toLowerCase()}`)}
+              value={
+                familyInfo.maritalStatus &&
+                t_assets(`marital_status.${familyInfo.maritalStatus.toLowerCase()}`)
+              }
               icon={<Users className="size-4" />}
               required
             />
@@ -244,7 +270,11 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
                 />
                 <InfoField
                   label={t('form.emergency_contact_phone')}
-                  value={familyInfo.emergencyContact.phone ? `${familyInfo.emergencyContact.phone.countryCode}${familyInfo.emergencyContact.phone.number}` : undefined}
+                  value={
+                    familyInfo.emergencyContact.phone
+                      ? `${familyInfo.emergencyContact.phone.countryCode}${familyInfo.emergencyContact.phone.number}`
+                      : undefined
+                  }
                   icon={<Phone className="size-4" />}
                 />
               </div>
@@ -260,7 +290,10 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
           <div className="grid gap-4">
             <InfoField
               label={t('form.work_status')}
-              value={professionalInfo.workStatus && t_assets(`work_status.${professionalInfo.workStatus.toLowerCase()}`)}
+              value={
+                professionalInfo.workStatus &&
+                t_assets(`work_status.${professionalInfo.workStatus.toLowerCase()}`)
+              }
               icon={<Briefcase className="size-4" />}
               required
             />
@@ -294,5 +327,5 @@ export function ReviewFields<T extends keyof ConsularFormData>({ data, id }: Rev
         </div>
       )}
     </>
-  )
+  );
 }

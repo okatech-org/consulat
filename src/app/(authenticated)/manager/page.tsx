@@ -1,10 +1,10 @@
-import { getTranslations } from 'next-intl/server'
-import { DashboardStats } from '@/app/(authenticated)/manager/_utils/components/dashboard-stats'
-import { RequestsQueue } from '@/app/(authenticated)/manager/_utils/components/requests-queue'
-import { ImportantAlerts } from '@/app/(authenticated)/manager/_utils/components/important-alerts'
+import { getTranslations } from 'next-intl/server';
+import { DashboardStats } from '@/app/(authenticated)/manager/_utils/components/dashboard-stats';
+import { RequestsQueue } from '@/app/(authenticated)/manager/_utils/components/requests-queue';
+import { ImportantAlerts } from '@/app/(authenticated)/manager/_utils/components/important-alerts';
 
 export default async function ManagerDashboard() {
-  const t = await getTranslations('manager.dashboard')
+  const t = await getTranslations('manager.dashboard');
 
   return (
     <div className="container space-y-8">
@@ -17,5 +17,5 @@ export default async function ManagerDashboard() {
         <ImportantAlerts />
       </div>
     </div>
-  )
+  );
 }

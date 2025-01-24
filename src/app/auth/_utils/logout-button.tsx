@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { logUserOut } from '@/actions/auth'
-import * as React from 'react'
-import { LogOut } from 'lucide-react'
-import { useCurrentUser } from '@/hooks/use-current-user'
-import { Icons } from '@/components/ui/icons'
-import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
+import { logUserOut } from '@/actions/auth';
+import * as React from 'react';
+import { LogOut } from 'lucide-react';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { Icons } from '@/components/ui/icons';
+import { cn } from '@/lib/utils';
 
 interface LogoutButtonProps {
-  className?: string
+  className?: string;
 }
 
 export function LogoutButton({ className }: LogoutButtonProps) {
-  const t = useTranslations('auth.actions')
-  const user = useCurrentUser()
-  const [isPending, startTransition] = React.useTransition()
+  const t = useTranslations('auth.actions');
+  const user = useCurrentUser();
+  const [isPending, startTransition] = React.useTransition();
 
   if (!user) {
-    return null
+    return null;
   }
 
   return (
@@ -27,9 +27,9 @@ export function LogoutButton({ className }: LogoutButtonProps) {
       onClick={() => {
         startTransition(async () => {
           await logUserOut().then(() => {
-            window.location.reload()
-          })
-        })
+            window.location.reload();
+          });
+        });
       }}
       variant="ghost"
       className={cn('w-full gap-2', className)}
@@ -42,5 +42,5 @@ export function LogoutButton({ className }: LogoutButtonProps) {
       )}
       <span>{t('logout')}</span>
     </Button>
-  )
+  );
 }

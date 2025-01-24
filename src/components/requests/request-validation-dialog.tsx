@@ -1,25 +1,31 @@
 // src/components/actions/requests/request-validation-dialog.tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
 interface ValidationDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onValidate: (status: 'APPROVED' | 'REJECTED', notes: string) => Promise<void>
-  isLoading?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onValidate: (status: 'APPROVED' | 'REJECTED', notes: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export function RequestValidationDialog({
-                                          isOpen,
-                                          onClose,
-                                          onValidate,
-                                          isLoading
-                                        }: ValidationDialogProps) {
-  const t = useTranslations('actions.requests')
-  const [notes, setNotes] = useState('')
+  isOpen,
+  onClose,
+  onValidate,
+  isLoading,
+}: ValidationDialogProps) {
+  const t = useTranslations('actions.requests');
+  const [notes, setNotes] = useState('');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -45,14 +51,11 @@ export function RequestValidationDialog({
           >
             {t('actions.reject')}
           </Button>
-          <Button
-            onClick={() => onValidate('APPROVED', notes)}
-            disabled={isLoading}
-          >
+          <Button onClick={() => onValidate('APPROVED', notes)} disabled={isLoading}>
             {t('actions.approve')}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

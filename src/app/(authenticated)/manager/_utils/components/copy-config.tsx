@@ -1,20 +1,26 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useTranslations } from 'next-intl'
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
 
 interface CopyConfigProps {
-  countries: { id: string; name: string }[]
-  currentCountry: string
-  onCopy: (fromCountry: string) => void
+  countries: { id: string; name: string }[];
+  currentCountry: string;
+  onCopy: (fromCountry: string) => void;
 }
 
 export function CopyConfig({ countries, currentCountry, onCopy }: CopyConfigProps) {
-  const [fromCountry, setFromCountry] = React.useState('')
-  const t = useTranslations('manager.settings.organization')
+  const [fromCountry, setFromCountry] = React.useState('');
+  const t = useTranslations('manager.settings.organization');
 
   return (
     <Popover>
@@ -29,8 +35,8 @@ export function CopyConfig({ countries, currentCountry, onCopy }: CopyConfigProp
             </SelectTrigger>
             <SelectContent>
               {countries
-                .filter(c => c.id !== currentCountry)
-                .map(country => (
+                .filter((c) => c.id !== currentCountry)
+                .map((country) => (
                   <SelectItem key={country.id} value={country.id}>
                     {country.name}
                   </SelectItem>
@@ -47,5 +53,5 @@ export function CopyConfig({ countries, currentCountry, onCopy }: CopyConfigProp
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

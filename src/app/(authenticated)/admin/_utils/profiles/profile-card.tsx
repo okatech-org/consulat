@@ -1,20 +1,20 @@
-import { useTranslations } from 'next-intl'
-import { FullProfile } from '@/types'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge'
+import { useTranslations } from 'next-intl';
+import { FullProfile } from '@/types';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
 
 interface ProfileCardProps {
-  profile: FullProfile
-  onClick: () => void
+  profile: FullProfile;
+  onClick: () => void;
 }
 
 export function ProfileCard({ profile, onClick }: ProfileCardProps) {
-  const t = useTranslations('actions.profiles')
-  const t_countries = useTranslations('countries')
+  const t = useTranslations('actions.profiles');
+  const t_countries = useTranslations('countries');
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -38,10 +38,12 @@ export function ProfileCard({ profile, onClick }: ProfileCardProps) {
           {t('fields.nationality')}: {t_countries(profile.nationality)}
         </p>
         <p>
-          {t('fields.birth')}: {format(new Date(profile.birthDate), 'PPP', { locale: fr })}
+          {t('fields.birth')}:{' '}
+          {format(new Date(profile.birthDate), 'PPP', { locale: fr })}
         </p>
         <p>
-          {t('fields.submitted')}: {format(new Date(profile.updatedAt), 'PPP', { locale: fr })}
+          {t('fields.submitted')}:{' '}
+          {format(new Date(profile.updatedAt), 'PPP', { locale: fr })}
         </p>
       </CardContent>
       <CardFooter>
@@ -50,5 +52,5 @@ export function ProfileCard({ profile, onClick }: ProfileCardProps) {
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }

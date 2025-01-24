@@ -1,15 +1,21 @@
-'use client'
+'use client';
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { X } from 'lucide-react'
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { ChatWindow } from './chat-window'
-import LottieAnimation from '@/components/ui/lottie-animation'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { X } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { ChatWindow } from './chat-window';
+import LottieAnimation from '@/components/ui/lottie-animation';
 
 export function ChatToggle() {
-  const t = useTranslations('chatbot')
-  const [isOpen, setIsOpen] = useState(false)
+  const t = useTranslations('chatbot');
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -40,5 +46,5 @@ export function ChatToggle() {
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

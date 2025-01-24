@@ -1,5 +1,5 @@
-import React from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import React from 'react';
+import { UseFormReturn } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -8,45 +8,46 @@ import {
   FormLabel,
   TradFormMessage,
   FormDescription,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useTranslations } from 'next-intl'
-import { FamilyLink, MaritalStatus } from '@prisma/client'
-import { PhoneInput, PhoneValue } from '@/components/ui/phone-input'
-import { FamilyInfoFormData } from '@/schemas/registration'
-import { Separator } from '@/components/ui/separator'
+} from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
+import { FamilyLink, MaritalStatus } from '@prisma/client';
+import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
+import { FamilyInfoFormData } from '@/schemas/registration';
+import { Separator } from '@/components/ui/separator';
 
 interface FamilyInfoFormProps {
-  form: UseFormReturn<FamilyInfoFormData>
-  onSubmit: (data: FamilyInfoFormData) => void
-  formRef?: React.RefObject<HTMLFormElement>
-  isLoading?: boolean
+  form: UseFormReturn<FamilyInfoFormData>;
+  onSubmit: (data: FamilyInfoFormData) => void;
+  formRef?: React.RefObject<HTMLFormElement>;
+  isLoading?: boolean;
 }
 
 export function FamilyInfoForm({
-                                 form,
-                                 onSubmit,
-                                 formRef,
-                                 isLoading = false,
-                               }: Readonly<FamilyInfoFormProps>) {
-  const t = useTranslations('registration')
-  const t_profile = useTranslations('profile')
-  const tAssets = useTranslations('assets')
+  form,
+  onSubmit,
+  formRef,
+  isLoading = false,
+}: Readonly<FamilyInfoFormProps>) {
+  const t = useTranslations('registration');
+  const t_profile = useTranslations('profile');
+  const tAssets = useTranslations('assets');
 
-  const maritalStatus = form.watch('maritalStatus')
-  const showSpouseFields = maritalStatus === MaritalStatus.MARRIED || maritalStatus === MaritalStatus.COHABITING
+  const maritalStatus = form.watch('maritalStatus');
+  const showSpouseFields =
+    maritalStatus === MaritalStatus.MARRIED || maritalStatus === MaritalStatus.COHABITING;
 
   const handlePhoneChange = (phone: PhoneValue) => {
-    form.setValue('emergencyContact.phone', phone)
-  }
+    form.setValue('emergencyContact.phone', phone);
+  };
 
   return (
     <Form {...form}>
@@ -62,10 +63,7 @@ export function FamilyInfoForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('form.marital_status')}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger disabled={isLoading}>
                           <SelectValue placeholder={t('form.select_marital_status')} />
@@ -152,9 +150,7 @@ export function FamilyInfoForm({
 
             <div className="grid gap-4">
               <h3 className="text-lg font-semibold">{t('form.emergency_contact')}</h3>
-              <FormDescription>
-                {t('form.emergency_contact_description')}
-              </FormDescription>
+              <FormDescription>{t('form.emergency_contact_description')}</FormDescription>
 
               <FormField
                 control={form.control}
@@ -187,9 +183,7 @@ export function FamilyInfoForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue
-                            placeholder={t('form.select_relationship')}
-                          />
+                          <SelectValue placeholder={t('form.select_relationship')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -229,5 +223,5 @@ export function FamilyInfoForm({
         </Card>
       </form>
     </Form>
-  )
+  );
 }

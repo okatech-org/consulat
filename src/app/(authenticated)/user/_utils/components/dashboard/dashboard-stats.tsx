@@ -1,9 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useTranslations } from 'next-intl'
-import { FileText, Users, Clock, CheckCircle } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
+import { FileText, Users, Clock, CheckCircle } from 'lucide-react';
 
 export function DashboardStats() {
-  const t = useTranslations('manager.dashboard')
+  const t = useTranslations('manager.dashboard');
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -35,29 +35,30 @@ export function DashboardStats() {
         description={t('stats.completed_description')}
       />
     </div>
-  )
+  );
 }
 
-function StatsCard({ title, value, icon, description }: {
-  title: string
-  value: string
-  icon: React.ReactNode
-  description: string
+function StatsCard({
+  title,
+  value,
+  icon,
+  description,
+}: {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  description: string;
 }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
-          {title}
-        </CardTitle>
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {icon}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">
-          {description}
-        </p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeSVG } from 'qrcode.react';
 
 interface QRCodeProps {
-  value: string
-  size?: number
-  level?: 'L' | 'M' | 'Q' | 'H'
+  value: string;
+  size?: number;
+  level?: 'L' | 'M' | 'Q' | 'H';
 }
 
 export function QRCode({ value, size = 128, level = 'M' }: QRCodeProps) {
@@ -17,5 +17,5 @@ export function QRCode({ value, size = 128, level = 'M' }: QRCodeProps) {
         className="size-full"
       />
     </div>
-  )
+  );
 }

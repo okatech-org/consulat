@@ -2,12 +2,12 @@
   "common": {
     "languages": {
       "label": "Langue",
-        "fr": "Français",
-        "fr_short": "FR",
-        "en": "Anglais",
-        "en_short": "EN",
-        "es": "Espagnol",
-        "es_short": "ES"
+      "fr": "Français",
+      "fr_short": "FR",
+      "en": "Anglais",
+      "en_short": "EN",
+      "es": "Espagnol",
+      "es_short": "ES"
     },
     "nav": {
       "appointments": "RDV",
@@ -334,34 +334,34 @@
       "birth_registration": "Déclaration de naissance"
     },
     "data_table": {
-        "go_to_last": "Aller à la dernière page",
-        "go_to_first": "Aller à la première page",
-        "no_data": "Aucune donnée disponible",
-        "no_results": "Aucun résultat trouvé",
-        "loading": "Chargement...",
-        "rows_per_page": "Lignes par page",
-        "page_of_total": "Page {page} sur {total}",
-        "page": "Page",
-        "of": "de",
-        "resetFilters": "Réinitialiser",
-        "viewOptions": "Voir les options",
-        "selectedCount": "{selected} sélectionné(s)",
-        "rows": "lignes",
-        "columns": "Colonnes",
-        "search": "Rechercher",
-        "previous": "Précédent",
-        "noResults": "Aucun résultat",
-        "next": "Suivant",
-        "search_placeholder": "Rechercher...",
-        "actions": "Actions",
-        "selected": "sélectionné",
-        "selected_rows": "{selected}/{total} lignes sélectionnées",
-        "select_all": "Tout sélectionner",
-        "clear_selection": "Effacer la sélection",
-        "clearFilters": "Effacer les filtres",
-        "export": "Exporter",
-        "do_to_first": "Aller à la première page",
-        "do_to_last": "Aller à la dernière page"
+      "go_to_last": "Aller à la dernière page",
+      "go_to_first": "Aller à la première page",
+      "no_data": "Aucune donnée disponible",
+      "no_results": "Aucun résultat trouvé",
+      "loading": "Chargement...",
+      "rows_per_page": "Lignes par page",
+      "page_of_total": "Page {page} sur {total}",
+      "page": "Page",
+      "of": "de",
+      "resetFilters": "Réinitialiser",
+      "viewOptions": "Voir les options",
+      "selectedCount": "{selected} sélectionné(s)",
+      "rows": "lignes",
+      "columns": "Colonnes",
+      "search": "Rechercher",
+      "previous": "Précédent",
+      "noResults": "Aucun résultat",
+      "next": "Suivant",
+      "search_placeholder": "Rechercher...",
+      "actions": "Actions",
+      "selected": "sélectionné",
+      "selected_rows": "{selected}/{total} lignes sélectionnées",
+      "select_all": "Tout sélectionner",
+      "clear_selection": "Effacer la sélection",
+      "clearFilters": "Effacer les filtres",
+      "export": "Exporter",
+      "do_to_first": "Aller à la première page",
+      "do_to_last": "Aller à la dernière page"
     },
     "field_types": {
       "text": "Texte",
@@ -1530,7 +1530,7 @@
       "family_info": "Informations familiales",
       "professional_info": "Informations professionnelles",
       "documents": "Documents officiels"
-      },
+    },
     "fields": {
       "gender": "Genre",
       "gender_type": {
@@ -1828,7 +1828,7 @@
         "action_failed": "L'action a échoué",
         "try_again": "Veuillez réessayer"
       }
-      },
+    },
     "requests": {
       "title": "Mes demandes",
       "total": "Total",
@@ -2513,7 +2513,7 @@
     },
     "nationality_acquisition": {
       "label": "Mode d'acquisition de la nationalité",
-      "modes":{
+      "modes": {
         "birth": "Par naissance",
         "marriage": "Par mariage",
         "naturalization": "Par naturalisation",
@@ -2530,16 +2530,16 @@
       "edit": "Modifier"
     },
     "submission": {
-        "success": {
-            "title": "Demande envoyée",
-            "description": "Votre demande a été envoyée avec succès",
-            "action": "Voir mon espace",
-            "action_hint": "Aller à mon espace personnel"
-        },
-        "error": {
-            "title": "Erreur",
-            "unknown": "Une erreur est survenue lors de l'envoi"
-        }
+      "success": {
+        "title": "Demande envoyée",
+        "description": "Votre demande a été envoyée avec succès",
+        "action": "Voir mon espace",
+        "action_hint": "Aller à mon espace personnel"
+      },
+      "error": {
+        "title": "Erreur",
+        "unknown": "Une erreur est survenue lors de l'envoi"
+      }
     }
   },
   "consular": {
@@ -3175,8 +3175,8 @@
           "search": "Rechercher un pays"
         },
         "admin_email": {
-            "label": "Email de l'administrateur",
-            "placeholder": "Ex: admin@example.com"
+          "label": "Email de l'administrateur",
+          "placeholder": "Ex: admin@example.com"
         },
         "country": {
           "label": "Pays de rattachement",
@@ -3422,8 +3422,8 @@
                 "number": "Nombre",
                 "address": "Adresse"
               },
-              "options" : "Options",
-              "add" : "Ajouter un champ",
+              "options": "Options",
+              "add": "Ajouter un champ",
               "edit": "Modifier le champ",
               "profile_mapping": "Mapping avec le profil",
               "profile_mapping_description": "Associer ce champ à un champ du profil utilisateur",
@@ -3563,38 +3563,38 @@
             "name": "Nom de l'organisme",
             "address": "Numéro et nom de rue"
           },
-        "schedule": {
-          "title": "Horaires d'ouverture",
-          "days": {
-            "monday": "Lundi",
-            "tuesday": "Mardi",
-            "wednesday": "Mercredi",
-            "thursday": "Jeudi",
-            "friday": "Vendredi",
-            "saturday": "Samedi",
-            "sunday": "Dimanche"
+          "schedule": {
+            "title": "Horaires d'ouverture",
+            "days": {
+              "monday": "Lundi",
+              "tuesday": "Mardi",
+              "wednesday": "Mercredi",
+              "thursday": "Jeudi",
+              "friday": "Vendredi",
+              "saturday": "Samedi",
+              "sunday": "Dimanche"
+            },
+            "periods": {
+              "morning": "Matin",
+              "afternoon": "Après-midi"
+            },
+            "closed": "Fermé",
+            "open": "Ouvert"
           },
-          "periods": {
-            "morning": "Matin",
-            "afternoon": "Après-midi"
+          "holidays": {
+            "title": "Jours fériés",
+            "add": "Ajouter un jour férié",
+            "name": "Nom",
+            "date": "Date"
           },
-          "closed": "Fermé",
-          "open": "Ouvert"
+          "closures": {
+            "title": "Fermetures exceptionnelles",
+            "add": "Ajouter une fermeture",
+            "reason": "Motif",
+            "start_date": "Date de début",
+            "end_date": "Date de fin"
+          }
         },
-        "holidays": {
-          "title": "Jours fériés",
-          "add": "Ajouter un jour férié",
-          "name": "Nom",
-          "date": "Date"
-        },
-        "closures": {
-          "title": "Fermetures exceptionnelles",
-          "add": "Ajouter une fermeture",
-          "reason": "Motif",
-          "start_date": "Date de début",
-          "end_date": "Date de fin"
-        }
-      },
         "schedule": {
           "title": "Horaires d'ouverture",
           "days": {

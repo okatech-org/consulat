@@ -1,24 +1,24 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { logUserOut } from '@/actions/auth'
-import * as React from 'react'
-import { LogOutIcon } from 'lucide-react'
-import { useCurrentUser } from '@/hooks/use-current-user'
-import { Icons } from './icons'
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
+import { logUserOut } from '@/actions/auth';
+import * as React from 'react';
+import { LogOutIcon } from 'lucide-react';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { Icons } from './icons';
 
 type LogoutButtonProps = {
-  customClass?: string
-}
+  customClass?: string;
+};
 
 export function LogoutButton({ customClass }: Readonly<LogoutButtonProps>) {
-  const t = useTranslations('auth.actions')
-  const user = useCurrentUser()
-  const [isPending, startTransition] = React.useTransition()
+  const t = useTranslations('auth.actions');
+  const user = useCurrentUser();
+  const [isPending, startTransition] = React.useTransition();
 
   if (!user) {
-    return null
+    return null;
   }
 
   return (
@@ -26,9 +26,9 @@ export function LogoutButton({ customClass }: Readonly<LogoutButtonProps>) {
       onClick={() => {
         startTransition(async () => {
           await logUserOut().then(() => {
-            window.location.reload()
-          })
-        })
+            window.location.reload();
+          });
+        });
       }}
       type={'button'}
       variant={'ghost'}
@@ -42,5 +42,5 @@ export function LogoutButton({ customClass }: Readonly<LogoutButtonProps>) {
       )}
       <span>{t('logout')}</span>
     </Button>
-  )
+  );
 }

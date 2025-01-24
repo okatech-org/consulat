@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { useTranslations } from 'next-intl'
-import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react'
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import * as React from 'react';
+import { useTranslations } from 'next-intl';
+import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -12,234 +12,249 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/components/ui/dialog"
-import Image from "next/image"
-import { Input } from '@/components/ui/input'
-import { AppUserDocument } from "@/types"
-import { DocumentStatus, DocumentType } from '@prisma/client'
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { createUserDocument, deleteUserDocument, updateUserDocument } from '@/actions/user-documents'
-import { useToast } from '@/hooks/use-toast'
-import { useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MetadataForm } from '@/app/(authenticated)/manager/_utils/components/metadata-form'
-import { ReloadIcon } from '@radix-ui/react-icons'
+} from '@/components/ui/dialog';
+import Image from 'next/image';
+import { Input } from '@/components/ui/input';
+import { AppUserDocument } from '@/types';
+import { DocumentStatus, DocumentType } from '@prisma/client';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  createUserDocument,
+  deleteUserDocument,
+  updateUserDocument,
+} from '@/actions/user-documents';
+import { useToast } from '@/hooks/use-toast';
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MetadataForm } from '@/app/(authenticated)/manager/_utils/components/metadata-form';
+import { ReloadIcon } from '@radix-ui/react-icons';
 
 interface UserDocumentProps {
-  document?: AppUserDocument | null
-  expectedType?: DocumentType
-  profileId?: string
-  label: string
-  description?: string
-  required?: boolean
-  disabled?: boolean
+  document?: AppUserDocument | null;
+  expectedType?: DocumentType;
+  profileId?: string;
+  label: string;
+  description?: string;
+  required?: boolean;
+  disabled?: boolean;
 }
 
 const updateDocumentSchema = z.object({
   issuedAt: z.string().optional(),
   expiresAt: z.string().optional(),
   metadata: z.record(z.string(), z.any()).nullable().optional(),
-})
+});
 
-type UpdateDocumentData = z.infer<typeof updateDocumentSchema>
+type UpdateDocumentData = z.infer<typeof updateDocumentSchema>;
 
 export function UserDocument({
-                               document,
-                               label,
-                               description,
-                                profileId,
-                               expectedType = DocumentType.IDENTITY_PHOTO,
-                               required = false,
-                               disabled = false,
-                             }: UserDocumentProps) {
-  const t = useTranslations('common.components')
-  const t_messages = useTranslations('messages.components')
-  const { toast } = useToast()
-  const inputRef = React.useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = React.useState<string | null>(null)
-  const [isDragging, setIsDragging] = React.useState(false)
-  const [isUpdating, setIsUpdating] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(false)
-  const router = useRouter()
+  document,
+  label,
+  description,
+  profileId,
+  expectedType = DocumentType.IDENTITY_PHOTO,
+  required = false,
+  disabled = false,
+}: UserDocumentProps) {
+  const t = useTranslations('common.components');
+  const t_messages = useTranslations('messages.components');
+  const { toast } = useToast();
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = React.useState<string | null>(null);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter();
 
   const handleDelete = async (documentId: string) => {
     try {
-      setIsLoading(true)
-      const result = await deleteUserDocument(documentId)
+      setIsLoading(true);
+      const result = await deleteUserDocument(documentId);
 
       if (result.error) {
-        throw new Error(result.error)
+        throw new Error(result.error);
       }
 
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
-        variant: "success"
-      })
+        variant: 'success',
+      });
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Delete error:', error)
+      console.error('Delete error:', error);
       toast({
         title: t_messages('errors.update_failed'),
-        description: error instanceof Error ? error.message : t_messages('errors.unknown'),
-        variant: "destructive"
-      })
+        description:
+          error instanceof Error ? error.message : t_messages('errors.unknown'),
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const handleUpload = useCallback(async (type: DocumentType, file: FormData) => {
-    try {
-      setIsLoading(true)
-      const result = await createUserDocument(type, file, profileId)
+  const handleUpload = useCallback(
+    async (type: DocumentType, file: FormData) => {
+      try {
+        setIsLoading(true);
+        const result = await createUserDocument(type, file, profileId);
 
-      if (result.error) {
-        throw new Error(result.error)
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        toast({
+          title: t_messages('success.update_title'),
+          description: t_messages('success.update_description'),
+          variant: 'success',
+        });
+
+        router.refresh();
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: t_messages('errors.update_failed'),
+          description:
+            error instanceof Error ? error.message : t_messages('errors.unknown'),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
       }
-
-      toast({
-        title: t_messages('success.update_title'),
-        description: t_messages('success.update_description'),
-        variant: "success"
-      })
-
-      router.refresh()
-    } catch (error) {
-      console.error('Upload error:', error)
-      toast({
-        title: t_messages('errors.update_failed'),
-        description: error instanceof Error ? error.message : t_messages('errors.unknown'),
-        variant: "destructive"
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [profileId, toast, t_messages, router])
+    },
+    [profileId, toast, t_messages, router],
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdate = async (documentId: string, data: any) => {
     try {
-      setIsLoading(true)
-      const result = await updateUserDocument(documentId, data)
+      setIsLoading(true);
+      const result = await updateUserDocument(documentId, data);
 
       if (result.error) {
-        throw new Error(result.error)
+        throw new Error(result.error);
       }
 
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
-        variant: "success"
-      })
+        variant: 'success',
+      });
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Update error:', error)
+      console.error('Update error:', error);
       toast({
         title: t_messages('errors.update_failed'),
-        description: error instanceof Error ? error.message : t_messages('errors.unknown'),
-        variant: "destructive"
-      })
+        description:
+          error instanceof Error ? error.message : t_messages('errors.unknown'),
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const form = useForm<UpdateDocumentData>({
     resolver: zodResolver(updateDocumentSchema),
     defaultValues: {
-      issuedAt: document?.issuedAt ? format(new Date(document.issuedAt), 'yyyy-MM-dd') : undefined,
-      expiresAt: document?.expiresAt ? format(new Date(document.expiresAt), 'yyyy-MM-dd') : undefined,
+      issuedAt: document?.issuedAt
+        ? format(new Date(document.issuedAt), 'yyyy-MM-dd')
+        : undefined,
+      expiresAt: document?.expiresAt
+        ? format(new Date(document.expiresAt), 'yyyy-MM-dd')
+        : undefined,
       metadata: document?.metadata,
     },
-  })
+  });
 
   // Gérer la prévisualisation
   React.useEffect(() => {
     if (!document?.fileUrl) {
-      setPreview(null)
-      return
+      setPreview(null);
+      return;
     }
 
     if (document.fileUrl.endsWith('.pdf')) {
-      setPreview(null)
-      return
+      setPreview(null);
+      return;
     }
 
-    setPreview(document.fileUrl)
-  }, [document])
+    setPreview(document.fileUrl);
+  }, [document]);
 
   const handleDrop = React.useCallback(
     async (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-      setIsDragging(false)
-      if (disabled) return
+      e.preventDefault();
+      setIsDragging(false);
+      if (disabled) return;
 
-      const file = e.dataTransfer.files[0]
+      const file = e.dataTransfer.files[0];
       if (file) {
-        setIsLoading(true)
+        setIsLoading(true);
         try {
-          const formData = new FormData()
-          formData.append('files', file)
-          await handleUpload(document?.type || DocumentType.IDENTITY_PHOTO, formData)
+          const formData = new FormData();
+          formData.append('files', file);
+          await handleUpload(document?.type || DocumentType.IDENTITY_PHOTO, formData);
         } finally {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
     },
-    [disabled, document?.type, handleUpload]
-  )
+    [disabled, document?.type, handleUpload],
+  );
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const formData = new FormData()
+        const formData = new FormData();
 
-        formData.append('files', file)
+        formData.append('files', file);
 
-        await handleUpload(document?.type ?? expectedType, formData)
+        await handleUpload(document?.type ?? expectedType, formData);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const onUpdate = async (data: UpdateDocumentData) => {
-    if (!document) return
+    if (!document) return;
 
     try {
-      await handleUpdate(document.id, data)
-      setIsUpdating(false)
+      await handleUpdate(document.id, data);
+      setIsUpdating(false);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const getStatusBadge = (status: DocumentStatus) => {
-    const variants: Record<DocumentStatus, "default" | "success" | "destructive" | "warning"> = {
-      PENDING: "warning",
-      VALIDATED: "success",
-      REJECTED: "destructive",
-      EXPIRED: "destructive",
-      EXPIRING: "warning",
-    }
+    const variants: Record<
+      DocumentStatus,
+      'default' | 'success' | 'destructive' | 'warning'
+    > = {
+      PENDING: 'warning',
+      VALIDATED: 'success',
+      REJECTED: 'destructive',
+      EXPIRED: 'destructive',
+      EXPIRING: 'warning',
+    };
     return (
-      <Badge variant={variants[status]}>
-        {t(`status.${status.toLowerCase()}`)}
-      </Badge>
-    )
-  }
+      <Badge variant={variants[status]}>{t(`status.${status.toLowerCase()}`)}</Badge>
+    );
+  };
 
   return (
     <div className="mb-2 space-y-4">
@@ -249,24 +264,22 @@ export function UserDocument({
             {label}
             {required && <span className="ml-1 text-destructive">*</span>}
           </h3>
-          {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          )}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
         {document?.status && getStatusBadge(document.status)}
       </div>
 
       <div
         onDragOver={(e) => {
-          e.preventDefault()
-          if (!disabled) setIsDragging(true)
+          e.preventDefault();
+          if (!disabled) setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={cn(
-          "relative aspect-[4/1.5] p-4 rounded-lg border-2 border-dashed transition-colors",
-          isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-          disabled && "cursor-not-allowed opacity-60"
+          'relative aspect-[4/1.5] p-4 rounded-lg border-2 border-dashed transition-colors',
+          isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25',
+          disabled && 'cursor-not-allowed opacity-60',
         )}
       >
         <Input
@@ -285,7 +298,7 @@ export function UserDocument({
             <Button
               type="button"
               variant="outline"
-              className={"gap-1"}
+              className={'gap-1'}
               disabled={disabled || isLoading}
               onClick={() => inputRef.current?.click()}
             >
@@ -304,7 +317,11 @@ export function UserDocument({
             {preview ? (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button type="button" variant="ghost" className="flex aspect-document h-full max-h-[150px] w-auto overflow-hidden !p-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex aspect-document h-full max-h-[150px] w-auto overflow-hidden !p-0"
+                  >
                     <Image
                       src={preview}
                       alt="Preview"
@@ -316,12 +333,7 @@ export function UserDocument({
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <div className="relative aspect-document overflow-hidden rounded-lg">
-                    <Image
-                      src={preview}
-                      alt="Preview"
-                      fill
-                      className="object-contain"
-                    />
+                    <Image src={preview} alt="Preview" fill className="object-contain" />
                   </div>
                 </DialogContent>
               </Dialog>
@@ -329,7 +341,7 @@ export function UserDocument({
               <div className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted">
                 <FileInput className="size-10 opacity-20" />
               </div>
-              )}
+            )}
 
             {/* Actions */}
             <div className="absolute right-1 top-1 flex items-center gap-2">
@@ -365,17 +377,29 @@ export function UserDocument({
             {/* Informations */}
             <div className="flex flex-1 grow flex-col justify-end space-y-1 pt-6">
               <p className="text-sm text-muted-foreground">
-                {(document.issuedAt || document.expiresAt) && (<>
-                  {t('validity', {
-                    start: document.issuedAt ? format(new Date(document.issuedAt), 'dd-MM-yyyy', { locale: fr }) : 'N/A',
-                    end: document.expiresAt ? format(new Date(document.expiresAt), 'dd-MM-yyyy', { locale: fr }) : 'N/A',
-                  })}
-                </>)}
+                {(document.issuedAt || document.expiresAt) && (
+                  <>
+                    {t('validity', {
+                      start: document.issuedAt
+                        ? format(new Date(document.issuedAt), 'dd-MM-yyyy', {
+                            locale: fr,
+                          })
+                        : 'N/A',
+                      end: document.expiresAt
+                        ? format(new Date(document.expiresAt), 'dd-MM-yyyy', {
+                            locale: fr,
+                          })
+                        : 'N/A',
+                    })}
+                  </>
+                )}
               </p>
               {document.metadata && (
                 <div className="text-sm text-muted-foreground">
                   {Object.entries(document.metadata).map(([key, value]) => (
-                    <p key={key}>{t(`metadata.${key}`)}: {value}</p>
+                    <p key={key}>
+                      {t(`metadata.${key}`)}: {value}
+                    </p>
                   ))}
                 </div>
               )}
@@ -443,8 +467,8 @@ export function UserDocument({
                   documentType={document.type}
                   metadata={document.metadata}
                   onSubmit={async (metadata) => {
-                    await handleUpdate(document.id, { metadata })
-                    setIsUpdating(false)
+                    await handleUpdate(document.id, { metadata });
+                    setIsUpdating(false);
                   }}
                 />
               )}
@@ -453,5 +477,5 @@ export function UserDocument({
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

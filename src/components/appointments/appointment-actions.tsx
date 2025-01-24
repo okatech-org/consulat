@@ -1,22 +1,26 @@
 // src/components/appointments/appointment-actions.tsx
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useTranslations } from 'next-intl'
-import { Calendar, X } from 'lucide-react'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useTranslations } from 'next-intl';
+import { Calendar, X } from 'lucide-react';
 
 interface AppointmentActionsProps {
-  appointmentId: string
-  onReschedule: () => void
-  onCancel: () => void
+  appointmentId: string;
+  onReschedule: () => void;
+  onCancel: () => void;
 }
 
-export function AppointmentActions({
-                                     onReschedule,
-                                     onCancel
-                                   }: AppointmentActionsProps) {
-  const t = useTranslations('consular.services.form.appointment')
-  const [showCancelDialog, setShowCancelDialog] = useState(false)
+export function AppointmentActions({ onReschedule, onCancel }: AppointmentActionsProps) {
+  const t = useTranslations('consular.services.form.appointment');
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   return (
     <div className="flex gap-2">
@@ -44,22 +48,17 @@ export function AppointmentActions({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('cancel.title')}</DialogTitle>
-            <DialogDescription>
-              {t('cancel.description')}
-            </DialogDescription>
+            <DialogDescription>{t('cancel.description')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCancelDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
               {t('cancel.back')}
             </Button>
             <Button
               variant="destructive"
               onClick={() => {
-                onCancel()
-                setShowCancelDialog(false)
+                onCancel();
+                setShowCancelDialog(false);
               }}
             >
               {t('cancel.confirm')}
@@ -68,5 +67,5 @@ export function AppointmentActions({
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

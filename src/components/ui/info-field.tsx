@@ -1,17 +1,17 @@
-import { useTranslations } from 'next-intl'
-import { Badge } from '@/components/ui/badge'
-import { FileText } from 'lucide-react'
+import { useTranslations } from 'next-intl';
+import { Badge } from '@/components/ui/badge';
+import { FileText } from 'lucide-react';
 
 interface InfoFieldProps {
-  label: string
-  value?: string | null
-  required?: boolean
-  icon?: React.ReactNode
-  className?: string
+  label: string;
+  value?: string | null;
+  required?: boolean;
+  icon?: React.ReactNode;
+  className?: string;
 }
 
 export function InfoField({ label, value, required, icon, className }: InfoFieldProps) {
-  const t = useTranslations('components.review')
+  const t = useTranslations('components.review');
 
   return (
     <div className={className}>
@@ -34,18 +34,23 @@ export function InfoField({ label, value, required, icon, className }: InfoField
         )}
       </div>
     </div>
-  )
+  );
 }
 
 interface DocumentStatusProps {
-  type: string
-  isUploaded: boolean
-  required?: boolean
-  customText?: string
+  type: string;
+  isUploaded: boolean;
+  required?: boolean;
+  customText?: string;
 }
 
-export function DocumentStatus({ type, isUploaded, customText, required = true }: DocumentStatusProps) {
-  const t = useTranslations('components.review')
+export function DocumentStatus({
+  type,
+  isUploaded,
+  customText,
+  required = true,
+}: DocumentStatusProps) {
+  const t = useTranslations('components.review');
 
   return (
     <div className="flex items-center justify-between">
@@ -53,14 +58,13 @@ export function DocumentStatus({ type, isUploaded, customText, required = true }
         <FileText className="size-4 text-muted-foreground" />
         <span>{type}</span>
       </div>
-      <Badge variant={isUploaded ? "valid" : required ? "destructive" : "outline"}>
+      <Badge variant={isUploaded ? 'valid' : required ? 'destructive' : 'outline'}>
         {isUploaded
-          ? customText ?? t('document_uploaded')
+          ? (customText ?? t('document_uploaded'))
           : required
             ? t('document_missing')
-            : t('not_provided')
-        }
+            : t('not_provided')}
       </Badge>
     </div>
-  )
+  );
 }

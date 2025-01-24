@@ -1,17 +1,17 @@
-"use client"
+'use client';
 
-import { FullProfile } from '@/types'
-import { ProfileCard } from './profile-card'
-import { EmptyState } from '@/components/ui/empty-state'
-import { Users } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { FullProfile } from '@/types';
+import { ProfileCard } from './profile-card';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Users } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ProfilesListProps {
-  profiles: FullProfile[]
+  profiles: FullProfile[];
 }
 
 export function ProfilesList({ profiles }: ProfilesListProps) {
-  const t = useTranslations('actions.profiles')
+  const t = useTranslations('actions.profiles');
 
   if (profiles.length === 0) {
     return (
@@ -20,7 +20,7 @@ export function ProfilesList({ profiles }: ProfilesListProps) {
         title={t('empty.title')}
         description={t('empty.description')}
       />
-    )
+    );
   }
 
   return (
@@ -30,10 +30,10 @@ export function ProfilesList({ profiles }: ProfilesListProps) {
           key={profile.id}
           profile={profile}
           onClick={() => {
-            console.log('profile', profile)
+            console.log('profile', profile);
           }}
         />
       ))}
     </div>
-  )
+  );
 }

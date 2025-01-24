@@ -1,28 +1,35 @@
-"use client"
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
-import { Eye, MoreHorizontal } from 'lucide-react'
+import { useTranslations } from 'next-intl';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
+import { Eye, MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import Link from 'next/link'
-import { ROUTES } from '@/schemas/routes'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Profile } from '@prisma/client'
-import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge'
+} from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Profile } from '@prisma/client';
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
 
 interface ProfilesTableProps {
-  profiles: Profile[]
+  profiles: Profile[];
 }
 
 export function ProfilesTable({ profiles }: ProfilesTableProps) {
-  const t_profiles = useTranslations('actions.profiles')
+  const t_profiles = useTranslations('actions.profiles');
 
   return (
     <div className="rounded-md border">
@@ -75,5 +82,5 @@ export function ProfilesTable({ profiles }: ProfilesTableProps) {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

@@ -1,25 +1,25 @@
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CalendarIcon, Clock, MapPin } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarIcon, Clock, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface AppointmentDetailsProps {
-  date: Date
-  time: string
-  duration: number
-  location?: string
-  type?: string
+  date: Date;
+  time: string;
+  duration: number;
+  location?: string;
+  type?: string;
 }
 
 export function AppointmentDetails({
-                                     date,
-                                     time,
-                                     duration,
-                                     location,
-                                     type
-                                   }: AppointmentDetailsProps) {
-  const t = useTranslations('consular.services.form.appointment')
+  date,
+  time,
+  duration,
+  location,
+  type,
+}: AppointmentDetailsProps) {
+  const t = useTranslations('consular.services.form.appointment');
 
   return (
     <Card>
@@ -48,12 +48,11 @@ export function AppointmentDetails({
 
         {type && (
           <div className="mt-4 text-sm text-muted-foreground">
-            <span className={"font-semibold"}>
-              {t('type.reason')} :
-            </span> {t(`type.${type.toLowerCase()}`)}
+            <span className={'font-semibold'}>{t('type.reason')} :</span>{' '}
+            {t(`type.${type.toLowerCase()}`)}
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

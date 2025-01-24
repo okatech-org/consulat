@@ -1,52 +1,52 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { AlertCircle, CheckCircle, ChevronDown, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { AlertCircle, CheckCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface ProfileFieldStatus {
   required: {
-    total: number
-    completed: number
+    total: number;
+    completed: number;
     fields: Array<{
-      key: string
-      name: string
-      completed: boolean
-    }>
-  }
+      key: string;
+      name: string;
+      completed: boolean;
+    }>;
+  };
   optional: {
-    total: number
-    completed: number
+    total: number;
+    completed: number;
     fields: Array<{
-      key: string
-      name: string
-      completed: boolean
-    }>
-  }
+      key: string;
+      name: string;
+      completed: boolean;
+    }>;
+  };
 }
 
 interface ProfileCompletionProps {
-  completionRate: number
-  fieldStatus: ProfileFieldStatus
+  completionRate: number;
+  fieldStatus: ProfileFieldStatus;
 }
 
 export function ProfileCompletion({
-                                    completionRate,
-                                    fieldStatus
-                                  }: ProfileCompletionProps) {
-  const t = useTranslations('profile')
+  completionRate,
+  fieldStatus,
+}: ProfileCompletionProps) {
+  const t = useTranslations('profile');
 
   const getCompletionColor = (rate: number) => {
-    if (rate >= 100) return 'text-green'
-    if (rate >= 70) return 'text-warning'
-    return 'text-destructive'
-  }
+    if (rate >= 100) return 'text-green';
+    if (rate >= 70) return 'text-warning';
+    return 'text-destructive';
+  };
 
   return (
     <Card>
@@ -70,44 +70,40 @@ export function ProfileCompletion({
         {/* Informations requises */}
         <FieldsSection
           title={t('completion.required_information')}
-          fields={fieldStatus.required.fields.filter(f => !f.completed)}
+          fields={fieldStatus.required.fields.filter((f) => !f.completed)}
           completed={fieldStatus.required.completed}
           total={fieldStatus.required.total}
           type="required"
         />
 
         {/* Informations optionnelles */}
-        {
-          fieldStatus.optional.total > 0 && (
-            <FieldsSection
-              title={t('completion.optional_information')}
-              fields={fieldStatus.optional.fields}
-              completed={fieldStatus.optional.completed}
-              total={fieldStatus.optional.total}
-              type="optional"
-            />
-          )
-        }
-
-
+        {fieldStatus.optional.total > 0 && (
+          <FieldsSection
+            title={t('completion.optional_information')}
+            fields={fieldStatus.optional.fields}
+            completed={fieldStatus.optional.completed}
+            total={fieldStatus.optional.total}
+            type="optional"
+          />
+        )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 const FieldsList = ({
-                      fields,
-                      isExpanded,
-                      type,
-  toShowCount = 2
-                    }: {
-  fields: Array<{ key: string; name: string; completed: boolean }>
-  isExpanded: boolean
-  toShowCount?: number
-  type: 'required' | 'optional'
+  fields,
+  isExpanded,
+  type,
+  toShowCount = 2,
+}: {
+  fields: Array<{ key: string; name: string; completed: boolean }>;
+  isExpanded: boolean;
+  toShowCount?: number;
+  type: 'required' | 'optional';
 }) => {
-  const t = useTranslations('profile')
-  const visibleFields = isExpanded ? fields : fields.slice(0, toShowCount)
+  const t = useTranslations('profile');
+  const visibleFields = isExpanded ? fields : fields.slice(0, toShowCount);
 
   return (
     <ul className="space-y-2">
@@ -123,16 +119,18 @@ const FieldsList = ({
             {field.completed ? (
               <CheckCircle className="text-success size-4" />
             ) : (
-              <AlertCircle className={cn(
-                "h-4 w-4",
-                type === 'required' ? "text-destructive" : "text-muted-foreground"
-              )} />
+              <AlertCircle
+                className={cn(
+                  'h-4 w-4',
+                  type === 'required' ? 'text-destructive' : 'text-muted-foreground',
+                )}
+              />
             )}
             {t(`fields.${field.name}`)}
           </div>
           {!field.completed && (
             <Badge
-              variant={type === 'required' ? "destructive" : "warning"}
+              variant={type === 'required' ? 'destructive' : 'warning'}
               className="text-xs"
             >
               {t(`completion.${type}`)}
@@ -141,33 +139,31 @@ const FieldsList = ({
         </motion.li>
       ))}
     </ul>
-  )
-}
+  );
+};
 
 const FieldsSection = ({
-                         title,
-                         fields,
-                         completed,
-                         total,
-                         type
-                       }: {
-  title: string
-  fields: Array<{ key: string; name: string; completed: boolean }>
-  completed: number
-  total: number
-  type: 'required' | 'optional'
+  title,
+  fields,
+  completed,
+  total,
+  type,
+}: {
+  title: string;
+  fields: Array<{ key: string; name: string; completed: boolean }>;
+  completed: number;
+  total: number;
+  type: 'required' | 'optional';
 }) => {
-  const t = useTranslations('profile')
-  const [isExpanded, setIsExpanded] = useState(false)
-  const toShowCount = 3
-  const hasMoreFields = fields.length > toShowCount
+  const t = useTranslations('profile');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const toShowCount = 3;
+  const hasMoreFields = fields.length > toShowCount;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="font-medium">
-          {title}
-        </h4>
+        <h4 className="font-medium">{title}</h4>
         <Badge variant="outline">
           {completed}/{total}
         </Badge>
@@ -201,5 +197,5 @@ const FieldsSection = ({
         </Button>
       )}
     </div>
-  )
-}
+  );
+};

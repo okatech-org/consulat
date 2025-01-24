@@ -1,21 +1,21 @@
-import { useTranslations } from 'next-intl'
-import { Share2, Download, Shield } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Card, CardContent } from '@/components/ui/card'
-import { FullProfile } from '@/types'
-import { ProfileStatusBadge } from './profile-status-badge'
-import { ConsularCardPreview } from '@/app/(authenticated)/user/profile/_utils/components/consular-card-preview'
+import { useTranslations } from 'next-intl';
+import { Share2, Download, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
+import { FullProfile } from '@/types';
+import { ProfileStatusBadge } from './profile-status-badge';
+import { ConsularCardPreview } from '@/app/(authenticated)/user/profile/_utils/components/consular-card-preview';
 
 interface ProfileHeaderProps {
-  profile: FullProfile
-  onShare?: () => void
-  onDownload?: () => void
+  profile: FullProfile;
+  onShare?: () => void;
+  onDownload?: () => void;
 }
 
 export function ProfileHeader({ profile, onShare, onDownload }: ProfileHeaderProps) {
-  const t = useTranslations('profile')
-  const t_countries = useTranslations('countries')
+  const t = useTranslations('profile');
+  const t_countries = useTranslations('countries');
 
   return (
     <Card>
@@ -28,9 +28,7 @@ export function ProfileHeader({ profile, onShare, onDownload }: ProfileHeaderPro
                 alt={profile?.firstName || ''}
               />
             ) : (
-              <AvatarFallback>
-                {profile?.lastName?.charAt(0) || '?'}
-              </AvatarFallback>
+              <AvatarFallback>{profile?.lastName?.charAt(0) || '?'}</AvatarFallback>
             )}
           </Avatar>
 
@@ -66,5 +64,5 @@ export function ProfileHeader({ profile, onShare, onDownload }: ProfileHeaderPro
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

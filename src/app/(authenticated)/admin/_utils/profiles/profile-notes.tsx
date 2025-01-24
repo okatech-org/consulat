@@ -1,29 +1,29 @@
-"use client"
+'use client';
 
-import React, { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/hooks/use-toast'
-import { addProfileNote } from '@/app/(authenticated)/admin/_utils/actions/profile-notes'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { Loader2, MessageCircle, Lock } from 'lucide-react'
+import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { addProfileNote } from '@/app/(authenticated)/admin/_utils/actions/profile-notes';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Loader2, MessageCircle, Lock } from 'lucide-react';
 
 interface Note {
-  id: string
-  content: string
-  type: 'INTERNAL' | 'FEEDBACK'
-  createdAt: Date
+  id: string;
+  content: string;
+  type: 'INTERNAL' | 'FEEDBACK';
+  createdAt: Date;
   author: {
-    name: string | null
-  }
+    name: string | null;
+  };
 }
 
 interface NoteItemProps {
-  note: Note
+  note: Note;
 }
 
 export const NoteItem = ({ note }: NoteItemProps) => {
@@ -44,29 +44,31 @@ export const NoteItem = ({ note }: NoteItemProps) => {
       </div>
       <p className="whitespace-pre-wrap text-sm">{note.content}</p>
     </div>
-  )
-}
+  );
+};
 
 interface NoteEditorProps {
-  type: 'INTERNAL' | 'FEEDBACK'
-  onSubmit: (content: string, type: 'INTERNAL' | 'FEEDBACK') => Promise<void>
-  isLoading: boolean
+  type: 'INTERNAL' | 'FEEDBACK';
+  onSubmit: (content: string, type: 'INTERNAL' | 'FEEDBACK') => Promise<void>;
+  isLoading: boolean;
 }
 
 const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
-  const [content, setContent] = useState('')
-  const t = useTranslations('actions.profiles.review.notes')
+  const [content, setContent] = useState('');
+  const t = useTranslations('actions.profiles.review.notes');
 
   const handleSubmit = async () => {
-    if (!content.trim()) return
-    await onSubmit(content, type)
-    setContent('')
-  }
+    if (!content.trim()) return;
+    await onSubmit(content, type);
+    setContent('');
+  };
 
   return (
     <div className="space-y-4">
       <Textarea
-        placeholder={t(type === 'INTERNAL' ? 'internal_placeholder' : 'feedback_placeholder')}
+        placeholder={t(
+          type === 'INTERNAL' ? 'internal_placeholder' : 'feedback_placeholder',
+        )}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
@@ -80,52 +82,52 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
         {t('add')}
       </Button>
     </div>
-  )
-}
+  );
+};
 
 interface ProfileNotesProps {
-  profileId: string
-  notes: Note[]
+  profileId: string;
+  notes: Note[];
 }
 
 export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
-  const t = useTranslations('actions.profiles.review.notes')
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const t = useTranslations('actions.profiles.review.notes');
 
   const handleAddNote = async (content: string, type: 'INTERNAL' | 'FEEDBACK') => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       const result = await addProfileNote({
         profileId,
         content,
-        type
-      })
+        type,
+      });
 
       if (result.error) {
         toast({
           title: t('error.title'),
           description: result.error,
-          variant: "destructive"
-        })
-        return
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
         title: t('success.title'),
         description: t('success.description'),
-        variant: "success"
-      })
+        variant: 'success',
+      });
     } catch (error) {
       toast({
         title: t('error.title'),
         description: t('error.unknown'),
-        variant: "destructive"
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -146,57 +148,45 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
           </TabsList>
 
           <TabsContent value="internal" className="mt-4 space-y-4">
-            <NoteEditor
-              type="INTERNAL"
-              onSubmit={handleAddNote}
-              isLoading={isLoading}
-            />
+            <NoteEditor type="INTERNAL" onSubmit={handleAddNote} isLoading={isLoading} />
             <div className="space-y-4">
               {notes
-                .filter(note => note.type === 'INTERNAL')
-                .map(note => (
+                .filter((note) => note.type === 'INTERNAL')
+                .map((note) => (
                   <NoteItem key={note.id} note={note} />
-                ))
-              }
+                ))}
             </div>
           </TabsContent>
 
           <TabsContent value="feedback" className="mt-4 space-y-4">
-            <NoteEditor
-              type="FEEDBACK"
-              onSubmit={handleAddNote}
-              isLoading={isLoading}
-            />
+            <NoteEditor type="FEEDBACK" onSubmit={handleAddNote} isLoading={isLoading} />
             <div className="space-y-4">
               {notes
-                .filter(note => note.type === 'FEEDBACK')
-                .map(note => (
+                .filter((note) => note.type === 'FEEDBACK')
+                .map((note) => (
                   <NoteItem key={note.id} note={note} />
-                ))
-              }
+                ))}
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export const NotesList = ({ notes }: { notes: Note[] }) => {
-  const t = useTranslations('actions.profiles.review.notes')
+  const t = useTranslations('actions.profiles.review.notes');
 
   return (
     <Card>
-      <CardHeader className={"pb-0"}>
+      <CardHeader className={'pb-0'}>
         <CardTitle>{t('title')}</CardTitle>
       </CardHeader>
       <CardContent>
-        {notes
-          .map(note => (
-            <NoteItem key={note.id} note={note} />
-          ))
-        }
+        {notes.map((note) => (
+          <NoteItem key={note.id} note={note} />
+        ))}
       </CardContent>
     </Card>
-  )
-}
+  );
+};

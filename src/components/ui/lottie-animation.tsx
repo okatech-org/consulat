@@ -10,11 +10,11 @@ interface LottieAnimationProps {
 }
 
 export default function LottieAnimation({
-                                          src,
-                                          loop = true,
-                                          autoplay = true,
-                                          className
-                                        }: LottieAnimationProps) {
+  src,
+  loop = true,
+  autoplay = true,
+  className,
+}: LottieAnimationProps) {
   const [animationData, setAnimationData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,11 +46,7 @@ export default function LottieAnimation({
 
   return (
     <div className={cn('w-full h-full', className)}>
-      <Lottie
-        animationData={animationData}
-        loop={loop}
-        autoplay={autoplay}
-      />
+      <Lottie animationData={animationData} loop={loop} autoplay={autoplay} />
     </div>
   );
 }

@@ -1,43 +1,47 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Check, ChevronsUpDown } from 'lucide-react'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface MultiSelectCountriesProps {
-  countries: { id: string; name: string }[]
-  selected: string[]
-  onChange: (values: string[]) => void
-  placeholder?: string
+  countries: { id: string; name: string }[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
 }
 
 export function MultiSelectCountries({
-                                       countries,
-                                       selected,
-                                       onChange,
-                                       placeholder = "Sélectionner des pays..."
-                                     }: MultiSelectCountriesProps) {
-  const [open, setOpen] = React.useState(false)
-  const [searchValue, setSearchValue] = React.useState("")
+  countries,
+  selected,
+  onChange,
+  placeholder = 'Sélectionner des pays...',
+}: MultiSelectCountriesProps) {
+  const [open, setOpen] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState('');
 
-  const selectedCountries = countries.filter((country) =>
-    selected.includes(country.id)
-  )
+  const selectedCountries = countries.filter((country) => selected.includes(country.id));
 
   const filteredCountries = countries.filter((country) =>
-    country.name.toLowerCase().includes(searchValue.toLowerCase())
-  )
+    country.name.toLowerCase().includes(searchValue.toLowerCase()),
+  );
 
   const toggleCountry = (countryId: string) => {
     const updatedValues = selected.includes(countryId)
       ? selected.filter((id) => id !== countryId)
-      : [...selected, countryId]
-    onChange(updatedValues)
-  }
+      : [...selected, countryId];
+    onChange(updatedValues);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -51,11 +55,7 @@ export function MultiSelectCountries({
           <div className="flex flex-wrap gap-1">
             {selectedCountries.length === 0 && placeholder}
             {selectedCountries.map((country) => (
-              <Badge
-                variant="secondary"
-                key={country.id}
-                className="mr-1"
-              >
+              <Badge variant="secondary" key={country.id} className="mr-1">
                 {country.name}
               </Badge>
             ))}
@@ -80,8 +80,8 @@ export function MultiSelectCountries({
               >
                 <Check
                   className={cn(
-                    "mr-2 h-4 w-4",
-                    selected.includes(country.id) ? "opacity-100" : "opacity-0"
+                    'mr-2 h-4 w-4',
+                    selected.includes(country.id) ? 'opacity-100' : 'opacity-0',
                   )}
                 />
                 {country.name}
@@ -91,5 +91,5 @@ export function MultiSelectCountries({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

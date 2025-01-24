@@ -1,31 +1,37 @@
-'use client'
+'use client';
 
-import { useTranslations } from "next-intl"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { useTranslations } from 'next-intl';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export function GeneralSettings() {
-  const t = useTranslations('manager.settings.general')
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const t = useTranslations('manager.settings.general');
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     // TODO: Implémenter la sauvegarde
 
     toast({
       title: t('messages.success'),
-      description: t('messages.success_description')
-    })
+      description: t('messages.success_description'),
+    });
 
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -61,5 +67,5 @@ export function GeneralSettings() {
         </CardContent>
       </Card>
     </form>
-  )
+  );
 }

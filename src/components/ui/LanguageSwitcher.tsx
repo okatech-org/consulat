@@ -1,30 +1,34 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useTransition } from 'react'
-import { Locale } from '@/i18n/config'
-import { setUserLocale } from '@/services/locale'
-import { Icons } from '@/components/ui/icons'
+} from '@/components/ui/select';
+import { useTransition } from 'react';
+import { Locale } from '@/i18n/config';
+import { setUserLocale } from '@/services/locale';
+import { Icons } from '@/components/ui/icons';
 
 type LanguageSwitcherProps = Readonly<{
-  defaultValue: string
-  languages: Array<{ value: string; label: string }>,
-  label: string
-}>
+  defaultValue: string;
+  languages: Array<{ value: string; label: string }>;
+  label: string;
+}>;
 
-export default function LanguageSwitcher({ defaultValue, languages, label }: LanguageSwitcherProps) {
-  const [isPending, startTransition] = useTransition()
+export default function LanguageSwitcher({
+  defaultValue,
+  languages,
+  label,
+}: LanguageSwitcherProps) {
+  const [isPending, startTransition] = useTransition();
 
   function onChange(value: string) {
-    const locale = value as Locale
-    startTransition(() => setUserLocale(locale))
+    const locale = value as Locale;
+    startTransition(() => setUserLocale(locale));
   }
 
   return (
@@ -41,5 +45,5 @@ export default function LanguageSwitcher({ defaultValue, languages, label }: Lan
         ))}
       </SelectContent>
     </Select>
-  )
+  );
 }

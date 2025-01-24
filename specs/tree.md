@@ -1,5 +1,5 @@
 .
-├──  .eslintrc.js
+├── .eslintrc.js
 ├── CONTRIBUTING.md
 ├── README.md
 ├── components.json
@@ -60,7 +60,7 @@
 │   ├── app
 │   │   ├── (authenticated)
 │   │   │   ├── admin
-│   │   │   │   ├── _utils
+│   │   │   │   ├── \_utils
 │   │   │   │   │   ├── actions
 │   │   │   │   │   │   ├── dashboard.ts
 │   │   │   │   │   │   ├── documents.ts
@@ -72,63 +72,63 @@
 │   │   │   │   │   │   ├── recent-activity.tsx
 │   │   │   │   │   │   └── stats-card.tsx
 │   │   │   │   │   └── profiles
-│   │   │   │   │       ├── profile-card.tsx
-│   │   │   │   │       ├── profile-notes.tsx
-│   │   │   │   │       ├── profile-review.tsx
-│   │   │   │   │       ├── profiles-filters.tsx
-│   │   │   │   │       ├── profiles-list.tsx
-│   │   │   │   │       ├── profiles-table.tsx
-│   │   │   │   │       └── review
-│   │   │   │   │           ├── basic-info.tsx
-│   │   │   │   │           ├── contact.tsx
-│   │   │   │   │           ├── document-validation-dialog.tsx
-│   │   │   │   │           ├── documents.tsx
-│   │   │   │   │           ├── family.tsx
-│   │   │   │   │           ├── notes.tsx
-│   │   │   │   │           └── professional.tsx
+│   │   │   │   │   ├── profile-card.tsx
+│   │   │   │   │   ├── profile-notes.tsx
+│   │   │   │   │   ├── profile-review.tsx
+│   │   │   │   │   ├── profiles-filters.tsx
+│   │   │   │   │   ├── profiles-list.tsx
+│   │   │   │   │   ├── profiles-table.tsx
+│   │   │   │   │   └── review
+│   │   │   │   │   ├── basic-info.tsx
+│   │   │   │   │   ├── contact.tsx
+│   │   │   │   │   ├── document-validation-dialog.tsx
+│   │   │   │   │   ├── documents.tsx
+│   │   │   │   │   ├── family.tsx
+│   │   │   │   │   ├── notes.tsx
+│   │   │   │   │   └── professional.tsx
 │   │   │   │   ├── page.tsx
 │   │   │   │   └── profiles
-│   │   │   │       ├── [id]
-│   │   │   │       │   └── review
-│   │   │   │       │       └── page.tsx
-│   │   │   │       └── page.tsx
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── review
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
 │   │   │   ├── layout.tsx
 │   │   │   ├── manager
-│   │   │   │   ├── _utils
+│   │   │   │   ├── \_utils
 │   │   │   │   │   ├── actions
 │   │   │   │   │   │   ├── dashboard.ts
 │   │   │   │   │   │   └── requests.ts
 │   │   │   │   │   └── components
-│   │   │   │   │       ├── dashboard
-│   │   │   │   │       │   ├── dashboard-stats.tsx
-│   │   │   │   │       │   ├── pending-requests.tsx
-│   │   │   │   │       │   └── recent-activity.tsx
-│   │   │   │   │       └── requests
-│   │   │   │   │           ├── request-validation-dialog.tsx
-│   │   │   │   │           ├── requests-filters.tsx
-│   │   │   │   │           └── requests-table.tsx
+│   │   │   │   │   ├── dashboard
+│   │   │   │   │   │   ├── dashboard-stats.tsx
+│   │   │   │   │   │   ├── pending-requests.tsx
+│   │   │   │   │   │   └── recent-activity.tsx
+│   │   │   │   │   └── requests
+│   │   │   │   │   ├── request-validation-dialog.tsx
+│   │   │   │   │   ├── requests-filters.tsx
+│   │   │   │   │   └── requests-table.tsx
 │   │   │   │   ├── documents
-│   │   │   │   │   ├── _utils
+│   │   │   │   │   ├── \_utils
 │   │   │   │   │   │   └── components
-│   │   │   │   │   │       ├── document-card.tsx
-│   │   │   │   │   │       ├── documents-list.tsx
-│   │   │   │   │   │       ├── metadata-form.tsx
-│   │   │   │   │   │       └── user-document.tsx
+│   │   │   │   │   │   ├── document-card.tsx
+│   │   │   │   │   │   ├── documents-list.tsx
+│   │   │   │   │   │   ├── metadata-form.tsx
+│   │   │   │   │   │   └── user-document.tsx
 │   │   │   │   │   └── page.tsx
 │   │   │   │   ├── page.tsx
 │   │   │   │   └── requests
-│   │   │   │       └── page.tsx
+│   │   │   │   └── page.tsx
 │   │   │   ├── profile
-│   │   │   │   ├── _utils
+│   │   │   │   ├── \_utils
 │   │   │   │   │   ├── components
 │   │   │   │   │   │   ├── consular-card-preview.tsx
 │   │   │   │   │   │   ├── dashboard
 │   │   │   │   │   │   │   └── sections
-│   │   │   │   │   │   │       ├── appointments-section.tsx
-│   │   │   │   │   │   │       ├── documents-section.tsx
-│   │   │   │   │   │   │       ├── procedures-section.tsx
-│   │   │   │   │   │   │       ├── profile-section.tsx
-│   │   │   │   │   │   │       └── requests-section.tsx
+│   │   │   │   │   │   │   ├── appointments-section.tsx
+│   │   │   │   │   │   │   ├── documents-section.tsx
+│   │   │   │   │   │   │   ├── procedures-section.tsx
+│   │   │   │   │   │   │   ├── profile-section.tsx
+│   │   │   │   │   │   │   └── requests-section.tsx
 │   │   │   │   │   │   ├── editable-section.tsx
 │   │   │   │   │   │   ├── profile-completion-assistant.tsx
 │   │   │   │   │   │   ├── profile-completion.tsx
@@ -146,78 +146,78 @@
 │   │   │   │   │   └── profile.ts
 │   │   │   │   └── page.tsx
 │   │   │   └── services
-│   │   │       ├── [id]
-│   │   │       │   ├── page.tsx
-│   │   │       │   ├── start
-│   │   │       │   │   └── page.tsx
-│   │   │       │   └── start 2
-│   │   │       ├── _utils
-│   │   │       │   ├── actions
-│   │   │       │   │   ├── create.ts
-│   │   │       │   │   ├── delete.ts
-│   │   │       │   │   ├── get-requests.ts
-│   │   │       │   │   ├── get.ts
-│   │   │       │   │   ├── submit.ts
-│   │   │       │   │   └── update.ts
-│   │   │       │   └── consular-services
-│   │   │       │       ├── requests
-│   │   │       │       │   ├── request-card.tsx
-│   │   │       │       │   └── requests-list.tsx
-│   │   │       │       ├── service-card.tsx
-│   │   │       │       ├── service-details.tsx
-│   │   │       │       ├── service-form
-│   │   │       │       │   ├── appointment-step.tsx
-│   │   │       │       │   ├── documents-step.tsx
-│   │   │       │       │   ├── dynamic-step.tsx
-│   │   │       │       │   ├── form-navigation.tsx
-│   │   │       │       │   ├── index.tsx
-│   │   │       │       │   ├── review-step.tsx
-│   │   │       │       │   └── step-indicator.tsx
-│   │   │       │       ├── services-header.tsx
-│   │   │       │       └── services-list.tsx
-│   │   │       ├── page.tsx
-│   │   │       └── requests
-│   │   │           └── page.tsx
+│   │   │   ├── [id]
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── start
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── start 2
+│   │   │   ├── \_utils
+│   │   │   │   ├── actions
+│   │   │   │   │   ├── create.ts
+│   │   │   │   │   ├── delete.ts
+│   │   │   │   │   ├── get-requests.ts
+│   │   │   │   │   ├── get.ts
+│   │   │   │   │   ├── submit.ts
+│   │   │   │   │   └── update.ts
+│   │   │   │   └── consular-services
+│   │   │   │   ├── requests
+│   │   │   │   │   ├── request-card.tsx
+│   │   │   │   │   └── requests-list.tsx
+│   │   │   │   ├── service-card.tsx
+│   │   │   │   ├── service-details.tsx
+│   │   │   │   ├── service-form
+│   │   │   │   │   ├── appointment-step.tsx
+│   │   │   │   │   ├── documents-step.tsx
+│   │   │   │   │   ├── dynamic-step.tsx
+│   │   │   │   │   ├── form-navigation.tsx
+│   │   │   │   │   ├── index.tsx
+│   │   │   │   │   ├── review-step.tsx
+│   │   │   │   │   └── step-indicator.tsx
+│   │   │   │   ├── services-header.tsx
+│   │   │   │   └── services-list.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── requests
+│   │   │   └── page.tsx
 │   │   ├── (public)
-│   │   │   ├── _page.tsx
+│   │   │   ├── \_page.tsx
 │   │   │   ├── cta-section.tsx
 │   │   │   ├── layout.tsx
 │   │   │   ├── page.tsx
 │   │   │   ├── registration
-│   │   │   │   ├── _utils
+│   │   │   │   ├── \_utils
 │   │   │   │   │   └── components
-│   │   │   │   │       ├── basic-info.tsx
-│   │   │   │   │       ├── contact-form.tsx
-│   │   │   │   │       ├── document-upload-section.tsx
-│   │   │   │   │       ├── family-info.tsx
-│   │   │   │   │       ├── form.tsx
-│   │   │   │   │       ├── mobile-progress.tsx
-│   │   │   │   │       ├── navigation.tsx
-│   │   │   │   │       ├── professional-info.tsx
-│   │   │   │   │       ├── review-fields.tsx
-│   │   │   │   │       ├── review.tsx
-│   │   │   │   │       ├── step-guide.tsx
-│   │   │   │   │       └── step-indicator.tsx
+│   │   │   │   │   ├── basic-info.tsx
+│   │   │   │   │   ├── contact-form.tsx
+│   │   │   │   │   ├── document-upload-section.tsx
+│   │   │   │   │   ├── family-info.tsx
+│   │   │   │   │   ├── form.tsx
+│   │   │   │   │   ├── mobile-progress.tsx
+│   │   │   │   │   ├── navigation.tsx
+│   │   │   │   │   ├── professional-info.tsx
+│   │   │   │   │   ├── review-fields.tsx
+│   │   │   │   │   ├── review.tsx
+│   │   │   │   │   ├── step-guide.tsx
+│   │   │   │   │   └── step-indicator.tsx
 │   │   │   │   └── page.tsx
 │   │   │   └── unauthorized
-│   │   │       └── page.tsx
+│   │   │   └── page.tsx
 │   │   ├── api
 │   │   │   ├── auth
 │   │   │   │   └── [...nextauth]
-│   │   │   │       └── route.ts
+│   │   │   │   └── route.ts
 │   │   │   ├── manifest
 │   │   │   │   └── route.ts
 │   │   │   └── uploadthing
-│   │   │       └── route.ts
+│   │   │   └── route.ts
 │   │   ├── auth
-│   │   │   ├── _utils
+│   │   │   ├── \_utils
 │   │   │   │   ├── login-form.tsx
 │   │   │   │   └── logout-button.tsx
 │   │   │   ├── error
 │   │   │   │   └── page.tsx
 │   │   │   ├── layout.tsx
 │   │   │   └── login
-│   │   │       └── page.tsx
+│   │   │   └── page.tsx
 │   │   ├── favicon.ico
 │   │   ├── globals.css
 │   │   └── layout.tsx
@@ -258,83 +258,83 @@
 │   │   │   ├── footer.tsx
 │   │   │   └── header.tsx
 │   │   └── ui
-│   │       ├── FilePreview.tsx
-│   │       ├── LangSwitcher.tsx
-│   │       ├── LanguageSwitcher.tsx
-│   │       ├── add-to-browser.tsx
-│   │       ├── add-to-homescreen.tsx
-│   │       ├── alert-dialog.tsx
-│   │       ├── alert.tsx
-│   │       ├── avatar.tsx
-│   │       ├── badge.tsx
-│   │       ├── breadcrumb.tsx
-│   │       ├── button.tsx
-│   │       ├── calendar.tsx
-│   │       ├── card.tsx
-│   │       ├── checkbox.tsx
-│   │       ├── collapsible.tsx
-│   │       ├── command.tsx
-│   │       ├── confirm-dialog.tsx
-│   │       ├── cta-contact.tsx
-│   │       ├── custom-loader.tsx
-│   │       ├── darkmode-toggle.tsx
-│   │       ├── dialog.tsx
-│   │       ├── document-badge.tsx
-│   │       ├── document-preview.tsx
-│   │       ├── document-upload.tsx
-│   │       ├── drawer.tsx
-│   │       ├── dropdown-menu.tsx
-│   │       ├── dynamic-field.tsx
-│   │       ├── dynamic-fields.tsx
-│   │       ├── dynamic-tags.tsx
-│   │       ├── empty-state.tsx
-│   │       ├── error-card.tsx
-│   │       ├── file-preview.tsx
-│   │       ├── form-error.tsx
-│   │       ├── form-skeleton.tsx
-│   │       ├── form.tsx
-│   │       ├── hover-card.tsx
-│   │       ├── icons.tsx
-│   │       ├── info-field.tsx
-│   │       ├── input.tsx
-│   │       ├── label.tsx
-│   │       ├── loading-skeleton.tsx
-│   │       ├── loading-state.tsx
-│   │       ├── loading-suspense.tsx
-│   │       ├── logout-button.tsx
-│   │       ├── lottie-animation.tsx
-│   │       ├── markdown-editor.tsx
-│   │       ├── menu-bar-mobile.tsx
-│   │       ├── menubar.tsx
-│   │       ├── missing-badge.tsx
-│   │       ├── mode-toggle.tsx
-│   │       ├── nav-main.tsx
-│   │       ├── nav-secondary.tsx
-│   │       ├── nav-user.tsx
-│   │       ├── notification-badge.tsx
-│   │       ├── phone-input.tsx
-│   │       ├── popover.tsx
-│   │       ├── progress.tsx
-│   │       ├── qr-code.tsx
-│   │       ├── radio-group.tsx
-│   │       ├── role-guard.tsx
-│   │       ├── scroll-area.tsx
-│   │       ├── select.tsx
-│   │       ├── separator.tsx
-│   │       ├── sheet.tsx
-│   │       ├── sidebar.tsx
-│   │       ├── skeleton.tsx
-│   │       ├── status-badge.tsx
-│   │       ├── switch.tsx
-│   │       ├── table.tsx
-│   │       ├── tabs.tsx
-│   │       ├── tags-input.tsx
-│   │       ├── textarea.tsx
-│   │       ├── time-select.tsx
-│   │       ├── toast.tsx
-│   │       ├── toaster.tsx
-│   │       ├── tooltip.tsx
-│   │       └── use-toast.ts
+│   │   ├── FilePreview.tsx
+│   │   ├── LangSwitcher.tsx
+│   │   ├── LanguageSwitcher.tsx
+│   │   ├── add-to-browser.tsx
+│   │   ├── add-to-homescreen.tsx
+│   │   ├── alert-dialog.tsx
+│   │   ├── alert.tsx
+│   │   ├── avatar.tsx
+│   │   ├── badge.tsx
+│   │   ├── breadcrumb.tsx
+│   │   ├── button.tsx
+│   │   ├── calendar.tsx
+│   │   ├── card.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── collapsible.tsx
+│   │   ├── command.tsx
+│   │   ├── confirm-dialog.tsx
+│   │   ├── cta-contact.tsx
+│   │   ├── custom-loader.tsx
+│   │   ├── darkmode-toggle.tsx
+│   │   ├── dialog.tsx
+│   │   ├── document-badge.tsx
+│   │   ├── document-preview.tsx
+│   │   ├── document-upload.tsx
+│   │   ├── drawer.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── dynamic-field.tsx
+│   │   ├── dynamic-fields.tsx
+│   │   ├── dynamic-tags.tsx
+│   │   ├── empty-state.tsx
+│   │   ├── error-card.tsx
+│   │   ├── file-preview.tsx
+│   │   ├── form-error.tsx
+│   │   ├── form-skeleton.tsx
+│   │   ├── form.tsx
+│   │   ├── hover-card.tsx
+│   │   ├── icons.tsx
+│   │   ├── info-field.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── loading-skeleton.tsx
+│   │   ├── loading-state.tsx
+│   │   ├── loading-suspense.tsx
+│   │   ├── logout-button.tsx
+│   │   ├── lottie-animation.tsx
+│   │   ├── markdown-editor.tsx
+│   │   ├── menu-bar-mobile.tsx
+│   │   ├── menubar.tsx
+│   │   ├── missing-badge.tsx
+│   │   ├── mode-toggle.tsx
+│   │   ├── nav-main.tsx
+│   │   ├── nav-secondary.tsx
+│   │   ├── nav-user.tsx
+│   │   ├── notification-badge.tsx
+│   │   ├── phone-input.tsx
+│   │   ├── popover.tsx
+│   │   ├── progress.tsx
+│   │   ├── qr-code.tsx
+│   │   ├── radio-group.tsx
+│   │   ├── role-guard.tsx
+│   │   ├── scroll-area.tsx
+│   │   ├── select.tsx
+│   │   ├── separator.tsx
+│   │   ├── sheet.tsx
+│   │   ├── sidebar.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── status-badge.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   ├── tabs.tsx
+│   │   ├── tags-input.tsx
+│   │   ├── textarea.tsx
+│   │   ├── time-select.tsx
+│   │   ├── toast.tsx
+│   │   ├── toaster.tsx
+│   │   ├── tooltip.tsx
+│   │   └── use-toast.ts
 │   ├── hooks
 │   │   ├── use-current-user.ts
 │   │   ├── use-file-preview.ts
@@ -402,12 +402,12 @@
 │   ├── styles
 │   │   └── notifications.css
 │   └── types
-│       ├── consular-service.ts
-│       ├── consulate.ts
-│       ├── dashboard.ts
-│       ├── index.ts
-│       ├── navigation.ts
-│       └── profile.ts
+│   ├── consular-service.ts
+│   ├── consulate.ts
+│   ├── dashboard.ts
+│   ├── index.ts
+│   ├── navigation.ts
+│   └── profile.ts
 ├── tailwind.config.ts
 ├── translations
 │   ├── en.json

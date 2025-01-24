@@ -21,7 +21,7 @@ export class SessionManager {
       // Ajouter les nouveaux messages
       const updatedSession: ChatSession = {
         messages: [...messages, userMessage, assistantMessage],
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
 
       // Sauvegarder dans sessionStorage
@@ -32,7 +32,6 @@ export class SessionManager {
   }
 
   static getCurrentSession(): ChatSession | null {
-
     if (typeof window === 'undefined') {
       return null;
     }

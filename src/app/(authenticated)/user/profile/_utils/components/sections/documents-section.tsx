@@ -1,36 +1,42 @@
-"use client"
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { UserDocument as PrismaUserDocument, DocumentType } from '@prisma/client'
-import { EditableSection } from '../editable-section'
-import { AppUserDocument } from '@/types'
-import { UserDocument } from '@/components/user-document'
+import { useTranslations } from 'next-intl';
+import { UserDocument as PrismaUserDocument, DocumentType } from '@prisma/client';
+import { EditableSection } from '../editable-section';
+import { AppUserDocument } from '@/types';
+import { UserDocument } from '@/components/user-document';
 
 interface DocumentsSectionProps {
   documents: {
-    passport?: PrismaUserDocument | null
-    birthCertificate?: PrismaUserDocument | null
-    residencePermit?: PrismaUserDocument | null
-    addressProof?: PrismaUserDocument | null
-    identityPhoto?: PrismaUserDocument | null
-  }
-  profileId: string
-  className?: string
+    passport?: PrismaUserDocument | null;
+    birthCertificate?: PrismaUserDocument | null;
+    residencePermit?: PrismaUserDocument | null;
+    addressProof?: PrismaUserDocument | null;
+    identityPhoto?: PrismaUserDocument | null;
+  };
+  profileId: string;
+  className?: string;
 }
 
-export function DocumentsSection({ documents, className, profileId }: DocumentsSectionProps) {
-  const t = useTranslations('profile')
-  const t_common = useTranslations('common')
+export function DocumentsSection({
+  documents,
+  className,
+  profileId,
+}: DocumentsSectionProps) {
+  const t = useTranslations('profile');
+  const t_common = useTranslations('common');
 
-  const convertDocument = (doc: PrismaUserDocument | null | undefined): AppUserDocument | null => {
-    if (!doc) return null
+  const convertDocument = (
+    doc: PrismaUserDocument | null | undefined,
+  ): AppUserDocument | null => {
+    if (!doc) return null;
 
     return {
       ...doc,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      metadata: doc.metadata as Record<string, any> | null
-    }
-  }
+      metadata: doc.metadata as Record<string, any> | null,
+    };
+  };
 
   return (
     <EditableSection
@@ -84,5 +90,5 @@ export function DocumentsSection({ documents, className, profileId }: DocumentsS
         />
       </div>
     </EditableSection>
-  )
+  );
 }

@@ -1,25 +1,25 @@
-import { getProfileById } from '@/app/(authenticated)/admin/_utils/actions/profiles'
-import { ProfileReview } from '@/app/(authenticated)/admin/_utils/profiles/profile-review'
-import { ROUTES } from '@/schemas/routes'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { buttonVariants } from '@/components/ui/button'
-import { getTranslations } from 'next-intl/server'
+import { getProfileById } from '@/app/(authenticated)/admin/_utils/actions/profiles';
+import { ProfileReview } from '@/app/(authenticated)/admin/_utils/profiles/profile-review';
+import { ROUTES } from '@/schemas/routes';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { buttonVariants } from '@/components/ui/button';
+import { getTranslations } from 'next-intl/server';
 
 interface ProfileReviewPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default async function ProfileReviewPage({ params }: ProfileReviewPageProps) {
-  const t = await getTranslations('actions.profiles.review')
-  const t_common = await getTranslations('common')
-  const profile = await getProfileById(params.id)
+  const t = await getTranslations('actions.profiles.review');
+  const t_common = await getTranslations('common');
+  const profile = await getProfileById(params.id);
 
   if (!profile) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -41,5 +41,5 @@ export default async function ProfileReviewPage({ params }: ProfileReviewPagePro
 
       <ProfileReview profile={profile} />
     </div>
-  )
+  );
 }

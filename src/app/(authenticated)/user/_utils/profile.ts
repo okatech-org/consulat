@@ -1,123 +1,121 @@
-'use server'
+'use server';
 
-import { getTranslations } from 'next-intl/server'
-import { ActionResult } from '@/lib/auth/action'
-import { DocumentStatus, DocumentType, Profile, RequestStatus } from '@prisma/client'
-import { db } from '@/lib/prisma'
-import { revalidatePath } from 'next/cache'
-import { ROUTES } from '@/schemas/routes'
-import { getCurrentUser } from '@/actions/user'
-import { processFileData } from '@/actions/utils'
+import { getTranslations } from 'next-intl/server';
+import { ActionResult } from '@/lib/auth/action';
+import { DocumentStatus, DocumentType, Profile, RequestStatus } from '@prisma/client';
+import { db } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
+import { ROUTES } from '@/schemas/routes';
+import { getCurrentUser } from '@/actions/user';
+import { processFileData } from '@/actions/utils';
 import {
   BasicInfoFormData,
-  ContactInfoFormData, DocumentsFormData,
+  ContactInfoFormData,
+  DocumentsFormData,
   FamilyInfoFormData,
   ProfessionalInfoFormData,
-} from '@/schemas/registration'
-import { deleteFiles } from '@/actions/uploads'
-import { calculateProfileCompletion, extractNumber } from '@/lib/utils'
+} from '@/schemas/registration';
+import { deleteFiles } from '@/actions/uploads';
+import { calculateProfileCompletion, extractNumber } from '@/lib/utils';
 
 export async function postProfile(
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
-  const uploadedFiles: { key: string; url: string }[] = []
+  const uploadedFiles: { key: string; url: string }[] = [];
 
   try {
-    const t = await getTranslations('messages.components')
-    const user = await getCurrentUser()
+    const t = await getTranslations('messages.components');
+    const user = await getCurrentUser();
 
     if (!user) {
-      return { error: t('errors.unauthorized') }
+      return { error: t('errors.unauthorized') };
     }
 
     // Récupérer et parser les données du formulaire
-    const basicInfo = JSON.parse(formData.get('basicInfo') as string)
-    const contactInfo = JSON.parse(formData.get('contactInfo') as string)
-    const familyInfo = JSON.parse(formData.get('familyInfo') as string)
-    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string)
+    const basicInfo = JSON.parse(formData.get('basicInfo') as string);
+    const contactInfo = JSON.parse(formData.get('contactInfo') as string);
+    const familyInfo = JSON.parse(formData.get('familyInfo') as string);
+    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filesPromises: Array<Promise<any>> = []
+    const filesPromises: Array<Promise<any>> = [];
 
-    const identityPictureFile = formData.get('identityPictureFile') as File
+    const identityPictureFile = formData.get('identityPictureFile') as File;
 
     if (identityPictureFile) {
-      const formData = new FormData()
-      formData.append('files', identityPictureFile)
-      filesPromises.push(processFileData(formData))
+      const formData = new FormData();
+      formData.append('files', identityPictureFile);
+      filesPromises.push(processFileData(formData));
     }
 
-    const passportFile = formData.get('passportFile') as File
+    const passportFile = formData.get('passportFile') as File;
 
     if (passportFile) {
-      const formData = new FormData()
-      formData.append('files', passportFile)
-      filesPromises.push(processFileData(formData))
+      const formData = new FormData();
+      formData.append('files', passportFile);
+      filesPromises.push(processFileData(formData));
     }
 
-    const birthCertificateFile = formData.get('birthCertificateFile') as File
+    const birthCertificateFile = formData.get('birthCertificateFile') as File;
 
     if (birthCertificateFile) {
-      const formData = new FormData()
-      formData.append('files', birthCertificateFile)
-      filesPromises.push(processFileData(formData))
+      const formData = new FormData();
+      formData.append('files', birthCertificateFile);
+      filesPromises.push(processFileData(formData));
     }
 
-    const residencePermitFile = formData.get('residencePermitFile') as File
+    const residencePermitFile = formData.get('residencePermitFile') as File;
 
     if (residencePermitFile) {
-      const formData = new FormData()
-      formData.append('files', residencePermitFile)
-      filesPromises.push(processFileData(formData))
+      const formData = new FormData();
+      formData.append('files', residencePermitFile);
+      filesPromises.push(processFileData(formData));
     }
 
-    const addressProofFile = formData.get('addressProofFile') as File
+    const addressProofFile = formData.get('addressProofFile') as File;
 
     if (addressProofFile) {
-      const formData = new FormData()
-      formData.append('files', addressProofFile)
-      filesPromises.push(processFileData(formData))
+      const formData = new FormData();
+      formData.append('files', addressProofFile);
+      filesPromises.push(processFileData(formData));
     }
 
     // Traiter les fichiers uploadés
-    const [
-      identityPicture,
-      passport,
-      birthCertificate,
-      residencePermit,
-      addressProof
-    ] = await Promise.all(filesPromises)
+    const [identityPicture, passport, birthCertificate, residencePermit, addressProof] =
+      await Promise.all(filesPromises);
 
     // Garder une trace des fichiers uploadés pour pouvoir les supprimer en cas d'erreur
-    if (identityPicture) uploadedFiles.push(identityPicture)
-    if (passport) uploadedFiles.push(passport)
-    if (birthCertificate) uploadedFiles.push(birthCertificate)
-    if (residencePermit) uploadedFiles.push(residencePermit)
-    if (addressProof) uploadedFiles.push(addressProof)
+    if (identityPicture) uploadedFiles.push(identityPicture);
+    if (passport) uploadedFiles.push(passport);
+    if (birthCertificate) uploadedFiles.push(birthCertificate);
+    if (residencePermit) uploadedFiles.push(residencePermit);
+    if (addressProof) uploadedFiles.push(addressProof);
 
     // Créer le profil avec une transaction
     const profile = await db.$transaction(async (tx) => {
       // 1. Créer le profil avec toutes ses relations
 
-      const now = new Date()
-      const inThreeMonths = new Date(now.setMonth(now.getMonth() + 3))
-      const inOneYear = new Date(now.setFullYear(now.getFullYear() + 1))
-      const inFiveYears = new Date(now.setFullYear(now.getFullYear() + 5))
+      const now = new Date();
+      const inThreeMonths = new Date(now.setMonth(now.getMonth() + 3));
+      const inOneYear = new Date(now.setFullYear(now.getFullYear() + 1));
+      const inFiveYears = new Date(now.setFullYear(now.getFullYear() + 5));
 
-      const [address, existingPhone] = await Promise.all(
-        [
-          await tx.address.create({
-          data: contactInfo.address
+      const [address, existingPhone] = await Promise.all([
+        await tx.address.create({
+          data: contactInfo.address,
         }),
         await tx.phone.findFirst({
-        where: {
-          number: contactInfo.phone.number
-        }})
-      ])
+          where: {
+            number: contactInfo.phone.number,
+          },
+        }),
+      ]);
 
-      const phone = existingPhone ? existingPhone : await tx.phone.create({
-        data: contactInfo.phone
-      })
+      const phone = existingPhone
+        ? existingPhone
+        : await tx.phone.create({
+            data: contactInfo.phone,
+          });
 
       const profile = await tx.profile.create({
         data: {
@@ -157,29 +155,34 @@ export async function postProfile(
 
           // Relations
           addressId: address.id,
-          addressInGabon: contactInfo.addressInGabon ? {
-            create: contactInfo.addressInGabon
-          } : undefined,
-          emergencyContact: familyInfo.emergencyContact ? {
-            create: {
-              fullName: familyInfo.emergencyContact.fullName,
-              relationship: familyInfo.emergencyContact.relationship,
-              phone: {
-                connectOrCreate: {
-                  where: { number: extractNumber(familyInfo.emergencyContact.phone).number },
-                  create: extractNumber(familyInfo.emergencyContact.phone),
-                }
+          addressInGabon: contactInfo.addressInGabon
+            ? {
+                create: contactInfo.addressInGabon,
               }
-            }
-          } : undefined
-        }
-      })
+            : undefined,
+          emergencyContact: familyInfo.emergencyContact
+            ? {
+                create: {
+                  fullName: familyInfo.emergencyContact.fullName,
+                  relationship: familyInfo.emergencyContact.relationship,
+                  phone: {
+                    connectOrCreate: {
+                      where: {
+                        number: extractNumber(familyInfo.emergencyContact.phone).number,
+                      },
+                      create: extractNumber(familyInfo.emergencyContact.phone),
+                    },
+                  },
+                },
+              }
+            : undefined,
+        },
+      });
 
-      const createdDoc = []
+      const createdDoc = [];
 
       // 2. Créer les components associés
       if (passport) {
-
         const passportDoc = await tx.userDocument.create({
           data: {
             type: DocumentType.PASSPORT,
@@ -189,23 +192,23 @@ export async function postProfile(
             expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
             metadata: {
               documentNumber: basicInfo.passportNumber,
-              issuingAuthority: basicInfo.passportIssueAuthority
-            }
-          }
-        })
+              issuingAuthority: basicInfo.passportIssueAuthority,
+            },
+          },
+        });
 
         await tx.profile.update({
           where: { id: profile.id },
           data: {
             passport: {
               connect: {
-                id: passportDoc.id
-              }
-            }
-          }
-        })
+                id: passportDoc.id,
+              },
+            },
+          },
+        });
 
-        createdDoc.push(passportDoc)
+        createdDoc.push(passportDoc);
         // Mettre à jour le profil avec le document du passeport
       }
 
@@ -215,15 +218,15 @@ export async function postProfile(
         await tx.profile.update({
           where: { id: profile.id },
           data: {
-           birthCertificate: {
-             create: {
-               type: DocumentType.BIRTH_CERTIFICATE,
-               fileUrl: birthCertificate.url,
-               userId: user.id
-             }
-           }
-          }
-        })
+            birthCertificate: {
+              create: {
+                type: DocumentType.BIRTH_CERTIFICATE,
+                fileUrl: birthCertificate.url,
+                userId: user.id,
+              },
+            },
+          },
+        });
       }
 
       if (identityPicture) {
@@ -235,12 +238,12 @@ export async function postProfile(
               create: {
                 type: DocumentType.IDENTITY_PHOTO,
                 fileUrl: identityPicture.url,
-                userId: user.id
-              }
-            }
-          }
-      })
-    }
+                userId: user.id,
+              },
+            },
+          },
+        });
+      }
 
       if (residencePermit) {
         // Mettre à jour le profil avec le document du titre de séjour
@@ -253,11 +256,11 @@ export async function postProfile(
                 fileUrl: residencePermit.url,
                 issuedAt: now,
                 expiresAt: inOneYear,
-                userId: user.id
-              }
-            }
-          }
-        })
+                userId: user.id,
+              },
+            },
+          },
+        });
       }
 
       if (addressProof) {
@@ -271,57 +274,56 @@ export async function postProfile(
                 fileUrl: addressProof.url,
                 issuedAt: now,
                 expiresAt: inThreeMonths,
-                userId: user.id
-              }
-            }
-          }
-        })
+                userId: user.id,
+              },
+            },
+          },
+        });
       }
 
-      return profile
-    })
+      return profile;
+    });
 
-    const profileCompletion = await calculateProfileCompletion(profile)
+    const profileCompletion = await calculateProfileCompletion(profile);
 
     if (profileCompletion === 100) {
       await db.profile.update({
         where: { id: profile.id },
         data: {
           status: RequestStatus.SUBMITTED,
-          submittedAt: new Date()
-        }
-      })
+          submittedAt: new Date(),
+        },
+      });
     }
 
     // Revalider les pages
-    revalidatePath(ROUTES.profile)
-    revalidatePath(ROUTES.dashboard)
+    revalidatePath(ROUTES.profile);
+    revalidatePath(ROUTES.dashboard);
 
-    return { data: { id: profile.id } }
-
+    return { data: { id: profile.id } };
   } catch (error) {
     if (uploadedFiles.length > 0) {
       try {
-        await deleteFiles(uploadedFiles.map(file => file.key))
+        await deleteFiles(uploadedFiles.map((file) => file.key));
       } catch (deleteError) {
-        console.error('Error deleting files:', deleteError)
+        console.error('Error deleting files:', deleteError);
       }
     }
 
-    console.error('Profile creation error:', error)
+    console.error('Profile creation error:', error);
     return {
-      error: error instanceof Error ? error.message : 'messages.errors.unknown_error'
-    }
+      error: error instanceof Error ? error.message : 'messages.errors.unknown_error',
+    };
   }
 }
 
 type UpdateProfileSection = {
-  basicInfo?: BasicInfoFormData
-  contactInfo?: ContactInfoFormData
-  familyInfo?: FamilyInfoFormData
-  professionalInfo?: ProfessionalInfoFormData
-  documents?: DocumentsFormData
-}
+  basicInfo?: BasicInfoFormData;
+  contactInfo?: ContactInfoFormData;
+  familyInfo?: FamilyInfoFormData;
+  professionalInfo?: ProfessionalInfoFormData;
+  documents?: DocumentsFormData;
+};
 
 /**
 type DocumentUpdate = {
@@ -336,15 +338,14 @@ type DocumentUpdate = {
 
 export async function updateProfile(
   formData: FormData,
-  section: keyof UpdateProfileSection
+  section: keyof UpdateProfileSection,
 ): Promise<ActionResult<Profile>> {
-
   try {
-    const t = await getTranslations('messages.components.errors')
-    const user = await getCurrentUser()
+    const t = await getTranslations('messages.components.errors');
+    const user = await getCurrentUser();
 
     if (!user) {
-      return { error: t('unauthorized') }
+      return { error: t('unauthorized') };
     }
 
     // Récupérer le profil existant
@@ -354,24 +355,24 @@ export async function updateProfile(
         address: true,
         addressInGabon: true,
         emergencyContact: true,
-      }
-    })
+      },
+    });
 
     if (!existingProfile) {
-      return { error: t('profile_not_found') }
+      return { error: t('profile_not_found') };
     }
 
     // Récupérer les données JSON de la section
-    const sectionData = formData.get(section)
+    const sectionData = formData.get(section);
     if (!sectionData) {
-      return { error: t('invalid_data') }
+      return { error: t('invalid_data') };
     }
 
-    const data = JSON.parse(sectionData as string)
+    const data = JSON.parse(sectionData as string);
 
     // Préparer les données de mise à jour en fonction de la section
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let updateData: any = {}
+    let updateData: any = {};
 
     switch (section) {
       case 'basicInfo':
@@ -388,8 +389,8 @@ export async function updateProfile(
           passportIssueDate: new Date(data.passportIssueDate),
           passportExpiryDate: new Date(data.passportExpiryDate),
           passportIssueAuthority: data.passportIssueAuthority,
-        }
-        break
+        };
+        break;
 
       case 'contactInfo':
         updateData = {
@@ -403,8 +404,8 @@ export async function updateProfile(
               update: {
                 number: data.phone.number,
                 countryCode: data.phone.countryCode,
-              }
-            }
+              },
+            },
           },
           address: {
             upsert: {
@@ -424,12 +425,12 @@ export async function updateProfile(
                   address: data.addressInGabon.address,
                   district: data.addressInGabon.district,
                   city: data.addressInGabon.city,
-                }
+                },
               },
             },
           }),
-        }
-        break
+        };
+        break;
 
       case 'familyInfo':
         const emergencyContactData = {
@@ -441,8 +442,8 @@ export async function updateProfile(
                 create: {
                   number: data.emergencyContact.phone.number,
                   countryCode: data.emergencyContact.phone.countryCode,
-                }
-              }
+                },
+              },
             },
             update: {
               fullName: data.emergencyContact.fullName,
@@ -451,10 +452,10 @@ export async function updateProfile(
                 update: {
                   number: data.emergencyContact.phone.number,
                   countryCode: data.emergencyContact.phone.countryCode,
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         };
 
         updateData = {
@@ -462,7 +463,7 @@ export async function updateProfile(
           fatherFullName: data.fatherFullName,
           motherFullName: data.motherFullName,
           spouseFullName: data.spouseFullName,
-          emergencyContact: emergencyContactData
+          emergencyContact: emergencyContactData,
         };
         break;
 
@@ -473,8 +474,8 @@ export async function updateProfile(
           employer: data.employer,
           employerAddress: data.employerAddress,
           activityInGabon: data.lastActivityGabon,
-        }
-        break
+        };
+        break;
 
       case 'documents':
         if (section === 'documents') {
@@ -483,19 +484,19 @@ export async function updateProfile(
             birthCertificateFile: formData.get('birthCertificateFile') as File,
             residencePermitFile: formData.get('residencePermitFile') as File,
             addressProofFile: formData.get('addressProofFile') as File,
-          }
+          };
 
           // Traiter chaque document
           const uploadPromises = Object.entries(documents)
             .filter(([, file]) => file)
             .map(async ([key, file]) => {
-              const formDataForUpload = new FormData()
-              formDataForUpload.append('files', file)
-              const uploadedFile = await processFileData(formDataForUpload)
-              return { key, url: uploadedFile?.url }
-            })
+              const formDataForUpload = new FormData();
+              formDataForUpload.append('files', file);
+              const uploadedFile = await processFileData(formDataForUpload);
+              return { key, url: uploadedFile?.url };
+            });
 
-          const uploadedFiles = await Promise.all(uploadPromises)
+          const uploadedFiles = await Promise.all(uploadPromises);
 
           uploadedFiles.forEach(({ key, url }) => {
             if (url) {
@@ -506,43 +507,43 @@ export async function updateProfile(
                       type: DocumentType.PASSPORT,
                       fileUrl: url,
                       status: DocumentStatus.PENDING,
-                    }
-                  }
-                  break
+                    },
+                  };
+                  break;
                 case 'birthCertificateFile':
                   updateData.birthCertificate = {
                     create: {
                       type: DocumentType.BIRTH_CERTIFICATE,
                       fileUrl: url,
                       status: DocumentStatus.PENDING,
-                    }
-                  }
-                  break
+                    },
+                  };
+                  break;
                 case 'residencePermitFile':
                   updateData.residencePermit = {
                     create: {
                       type: DocumentType.RESIDENCE_PERMIT,
                       fileUrl: url,
                       status: DocumentStatus.PENDING,
-                    }
-                  }
-                  break
+                    },
+                  };
+                  break;
                 case 'addressProofFile':
                   updateData.addressProof = {
                     create: {
                       type: DocumentType.PROOF_OF_ADDRESS,
                       fileUrl: url,
                       status: DocumentStatus.PENDING,
-                    }
-                  }
-                  break
+                    },
+                  };
+                  break;
               }
             }
-        })
+          });
         }
-          break
+        break;
       default:
-        return { error: t('invalid_section') }
+        return { error: t('invalid_section') };
     }
 
     // Mettre à jour le profil
@@ -553,27 +554,27 @@ export async function updateProfile(
         address: true,
         addressInGabon: true,
         emergencyContact: true,
-      }
-    })
+      },
+    });
 
     // Revalider les pages qui affichent ces données
-    revalidatePath(ROUTES.profile)
-    revalidatePath(ROUTES.dashboard)
+    revalidatePath(ROUTES.profile);
+    revalidatePath(ROUTES.dashboard);
 
-    return { data: updatedProfile }
+    return { data: updatedProfile };
   } catch (error) {
-    console.error('Update components error:', error)
+    console.error('Update components error:', error);
     return {
-      error: error instanceof Error ? error.message : 'messages.errors.unknown_error'
-    }
+      error: error instanceof Error ? error.message : 'messages.errors.unknown_error',
+    };
   }
 }
 
 export async function submitProfileForValidation(
-  profileId: string
+  profileId: string,
 ): Promise<ActionResult<Profile>> {
   try {
-    const t = await getTranslations('messages.components')
+    const t = await getTranslations('messages.components');
 
     // Vérifier que le profil existe et est complet
     const profile = await db.profile.findUnique({
@@ -586,22 +587,22 @@ export async function submitProfileForValidation(
         address: true,
         emergencyContact: true,
         phone: true,
-      }
-    })
+      },
+    });
 
     if (!profile) {
-      return { error: t('errors.profile_not_found') }
+      return { error: t('errors.profile_not_found') };
     }
 
     // Vérifier que tous les components requis sont présents
     const requiredDocuments = [
       profile.passport,
       profile.birthCertificate,
-      profile.addressProof
-    ]
+      profile.addressProof,
+    ];
 
-    if (requiredDocuments.some(doc => !doc)) {
-      return { error: t('errors.missing_documents') }
+    if (requiredDocuments.some((doc) => !doc)) {
+      return { error: t('errors.missing_documents') };
     }
 
     // Vérifier que toutes les informations requises sont présentes
@@ -614,11 +615,11 @@ export async function submitProfileForValidation(
       profile.address,
       profile.phone,
       profile.email,
-      profile.emergencyContact
-    ]
+      profile.emergencyContact,
+    ];
 
-    if (requiredFields.some(field => !field)) {
-      return { error: t('errors.incomplete_profile') }
+    if (requiredFields.some((field) => !field)) {
+      return { error: t('errors.incomplete_profile') };
     }
 
     // Mettre à jour le statut du profil
@@ -626,7 +627,7 @@ export async function submitProfileForValidation(
       where: { id: profileId },
       data: {
         status: RequestStatus.SUBMITTED,
-        submittedAt: new Date()
+        submittedAt: new Date(),
       },
       include: {
         passport: true,
@@ -635,12 +636,14 @@ export async function submitProfileForValidation(
         addressProof: true,
         address: true,
         emergencyContact: true,
-      }
-    })
+      },
+    });
 
-    return { data: updatedProfile }
+    return { data: updatedProfile };
   } catch (error) {
-    console.error('Submit components error:', error)
-    return { error: error instanceof Error ? error.message : 'messages.errors.unknown_error' }
+    console.error('Submit components error:', error);
+    return {
+      error: error instanceof Error ? error.message : 'messages.errors.unknown_error',
+    };
   }
 }

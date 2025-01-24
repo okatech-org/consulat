@@ -1,16 +1,16 @@
-import React from 'react'
-import { Textarea } from '@/components/ui/textarea'
-import ReactMarkdown from 'react-markdown'
-import { useTranslations } from 'next-intl'
+import React from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import ReactMarkdown from 'react-markdown';
+import { useTranslations } from 'next-intl';
 
 type MarkdownEditorProps = {
-  value: string
-  onChange: (value: string) => void
-}
+  value: string;
+  onChange: (value: string) => void;
+};
 
 export function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
-  const t = useTranslations('notifications')
-  const [preview, setPreview] = React.useState(false)
+  const t = useTranslations('notifications');
+  const [preview, setPreview] = React.useState(false);
 
   return (
     <div>
@@ -38,5 +38,5 @@ export function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
       )}
       <p className="mt-1 text-sm text-gray-500">{t('form.markdown_support_info')}</p>
     </div>
-  )
+  );
 }

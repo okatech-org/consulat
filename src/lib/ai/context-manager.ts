@@ -1,25 +1,24 @@
-
-import { User, UserRole } from '@prisma/client'
-import { FullProfile } from '@/types'
-import { db } from '@/lib/prisma'
-import { ConsularServiceItem } from '@/types/consular-service'
+import { User, UserRole } from '@prisma/client';
+import { FullProfile } from '@/types';
+import { db } from '@/lib/prisma';
+import { ConsularServiceItem } from '@/types/consular-service';
 
 export interface UserContext {
-  user: User | null
-  profile: FullProfile | null
-  messageCount: number
-  availableServices?: ConsularServiceItem[] // Type à définir selon votre structure de services
+  user: User | null;
+  profile: FullProfile | null;
+  messageCount: number;
+  availableServices?: ConsularServiceItem[]; // Type à définir selon votre structure de services
 }
 
 export class ContextManager {
   private static async getUserServices(userId: string) {
-    ContextManager._userId = userId
+    ContextManager._userId = userId;
     // Récupérer les services disponibles pour l'utilisateur
     return await db.consularService.findMany({
       where: {
         isActive: true,
         // Ajouter d'autres conditions selon vos besoins
-      }
+      },
     });
   }
 
@@ -54,10 +53,10 @@ Contexte utilisateur :
         addressProof: true,
         emergencyContact: {
           include: {
-            phone: true
-          }
-        }
-      }
+            phone: true,
+          },
+        },
+      },
     });
 
     if (profile) {
@@ -72,7 +71,7 @@ ${JSON.stringify(profile, null, 2)}
     if (services.length > 0) {
       context += `
 Services disponibles :
-${services.map(service => `- ${service.name}: ${service.description}`).join('\n')}
+${services.map((service) => `- ${service.name}: ${service.description}`).join('\n')}
 `;
     }
 
@@ -107,7 +106,7 @@ Instructions pour Utilisateur:
 - Accès à son profil et ses documents
 - Peut faire des demandes de services
 - Peut poser des questions sur ses démarches
-`
+`,
     };
 
     return instructions[role] || '';

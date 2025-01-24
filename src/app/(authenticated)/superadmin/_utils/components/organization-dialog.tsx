@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useTranslations } from "next-intl"
-import { OrganizationForm } from "./organization-form"
-import { useOrganizationDialog } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-dialog'
-import { Country } from '@prisma/client'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslations } from 'next-intl';
+import { OrganizationForm } from './organization-form';
+import { useOrganizationDialog } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-dialog';
+import { Country } from '@prisma/client';
 
-export function OrganizationDialog({countries}: {countries: Country[]}) {
-  const t = useTranslations('superadmin.organizations')
-  const { isOpen, organization, closeDialog } = useOrganizationDialog()
+export function OrganizationDialog({ countries }: { countries: Country[] }) {
+  const t = useTranslations('superadmin.organizations');
+  const { isOpen, organization, closeDialog } = useOrganizationDialog();
 
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>
@@ -26,5 +26,5 @@ export function OrganizationDialog({countries}: {countries: Country[]}) {
         />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

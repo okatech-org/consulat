@@ -1,43 +1,46 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslations } from 'next-intl'
-import { NationalityAcquisition, Profile } from '@prisma/client'
-import { BasicInfoSchema, type BasicInfoFormData } from '@/schemas/registration'
-import { EditableSection } from '../editable-section'
-import { useToast } from '@/hooks/use-toast'
-import { updateProfile } from '@/app/(authenticated)/user/_utils/profile'
-import { Badge } from '@/components/ui/badge'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { BasicInfoForm } from '@/app/(public)/registration/_utils/components/basic-info'
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { NationalityAcquisition, Profile } from '@prisma/client';
+import { BasicInfoSchema, type BasicInfoFormData } from '@/schemas/registration';
+import { EditableSection } from '../editable-section';
+import { useToast } from '@/hooks/use-toast';
+import { updateProfile } from '@/app/(authenticated)/user/_utils/profile';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { BasicInfoForm } from '@/app/(public)/registration/_utils/components/basic-info';
 
 interface BasicInfoSectionProps {
-  profile: Profile
+  profile: Profile;
 }
 
 interface InfoFieldProps {
-  label: string
-  value?: string | null
-  required?: boolean
-  isCompleted?: boolean
-  className?: string
+  label: string;
+  value?: string | null;
+  required?: boolean;
+  isCompleted?: boolean;
+  className?: string;
 }
 
-function InfoField({ label, value, className = '', required, isCompleted = !!value }: InfoFieldProps) {
-  const t = useTranslations('registration')
+function InfoField({
+  label,
+  value,
+  className = '',
+  required,
+  isCompleted = !!value,
+}: InfoFieldProps) {
+  const t = useTranslations('registration');
 
   return (
     <div className={className}>
       <div className="flex items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground">{label}</div>
         {!isCompleted && (
-          <Badge
-            variant={required ? "destructive" : "secondary"}
-            className="text-xs"
-          >
+          <Badge variant={required ? 'destructive' : 'secondary'} className="text-xs">
             {t(required ? 'form.required' : 'form.optional')}
           </Badge>
         )}
@@ -50,17 +53,17 @@ function InfoField({ label, value, className = '', required, isCompleted = !!val
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
-  const t = useTranslations('registration')
-  const t_countries = useTranslations('countries')
-  const t_messages = useTranslations('messages.components')
-  const t_sections = useTranslations('components.sections')
-  const { toast } = useToast()
-  const [isEditing, setIsEditing] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const t = useTranslations('registration');
+  const t_countries = useTranslations('countries');
+  const t_messages = useTranslations('messages.components');
+  const t_sections = useTranslations('components.sections');
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<BasicInfoFormData>({
     resolver: zodResolver(BasicInfoSchema),
@@ -77,54 +80,54 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
       passportIssueDate: profile.passportIssueDate.toISOString().split('T')[0],
       passportExpiryDate: profile.passportExpiryDate.toISOString().split('T')[0],
       passportIssueAuthority: profile.passportIssueAuthority,
-      identityPictureFile: null
-    }
-  })
+      identityPictureFile: null,
+    },
+  });
 
   const handleSave = async () => {
     try {
-      setIsLoading(true)
-      const data = form.getValues()
+      setIsLoading(true);
+      const data = form.getValues();
 
-      const formData = new FormData()
+      const formData = new FormData();
       if (data.identityPictureFile) {
-        formData.append('identityPictureFile', data.identityPictureFile)
+        formData.append('identityPictureFile', data.identityPictureFile);
       }
-      formData.append('basicInfo', JSON.stringify(data))
+      formData.append('basicInfo', JSON.stringify(data));
 
-      const result = await updateProfile(formData, 'basicInfo')
+      const result = await updateProfile(formData, 'basicInfo');
 
       if (result.error) {
         toast({
           title: t_messages('errors.update_failed'),
           description: result.error,
-          variant: "destructive"
-        })
-        return
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
-        variant: "success"
-      })
+        variant: 'success',
+      });
 
-      setIsEditing(false)
+      setIsEditing(false);
     } catch (error) {
       toast({
         title: t_messages('errors.update_failed'),
         description: t_messages('errors.unknown'),
-        variant: "destructive"
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    form.reset()
-    setIsEditing(false)
-  }
+    form.reset();
+    setIsEditing(false);
+  };
 
   return (
     <EditableSection
@@ -150,13 +153,13 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
               label={t('form.first_name')}
               value={profile.firstName}
               required
-              className={"col-span-1"}
+              className={'col-span-1'}
             />
             <InfoField
               label={t('form.last_name')}
               value={profile.lastName}
               required
-              className={"col-span-1"}
+              className={'col-span-1'}
             />
             <InfoField
               label={t('form.gender')}
@@ -187,45 +190,47 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             />
             <InfoField
               label={t('nationality_acquisition.label')}
-              value={t(`nationality_acquisition.modes.${profile.acquisitionMode?.toLowerCase()}`)}
+              value={t(
+                `nationality_acquisition.modes.${profile.acquisitionMode?.toLowerCase()}`,
+              )}
               required
             />
           </div>
 
           {/* Informations du passeport */}
           <div className="mt-4 space-y-4">
-            <h4 className="font-medium">
-              {t('form.passport.section_title')}
-            </h4>
+            <h4 className="font-medium">{t('form.passport.section_title')}</h4>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               <InfoField
                 label={t('form.passport.number.label')}
                 value={profile.passportNumber}
                 required
-                className={"col-span-2"}
+                className={'col-span-2'}
               />
               <InfoField
                 label={t('form.passport.authority.label')}
                 value={profile.passportIssueAuthority}
                 required
-                className={"col-span-2"}
+                className={'col-span-2'}
               />
               <InfoField
                 label={t('form.passport.issue_date.label')}
                 value={format(new Date(profile.passportIssueDate), 'PPP', { locale: fr })}
                 required
-                className={"col-span-2"}
+                className={'col-span-2'}
               />
               <InfoField
                 label={t('form.passport.expiry_date.label')}
-                value={format(new Date(profile.passportExpiryDate), 'PPP', { locale: fr })}
+                value={format(new Date(profile.passportExpiryDate), 'PPP', {
+                  locale: fr,
+                })}
                 required
-                className={"col-span-2"}
+                className={'col-span-2'}
               />
             </div>
           </div>
         </div>
       )}
     </EditableSection>
-  )
+  );
 }

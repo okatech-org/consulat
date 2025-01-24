@@ -2,10 +2,10 @@ export class FormError extends Error {
   constructor(
     message: string,
     public step?: number,
-    public field?: string
+    public field?: string,
   ) {
-    super(message)
-    this.name = 'FormError'
+    super(message);
+    this.name = 'FormError';
   }
 }
 
@@ -16,12 +16,12 @@ export function handleFormError(error: unknown, t: any) {
       title: t('errors.validation.title'),
       description: error.message,
       step: error.step,
-      field: error.field
-    }
+      field: error.field,
+    };
   }
 
   return {
     title: t('errors.unknown.title'),
-    description: t('errors.unknown.description')
-  }
+    description: t('errors.unknown.description'),
+  };
 }

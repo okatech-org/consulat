@@ -1,15 +1,12 @@
-import { Button } from '@/components/ui/button'
-import { TableRowsSplit } from 'lucide-react'
+import { Button } from '@/components/ui/button';
+import { TableRowsSplit } from 'lucide-react';
 
 interface DataTableDensityProps {
-  density: 'compact' | 'normal' | 'comfortable'
-  onChange: (density: 'compact' | 'normal' | 'comfortable') => void
+  density: 'compact' | 'normal' | 'comfortable';
+  onChange: (density: 'compact' | 'normal' | 'comfortable') => void;
 }
 
-export function DataTableDensity({
-                                   density,
-                                   onChange,
-                                 }: DataTableDensityProps) {
+export function DataTableDensity({ density, onChange }: DataTableDensityProps) {
   return (
     <div className="flex items-center gap-2">
       <Button
@@ -34,5 +31,5 @@ export function DataTableDensity({
         <TableRowsSplit className="size-4 scale-y-150" />
       </Button>
     </div>
-  )
+  );
 }

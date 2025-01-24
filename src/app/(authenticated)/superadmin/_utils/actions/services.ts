@@ -1,30 +1,30 @@
-"use server"
+'use server';
 
-import { db } from '@/lib/prisma'
-import { checkAuth } from '@/lib/auth/action'
-import { UserRole } from '@prisma/client'
-import { revalidatePath } from 'next/cache'
-import { ROUTES } from '@/schemas/routes'
-import { NewServiceSchemaInput } from '@/schemas/consular-service'
+import { db } from '@/lib/prisma';
+import { checkAuth } from '@/lib/auth/action';
+import { UserRole } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
+import { ROUTES } from '@/schemas/routes';
+import { NewServiceSchemaInput } from '@/schemas/consular-service';
 import type {
   ConsularServiceListingItem,
   ConsularServiceItem,
-} from '@/types/consular-service'
+} from '@/types/consular-service';
 
 /**
  * Récupérer tous les services
  */
 export async function getServices(): Promise<{
-  data?: ConsularServiceListingItem[]
-  error?: string
+  data?: ConsularServiceListingItem[];
+  error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   try {
     const services = await db.consularService.findMany({
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'desc',
       },
       select: {
         id: true,
@@ -35,16 +35,16 @@ export async function getServices(): Promise<{
         organization: {
           select: {
             id: true,
-            name: true
-          }
-        }
+            name: true,
+          },
+        },
       },
-    })
+    });
 
-    return { data: services }
+    return { data: services };
   } catch (error) {
-    console.error('Error fetching services:', error)
-    return { error: 'Failed to fetch services' }
+    console.error('Error fetching services:', error);
+    return { error: 'Failed to fetch services' };
   }
 }
 
@@ -53,8 +53,8 @@ export async function getServices(): Promise<{
  */
 
 export async function createService(data: NewServiceSchemaInput) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   try {
     // Créer le service avec ses étapes
@@ -63,14 +63,14 @@ export async function createService(data: NewServiceSchemaInput) {
         name: data.name,
         description: data.description,
         category: data.category,
-      }
-    })
+      },
+    });
 
-    revalidatePath(ROUTES.superadmin.services)
-    return { data: service }
+    revalidatePath(ROUTES.superadmin.services);
+    return { data: service };
   } catch (error) {
-    console.error('Error creating service:', error)
-    return { error: 'Failed to create service' }
+    console.error('Error creating service:', error);
+    return { error: 'Failed to create service' };
   }
 }
 
@@ -78,25 +78,24 @@ export async function createService(data: NewServiceSchemaInput) {
  * Mettre à jour un service
  */
 export async function updateService(data: Partial<ConsularServiceItem>) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   if (!data.id) {
-    return { error: 'Service ID is required' }
+    return { error: 'Service ID is required' };
   }
 
   try {
     // Mise à jour du service et de ses étapes
     const service = await db.$transaction(async (tx) => {
-
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { steps, organizationId, ...serviceData } = data
+      const { steps, organizationId, ...serviceData } = data;
 
       // Supprimer les étapes existantes si de nouvelles sont fournies
       if (steps) {
         await tx.serviceStep.deleteMany({
-          where: { serviceId: data.id }
-        })
+          where: { serviceId: data.id },
+        });
       }
 
       // Mettre à jour le service
@@ -104,11 +103,11 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
         where: { id: data.id },
         data: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...serviceData as any,
+          ...(serviceData as any),
           ...(data.organizationId && {
             organization: {
-              connect: { id: data.organizationId }
-            }
+              connect: { id: data.organizationId },
+            },
           }),
           ...(steps && {
             steps: {
@@ -116,46 +115,47 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
                 data: steps.map((step) => ({
                   ...step,
                   fields: JSON.stringify(step.fields),
-                  validations: JSON.stringify(step.validations)
-                }))
-              }
-          }})
+                  validations: JSON.stringify(step.validations),
+                })),
+              },
+            },
+          }),
         },
         include: {
           steps: {
             orderBy: {
-              order: 'asc'
-            }
-          }
-        }
-      })
-    })
+              order: 'asc',
+            },
+          },
+        },
+      });
+    });
 
-    revalidatePath(ROUTES.superadmin.services)
-    return { data: service }
+    revalidatePath(ROUTES.superadmin.services);
+    return { data: service };
   } catch (error) {
-    console.error('Error updating service:', error)
-    return { error: 'Failed to update service' }
+    console.error('Error updating service:', error);
+    return { error: 'Failed to update service' };
   }
 }
 
 export async function updateServiceStatus(id: string, isActive: boolean) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   try {
     const service = await db.consularService.update({
       where: { id },
       data: {
-        isActive
-      }
-    })
+        isActive,
+      },
+    });
 
-    revalidatePath(ROUTES.superadmin.services)
-    return { data: service }
+    revalidatePath(ROUTES.superadmin.services);
+    return { data: service };
   } catch (error) {
-    console.error('Error updating service status:', error)
-    return { error: 'Failed to update service status' }
+    console.error('Error updating service status:', error);
+    return { error: 'Failed to update service status' };
   }
 }
 
@@ -163,8 +163,8 @@ export async function updateServiceStatus(id: string, isActive: boolean) {
  * Supprimer un service
  */
 export async function deleteService(id: string) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   try {
     // Vérifier si le service a des demandes en cours
@@ -173,79 +173,85 @@ export async function deleteService(id: string) {
       include: {
         _count: {
           select: {
-            requests: true
-          }
-        }
-      }
-    })
+            requests: true,
+          },
+        },
+      },
+    });
 
     if (!service) {
-      return { error: 'Service not found' }
+      return { error: 'Service not found' };
     }
 
     if (service._count.requests > 0) {
-      return { error: 'Cannot delete service with existing requests' }
+      return { error: 'Cannot delete service with existing requests' };
     }
 
     await db.consularService.delete({
-      where: { id }
-    })
+      where: { id },
+    });
 
-    revalidatePath(ROUTES.superadmin.services)
-    return { success: true }
+    revalidatePath(ROUTES.superadmin.services);
+    return { success: true };
   } catch (error) {
-    console.error('Error deleting service:', error)
-    return { error: 'Failed to delete service' }
+    console.error('Error deleting service:', error);
+    return { error: 'Failed to delete service' };
   }
 }
 
 /**
  * Assigner un service à une organisation
  */
-export async function assignServiceToOrganization(serviceId: string, organizationId: string) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+export async function assignServiceToOrganization(
+  serviceId: string,
+  organizationId: string,
+) {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   try {
     await db.organization.update({
       where: { id: organizationId },
       data: {
         services: {
-          connect: { id: serviceId }
-        }
-      }
-    })
+          connect: { id: serviceId },
+        },
+      },
+    });
 
-    revalidatePath(ROUTES.superadmin.services)
-    return { success: true }
+    revalidatePath(ROUTES.superadmin.services);
+    return { success: true };
   } catch (error) {
-    console.error('Error assigning service:', error)
-    return { error: 'Failed to assign service' }
+    console.error('Error assigning service:', error);
+    return { error: 'Failed to assign service' };
   }
 }
 
 /**
  * Désassigner un service d'une organisation
  */
-export async function unassignServiceFromOrganization(serviceId: string, organizationId: string) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+export async function unassignServiceFromOrganization(
+  serviceId: string,
+  organizationId: string,
+) {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   try {
     await db.organization.update({
       where: { id: organizationId },
       data: {
         services: {
-          disconnect: { id: serviceId }
-        }
-      }
-    })
+          disconnect: { id: serviceId },
+        },
+      },
+    });
 
-    revalidatePath(ROUTES.superadmin.services)
-    return { success: true }
+    revalidatePath(ROUTES.superadmin.services);
+    return { success: true };
   } catch (error) {
-    console.error('Error unassigning service:', error)
-    return { error: 'Failed to unassign service' }
+    console.error('Error unassigning service:', error);
+    return { error: 'Failed to unassign service' };
   }
 }
 
@@ -253,11 +259,11 @@ export async function unassignServiceFromOrganization(serviceId: string, organiz
  * Récupérer un service par son ID
  */
 export async function getFullService(id: string): Promise<{
-  data?: ConsularServiceItem
-  error?: string
+  data?: ConsularServiceItem;
+  error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN])
-  if (authResult.error) return { error: authResult.error }
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
 
   try {
     const service = await db.consularService.findUnique({
@@ -265,11 +271,11 @@ export async function getFullService(id: string): Promise<{
       include: {
         steps: true,
         organization: true,
-      }
-    })
+      },
+    });
 
     if (!service) {
-      return { error: 'Service not found' }
+      return { error: 'Service not found' };
     }
 
     const transformedService = {
@@ -277,18 +283,20 @@ export async function getFullService(id: string): Promise<{
       steps: service.steps.map((step) => ({
         ...step,
         fields: step.fields ? JSON.parse(`${step.fields}`) : [],
-        validations: step.validations ? JSON.parse(`${step.validations}`) : {}
-      }))
-    }
+        validations: step.validations ? JSON.parse(`${step.validations}`) : {},
+      })),
+    };
 
-    return { data: transformedService }
+    return { data: transformedService };
   } catch (error) {
-    console.error('Error fetching service:', error)
-    return { error: 'Failed to fetch service' }
+    console.error('Error fetching service:', error);
+    return { error: 'Failed to fetch service' };
   }
 }
 
-export async function duplicateService(serviceId: string): Promise<{ data?: string; error?: string }> {
+export async function duplicateService(
+  serviceId: string,
+): Promise<{ data?: string; error?: string }> {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
   if (authResult.error) return { error: authResult.error };
 
@@ -296,7 +304,7 @@ export async function duplicateService(serviceId: string): Promise<{ data?: stri
     const existingService = await db.consularService.findUnique({
       where: { id: serviceId },
       include: { steps: true },
-    })
+    });
 
     if (!existingService) {
       return { error: 'Service non trouvé' };
@@ -315,7 +323,7 @@ export async function duplicateService(serviceId: string): Promise<{ data?: stri
     const duplicatedService = await db.consularService.create({
       data: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...serviceData as unknown as any,
+        ...(serviceData as unknown as any),
         name: `${name} (Copie)`,
         isActive: false,
         ...(steps && {
@@ -330,7 +338,7 @@ export async function duplicateService(serviceId: string): Promise<{ data?: stri
               })),
             },
           },
-        })
+        }),
       },
       include: { steps: true, organization: true },
     });

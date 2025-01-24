@@ -1,25 +1,25 @@
-import NextAuth from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import Credentials from "next-auth/providers/credentials"
-import { db } from '@/lib/prisma'
-import { ROUTES } from '@/schemas/routes'
-import { getUserById } from '@/lib/user/getters'
-import { FullUser } from '@/types'
-import { validateOTP } from '@/lib/user/otp'
-import { extractNumber } from '@/lib/utils'
-import { UserRole } from '@prisma/client'
+import NextAuth from 'next-auth';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import Credentials from 'next-auth/providers/credentials';
+import { db } from '@/lib/prisma';
+import { ROUTES } from '@/schemas/routes';
+import { getUserById } from '@/lib/user/getters';
+import { FullUser } from '@/types';
+import { validateOTP } from '@/lib/user/otp';
+import { extractNumber } from '@/lib/utils';
+import { UserRole } from '@prisma/client';
 
 declare module 'next-auth' {
   interface Session {
-    user: FullUser
+    user: FullUser;
   }
 }
 
 export interface AuthPayload {
-  identifier: string
-  type: 'EMAIL' | 'PHONE'
-  otp: string
-  callbackUrl?: string
+  identifier: string;
+  type: 'EMAIL' | 'PHONE';
+  otp: string;
+  callbackUrl?: string;
 }
 
 export const {
@@ -36,38 +36,38 @@ export const {
   callbacks: {
     async session({ session, token }) {
       if (token.sub && session.user) {
-        const existingUser = await getUserById(token.sub)
+        const existingUser = await getUserById(token.sub);
         if (existingUser) {
-          session.user.role = existingUser.role
+          session.user.role = existingUser.role;
 
           if (existingUser.name) {
-            session.user.name = existingUser.name
+            session.user.name = existingUser.name;
           }
 
           if (existingUser.phone) {
-            session.user.phone = existingUser.phone
+            session.user.phone = existingUser.phone;
           }
 
           if (existingUser.email) {
-            session.user.email = existingUser.email
+            session.user.email = existingUser.email;
           }
 
-          session.user.lastLogin = existingUser.lastLogin ?? new Date()
+          session.user.lastLogin = existingUser.lastLogin ?? new Date();
 
           if (existingUser.consulateId) {
-            session.user.consulateId = existingUser.consulateId
+            session.user.consulateId = existingUser.consulateId;
           }
         }
-        session.user.id = token.sub
+        session.user.id = token.sub;
       }
-      return session
+      return session;
     },
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as FullUser).role
+        token.role = (user as FullUser).role;
       }
-      return token
-    }
+      return token;
+    },
   },
   session: { strategy: 'jwt' },
   trustHost: true,
@@ -83,27 +83,28 @@ export const {
       },
       async authorize(credentials) {
         try {
-          if (!credentials) throw new Error('No credentials')
-          const { identifier, type, otp } = credentials as unknown as AuthPayload
+          if (!credentials) throw new Error('No credentials');
+          const { identifier, type, otp } = credentials as unknown as AuthPayload;
 
           if (!identifier || !otp) {
-            throw new Error('Missing credentials')
+            throw new Error('Missing credentials');
           }
 
           const isValid = await validateOTP({
             identifier,
             otp,
             type,
-          })
+          });
 
           if (!isValid) {
-            return null
+            return null;
           }
 
           // Trouver ou créer l'utilisateur
-          const userWhere = type === 'EMAIL'
-            ? { email: identifier }
-            : { phone: { number: extractNumber(identifier).number } }
+          const userWhere =
+            type === 'EMAIL'
+              ? { email: identifier }
+              : { phone: { number: extractNumber(identifier).number } };
 
           let user = await db.user.findFirst({
             where: userWhere,
@@ -114,16 +115,15 @@ export const {
               phone: true,
               lastLogin: true,
               consulateId: true,
-            }
-          })
+            },
+          });
 
           if (!user) {
             user = await db.user.create({
               data: {
                 ...(type === 'EMAIL'
-                    ? { email: identifier }
-                    : { phone: { create: extractNumber(identifier) } }
-                ),
+                  ? { email: identifier }
+                  : { phone: { create: extractNumber(identifier) } }),
                 emailVerified: type === 'EMAIL' ? new Date() : null,
                 phoneVerified: type === 'PHONE' ? new Date() : null,
                 role: UserRole.USER, // Rôle par défaut
@@ -135,16 +135,16 @@ export const {
                 phone: true,
                 lastLogin: true,
                 consulateId: true,
-              }
-            })
+              },
+            });
           }
 
-          return user
+          return user;
         } catch (error) {
-          console.error('Auth Error:', error)
-          return null
+          console.error('Auth Error:', error);
+          return null;
         }
-      }
-    })
-  ]
-})
+      },
+    }),
+  ],
+});

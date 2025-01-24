@@ -1,5 +1,5 @@
-import React from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import React from 'react';
+import { UseFormReturn } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -7,14 +7,10 @@ import {
   FormItem,
   FormLabel,
   TradFormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
   CommandEmpty,
@@ -22,35 +18,35 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command'
-import { useTranslations } from 'next-intl'
-import { countryKeys } from '@/lib/autocomplete-datas'
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons'
-import { cn } from '@/lib/utils'
-import { PhoneInput, PhoneValue } from '@/components/ui/phone-input'
-import { Separator } from '@/components/ui/separator'
-import { ContactInfoFormData } from '@/schemas/registration'
-import { Card, CardContent } from '@/components/ui/card'
+} from '@/components/ui/command';
+import { useTranslations } from 'next-intl';
+import { countryKeys } from '@/lib/autocomplete-datas';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { cn } from '@/lib/utils';
+import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
+import { Separator } from '@/components/ui/separator';
+import { ContactInfoFormData } from '@/schemas/registration';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ContactInfoFormProps {
-  form: UseFormReturn<ContactInfoFormData>
-  onSubmit: (data: ContactInfoFormData) => void
-  formRef?: React.RefObject<HTMLFormElement>
-  isLoading?: boolean
+  form: UseFormReturn<ContactInfoFormData>;
+  onSubmit: (data: ContactInfoFormData) => void;
+  formRef?: React.RefObject<HTMLFormElement>;
+  isLoading?: boolean;
 }
 
 export function ContactInfoForm({
-                                  form,
-                                  onSubmit,
-                                  formRef,
-                                  isLoading = false,
-                                }: Readonly<ContactInfoFormProps>) {
-  const t = useTranslations('registration')
-  const t_countries = useTranslations('countries')
-  const [openCountrySelect, setOpenCountrySelect] = React.useState(false)
+  form,
+  onSubmit,
+  formRef,
+  isLoading = false,
+}: Readonly<ContactInfoFormProps>) {
+  const t = useTranslations('registration');
+  const t_countries = useTranslations('countries');
+  const [openCountrySelect, setOpenCountrySelect] = React.useState(false);
 
-  const country = form.watch('address.country')
-  const showGabonAddress = country && country !== 'gabon'
+  const country = form.watch('address.country');
+  const showGabonAddress = country && country !== 'gabon';
 
   return (
     <Form {...form}>
@@ -110,7 +106,7 @@ export function ContactInfoForm({
                 control={form.control}
                 name="address.firstLine"
                 render={({ field }) => (
-                  <FormItem className={"col-span-full md:col-span-1"}>
+                  <FormItem className={'col-span-full md:col-span-1'}>
                     <FormLabel>{t('form.street_address')}</FormLabel>
                     <FormControl>
                       <Input
@@ -129,7 +125,7 @@ export function ContactInfoForm({
                 control={form.control}
                 name="address.secondLine"
                 render={({ field }) => (
-                  <FormItem className={"col-span-full md:col-span-1"}>
+                  <FormItem className={'col-span-full md:col-span-1'}>
                     <FormLabel>{t('form.second_line')}</FormLabel>
                     <FormControl>
                       <Input
@@ -150,7 +146,7 @@ export function ContactInfoForm({
                   control={form.control}
                   name="address.city"
                   render={({ field }) => (
-                    <FormItem className={"col-span-2"}>
+                    <FormItem className={'col-span-2'}>
                       <FormLabel>{t('form.city')}</FormLabel>
                       <FormControl>
                         <Input
@@ -188,12 +184,9 @@ export function ContactInfoForm({
                 control={form.control}
                 name="address.country"
                 render={({ field }) => (
-                  <FormItem className={"col-span-full"}>
+                  <FormItem className={'col-span-full'}>
                     <FormLabel>{t('form.country')}</FormLabel>
-                    <Popover
-                      open={openCountrySelect}
-                      onOpenChange={setOpenCountrySelect}
-                    >
+                    <Popover open={openCountrySelect} onOpenChange={setOpenCountrySelect}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
@@ -201,7 +194,9 @@ export function ContactInfoForm({
                           aria-expanded={openCountrySelect}
                           className="w-full justify-between"
                         >
-                          {field.value ? t_countries(field.value) : t('form.select_country')}
+                          {field.value
+                            ? t_countries(field.value)
+                            : t('form.select_country')}
                           <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -219,15 +214,17 @@ export function ContactInfoForm({
                                   key={countryKey}
                                   value={countryKey}
                                   onSelect={() => {
-                                    form.setValue('address.country', countryKey)
-                                    setOpenCountrySelect(false)
+                                    form.setValue('address.country', countryKey);
+                                    setOpenCountrySelect(false);
                                   }}
                                 >
                                   {t_countries(countryKey)}
                                   <CheckIcon
                                     className={cn(
                                       'ml-auto h-4 w-4',
-                                      field.value === countryKey ? 'opacity-100' : 'opacity-0',
+                                      field.value === countryKey
+                                        ? 'opacity-100'
+                                        : 'opacity-0',
                                     )}
                                   />
                                 </CommandItem>
@@ -312,5 +309,5 @@ export function ContactInfoForm({
         </Card>
       </form>
     </Form>
-  )
+  );
 }

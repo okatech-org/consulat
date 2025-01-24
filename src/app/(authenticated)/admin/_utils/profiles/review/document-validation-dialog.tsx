@@ -1,75 +1,79 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { DocumentStatus } from '@prisma/client'
-import { validateDocument } from '@/app/(authenticated)/admin/_utils/actions/documents'
-import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { DocumentStatus } from '@prisma/client';
+import { validateDocument } from '@/app/(authenticated)/admin/_utils/actions/documents';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface DocumentValidationDialogProps {
-  documentId: string
-  documentType: string
-  isOpen: boolean
-  onClose: () => void
-  onValidated: () => void
+  documentId: string;
+  documentType: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onValidated: () => void;
 }
 
 export function DocumentValidationDialog({
-                                           documentId,
-                                           documentType,
-                                           isOpen,
-                                           onClose,
-                                           onValidated,
-                                         }: DocumentValidationDialogProps) {
-  const t = useTranslations('actions.profiles.review.components')
-  const { toast } = useToast()
-  const [notes, setNotes] = useState('')
-  const [status, setStatus] = useState<DocumentStatus>(DocumentStatus.PENDING)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  documentId,
+  documentType,
+  isOpen,
+  onClose,
+  onValidated,
+}: DocumentValidationDialogProps) {
+  const t = useTranslations('actions.profiles.review.components');
+  const { toast } = useToast();
+  const [notes, setNotes] = useState('');
+  const [status, setStatus] = useState<DocumentStatus>(DocumentStatus.PENDING);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (status: DocumentStatus) => {
     try {
-      setIsSubmitting(true)
-      setStatus(status)
+      setIsSubmitting(true);
+      setStatus(status);
 
       const result = await validateDocument({
         documentId,
         status,
         notes: notes.trim() || undefined,
-      })
+      });
 
-      if (result.error) throw new Error(result.error)
+      if (result.error) throw new Error(result.error);
 
       toast({
         title: t('validation.success.title'),
         description: t('validation.success.description'),
         variant: 'success',
-      })
+      });
 
-      onValidated()
-      onClose()
+      onValidated();
+      onClose();
     } catch (error) {
       toast({
         title: t('validation.error.title'),
         description: t('validation.error.description'),
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {t('validation.title', { type: documentType })}
-          </DialogTitle>
+          <DialogTitle>{t('validation.title', { type: documentType })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -82,11 +86,7 @@ export function DocumentValidationDialog({
         </div>
 
         <DialogFooter className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             {t('validation.cancel')}
           </Button>
           <Button
@@ -112,5 +112,5 @@ export function DocumentValidationDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

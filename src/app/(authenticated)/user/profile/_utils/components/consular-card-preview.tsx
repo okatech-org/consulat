@@ -1,31 +1,37 @@
-'use client'
+'use client';
 
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
-import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
-import { FullProfile } from '@/types'
-import { QRCode } from '@/components/ui/qr-code'
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { FullProfile } from '@/types';
+import { QRCode } from '@/components/ui/qr-code';
 
 interface ConsularCardPreviewProps {
-  profile: FullProfile
+  profile: FullProfile;
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_URL
+const APP_URL = process.env.NEXT_PUBLIC_URL;
 
 export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
-  const t = useTranslations('components.card')
-  const [isFlipped, setIsFlipped] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
+  const t = useTranslations('components.card');
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleFlip = () => setIsFlipped(!isFlipped)
+  const handleFlip = () => setIsFlipped(!isFlipped);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -44,8 +50,8 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
           <div className="perspective relative w-full max-w-md">
             <div
               className={cn(
-                "relative preserve-3d transition-transform duration-500",
-                isFlipped && "rotate-y-180"
+                'relative preserve-3d transition-transform duration-500',
+                isFlipped && 'rotate-y-180',
               )}
               onClick={handleFlip}
             >
@@ -81,15 +87,22 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                             {profile.firstName} {profile.lastName}
                           </h3>
                           <div className="text-sm">
-                            <p>{t('birth')}: {format(new Date(profile.birthDate), 'PPP', { locale: fr })}</p>
-                            <p>{t('nationality')}: {profile.nationality}</p>
-                            <p>{t('passport')}: {profile.passportNumber}</p>
+                            <p>
+                              {t('birth')}:{' '}
+                              {format(new Date(profile.birthDate), 'PPP', { locale: fr })}
+                            </p>
+                            <p>
+                              {t('nationality')}: {profile.nationality}
+                            </p>
+                            <p>
+                              {t('passport')}: {profile.passportNumber}
+                            </p>
                           </div>
                         </div>
 
                         {/* QR Code */}
                         <div className="absolute bottom-4 right-4 size-24">
-                          <QRCode value={`${APP_URL}/view/profile/${profile.id}`}/>
+                          <QRCode value={`${APP_URL}/view/profile/${profile.id}`} />
                         </div>
                       </CardContent>
                     </Card>
@@ -117,7 +130,9 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                             <h4 className="font-medium">{t('address')}</h4>
                             <p className="text-sm">
                               {profile.address?.firstLine}
-                              {profile.address?.secondLine && <>, {profile.address.secondLine}</>}
+                              {profile.address?.secondLine && (
+                                <>, {profile.address.secondLine}</>
+                              )}
                               <br />
                               {profile.address?.zipCode} {profile.address?.city}
                               <br />
@@ -128,8 +143,18 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                           <div className="space-y-1">
                             <h4 className="font-medium">{t('contact')}</h4>
                             <p className="text-sm">
-                              {profile.phone && <>{t('phone')}: {`${profile.phone.countryCode}${profile.phone.number}`}<br /></>}
-                              {profile.email && <>{t('email')}: {profile.email}</>}
+                              {profile.phone && (
+                                <>
+                                  {t('phone')}:{' '}
+                                  {`${profile.phone.countryCode}${profile.phone.number}`}
+                                  <br />
+                                </>
+                              )}
+                              {profile.email && (
+                                <>
+                                  {t('email')}: {profile.email}
+                                </>
+                              )}
                             </p>
                           </div>
                         </div>
@@ -149,11 +174,9 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
           </div>
 
           {/* Instructions */}
-          <p className="text-sm text-muted-foreground">
-            {t('click_to_flip')}
-          </p>
+          <p className="text-sm text-muted-foreground">{t('click_to_flip')}</p>
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

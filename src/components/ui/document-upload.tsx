@@ -1,109 +1,105 @@
-import * as React from "react"
-import { useTranslations } from 'next-intl'
-import { Upload, X, FileInput } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { FieldValues, UseFormReturn } from 'react-hook-form'
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import Image from "next/image"
+import * as React from 'react';
+import { useTranslations } from 'next-intl';
+import { Upload, X, FileInput } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { FieldValues, UseFormReturn } from 'react-hook-form';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import Image from 'next/image';
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   TradFormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { ReactNode } from 'react'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { ReactNode } from 'react';
 
 interface DocumentUploadFieldProps<T extends FieldValues> {
-  id: string
-  label?: string
-  description?: string
+  id: string;
+  label?: string;
+  description?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  field: any
-  form: UseFormReturn<T>
-  disabled?: boolean
+  field: any;
+  form: UseFormReturn<T>;
+  disabled?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  existingFile?: any
-  aspectRatio?: "square" | "portrait",
-  accept?: string
-  maxSize?: number
-  required?: boolean
+  existingFile?: any;
+  aspectRatio?: 'square' | 'portrait';
+  accept?: string;
+  maxSize?: number;
+  required?: boolean;
 }
 
 export function DocumentUploadField<T extends FieldValues>({
-                                      id,
-                                      label,
-                                      description,
-                                      field,
-                                      form,
-                                      disabled,
+  id,
+  label,
+  description,
+  field,
+  form,
+  disabled,
   required = false,
-                                      existingFile,
+  existingFile,
   maxSize = 1,
-  accept = "image/*,application/pdf",
-                                      aspectRatio = "square"
-                                    }: DocumentUploadFieldProps<T>) {
-  const t = useTranslations('common.upload')
-  const inputRef = React.useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = React.useState<string | null>(null)
-  const [pdfPreview, setPdfPreview] = React.useState<ReactNode | null>(null)
-  const [isDragging, setIsDragging] = React.useState(false)
+  accept = 'image/*,application/pdf',
+  aspectRatio = 'square',
+}: DocumentUploadFieldProps<T>) {
+  const t = useTranslations('common.upload');
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = React.useState<string | null>(null);
+  const [pdfPreview, setPdfPreview] = React.useState<ReactNode | null>(null);
+  const [isDragging, setIsDragging] = React.useState(false);
 
   // Gérer la prévisualisation du fichier
   React.useEffect(() => {
     if (!field.value && !existingFile) {
-      setPreview(null)
-      return
+      setPreview(null);
+      return;
     }
 
     // Si c'est un fichier existant (URL)
     if (existingFile && typeof existingFile === 'string') {
-      setPreview(existingFile)
-      return
+      setPreview(existingFile);
+      return;
     }
 
     // Si c'est un nouveau fichier
     if (field.value instanceof File) {
-      const file = field.value
+      const file = field.value;
       if (file.type.startsWith('image/')) {
-        const url = URL.createObjectURL(file)
-        setPreview(url)
-        return () => URL.revokeObjectURL(url)
+        const url = URL.createObjectURL(file);
+        setPreview(url);
+        return () => URL.revokeObjectURL(url);
       }
 
       if (file.type === 'application/pdf') {
-        setPdfPreview(<FileInput/>)
+        setPdfPreview(<FileInput />);
       }
     }
-  }, [field.value, existingFile])
+  }, [field.value, existingFile]);
 
   const handleDrop = React.useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-      setIsDragging(false)
+      e.preventDefault();
+      setIsDragging(false);
 
-      if (disabled) return
+      if (disabled) return;
 
-      const droppedFile = e.dataTransfer.files[0]
+      const droppedFile = e.dataTransfer.files[0];
       if (droppedFile) {
-        field.onChange(droppedFile)
+        field.onChange(droppedFile);
       }
     },
-    [disabled, field]
-  )
+    [disabled, field],
+  );
 
   const removeFile = () => {
-    field.onChange(null)
+    field.onChange(null);
     if (inputRef.current) {
-      inputRef.current.value = ''
+      inputRef.current.value = '';
     }
-  }
+  };
 
   return (
     <FormField
@@ -111,22 +107,24 @@ export function DocumentUploadField<T extends FieldValues>({
       name={field.name}
       render={() => (
         <FormItem>
-          {label && <FormLabel>
-            {label}
-            {required && <span className="ml-1 text-destructive">*</span>}
-          </FormLabel>}
+          {label && (
+            <FormLabel>
+              {label}
+              {required && <span className="ml-1 text-destructive">*</span>}
+            </FormLabel>
+          )}
           <FormControl>
             <div
               onDragOver={(e) => {
-                e.preventDefault()
-                if (!disabled) setIsDragging(true)
+                e.preventDefault();
+                if (!disabled) setIsDragging(true);
               }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               className={cn(
-                "relative rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors",
-                isDragging && "border-primary bg-primary/5",
-                disabled && "cursor-not-allowed opacity-60"
+                'relative rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors',
+                isDragging && 'border-primary bg-primary/5',
+                disabled && 'cursor-not-allowed opacity-60',
               )}
             >
               <Input
@@ -164,11 +162,13 @@ export function DocumentUploadField<T extends FieldValues>({
                     {preview && (
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button type={"button"} variant="ghost" className="p-0">
-                            <div className={cn(
-                              "relative overflow-hidden rounded",
-                              aspectRatio === "square" ? "h-16 w-16" : "h-20 w-16"
-                            )}>
+                          <Button type={'button'} variant="ghost" className="p-0">
+                            <div
+                              className={cn(
+                                'relative overflow-hidden rounded',
+                                aspectRatio === 'square' ? 'h-16 w-16' : 'h-20 w-16',
+                              )}
+                            >
                               <Image
                                 src={preview}
                                 alt="Preview"
@@ -179,10 +179,12 @@ export function DocumentUploadField<T extends FieldValues>({
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-3xl">
-                          <div className={cn(
-                            "relative overflow-hidden rounded-lg",
-                            aspectRatio === "square" ? "aspect-square" : "aspect-[3/4]"
-                          )}>
+                          <div
+                            className={cn(
+                              'relative overflow-hidden rounded-lg',
+                              aspectRatio === 'square' ? 'aspect-square' : 'aspect-[3/4]',
+                            )}
+                          >
                             <Image
                               src={preview}
                               alt="Preview"
@@ -224,14 +226,10 @@ export function DocumentUploadField<T extends FieldValues>({
               )}
             </div>
           </FormControl>
-          {description && (
-            <p className="text-sm text-muted-foreground">
-              {description}
-            </p>
-          )}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
           <TradFormMessage />
         </FormItem>
       )}
     />
-  )
+  );
 }

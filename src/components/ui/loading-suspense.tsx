@@ -1,9 +1,7 @@
-import { ReloadIcon } from '@radix-ui/react-icons'
-import { Suspense } from 'react'
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { Suspense } from 'react';
 
-export function LoadingSuspense({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export function LoadingSuspense({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <Suspense
       fallback={
@@ -14,5 +12,5 @@ export function LoadingSuspense({
     >
       {children}
     </Suspense>
-  )
+  );
 }

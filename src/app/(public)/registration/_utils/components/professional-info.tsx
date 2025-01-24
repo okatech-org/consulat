@@ -1,5 +1,5 @@
-import React from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import React from 'react';
+import { UseFormReturn } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -8,45 +8,40 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useTranslations } from 'next-intl'
-import { WorkStatus } from '@prisma/client'
-import { ProfessionalInfoFormData } from '@/schemas/registration'
-
+} from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
+import { WorkStatus } from '@prisma/client';
+import { ProfessionalInfoFormData } from '@/schemas/registration';
 
 interface ProfessionalInfoFormProps {
-  form: UseFormReturn<ProfessionalInfoFormData>
-  onSubmit: (data: ProfessionalInfoFormData) => void
-  formRef?: React.RefObject<HTMLFormElement>
-  isLoading?: boolean
+  form: UseFormReturn<ProfessionalInfoFormData>;
+  onSubmit: (data: ProfessionalInfoFormData) => void;
+  formRef?: React.RefObject<HTMLFormElement>;
+  isLoading?: boolean;
 }
 
 export function ProfessionalInfoForm({
-                                       form,
-                                       onSubmit,
-                                       formRef,
-                                       isLoading = false,
-                                     }: Readonly<ProfessionalInfoFormProps>) {
-  const t = useTranslations('registration')
-  const t_assets = useTranslations('assets')
+  form,
+  onSubmit,
+  formRef,
+  isLoading = false,
+}: Readonly<ProfessionalInfoFormProps>) {
+  const t = useTranslations('registration');
+  const t_assets = useTranslations('assets');
 
-  const workStatus = form.watch('workStatus')
-  const showEmployerFields = workStatus === WorkStatus.EMPLOYEE
-  const showProfessionField = workStatus === WorkStatus.EMPLOYEE || workStatus === WorkStatus.ENTREPRENEUR
+  const workStatus = form.watch('workStatus');
+  const showEmployerFields = workStatus === WorkStatus.EMPLOYEE;
+  const showProfessionField =
+    workStatus === WorkStatus.EMPLOYEE || workStatus === WorkStatus.ENTREPRENEUR;
 
   return (
     <Form {...form}>
@@ -63,10 +58,7 @@ export function ProfessionalInfoForm({
               name="workStatus"
               render={({ field }) => (
                 <FormItem>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger disabled={isLoading}>
                         <SelectValue placeholder={t('form.select_work_status')} />
@@ -184,5 +176,5 @@ export function ProfessionalInfoForm({
         </Card>
       </form>
     </Form>
-  )
+  );
 }

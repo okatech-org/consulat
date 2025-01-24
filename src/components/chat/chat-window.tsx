@@ -1,31 +1,30 @@
+'use client';
 
-'use client'
-
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { useTranslations } from 'next-intl'
-import { Send } from 'lucide-react'
-import { Icons } from '../ui/icons'
-import { cn } from '@/lib/utils'
-import ReactMarkdown from 'react-markdown'
-import { SessionManager } from '@/lib/ai/session-manager'
-import { chatWithAssistant } from '@/lib/ai/actions'
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTranslations } from 'next-intl';
+import { Send } from 'lucide-react';
+import { Icons } from '../ui/icons';
+import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import { SessionManager } from '@/lib/ai/session-manager';
+import { chatWithAssistant } from '@/lib/ai/actions';
 
 type Message = {
-  id: string
-  content: string
-  role: 'user' | 'assistant' | 'system'
-  timestamp: Date
-}
+  id: string;
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp: Date;
+};
 
 export function ChatWindow() {
-  const t = useTranslations('chatbot')
-  const [messages, setMessages] = React.useState<Message[]>([])
-  const [input, setInput] = React.useState('')
-  const [isLoading, setIsLoading] = React.useState(false)
-  const messagesEndRef = React.useRef<HTMLDivElement>(null)
+  const t = useTranslations('chatbot');
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [input, setInput] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const loadChatHistory = () => {
@@ -38,7 +37,7 @@ export function ChatWindow() {
             id: index.toString(),
             content: msg.content,
             role: msg.role,
-            timestamp: new Date(Date.now() - (history.messages.length - index) * 1000) // Timestamps approximatifs
+            timestamp: new Date(Date.now() - (history.messages.length - index) * 1000), // Timestamps approximatifs
           }));
 
           setMessages(formattedHistory);
@@ -68,32 +67,32 @@ export function ChatWindow() {
     };
 
     loadChatHistory();
-  }, [t])
+  }, [t]);
 
   React.useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || isLoading) return
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input,
       role: 'user',
       timestamp: new Date(),
-    }
+    };
 
-    setMessages((prev) => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
 
     try {
-      const response = await chatWithAssistant(input)
+      const response = await chatWithAssistant(input);
 
       if (response.error) {
-        throw new Error(response.error)
+        throw new Error(response.error);
       }
 
       const assistantMessage: Message = {
@@ -101,25 +100,25 @@ export function ChatWindow() {
         content: response.message || t('error_message'),
         role: 'assistant',
         timestamp: new Date(),
-      }
+      };
 
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Chat error:', error)
+      console.error('Chat error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: t('error_message'),
         role: 'assistant',
         timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className={"flex h-full flex-col gap-4"}>
+    <div className={'flex h-full flex-col gap-4'}>
       <ScrollArea className="h-full overflow-y-auto overflow-x-hidden pr-4">
         <div className="flex flex-col gap-4">
           {messages.map((message) => (
@@ -129,13 +128,13 @@ export function ChatWindow() {
                 'flex w-max max-w-[80%] flex-col gap-2 rounded-lg px-4 py-2',
                 message.role === 'user'
                   ? 'ml-auto bg-primary text-primary-foreground'
-                  : 'bg-muted'
+                  : 'bg-muted',
               )}
             >
               <ReactMarkdown>{message.content}</ReactMarkdown>
               <span className="text-xs opacity-50">
-                  {message.timestamp.toLocaleTimeString()}
-                </span>
+                {message.timestamp.toLocaleTimeString()}
+              </span>
             </div>
           ))}
           {isLoading && (
@@ -166,5 +165,5 @@ export function ChatWindow() {
         </Button>
       </form>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai';
-import { AssistantResponse, ChatContext, Message } from '@/lib/ai/types'
-import { SessionManager } from '@/lib/ai/session-manager'
+import { AssistantResponse, ChatContext, Message } from '@/lib/ai/types';
+import { SessionManager } from '@/lib/ai/session-manager';
 
 export class BaseAssistant {
   protected readonly openai: OpenAI;
@@ -53,25 +53,25 @@ Information on consular services:
 
   protected async createChatCompletion(
     messages: Message[],
-    options: { temperature?: number; maxTokens?: number } = {}
+    options: { temperature?: number; maxTokens?: number } = {},
   ): Promise<AssistantResponse> {
     try {
       const systemPrompt = await this.getSystemPrompt();
       const allMessages = [
         { role: 'system', content: systemPrompt },
-        ...messages
+        ...messages,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ] as any[];
 
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-4o",
+        model: 'gpt-4o',
         messages: allMessages,
         temperature: options.temperature ?? 0.7,
         max_tokens: options.maxTokens ?? 1000,
       });
 
       return {
-        message: completion.choices[0].message.content || ''
+        message: completion.choices[0].message.content || '',
       };
     } catch (error) {
       console.error('Error in chat completion:', error);
@@ -82,12 +82,12 @@ Information on consular services:
   protected async saveInteraction(message: Message, response: AssistantResponse) {
     const userMessage: Message = {
       role: 'user',
-      content: message.content
+      content: message.content,
     };
 
     const assistantMessage: Message = {
       role: 'assistant',
-      content: response.message
+      content: response.message,
     };
 
     SessionManager.saveInteraction(userMessage, assistantMessage);

@@ -44,4 +44,4 @@ Format de réponse JSON :
   ]
 }
 
-Analysez en profondeur et fournissez des suggestions pertinentes et actionnables.`
+Analysez en profondeur et fournissez des suggestions pertinentes et actionnables.`;

@@ -1,12 +1,18 @@
-import { Button } from '@/components/ui/button'
-import { fieldTypes, ServiceField, ServiceFieldType } from '@/types/consular-service'
-import { useTranslations } from 'next-intl'
-import { useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Card } from '@/components/ui/card'
-import { Pencil, Plus, Trash } from 'lucide-react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button';
+import { fieldTypes, ServiceField, ServiceFieldType } from '@/types/consular-service';
+import { useTranslations } from 'next-intl';
+import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card } from '@/components/ui/card';
+import { Pencil, Plus, Trash } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -14,62 +20,66 @@ import {
   FormItem,
   FormLabel,
   TradFormMessage,
-  FormDescription
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import TagsInput from '@/components/ui/tags-input'
-import { Select, SelectContent, SelectItem } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { ProfileField } from '@/types'
-import { ServiceFieldSchema } from '@/schemas/consular-service'
-import { MultiSelect } from '@/components/ui/multi-select'
+  FormDescription,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import TagsInput from '@/components/ui/tags-input';
+import { Select, SelectContent, SelectItem } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { ProfileField } from '@/types';
+import { ServiceFieldSchema } from '@/schemas/consular-service';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 interface DynamicFieldsEditorProps {
-  fields: ServiceField[]
-  onChange: (fields: ServiceField[]) => void
-  profileFields: ProfileField[]
+  fields: ServiceField[];
+  onChange: (fields: ServiceField[]) => void;
+  profileFields: ProfileField[];
 }
 
-export function DynamicFieldsEditor({ fields, onChange, profileFields }: DynamicFieldsEditorProps) {
-  const t = useTranslations('superadmin.services')
-  const t_common = useTranslations('common')
-  const t_inputs = useTranslations('inputs.profile')
-  const [showFieldDialog, setShowFieldDialog] = useState(false)
-  const [editingFieldIndex, setEditingFieldIndex] = useState(-1)
-  const formRef = useRef<HTMLFormElement>(null)
+export function DynamicFieldsEditor({
+  fields,
+  onChange,
+  profileFields,
+}: DynamicFieldsEditorProps) {
+  const t = useTranslations('superadmin.services');
+  const t_common = useTranslations('common');
+  const t_inputs = useTranslations('inputs.profile');
+  const [showFieldDialog, setShowFieldDialog] = useState(false);
+  const [editingFieldIndex, setEditingFieldIndex] = useState(-1);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const fieldForm = useForm<ServiceField>({
     resolver: zodResolver(ServiceFieldSchema),
     defaultValues: {
       name: '',
-      type: "text",
+      type: 'text',
       label: '',
       description: '',
       required: false,
-    }
-  })
+    },
+  });
 
   const handleAddField = (data: ServiceField) => {
     if (editingFieldIndex === -1) {
-      onChange([...fields, data])
+      onChange([...fields, data]);
     } else {
-      const newFields = [...fields]
-      newFields[editingFieldIndex] = data
-      onChange(newFields)
+      const newFields = [...fields];
+      newFields[editingFieldIndex] = data;
+      onChange(newFields);
     }
-    setShowFieldDialog(false)
-    fieldForm.reset()
-  }
+    setShowFieldDialog(false);
+    fieldForm.reset();
+  };
 
   const handleEditField = (index: number) => {
-    setEditingFieldIndex(index)
-    fieldForm.reset(fields[index])
-    setShowFieldDialog(true)
-  }
+    setEditingFieldIndex(index);
+    fieldForm.reset(fields[index]);
+    setShowFieldDialog(true);
+  };
 
   const handleDeleteField = (index: number) => {
-    onChange(fields.filter((_, i) => i !== index))
-  }
+    onChange(fields.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="space-y-4">
@@ -82,24 +92,17 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
               <p className="text-sm text-muted-foreground">
                 {t_common(`field_types.${field.type as ServiceFieldType}`)}
                 {field.required && ' • ' + t('form.steps.step.fields.required')}
-                {field.profileField && ` • ${t('form.steps.step.fields.mapped_to', {
-                  field: t_inputs(`${field.profileField}`)
-                })}`}
+                {field.profileField &&
+                  ` • ${t('form.steps.step.fields.mapped_to', {
+                    field: t_inputs(`${field.profileField}`),
+                  })}`}
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEditField(index)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleEditField(index)}>
                 <Pencil className="size-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDeleteField(index)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleDeleteField(index)}>
                 <Trash className="size-4" />
               </Button>
             </div>
@@ -112,9 +115,9 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
         type="button"
         variant="outline"
         onClick={() => {
-          setEditingFieldIndex(-1)
-          fieldForm.reset()
-          setShowFieldDialog(true)
+          setEditingFieldIndex(-1);
+          fieldForm.reset();
+          setShowFieldDialog(true);
         }}
       >
         <Plus className="mr-2 size-4" />
@@ -143,24 +146,23 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                     <FormLabel>{t('form.steps.step.fields.profile_mapping')}</FormLabel>
                     <FormControl>
                       <MultiSelect
-                        options={profileFields.map(f => (
-                          { value: f.key, label: t_inputs(f.key) }
-                        ))}
+                        options={profileFields.map((f) => ({
+                          value: f.key,
+                          label: t_inputs(f.key),
+                        }))}
                         selected={field.value ? [field.value] : []}
-                        onChange={
-                          (values) => {
-                            const pField = profileFields.find(f => f.key === values[0])
+                        onChange={(values) => {
+                          const pField = profileFields.find((f) => f.key === values[0]);
 
-                            field.onChange(values[0])
+                          field.onChange(values[0]);
 
-                            if (pField) {
-                              fieldForm.setValue('name', pField.key)
-                              fieldForm.setValue('label', t_inputs(pField?.key))
-                              fieldForm.setValue('type', pField.type)
-                              fieldForm.setValue('required', pField?.required)
-                            }
+                          if (pField) {
+                            fieldForm.setValue('name', pField.key);
+                            fieldForm.setValue('label', t_inputs(pField?.key));
+                            fieldForm.setValue('type', pField.type);
+                            fieldForm.setValue('required', pField?.required);
                           }
-                        }
+                        }}
                         type={'single'}
                       />
                     </FormControl>
@@ -212,20 +214,14 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                       <FormControl>
                         <MultiSelect
                           disabled={fieldForm.watch('profileField') !== undefined}
-                          options={fieldTypes.map(type => ({
+                          options={fieldTypes.map((type) => ({
                             value: type,
-                            label: t_common(`field_types.${type}`)
+                            label: t_common(`field_types.${type}`),
                           }))}
-                          selected={
-                            field.value
-                              ? [field.value]
-                              : []
-                          }
-                          onChange={
-                            (values) => {
-                              field.onChange(values[0])
-                            }
-                          }
+                          selected={field.value ? [field.value] : []}
+                          onChange={(values) => {
+                            field.onChange(values[0]);
+                          }}
                           type={'single'}
                         />
                       </FormControl>
@@ -248,10 +244,7 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                 render={({ field }) => (
                   <FormItem className="flex items-center gap-2">
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                     <FormLabel>{t('form.steps.step.fields.required')}</FormLabel>
                   </FormItem>
@@ -267,12 +260,14 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
                     <FormItem>
                       <FormLabel>{t('form.steps.step.fields.options')}</FormLabel>
                       <TagsInput
-                        value={field.value?.map(o => o.value) || []}
+                        value={field.value?.map((o) => o.value) || []}
                         onChange={(values) => {
-                          field.onChange(values.map(v => ({
-                            value: v,
-                            label: v
-                          })))
+                          field.onChange(
+                            values.map((v) => ({
+                              value: v,
+                              label: v,
+                            })),
+                          );
                         }}
                       />
                       <TradFormMessage />
@@ -282,19 +277,25 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
               )}
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowFieldDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowFieldDialog(false)}
+                >
                   {t_common('actions.cancel')}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => {
-                    const errors = fieldForm.formState.errors
+                    const errors = fieldForm.formState.errors;
                     if (Object.entries(errors).length === 0) {
-                      handleAddField(fieldForm.getValues())
+                      handleAddField(fieldForm.getValues());
                     }
                   }}
                 >
-                  {editingFieldIndex === -1 ? t_common('actions.add') : t_common('actions.update')}
+                  {editingFieldIndex === -1
+                    ? t_common('actions.add')
+                    : t_common('actions.update')}
                 </Button>
               </DialogFooter>
             </form>
@@ -302,5 +303,5 @@ export function DynamicFieldsEditor({ fields, onChange, profileFields }: Dynamic
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

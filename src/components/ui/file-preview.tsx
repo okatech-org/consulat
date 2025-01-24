@@ -1,13 +1,13 @@
-import React from 'react'
-import Image from 'next/image'
+import React from 'react';
+import Image from 'next/image';
 
 type FilePreviewProps = {
-  files: FileList | File[] | undefined
-  render?: (previewUrl: string) => React.ReactNode
-  fileUrl: string | null | undefined
-  width?: number
-  height?: number
-}
+  files: FileList | File[] | undefined;
+  render?: (previewUrl: string) => React.ReactNode;
+  fileUrl: string | null | undefined;
+  width?: number;
+  height?: number;
+};
 
 export const FilePreview: React.FC<FilePreviewProps> = ({
   files,
@@ -16,25 +16,25 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
   width = 200,
   height = 200,
 }) => {
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (files && files.length > 0) {
-      const file = files[0]
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
+      const file = files[0];
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
 
       // Release object URL on cleanup
       return () => {
-        URL.revokeObjectURL(url)
-      }
+        URL.revokeObjectURL(url);
+      };
     } else {
-      setPreviewUrl(null)
+      setPreviewUrl(null);
     }
-  }, [files])
+  }, [files]);
 
   if (!previewUrl && !fileUrl) {
-    return null
+    return null;
   }
 
   return (
@@ -44,12 +44,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
           {render ? (
             render(previewUrl)
           ) : (
-            <Image
-              src={previewUrl}
-              alt="Preview"
-              width={width}
-              height={height}
-            />
+            <Image src={previewUrl} alt="Preview" width={width} height={height} />
           )}
         </>
       )}
@@ -62,5 +57,5 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
         </>
       )}
     </>
-  )
-}
+  );
+};

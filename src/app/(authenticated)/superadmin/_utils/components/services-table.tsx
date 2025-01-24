@@ -1,135 +1,136 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/data-table/data-table'
-import { ConsularServiceListingItem, UpdateServiceInput } from '@/types/consular-service'
-import { ServiceCategory } from '@prisma/client'
-import { Organization } from '@/types/organization'
+import { useTranslations } from 'next-intl';
+import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import { DataTable } from '@/components/data-table/data-table';
+import { ConsularServiceListingItem, UpdateServiceInput } from '@/types/consular-service';
+import { ServiceCategory } from '@prisma/client';
+import { Organization } from '@/types/organization';
 import {
   deleteService,
   duplicateService,
   updateService,
   updateServiceStatus,
-} from '@/app/(authenticated)/superadmin/_utils/actions/services'
-import { useToast } from '@/hooks/use-toast'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useState } from 'react'
-import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form'
-import { useRouter } from 'next/navigation'
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions'
-import Link from 'next/link'
-import { ROUTES } from '@/schemas/routes'
-import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react'
-import * as React from 'react'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+} from '@/app/(authenticated)/superadmin/_utils/actions/services';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState } from 'react';
+import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form';
+import { useRouter } from 'next/navigation';
+import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react';
+import * as React from 'react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export function ServicesTable({
-                                services,
-                              }: {
-  services: ConsularServiceListingItem[]
-  organizations: Organization[]
+  services,
+}: {
+  services: ConsularServiceListingItem[];
+  organizations: Organization[];
 }) {
-  const t = useTranslations('superadmin.services')
-  const t_common = useTranslations('common')
-  const t_messages = useTranslations('messages')
-  const [selectedService, setSelectedService] = useState<ConsularServiceListingItem | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const t = useTranslations('superadmin.services');
+  const t_common = useTranslations('common');
+  const t_messages = useTranslations('messages');
+  const [selectedService, setSelectedService] =
+    useState<ConsularServiceListingItem | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleStatusChange = async (serviceId: string, status: boolean) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await updateServiceStatus(serviceId, status)
+      const result = await updateServiceStatus(serviceId, status);
 
-      if (result.error) throw new Error(result.error)
+      if (result.error) throw new Error(result.error);
 
       toast({
         title: t('messages.updateSuccess'),
         variant: 'success',
-      })
+      });
     } catch (error) {
       toast({
         title: t('messages.error.update'),
         variant: 'destructive',
         description: `${error}`,
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async (serviceId: string) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await deleteService(serviceId)
+      const result = await deleteService(serviceId);
 
-      if (result.error) throw new Error(result.error)
+      if (result.error) throw new Error(result.error);
 
       toast({
         title: t('messages.deleteSuccess'),
         variant: 'success',
-      })
+      });
     } catch (error) {
       toast({
         title: t('messages.error.delete'),
         variant: 'destructive',
         description: `${error}`,
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleServiceUpdate = async (data: UpdateServiceInput) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await updateService(data)
+      const result = await updateService(data);
 
-      if (result.error) throw new Error(result.error)
+      if (result.error) throw new Error(result.error);
 
       toast({
         title: t_messages('success.update'),
         variant: 'success',
-      })
+      });
     } catch (error) {
       toast({
         title: t_messages('errors.update'),
         variant: 'destructive',
         description: `${error}`,
-      })
+      });
     } finally {
-      setSelectedService(null)
-      setShowEditDialog(false)
-      setIsLoading(false)
+      setSelectedService(null);
+      setShowEditDialog(false);
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDuplicateService = async (serviceId: string) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await duplicateService(serviceId)
+      const result = await duplicateService(serviceId);
       if (result.error) {
         toast({
           title: t_messages('errors.duplicate'),
           description: result.error,
           variant: 'destructive',
-        })
+        });
       } else {
         toast({
           title: t_messages('success.duplicate'),
           variant: 'success',
-        })
-        router.refresh()
+        });
+        router.refresh();
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const columns: ColumnDef<ConsularServiceListingItem>[] = [
     {
@@ -146,10 +147,10 @@ export function ServicesTable({
     {
       accessorKey: 'organization',
       header: t('table.organization'),
-      cell: ({ row }) => (
-        row.original.organization?.name ||
-        <Badge variant="default">{t_common('status.not_assigned')}</Badge>
-      ),
+      cell: ({ row }) =>
+        row.original.organization?.name || (
+          <Badge variant="default">{t_common('status.not_assigned')}</Badge>
+        ),
     },
     {
       accessorKey: 'isActive',
@@ -164,51 +165,68 @@ export function ServicesTable({
     },
     {
       id: 'actions',
-      cell: ({ row }) => <DataTableRowActions actions={[
-        {
-          component: <Link onClick={e => e.stopPropagation()} href={ROUTES.superadmin.edit_service(row.original.id)}>
-            <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
-          </Link>,
-        },
-        {
-          label: <>
-            <Copy className="mr-1 size-4" />
-            {t_common('actions.duplicate')}
-          </>,
-          onClick: (row) => {
-            handleDuplicateService(row.id)
-          },
-        },
-        {
-          label: <>
-            {row.original.isActive ? (
-              <>
-                <Ban className="mr-2 size-4" />
-                {t_common('actions.deactivate')}
-              </>
-            ) : (
-              <>
-                <CheckCircle className="mr-2 size-4" />
-                {t_common('actions.activate')}
-              </>
-            )}
-          </>,
-          onClick: (row) => {
-            handleStatusChange(row.id, !row.isActive)
-          },
-        },
-        {
-          label: <><Trash className="mr-1 size-4 text-destructive" /><span
-            className="text-destructive"> {t_common('actions.delete')}</span></>,
-          onClick: (row) => {
-            setSelectedService(row)
-            setShowDeleteDialog(true)
-          },
-        },
-      ]} row={row}
-      />,
+      cell: ({ row }) => (
+        <DataTableRowActions
+          actions={[
+            {
+              component: (
+                <Link
+                  onClick={(e) => e.stopPropagation()}
+                  href={ROUTES.superadmin.edit_service(row.original.id)}
+                >
+                  <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
+                </Link>
+              ),
+            },
+            {
+              label: (
+                <>
+                  <Copy className="mr-1 size-4" />
+                  {t_common('actions.duplicate')}
+                </>
+              ),
+              onClick: (row) => {
+                handleDuplicateService(row.id);
+              },
+            },
+            {
+              label: (
+                <>
+                  {row.original.isActive ? (
+                    <>
+                      <Ban className="mr-2 size-4" />
+                      {t_common('actions.deactivate')}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 size-4" />
+                      {t_common('actions.activate')}
+                    </>
+                  )}
+                </>
+              ),
+              onClick: (row) => {
+                handleStatusChange(row.id, !row.isActive);
+              },
+            },
+            {
+              label: (
+                <>
+                  <Trash className="mr-1 size-4 text-destructive" />
+                  <span className="text-destructive"> {t_common('actions.delete')}</span>
+                </>
+              ),
+              onClick: (row) => {
+                setSelectedService(row);
+                setShowDeleteDialog(true);
+              },
+            },
+          ]}
+          row={row}
+        />
+      ),
     },
-  ]
+  ];
 
   return (
     <>
@@ -241,8 +259,8 @@ export function ServicesTable({
           },
         ]}
         onRowClick={(row) => {
-          setSelectedService(row.original)
-          setShowEditDialog(true)
+          setSelectedService(row.original);
+          setShowEditDialog(true);
         }}
       />
 
@@ -269,8 +287,9 @@ export function ServicesTable({
           onConfirm={() => handleDelete(selectedService?.id)}
           title={t_common('actions.delete')}
           description={t('actions.delete_confirm')}
-          variant={'destructive'} />
+          variant={'destructive'}
+        />
       )}
     </>
-  )
+  );
 }

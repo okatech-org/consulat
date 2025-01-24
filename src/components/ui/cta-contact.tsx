@@ -1,22 +1,21 @@
-
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import Link from 'next/link'
-import { ROUTES } from '@/schemas/routes'
-import { buttonVariants } from '@/components/ui/button'
-import { ArrowUpRightIcon } from 'lucide-react'
-import * as React from 'react'
-import { getTranslations } from 'next-intl/server'
-import { getCurrentUser } from '@/actions/user'
+} from '@/components/ui/card';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import { buttonVariants } from '@/components/ui/button';
+import { ArrowUpRightIcon } from 'lucide-react';
+import * as React from 'react';
+import { getTranslations } from 'next-intl/server';
+import { getCurrentUser } from '@/actions/user';
 
 export default async function CtaContact() {
-  const t = await getTranslations('home')
-  const user = await getCurrentUser()
+  const t = await getTranslations('home');
+  const user = await getCurrentUser();
 
   return (
     <>
@@ -26,9 +25,7 @@ export default async function CtaContact() {
             <CardTitle className={'text-lg font-normal md:text-xl'}>
               {t('cta.title')}
             </CardTitle>
-            <CardDescription>
-              {t('cta.description')}
-            </CardDescription>
+            <CardDescription>{t('cta.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Link
@@ -45,5 +42,5 @@ export default async function CtaContact() {
         </Card>
       )}
     </>
-  )
+  );
 }

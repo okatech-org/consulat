@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 export default function useFilePreview(file: File | null) {
-  const [imgSrc, setImgSrc] = useState<null | string>(null)
+  const [imgSrc, setImgSrc] = useState<null | string>(null);
 
   useEffect(() => {
     if (file) {
-      const newUrl = URL.createObjectURL(file)
+      const newUrl = URL.createObjectURL(file);
 
       if (newUrl !== imgSrc) {
-        setImgSrc(newUrl)
+        setImgSrc(newUrl);
       }
     }
-  }, [file, imgSrc])
+  }, [file, imgSrc]);
 
-  return [imgSrc, setImgSrc]
+  return [imgSrc, setImgSrc];
 }

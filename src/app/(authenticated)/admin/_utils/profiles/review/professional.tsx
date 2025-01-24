@@ -1,17 +1,19 @@
-import { useTranslations } from 'next-intl'
-import { FullProfile } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle2, Briefcase, Building2, MapPin, GraduationCap } from 'lucide-react'
+import { useTranslations } from 'next-intl';
+import { FullProfile } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2, Briefcase, Building2, MapPin, GraduationCap } from 'lucide-react';
 
 interface ProfileProfessionalProps {
-  profile: FullProfile
+  profile: FullProfile;
 }
 
 export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
-  const t = useTranslations('actions.profiles.review')
+  const t = useTranslations('actions.profiles.review');
 
-  const showEmployerInfo = profile.workStatus === 'EMPLOYEE'
-  const showProfessionInfo = ['EMPLOYEE', 'ENTREPRENEUR'].includes(profile.workStatus || '')
+  const showEmployerInfo = profile.workStatus === 'EMPLOYEE';
+  const showProfessionInfo = ['EMPLOYEE', 'ENTREPRENEUR'].includes(
+    profile.workStatus || '',
+  );
 
   return (
     <div className="space-y-4">
@@ -57,7 +59,9 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
                 <div className="flex items-center gap-3">
                   <Building2 className="size-5 text-muted-foreground" />
                   <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">{t('fields.employer')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('fields.employer')}
+                    </p>
                     <p className="font-medium">{profile.employer || '-'}</p>
                   </div>
                   <CheckCircle2 className="text-success size-5" />
@@ -66,7 +70,9 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
                 <div className="flex items-center gap-3">
                   <MapPin className="size-5 text-muted-foreground" />
                   <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">{t('fields.employer_address')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('fields.employer_address')}
+                    </p>
                     <p className="font-medium">{profile.employerAddress || '-'}</p>
                   </div>
                   <CheckCircle2 className="text-success size-5" />
@@ -94,5 +100,5 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

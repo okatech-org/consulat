@@ -1,22 +1,22 @@
-'use client'
+'use client';
 
-import { Organization } from '@/types/organization'
-import { useTranslations } from 'next-intl'
-import { ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
-import { OrganizationActions } from './organization-actions'
-import { DataTable } from '@/components/data-table/data-table'
-import { Country } from '@/types/country'
-import { OrganizationStatus, OrganizationType } from '@prisma/client'
+import { Organization } from '@/types/organization';
+import { useTranslations } from 'next-intl';
+import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import { OrganizationActions } from './organization-actions';
+import { DataTable } from '@/components/data-table/data-table';
+import { Country } from '@/types/country';
+import { OrganizationStatus, OrganizationType } from '@prisma/client';
 
 export function OrganizationsTable({
-                                     organizations,
-  countries
-                                   }: {
-  organizations: Organization[],
-  countries: Country[]
+  organizations,
+  countries,
+}: {
+  organizations: Organization[];
+  countries: Country[];
 }) {
-  const t = useTranslations('superadmin.organizations')
+  const t = useTranslations('superadmin.organizations');
 
   const columns: ColumnDef<Organization>[] = [
     {
@@ -32,21 +32,26 @@ export function OrganizationsTable({
     {
       accessorKey: 'countries',
       header: t('table.country'),
-      cell: ({ row }) => row.original.countries.map((country) => (
-        <Badge className={"mr-1"} key={country.code} variant="info">
-          {country.name}
-        </Badge>
-      )),
+      cell: ({ row }) =>
+        row.original.countries.map((country) => (
+          <Badge className={'mr-1'} key={country.code} variant="info">
+            {country.name}
+          </Badge>
+        )),
     },
     {
       accessorKey: 'status',
       header: t('table.status'),
       cell: ({ row }) => (
-        <Badge variant={
-          row.original.status === 'ACTIVE' ? 'success' :
-            row.original.status === 'INACTIVE' ? 'outline' :
-              'destructive'
-        }>
+        <Badge
+          variant={
+            row.original.status === 'ACTIVE'
+              ? 'success'
+              : row.original.status === 'INACTIVE'
+                ? 'outline'
+                : 'destructive'
+          }
+        >
           {t(`status.${row.original.status}`)}
         </Badge>
       ),
@@ -60,7 +65,7 @@ export function OrganizationsTable({
       id: 'actions',
       cell: ({ row }) => <OrganizationActions organization={row.original} />,
     },
-  ]
+  ];
 
   return (
     <DataTable
@@ -101,5 +106,5 @@ export function OrganizationsTable({
       columns={columns}
       data={organizations}
     />
-  )
+  );
 }

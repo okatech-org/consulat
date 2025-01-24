@@ -137,7 +137,7 @@ html {
     }
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -154,7 +154,8 @@ html {
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   20% {
@@ -198,7 +199,7 @@ html {
   background-color: hsl(var(--popover));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .hover-card-content p {
@@ -217,8 +218,12 @@ html {
 
 /* Animation pour les icônes de validation */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .validation-icon {
@@ -276,7 +281,8 @@ html {
 
 /* Animation de chargement */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -369,7 +375,9 @@ html {
 .card-flip-enter-active {
   opacity: 1;
   transform: rotateY(0);
-  transition: opacity 300ms, transform 300ms;
+  transition:
+    opacity 300ms,
+    transform 300ms;
 }
 
 .card-flip-exit {
@@ -380,7 +388,9 @@ html {
 .card-flip-exit-active {
   opacity: 0;
   transform: rotateY(180deg);
-  transition: opacity 300ms, transform 300ms;
+  transition:
+    opacity 300ms,
+    transform 300ms;
 }
 
 .card-container {
@@ -406,5 +416,5 @@ html {
 }
 
 .bg-sidebar {
-  @apply bg-background
+  @apply bg-background;
 }

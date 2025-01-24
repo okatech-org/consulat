@@ -1,449 +1,503 @@
-import { PrismaClient, UserRole, OrganizationType, ServiceCategory, DocumentType, OrganizationStatus } from '@prisma/client'
-const prisma = new PrismaClient()
+import {
+  PrismaClient,
+  UserRole,
+  OrganizationType,
+  ServiceCategory,
+  DocumentType,
+  OrganizationStatus,
+} from '@prisma/client';
+const prisma = new PrismaClient();
 
 async function main() {
   try {
-    console.log('🌱 Starting seed...')
+    console.log('🌱 Starting seed...');
 
     // Nettoyer la base de données
-    await prisma.timeSlot.deleteMany()
-    await prisma.consulateSchedule.deleteMany()
-    await prisma.consularService.deleteMany()
-    await prisma.organization.deleteMany()
-    await prisma.country.deleteMany()
-    await prisma.user.deleteMany()
+    await prisma.timeSlot.deleteMany();
+    await prisma.consulateSchedule.deleteMany();
+    await prisma.consularService.deleteMany();
+    await prisma.organization.deleteMany();
+    await prisma.country.deleteMany();
+    await prisma.user.deleteMany();
 
     // Créer les pays
-    console.log('Creating countries...')
+    console.log('Creating countries...');
     const countries = await Promise.all([
       prisma.country.create({
         data: {
-          name: "France",
-          code: "FR",
-          flag: "https://flagcdn.com/fr.svg",
-          status: "ACTIVE",
+          name: 'France',
+          code: 'FR',
+          flag: 'https://flagcdn.com/fr.svg',
+          status: 'ACTIVE',
           // Ajout metadata pour la France
           metadata: JSON.stringify({
-            currency: { code: "EUR", symbol: "€", format: "#,##0.00", symbolPosition: "after" },
-            language: { defaultLocale: "fr", locales: ["fr", "en", "es"] },
-            dateFormat: "DD/MM/YYYY",
-            timeFormat: "24h",
-            timeZone: "Europe/Paris",
+            currency: {
+              code: 'EUR',
+              symbol: '€',
+              format: '#,##0.00',
+              symbolPosition: 'after',
+            },
+            language: { defaultLocale: 'fr', locales: ['fr', 'en', 'es'] },
+            dateFormat: 'DD/MM/YYYY',
+            timeFormat: '24h',
+            timeZone: 'Europe/Paris',
           }),
         },
       }),
       prisma.country.create({
         data: {
-          name: "Belgique",
-          code: "BE",
-          flag: "https://flagcdn.com/be.svg",
-          status: "ACTIVE",
+          name: 'Belgique',
+          code: 'BE',
+          flag: 'https://flagcdn.com/be.svg',
+          status: 'ACTIVE',
           // Ajout metadata pour la Belgique
           metadata: JSON.stringify({
-            currency: { code: "EUR", symbol: "€", format: "#,##0.00", symbolPosition: "after" },
-            language: { defaultLocale: "fr", locales: ["fr", "en", "nl"] },
-            dateFormat: "DD/MM/YYYY",
-            timeFormat: "24h",
-            timeZone: "Europe/Brussels",
-          },)
+            currency: {
+              code: 'EUR',
+              symbol: '€',
+              format: '#,##0.00',
+              symbolPosition: 'after',
+            },
+            language: { defaultLocale: 'fr', locales: ['fr', 'en', 'nl'] },
+            dateFormat: 'DD/MM/YYYY',
+            timeFormat: '24h',
+            timeZone: 'Europe/Brussels',
+          }),
         },
       }),
       prisma.country.create({
         data: {
-          name: "Suisse",
-          code: "CH",
-          flag: "https://flagcdn.com/ch.svg",
-          status: "ACTIVE",
+          name: 'Suisse',
+          code: 'CH',
+          flag: 'https://flagcdn.com/ch.svg',
+          status: 'ACTIVE',
           // Ajout metadata pour la Suisse (exemple)
           metadata: JSON.stringify({
-            currency: { code: "CHF", symbol: "CHF", format: "#,##0.00", symbolPosition: "before" },
-            language: { defaultLocale: "fr", locales: ["fr", "de", "it", "rm"] },
-            dateFormat: "DD.MM.YYYY",
-            timeFormat: "24h",
-            timeZone: "Europe/Zurich",
+            currency: {
+              code: 'CHF',
+              symbol: 'CHF',
+              format: '#,##0.00',
+              symbolPosition: 'before',
+            },
+            language: { defaultLocale: 'fr', locales: ['fr', 'de', 'it', 'rm'] },
+            dateFormat: 'DD.MM.YYYY',
+            timeFormat: '24h',
+            timeZone: 'Europe/Zurich',
           }),
         },
       }),
       prisma.country.create({
         data: {
-          name: "Canada",
-          code: "CA",
-          flag: "https://flagcdn.com/ca.svg",
-          status: "ACTIVE",
+          name: 'Canada',
+          code: 'CA',
+          flag: 'https://flagcdn.com/ca.svg',
+          status: 'ACTIVE',
           // Ajout metadata pour le Canada (exemple)
           metadata: JSON.stringify({
-            currency: { code: "CAD", symbol: "$", format: "#,##0.00", symbolPosition: "before" },
-            language: { defaultLocale: "en", locales: ["en", "fr"] },
-            dateFormat: "YYYY-MM-DD",
-            timeFormat: "12h",
-            timeZone: "America/Toronto",
+            currency: {
+              code: 'CAD',
+              symbol: '$',
+              format: '#,##0.00',
+              symbolPosition: 'before',
+            },
+            language: { defaultLocale: 'en', locales: ['en', 'fr'] },
+            dateFormat: 'YYYY-MM-DD',
+            timeFormat: '12h',
+            timeZone: 'America/Toronto',
           }),
         },
       }),
       prisma.country.create({
         data: {
-          name: "États-Unis",
-          code: "US",
-          flag: "https://flagcdn.com/us.svg",
-          status: "ACTIVE",
+          name: 'États-Unis',
+          code: 'US',
+          flag: 'https://flagcdn.com/us.svg',
+          status: 'ACTIVE',
           // Ajout metadata pour les États-Unis (exemple)
           metadata: JSON.stringify({
-            currency: { code: "USD", symbol: "$", format: "#,##0.00", symbolPosition: "before" },
-            language: { defaultLocale: "en", locales: ["en", "es"] },
-            dateFormat: "MM/DD/YYYY",
-            timeFormat: "12h",
-            timeZone: "America/New_York",
+            currency: {
+              code: 'USD',
+              symbol: '$',
+              format: '#,##0.00',
+              symbolPosition: 'before',
+            },
+            language: { defaultLocale: 'en', locales: ['en', 'es'] },
+            dateFormat: 'MM/DD/YYYY',
+            timeFormat: '12h',
+            timeZone: 'America/New_York',
           }),
         },
       }),
-    ])
+    ]);
 
     // Créer les organisations
-    console.log('Creating organizations...')
+    console.log('Creating organizations...');
     const organizations = await Promise.all([
       prisma.organization.create({
         data: {
-          name: "Ambassade du Gabon en France",
+          name: 'Ambassade du Gabon en France',
           type: OrganizationType.EMBASSY,
           status: OrganizationStatus.ACTIVE,
           countries: { connect: [{ id: countries[0].id }] },
           metadata: {
             FR: {
               settings: {
-                logo: "https://example.com/logo-france.png",
+                logo: 'https://example.com/logo-france.png',
                 contact: {
-                  address: { firstLine: "26 Rue de la Faisanderie", city: "Paris", zipCode: "75116", country: "france" },
-                  phone: "+33145630787",
-                  email: "contact@ambagabon-fr.org",
-                  website: "https://ambagabon-fr.org"
+                  address: {
+                    firstLine: '26 Rue de la Faisanderie',
+                    city: 'Paris',
+                    zipCode: '75116',
+                    country: 'france',
+                  },
+                  phone: '+33145630787',
+                  email: 'contact@ambagabon-fr.org',
+                  website: 'https://ambagabon-fr.org',
                 },
                 schedule: {
-                  monday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  tuesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  wednesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  thursday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  friday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  monday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  friday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                   saturday: { isOpen: false },
-                  sunday: { isOpen: false }
+                  sunday: { isOpen: false },
                 },
                 holidays: [
-                  { date: "2024-01-01", name: "Jour de l'An" },
-                  { date: "2024-04-01", name: "Lundi de Pâques" },
-                  { date: "2024-05-01", name: "Fête du Travail" },
-                  { date: "2024-05-08", name: "Victoire 1945" },
-                  { date: "2024-08-17", name: "Fête Nationale du Gabon" }
+                  { date: '2024-01-01', name: "Jour de l'An" },
+                  { date: '2024-04-01', name: 'Lundi de Pâques' },
+                  { date: '2024-05-01', name: 'Fête du Travail' },
+                  { date: '2024-05-08', name: 'Victoire 1945' },
+                  { date: '2024-08-17', name: 'Fête Nationale du Gabon' },
                 ],
                 closures: [
-                  { start: "2024-08-01", end: "2024-08-15", reason: "Fermeture annuelle d'été" }
-                ]
-              }
-            }
-          }
-        }
+                  {
+                    start: '2024-08-01',
+                    end: '2024-08-15',
+                    reason: "Fermeture annuelle d'été",
+                  },
+                ],
+              },
+            },
+          },
+        },
       }),
       prisma.organization.create({
         data: {
-          name: "Consulat Général du Gabon à Marseille",
+          name: 'Consulat Général du Gabon à Marseille',
           type: OrganizationType.GENERAL_CONSULATE,
           status: OrganizationStatus.ACTIVE,
           countries: { connect: [{ id: countries[0].id }] },
           metadata: {
             FR: {
               settings: {
-                logo: "https://example.com/logo-marseille.png",
+                logo: 'https://example.com/logo-marseille.png',
                 contact: {
-                  address: { firstLine: "17 Cours Pierre Puget", city: "Marseille", zipCode: "13006", country: "france" },
-                  phone: "+33491140290",
-                  email: "contact@consulatgabon-marseille.org",
-                  website: "https://consulatgabon-marseille.org"
+                  address: {
+                    firstLine: '17 Cours Pierre Puget',
+                    city: 'Marseille',
+                    zipCode: '13006',
+                    country: 'france',
+                  },
+                  phone: '+33491140290',
+                  email: 'contact@consulatgabon-marseille.org',
+                  website: 'https://consulatgabon-marseille.org',
                 },
                 schedule: {
-                  monday: { open: "09:00", close: "16:30", isOpen: true },
-                  tuesday: { open: "09:00", close: "16:30", isOpen: true },
-                  wednesday: { open: "09:00", close: "16:30", isOpen: true },
-                  thursday: { open: "09:00", close: "16:30", isOpen: true },
-                  friday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
+                  monday: { open: '09:00', close: '16:30', isOpen: true },
+                  tuesday: { open: '09:00', close: '16:30', isOpen: true },
+                  wednesday: { open: '09:00', close: '16:30', isOpen: true },
+                  thursday: { open: '09:00', close: '16:30', isOpen: true },
+                  friday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                   saturday: { isOpen: false },
-                  sunday: { isOpen: false }
+                  sunday: { isOpen: false },
                 },
                 holidays: [
-                  { date: "2024-01-01", name: "Jour de l'An" },
-                  { date: "2024-04-01", name: "Lundi de Pâques" },
-                  { date: "2024-05-01", name: "Fête du Travail" },
-                  { date: "2024-05-08", name: "Victoire 1945" },
-                  { date: "2024-08-17", name: "Fête Nationale du Gabon" }
+                  { date: '2024-01-01', name: "Jour de l'An" },
+                  { date: '2024-04-01', name: 'Lundi de Pâques' },
+                  { date: '2024-05-01', name: 'Fête du Travail' },
+                  { date: '2024-05-08', name: 'Victoire 1945' },
+                  { date: '2024-08-17', name: 'Fête Nationale du Gabon' },
                 ],
                 closures: [
-                  { start: "2024-08-01", end: "2024-08-15", reason: "Fermeture annuelle d'été" }
-                ]
-              }
-            }
-          }
-        }
+                  {
+                    start: '2024-08-01',
+                    end: '2024-08-15',
+                    reason: "Fermeture annuelle d'été",
+                  },
+                ],
+              },
+            },
+          },
+        },
       }),
       prisma.organization.create({
         data: {
-          name: "Consulat du Gabon en Belgique",
+          name: 'Consulat du Gabon en Belgique',
           type: OrganizationType.CONSULATE,
           status: OrganizationStatus.INACTIVE,
           countries: { connect: [{ id: countries[1].id }] },
           metadata: {
             BE: {
               settings: {
-                logo: "https://example.com/logo-belgique.png",
+                logo: 'https://example.com/logo-belgique.png',
                 contact: {
-                  address: { firstLine: "Avenue Franklin Roosevelt 196", city: "Bruxelles", zipCode: "1050", country: "belgique" },
-                  phone: "+3226405000",
-                  email: "contact@consulatgabon-be.org",
-                  website: "https://consulatgabon-be.org"
+                  address: {
+                    firstLine: 'Avenue Franklin Roosevelt 196',
+                    city: 'Bruxelles',
+                    zipCode: '1050',
+                    country: 'belgique',
+                  },
+                  phone: '+3226405000',
+                  email: 'contact@consulatgabon-be.org',
+                  website: 'https://consulatgabon-be.org',
                 },
                 schedule: {
-                  monday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  tuesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  wednesday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  thursday: { isOpen: true, slots: [{ start: "09:00", end: "17:00" }] },
-                  friday: { open: "09:00", close: "15:30", isOpen: true },
+                  monday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  friday: { open: '09:00', close: '15:30', isOpen: true },
                   saturday: { isOpen: false },
-                  sunday: { isOpen: false }
+                  sunday: { isOpen: false },
                 },
                 holidays: [
-                  { date: "2024-01-01", name: "Jour de l'An" },
-                  { date: "2024-04-01", name: "Lundi de Pâques" },
-                  { date: "2024-05-01", name: "Fête du Travail" },
-                  { date: "2024-07-21", name: "Fête Nationale Belge" },
-                  { date: "2024-08-17", name: "Fête Nationale du Gabon" }
+                  { date: '2024-01-01', name: "Jour de l'An" },
+                  { date: '2024-04-01', name: 'Lundi de Pâques' },
+                  { date: '2024-05-01', name: 'Fête du Travail' },
+                  { date: '2024-07-21', name: 'Fête Nationale Belge' },
+                  { date: '2024-08-17', name: 'Fête Nationale du Gabon' },
                 ],
                 closures: [
-                  { start: "2024-07-22", end: "2024-08-15", reason: "Fermeture annuelle d'été" }
-                ]
-              }
-            }
-          }
-        }
+                  {
+                    start: '2024-07-22',
+                    end: '2024-08-15',
+                    reason: "Fermeture annuelle d'été",
+                  },
+                ],
+              },
+            },
+          },
+        },
       }),
-    ])
+    ]);
 
-    console.log('Creating consular services...')
+    console.log('Creating consular services...');
     await Promise.all([
       // Service 1: Demande de passeport
       prisma.consularService.create({
         data: {
-          name: "Demande de passeport",
-          description: "Service de demande et de renouvellement de passeport pour les ressortissants gabonais",
+          name: 'Demande de passeport',
+          description:
+            'Service de demande et de renouvellement de passeport pour les ressortissants gabonais',
           category: ServiceCategory.IDENTITY,
           isActive: true,
           requiredDocuments: [
             DocumentType.IDENTITY_PHOTO,
             DocumentType.BIRTH_CERTIFICATE,
             DocumentType.PROOF_OF_ADDRESS,
-            DocumentType.NATIONALITY_CERTIFICATE
+            DocumentType.NATIONALITY_CERTIFICATE,
           ],
-          optionalDocuments: [
-            DocumentType.RESIDENCE_PERMIT
-          ],
+          optionalDocuments: [DocumentType.RESIDENCE_PERMIT],
           requiresAppointment: true,
           appointmentDuration: 30,
           price: 50000,
-          currency: "EUR",
-          organization: { connect: { id: organizations[0].id } }
-        }
+          currency: 'EUR',
+          organization: { connect: { id: organizations[0].id } },
+        },
       }),
 
       // Service 2: Inscription consulaire
       prisma.consularService.create({
         data: {
-          name: "Inscription consulaire",
-          description: "Enregistrement auprès du consulat pour les Gabonais résidant à l'étranger",
+          name: 'Inscription consulaire',
+          description:
+            "Enregistrement auprès du consulat pour les Gabonais résidant à l'étranger",
           category: ServiceCategory.REGISTRATION,
           isActive: true,
           requiredDocuments: [
             DocumentType.PASSPORT,
             DocumentType.PROOF_OF_ADDRESS,
-            DocumentType.RESIDENCE_PERMIT
+            DocumentType.RESIDENCE_PERMIT,
           ],
           requiresAppointment: false,
           price: 0,
-          organization: { connect: { id: organizations[1].id } }
-        }
+          organization: { connect: { id: organizations[1].id } },
+        },
       }),
 
       // Service 3: Transcription d'acte de naissance
       prisma.consularService.create({
         data: {
           name: "Transcription d'acte de naissance",
-          description: "Transcription d'un acte de naissance étranger dans les registres consulaires",
+          description:
+            "Transcription d'un acte de naissance étranger dans les registres consulaires",
           category: ServiceCategory.CIVIL_STATUS,
           organization: { connect: { id: organizations[2].id } },
           isActive: true,
           requiredDocuments: [
             DocumentType.BIRTH_CERTIFICATE,
             DocumentType.PASSPORT,
-            DocumentType.PROOF_OF_ADDRESS
+            DocumentType.PROOF_OF_ADDRESS,
           ],
-          optionalDocuments: [
-            DocumentType.MARRIAGE_CERTIFICATE
-          ],
+          optionalDocuments: [DocumentType.MARRIAGE_CERTIFICATE],
           requiresAppointment: true,
           appointmentDuration: 45,
           price: 25000,
-          currency: "EUR",
-        }
+          currency: 'EUR',
+        },
       }),
 
       // Service 4: Légalisation de documents
       prisma.consularService.create({
         data: {
-          name: "Légalisation de documents",
-          description: "Service de légalisation et d'authentification de documents officiels",
+          name: 'Légalisation de documents',
+          description:
+            "Service de légalisation et d'authentification de documents officiels",
           category: ServiceCategory.CERTIFICATION,
           organization: { connect: { id: organizations[0].id } },
           isActive: true,
-          requiredDocuments: [
-            DocumentType.IDENTITY_CARD,
-            DocumentType.PROOF_OF_ADDRESS
-          ],
+          requiredDocuments: [DocumentType.IDENTITY_CARD, DocumentType.PROOF_OF_ADDRESS],
           requiresAppointment: false,
           price: 15000,
-          currency: "EUR"
-        }
-      })
-    ])
+          currency: 'EUR',
+        },
+      }),
+    ]);
 
     // Créer les utilisateurs
-    console.log('Creating users...')
+    console.log('Creating users...');
 
     // Super Admins
     const superAdmins = await Promise.all([
       prisma.user.create({
         data: {
-          email: "itoutouberny+sa@gmail.com",
-          name: "Super Admin 1",
+          email: 'itoutouberny+sa@gmail.com',
+          name: 'Super Admin 1',
           role: UserRole.SUPER_ADMIN,
           emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } }
-        }
+          country: { connect: { id: countries[0].id } },
+        },
       }),
       prisma.user.create({
         data: {
-          email: "iasted+sa@me.com",
-          name: "Super Admin 2",
+          email: 'iasted+sa@me.com',
+          name: 'Super Admin 2',
           role: UserRole.SUPER_ADMIN,
           emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } }
-        }
-      })
-    ])
+          country: { connect: { id: countries[0].id } },
+        },
+      }),
+    ]);
 
     // Managers
     const managers = await Promise.all([
       prisma.user.create({
         data: {
-          email: "itoutouberny+ma@gmail.com",
-          name: "Berny Itoutou",
+          email: 'itoutouberny+ma@gmail.com',
+          name: 'Berny Itoutou',
           role: UserRole.MANAGER,
           emailVerified: new Date(),
           country: { connect: { id: countries[0].id } },
-          managedOrganizations: { connect: { id: organizations[0].id } }
-        }
+          managedOrganizations: { connect: { id: organizations[0].id } },
+        },
       }),
       prisma.user.create({
         data: {
-          email: "iasted+ma@me.com",
-          name: "Asted Manager",
+          email: 'iasted+ma@me.com',
+          name: 'Asted Manager',
           role: UserRole.MANAGER,
           emailVerified: new Date(),
           country: { connect: { id: countries[0].id } },
-          managedOrganizations: { connect: { id: organizations[1].id } }
-        }
+          managedOrganizations: { connect: { id: organizations[1].id } },
+        },
       }),
       prisma.user.create({
         data: {
-          email: "iasted+sma@me.com",
-          name: "Asted Manager 2",
+          email: 'iasted+sma@me.com',
+          name: 'Asted Manager 2',
           role: UserRole.MANAGER,
           emailVerified: new Date(),
           country: { connect: { id: countries[0].id } },
-          managedOrganizations: { connect: { id: organizations[2].id } }
-        }
-      })
-    ])
+          managedOrganizations: { connect: { id: organizations[2].id } },
+        },
+      }),
+    ]);
 
     // Utilisateurs normaux
     const users = await Promise.all([
       prisma.user.create({
         data: {
-          email: "itoutouberny+us@gmail.com",
-          name: "Utilisateur Test 1",
+          email: 'itoutouberny+us@gmail.com',
+          name: 'Utilisateur Test 1',
           role: UserRole.USER,
           emailVerified: new Date(),
           country: { connect: { id: countries[0].id } },
           profile: {
             create: {
-              firstName: "Jean",
-              lastName: "Dupont",
-              gender: "MALE",
-              birthDate: "1990-01-01",
-              birthPlace: "Paris",
-              birthCountry: "france",
-              nationality: "gabon",
-              passportNumber: "GA123456",
-              passportIssueDate: new Date("2020-01-01"),
-              passportExpiryDate: new Date("2030-01-01"),
-              passportIssueAuthority: "Ambassade du Gabon",
-              status: "PENDING"
-            }
-          }
-        }
+              firstName: 'Jean',
+              lastName: 'Dupont',
+              gender: 'MALE',
+              birthDate: '1990-01-01',
+              birthPlace: 'Paris',
+              birthCountry: 'france',
+              nationality: 'gabon',
+              passportNumber: 'GA123456',
+              passportIssueDate: new Date('2020-01-01'),
+              passportExpiryDate: new Date('2030-01-01'),
+              passportIssueAuthority: 'Ambassade du Gabon',
+              status: 'PENDING',
+            },
+          },
+        },
       }),
       prisma.user.create({
         data: {
-          email: "iasted+us@me.com",
-          name: "Utilisateur Test 2",
+          email: 'iasted+us@me.com',
+          name: 'Utilisateur Test 2',
           role: UserRole.USER,
           emailVerified: new Date(),
           country: { connect: { id: countries[0].id } },
           profile: {
             create: {
-              firstName: "Marie",
-              lastName: "Martin",
-              gender: "FEMALE",
-              birthDate: "1992-05-15",
-              birthPlace: "Lyon",
-              birthCountry: "france",
-              nationality: "gabon",
-              passportNumber: "GA789012",
-              passportIssueDate: new Date("2021-01-01"),
-              passportExpiryDate: new Date("2031-01-01"),
-              passportIssueAuthority: "Ambassade du Gabon",
-              status: "PENDING"
-            }
-          }
-        }
-      })
-    ])
+              firstName: 'Marie',
+              lastName: 'Martin',
+              gender: 'FEMALE',
+              birthDate: '1992-05-15',
+              birthPlace: 'Lyon',
+              birthCountry: 'france',
+              nationality: 'gabon',
+              passportNumber: 'GA789012',
+              passportIssueDate: new Date('2021-01-01'),
+              passportExpiryDate: new Date('2031-01-01'),
+              passportIssueAuthority: 'Ambassade du Gabon',
+              status: 'PENDING',
+            },
+          },
+        },
+      }),
+    ]);
 
-    console.log('✅ Seed completed successfully!')
+    console.log('✅ Seed completed successfully!');
     console.log({
       countriesCount: countries.length,
       organizationsCount: organizations.length,
       servicesPerOrg: 2,
       users: {
-        superAdmins: superAdmins.map(admin => admin.email),
-        managers: managers.map(manager => manager.email),
-        users: users.map(user => user.email)
-      }
-    })
-
+        superAdmins: superAdmins.map((admin) => admin.email),
+        managers: managers.map((manager) => manager.email),
+        users: users.map((user) => user.email),
+      },
+    });
   } catch (error) {
-    console.error('❌ Error during seed:', error)
-    throw error
+    console.error('❌ Error during seed:', error);
+    throw error;
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-main()
-  .catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

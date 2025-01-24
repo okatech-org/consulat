@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -20,25 +20,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { LoginSchema, type LoginInput } from '@/schemas/user'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { signIn } from 'next-auth/react'
-import { sendOTP } from '@/actions/auth'
-import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
-import { PhoneInput, type PhoneValue } from '@/components/ui/phone-input'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LoginSchema, type LoginInput } from '@/schemas/user';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { sendOTP } from '@/actions/auth';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { PhoneInput, type PhoneValue } from '@/components/ui/phone-input';
 
 export function LoginForm() {
-  const t = useTranslations('auth.login')
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [showOTP, setShowOTP] = React.useState(false)
-  const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('EMAIL')
+  const t = useTranslations('auth.login');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [showOTP, setShowOTP] = React.useState(false);
+  const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('EMAIL');
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
@@ -47,24 +47,24 @@ export function LoginForm() {
       type: 'EMAIL',
       otp: '',
     },
-  })
+  });
 
   const onSubmit = async (data: LoginInput) => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
       if (!showOTP) {
         // Envoyer l'OTP
-        const result = await sendOTP(data.identifier, data.type)
+        const result = await sendOTP(data.identifier, data.type);
         if (result.error) {
-          throw new Error(result.error)
+          throw new Error(result.error);
         }
-        setShowOTP(true)
+        setShowOTP(true);
         toast({
           title: t('messages.otp_sent'),
           variant: 'success',
-        })
-        return
+        });
+        return;
       }
 
       // Connexion avec l'OTP
@@ -73,46 +73,45 @@ export function LoginForm() {
         type: data.type,
         otp: data.otp,
         redirect: false,
-      })
+      });
 
       if (signInResult?.error) {
-        throw new Error(signInResult.error)
+        throw new Error(signInResult.error);
       }
 
       // Redirection après connexion réussie
-      const callbackUrl = searchParams.get('callbackUrl')
+      const callbackUrl = searchParams.get('callbackUrl');
       // eslint-disable-next-line
-      router.push(callbackUrl || '/dashboard' as any)
-      router.refresh()
-
+      router.push(callbackUrl || ('/dashboard' as any));
+      router.refresh();
     } catch (error) {
-      console.error(error)
+      console.error(error);
       toast({
         title: t('messages.something_went_wrong'),
         description: error instanceof Error ? error.message : t('messages.unknown_error'),
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Gérer le changement de méthode
   const handleMethodChange = (value: string) => {
-    setMethod(value as 'EMAIL' | 'PHONE')
-    setShowOTP(false)
+    setMethod(value as 'EMAIL' | 'PHONE');
+    setShowOTP(false);
     form.reset({
       identifier: '',
       type: value as 'EMAIL' | 'PHONE',
       otp: '',
-    })
-  }
+    });
+  };
 
   // Gérer le changement de téléphone
   const handlePhoneChange = (phone: PhoneValue) => {
-    const fullNumber = phone.countryCode + phone.number
-    form.setValue('identifier', fullNumber)
-  }
+    const fullNumber = phone.countryCode + phone.number;
+    form.setValue('identifier', fullNumber);
+  };
 
   return (
     <Card className="w-full">
@@ -211,5 +210,5 @@ export function LoginForm() {
         </form>
       </Form>
     </Card>
-  )
+  );
 }

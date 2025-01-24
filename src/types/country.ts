@@ -1,18 +1,17 @@
 export interface Country {
-  id: string
-  name: string
-  code: string
-  status: 'ACTIVE' | 'INACTIVE'
-  flag?: string | null
-  metadata: CountryMetadata | null
+  id: string;
+  name: string;
+  code: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  flag?: string | null;
+  metadata: CountryMetadata | null;
   _count?: {
-    organizations: number
-    users: number
-  }
-  createdAt: Date
-  updatedAt: Date
+    organizations: number;
+    users: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
-
 
 export interface CountryMetadata {
   currency?: {
@@ -36,13 +35,13 @@ export interface CountryMetadata {
 }
 
 export interface CreateCountryInput {
-  id?: string
-  name: string
-  code: string
-  status?: 'ACTIVE' | 'INACTIVE'
-  flag?: string
+  id?: string;
+  name: string;
+  code: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+  flag?: string;
 }
 
 export interface UpdateCountryInput extends Partial<CreateCountryInput> {
-  id: string
+  id: string;
 }

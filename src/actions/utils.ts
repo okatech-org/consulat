@@ -1,12 +1,12 @@
-"use server";
+'use server';
 
-import { UTApi } from "uploadthing/server";
+import { UTApi } from 'uploadthing/server';
 
 const utapi = new UTApi();
 
 export async function processFileData(
   formData: FormData | undefined,
-  existingKey?: string
+  existingKey?: string,
 ) {
   if (!formData) return null;
 
@@ -33,21 +33,16 @@ export async function processFileData(
 
     return {
       key: response.data.key,
-      url: response.data.url
+      url: response.data.url,
     };
-
   } catch (error) {
     console.error('File processing error:', error);
-    throw new Error(
-      error instanceof Error ? error.message : 'Error uploading file'
-    );
+    throw new Error(error instanceof Error ? error.message : 'Error uploading file');
   }
 }
 
 // Fonction pour uploader plusieurs fichiers
-export async function uploadFiles(
-  fd: FormData,
-) {
+export async function uploadFiles(fd: FormData) {
   try {
     const files = fd.getAll('files') as File[];
     if (!files || files.length === 0) {
@@ -58,7 +53,7 @@ export async function uploadFiles(
       files.map(async (file) => {
         const response = await utapi.uploadFiles(file);
         return response?.data;
-      })
+      }),
     );
 
     return uploadedFiles.filter(Boolean);
@@ -69,11 +64,9 @@ export async function uploadFiles(
 }
 
 // Fonction pour supprimer des fichiers
-export async function deleteFiles(
-  keys: string[],
-) {
+export async function deleteFiles(keys: string[]) {
   try {
-    await Promise.all(keys.map(key => utapi.deleteFiles(key)));
+    await Promise.all(keys.map((key) => utapi.deleteFiles(key)));
   } catch (error) {
     throw new Error('Error deleting files');
   }

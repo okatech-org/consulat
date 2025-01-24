@@ -1,13 +1,13 @@
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 type DynamicTagsProps = {
-  items: Tag[]
-}
+  items: Tag[];
+};
 
 export type Tag = {
-  value: string
-}
+  value: string;
+};
 export function DynamicTags({ items }: Readonly<DynamicTagsProps>) {
   return (
     <div>
@@ -18,10 +18,7 @@ export function DynamicTags({ items }: Readonly<DynamicTagsProps>) {
         >
           Vos compétences clés
         </label>
-        <p
-          id=":r2l:-form-item-description"
-          className="text-sm text-muted-foreground"
-        >
+        <p id=":r2l:-form-item-description" className="text-sm text-muted-foreground">
           Ajoutez vos compétences clés pour être plus facilement repéré par les
           recruteurs.
         </p>
@@ -34,5 +31,5 @@ export function DynamicTags({ items }: Readonly<DynamicTagsProps>) {
         </Badge>
       ))}
     </div>
-  )
+  );
 }

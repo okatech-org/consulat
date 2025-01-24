@@ -1,29 +1,29 @@
-'use client'
+'use client';
 
-import { useRegistrationForm } from '@/hooks/use-registration-form'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { ROUTES } from '@/schemas/routes'
-import { FormNavigation } from './navigation'
-import { DocumentUploadSection } from './document-upload-section'
-import { BasicInfoForm } from './basic-info'
-import { FamilyInfoForm } from './family-info'
-import { ContactInfoForm } from './contact-form'
-import { ProfessionalInfoForm } from './professional-info'
-import { ReviewForm } from './review'
-import { StepIndicator } from './step-indicator'
-import { MobileProgress } from './mobile-progress'
-import { updateFormsFromAnalysis } from '@/lib/form/update-helpers'
-import { FormError, handleFormError } from '@/lib/form/errors'
-import { useToast } from '@/hooks/use-toast'
-import { Button } from '@/components/ui/button'
-import { postProfile } from '@/app/(authenticated)/user/_utils/profile'
-import { useState } from 'react'
+import { useRegistrationForm } from '@/hooks/use-registration-form';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { ROUTES } from '@/schemas/routes';
+import { FormNavigation } from './navigation';
+import { DocumentUploadSection } from './document-upload-section';
+import { BasicInfoForm } from './basic-info';
+import { FamilyInfoForm } from './family-info';
+import { ContactInfoForm } from './contact-form';
+import { ProfessionalInfoForm } from './professional-info';
+import { ReviewForm } from './review';
+import { StepIndicator } from './step-indicator';
+import { MobileProgress } from './mobile-progress';
+import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
+import { FormError, handleFormError } from '@/lib/form/errors';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { postProfile } from '@/app/(authenticated)/user/_utils/profile';
+import { useState } from 'react';
 
 export function RegistrationForm() {
-  const router = useRouter()
-  const t = useTranslations('registration')
-  const { toast } = useToast()
+  const router = useRouter();
+  const t = useTranslations('registration');
+  const { toast } = useToast();
 
   const {
     currentStep,
@@ -33,8 +33,8 @@ export function RegistrationForm() {
     setError,
     forms,
     handleDataChange,
-    clearData
-  } = useRegistrationForm()
+    clearData,
+  } = useRegistrationForm();
 
   const [steps, setSteps] = useState([
     {
@@ -74,13 +74,13 @@ export function RegistrationForm() {
       description: t('steps.review_description'),
       isComplete: false,
     },
-  ])
+  ]);
 
   // Gestionnaire d'analyse des components
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDocumentsAnalysis = async (data: any) => {
-    setIsLoading(true)
-    setError(undefined)
+    setIsLoading(true);
+    setError(undefined);
 
     try {
       const updateResult = updateFormsFromAnalysis(data, {
@@ -88,7 +88,7 @@ export function RegistrationForm() {
         contactInfo: forms.contactInfo,
         familyInfo: forms.familyInfo,
         professionalInfo: forms.professionalInfo,
-      })
+      });
 
       // Mettre à jour le stockage local
       handleDataChange({
@@ -96,103 +96,108 @@ export function RegistrationForm() {
         contactInfo: forms.contactInfo.getValues(),
         familyInfo: forms.familyInfo.getValues(),
         professionalInfo: forms.professionalInfo.getValues(),
-      })
+      });
 
       // Afficher le toast avec les sections mises à jour
       const updatedSections = Object.entries(updateResult)
         .filter(([, hasUpdates]) => hasUpdates)
-        .map(([key]) => t(`sections.${key.replace('has', '').toLowerCase()}`))
+        .map(([key]) => t(`sections.${key.replace('has', '').toLowerCase()}`));
 
       toast({
         title: t('components.analysis.success.title'),
         description: t('components.analysis.success.description_with_sections', {
           sections: updatedSections.join(', '),
         }),
-        variant: "success",
-        action: updatedSections.length > 0 ? (
-          <Button onClick={() => setCurrentStep(prev => prev + 1)} size="sm">
-            {t('components.analysis.success.action')}
-          </Button>
-        ) : undefined
-      })
-
+        variant: 'success',
+        action:
+          updatedSections.length > 0 ? (
+            <Button onClick={() => setCurrentStep((prev) => prev + 1)} size="sm">
+              {t('components.analysis.success.action')}
+            </Button>
+          ) : undefined,
+      });
     } catch (error) {
-      const { title, description } = handleFormError(error, t)
-      toast({ title, description, variant: "destructive" })
+      const { title, description } = handleFormError(error, t);
+      toast({ title, description, variant: 'destructive' });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Gestionnaire de navigation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNext = async (stepData: any) => {
     try {
-      handleDataChange(stepData)
+      handleDataChange(stepData);
 
       if (currentStep === steps.length - 1) {
-        await handleFinalSubmit()
-        return
+        await handleFinalSubmit();
+        return;
       }
 
-      setCurrentStep(prev => prev + 1)
-      setSteps(prev => prev.map((step, index) => ({
-        ...step,
-        isComplete: index <= currentStep,
-      })))
+      setCurrentStep((prev) => prev + 1);
+      setSteps((prev) =>
+        prev.map((step, index) => ({
+          ...step,
+          isComplete: index <= currentStep,
+        })),
+      );
     } catch (error) {
-      const { title, description } = handleFormError(error, t)
-      toast({ title, description, variant: "destructive" })
+      const { title, description } = handleFormError(error, t);
+      toast({ title, description, variant: 'destructive' });
     }
-  }
+  };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(0, prev - 1))
-  }
+    setCurrentStep((prev) => Math.max(0, prev - 1));
+  };
 
   // Soumission finale
   const handleFinalSubmit = async () => {
     try {
-      setIsLoading(true)
-      const formDataToSend = new FormData()
+      setIsLoading(true);
+      const formDataToSend = new FormData();
 
       // Ajouter les fichiers
       const documents = {
         ...forms.documents.getValues(),
         identityPictureFile: forms.basicInfo.getValues().identityPictureFile,
-      }
+      };
       Object.entries(documents).forEach(([key, file]) => {
-        if (file) formDataToSend.append(key, file as File)
-      })
+        if (file) formDataToSend.append(key, file as File);
+      });
 
       // Ajouter les données JSON des formulaires
-      formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()))
-      formDataToSend.append('contactInfo', JSON.stringify(forms.contactInfo.getValues()))
-      formDataToSend.append('familyInfo', JSON.stringify(forms.familyInfo.getValues()))
-      formDataToSend.append('professionalInfo', JSON.stringify(forms.professionalInfo.getValues()))
+      formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()));
+      formDataToSend.append('contactInfo', JSON.stringify(forms.contactInfo.getValues()));
+      formDataToSend.append('familyInfo', JSON.stringify(forms.familyInfo.getValues()));
+      formDataToSend.append(
+        'professionalInfo',
+        JSON.stringify(forms.professionalInfo.getValues()),
+      );
 
-      const result = await postProfile(formDataToSend)
+      const result = await postProfile(formDataToSend);
 
       if (result.error) {
-        throw new FormError(result.error)
+        throw new FormError(result.error);
       }
 
       // Nettoyer les données du formulaire
-      clearData()
+      clearData();
 
       toast({
         title: t('submission.success.title'),
         description: t('submission.success.description'),
-      })
+      });
 
-      router.push(ROUTES.profile)
+      router.push(ROUTES.profile);
     } catch (error) {
-      const { title, description } = handleFormError(error, t)
-      toast({ title, description, variant: "destructive" })
+      const { title, description } = handleFormError(error, t);
+      toast({ title, description, variant: 'destructive' });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Rendu du formulaire actuel
   const renderCurrentStep = () => {
@@ -205,7 +210,7 @@ export function RegistrationForm() {
             handleSubmit={() => handleNext(forms.documents.getValues())}
             isLoading={isLoading}
           />
-        )
+        );
       case 1:
         return (
           <BasicInfoForm
@@ -213,7 +218,7 @@ export function RegistrationForm() {
             onSubmit={() => handleNext(forms.basicInfo.getValues())}
             isLoading={isLoading}
           />
-        )
+        );
       case 2:
         return (
           <FamilyInfoForm
@@ -221,7 +226,7 @@ export function RegistrationForm() {
             onSubmit={() => handleNext(forms.familyInfo.getValues())}
             isLoading={isLoading}
           />
-        )
+        );
       case 3:
         return (
           <ContactInfoForm
@@ -229,7 +234,7 @@ export function RegistrationForm() {
             onSubmit={() => handleNext(forms.contactInfo.getValues())}
             isLoading={isLoading}
           />
-        )
+        );
       case 4:
         return (
           <ProfessionalInfoForm
@@ -237,7 +242,7 @@ export function RegistrationForm() {
             onSubmit={() => handleNext(forms.professionalInfo.getValues())}
             isLoading={isLoading}
           />
-        )
+        );
       case 5:
         return (
           <ReviewForm
@@ -250,23 +255,19 @@ export function RegistrationForm() {
             }}
             onEdit={setCurrentStep}
           />
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="mx-auto w-full max-w-3xl">
       {/* En-tête avec progression */}
       <div className="mb-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold md:text-3xl">
-            {t('header.title')}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {t('header.subtitle')}
-          </p>
+          <h1 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('header.subtitle')}</p>
         </div>
 
         <StepIndicator
@@ -299,5 +300,5 @@ export function RegistrationForm() {
         isOptional={steps[currentStep].isOptional}
       />
     </div>
-  )
+  );
 }

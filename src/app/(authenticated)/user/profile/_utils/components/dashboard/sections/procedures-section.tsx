@@ -1,19 +1,19 @@
-"use client"
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { ListChecks, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useTranslations } from 'next-intl';
+import { ListChecks, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ProceduresSectionProps {
-  stats: unknown
-  onAction: (action: string) => void
+  stats: unknown;
+  onAction: (action: string) => void;
 }
 
 export function ProceduresSection({ stats, onAction }: ProceduresSectionProps) {
-  const t = useTranslations('components.dashboard.sections.procedures')
+  const t = useTranslations('components.dashboard.sections.procedures');
 
-  if (!stats) return null
+  if (!stats) return null;
 
   return (
     <Card>
@@ -61,5 +61,5 @@ export function ProceduresSection({ stats, onAction }: ProceduresSectionProps) {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

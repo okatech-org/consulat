@@ -1,6 +1,6 @@
-'use server'
+'use server';
 
-import sharp from 'sharp'
+import sharp from 'sharp';
 
 interface ConvertAPIResponse {
   Files: Array<{
@@ -41,16 +41,19 @@ export async function pdfToImages(file: File): Promise<Buffer[]> {
     formData.append('ScaleProportions', 'true');
     formData.append('Timeout', '180'); // 3 minutes timeout
 
-    const response = await fetch(`https://eu-v2.convertapi.com/convert/pdf/to/jpg?auth=${apiKey}`, {
-      method: 'POST',
-      body: formData,
-    });
+    const response = await fetch(
+      `https://eu-v2.convertapi.com/convert/pdf/to/jpg?auth=${apiKey}`,
+      {
+        method: 'POST',
+        body: formData,
+      },
+    );
 
     if (!response.ok) {
       let errorMessage = `ConvertAPI request failed: ${response.statusText}`;
 
       try {
-        const errorBody = await response.json() as ConvertAPIError;
+        const errorBody = (await response.json()) as ConvertAPIError;
         if (errorBody.Message) {
           errorMessage += ` - ${errorBody.Message}`;
         }
@@ -61,7 +64,7 @@ export async function pdfToImages(file: File): Promise<Buffer[]> {
       throw new Error(errorMessage);
     }
 
-    const result = await response.json() as ConvertAPIResponse;
+    const result = (await response.json()) as ConvertAPIResponse;
 
     if (!result.Files || !Array.isArray(result.Files) || result.Files.length === 0) {
       throw new Error('No images were generated from the PDF');
@@ -73,7 +76,9 @@ export async function pdfToImages(file: File): Promise<Buffer[]> {
           const imageResponse = await fetch(file.Url);
 
           if (!imageResponse.ok) {
-            throw new Error(`Failed to fetch image ${index + 1}: ${imageResponse.statusText}`);
+            throw new Error(
+              `Failed to fetch image ${index + 1}: ${imageResponse.statusText}`,
+            );
           }
 
           const imageBuffer = await imageResponse.arrayBuffer();
@@ -82,12 +87,12 @@ export async function pdfToImages(file: File): Promise<Buffer[]> {
             .resize(1024, 1024, {
               fit: 'inside',
               withoutEnlargement: true,
-              position: 'center'
+              position: 'center',
             })
             .jpeg({
               quality: 80,
               progressive: true,
-              force: false // Don't force JPEG if input is PNG
+              force: false, // Don't force JPEG if input is PNG
             })
             .toBuffer();
           // eslint-disable-next-line
@@ -95,7 +100,7 @@ export async function pdfToImages(file: File): Promise<Buffer[]> {
           console.error(`Error processing image ${index + 1}:`, error);
           throw new Error(`Failed to process image ${index + 1}: ${error.message}`);
         }
-      })
+      }),
     );
 
     return images;

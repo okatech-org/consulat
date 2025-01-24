@@ -1,28 +1,32 @@
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslations } from 'next-intl'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   ServiceCategory,
   DocumentType,
   ProcessingMode,
   DeliveryMode,
-  ServiceStepType
-} from '@prisma/client'
-import { Organization } from '@/types/organization'
-import { Switch } from '@/components/ui/switch'
-import { Loader2, Plus, ArrowUp, Trash } from 'lucide-react'
-import { ConsularServiceItem, ServiceStep, UpdateServiceInput } from '@/types/consular-service'
-import { MultiSelect } from '@/components/ui/multi-select'
-import { useState } from 'react'
-import { updateService } from '@/app/(authenticated)/superadmin/_utils/actions/services'
-import { useToast } from '@/hooks/use-toast'
-import { useRouter } from 'next/navigation'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+  ServiceStepType,
+} from '@prisma/client';
+import { Organization } from '@/types/organization';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, Plus, ArrowUp, Trash } from 'lucide-react';
+import {
+  ConsularServiceItem,
+  ServiceStep,
+  UpdateServiceInput,
+} from '@/types/consular-service';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { useState } from 'react';
+import { updateService } from '@/app/(authenticated)/superadmin/_utils/actions/services';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Form,
   FormControl,
@@ -31,25 +35,31 @@ import {
   FormItem,
   FormLabel,
   TradFormMessage,
-} from '@/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DynamicFieldsEditor } from '@/app/(authenticated)/superadmin/_utils/components/dynamic-fields-editor'
-import { profileFields } from '@/types/profile'
-import { Separator } from '@/components/ui/separator'
-import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service'
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DynamicFieldsEditor } from '@/app/(authenticated)/superadmin/_utils/components/dynamic-fields-editor';
+import { profileFields } from '@/types/profile';
+import { Separator } from '@/components/ui/separator';
+import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
 
 interface ServiceFormProps {
-  organizations: Organization[]
-  service: ConsularServiceItem
+  organizations: Organization[];
+  service: ConsularServiceItem;
 }
 
 export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
-  const t = useTranslations('superadmin.services')
-  const t_inputs = useTranslations('inputs')
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
+  const t = useTranslations('superadmin.services');
+  const t_inputs = useTranslations('inputs');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<typeof ServiceSchema>({
     resolver: zodResolver(ServiceSchema),
@@ -74,46 +84,49 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
       price: service.price || 0,
       currency: service.currency || 'EUR',
       steps: service.steps,
-    }
-  })
+    },
+  });
 
   const handleSubmit = async (data: ServiceSchemaInput) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const editedKeys = ["id", ...Object.keys(form.formState.dirtyFields)]
+      const editedKeys = ['id', ...Object.keys(form.formState.dirtyFields)];
 
       Object.entries(data).forEach(([key]) => {
         if (!editedKeys.includes(key)) {
-          delete data[key as keyof UpdateServiceInput]
+          delete data[key as keyof UpdateServiceInput];
         }
-      })
+      });
 
-      const result = await updateService(data)
+      const result = await updateService(data);
       if (result.error) {
-        throw new Error(result.error)
+        throw new Error(result.error);
       }
       toast({
         title: t('messages.updateSuccess'),
         variant: 'success',
-      })
-      router.refresh()
+      });
+      router.refresh();
     } catch (error) {
       toast({
         title: t('messages.error.update'),
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const serviceSteps: ServiceStep[] = form.watch('steps')
+  const serviceSteps: ServiceStep[] = form.watch('steps');
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className={"flex h-full flex-col space-y-4"}>
-        <Tabs defaultValue="general" className={"grow"}>
-          <TabsList className={"mb-4"}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className={'flex h-full flex-col space-y-4'}
+      >
+        <Tabs defaultValue="general" className={'grow'}>
+          <TabsList className={'mb-4'}>
             <TabsTrigger value="general">{t('tabs.general')}</TabsTrigger>
             <TabsTrigger value="documents">{t('tabs.documents')}</TabsTrigger>
             <TabsTrigger value="delivery">{t('tabs.delivery')}</TabsTrigger>
@@ -121,7 +134,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
             <TabsTrigger value="steps">{t('tabs.steps')}</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="general" className={"space-y-6"}>
+          <TabsContent value="general" className={'space-y-6'}>
             {/* Informations générales */}
             <FormField
               control={form.control}
@@ -130,7 +143,11 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                 <FormItem>
                   <FormLabel>{t('form.name.label')}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder={t('name.placeholder')} disabled={isLoading} />
+                    <Input
+                      {...field}
+                      placeholder={t('name.placeholder')}
+                      disabled={isLoading}
+                    />
                   </FormControl>
                   <TradFormMessage />
                 </FormItem>
@@ -187,21 +204,17 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                 <FormItem>
                   <FormLabel>{t('form.organization.label')}</FormLabel>
                   <MultiSelect<string>
-                    options={
-                      organizations.map((org) => ({
-                        label: org.name,
-                        value: org.id
-                      }))
-                    }
+                    options={organizations.map((org) => ({
+                      label: org.name,
+                      value: org.id,
+                    }))}
                     selected={field.value ? [field.value] : []}
-                    onChange={
-                      (values) => {
-                        if (values.length > 0) {
-                          field.onChange(values[0])
-                        }
+                    onChange={(values) => {
+                      if (values.length > 0) {
+                        field.onChange(values[0]);
                       }
-                    }
-                    type={"single"}
+                    }}
+                    type={'single'}
                   />
                   <TradFormMessage />
                 </FormItem>
@@ -209,7 +222,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
             />
           </TabsContent>
 
-          <TabsContent value="documents" className={"space-y-6"}>
+          <TabsContent value="documents" className={'space-y-6'}>
             {/* Configuration des documents */}
             <FormField
               control={form.control}
@@ -220,7 +233,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                   <MultiSelect<DocumentType>
                     options={Object.values(DocumentType).map((type) => ({
                       label: t(`documents.${type.toLowerCase()}`),
-                      value: type
+                      value: type,
                     }))}
                     selected={field.value}
                     onChange={field.onChange}
@@ -242,7 +255,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                   <MultiSelect
                     options={Object.values(DocumentType).map((type) => ({
                       label: t(`documents.${type.toLowerCase()}`),
-                      value: type
+                      value: type,
                     }))}
                     selected={field.value}
                     onChange={field.onChange}
@@ -312,7 +325,9 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                     name="appointmentInstructions"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t_inputs('appointment.instructions.label')}</FormLabel>
+                        <FormLabel>
+                          {t_inputs('appointment.instructions.label')}
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
@@ -345,7 +360,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                       }))}
                       selected={field.value}
                       onChange={(value) => {
-                        field.onChange(value)
+                        field.onChange(value);
                       }}
                     />
                     <TradFormMessage />
@@ -403,15 +418,13 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                   <FormItem className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <FormLabel>{t('form.pricing.label')}</FormLabel>
-                      <FormDescription>
-                        {t('form.pricing.description')}
-                      </FormDescription>
+                      <FormDescription>{t('form.pricing.description')}</FormDescription>
                     </div>
                     <FormControl>
                       <Switch
                         checked={!!field.value}
                         onCheckedChange={(value) => {
-                          field.onChange(value)
+                          field.onChange(value);
                         }}
                         disabled={isLoading}
                       />
@@ -420,53 +433,53 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                 )}
               />
 
-              {
-                form.watch('isFree') === true && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('form.pricing.price.label')}</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                              placeholder={t('form.pricing.price.placeholder')}
-                            />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
-                      )}
-                    />
+              {form.watch('isFree') === true && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('form.pricing.price.label')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder={t('form.pricing.price.placeholder')}
+                          />
+                        </FormControl>
+                        <TradFormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="currency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('form.pricing.currency.label')}</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('form.pricing.currency.placeholder')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="EUR">EUR</SelectItem>
-                              <SelectItem value="XAF">XAF</SelectItem>
-                              <SelectItem value="USD">USD</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <TradFormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )
-              }
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('form.pricing.currency.label')}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={t('form.pricing.currency.placeholder')}
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="EUR">EUR</SelectItem>
+                            <SelectItem value="XAF">XAF</SelectItem>
+                            <SelectItem value="USD">USD</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <TradFormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </div>
           </TabsContent>
 
@@ -481,14 +494,17 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                         {step.title || t('form.steps.untitled')}
                       </CardTitle>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => {
                             const steps = form.getValues('steps');
                             if (index > 0) {
                               const newSteps = [...steps];
-                              [newSteps[index - 1], newSteps[index]] = [newSteps[index], newSteps[index - 1]];
+                              [newSteps[index - 1], newSteps[index]] = [
+                                newSteps[index],
+                                newSteps[index - 1],
+                              ];
                               form.setValue('steps', newSteps);
                             }
                           }}
@@ -501,7 +517,9 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                           size="sm"
                           onClick={() => {
                             const steps = form.getValues('steps');
-                            const newSteps = steps.filter((_: never, i: number) => i !== index);
+                            const newSteps = steps.filter(
+                              (_: never, i: number) => i !== index,
+                            );
                             form.setValue('steps', newSteps);
                           }}
                         >
@@ -533,10 +551,14 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                           name={`steps.${index}.description`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('form.steps.step.description.label')}</FormLabel>
+                              <FormLabel>
+                                {t('form.steps.step.description.label')}
+                              </FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder={t('form.steps.step.description.placeholder')}
+                                  placeholder={t(
+                                    'form.steps.step.description.placeholder',
+                                  )}
                                   {...field}
                                 />
                               </FormControl>
@@ -575,8 +597,8 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                       isRequired: true,
                       description: '',
                       order: steps.length,
-                      fields: []
-                    }
+                      fields: [],
+                    },
                   ]);
                 }}
               >
@@ -588,12 +610,12 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
         </Tabs>
 
         <div className="gap-4 lg:flex lg:justify-end">
-          <Button type="submit" disabled={isLoading} className={"w-full lg:w-max"}>
+          <Button type="submit" disabled={isLoading} className={'w-full lg:w-max'}>
             {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
             {service ? t('actions.update') : t('actions.create')}
           </Button>
         </div>
       </form>
     </Form>
-  )
+  );
 }

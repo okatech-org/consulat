@@ -1,27 +1,27 @@
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { MessageCircle } from 'lucide-react'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MessageCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface ProfileNote {
-  id: string
-  content: string
-  createdAt: Date
+  id: string;
+  content: string;
+  createdAt: Date;
   author: {
-    name: string | null
-  }
+    name: string | null;
+  };
 }
 
 interface ProfileNotesProps {
-  notes: ProfileNote[]
+  notes: ProfileNote[];
 }
 
 export function ProfileNotes({ notes }: ProfileNotesProps) {
-  const t = useTranslations('components.notes')
+  const t = useTranslations('components.notes');
 
   if (notes.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -34,11 +34,8 @@ export function ProfileNotes({ notes }: ProfileNotesProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {notes.map(note => (
-            <div
-              key={note.id}
-              className="border-b pb-4 last:border-0 last:pb-0"
-            >
+          {notes.map((note) => (
+            <div key={note.id} className="border-b pb-4 last:border-0 last:pb-0">
               <div className="mb-2 flex items-center justify-between">
                 <span className="font-medium">{note.author.name}</span>
                 <span className="text-sm text-muted-foreground">
@@ -51,5 +48,5 @@ export function ProfileNotes({ notes }: ProfileNotesProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

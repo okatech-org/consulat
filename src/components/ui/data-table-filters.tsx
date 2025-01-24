@@ -1,43 +1,41 @@
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+  SelectValue,
+} from '@/components/ui/select';
 
 interface DataTableFiltersProps {
   filters: {
-    column: string
-    operator: 'equals' | 'contains' | 'startsWith' | 'endsWith'
-    value: string
-  }[]
-  onAddFilter: () => void
-  onRemoveFilter: (index: number) => void
+    column: string;
+    operator: 'equals' | 'contains' | 'startsWith' | 'endsWith';
+    value: string;
+  }[];
+  onAddFilter: () => void;
+  onRemoveFilter: (index: number) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onFilterChange: (index: number, filter: any) => void
-  columns: { id: string; header: string }[]
+  onFilterChange: (index: number, filter: any) => void;
+  columns: { id: string; header: string }[];
 }
 
 export function DataTableFilters({
-                                   filters,
-                                   onAddFilter,
-                                   onRemoveFilter,
-                                   onFilterChange,
-                                   columns,
-                                 }: DataTableFiltersProps) {
+  filters,
+  onAddFilter,
+  onRemoveFilter,
+  onFilterChange,
+  columns,
+}: DataTableFiltersProps) {
   return (
     <div className="space-y-2">
       {filters.map((filter, index) => (
         <div key={index} className="flex items-center gap-2">
           <Select
             value={filter.column}
-            onValueChange={(value) =>
-              onFilterChange(index, { ...filter, column: value })
-            }
+            onValueChange={(value) => onFilterChange(index, { ...filter, column: value })}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Sélectionner une colonne" />
@@ -71,18 +69,12 @@ export function DataTableFilters({
 
           <Input
             value={filter.value}
-            onChange={(e) =>
-              onFilterChange(index, { ...filter, value: e.target.value })
-            }
+            onChange={(e) => onFilterChange(index, { ...filter, value: e.target.value })}
             placeholder="Valeur"
             className="w-[200px]"
           />
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemoveFilter(index)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => onRemoveFilter(index)}>
             <X className="size-4" />
           </Button>
         </div>
@@ -92,5 +84,5 @@ export function DataTableFilters({
         Ajouter un filtre
       </Button>
     </div>
-  )
+  );
 }

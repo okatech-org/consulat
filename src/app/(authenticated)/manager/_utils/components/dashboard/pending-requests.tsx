@@ -1,12 +1,12 @@
 // src/components/actions/dashboard/pending-requests.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useTranslations } from 'next-intl'
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ServiceRequestStatus } from '@prisma/client'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ServiceRequestStatus } from '@prisma/client';
 
 export function PendingRequests() {
-  const t = useTranslations('manager.dashboard')
+  const t = useTranslations('manager.dashboard');
 
   return (
     <Card>
@@ -26,16 +26,21 @@ export function PendingRequests() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-function RequestItem({ name, type, status, date }: {
-  name: string,
-  type: string,
-  status: ServiceRequestStatus,
-  date: string
+function RequestItem({
+  name,
+  type,
+  status,
+  date,
+}: {
+  name: string;
+  type: string;
+  status: ServiceRequestStatus;
+  date: string;
 }) {
-  const t = useTranslations('common')
+  const t = useTranslations('common');
 
   return (
     <div className="flex items-center justify-between rounded-lg border p-4">
@@ -44,18 +49,14 @@ function RequestItem({ name, type, status, date }: {
         <p className="text-sm text-muted-foreground">
           {t(`request_types.${type.toLowerCase()}`)}
         </p>
-        <p className="text-sm text-muted-foreground">
-          {date}
-        </p>
+        <p className="text-sm text-muted-foreground">{date}</p>
       </div>
       <div className="flex items-center gap-2">
         <Badge variant={status === 'SUBMITTED' ? 'warning' : 'default'}>
           {t(`status.${status.toLowerCase()}`)}
         </Badge>
-        <Button size="sm">
-          {t('actions.review')}
-        </Button>
+        <Button size="sm">{t('actions.review')}</Button>
       </div>
     </div>
-  )
+  );
 }

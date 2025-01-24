@@ -1,29 +1,31 @@
-'use server'
+'use server';
 
-import { db } from '@/lib/prisma'
-import { z } from 'zod'
-import { EmailStatus } from '@prisma/client'
+import { db } from '@/lib/prisma';
+import { z } from 'zod';
+import { EmailStatus } from '@prisma/client';
 
 const emailSchema = z.object({
-  email: z.string().email('Email invalide')
-})
+  email: z.string().email('Email invalide'),
+});
 
 export async function subscribeToWaitlist(email: string) {
   try {
     // Valider l'email
-    const { email: validatedEmail } = emailSchema.parse({ email })
+    const { email: validatedEmail } = emailSchema.parse({ email });
 
     // Obtenir ou créer la liste d'email principale
-    const emailList = await db.emailList.findFirst({
-      orderBy: { createdAt: 'asc' }
-    }) || await db.emailList.create({
-      data: {}
-    })
+    const emailList =
+      (await db.emailList.findFirst({
+        orderBy: { createdAt: 'asc' },
+      })) ||
+      (await db.emailList.create({
+        data: {},
+      }));
 
     // Vérifier si l'inscription existe déjà
     const existingSubscription = await db.subscription.findUnique({
-      where: { email: validatedEmail }
-    })
+      where: { email: validatedEmail },
+    });
 
     if (existingSubscription) {
       if (existingSubscription.status === EmailStatus.UNSUBSCRIBED) {
@@ -32,12 +34,12 @@ export async function subscribeToWaitlist(email: string) {
           where: { email: validatedEmail },
           data: {
             status: EmailStatus.PENDING,
-            emailListId: emailList.id
-          }
-        })
-        return { success: true }
+            emailListId: emailList.id,
+          },
+        });
+        return { success: true };
       }
-      return { error: 'Cet email est déjà inscrit' }
+      return { error: 'Cet email est déjà inscrit' };
     }
 
     await db.emailList.update({
@@ -46,56 +48,56 @@ export async function subscribeToWaitlist(email: string) {
         subscribers: {
           create: {
             email: validatedEmail,
-            status: EmailStatus.CONFIRMED
-          }
-        }
-      }
-    })
+            status: EmailStatus.CONFIRMED,
+          },
+        },
+      },
+    });
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Error subscribing to waitlist:', error)
+    console.error('Error subscribing to waitlist:', error);
     if (error instanceof z.ZodError) {
-      return { error: 'Email invalide' }
+      return { error: 'Email invalide' };
     }
-    return { error: 'Une erreur est survenue' }
+    return { error: 'Une erreur est survenue' };
   }
 }
 
 // Fonction utilitaire pour obtenir des statistiques
 export async function getWaitlistStats() {
   try {
-    const totalSubscribers = await db.subscription.count()
+    const totalSubscribers = await db.subscription.count();
     const pendingSubscribers = await db.subscription.count({
-      where: { status: EmailStatus.PENDING }
-    })
+      where: { status: EmailStatus.PENDING },
+    });
     const confirmedSubscribers = await db.subscription.count({
-      where: { status: EmailStatus.CONFIRMED }
-    })
+      where: { status: EmailStatus.CONFIRMED },
+    });
     const unsubscribedSubscribers = await db.subscription.count({
-      where: { status: EmailStatus.UNSUBSCRIBED }
-    })
+      where: { status: EmailStatus.UNSUBSCRIBED },
+    });
 
     return {
       total: totalSubscribers,
       pending: pendingSubscribers,
       confirmed: confirmedSubscribers,
-      unsubscribed: unsubscribedSubscribers
-    }
+      unsubscribed: unsubscribedSubscribers,
+    };
   } catch (error) {
-    console.error('Error getting waitlist stats:', error)
-    throw error
+    console.error('Error getting waitlist stats:', error);
+    throw error;
   }
 }
 
 // Fonction pour obtenir les inscriptions avec pagination
 export async function getSubscriptions(params: {
-  page?: number
-  limit?: number
-  status?: EmailStatus
+  page?: number;
+  limit?: number;
+  status?: EmailStatus;
 }) {
-  const { page = 1, limit = 10, status } = params
-  const skip = (page - 1) * limit
+  const { page = 1, limit = 10, status } = params;
+  const skip = (page - 1) * limit;
 
   try {
     const [subscriptions, total] = await Promise.all([
@@ -107,33 +109,30 @@ export async function getSubscriptions(params: {
       }),
       db.subscription.count({
         where: status ? { status } : undefined,
-      })
-    ])
+      }),
+    ]);
 
     return {
       subscriptions,
       total,
-      pages: Math.ceil(total / limit)
-    }
+      pages: Math.ceil(total / limit),
+    };
   } catch (error) {
-    console.error('Error getting subscriptions:', error)
-    throw error
+    console.error('Error getting subscriptions:', error);
+    throw error;
   }
 }
 
 // Fonction pour mettre à jour le statut d'une inscription
-export async function updateSubscriptionStatus(
-  email: string,
-  status: EmailStatus
-) {
+export async function updateSubscriptionStatus(email: string, status: EmailStatus) {
   try {
     await db.subscription.update({
       where: { email },
-      data: { status }
-    })
-    return { success: true }
+      data: { status },
+    });
+    return { success: true };
   } catch (error) {
-    console.error('Error updating subscription status:', error)
-    return { error: 'Une erreur est survenue' }
+    console.error('Error updating subscription status:', error);
+    return { error: 'Une erreur est survenue' };
   }
 }

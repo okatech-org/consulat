@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import { useState } from "react"
-import { ActionResult } from "@/lib/auth/action"
-import { useToast } from "./use-toast"
-import { useTranslations } from 'next-intl'
+import { useState } from 'react';
+import { ActionResult } from '@/lib/auth/action';
+import { useToast } from './use-toast';
+import { useTranslations } from 'next-intl';
 
 export function useProtectedAction<TInput, TOutput>() {
-  const [isPending, startTransition] = useState(false)
-  const { toast } = useToast()
-  const t = useTranslations('errors')
+  const [isPending, startTransition] = useState(false);
+  const { toast } = useToast();
+  const t = useTranslations('errors');
 
   async function mutate(
     action: (input: TInput) => Promise<ActionResult<TOutput>>,
     input: TInput,
     options?: {
-      onSuccess?: (data: TOutput) => void
-      onError?: (error: string) => void
-      successMessage?: string
-    }
+      onSuccess?: (data: TOutput) => void;
+      onError?: (error: string) => void;
+      successMessage?: string;
+    },
   ) {
     try {
-      startTransition(true)
-      const result = await action(input)
+      startTransition(true);
+      const result = await action(input);
 
       if (result.error) {
         toast({
           title: t('common.error_title'),
           description: result.error,
-          variant: "destructive"
-        })
-        options?.onError?.(result.error)
-        return
+          variant: 'destructive',
+        });
+        options?.onError?.(result.error);
+        return;
       }
 
       if (result.data) {
@@ -38,25 +38,25 @@ export function useProtectedAction<TInput, TOutput>() {
           toast({
             title: t('common.success_title'),
             description: options.successMessage,
-            variant: "success"
-          })
+            variant: 'success',
+          });
         }
-        options?.onSuccess?.(result.data)
+        options?.onSuccess?.(result.data);
       }
     } catch (error) {
-      console.error("Action error:", error)
+      console.error('Action error:', error);
       toast({
         title: t('common.error_title'),
         description: t('common.unknown_error'),
-        variant: "destructive"
-      })
+        variant: 'destructive',
+      });
     } finally {
-      startTransition(false)
+      startTransition(false);
     }
   }
 
   return {
     mutate,
-    isPending
-  }
+    isPending,
+  };
 }

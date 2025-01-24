@@ -1,15 +1,15 @@
-import { LoadingSuspense } from '@/components/ui/loading-suspense'
-import { LoginForm } from '@/app/auth/_utils/login-form'
-import { getTranslations } from 'next-intl/server'
-import Link from 'next/link'
-import { ROUTES } from '@/schemas/routes'
-import Image from 'next/image'
-import { ArrowLeft } from 'lucide-react'
-import { buttonVariants } from '@/components/ui/button'
+import { LoadingSuspense } from '@/components/ui/loading-suspense';
+import { LoginForm } from '@/app/auth/_utils/login-form';
+import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import Image from 'next/image';
+import { ArrowLeft } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
 
 export default async function LoginPage() {
-  const t = await getTranslations('auth.login')
-  const currentYear = new Date().getFullYear()
+  const t = await getTranslations('auth.login');
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="container relative grid min-h-screen flex-col items-center justify-center lg:max-w-none lg:px-0">
@@ -34,7 +34,7 @@ export default async function LoginPage() {
                 width={128}
                 height={128}
                 priority
-                className={"rounded"}
+                className={'rounded'}
               />
             </div>
           </div>
@@ -65,5 +65,5 @@ export default async function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

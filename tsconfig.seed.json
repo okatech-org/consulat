@@ -8,8 +8,6 @@
     "types": ["node"],
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": [
-    "scripts/**/*"
-  ],
+  "include": ["scripts/**/*"],
   "exclude": ["node_modules"]
 }

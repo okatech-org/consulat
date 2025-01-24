@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { FullProfile } from '@/types'
-import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ProfileBasicInfo } from './review/basic-info'
-import { ProfileDocuments } from './review/documents'
-import { ProfileContact } from './review/contact'
-import { ProfileFamily } from './review/family'
-import { ProfileProfessional } from './review/professional'
-import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useTranslations } from 'next-intl';
+import { FullProfile } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ProfileBasicInfo } from './review/basic-info';
+import { ProfileDocuments } from './review/documents';
+import { ProfileContact } from './review/contact';
+import { ProfileFamily } from './review/family';
+import { ProfileProfessional } from './review/professional';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,66 +19,65 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { RequestStatus } from '@prisma/client'
-import { Textarea } from '@/components/ui/textarea'
-import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import { validateProfile } from '@/app/(authenticated)/admin/_utils/actions/profiles'
-import { ROUTES } from '@/schemas/routes'
-import { ProfileNotes } from '@/app/(authenticated)/admin/_utils/profiles/profile-notes'
-import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge'
+} from '@/components/ui/dialog';
+import { RequestStatus } from '@prisma/client';
+import { Textarea } from '@/components/ui/textarea';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { validateProfile } from '@/app/(authenticated)/admin/_utils/actions/profiles';
+import { ROUTES } from '@/schemas/routes';
+import { ProfileNotes } from '@/app/(authenticated)/admin/_utils/profiles/profile-notes';
+import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
 
 interface ProfileReviewProps {
-  profile: FullProfile
+  profile: FullProfile;
 }
 
 export function ProfileReview({ profile }: ProfileReviewProps) {
-  const t = useTranslations('actions.profiles.review')
-  const [isLoading, setIsLoading] = useState(false)
-  const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null)
-  const router = useRouter()
-  const { toast } = useToast()
+  const t = useTranslations('actions.profiles.review');
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null);
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleValidation = async (notes: string) => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
       const result = await validateProfile({
         profileId: profile.id,
         status: validationStatus!,
-        notes
-      })
+        notes,
+      });
 
       if (result.error) {
         toast({
           title: t('validation.error.title'),
           description: result.error,
-          variant: "destructive"
-        })
-        return
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
         title: t('validation.success.title'),
         description: t('validation.success.description'),
-        variant: "success"
-      })
+        variant: 'success',
+      });
 
       // Fermer le dialogue et rediriger
-      setValidationStatus(null)
-      router.push(ROUTES.admin_profiles)
-
+      setValidationStatus(null);
+      router.push(ROUTES.admin_profiles);
     } catch (error) {
       toast({
         title: t('validation.error.title'),
         description: t('validation.error.unknown'),
-        variant: "destructive"
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -99,14 +98,18 @@ export function ProfileReview({ profile }: ProfileReviewProps) {
             </div>
             <div className="flex justify-end gap-4">
               <Button
-                variant={profile.status === RequestStatus.REJECTED ? "default" : "destructive"}
+                variant={
+                  profile.status === RequestStatus.REJECTED ? 'default' : 'destructive'
+                }
                 onClick={() => setValidationStatus(RequestStatus.REJECTED)}
                 disabled={isLoading}
               >
                 {t('validation.reject')}
               </Button>
               <Button
-                variant={profile.status === RequestStatus.VALIDATED ? "default" : "success"}
+                variant={
+                  profile.status === RequestStatus.VALIDATED ? 'default' : 'success'
+                }
                 onClick={() => setValidationStatus(RequestStatus.VALIDATED)}
                 disabled={isLoading}
               >
@@ -161,27 +164,30 @@ export function ProfileReview({ profile }: ProfileReviewProps) {
 
         {/* Panneau latéral pour les notes et validations */}
         <div className="space-y-6">
-          <ProfileNotes
-            profileId={profile.id}
-            notes={profile.notes}
-          />
+          <ProfileNotes profileId={profile.id} notes={profile.notes} />
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 interface ValidationDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onConfirm: (notes: string) => void
-  status: RequestStatus
-  isLoading: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (notes: string) => void;
+  status: RequestStatus;
+  isLoading: boolean;
 }
 
-const ValidationDialog = ({ isOpen, onClose, onConfirm, status, isLoading }: ValidationDialogProps) => {
-  const [notes, setNotes] = useState('')
-  const t = useTranslations('actions.profiles.review')
+const ValidationDialog = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  status,
+  isLoading,
+}: ValidationDialogProps) => {
+  const [notes, setNotes] = useState('');
+  const t = useTranslations('actions.profiles.review');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -208,7 +214,7 @@ const ValidationDialog = ({ isOpen, onClose, onConfirm, status, isLoading }: Val
             {t('validation.cancel')}
           </Button>
           <Button
-            variant={status === RequestStatus.VALIDATED ? "default" : "destructive"}
+            variant={status === RequestStatus.VALIDATED ? 'default' : 'destructive'}
             onClick={() => onConfirm(notes)}
             disabled={isLoading}
           >
@@ -220,5 +226,5 @@ const ValidationDialog = ({ isOpen, onClose, onConfirm, status, isLoading }: Val
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

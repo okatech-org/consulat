@@ -1,33 +1,31 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
-import { LucideIcon } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { LucideIcon } from 'lucide-react';
 
 interface StatsCardProps {
-  title: string
-  value: string | number
-  description?: string
-  icon: LucideIcon
+  title: string;
+  value: string | number;
+  description?: string;
+  icon: LucideIcon;
   trend?: {
-    value: number
-    isPositive: boolean
-  }
-  className?: string
+    value: number;
+    isPositive: boolean;
+  };
+  className?: string;
 }
 
 export function StatsCard({
-                            title,
-                            value,
-                            description,
-                            icon: Icon,
-                            trend,
-                            className
-                          }: StatsCardProps) {
+  title,
+  value,
+  description,
+  icon: Icon,
+  trend,
+  className,
+}: StatsCardProps) {
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn('', className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
-          {title}
-        </CardTitle>
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
@@ -35,21 +33,22 @@ export function StatsCard({
         {(description || trend) && (
           <div className="flex items-center gap-2">
             {trend && (
-              <span className={cn(
-                "text-xs",
-                trend.isPositive ? "text-green-500" : "text-red-500"
-              )}>
-                {trend.isPositive ? "+" : "-"}{trend.value}%
+              <span
+                className={cn(
+                  'text-xs',
+                  trend.isPositive ? 'text-green-500' : 'text-red-500',
+                )}
+              >
+                {trend.isPositive ? '+' : '-'}
+                {trend.value}%
               </span>
             )}
             {description && (
-              <p className="text-xs text-muted-foreground">
-                {description}
-              </p>
+              <p className="text-xs text-muted-foreground">{description}</p>
             )}
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

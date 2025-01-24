@@ -1,2 +1,2 @@
-export * from './profile'
-export * from './consulate'
+export * from './profile';
+export * from './consulate';

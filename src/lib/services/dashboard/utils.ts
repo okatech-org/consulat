@@ -1,7 +1,7 @@
-import { Profile } from '@prisma/client'
+import { Profile } from '@prisma/client';
 
 export function calculateProfileCompletion(profile: Profile | null): number {
-  if (!profile) return 0
+  if (!profile) return 0;
 
   const requiredFields = [
     'firstName',
@@ -20,23 +20,23 @@ export function calculateProfileCompletion(profile: Profile | null): number {
     'maritalStatus',
     'addressInGabon',
     'activityInGabon',
-    'maritalStatus'
-  ]
+    'maritalStatus',
+  ];
 
   if (profile.workStatus === 'EMPLOYEE') {
-    requiredFields.push('employer')
-    requiredFields.push('profession')
+    requiredFields.push('employer');
+    requiredFields.push('profession');
   }
 
   if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
-    requiredFields.push('spouseFullName')
+    requiredFields.push('spouseFullName');
   }
 
-  const completedRequired = requiredFields.filter(field =>
-    profile[field as keyof Profile] !== null &&
-    profile[field as keyof Profile] !== ''
-  ).length
+  const completedRequired = requiredFields.filter(
+    (field) =>
+      profile[field as keyof Profile] !== null && profile[field as keyof Profile] !== '',
+  ).length;
 
-  const totalWeight = requiredFields.length
-  return Math.round((completedRequired / totalWeight) * 100)
+  const totalWeight = requiredFields.length;
+  return Math.round((completedRequired / totalWeight) * 100);
 }

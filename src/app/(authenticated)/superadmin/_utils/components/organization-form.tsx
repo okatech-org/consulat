@@ -1,96 +1,117 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslations } from 'next-intl'
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
 
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
-import { OrganizationType, OrganizationStatus } from '@prisma/client'
+import { OrganizationType, OrganizationStatus } from '@prisma/client';
 import {
   organizationSchema,
   type CreateOrganizationInput,
   UpdateOrganizationInput,
   updateOrganizationSchema,
-} from '@/schemas/organization'
-import { Organization } from '@/types/organization'
-import { useOrganizationActions } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-actions'
-import { InfoField } from '@/components/ui/info-field'
+} from '@/schemas/organization';
+import { Organization } from '@/types/organization';
+import { useOrganizationActions } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-actions';
+import { InfoField } from '@/components/ui/info-field';
 
 interface CountryOption {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface OrganizationFormProps {
-  organization?: Organization
-  countries: CountryOption[]
-  onSuccess?: () => void
-  onCancel?: () => void
+  organization?: Organization;
+  countries: CountryOption[];
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export function OrganizationForm({
-                                   organization,
-                                   countries,
-                                   onSuccess,
-                                   onCancel,
-                                 }: OrganizationFormProps) {
-  const t = useTranslations('superadmin.organizations')
-  const t_common = useTranslations('common')
-  const [open, setOpen] = React.useState(false)
-  const [searchValue, setSearchValue] = React.useState("")
-  const { handleCreate, handleUpdate, isLoading } = useOrganizationActions()
+  organization,
+  countries,
+  onSuccess,
+  onCancel,
+}: OrganizationFormProps) {
+  const t = useTranslations('superadmin.organizations');
+  const t_common = useTranslations('common');
+  const [open, setOpen] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState('');
+  const { handleCreate, handleUpdate, isLoading } = useOrganizationActions();
 
   const form = useForm<CreateOrganizationInput>({
     resolver: zodResolver(organization ? updateOrganizationSchema : organizationSchema),
-    defaultValues: organization ? {
-      name: organization.name,
-      type: organization.type,
-      status: organization.status,
-      countryIds: organization.countries.map(c => c.id),
-    } : {
-      name: '',
-      type: OrganizationType.CONSULATE,
-      status: OrganizationStatus.ACTIVE,
-      countryIds: [],
-      adminEmail: ''
-    }
-  })
+    defaultValues: organization
+      ? {
+          name: organization.name,
+          type: organization.type,
+          status: organization.status,
+          countryIds: organization.countries.map((c) => c.id),
+        }
+      : {
+          name: '',
+          type: OrganizationType.CONSULATE,
+          status: OrganizationStatus.ACTIVE,
+          countryIds: [],
+          adminEmail: '',
+        },
+  });
 
-  const selectedCountries = React.useMemo(() =>
-      countries.filter((country) =>
-        form.watch('countryIds').includes(country.id)
-      ),
-    [countries, form]
-  )
+  const selectedCountries = React.useMemo(
+    () => countries.filter((country) => form.watch('countryIds').includes(country.id)),
+    [countries, form],
+  );
 
-  const filteredCountries = React.useMemo(() =>
+  const filteredCountries = React.useMemo(
+    () =>
       countries.filter((country) =>
-        country.name.toLowerCase().includes(searchValue.toLowerCase())
+        country.name.toLowerCase().includes(searchValue.toLowerCase()),
       ),
-    [countries, searchValue]
-  )
+    [countries, searchValue],
+  );
 
   async function handleCreateSubmit(data: CreateOrganizationInput) {
     try {
-      const result = await handleCreate(data)
+      const result = await handleCreate(data);
       if (!result) {
-        return
+        return;
       }
 
       // Appeler le callback de succès si fourni
-      onSuccess?.()
+      onSuccess?.();
     } catch (error) {
-      console.error('Failed to create organization:', error)
+      console.error('Failed to create organization:', error);
     }
   }
 
@@ -98,24 +119,29 @@ export function OrganizationForm({
     try {
       // On s'assure que l'organisation existe
       if (!organization) {
-        return
+        return;
       }
 
-      const result = await handleUpdate(organization.id, data)
+      const result = await handleUpdate(organization.id, data);
       if (!result) {
-        return
+        return;
       }
 
       // Appeler le callback de succès si fourni
-      onSuccess?.()
+      onSuccess?.();
     } catch (error) {
-      console.error('Failed to update organization:', error)
+      console.error('Failed to update organization:', error);
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(organization ? handleUpdateSubmit : handleCreateSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(
+          organization ? handleUpdateSubmit : handleCreateSubmit,
+        )}
+        className="space-y-6"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -202,24 +228,21 @@ export function OrganizationForm({
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
-                      type={"button"}
+                      type={'button'}
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
                       className={cn(
-                        "w-full justify-between",
-                        !field.value.length && "text-muted-foreground"
+                        'w-full justify-between',
+                        !field.value.length && 'text-muted-foreground',
                       )}
                       disabled={isLoading}
                     >
                       <div className="flex flex-wrap gap-1">
-                        {selectedCountries.length === 0 && t('form.countries.placeholder')}
+                        {selectedCountries.length === 0 &&
+                          t('form.countries.placeholder')}
                         {selectedCountries.map((country) => (
-                          <Badge
-                            variant="secondary"
-                            key={country.id}
-                            className="mr-1"
-                          >
+                          <Badge variant="secondary" key={country.id} className="mr-1">
                             {country.name}
                           </Badge>
                         ))}
@@ -243,17 +266,19 @@ export function OrganizationForm({
                             key={country.id}
                             value={country.name}
                             onSelect={() => {
-                              const current = field.value
+                              const current = field.value;
                               const updated = current.includes(country.id)
-                                ? current.filter(id => id !== country.id)
-                                : [...current, country.id]
-                              field.onChange(updated)
+                                ? current.filter((id) => id !== country.id)
+                                : [...current, country.id];
+                              field.onChange(updated);
                             }}
                           >
                             <Check
                               className={cn(
-                                "mr-2 h-4 w-4",
-                                field.value.includes(country.id) ? "opacity-100" : "opacity-0"
+                                'mr-2 h-4 w-4',
+                                field.value.includes(country.id)
+                                  ? 'opacity-100'
+                                  : 'opacity-0',
                               )}
                             />
                             {country.name}
@@ -291,16 +316,14 @@ export function OrganizationForm({
         )}
 
         {organization && (
-          <InfoField label={t('form.admin_email.label')} value={organization.User?.email} />
+          <InfoField
+            label={t('form.admin_email.label')}
+            value={organization.User?.email}
+          />
         )}
 
         <div className="flex justify-end gap-4">
-          <Button
-            variant="outline"
-            type="button"
-            disabled={isLoading}
-            onClick={onCancel}
-          >
+          <Button variant="outline" type="button" disabled={isLoading} onClick={onCancel}>
             {t_common('actions.cancel')}
           </Button>
           <Button type="submit" disabled={isLoading}>
@@ -310,5 +333,5 @@ export function OrganizationForm({
         </div>
       </form>
     </Form>
-  )
+  );
 }

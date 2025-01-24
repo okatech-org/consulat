@@ -1,18 +1,14 @@
-import React from 'react'
-import Link from 'next/link'
-import { buttonVariants } from '@/components/ui/button'
-import { ROUTES } from '@/schemas/routes'
-import { ArrowLeft } from 'lucide-react'
+import React from 'react';
+import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
+import { ROUTES } from '@/schemas/routes';
+import { ArrowLeft } from 'lucide-react';
 
 const UnauthorizedPage = () => {
   return (
-    <div className={"flex w-full flex-col items-center justify-center gap-4"}>
-      <h1>
-        Accès refusé
-      </h1>
-      <p>
-        {'Vous n\'êtes pas autorisé à accéder à cette page.'}
-      </p>
+    <div className={'flex w-full flex-col items-center justify-center gap-4'}>
+      <h1>Accès refusé</h1>
+      <p>{"Vous n'êtes pas autorisé à accéder à cette page."}</p>
       <Link
         className={
           buttonVariants({
@@ -22,12 +18,10 @@ const UnauthorizedPage = () => {
         href={ROUTES.base}
       >
         <ArrowLeft className="mr-2 size-5" />
-        <span>
-          {'Retour à l\'accueil'}
-        </span>
+        <span>{"Retour à l'accueil"}</span>
       </Link>
     </div>
-  )
-}
+  );
+};
 
-export default UnauthorizedPage
+export default UnauthorizedPage;

@@ -1,8 +1,14 @@
-import { useTranslations } from 'next-intl'
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useTranslations } from 'next-intl';
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 export function RequestsTable() {
-  const t = useTranslations('actions.requests')
+  const t = useTranslations('actions.requests');
 
   return (
     <div className="rounded-md border">
@@ -16,10 +22,8 @@ export function RequestsTable() {
             <TableHead className="w-[80px]">{t('table.actions')}</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {/* Mapper les demandes ici */}
-        </TableBody>
+        <TableBody>{/* Mapper les demandes ici */}</TableBody>
       </Table>
     </div>
-  )
+  );
 }

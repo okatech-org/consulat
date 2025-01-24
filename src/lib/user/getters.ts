@@ -1,5 +1,5 @@
-import { db } from '@/lib/prisma'
-import { FullProfile, FullUser } from '@/types'
+import { db } from '@/lib/prisma';
+import { FullProfile, FullUser } from '@/types';
 
 export async function getUserById(id: string): Promise<FullUser | null> {
   try {
@@ -9,11 +9,11 @@ export async function getUserById(id: string): Promise<FullUser | null> {
       },
       include: {
         phone: true,
-        profile: true
-      }
-    })
+        profile: true,
+      },
+    });
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -33,8 +33,8 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
         identityPicture: true,
         emergencyContact: {
           include: {
-            phone: true
-          }
+            phone: true,
+          },
         },
         phone: true,
         notes: {
@@ -42,19 +42,18 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
             author: {
               select: {
                 name: true,
-                image: true
-              }
-            }
+                image: true,
+              },
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
-        }
-
-      }
-    })
-  } catch(e) {
-    console.error(e)
-    return null
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+  } catch (e) {
+    console.error(e);
+    return null;
   }
 }

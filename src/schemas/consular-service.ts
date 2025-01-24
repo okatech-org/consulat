@@ -1,5 +1,11 @@
-import { z } from 'zod'
-import { ServiceCategory, ServiceStepType, DocumentType, ProcessingMode, DeliveryMode } from '@prisma/client'
+import { z } from 'zod';
+import {
+  ServiceCategory,
+  ServiceStepType,
+  DocumentType,
+  ProcessingMode,
+  DeliveryMode,
+} from '@prisma/client';
 
 export const ServiceFieldSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
@@ -10,21 +16,25 @@ export const ServiceFieldSchema = z.object({
   placeholder: z.string().optional(),
   defaultValue: z.any().optional(),
   profileField: z.string().optional(),
-  options: z.array(
-    z.object({
-      value: z.string(),
-      label: z.string()
+  options: z
+    .array(
+      z.object({
+        value: z.string(),
+        label: z.string(),
+      }),
+    )
+    .optional(),
+  validation: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+      minLength: z.number().optional(),
+      maxLength: z.number().optional(),
+      pattern: z.string().optional(),
+      customValidation: z.string().optional(),
     })
-  ).optional(),
-  validation: z.object({
-    min: z.number().optional(),
-    max: z.number().optional(),
-    minLength: z.number().optional(),
-    maxLength: z.number().optional(),
-    pattern: z.string().optional(),
-    customValidation: z.string().optional()
-  }).optional()
-})
+    .optional(),
+});
 
 export const ServiceStepSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -33,14 +43,14 @@ export const ServiceStepSchema = z.object({
   isRequired: z.boolean().default(true),
   order: z.number().min(0),
   fields: z.array(ServiceFieldSchema).optional(),
-})
+});
 
 export const ServiceSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Le nom doit contenir au moins 2 caractères'),
   description: z.string().optional(),
   category: z.nativeEnum(ServiceCategory, {
-    required_error: "La catégorie est requise"
+    required_error: 'La catégorie est requise',
   }),
   isActive: z.boolean().optional(),
   organizationId: z.string().optional(),
@@ -57,12 +67,11 @@ export const ServiceSchema = z.object({
   proxyRequirements: z.string().optional(),
   isFree: z.boolean().default(true),
   price: z.number().min(0).optional(),
-  currency: z.string().default("EUR"),
-  steps: z.array(ServiceStepSchema)
-})
+  currency: z.string().default('EUR'),
+  steps: z.array(ServiceStepSchema),
+});
 
-
-export type ServiceSchemaInput = z.infer<typeof ServiceSchema>
+export type ServiceSchemaInput = z.infer<typeof ServiceSchema>;
 
 export const NewServiceSchema = z.object({
   id: z.string().optional(),
@@ -70,6 +79,6 @@ export const NewServiceSchema = z.object({
   category: z.nativeEnum(ServiceCategory),
   description: z.string().optional(),
   organizationId: z.string().optional(),
-})
+});
 
-export type NewServiceSchemaInput = z.infer<typeof NewServiceSchema>
+export type NewServiceSchemaInput = z.infer<typeof NewServiceSchema>;

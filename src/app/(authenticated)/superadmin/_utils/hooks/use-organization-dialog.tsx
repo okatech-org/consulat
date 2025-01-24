@@ -1,12 +1,12 @@
-import { create } from 'zustand'
-import { Organization } from '@/types/organization'
+import { create } from 'zustand';
+import { Organization } from '@/types/organization';
 
 interface OrganizationDialogStore {
-  isOpen: boolean
-  organization?: Organization
-  openCreateDialog: () => void
-  openEditDialog: (organization: Organization) => void
-  closeDialog: () => void
+  isOpen: boolean;
+  organization?: Organization;
+  openCreateDialog: () => void;
+  openEditDialog: (organization: Organization) => void;
+  closeDialog: () => void;
 }
 
 export const useOrganizationDialog = create<OrganizationDialogStore>((set) => ({
@@ -14,5 +14,5 @@ export const useOrganizationDialog = create<OrganizationDialogStore>((set) => ({
   organization: undefined,
   openCreateDialog: () => set({ isOpen: true, organization: undefined }),
   openEditDialog: (organization) => set({ isOpen: true, organization }),
-  closeDialog: () => set({ isOpen: false, organization: undefined })
-}))
+  closeDialog: () => set({ isOpen: false, organization: undefined }),
+}));

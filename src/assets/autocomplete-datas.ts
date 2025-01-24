@@ -1,4 +1,4 @@
-import { Gender, MaritalStatus, WorkStatus, RequestStatus } from '@prisma/client'
+import { Gender, MaritalStatus, WorkStatus, RequestStatus } from '@prisma/client';
 
 export const maritalStatus = [
   { [MaritalStatus.SINGLE]: 'single' },
@@ -6,11 +6,11 @@ export const maritalStatus = [
   { [MaritalStatus.DIVORCED]: 'divorced' },
   { [MaritalStatus.WIDOWED]: 'widowed' },
   { [MaritalStatus.COHABITING]: 'cohabiting' },
-]
+];
 
 export const maritalOptions: {
-  [key in MaritalStatus]: string
-} = Object.assign({}, ...maritalStatus)
+  [key in MaritalStatus]: string;
+} = Object.assign({}, ...maritalStatus);
 
 export const workStatusOptions = {
   [WorkStatus.EMPLOYEE]: 'employee',
@@ -19,26 +19,26 @@ export const workStatusOptions = {
   [WorkStatus.STUDENT]: 'student',
   [WorkStatus.RETIRED]: 'retired',
   [WorkStatus.OTHER]: 'other',
-}
+};
 
 export const genderOptions = {
   [Gender.MALE]: 'male',
   [Gender.FEMALE]: 'female',
-}
+};
 
 export const genderTypes = {
   [Gender.MALE]: 'male_type',
   [Gender.FEMALE]: 'female_type',
-}
+};
 
 export const profileStatus = {
   [RequestStatus.PENDING]: 'pending',
   [RequestStatus.APPROVED]: 'approved',
   [RequestStatus.REJECTED]: 'rejected',
   [RequestStatus.INCOMPLETE]: 'incomplete',
-}
+};
 
-type TranslationFunction = (key: string) => string
+type TranslationFunction = (key: string) => string;
 
 export function getTranslatedOptions<T extends Record<string, string>>(
   options: T,
@@ -46,10 +46,8 @@ export function getTranslatedOptions<T extends Record<string, string>>(
   prefix: string,
 ): { [K in keyof T]: string } {
   return Object.fromEntries(
-    Object.entries(options).map(
-      ([key, value]) => [key, translate(`${prefix}.${value}`)],
-    ),
-  ) as { [K in keyof T]: string }
+    Object.entries(options).map(([key, value]) => [key, translate(`${prefix}.${value}`)]),
+  ) as { [K in keyof T]: string };
 }
 
 export const phoneCountries = [
@@ -189,9 +187,9 @@ export const phoneCountries = [
   { value: '+84', label: 'vietnam', flag: '🇻🇳' },
   { value: '+263', label: 'zimbabwe', flag: '🇿🇼' },
   { value: '+260', label: 'zambia', flag: '🇿🇲' },
-] as const
+] as const;
 
-export type CountryCode = typeof phoneCountries[number]['value']
-export type PhoneCountry = typeof phoneCountries[number]['label']
+export type CountryCode = (typeof phoneCountries)[number]['value'];
+export type PhoneCountry = (typeof phoneCountries)[number]['label'];
 
-export const countryKeys = phoneCountries.map(({ label }) => label) as PhoneCountry[]
+export const countryKeys = phoneCountries.map(({ label }) => label) as PhoneCountry[];

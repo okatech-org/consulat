@@ -1,50 +1,49 @@
-'use server'
+'use server';
 
-import { OpenAI } from 'openai'
-import sharp from 'sharp'
-import { DocumentField } from '@/lib/utils'
-import Anthropic from '@anthropic-ai/sdk'
-import { pdfToImages } from '@/actions/convert'
-import { getCurrentUser } from '@/actions/user'
-import { db } from '@/lib/prisma'
-import { UserDocument } from '@prisma/client'
-import { AppUserDocument } from '@/types'
+import { OpenAI } from 'openai';
+import sharp from 'sharp';
+import { DocumentField } from '@/lib/utils';
+import Anthropic from '@anthropic-ai/sdk';
+import { pdfToImages } from '@/actions/convert';
+import { getCurrentUser } from '@/actions/user';
+import { db } from '@/lib/prisma';
+import { UserDocument } from '@prisma/client';
+import { AppUserDocument } from '@/types';
 
 // Types
 interface DocumentAnalysisResult {
-  documentType: string
+  documentType: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extractedData: Record<string, any>
+  extractedData: Record<string, any>;
 }
 
 interface AnalysisResponse {
-  success: boolean
-  results: DocumentAnalysisResult[]
+  success: boolean;
+  results: DocumentAnalysisResult[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mergedData: Record<string, any>
-  error?: string
+  mergedData: Record<string, any>;
+  error?: string;
 }
 
 async function optimizeImage(buffer: Buffer): Promise<Buffer> {
   return await sharp(buffer)
     .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: 80 })
-    .toBuffer()
+    .toBuffer();
 }
 
 async function fileToImages(file: File): Promise<Buffer[]> {
-
   if (file.type === 'application/pdf') {
-    return await pdfToImages(file)
+    return await pdfToImages(file);
   }
 
   if (file.type.startsWith('image/')) {
-    const buffer = await file.arrayBuffer()
-    const optimized = await optimizeImage(Buffer.from(buffer))
-    return [optimized]
+    const buffer = await file.arrayBuffer();
+    const optimized = await optimizeImage(Buffer.from(buffer));
+    return [optimized];
   }
 
-  throw new Error(`Unsupported file type: ${file.type}`)
+  throw new Error(`Unsupported file type: ${file.type}`);
 }
 
 function generatePrompt(fields: DocumentField[]): string {
@@ -84,15 +83,19 @@ When analyzing handwritten text, follow these guidelines:
    - Consider text orientation and alignment
 
 Fields to extract:
-${fields.map(field => {
+${fields
+  .map((field) => {
     const description = [
       field.name,
       field.description,
       field.required ? '(Required)' : '(Optional)',
-      field.type ? `[${field.type}]` : ''
-    ].filter(Boolean).join(' - ');
+      field.type ? `[${field.type}]` : '',
+    ]
+      .filter(Boolean)
+      .join(' - ');
     return `- ${description}`;
-  }).join('\n')}
+  })
+  .join('\n')}
 
 Return ONLY a valid JSON object with exact field names. Follow these format rules:
 - Use UPPERCASE for gender (MALE/FEMALE)
@@ -122,69 +125,71 @@ If you're uncertain about a handwritten text interpretation, choose the most lik
 function extractJsonFromResponse(content: string): Record<string, any> {
   try {
     // Supprimer tout texte avant le premier {
-    const jsonStart = content.indexOf('{')
-    const jsonEnd = content.lastIndexOf('}')
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
 
     if (jsonStart === -1 || jsonEnd === -1) {
-      throw new Error('No valid JSON found in response')
+      throw new Error('No valid JSON found in response');
     }
 
-    const jsonString = content.slice(jsonStart, jsonEnd + 1)
+    const jsonString = content.slice(jsonStart, jsonEnd + 1);
 
     // Essayer de parser le JSON
-    const parsed = JSON.parse(jsonString)
+    const parsed = JSON.parse(jsonString);
 
     // Nettoyer les valeurs
-    return Object.entries(parsed).reduce((acc, [key, value]) => {
-      // Ignorer les valeurs null, undefined ou vides
-      if (value === null || value === undefined || value === '') {
-        return acc
-      }
-
-      // Nettoyer les strings
-      if (typeof value === 'string') {
-        const cleanedValue = value.trim()
-        if (cleanedValue) {
-          acc[key] = cleanedValue
+    return Object.entries(parsed).reduce(
+      (acc, [key, value]) => {
+        // Ignorer les valeurs null, undefined ou vides
+        if (value === null || value === undefined || value === '') {
+          return acc;
         }
-        return acc
-      }
 
-      // Pour les objets (comme address), vérifier récursivement
-      if (typeof value === 'object' && !Array.isArray(value)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const cleanedObject = Object.entries(value as Record<string, any>).reduce(
-          (objAcc, [objKey, objValue]) => {
-            if (objValue !== null && objValue !== undefined && objValue !== '') {
-              objAcc[objKey] = objValue
-            }
-            return objAcc
-          },
+        // Nettoyer les strings
+        if (typeof value === 'string') {
+          const cleanedValue = value.trim();
+          if (cleanedValue) {
+            acc[key] = cleanedValue;
+          }
+          return acc;
+        }
+
+        // Pour les objets (comme address), vérifier récursivement
+        if (typeof value === 'object' && !Array.isArray(value)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          {} as Record<string, any>
-        )
+          const cleanedObject = Object.entries(value as Record<string, any>).reduce(
+            (objAcc, [objKey, objValue]) => {
+              if (objValue !== null && objValue !== undefined && objValue !== '') {
+                objAcc[objKey] = objValue;
+              }
+              return objAcc;
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            {} as Record<string, any>,
+          );
 
-        if (Object.keys(cleanedObject).length > 0) {
-          acc[key] = cleanedObject
+          if (Object.keys(cleanedObject).length > 0) {
+            acc[key] = cleanedObject;
+          }
+          return acc;
         }
-        return acc
-      }
 
-      acc[key] = value
-      return acc
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }, {} as Record<string, any>)
-
+        acc[key] = value;
+        return acc;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      },
+      {} as Record<string, any>,
+    );
   } catch (error) {
-    console.error('Error extracting JSON:', error)
-    return {}
+    console.error('Error extracting JSON:', error);
+    return {};
   }
 }
 
 export async function analyzeDocuments(
   formData: FormData,
-  fieldsToAnalyze: { key: string, fields: DocumentField[] }[],
-  model: AIModel = 'gpt'
+  fieldsToAnalyze: { key: string; fields: DocumentField[] }[],
+  model: AIModel = 'gpt',
 ): Promise<AnalysisResponse> {
   try {
     const visionAnalyzer: VisionAnalyzer = createVisionAnalyzer(model);
@@ -202,21 +207,23 @@ export async function analyzeDocuments(
           const images = await fileToImages(file);
           const prompt = generatePrompt(fields);
 
-          const documentResults = await Promise.all(images.slice(0, 1).map(async (imageBuffer) => {
-            const base64 = imageBuffer.toString('base64');
-            const content = await visionAnalyzer.analyzeImage(base64, prompt);
+          const documentResults = await Promise.all(
+            images.slice(0, 1).map(async (imageBuffer) => {
+              const base64 = imageBuffer.toString('base64');
+              const content = await visionAnalyzer.analyzeImage(base64, prompt);
 
-            if (!content) {
-              throw new Error(`No content in response for ${key}`);
-            }
+              if (!content) {
+                throw new Error(`No content in response for ${key}`);
+              }
 
-            console.log(`Raw response for ${key}:`, content);
+              console.log(`Raw response for ${key}:`, content);
 
-            const extractedData = extractJsonFromResponse(content);
-            console.log(`Cleaned data for ${key}:`, extractedData);
+              const extractedData = extractJsonFromResponse(content);
+              console.log(`Cleaned data for ${key}:`, extractedData);
 
-            return extractedData;
-          }));
+              return extractedData;
+            }),
+          );
 
           const mergedResult = documentResults.reduce((acc, curr) => {
             return { ...acc, ...curr };
@@ -226,15 +233,16 @@ export async function analyzeDocuments(
             documentType: key,
             extractedData: mergedResult,
           };
-
         } catch (error) {
           console.error(`Error analyzing ${key}:`, error);
           return null;
         }
-      })
+      }),
     );
 
-    const validResults = analysisResults.filter(result => result !== null) as DocumentAnalysisResult[];
+    const validResults = analysisResults.filter(
+      (result) => result !== null,
+    ) as DocumentAnalysisResult[];
 
     const mergedData = validResults.reduce((finalData, result) => {
       const { extractedData } = result;
@@ -244,16 +252,16 @@ export async function analyzeDocuments(
     return {
       success: true,
       results: validResults,
-      mergedData
+      mergedData,
     };
-
   } catch (error) {
     console.error('Document analysis error:', error);
     return {
       success: false,
       results: [],
       mergedData: {},
-      error: error instanceof Error ? error.message : 'Unknown error during document analysis'
+      error:
+        error instanceof Error ? error.message : 'Unknown error during document analysis',
     };
   }
 }
@@ -269,31 +277,33 @@ class ClaudeVisionAnalyzer implements VisionAnalyzer {
 
   constructor() {
     this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
+      apiKey: process.env.ANTHROPIC_API_KEY,
     });
   }
 
   async analyzeImage(base64Image: string, prompt: string): Promise<string> {
     const response = await this.client.messages.create({
-      model: "claude-3-5-sonnet-20240620",
+      model: 'claude-3-5-sonnet-20240620',
       max_tokens: 1024,
-      messages: [{
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: prompt
-          },
-          {
-            type: "image",
-            source: {
-              type: "base64",
-              media_type: "image/jpeg",
-              data: base64Image
-            }
-          }
-        ]
-      }]
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: prompt,
+            },
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: 'image/jpeg',
+                data: base64Image,
+              },
+            },
+          ],
+        },
+      ],
     });
 
     const contentBlock = response.content[0] as { text: string };
@@ -306,28 +316,28 @@ class OpenAIVisionAnalyzer implements VisionAnalyzer {
 
   constructor() {
     this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+      apiKey: process.env.OPENAI_API_KEY,
     });
   }
 
   async analyzeImage(base64Image: string, prompt: string): Promise<string> {
     const response = await this.client.chat.completions.create({
-      model: "chatgpt-4o-latest",
+      model: 'chatgpt-4o-latest',
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: [
-            { type: "text", text: prompt },
+            { type: 'text', text: prompt },
             {
-              type: "image_url",
+              type: 'image_url',
               image_url: {
                 url: `data:image/jpeg;base64,${base64Image}`,
-                detail: "high"
-              }
-            }
-          ]
-        }
-      ]
+                detail: 'high',
+              },
+            },
+          ],
+        },
+      ],
     });
 
     return response.choices[0].message.content || '';
@@ -347,24 +357,21 @@ function createVisionAnalyzer(model: AIModel): VisionAnalyzer {
 
 export async function getUserDocumentsList(): Promise<AppUserDocument[]> {
   try {
-    const user = await getCurrentUser()
-    if (!user) return []
+    const user = await getCurrentUser();
+    if (!user) return [];
 
     const documents = await db.userDocument.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' }
-    })
+      orderBy: { createdAt: 'desc' },
+    });
 
-    return documents.map(document => (
-      {
-        ...document,
-        metadata: JSON.parse(document.metadata as string)
-      }
-    ))
-
+    return documents.map((document) => ({
+      ...document,
+      metadata: JSON.parse(document.metadata as string),
+    }));
   } catch (error) {
-    console.error('Error fetching user components:', error)
-    return []
+    console.error('Error fetching user components:', error);
+    return [];
   }
 }
 
@@ -376,18 +383,18 @@ export async function getUserProfileDocuments(userId: string) {
       birthCertificate: true,
       residencePermit: true,
       addressProof: true,
-      identityPicture: true
-    }
-  })
+      identityPicture: true,
+    },
+  });
 
-  if (!profileWithDocument) return []
+  if (!profileWithDocument) return [];
 
   const documents = [
     profileWithDocument.passport,
     profileWithDocument.birthCertificate,
     profileWithDocument.residencePermit,
-    profileWithDocument.addressProof
-  ]
+    profileWithDocument.addressProof,
+  ];
 
-  return documents.filter(Boolean) as UserDocument[]
+  return documents.filter(Boolean) as UserDocument[];
 }

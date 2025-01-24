@@ -1,17 +1,17 @@
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Save } from 'lucide-react'
+import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
 
 interface ReviewNotesProps {
-  notes: string
-  onChange: (notes: string) => void
-  onSubmit: () => void
+  notes: string;
+  onChange: (notes: string) => void;
+  onSubmit: () => void;
 }
 
 export function ReviewNotes({ notes, onChange, onSubmit }: ReviewNotesProps) {
-  const t = useTranslations('actions.profiles.review')
+  const t = useTranslations('actions.profiles.review');
 
   return (
     <Card>
@@ -31,5 +31,5 @@ export function ReviewNotes({ notes, onChange, onSubmit }: ReviewNotesProps) {
         </Button>
       </CardContent>
     </Card>
-  )
+  );
 }

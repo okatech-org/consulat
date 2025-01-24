@@ -1,15 +1,15 @@
-import { useTranslations } from 'next-intl'
-import { FullProfile } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle2, XCircle, User, Users, Phone } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { useTranslations } from 'next-intl';
+import { FullProfile } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2, XCircle, User, Users, Phone } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface ProfileFamilyProps {
-  profile: FullProfile
+  profile: FullProfile;
 }
 
 export function ProfileFamily({ profile }: ProfileFamilyProps) {
-  const t = useTranslations('actions.profiles.review')
+  const t = useTranslations('actions.profiles.review');
 
   return (
     <div className="space-y-4">
@@ -22,7 +22,9 @@ export function ProfileFamily({ profile }: ProfileFamilyProps) {
           <div className="flex items-center gap-3">
             <Users className="size-5 text-muted-foreground" />
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground">{t('fields.marital_status')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t('fields.marital_status')}
+              </p>
               <div className="flex items-center gap-2">
                 <p className="font-medium">
                   {t(`marital_status.${profile.maritalStatus?.toLowerCase()}`)}
@@ -93,7 +95,9 @@ export function ProfileFamily({ profile }: ProfileFamilyProps) {
               <div className="flex items-center gap-3">
                 <Users className="size-5 text-muted-foreground" />
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{t('fields.relationship')}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('fields.relationship')}
+                  </p>
                   <p className="font-medium">{profile.emergencyContact.relationship}</p>
                 </div>
                 <CheckCircle2 className="text-success size-5" />
@@ -104,7 +108,9 @@ export function ProfileFamily({ profile }: ProfileFamilyProps) {
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">{t('fields.phone')}</p>
                   <p className="font-medium">
-                    {profile.emergencyContact.phone ? `${profile.emergencyContact.phone.countryCode}${profile.emergencyContact.phone.number}`: '-'}
+                    {profile.emergencyContact.phone
+                      ? `${profile.emergencyContact.phone.countryCode}${profile.emergencyContact.phone.number}`
+                      : '-'}
                   </p>
                 </div>
                 <CheckCircle2 className="text-success size-5" />
@@ -119,5 +125,5 @@ export function ProfileFamily({ profile }: ProfileFamilyProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

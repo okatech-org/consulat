@@ -1,5 +1,5 @@
 // src/lib/env.ts
-import { z } from 'zod'
+import { z } from 'zod';
 
 const envSchema = z.object({
   NEXT_PUBLIC_URL: z.string().url(),
@@ -11,27 +11,27 @@ const envSchema = z.object({
   TWILIO_ACCOUNT_SID: z.string().min(1),
   TWILIO_AUTH_TOKEN: z.string().min(1),
   TWILIO_PHONE_NUMBER: z.string().min(1),
-})
+});
 
 // Type d'environnement validé
-export type Env = z.infer<typeof envSchema>
+export type Env = z.infer<typeof envSchema>;
 
 // Fonction de validation
 export function validateEnv(): Env {
   try {
-    return envSchema.parse(process.env)
+    return envSchema.parse(process.env);
   } catch (error) {
     // @ts-expect-error ZodError est un type de Zod
-    console.error('❌ Invalid environment variables:', error.errors)
-    throw new Error('Invalid environment variables')
+    console.error('❌ Invalid environment variables:', error.errors);
+    throw new Error('Invalid environment variables');
   }
 }
 
 // Créer un objet d'environnement validé
-export const env = validateEnv()
+export const env = validateEnv();
 
 // Pour le typage, créer un fichier de déclaration séparé
 // src/types/env.d.ts
 declare global {
-  type ProcessEnv = z.infer<typeof envSchema>
+  type ProcessEnv = z.infer<typeof envSchema>;
 }

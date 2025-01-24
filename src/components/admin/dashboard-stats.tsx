@@ -1,14 +1,14 @@
-import { useTranslations } from 'next-intl'
-import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react'
-import { StatsCard } from '@/components/ui/stats-card'
+import { useTranslations } from 'next-intl';
+import { Users, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { StatsCard } from '@/components/ui/stats-card';
 
 interface DashboardStatsProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stats: any
+  stats: any;
 }
 
 export function DashboardStats({ stats }: DashboardStatsProps) {
-  const t = useTranslations('admin.dashboard')
+  const t = useTranslations('admin.dashboard');
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -24,7 +24,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
         icon={FileText}
         trend={{
           value: stats.reviewsTrend,
-          isPositive: stats.reviewsTrend < 0
+          isPositive: stats.reviewsTrend < 0,
         }}
       />
       <StatsCard
@@ -39,9 +39,9 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
         icon={CheckCircle}
         trend={{
           value: stats.validationTrend,
-          isPositive: stats.validationTrend > 0
+          isPositive: stats.validationTrend > 0,
         }}
       />
     </div>
-  )
+  );
 }

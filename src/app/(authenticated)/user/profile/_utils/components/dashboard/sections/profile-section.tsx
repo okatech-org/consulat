@@ -1,26 +1,23 @@
-"use client"
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { UserCircle, AlertCircle } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge, BadgeVariant } from '@/components/ui/badge'
-import Link from 'next/link'
-import { ROUTES } from '@/schemas/routes'
-import { Key } from 'react'
+import { useTranslations } from 'next-intl';
+import { UserCircle, AlertCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge, BadgeVariant } from '@/components/ui/badge';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import { Key } from 'react';
 
 interface ProfileSectionProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stats: any
-  onAction?: (action: string) => void
+  stats: any;
+  onAction?: (action: string) => void;
 }
 
 export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
-
-
-  const t = useTranslations('dashboard.sections.components')
-
+  const t = useTranslations('dashboard.sections.components');
 
   return (
     <Card>
@@ -51,7 +48,10 @@ export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
             <p className="text-sm font-medium">{t('missing_fields')}</p>
             <ul className="space-y-1">
               {stats.missingFields.slice(0, 2).map((field: Key | null | undefined) => (
-                <li key={field} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <li
+                  key={field}
+                  className="flex items-center gap-2 text-sm text-muted-foreground"
+                >
                   <AlertCircle className="text-warning size-4" />
                   {t(`fields.${field}`)}
                 </li>
@@ -85,5 +85,5 @@ export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
