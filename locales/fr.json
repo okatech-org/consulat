@@ -343,6 +343,7 @@
       "page_of_total": "Page {page} sur {total}",
       "page": "Page",
       "of": "de",
+      "out_of": "sur",
       "resetFilters": "Réinitialiser",
       "viewOptions": "Voir les options",
       "selectedCount": "{selected} sélectionné(s)",
@@ -424,6 +425,14 @@
     }
   },
   "inputs": {
+    "firstName": {
+      "label": "Prénom",
+      "placeholder": "Prénom"
+    },
+    "lastName": {
+      "label": "Nom",
+      "placeholder": "Nom"
+    },
     "phone": {
       "label": "Numéro de téléphone",
       "placeholder": "0612345678",
@@ -591,6 +600,10 @@
       "timeFormatPlaceholder": "Ex: 12h, 24h",
       "timeZone": "Fuseau horaire",
       "timeZonePlaceholder": "Ex: Europe/Paris, America/Toronto"
+    },
+    "country": {
+      "select_placeholder": "Sélectionner un pays",
+      "label": "Pays"
     }
   },
   "feedback": {
@@ -3812,7 +3825,8 @@
       "tabs": {
         "organization": "Informations de l'organisme",
         "general": "Paramètres généraux",
-        "services": "Services"
+        "services": "Services",
+        "agents": "Agents"
       },
       "configForCountry": "Configuration - {country}",
       "general": {
@@ -3890,6 +3904,43 @@
           "not_found": "Organisation introuvable.",
           "has_dependencies": "Impossible de supprimer. Cet organisme est utilisé par d'autres entités.",
           "delete": "Erreur lors de la suppression de l'organisation."
+        },
+        "agents": {
+          "createSuccess": "Agent créé avec succès",
+          "updateSuccess": "Agent mis à jour avec succès",
+          "deleteSuccess": "Agent supprimé avec succès",
+          "error": {
+            "create": "Erreur lors de la création de l'agent",
+            "update": "Erreur lors de la mise à jour de l'agent",
+            "delete": "Erreur lors de la suppression de l'agent",
+            "fetch": "Erreur lors du chargement des agents"
+          }
+        }
+      },
+      "agents": {
+        "title": "Agents de l'organisme",
+        "create": "Ajouter un agent",
+        "create_agent_modal": {
+          "title": "Ajouter un nouvel agent",
+          "description": "Remplissez le formulaire ci-dessous pour créer un nouvel agent pour cet organisme."
+        },
+        "table": {
+          "name": "Nom",
+          "email": "Email",
+          "phone": "Téléphone",
+          "organization": "Organisme",
+          "countries": "Pays",
+          "service_categories": "Catégories de services",
+          "actions": "Actions",
+          "empty": "Aucun agent trouvé"
+        },
+        "name": "Nom",
+        "email": "Email",
+        "countries": "Pays de rattachement",
+        "service_categories": "Catégories de service",
+        "placeholders": {
+          "name": "Nom de l'agent",
+          "email": "Email de l'agent"
         }
       }
     }

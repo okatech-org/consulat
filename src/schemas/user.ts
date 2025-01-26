@@ -1,4 +1,6 @@
 import * as z from 'zod';
+import { ServiceCategory } from '@prisma/client';
+import { EmailSchema, NameSchema, PhoneValueSchema } from '@/schemas/inputs';
 
 export const LoginSchema = z
   .object({
@@ -29,3 +31,20 @@ export const LoginSchema = z
   });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
+
+export const AgentSchema = z.object({
+  firstName: NameSchema,
+  lastName: NameSchema,
+  email: EmailSchema.optional(),
+  phone: PhoneValueSchema.optional(),
+  countryIds: z.array(z.string()).min(1, {
+    message: 'Vous devez sélectionner au moins un pays.',
+  }),
+  serviceCategories: z.array(z.nativeEnum(ServiceCategory)).min(1, {
+    // Utiliser directement l'enum
+    message: 'Vous devez sélectionner au moins une catégorie de service.',
+  }),
+  organizationId: z.string(),
+});
+
+export type AgentFormData = z.infer<typeof AgentSchema>;

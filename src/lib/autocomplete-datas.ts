@@ -190,6 +190,7 @@ export const phoneCountries = [
 ] as const;
 
 export type CountryCode = (typeof phoneCountries)[number]['value'];
+
 export type PhoneCountry = (typeof phoneCountries)[number]['label'];
 
 export const countryKeys = phoneCountries.map(({ label }) => label) as PhoneCountry[];

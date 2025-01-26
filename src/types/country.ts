@@ -41,3 +41,5 @@ export interface CreateCountryInput {
   status?: 'ACTIVE' | 'INACTIVE';
   flag?: string;
 }
+
+export type CountryListingItem = CreateCountryInput

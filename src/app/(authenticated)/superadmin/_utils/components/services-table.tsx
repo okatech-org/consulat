@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { ConsularServiceListingItem, UpdateServiceInput } from '@/types/consular-service';
 import { ServiceCategory } from '@prisma/client';
-import { Organization } from '@/types/organization';
+import { OrganizationListingItem } from '@/types/organization';
 import {
   deleteService,
   duplicateService,
@@ -34,7 +34,7 @@ export function ServicesTable({
   columns,
 }: {
   services: ConsularServiceListingItem[];
-  organizations: Organization[];
+  organizations: OrganizationListingItem[];
   columns?: ColumnDef<ConsularServiceListingItem>[];
 }) {
   const user = useCurrentUser();

@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react';
 import { getUserFullProfile } from '@/lib/user/getters';
 import { getCurrentUser } from '@/actions/user';
-import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
@@ -27,9 +26,7 @@ export default async function ProfilePage() {
   const user = await getCurrentUser();
   const t = await getTranslations('profile');
 
-  if (!user) {
-    redirect(ROUTES.login);
-  }
+  if (!user) return undefined;
 
   const profile = await getUserFullProfile(user.id);
 
@@ -89,7 +86,7 @@ export default async function ProfilePage() {
     },
     {
       id: 'documents',
-      title: t('sections.components'),
+      title: t('sections.documents'),
       content: (
         <DocumentsSection
           documents={{

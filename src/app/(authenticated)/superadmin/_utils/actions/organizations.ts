@@ -6,9 +6,17 @@ import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import { CreateOrganizationInput, UpdateOrganizationInput } from '@/schemas/organization';
 import { OrganizationStatus, UserRole } from '@prisma/client';
-import { Organization } from '@/types/organization';
+import {
+  Organization,
+  OrganizationAgents,
+  OrganizationListingItem,
+} from '@/types/organization';
+import { AgentFormData } from '@/schemas/user';
 
-export async function getOrganizations() {
+export async function getOrganizations(): Promise<{
+  data?: OrganizationListingItem[];
+  error?: string;
+}> {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
   if (authResult.error) return { error: authResult.error };
 
@@ -21,7 +29,6 @@ export async function getOrganizations() {
             services: true,
           },
         },
-        User: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -192,14 +199,130 @@ export async function getOrganizationById(id: string): Promise<{
       },
     });
 
+    if (!organization) {
+      return { error: 'messages.error.not_found' };
+    }
+
     return {
       data: {
         ...organization,
-        metadata: JSON.parse(organization.metadata ?? '{}'),
+        metadata: JSON.parse(
+          typeof organization.metadata === 'string' ? organization.metadata : '{}',
+        ),
       },
     };
   } catch (error) {
     console.error('Error fetching organization:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function createNewAgent(data: AgentFormData) {
+  try {
+    const authResult = await checkAuth([
+      UserRole.SUPER_ADMIN,
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+    ]);
+    if (authResult.error) {
+      return { error: authResult.error };
+    }
+
+    const { countryIds, phone, ...rest } = data;
+
+    const agent = await db.user.create({
+      data: {
+        ...rest,
+        role: UserRole.AGENT,
+        ...(countryIds && {
+          linkedCountries: {
+            connect: countryIds.map((id) => ({ id })),
+          },
+        }),
+        ...(phone && {
+          phone: {
+            create: phone,
+          },
+        }),
+      },
+    });
+
+    revalidatePath(ROUTES.sa.edit_organization(data.organizationId));
+    return { data: agent };
+  } catch (error) {
+    console.error('Failed to create agent:', error);
+    return { error: 'Failed to create agent' };
+  }
+}
+
+export async function updateAgent(id: string, data: Partial<AgentFormData>) {
+  try {
+    const authResult = await checkAuth([
+      UserRole.SUPER_ADMIN,
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+    ]);
+    if (authResult.error) {
+      return { error: authResult.error };
+    }
+
+    const { countryIds, phone, ...rest } = data;
+
+    const agent = await db.user.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(countryIds && {
+          linkedCountries: {
+            set: countryIds.map((id) => ({ id })),
+          },
+        }),
+        ...(phone && {
+          phone: {
+            update: phone,
+          },
+        }),
+      },
+    });
+
+    revalidatePath(ROUTES.sa.organizations);
+    return { data: agent };
+  } catch (error) {
+    console.error('Failed to update agent:', error);
+    return { error: 'Failed to update agent' };
+  }
+}
+
+export async function getOrganizationAgents(id: string): Promise<{
+  data?: OrganizationAgents[];
+  error?: string;
+}> {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    const agents = await db.user.findMany({
+      where: {
+        organizationId: id,
+        role: UserRole.AGENT,
+      },
+      include: {
+        linkedCountries: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            status: true,
+            flag: true,
+          },
+        },
+        phone: true,
+      },
+    });
+
+    return { data: agents };
+  } catch (error) {
+    console.error('Error fetching agents:', error);
     return { error: 'messages.error.fetch' };
   }
 }

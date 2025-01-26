@@ -11,6 +11,7 @@ enum UserRole {
   SUPER_ADMIN // Super administrateur
   ADMIN // Administratif Consulaire
   MANAGER // Responsable (Sous-administrateur)
+  AGENT // Nouveau rôle
   USER
 }
 
@@ -139,27 +140,33 @@ model Phone {
 
 // Modèles principaux
 model User {
-  id       String   @id @default(cuid())
-  email    String?  @unique
-  phone    Phone?   @relation(fields: [phoneId], references: [id])
-  phoneId  String?  @unique
-  password String? // Hashed password if needed
-  name     String?
-  role     UserRole @default(USER)
-  image    String   @default("https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE")
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     Phone?   @relation(fields: [phoneId], references: [id])
+  phoneId   String?  @unique
+  password  String? // Hashed password if needed
+  name      String?
+  firstName String?
+  lastName  String?
+  role      UserRole @default(USER)
+  image     String   @default("https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE")
 
   // Relations
   profile     Profile?
   consulateId String?
   consulate   Consulate? @relation(fields: [consulateId], references: [id])
 
+  // agent fields
+  organizationId    String?
+  serviceCategories ServiceCategory[] @default([])
+  linkedCountries   Country[]         @relation("managedCountries")
   // Auth related
-  emailVerified DateTime?
-  phoneVerified DateTime?
-  accounts      Account[]
-  sessions      Session[]
-  lastLogin     DateTime?
-  messages      Message[]
+  emailVerified     DateTime?
+  phoneVerified     DateTime?
+  accounts          Account[]
+  sessions          Session[]
+  lastLogin         DateTime?
+  messages          Message[]
 
   serviceRequests ServiceRequest[]
 
@@ -168,7 +175,7 @@ model User {
   Appointment          Appointment[]
   managedOrganizations Organization[]
 
-  // Nouvelles relations
+  // New relations
   authoredNotes ProfileNote[]  @relation("NoteAuthor")
   notifications Notification[]
 
@@ -709,17 +716,18 @@ model Country {
   name      String
   code      String        @unique
   status    CountryStatus @default(ACTIVE)
-  flag      String? // URL du drapeau
+  flag      String? // URL of the flag
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
   // Relations
   consulates Consulate[]
-  users      User[]
+  agents     User[]      @relation("managedCountries")
 
   // Metadata
   metadata      Json?
   organizations Organization[]
+  users         User[]
 }
 
 enum CountryStatus {

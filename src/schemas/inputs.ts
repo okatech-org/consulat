@@ -90,6 +90,11 @@ export const PhoneSchema = z
   .string({ required_error: 'messages.errors.phone_required' })
   .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone');
 
+export const PhoneValueSchema = z.object({
+  number: z.string(),
+  countryCode: z.string(),
+});
+
 export const NameSchema = z
   .string({
     required_error: 'messages.errors.first_name_required',

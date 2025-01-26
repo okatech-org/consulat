@@ -1,6 +1,6 @@
 'use client';
 
-import { Organization } from '@/types/organization';
+import { OrganizationListingItem } from '@/types/organization';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
@@ -21,18 +21,17 @@ export function OrganizationsTable({
   organizations,
   countries,
 }: {
-  organizations: Organization[];
+  organizations: OrganizationListingItem[];
   countries: Country[];
 }) {
   const t = useTranslations('organization');
   const t_common = useTranslations('common');
   const { handleDelete, handleStatusChange } = useOrganizationActions();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(
-    null,
-  );
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<OrganizationListingItem | null>(null);
 
-  const columns: ColumnDef<Organization>[] = [
+  const columns: ColumnDef<OrganizationListingItem>[] = [
     {
       accessorKey: 'name',
       header: t('table.name'),
@@ -78,7 +77,7 @@ export function OrganizationsTable({
     {
       id: 'actions',
       cell: ({ row }) => (
-        <DataTableRowActions<Organization>
+        <DataTableRowActions<OrganizationListingItem>
           actions={[
             {
               component: (
@@ -169,7 +168,11 @@ export function OrganizationsTable({
 
   return (
     <>
-      <DataTable filters={localFilters} columns={columns} data={organizations} />{' '}
+      <DataTable<OrganizationListingItem, unknown>
+        filters={localFilters}
+        columns={columns}
+        data={organizations}
+      />{' '}
       {selectedOrganization && (
         <ConfirmDialog
           open={showDeleteDialog}

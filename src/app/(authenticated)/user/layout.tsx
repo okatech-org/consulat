@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { RoleGuard } from '@/components/layouts/role-guard';
 import { Unauthorized } from '@/components/layouts/unauthorized';
 import { UserRole } from '@prisma/client';
-import ManagerSidebar from '@/app/(authenticated)/manager/_utils/components/manager-sidebar';
+import UserSidebar from '@/app/(authenticated)/user/_utils/components/user-sidebar';
 
 export default async function ManagerLayout({
   children,
@@ -11,11 +11,11 @@ export default async function ManagerLayout({
 
   return (
     <RoleGuard
-      roles={[UserRole.ADMIN, UserRole.MANAGER]}
+      roles={[UserRole.USER]}
       currentRole={session?.user.role}
       fallback={<Unauthorized />}
     >
-      <ManagerSidebar />
+      <UserSidebar />
       <main
         className={
           'min-h-screen w-screen overflow-auto overflow-x-hidden pb-24 pt-4 md:py-6'

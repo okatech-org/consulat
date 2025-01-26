@@ -33,7 +33,6 @@ export function DataTableRowActions<TData>({
   row,
   actions,
 }: DataTableRowActionsProps<TData>) {
-  console.log('actions', actions);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

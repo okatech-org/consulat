@@ -88,7 +88,6 @@ export function LoginForm() {
       console.error(error);
       toast({
         title: t('messages.something_went_wrong'),
-        description: error instanceof Error ? error.message : t('messages.unknown_error'),
         variant: 'destructive',
       });
     } finally {

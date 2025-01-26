@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { ServiceStore } from '@/types/consular-service';
-import { Organization } from '@/types/organization';
+import { OrganizationListingItem } from '@/types/organization';
 
 export const useServiceStore = create<ServiceStore>((set) => ({
   services: [],
@@ -15,7 +15,7 @@ export const useServiceStore = create<ServiceStore>((set) => ({
 }));
 
 export const getOrganizationFromId = (
-  organisations: Organization[],
+  organisations: OrganizationListingItem[],
   organizationId: string | null,
 ) => {
   if (!organizationId) return undefined;

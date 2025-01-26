@@ -1,4 +1,5 @@
 import {
+  getOrganizationAgents,
   getOrganizationById,
   getOrganizations,
 } from '@/app/(authenticated)/superadmin/_utils/actions/organizations';
@@ -12,25 +13,41 @@ import { CreateServiceButton } from '@/app/(authenticated)/superadmin/_utils/com
 import { ServicesTable } from '@/app/(authenticated)/superadmin/_utils/components/services-table';
 import CardContainer from '@/components/layouts/card-container';
 import { getCountries } from '@/actions/countries';
+import { CreateAgentButton } from '@/app/(authenticated)/superadmin/_utils/components/CreateAgentButton';
+import { UsersTable } from '@/app/(authenticated)/superadmin/_utils/components/users-table';
 
 export default async function OrganizationSettingsPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const { id } = await params;
+
+  if (!id) {
+    notFound();
+  }
+
   const [
     { data: organization, error: organizationError },
     { data: organizations, error: organizationsError },
     { data: countries, error: countriesError },
+    { data: agents, error: agentsError },
   ] = await Promise.all([
-    getOrganizationById(params.id),
+    getOrganizationById(id),
     getOrganizations(),
     getCountries(),
+    getOrganizationAgents(id),
   ]);
 
   const t = await getTranslations();
 
-  if (!organization || organizationsError || organizationError || countriesError) {
+  if (
+    !organization ||
+    organizationsError ||
+    organizationError ||
+    countriesError ||
+    agentsError
+  ) {
     notFound();
   }
 
@@ -51,6 +68,9 @@ export default async function OrganizationSettingsPage({
           </TabsTrigger>
           <TabsTrigger value="general">
             {t('organization.settings.tabs.general')}
+          </TabsTrigger>
+          <TabsTrigger value="agents">
+            {t('organization.settings.tabs.agents')}
           </TabsTrigger>
         </TabsList>
 
@@ -84,6 +104,24 @@ export default async function OrganizationSettingsPage({
 
         <TabsContent value="general" className="space-y-4">
           <GeneralSettings />
+        </TabsContent>
+
+        <TabsContent value="agents" className="space-y-4">
+          {' '}
+          {/* Contenu du nouvel onglet Agents */}
+          <CardContainer
+            title={t('organization.settings.agents.title')}
+            action={
+              <CreateAgentButton
+                initialData={{
+                  organizationId: id,
+                }}
+                countries={organization.countries ?? []}
+              />
+            }
+          >
+            <UsersTable agents={agents ?? []} />
+          </CardContainer>
         </TabsContent>
       </Tabs>
     </div>
