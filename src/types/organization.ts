@@ -8,9 +8,8 @@ export interface Organization {
   type: OrganizationType;
   status: OrganizationStatus;
   countries: Country[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: any;
-  services?: ConsularServiceListingItem[];
+  metadata: Record<string, unknown> | null;
+  services: ConsularServiceListingItem[] | null;
   createdAt: Date;
   updatedAt: Date;
   User: User | null;

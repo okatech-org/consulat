@@ -1,6 +1,10 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cache } from 'react';
+import { Profile } from '@prisma/client';
+import { phoneCountries } from '@/lib/autocomplete-datas';
+import { FullProfile } from '@/types';
+import { UseFormReturn } from 'react-hook-form';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -118,6 +122,7 @@ export type CountryItem = {
   code: string;
   flag?: string;
 };
+
 export async function getApiCountries(): Promise<CountryItem[]> {
   const response = await fetch(
     'https://countryapi.io/api/all?apikey=RE7Qb252spEs0eBJvTemFwaH4SE0C5lcmyzYuwkX',
@@ -217,10 +222,6 @@ export function useFormStorage() {
     clearData,
   };
 }
-
-import { Profile } from '@prisma/client';
-import { phoneCountries } from '@/lib/autocomplete-datas';
-import { FullProfile } from '@/types';
 
 interface ProfileFieldStatus {
   required: {
@@ -391,3 +392,23 @@ const __getWorldCountries = async (locale: string): Promise<CountryItem[]> => {
 export const getWorldCountries = cache(async (locale: string): Promise<CountryItem[]> => {
   return __getWorldCountries(locale);
 });
+
+export function filterUneditedKeys<T extends Record<string, unknown>>(
+  data: T,
+  dirtyFields: UseFormReturn<T>['formState']['dirtyFields'],
+  omit: (keyof T)[] = [],
+): Partial<T> {
+  if (!dirtyFields || !data) {
+    return {};
+  }
+
+  console.log('Filtering unedited keys...');
+
+  const editedKeys = [...omit, ...Object.keys(dirtyFields)];
+
+  Object.entries(data).forEach(([key]) => {
+    if (!editedKeys.includes(key)) {
+      delete data[key as keyof T];
+    }
+  });
+}

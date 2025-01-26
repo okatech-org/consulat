@@ -25,10 +25,11 @@ import { ServiceCategory } from '@prisma/client';
 import { Loader2 } from 'lucide-react';
 import { ConsularServiceListingItem } from '@/types/consular-service';
 import { NewServiceSchema, NewServiceSchemaInput } from '@/schemas/consular-service';
+import { InfoField } from '@/components/ui/info-field';
 
 interface ServiceFormProps {
   initialData?: Partial<ConsularServiceListingItem>;
-  handleSubmit: (data: typeof NewServiceSchema) => Promise<void>;
+  handleSubmit: (data: NewServiceSchemaInput) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -37,14 +38,16 @@ export function NewServiceForm({
   handleSubmit,
   isLoading,
 }: ServiceFormProps) {
-  const t = useTranslations('superadmin.services');
+  const t = useTranslations('services');
+  const t_common = useTranslations('common');
 
-  const form = useForm<typeof NewServiceSchemaInput>({
+  const form = useForm<NewServiceSchemaInput>({
     resolver: zodResolver(NewServiceSchema),
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
       category: initialData?.category || ServiceCategory.CIVIL_STATUS,
+      organizationId: initialData?.organizationId ?? undefined,
     },
   });
 
@@ -102,7 +105,7 @@ export function NewServiceForm({
                 <SelectContent>
                   {Object.values(ServiceCategory).map((category) => (
                     <SelectItem key={category} value={category}>
-                      {t(`categories.${category.toLowerCase()}`)}
+                      {t_common(`service_categories.${category}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -111,6 +114,13 @@ export function NewServiceForm({
             </FormItem>
           )}
         />
+
+        {initialData?.organizationId && (
+          <InfoField
+            label={t('form.organizationId.label')}
+            value={initialData.organizationId}
+          />
+        )}
 
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading}>

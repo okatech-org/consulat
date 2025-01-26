@@ -4,10 +4,18 @@ import { Organization } from '@/types/organization';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { OrganizationActions } from './organization-actions';
 import { DataTable } from '@/components/data-table/data-table';
 import { Country } from '@/types/country';
 import { OrganizationStatus, OrganizationType } from '@prisma/client';
+import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import { Ban, CheckCircle, Pencil, Trash } from 'lucide-react';
+import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import * as React from 'react';
+import { useOrganizationActions } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-actions';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useState } from 'react';
 
 export function OrganizationsTable({
   organizations,
@@ -16,7 +24,13 @@ export function OrganizationsTable({
   organizations: Organization[];
   countries: Country[];
 }) {
-  const t = useTranslations('superadmin.organizations');
+  const t = useTranslations('organization');
+  const t_common = useTranslations('common');
+  const { handleDelete, handleStatusChange } = useOrganizationActions();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(
+    null,
+  );
 
   const columns: ColumnDef<Organization>[] = [
     {
@@ -63,48 +77,109 @@ export function OrganizationsTable({
     },
     {
       id: 'actions',
-      cell: ({ row }) => <OrganizationActions organization={row.original} />,
+      cell: ({ row }) => (
+        <DataTableRowActions<Organization>
+          actions={[
+            {
+              component: (
+                <Link
+                  onClick={(e) => e.stopPropagation()}
+                  href={ROUTES.sa.edit_organization(row.original.id)}
+                >
+                  <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
+                </Link>
+              ),
+            },
+            {
+              label: (
+                <>
+                  {row.original.status === 'ACTIVE' ? (
+                    <>
+                      <Ban className="mr-2 size-4" />
+                      {t('actions.suspend')}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 size-4" />
+                      {t('actions.activate')}
+                    </>
+                  )}
+                </>
+              ),
+              onClick: (row) => {
+                handleStatusChange(
+                  row.id,
+                  row.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE',
+                );
+              },
+            },
+            {
+              label: (
+                <>
+                  <Trash className="mr-1 size-4 text-destructive" />
+                  <span className="text-destructive"> {t_common('actions.delete')}</span>
+                </>
+              ),
+              onClick: (row) => {
+                setSelectedOrganization(row);
+                setShowDeleteDialog(true);
+              },
+            },
+          ]}
+          row={row}
+        />
+      ),
+    },
+  ];
+
+  const localFilters: FilterOption[] = [
+    {
+      type: 'search',
+      value: 'name',
+      label: t('table.name'),
+    },
+    {
+      type: 'radio',
+      value: 'type',
+      label: t('table.type'),
+      options: Object.values(OrganizationType).map((type) => ({
+        value: type,
+        label: t(`types.${type}`),
+      })),
+    },
+    {
+      type: 'radio',
+      value: 'countries',
+      label: t('table.country'),
+      options: countries.map((country) => ({
+        value: country.code,
+        label: country.name,
+      })),
+    },
+    {
+      type: 'radio',
+      value: 'status',
+      label: t('table.status'),
+      options: Object.values(OrganizationStatus).map((status) => ({
+        value: status,
+        label: t(`status.${status}`),
+      })),
     },
   ];
 
   return (
-    <DataTable
-      filters={[
-        {
-          type: 'search',
-          value: 'name',
-          label: t('table.name'),
-        },
-        {
-          type: 'radio',
-          value: 'type',
-          label: t('table.type'),
-          options: Object.values(OrganizationType).map((type) => ({
-            value: type,
-            label: t(`types.${type}`),
-          })),
-        },
-        {
-          type: 'radio',
-          value: 'countries',
-          label: t('table.country'),
-          options: countries.map((country) => ({
-            value: country.code,
-            label: country.name,
-          })),
-        },
-        {
-          type: 'radio',
-          value: 'status',
-          label: t('table.status'),
-          options: Object.values(OrganizationStatus).map((status) => ({
-            value: status,
-            label: t(`status.${status}`),
-          })),
-        },
-      ]}
-      columns={columns}
-      data={organizations}
-    />
+    <>
+      <DataTable filters={localFilters} columns={columns} data={organizations} />{' '}
+      {selectedOrganization && (
+        <ConfirmDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={() => handleDelete(selectedOrganization?.id)}
+          title={t('actions.delete')}
+          description={t('actions.delete_confirm')}
+          variant={'destructive'}
+        />
+      )}
+    </>
   );
 }

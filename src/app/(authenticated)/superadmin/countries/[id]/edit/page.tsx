@@ -7,7 +7,7 @@ import { CountryForm } from '@/app/(authenticated)/superadmin/_utils/components/
 import NotFound from 'next/dist/client/components/not-found-error';
 
 export default async function CountryDetails({ params }: { params: { id: string } }) {
-  const t = await getTranslations('superadmin.countries');
+  const t = await getTranslations('sa.countries');
 
   // use async function to retrieve country data so that we do not need to fetch on client side
   const { data: country } = await getCountryById(params.id);

@@ -41,7 +41,3 @@ export interface CreateCountryInput {
   status?: 'ACTIVE' | 'INACTIVE';
   flag?: string;
 }
-
-export interface UpdateCountryInput extends Partial<CreateCountryInput> {
-  id: string;
-}

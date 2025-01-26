@@ -22,7 +22,7 @@ interface Option<T> {
 
 interface MultiSelectProps<T> {
   options: Option<T>[];
-  selected: T[];
+  selected?: T[];
   onChange: (values: T[]) => void;
   placeholder?: string;
   searchPlaceholder?: string;
@@ -33,7 +33,7 @@ interface MultiSelectProps<T> {
 
 export function MultiSelect<T extends string | number>({
   options,
-  selected,
+  selected = [],
   onChange,
   placeholder = 'Sélectionner...',
   searchPlaceholder = 'Rechercher...',

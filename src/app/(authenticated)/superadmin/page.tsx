@@ -5,7 +5,7 @@ import { auth } from '@/auth';
 
 export default async function SuperAdminDashboard() {
   const session = await auth();
-  const t = await getTranslations('superadmin');
+  const t = await getTranslations('sa');
 
   return (
     <div className="container space-y-8 py-8">

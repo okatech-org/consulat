@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation';
 import { CreateCountryInput } from '@/types/country';
 
 export function CreateCountryButton() {
-  const t = useTranslations('superadmin.countries');
+  const t = useTranslations('sa.countries');
   const t_messages = useTranslations('messages');
   const { toast } = useToast();
   const router = useRouter();

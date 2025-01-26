@@ -19,21 +19,26 @@ import { useState } from 'react';
 import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form';
 import { useRouter } from 'next/navigation';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
-import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react';
 import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getOrganizationFromId } from '@/app/(authenticated)/superadmin/_utils/services';
+import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import { RoleGuard } from '@/components/layouts/role-guard';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function ServicesTable({
   services,
   organizations = [],
+  columns,
 }: {
   services: ConsularServiceListingItem[];
   organizations: Organization[];
+  columns?: ColumnDef<ConsularServiceListingItem>[];
 }) {
-  const t = useTranslations('superadmin.services');
+  const user = useCurrentUser();
+  const t = useTranslations('services');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
   const [selectedService, setSelectedService] =
@@ -134,7 +139,7 @@ export function ServicesTable({
     }
   };
 
-  const columns: ColumnDef<ConsularServiceListingItem>[] = [
+  const localColumns: ColumnDef<ConsularServiceListingItem>[] = [
     {
       accessorKey: 'name',
       header: t('table.name'),
@@ -171,21 +176,21 @@ export function ServicesTable({
         <DataTableRowActions
           actions={[
             {
-              component: (
-                <Link
-                  onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.sa.edit_service(row.original.id)}
-                >
+              label: (
+                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
                   <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
-                </Link>
+                </RoleGuard>
               ),
+              onClick: (row) => {
+                router.push(ROUTES.sa.edit_service(row.id));
+              },
             },
             {
               label: (
-                <>
+                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
                   <Copy className="mr-1 size-4" />
                   {t_common('actions.duplicate')}
-                </>
+                </RoleGuard>
               ),
               onClick: (row) => {
                 handleDuplicateService(row.id);
@@ -193,10 +198,10 @@ export function ServicesTable({
             },
             {
               label: (
-                <>
+                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
                   {row.original.isActive ? (
                     <>
-                      <Ban className="mr-2 size-4" />
+                      <Ban className="mr-1 size-4" />
                       {t_common('actions.deactivate')}
                     </>
                   ) : (
@@ -205,7 +210,7 @@ export function ServicesTable({
                       {t_common('actions.activate')}
                     </>
                   )}
-                </>
+                </RoleGuard>
               ),
               onClick: (row) => {
                 handleStatusChange(row.id, !row.isActive);
@@ -213,10 +218,10 @@ export function ServicesTable({
             },
             {
               label: (
-                <>
+                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
                   <Trash className="mr-1 size-4 text-destructive" />
                   <span className="text-destructive"> {t_common('actions.delete')}</span>
-                </>
+                </RoleGuard>
               ),
               onClick: (row) => {
                 setSelectedService(row);
@@ -230,36 +235,38 @@ export function ServicesTable({
     },
   ];
 
+  const localFilters: FilterOption[] = [
+    {
+      type: 'search',
+      value: 'name',
+      label: t('table.name'),
+    },
+    {
+      type: 'radio',
+      value: 'category',
+      label: t('table.category'),
+      options: Object.values(ServiceCategory).map((category) => ({
+        value: category,
+        label: t_common(`service_categories.${category}`),
+      })),
+    },
+    {
+      type: 'radio',
+      value: 'isActive',
+      label: t('table.status'),
+      options: [
+        { value: 'true', label: t_common('status.active') },
+        { value: 'false', label: t_common('status.inactive') },
+      ],
+    },
+  ];
+
   return (
     <>
       <DataTable<ConsularServiceListingItem, unknown>
-        columns={columns}
+        columns={columns ?? localColumns}
         data={services}
-        filters={[
-          {
-            type: 'search',
-            value: 'name',
-            label: t('table.name'),
-          },
-          {
-            type: 'radio',
-            value: 'category',
-            label: t('table.category'),
-            options: Object.values(ServiceCategory).map((category) => ({
-              value: category,
-              label: t_common(`service_categories.${category}`),
-            })),
-          },
-          {
-            type: 'radio',
-            value: 'isActive',
-            label: t('table.status'),
-            options: [
-              { value: 'true', label: t_common('status.active') },
-              { value: 'false', label: t_common('status.inactive') },
-            ],
-          },
-        ]}
+        filters={localFilters}
         onRowClick={(row) => {
           setSelectedService(row.original);
           setShowEditDialog(true);

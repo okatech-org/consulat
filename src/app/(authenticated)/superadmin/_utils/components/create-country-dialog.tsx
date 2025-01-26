@@ -13,15 +13,15 @@ import { Button } from '@/components/ui/button';
 import { CountryForm } from './country-form';
 import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
-import { CreateCountryInput } from '@/types/country';
 import { createCountry } from '@/actions/countries';
+import { CountrySchemaInput } from '@/schemas/country';
 
 export function CreateCountryDialog() {
-  const t = useTranslations('superadmin.countries');
+  const t = useTranslations('sa.countries');
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const handleSubmit = async (data: CreateCountryInput) => {
+  const handleSubmit = async (data: CountrySchemaInput) => {
     const result = await createCountry(data);
 
     if (result.error) {

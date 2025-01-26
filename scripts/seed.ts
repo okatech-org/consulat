@@ -6,6 +6,7 @@ import {
   DocumentType,
   OrganizationStatus,
 } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -139,7 +140,7 @@ async function main() {
           type: OrganizationType.EMBASSY,
           status: OrganizationStatus.ACTIVE,
           countries: { connect: [{ id: countries[0].id }] },
-          metadata: {
+          metadata: JSON.stringify({
             FR: {
               settings: {
                 logo: 'https://example.com/logo-france.png',
@@ -179,7 +180,7 @@ async function main() {
                 ],
               },
             },
-          },
+          }),
         },
       }),
       prisma.organization.create({
@@ -188,7 +189,7 @@ async function main() {
           type: OrganizationType.GENERAL_CONSULATE,
           status: OrganizationStatus.ACTIVE,
           countries: { connect: [{ id: countries[0].id }] },
-          metadata: {
+          metadata: JSON.stringify({
             FR: {
               settings: {
                 logo: 'https://example.com/logo-marseille.png',
@@ -204,10 +205,10 @@ async function main() {
                   website: 'https://consulatgabon-marseille.org',
                 },
                 schedule: {
-                  monday: { open: '09:00', close: '16:30', isOpen: true },
-                  tuesday: { open: '09:00', close: '16:30', isOpen: true },
-                  wednesday: { open: '09:00', close: '16:30', isOpen: true },
-                  thursday: { open: '09:00', close: '16:30', isOpen: true },
+                  monday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                   friday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                   saturday: { isOpen: false },
                   sunday: { isOpen: false },
@@ -228,7 +229,7 @@ async function main() {
                 ],
               },
             },
-          },
+          }),
         },
       }),
       prisma.organization.create({
@@ -237,7 +238,7 @@ async function main() {
           type: OrganizationType.CONSULATE,
           status: OrganizationStatus.INACTIVE,
           countries: { connect: [{ id: countries[1].id }] },
-          metadata: {
+          metadata: JSON.stringify({
             BE: {
               settings: {
                 logo: 'https://example.com/logo-belgique.png',
@@ -277,7 +278,7 @@ async function main() {
                 ],
               },
             },
-          },
+          }),
         },
       }),
     ]);

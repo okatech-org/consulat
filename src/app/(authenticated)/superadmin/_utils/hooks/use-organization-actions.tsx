@@ -13,7 +13,7 @@ import { CreateOrganizationInput, UpdateOrganizationInput } from '@/schemas/orga
 export function useOrganizationActions() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const t = useTranslations('superadmin.organizations.messages');
+  const t = useTranslations('sa.organizations.messages');
 
   const handleCreate = async (data: CreateOrganizationInput) => {
     setIsLoading(true);
@@ -23,6 +23,7 @@ export function useOrganizationActions() {
       toast({ title: t('createSuccess') });
       return true;
     } catch (error) {
+      console.error(error);
       toast({
         title: t('error.create'),
         variant: 'destructive',
@@ -41,6 +42,7 @@ export function useOrganizationActions() {
       toast({ title: t('updateSuccess') });
       return true;
     } catch (error) {
+      console.error(error);
       toast({
         title: t('error.update'),
         variant: 'destructive',
@@ -59,6 +61,7 @@ export function useOrganizationActions() {
       toast({ title: t('updateSuccess') });
       return true;
     } catch (error) {
+      console.error(error);
       toast({
         title: t('error.update'),
         variant: 'destructive',
@@ -77,6 +80,7 @@ export function useOrganizationActions() {
       toast({ title: t('deleteSuccess') });
       return true;
     } catch (error) {
+      console.error(error);
       toast({
         title: t('error.delete'),
         variant: 'destructive',

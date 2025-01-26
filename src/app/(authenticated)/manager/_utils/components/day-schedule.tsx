@@ -1,9 +1,16 @@
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { TimeSelect } from '@/components/ui/time-select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { Key } from 'react';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  TradFormMessage,
+} from '@/components/ui/form';
+import * as React from 'react';
 
 export const DaySchedule = ({
   day,
@@ -24,7 +31,7 @@ export const DaySchedule = ({
   return (
     <div className="space-y-4 rounded-lg bg-muted/50 p-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium">{t(`organization.schedule.days.${day}`)}</h4>
+        <h4 className="text-sm font-medium">{t(`common.schedule.days.${day}`)}</h4>
         <Switch
           checked={form.watch(`metadata.${countryCode}.settings.schedule.${day}.isOpen`)}
           onCheckedChange={(checked) => {
@@ -32,6 +39,15 @@ export const DaySchedule = ({
               `metadata.${countryCode}.settings.schedule.${day}.isOpen`,
               checked,
             );
+
+            if (checked) {
+              form.setValue(`metadata.${countryCode}.settings.schedule.${day}.slots`, [
+                {
+                  start: '09:00',
+                  end: '17:00',
+                },
+              ]);
+            }
           }}
         />
       </div>
@@ -42,31 +58,43 @@ export const DaySchedule = ({
             <div key={index} className="flex items-center gap-2">
               <div className="flex flex-1 items-center gap-2">
                 <div className="flex-1 space-y-1">
-                  <Label className="text-xs text-muted-foreground">From</Label>
-                  <TimeSelect
-                    value={form.watch(
-                      `metadata.${countryCode}.settings.schedule.${day}.slots.${index}.start`,
+                  <FormField
+                    control={form.control}
+                    name={`metadata.${countryCode}.settings.schedule.${day}.slots.${index}.start`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('common.schedule.from')}</FormLabel>
+                        <FormControl>
+                          <TimeSelect
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <TradFormMessage />
+                      </FormItem>
                     )}
-                    onValueChange={(value) => {
-                      form.setValue(
-                        `metadata.${countryCode}.settings.schedule.${day}.slots.${index}.start`,
-                        value,
-                      );
-                    }}
                   />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Label className="text-xs text-muted-foreground">To</Label>
-                  <TimeSelect
-                    value={form.watch(
-                      `metadata.${countryCode}.settings.schedule.${day}.slots.${index}.end`,
+                  <FormField
+                    control={form.control}
+                    name={`metadata.${countryCode}.settings.schedule.${day}.slots.${index}.end`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('common.schedule.to')}</FormLabel>
+                        <FormControl>
+                          <TimeSelect
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <TradFormMessage />
+                      </FormItem>
                     )}
-                    onValueChange={(value) => {
-                      form.setValue(
-                        `metadata.${countryCode}.settings.schedule.${day}.slots.${index}.end`,
-                        value,
-                      );
-                    }}
                   />
                 </div>
               </div>
@@ -103,7 +131,7 @@ export const DaySchedule = ({
               ]);
             }}
           >
-            {t('organization.schedule.add_slot')}
+            {t('common.schedule.add_slot')}
           </Button>
         </div>
       )}

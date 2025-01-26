@@ -5,7 +5,7 @@ import { CreateCountryButton } from '@/app/(authenticated)/superadmin/_utils/com
 import CardContainer from '@/components/layouts/card-container';
 
 export default async function CountriesPage() {
-  const t = await getTranslations('superadmin.countries');
+  const t = await getTranslations('sa.countries');
   const { data: countries, error } = await getCountries();
 
   return (

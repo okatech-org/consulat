@@ -41,7 +41,7 @@ export function DynamicFieldsEditor({
   onChange,
   profileFields,
 }: DynamicFieldsEditorProps) {
-  const t = useTranslations('superadmin.services');
+  const t = useTranslations('services');
   const t_common = useTranslations('common');
   const t_inputs = useTranslations('inputs.profile');
   const [showFieldDialog, setShowFieldDialog] = useState(false);

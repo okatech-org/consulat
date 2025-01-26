@@ -48,7 +48,7 @@ interface CountryFormProps {
 }
 
 export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormProps) {
-  const t = useTranslations('superadmin.countries');
+  const t = useTranslations('sa.countries');
   const t_inputs = useTranslations('inputs');
   const [countries, setCountries] = useState<CountryItem[]>([]);
   const [searchValue, setSearchValue] = React.useState('');

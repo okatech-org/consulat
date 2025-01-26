@@ -9,7 +9,7 @@ import { processFileData } from '@/actions/utils';
 import { ROUTES } from '@/schemas/routes';
 
 export async function getOrganizationFromUser(userId: string) {
-  return db.organization.findFirst({
+  const data = await db.organization.findFirst({
     where: {
       userId,
     },
@@ -18,6 +18,8 @@ export async function getOrganizationFromUser(userId: string) {
       countries: true,
     },
   });
+
+  return { data, metadata: JSON.parse(data?.metadata ?? ('{}' as any)) };
 }
 
 export async function updateOrganizationSettings(
@@ -41,14 +43,19 @@ export async function updateOrganizationSettings(
       }
     }
 
-    // Mettre à jour l'organisation
+    const { countryIds, metadata, ...rest } = data;
+
     const organization = await db.organization.update({
       where: { id: organizationId },
       data: {
-        name: data.name,
-        logo: logoUrl,
-        metadata: data.metadata,
-        updatedAt: new Date(),
+        ...rest,
+        ...(metadata && { metadata: JSON.stringify(metadata) }),
+        ...(logoUrl && { logo: logoUrl }),
+        ...(countryIds && {
+          countries: {
+            connect: countryIds.map((id) => ({ id })),
+          },
+        }),
       },
     });
 

@@ -19,7 +19,7 @@ interface CreateOrganizationButtonProps {
 }
 
 export function CreateOrganizationButton({ countries }: CreateOrganizationButtonProps) {
-  const t = useTranslations('superadmin.organizations');
+  const t = useTranslations('sa.organizations');
   const [isOpen, setIsOpen] = useState(false);
 
   return (

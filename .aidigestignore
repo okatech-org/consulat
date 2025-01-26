@@ -24,4 +24,3 @@ yarn-error.log*
 /specs/base
 /translations/en.json
 /translations/es.json
-/src/components/ui

@@ -12,30 +12,6 @@ export const organizationSchema = z.object({
   adminEmail: z.string().email('messages.errors.invalid_email'),
 });
 
-export const SAOrganizationSettingsSchema = z.object({
-  name: z.string().min(1, 'messages.errors.name_required'),
-  logo: z.string().optional(),
-  logoFile: z.any().optional(), // Pour le nouveau logo
-  type: z.nativeEnum(OrganizationType),
-  status: z.nativeEnum(OrganizationStatus),
-  countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),
-});
-
-export type SAOrganizationSettingsFormData = z.infer<typeof SAOrganizationSettingsSchema>;
-
-export function getDefaultSAValues(
-  organization: Organization,
-): SAOrganizationSettingsFormData {
-  return {
-    name: organization.name ?? undefined,
-    logo: organization.logo ?? undefined,
-    logoFile: undefined, // Pas de logo par défaut lors de l'édition
-    type: organization.type,
-    status: organization.status,
-    countryIds: organization.countries.map((c) => c.id),
-  };
-}
-
 export type CreateOrganizationInput = z.infer<typeof organizationSchema>;
 
 export const updateOrganizationSchema = organizationSchema
@@ -46,14 +22,14 @@ export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 
 const TimeSlotSchema = z
   .object({
-    start: z.date({
-      invalid_type_error: 'messages.errors.invalid_date',
-      required_error: 'messages.errors.required',
-    }),
-    end: z.date({
-      invalid_type_error: 'messages.errors.invalid_date',
-      required_error: 'messages.errors.required',
-    }),
+    start: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'messages.errors.invalid_time_format')
+      .min(1, 'messages.errors.required'),
+    end: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'messages.errors.invalid_time_format')
+      .min(1, 'messages.errors.required'),
   })
   .optional();
 
@@ -134,6 +110,9 @@ export function generateOrganizationSettingsSchema(countries: Country[]) {
     name: z.string().min(1, 'messages.errors.name_required'),
     logo: z.string().optional(),
     logoFile: z.any().optional(),
+    type: z.nativeEnum(OrganizationType).optional(),
+    status: z.nativeEnum(OrganizationStatus).optional(),
+    countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),
     metadata: z.object(metadataShape).optional(),
   });
 }
@@ -190,14 +169,17 @@ export function getDefaultValues(
         },
       };
       return acc;
-       
     },
-    {} as Record<string, any>,
+    {} as Record<string, unknown>,
   );
 
   return {
     name: organization.name ?? undefined,
     logo: organization.logo ?? undefined,
+    logoFile: undefined,
+    countryIds: organization.countries.map((c) => c.id) ?? [],
+    type: organization.type,
+    status: organization.status,
     metadata: defaultMetadata,
   };
 }

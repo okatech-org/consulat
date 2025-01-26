@@ -11,7 +11,7 @@ export default async function ServicesPage() {
     { data: organizations, error: organizationsError },
   ] = await Promise.all([getServices(), getOrganizations()]);
 
-  const t = await getTranslations('superadmin.services');
+  const t = await getTranslations('services');
 
   return (
     <div className="container space-y-6">

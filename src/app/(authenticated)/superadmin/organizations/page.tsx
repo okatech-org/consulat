@@ -9,7 +9,7 @@ import CardContainer from '@/components/layouts/card-container';
 export default async function OrganizationsPage() {
   const { data: organizations } = await getOrganizations();
   const { data: countries } = await getCountries();
-  const t = await getTranslations('superadmin.organizations');
+  const t = await getTranslations('sa.organizations');
 
   return (
     <div className="container space-y-6">

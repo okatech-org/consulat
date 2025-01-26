@@ -17,14 +17,18 @@ import { useRouter } from 'next/navigation';
 import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form';
 import { NewServiceSchemaInput } from '@/schemas/consular-service';
 
-export function CreateServiceButton() {
-  const t = useTranslations('superadmin.services');
+export function CreateServiceButton({
+  initialData,
+}: {
+  initialData?: Partial<NewServiceSchemaInput>;
+}) {
+  const t = useTranslations('services');
   const { toast } = useToast();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (data: typeof NewServiceSchemaInput) => {
+  const handleSubmit = async (data: NewServiceSchemaInput) => {
     setIsLoading(true);
     try {
       const result = await createService(data);
@@ -40,6 +44,7 @@ export function CreateServiceButton() {
     } catch (error) {
       toast({
         title: t('messages.error.create'),
+        description: `${error}`,
         variant: 'destructive',
       });
     } finally {
@@ -59,7 +64,11 @@ export function CreateServiceButton() {
         <DialogHeader>
           <DialogTitle>{t('form.create_title')}</DialogTitle>
         </DialogHeader>
-        <NewServiceForm handleSubmit={handleSubmit} isLoading={isLoading} />
+        <NewServiceForm
+          handleSubmit={handleSubmit}
+          isLoading={isLoading}
+          initialData={initialData}
+        />
       </DialogContent>
     </Dialog>
   );

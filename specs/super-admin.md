@@ -15,7 +15,8 @@
 - [x] Nom du pays
 - [x] Code du pays
 - [x] Statut (actif/inactif)
-- [x] Paramètres régionaux (devise, langue, etc.)
+- [x] Paramètres régionaux (devise, langue, format de date/heure, fuseau horaire, ordre des champs d'adresse, champs
+  obligatoires d'adresse, jours fériés)
 
 ## 2. Gestion des Organismes
 
@@ -23,17 +24,21 @@
 
 - [x] Création d'organismes (consulats, ambassades)
 - [x] Attribution des organismes aux pays
-- [x] Configuration des paramètres des organismes
+- [x] Configuration des paramètres des organismes (nom, logo, type, statut, pays)
 - [x] Supervision des organismes
-- [x] Gestion des accès et permissions  *(Via la gestion des utilisateurs et l'attribution de rôles)*
+- [x] Gestion des accès et permissions *(Via la gestion des utilisateurs et l'attribution de rôles)*
+- [ ] Gestion des services liés aux organismes (Ajout, suppression, affichage) *En cours*
 
 ### Données Gérées
 
 - [x] Nom de l'organisme
-- [x] Localisation *(Informations de contact et adresse dans les métadonnées)*
-- [x] Pays de rattachement
-- [x] Informations de contact *(Dans les métadonnées)*
-- [x] Statut opérationnel
+- [x] Logo
+- [x] Type d'organisme (ambassade, consulat, etc.)
+- [x] Statut opérationnel (actif, inactif, suspendu)
+- [x] Pays de rattachement (plusieurs possibles)
+- [x] Informations de contact *(Dans les métadonnées : adresse, email, téléphone, site web)*
+- [ ] Jours fériés et fermetures exceptionnelles *(Reporté)*
+- [ ] Horaires d'ouverture *(Reporté)*
 
 ## 3. Gestion des Services
 
@@ -44,6 +49,7 @@
 - [x] Configuration des workflows de services *(Via les étapes du service)*
 - [x] Paramétrage des documents requis
 - [x] Gestion des tarifs
+- [ ] Affichage de la liste des services liés à un organisme dans les paramètres de l'organisme *En cours*
 
 ### Données Gérées
 
@@ -60,7 +66,7 @@
 - [ ] Supervision des comptes utilisateurs *(Partiellement via les profils, mais pas de tableau de bord dédié)*
 - [x] Gestion des rôles et permissions
 - [ ] Validation des comptes spéciaux *(Non implémenté)*
-- [ ] Surveillance des activités  *(Non implémenté)*
+- [ ] Surveillance des activités *(Non implémenté)*
 
 ### Types d'Utilisateurs Gérés
 
@@ -72,7 +78,7 @@
 
 ### Fonctionnalités Principales
 
-- [ ] Vue globale des demandes  *(Non implémenté)*
+- [ ] Vue globale des demandes *(Non implémenté)*
 - [ ] Suivi des performances *(Non implémenté)*
 - [ ] Gestion des escalades *(Non implémenté)*
 - [ ] Rapports d'activité *(Non implémenté)*
@@ -121,7 +127,7 @@
 ### Fonctionnalités Principales
 
 - [x] Validation des profils spéciaux *(Via le statut du profil et les notes)*
-- [ ] Gestion des informations sensibles  *(Non spécifié)*
+- [ ] Gestion des informations sensibles *(Non spécifié)*
 - [x] Supervision des modifications *(Via l'historique des mises à jour et les logs)*
 - [ ] Historique des changements *(Non implémenté explicitement, mais potentiellement géré par Prisma)*
 

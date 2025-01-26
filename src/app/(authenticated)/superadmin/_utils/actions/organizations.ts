@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import { CreateOrganizationInput, UpdateOrganizationInput } from '@/schemas/organization';
 import { OrganizationStatus, UserRole } from '@prisma/client';
+import { Organization } from '@/types/organization';
 
 export async function getOrganizations() {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
@@ -157,5 +158,48 @@ export async function deleteOrganization(id: string) {
   } catch (error) {
     console.error('Error deleting organization:', error);
     return { error: 'messages.error.delete' };
+  }
+}
+
+export async function getOrganizationById(id: string): Promise<{
+  data?: Organization | null;
+  error?: string;
+}> {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    const organization = await db.organization.findUnique({
+      where: { id },
+      include: {
+        countries: true,
+        services: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            category: true,
+            isActive: true,
+            organizationId: true,
+          },
+        },
+        _count: {
+          select: {
+            services: true,
+          },
+        },
+        User: true,
+      },
+    });
+
+    return {
+      data: {
+        ...organization,
+        metadata: JSON.parse(organization.metadata ?? '{}'),
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching organization:', error);
+    return { error: 'messages.error.fetch' };
   }
 }

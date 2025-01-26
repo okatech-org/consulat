@@ -10,7 +10,7 @@ export default async function EditServicePage({ params }: { params: { id: string
     { data: service, error: serviceError },
     { data: organizations, error: organizationsError },
   ] = await Promise.all([getFullService(params.id), getOrganizations()]);
-  const t = await getTranslations('superadmin.services');
+  const t = await getTranslations('services');
 
   if (serviceError || organizationsError) {
     return <div>Error: {serviceError || organizationsError}</div>;

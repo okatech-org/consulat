@@ -48,6 +48,7 @@ import { DynamicFieldsEditor } from '@/app/(authenticated)/superadmin/_utils/com
 import { profileFields } from '@/types/profile';
 import { Separator } from '@/components/ui/separator';
 import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
+import { filterUneditedKeys } from '@/lib/utils';
 
 interface ServiceFormProps {
   organizations: Organization[];
@@ -55,7 +56,7 @@ interface ServiceFormProps {
 }
 
 export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
-  const t = useTranslations('superadmin.services');
+  const t = useTranslations('services');
   const t_inputs = useTranslations('inputs');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -90,13 +91,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
   const handleSubmit = async (data: ServiceSchemaInput) => {
     setIsLoading(true);
     try {
-      const editedKeys = ['id', ...Object.keys(form.formState.dirtyFields)];
-
-      Object.entries(data).forEach(([key]) => {
-        if (!editedKeys.includes(key)) {
-          delete data[key as keyof UpdateServiceInput];
-        }
-      });
+      filterUneditedKeys(data, form.formState.dirtyFields, ['id']);
 
       const result = await updateService(data);
       if (result.error) {
@@ -110,6 +105,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
     } catch (error) {
       toast({
         title: t('messages.error.update'),
+        description: `${error}`,
         variant: 'destructive',
       });
     } finally {

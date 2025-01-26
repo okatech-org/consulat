@@ -58,6 +58,11 @@ export async function createService(data: NewServiceSchemaInput) {
         name: data.name,
         description: data.description,
         category: data.category,
+        ...(data.organizationId && {
+          organization: {
+            connect: { id: data.organizationId },
+          },
+        }),
       },
     });
 

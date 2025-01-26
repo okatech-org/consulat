@@ -19,7 +19,7 @@ export function EditCountryDialog({
   open,
   onOpenChange,
 }: EditCountryDialogProps) {
-  const t = useTranslations('superadmin.countries');
+  const t = useTranslations('sa.countries');
   const { toast } = useToast();
 
   const handleSubmit = async (data: CountrySchemaInput) => {

@@ -1,8 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getTranslations } from 'next-intl/server';
-import { OrganizationSettings } from '@/app/(authenticated)/manager/_utils/components/organization-settings';
+import { OrganizationSettings } from '@/components/service/organization-settings';
 import { GeneralSettings } from '@/app/(authenticated)/manager/_utils/components/general-settings';
-import { getOrganizationFromUser } from '@/app/(authenticated)/manager/_utils/actions/organization';
+import { getOrganizationFromUser } from '@/components/service/organization';
 
 import { getCurrentUser } from '@/actions/user';
 import { Unauthorized } from '@/components/layouts/unauthorized';

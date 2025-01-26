@@ -7,7 +7,7 @@ import { useOrganizationDialog } from '@/app/(authenticated)/superadmin/_utils/h
 import { Country } from '@prisma/client';
 
 export function OrganizationDialog({ countries }: { countries: Country[] }) {
-  const t = useTranslations('superadmin.organizations');
+  const t = useTranslations('sa.organizations');
   const { isOpen, organization, closeDialog } = useOrganizationDialog();
 
   return (

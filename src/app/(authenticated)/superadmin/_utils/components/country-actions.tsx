@@ -26,7 +26,7 @@ import { Country } from '@/types/country';
 import { deleteCountry } from '@/actions/countries';
 
 export function CountryActions({ country }: { country: Country }) {
-  const t = useTranslations('superadmin.countries');
+  const t = useTranslations('sa.countries');
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);

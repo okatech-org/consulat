@@ -23,8 +23,7 @@ export const ROUTES = {
     services: '/superadmin/services' as Route<string>,
     users: '/superadmin/users' as Route<string>,
     edit_service: (id: string) => `/superadmin/services/${id}/edit` as Route<string>,
-    edit_organization: (id: string) =>
-      `/superadmin/organizations/${id}/edit` as Route<string>,
+    edit_organization: (id: string) => `/superadmin/organizations/${id}` as Route<string>,
     edit_country: (id: string) => `/superadmin/countries/${id}/edit` as Route<string>,
   },
 

@@ -63,8 +63,8 @@ export function UserDocument({
   required = false,
   disabled = false,
 }: UserDocumentProps) {
-  const t = useTranslations('common.components');
-  const t_messages = useTranslations('messages.components');
+  const t = useTranslations('common.documents');
+  const t_messages = useTranslations('messages');
   const { toast } = useToast();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [preview, setPreview] = React.useState<string | null>(null);
@@ -83,8 +83,7 @@ export function UserDocument({
       }
 
       toast({
-        title: t_messages('success.update_title'),
-        description: t_messages('success.update_description'),
+        title: t_messages('success.update'),
         variant: 'success',
       });
 
@@ -113,8 +112,7 @@ export function UserDocument({
         }
 
         toast({
-          title: t_messages('success.update_title'),
-          description: t_messages('success.update_description'),
+          title: t_messages('success.update'),
           variant: 'success',
         });
 
@@ -145,8 +143,7 @@ export function UserDocument({
       }
 
       toast({
-        title: t_messages('success.update_title'),
-        description: t_messages('success.update_description'),
+        title: t_messages('success.update'),
         variant: 'success',
       });
 
@@ -252,7 +249,9 @@ export function UserDocument({
       EXPIRING: 'warning',
     };
     return (
-      <Badge variant={variants[status]}>{t(`status.${status.toLowerCase()}`)}</Badge>
+      <Badge variant={variants[status]}>
+        {t(`status.${status.toLowerCase()}` as any)}
+      </Badge>
     );
   };
 
@@ -304,7 +303,7 @@ export function UserDocument({
             >
               {isLoading && <ReloadIcon className={'animate-rotate size-6'} />}
 
-              {isLoading ? t('actions.uploading') : t('actions.upload')}
+              {isLoading && t('actions.upload')}
             </Button>
             <p className="mt-2 text-sm text-muted-foreground">
               {t('upload.description')}
@@ -398,7 +397,7 @@ export function UserDocument({
                 <div className="text-sm text-muted-foreground">
                   {Object.entries(document.metadata).map(([key, value]) => (
                     <p key={key}>
-                      {t(`metadata.${key}`)}: {value}
+                      {t(`metadata.${key}` as any)}: {value}
                     </p>
                   ))}
                 </div>

@@ -64,7 +64,7 @@ export function OrganizationForm({
   onSuccess,
   onCancel,
 }: OrganizationFormProps) {
-  const t = useTranslations('superadmin.organizations');
+  const t = useTranslations('organization');
   const t_common = useTranslations('common');
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');

@@ -35,7 +35,7 @@ interface CountriesListProps {
 }
 
 export function CountriesList({ countries }: CountriesListProps) {
-  const t = useTranslations('superadmin.countries');
+  const t = useTranslations('sa.countries');
   const t_common = useTranslations('common');
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);

@@ -5,7 +5,7 @@ import { ActionResult, checkAuth } from '@/lib/auth/action';
 import { UserRole } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
-import { Country, CountryMetadata, CreateCountryInput } from '@/types/country';
+import { Country, CountryMetadata } from '@/types/country';
 import { CountrySchemaInput } from '@/schemas/country';
 
 export async function getCountries() {
@@ -38,7 +38,7 @@ export async function getCountries() {
   }
 }
 
-export async function createCountry(data: CreateCountryInput) {
+export async function createCountry(data: CountrySchemaInput) {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
   if (authResult.error) return { error: authResult.error };
 

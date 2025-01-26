@@ -387,6 +387,40 @@
       "CERTIFICATION": "Certification",
       "REGISTRATION": "Enregistrement",
       "OTHER": "Autre"
+    },
+    "schedule": {
+      "title": "Horaires d'ouverture",
+      "days": {
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche"
+      },
+      "periods": {
+        "morning": "Matin",
+        "afternoon": "Après-midi"
+      },
+      "closed": "Fermé",
+      "open": "Ouvert",
+      "from": "De",
+      "to": "À",
+      "add_slot": "Ajouter un créneau"
+    },
+    "holidays": {
+      "title": "Jours fériés",
+      "add": "Ajouter un jour férié",
+      "name": "Nom",
+      "date": "Date"
+    },
+    "closures": {
+      "title": "Fermetures exceptionnelles",
+      "add": "Ajouter une fermeture",
+      "reason": "Motif",
+      "start_date": "Date de début",
+      "end_date": "Date de fin"
     }
   },
   "inputs": {
@@ -586,6 +620,7 @@
       "update": "Échec de la mise à jour",
       "duplicate": "Échec de la duplication",
       "start_time_required": "L'heure de début est requise",
+      "invalid_date": "Date invalide",
       "end_time_required": "L'heure de fin est requise",
       "invalid_url": "L'URL n'est pas valide",
       "date_required": "La date est requise",
@@ -1221,7 +1256,6 @@
     "profiles": {
       "title": "Gestion des profils",
       "description": "Gérez et suivez les profils des utilisateurs",
-
       "table": {
         "name": "Nom complet",
         "nationality": "Nationalité",
@@ -1231,7 +1265,6 @@
         "actions": "Actions",
         "empty": "Aucun profil trouvé"
       },
-
       "filters": {
         "search": "Rechercher un profil...",
         "status": "Filtrer par statut",
@@ -1240,7 +1273,6 @@
         "reset": "Réinitialiser les filtres",
         "active_filters": "Filtres actifs"
       },
-
       "status": {
         "draft": "Brouillon",
         "submitted": "Soumis",
@@ -1248,7 +1280,6 @@
         "validated": "Validé",
         "rejected": "Rejeté"
       },
-
       "actions": {
         "review": "Examiner",
         "validate": "Valider",
@@ -1257,12 +1288,10 @@
         "view_details": "Voir les détails",
         "export": "Exporter"
       },
-
       "empty": {
         "title": "Aucun profil",
         "description": "Aucun profil ne correspond à vos critères de recherche"
       },
-
       "review": {
         "title": "Revue du profil",
         "submitted_on": "Soumis le",
@@ -1454,16 +1483,6 @@
       "services": "Nouvelle démarche",
       "my_requests": "Mes démarches"
     }
-  },
-  "actions": {
-    "save": "Enregistrer",
-    "saving": "Enregistrement...",
-    "delete": "Supprimer",
-    "deleting": "Suppression...",
-    "cancel": "Annuler",
-    "confirm": "Confirmer",
-    "edit": "Modifier",
-    "close": "Fermer"
   },
   "profile": {
     "title": "Mon profil",
@@ -2076,7 +2095,6 @@
       "required_field": "Ce champ est obligatoire",
       "invalid_date": "Date invalide",
       "acquiring_mode": "Mode d'acquisition de la nationalité",
-
       "passport": {
         "section_title": "Informations du passeport",
         "section_description": "Renseignez les informations de votre passeport gabonais en cours de validité",
@@ -3045,7 +3063,7 @@
       "PROFILE_REJECTED": "Profil rejeté"
     }
   },
-  "superadmin": {
+  "sa": {
     "welcome": "Bienvenue {name}",
     "countries": {
       "title": "Gestion des Pays",
@@ -3211,277 +3229,6 @@
         "create_title": "Ajouter un organisme",
         "edit_title": "Modifier l'organisme"
       }
-    },
-    "services": {
-      "name": {
-        "placeholder": "Ex: Demande de passeport"
-      },
-      "title": "Services Consulaires",
-      "messages": {
-        "createSuccess": "Service créé avec succès",
-        "updateSuccess": "Service mis à jour avec succès",
-        "deleteSuccess": "Service supprimé avec succès",
-        "error": {
-          "create": "Erreur lors de la création du service",
-          "update": "Erreur lors de la mise à jour du service",
-          "delete": "Erreur lors de la suppression du service",
-          "fetch": "Erreur lors de la récupération des services"
-        }
-      },
-      "actions": {
-        "create": "Créer un service",
-        "edit": "Modifier",
-        "delete": "Supprimer",
-        "activate": "Activer",
-        "deactivate": "Désactiver",
-        "update": "Mettre à jour",
-        "delete_confirm": "Êtes-vous sûr de vouloir supprimer ce service ?"
-      },
-      "tabs": {
-        "general": "Informations générales",
-        "documents": "Documents",
-        "appointment": "Rendez-vous",
-        "delivery": "Présence & Livraison",
-        "pricing": "Tarification",
-        "steps": "Étapes supplémentaires"
-      },
-      "form": {
-        "create_title": "Nouveau service",
-        "edit_title": "Modifier le service",
-        "name": {
-          "label": "Nom du service",
-          "placeholder": "Entrez le nom du service"
-        },
-        "description": {
-          "label": "Description",
-          "placeholder": "Décrivez le service"
-        },
-        "category": {
-          "label": "Catégorie",
-          "placeholder": "Sélectionnez une catégorie"
-        },
-        "organization": {
-          "label": "Organisation",
-          "placeholder": "Sélectionnez une organisation"
-        },
-        "required_documents": {
-          "label": "Documents requis",
-          "placeholder": "Sélectionner",
-          "search": "Rechercher un document",
-          "empty": "Aucun document trouvé"
-        },
-        "optional_documents": {
-          "label": "Documents optionnels",
-          "placeholder": "Sélectionner",
-          "search": "Rechercher un document",
-          "empty": "Aucun document trouvé"
-        },
-        "requires_appointment": {
-          "label": "Rendez-vous requis",
-          "description": "Ce service nécessite-t-il un rendez-vous ?"
-        },
-        "appointment_duration": {
-          "label": "Durée du rendez-vous",
-          "placeholder": "Durée en minutes"
-        },
-        "price": {
-          "label": "Prix",
-          "placeholder": "0.00"
-        },
-        "general": {
-          "name": {
-            "label": "Nom du service",
-            "placeholder": "Ex: Demande de passeport"
-          },
-          "description": {
-            "label": "Description",
-            "placeholder": "Description détaillée du service..."
-          },
-          "category": {
-            "label": "Catégorie",
-            "placeholder": "Sélectionner une catégorie"
-          },
-          "processing_mode": {
-            "label": "Mode de traitement",
-            "options": {
-              "online_only": "En ligne uniquement",
-              "presence_required": "Présence requise",
-              "hybrid": "Hybride",
-              "by_proxy": "Par procuration"
-            }
-          }
-        },
-        "documents": {
-          "required": {
-            "label": "Documents requis",
-            "placeholder": "Sélectionner les documents requis"
-          },
-          "optional": {
-            "label": "Documents optionnels",
-            "placeholder": "Sélectionner les documents optionnels"
-          }
-        },
-        "appointment": {
-          "requires_appointment": {
-            "label": "Nécessite un rendez-vous",
-            "description": "Activer si ce service nécessite un rendez-vous"
-          },
-          "duration": {
-            "label": "Durée du rendez-vous",
-            "placeholder": "30",
-            "description": "Durée en minutes"
-          },
-          "instructions": {
-            "label": "Instructions",
-            "placeholder": "Instructions spécifiques pour le rendez-vous",
-            "description": "Instructions qui seront affichées lors de la prise de rendez-vous"
-          }
-        },
-        "delivery": {
-          "modes": {
-            "label": "Modes de remise",
-            "options": {
-              "in_person": "En personne",
-              "postal": "Par courrier",
-              "electronic": "Électronique",
-              "by_proxy": "Par procuration"
-            }
-          },
-          "proxy": {
-            "allows": "Autoriser la procuration",
-            "requirements": {
-              "label": "Conditions de procuration",
-              "placeholder": "Conditions et documents requis pour la procuration..."
-            }
-          },
-          "postal": {
-            "available": "Livraison postale disponible",
-            "requirements": {
-              "label": "Conditions d'envoi postal",
-              "placeholder": "Conditions et restrictions pour l'envoi postal..."
-            },
-            "fees": {
-              "label": "Frais d'envoi",
-              "placeholder": "0.00"
-            }
-          },
-          "appointment": {
-            "label": "Rendez-vous pour la remise",
-            "instructions": "Instructions de remise",
-            "placeholder": "Instructions spécifiques pour la remise des documents",
-            "description": "Instructions qui seront affichées lors de la prise de rendez-vous"
-          }
-        },
-        "pricing": {
-          "label": "Frais de service",
-          "description": "Définissez les frais de service pour ce service ou laissez le champ vide pour un service gratuit",
-          "price": {
-            "label": "Prix",
-            "placeholder": "0.00"
-          },
-          "currency": {
-            "label": "Devise",
-            "placeholder": "EUR"
-          }
-        },
-        "steps": {
-          "add": "Ajouter une étape",
-          "edit": "Modifier l'étape",
-          "delete": "Supprimer l'étape",
-          "step": {
-            "title": {
-              "label": "Titre de l'étape",
-              "placeholder": "Ex: Informations personnelles"
-            },
-            "description": {
-              "label": "Description",
-              "placeholder": "Description de l'étape..."
-            },
-            "type": {
-              "label": "Type d'étape",
-              "options": {
-                "form": "Formulaire",
-                "documents": "Documents",
-                "appointment": "Rendez-vous",
-                "payment": "Paiement",
-                "review": "Révision"
-              }
-            },
-            "required": "Étape obligatoire",
-            "fields": {
-              "name": "Nom du champ",
-              "label": "Label affiché",
-              "type": "Type de champ",
-              "required": "Champ obligatoire",
-              "types": {
-                "text": "Texte",
-                "email": "Email",
-                "phone": "Téléphone",
-                "date": "Date",
-                "select": "Liste déroulante",
-                "number": "Nombre",
-                "address": "Adresse"
-              },
-              "options": "Options",
-              "add": "Ajouter un champ",
-              "edit": "Modifier le champ",
-              "profile_mapping": "Mapping avec le profil",
-              "profile_mapping_description": "Associer ce champ à un champ du profil utilisateur",
-              "select_profile_field": "Sélectionner un champ",
-              "no_mapping": "Pas de mapping",
-              "mapped_to": "Mappé à : {field}"
-            }
-          },
-          "title": "Titre",
-          "type": "Type d'étape",
-          "untitled": "Sans titre",
-          "types": {
-            "form": "Formulaire",
-            "documents": "Documents",
-            "appointment": "Rendez-vous",
-            "payment": "Paiement",
-            "review": "Révision"
-          }
-        }
-      },
-      "categories": {
-        "identity": "Documents d'identité",
-        "civil_status": "État civil",
-        "visa": "Visas",
-        "certification": "Certification",
-        "registration": "Inscription consulaire",
-        "other": "Autre"
-      },
-      "documents": {
-        "passport": "Passeport",
-        "identity_card": "Carte d'identité",
-        "birth_certificate": "Acte de naissance",
-        "residence_permit": "Titre de séjour",
-        "proof_of_address": "Justificatif de domicile",
-        "marriage_certificate": "Acte de mariage",
-        "death_certificate": "Acte de décès",
-        "divorce_decree": "Jugement de divorce",
-        "nationality_certificate": "Certificat de nationalité",
-        "other": "Autre document",
-        "visa_pages": "Pages de visa",
-        "identity_photo": "Photo d'identité",
-        "consular_card": "Carte consulaire",
-        "naturalization_decree": "Décret de naturalisation",
-        "employment_proof": "Justificatif d'emploi"
-      },
-      "table": {
-        "name": "Nom",
-        "category": "Catégorie",
-        "organization": "Organisation",
-        "status": "Statut",
-        "requests": "Demandes",
-        "actions": "Actions"
-      },
-      "quick_edit": {
-        "title": "Modification rapide",
-        "continue": "Continuer l'édition"
-      },
-      "edit_title": "Édition du service"
     }
   },
   "manager": {
@@ -3546,90 +3293,6 @@
         "organization": "Informations de l'organisme",
         "general": "Paramètres généraux"
       },
-      "organization": {
-        "title": "Informations de l'organisme",
-        "configForCountry": "Configuration - {country}",
-        "general": {
-          "logo": "Logo",
-          "name": "Nom de l'organisme",
-          "email": "Adresse email",
-          "phone": "Numéro de téléphone",
-          "website": "Site web",
-          "address_line1": "Adresse - Ligne 1",
-          "address_line2": "Adresse - Ligne 2 (optionnel)",
-          "city": "Ville",
-          "zip_code": "Code postal",
-          "placeholders": {
-            "name": "Nom de l'organisme",
-            "address": "Numéro et nom de rue"
-          },
-          "schedule": {
-            "title": "Horaires d'ouverture",
-            "days": {
-              "monday": "Lundi",
-              "tuesday": "Mardi",
-              "wednesday": "Mercredi",
-              "thursday": "Jeudi",
-              "friday": "Vendredi",
-              "saturday": "Samedi",
-              "sunday": "Dimanche"
-            },
-            "periods": {
-              "morning": "Matin",
-              "afternoon": "Après-midi"
-            },
-            "closed": "Fermé",
-            "open": "Ouvert"
-          },
-          "holidays": {
-            "title": "Jours fériés",
-            "add": "Ajouter un jour férié",
-            "name": "Nom",
-            "date": "Date"
-          },
-          "closures": {
-            "title": "Fermetures exceptionnelles",
-            "add": "Ajouter une fermeture",
-            "reason": "Motif",
-            "start_date": "Date de début",
-            "end_date": "Date de fin"
-          }
-        },
-        "schedule": {
-          "title": "Horaires d'ouverture",
-          "days": {
-            "monday": "Lundi",
-            "tuesday": "Mardi",
-            "wednesday": "Mercredi",
-            "thursday": "Jeudi",
-            "friday": "Vendredi",
-            "saturday": "Samedi",
-            "sunday": "Dimanche"
-          },
-          "add_slot": "+ Ajouter un créneau",
-          "from": "De",
-          "to": "À"
-        },
-        "contact": {
-          "title": "Coordonnées",
-          "email": "Email",
-          "phone": "Téléphone",
-          "website": "Site web"
-        },
-        "holidays": {
-          "title": "Jours fériés",
-          "add": "Ajouter un jour férié",
-          "name": "Nom",
-          "date": "Date"
-        },
-        "closures": {
-          "title": "Fermetures exceptionnelles",
-          "add": "Ajouter une fermeture",
-          "reason": "Motif",
-          "start_date": "Date de début",
-          "end_date": "Date de fin"
-        }
-      },
       "general": {
         "title": "Paramètres généraux",
         "description": "Personnalisez les paramètres généraux de l'organisation",
@@ -3660,13 +3323,37 @@
     }
   },
   "services": {
-    "categories": {
-      "identity": "Documents d'identité",
-      "civil_status": "État civil",
-      "visa": "Visas",
-      "certification": "Certification",
-      "registration": "Inscription",
-      "other": "Autre"
+    "name": {
+      "placeholder": "Ex: Demande de passeport"
+    },
+    "title": "Services Consulaires",
+    "messages": {
+      "createSuccess": "Service créé avec succès",
+      "updateSuccess": "Service mis à jour avec succès",
+      "deleteSuccess": "Service supprimé avec succès",
+      "error": {
+        "create": "Erreur lors de la création du service",
+        "update": "Erreur lors de la mise à jour du service",
+        "delete": "Erreur lors de la suppression du service",
+        "fetch": "Erreur lors de la récupération des services"
+      }
+    },
+    "actions": {
+      "create": "Créer un service",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "activate": "Activer",
+      "deactivate": "Désactiver",
+      "update": "Mettre à jour",
+      "delete_confirm": "Êtes-vous sûr de vouloir supprimer ce service ?"
+    },
+    "tabs": {
+      "general": "Informations générales",
+      "documents": "Documents",
+      "appointment": "Rendez-vous",
+      "delivery": "Présence & Livraison",
+      "pricing": "Tarification",
+      "steps": "Étapes supplémentaires"
     },
     "processing": {
       "title": "Mode de traitement",
@@ -3695,6 +3382,524 @@
       "postal": {
         "information": "Des frais d'envoi supplémentaires peuvent s'appliquer",
         "requirements": "Adresse de livraison complète requise"
+      }
+    },
+    "form": {
+      "create_title": "Nouveau service",
+      "edit_title": "Modifier le service",
+      "name": {
+        "label": "Nom du service",
+        "placeholder": "Entrez le nom du service"
+      },
+      "organizationId": {
+        "label": "Organisation",
+        "placeholder": "Sélectionnez une organisation"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Décrivez le service"
+      },
+      "category": {
+        "label": "Catégorie",
+        "placeholder": "Sélectionnez une catégorie"
+      },
+      "organization": {
+        "label": "Organisation",
+        "placeholder": "Sélectionnez une organisation"
+      },
+      "required_documents": {
+        "label": "Documents requis",
+        "placeholder": "Sélectionner",
+        "search": "Rechercher un document",
+        "empty": "Aucun document trouvé"
+      },
+      "optional_documents": {
+        "label": "Documents optionnels",
+        "placeholder": "Sélectionner",
+        "search": "Rechercher un document",
+        "empty": "Aucun document trouvé"
+      },
+      "requires_appointment": {
+        "label": "Rendez-vous requis",
+        "description": "Ce service nécessite-t-il un rendez-vous ?"
+      },
+      "appointment_duration": {
+        "label": "Durée du rendez-vous",
+        "placeholder": "Durée en minutes"
+      },
+      "price": {
+        "label": "Prix",
+        "placeholder": "0.00"
+      },
+      "general": {
+        "name": {
+          "label": "Nom du service",
+          "placeholder": "Ex: Demande de passeport"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Description détaillée du service..."
+        },
+        "category": {
+          "label": "Catégorie",
+          "placeholder": "Sélectionner une catégorie"
+        },
+        "processing_mode": {
+          "label": "Mode de traitement",
+          "options": {
+            "online_only": "En ligne uniquement",
+            "presence_required": "Présence requise",
+            "hybrid": "Hybride",
+            "by_proxy": "Par procuration"
+          }
+        }
+      },
+      "documents": {
+        "required": {
+          "label": "Documents requis",
+          "placeholder": "Sélectionner les documents requis"
+        },
+        "optional": {
+          "label": "Documents optionnels",
+          "placeholder": "Sélectionner les documents optionnels"
+        }
+      },
+      "appointment": {
+        "requires_appointment": {
+          "label": "Nécessite un rendez-vous",
+          "description": "Activer si ce service nécessite un rendez-vous"
+        },
+        "duration": {
+          "label": "Durée du rendez-vous",
+          "placeholder": "30",
+          "description": "Durée en minutes"
+        },
+        "instructions": {
+          "label": "Instructions",
+          "placeholder": "Instructions spécifiques pour le rendez-vous",
+          "description": "Instructions qui seront affichées lors de la prise de rendez-vous"
+        }
+      },
+      "delivery": {
+        "modes": {
+          "label": "Modes de remise",
+          "options": {
+            "in_person": "En personne",
+            "postal": "Par courrier",
+            "electronic": "Électronique",
+            "by_proxy": "Par procuration"
+          }
+        },
+        "proxy": {
+          "allows": "Autoriser la procuration",
+          "requirements": {
+            "label": "Conditions de procuration",
+            "placeholder": "Conditions et documents requis pour la procuration..."
+          }
+        },
+        "postal": {
+          "available": "Livraison postale disponible",
+          "requirements": {
+            "label": "Conditions d'envoi postal",
+            "placeholder": "Conditions et restrictions pour l'envoi postal..."
+          },
+          "fees": {
+            "label": "Frais d'envoi",
+            "placeholder": "0.00"
+          }
+        },
+        "appointment": {
+          "label": "Rendez-vous pour la remise",
+          "instructions": "Instructions de remise",
+          "placeholder": "Instructions spécifiques pour la remise des documents",
+          "description": "Instructions qui seront affichées lors de la prise de rendez-vous"
+        }
+      },
+      "pricing": {
+        "label": "Frais de service",
+        "description": "Définissez les frais de service pour ce service ou laissez le champ vide pour un service gratuit",
+        "price": {
+          "label": "Prix",
+          "placeholder": "0.00"
+        },
+        "currency": {
+          "label": "Devise",
+          "placeholder": "EUR"
+        }
+      },
+      "steps": {
+        "add": "Ajouter une étape",
+        "edit": "Modifier l'étape",
+        "delete": "Supprimer l'étape",
+        "step": {
+          "title": {
+            "label": "Titre de l'étape",
+            "placeholder": "Ex: Informations personnelles"
+          },
+          "description": {
+            "label": "Description",
+            "placeholder": "Description de l'étape..."
+          },
+          "type": {
+            "label": "Type d'étape",
+            "options": {
+              "form": "Formulaire",
+              "documents": "Documents",
+              "appointment": "Rendez-vous",
+              "payment": "Paiement",
+              "review": "Révision"
+            }
+          },
+          "required": "Étape obligatoire",
+          "fields": {
+            "name": "Nom du champ",
+            "label": "Label affiché",
+            "type": "Type de champ",
+            "required": "Champ obligatoire",
+            "types": {
+              "text": "Texte",
+              "email": "Email",
+              "phone": "Téléphone",
+              "date": "Date",
+              "select": "Liste déroulante",
+              "number": "Nombre",
+              "address": "Adresse"
+            },
+            "options": "Options",
+            "add": "Ajouter un champ",
+            "edit": "Modifier le champ",
+            "profile_mapping": "Mapping avec le profil",
+            "profile_mapping_description": "Associer ce champ à un champ du profil utilisateur",
+            "select_profile_field": "Sélectionner un champ",
+            "no_mapping": "Pas de mapping",
+            "mapped_to": "Mappé à : {field}"
+          }
+        },
+        "title": "Titre",
+        "type": "Type d'étape",
+        "untitled": "Sans titre",
+        "types": {
+          "form": "Formulaire",
+          "documents": "Documents",
+          "appointment": "Rendez-vous",
+          "payment": "Paiement",
+          "review": "Révision"
+        }
+      }
+    },
+    "categories": {
+      "identity": "Documents d'identité",
+      "civil_status": "État civil",
+      "visa": "Visas",
+      "certification": "Certification",
+      "registration": "Inscription consulaire",
+      "other": "Autre",
+      "IDENTITY": "Identité",
+      "CIVIL_STATUS": "État civil",
+      "VISA": "Visa",
+      "CERTIFICATION": "Certification",
+      "REGISTRATION": "Enregistrement",
+      "OTHER": "Autre"
+    },
+    "documents": {
+      "passport": "Passeport",
+      "identity_card": "Carte d'identité",
+      "birth_certificate": "Acte de naissance",
+      "residence_permit": "Titre de séjour",
+      "proof_of_address": "Justificatif de domicile",
+      "marriage_certificate": "Acte de mariage",
+      "death_certificate": "Acte de décès",
+      "divorce_decree": "Jugement de divorce",
+      "nationality_certificate": "Certificat de nationalité",
+      "other": "Autre document",
+      "visa_pages": "Pages de visa",
+      "identity_photo": "Photo d'identité",
+      "consular_card": "Carte consulaire",
+      "naturalization_decree": "Décret de naturalisation",
+      "employment_proof": "Justificatif d'emploi"
+    },
+    "table": {
+      "name": "Nom",
+      "category": "Catégorie",
+      "organization": "Organisation",
+      "status": "Statut",
+      "requests": "Demandes",
+      "actions": "Actions"
+    },
+    "quick_edit": {
+      "title": "Modification rapide",
+      "continue": "Continuer l'édition"
+    },
+    "edit_title": "Édition du service"
+  },
+  "organization": {
+    "title": "Gestion des Organismes",
+    "types": {
+      "EMBASSY": "Ambassade",
+      "CONSULATE": "Consulat",
+      "GENERAL_CONSULATE": "Consulat général",
+      "HONORARY_CONSULATE": "Consulat honoraire",
+      "OTHER": "Autre"
+    },
+    "status": {
+      "ACTIVE": "Actif",
+      "INACTIVE": "Inactif",
+      "SUSPENDED": "Suspendu"
+    },
+    "actions": {
+      "create": "Ajouter un organisme",
+      "edit": "Modifier",
+      "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet organisme ?",
+      "delete": "Supprimer",
+      "suspend": "Suspendre",
+      "activate": "Activer"
+    },
+    "table": {
+      "name": "Nom",
+      "type": "Type",
+      "country": "Pays",
+      "status": "Statut",
+      "users": "Utilisateurs",
+      "services": "Services",
+      "actions": "Actions",
+      "empty": "Aucun organisme trouvé",
+      "category": "Catégorie"
+    },
+    "form": {
+      "create_title": "Ajouter un organisme",
+      "basic_info": "Informations de base",
+      "name": {
+        "label": "Nom de l'organisme",
+        "placeholder": "Ex: Consulat du Gabon à Paris"
+      },
+      "type": {
+        "label": "Type d'organisme",
+        "placeholder": "Sélectionner un type"
+      },
+      "status": {
+        "label": "Statut",
+        "placeholder": "Sélectionner un statut"
+      },
+      "countries": {
+        "label": "Pays de rattachement",
+        "placeholder": "Sélectionner un pays",
+        "search": "Rechercher un pays",
+        "empty": "Aucun pays trouvé"
+      },
+      "admin_email": {
+        "label": "Email de l'administrateur",
+        "placeholder": "Ex: admin@example.com"
+      },
+      "country": {
+        "label": "Pays de rattachement",
+        "placeholder": "Sélectionner un pays"
+      },
+      "contact": {
+        "title": "Coordonnées",
+        "email": "Email",
+        "phone": "Téléphone",
+        "phone_placeholder": "Ex: 01 23 45 67 89",
+        "website": "Site web"
+      },
+      "address": {
+        "title": "Adresse",
+        "street": "Rue",
+        "city": "Ville",
+        "zipCode": "Code postal",
+        "country": "Pays"
+      },
+      "linked_countries": {
+        "title": "Pays liés à l'organisme"
+      },
+      "available_countries": {
+        "title": "Pays disponibles"
+      },
+      "linked_services": {
+        "title": "Services liés"
+      },
+      "logo": {
+        "label": "Logo de l'organisation"
+      },
+      "title": "Informations de l'organisme",
+      "configForCountry": "Configuration - {country}",
+      "general": {
+        "logo": "Logo",
+        "name": "Nom de l'organisme",
+        "email": "Adresse email",
+        "phone": "Numéro de téléphone",
+        "website": "Site web",
+        "address_line1": "Adresse - Ligne 1",
+        "address_line2": "Adresse - Ligne 2 (optionnel)",
+        "city": "Ville",
+        "zip_code": "Code postal",
+        "placeholders": {
+          "name": "Nom de l'organisme",
+          "address": "Numéro et nom de rue"
+        },
+        "schedule": {
+          "title": "Horaires d'ouverture",
+          "days": {
+            "monday": "Lundi",
+            "tuesday": "Mardi",
+            "wednesday": "Mercredi",
+            "thursday": "Jeudi",
+            "friday": "Vendredi",
+            "saturday": "Samedi",
+            "sunday": "Dimanche"
+          },
+          "periods": {
+            "morning": "Matin",
+            "afternoon": "Après-midi"
+          },
+          "closed": "Fermé",
+          "open": "Ouvert"
+        },
+        "holidays": {
+          "title": "Jours fériés",
+          "add": "Ajouter un jour férié",
+          "name": "Nom",
+          "date": "Date"
+        },
+        "closures": {
+          "title": "Fermetures exceptionnelles",
+          "add": "Ajouter une fermeture",
+          "reason": "Motif",
+          "start_date": "Date de début",
+          "end_date": "Date de fin"
+        }
+      },
+      "schedule": {
+        "title": "Horaires d'ouverture",
+        "days": {
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        },
+        "add_slot": "+ Ajouter un créneau",
+        "from": "De",
+        "to": "À"
+      },
+      "holidays": {
+        "title": "Jours fériés",
+        "add": "Ajouter un jour férié",
+        "name": "Nom",
+        "date": "Date"
+      },
+      "closures": {
+        "title": "Fermetures exceptionnelles",
+        "add": "Ajouter une fermeture",
+        "reason": "Motif",
+        "start_date": "Date de début",
+        "end_date": "Date de fin"
+      }
+    },
+    "messages": {
+      "createSuccess": "Organisme créé avec succès",
+      "updateSuccess": "Organisme mis à jour avec succès",
+      "deleteSuccess": "Organisme supprimé avec succès",
+      "error": {
+        "create": "Erreur lors de la création",
+        "update": "Erreur lors de la mise à jour",
+        "delete": "Erreur lors de la suppression"
+      }
+    },
+    "dialog": {
+      "create_title": "Ajouter un organisme",
+      "edit_title": "Modifier l'organisme"
+    },
+    "settings": {
+      "title": "Paramètres de l'organisation",
+      "description": "Personnalisez les paramètres de votre organisation",
+      "copy_config": "Copier la configuration",
+      "copy_from": "Copier depuis",
+      "copy_to": "Copier vers",
+      "copy_success": "Configuration copiée avec succès",
+      "tabs": {
+        "organization": "Informations de l'organisme",
+        "general": "Paramètres généraux",
+        "services": "Services"
+      },
+      "configForCountry": "Configuration - {country}",
+      "general": {
+        "title": "Paramètres généraux",
+        "description": "Personnalisez les paramètres généraux de l'organisation",
+        "notifications": {
+          "sms": "Notifications SMS",
+          "sms_description": "Recevez des notifications par SMS pour les demandes en attente et les rendez-vous",
+          "email": "Notifications Email",
+          "email_description": "Recevez des notifications par email pour les demandes en attente et les rendez-vous"
+        },
+        "sms": {
+          "title": "Notifications SMS",
+          "enabled": "Activer les notifications SMS",
+          "description": "Recevez des notifications par SMS pour les demandes en attente et les rendez-vous"
+        },
+        "save": "Enregistrer les paramètres",
+        "saving": "Enregistrement en cours...",
+        "logo": "Logo",
+        "name": "Nom de l'organisme",
+        "email": "Adresse email",
+        "phone": "Numéro de téléphone",
+        "website": "Site web",
+        "address_line1": "Adresse - Ligne 1",
+        "address_line2": "Adresse - Ligne 2 (optionnel)",
+        "city": "Ville",
+        "zip_code": "Code postal",
+        "placeholders": {
+          "name": "Nom de l'organisme",
+          "address": "Numéro et nom de rue"
+        }
+      },
+      "schedule": {
+        "title": "Horaires d'ouverture",
+        "days": {
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        },
+        "add_slot": "+ Ajouter un créneau",
+        "from": "De",
+        "to": "À"
+      },
+      "contact": {
+        "title": "Coordonnées",
+        "email": "Email",
+        "phone": "Téléphone",
+        "website": "Site web"
+      },
+      "holidays": {
+        "title": "Jours fériés",
+        "add": "Ajouter un jour férié",
+        "name": "Nom",
+        "date": "Date"
+      },
+      "closures": {
+        "title": "Fermetures exceptionnelles",
+        "add": "Ajouter une fermeture",
+        "reason": "Motif",
+        "start_date": "Date de début",
+        "end_date": "Date de fin"
+      },
+      "messages": {
+        "success": {
+          "update": "Paramètres mis à jour",
+          "update_description": "Les paramètres de l'organisation ont été mis à jour avec succès"
+        },
+        "error": {
+          "unknown": "Une erreur inconnue est survenue",
+          "update": "Erreur lors de la mise à jour de l'organisation.",
+          "not_found": "Organisation introuvable.",
+          "has_dependencies": "Impossible de supprimer. Cet organisme est utilisé par d'autres entités.",
+          "delete": "Erreur lors de la suppression de l'organisation."
+        }
       }
     }
   }
