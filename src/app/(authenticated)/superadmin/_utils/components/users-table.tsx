@@ -34,12 +34,7 @@ export function UsersTable({ agents }: UsersTableProps) {
       header: t('table.phone'),
     },
     {
-      accessorKey: 'organizationId',
-      header: t('table.organization'),
-      enableHiding: true,
-    },
-    {
-      accessorKey: 'countries',
+      accessorKey: 'linkedCountries',
       header: () => <>{t('table.countries')}</>,
       cell: ({ row }) => (
         <div>
@@ -55,7 +50,7 @@ export function UsersTable({ agents }: UsersTableProps) {
         <div>
           {row.original.serviceCategories?.map((cat) => (
             <Badge className="mr-1" key={cat.toString()} variant="secondary">
-              {t_base(`services.categories.${cat as any}`)}
+              {t_base(`services.categories.${cat}`)}
             </Badge>
           )) || t_base('common.status.not_assigned')}
         </div>

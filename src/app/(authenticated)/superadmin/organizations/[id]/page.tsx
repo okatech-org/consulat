@@ -66,11 +66,11 @@ export default async function OrganizationSettingsPage({
           <TabsTrigger value="services">
             {t('organization.settings.tabs.services')}
           </TabsTrigger>
-          <TabsTrigger value="general">
-            {t('organization.settings.tabs.general')}
-          </TabsTrigger>
           <TabsTrigger value="agents">
             {t('organization.settings.tabs.agents')}
+          </TabsTrigger>
+          <TabsTrigger value="general">
+            {t('organization.settings.tabs.general')}
           </TabsTrigger>
         </TabsList>
 
