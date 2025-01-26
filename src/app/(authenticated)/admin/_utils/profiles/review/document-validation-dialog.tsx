@@ -59,6 +59,7 @@ export function DocumentValidationDialog({
       onValidated();
       onClose();
     } catch (error) {
+      console.error(error);
       toast({
         title: t('validation.error.title'),
         description: t('validation.error.description'),

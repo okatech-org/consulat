@@ -151,6 +151,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
 
       setIsEditing(false);
     } catch (error) {
+      console.error('Error updating contact info:', error);
       toast({
         title: t_messages('errors.update_failed'),
         description: t_messages('errors.unknown'),

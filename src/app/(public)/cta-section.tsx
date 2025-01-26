@@ -25,6 +25,7 @@ export function CTASection() {
 
       setEmail('');
     } catch (error) {
+      console.error(error);
       toast({
         title: 'Une erreur est survenue',
         description:

@@ -32,7 +32,6 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 
 type BasicInfoFormProps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturn<BasicInfoFormData>; // Ajouter cette prop
   onSubmit: () => void;
   formRef?: React.RefObject<HTMLFormElement>;

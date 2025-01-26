@@ -38,6 +38,14 @@ export const ROUTES = {
     settings: '/manager/settings' as Route<string>,
   },
 
+  user: {
+    base: '/user' as Route<string>,
+    profile: '/user/profile' as Route<string>,
+    settings: '/user/settings' as Route<string>,
+    documents: '/user/components' as Route<string>,
+    requests: '/user/requests' as Route<string>,
+  },
+
   // Pages utilisateur
   profile: '/user/profile' as Route<string>,
   settings: '/user/settings' as Route<string>,

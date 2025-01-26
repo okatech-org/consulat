@@ -14,16 +14,6 @@ import { DataTableRowActions } from '@/components/data-table/data-table-row-acti
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { deleteCountry } from '@/actions/countries';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { EditCountryDialog } from '@/app/(authenticated)/superadmin/_utils/components/edit-country-dialog';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
@@ -40,11 +30,9 @@ export function CountriesList({ countries }: CountriesListProps) {
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [country, setCountry] = useState<Country | null>(null);
 
   const handleDelete = async (country: Country) => {
-    setIsDeleting(true);
     const result = await deleteCountry(country.id);
 
     if (result.error) {
@@ -58,7 +46,6 @@ export function CountriesList({ countries }: CountriesListProps) {
       });
       setShowDeleteDialog(false);
     }
-    setIsDeleting(false);
   };
 
   const columns: ColumnDef<Country>[] = [

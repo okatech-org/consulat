@@ -176,9 +176,8 @@ function extractJsonFromResponse(content: string): Record<string, any> {
 
         acc[key] = value;
         return acc;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       },
-      {} as Record<string, any>,
+      {} as Record<string, unknown>,
     );
   } catch (error) {
     console.error('Error extracting JSON:', error);

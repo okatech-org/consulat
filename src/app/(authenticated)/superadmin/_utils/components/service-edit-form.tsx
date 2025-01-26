@@ -16,11 +16,7 @@ import {
 import { Organization } from '@/types/organization';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, ArrowUp, Trash } from 'lucide-react';
-import {
-  ConsularServiceItem,
-  ServiceStep,
-  UpdateServiceInput,
-} from '@/types/consular-service';
+import { ConsularServiceItem, ServiceStep } from '@/types/consular-service';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { useState } from 'react';
 import { updateService } from '@/app/(authenticated)/superadmin/_utils/actions/services';

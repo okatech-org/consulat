@@ -34,7 +34,7 @@ interface ProfileReviewProps {
 }
 
 export function ProfileReview({ profile }: ProfileReviewProps) {
-  const t = useTranslations('actions.profiles.review');
+  const t = useTranslations('admin.profiles.review');
   const [isLoading, setIsLoading] = useState(false);
   const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null);
   const router = useRouter();
@@ -71,7 +71,7 @@ export function ProfileReview({ profile }: ProfileReviewProps) {
     } catch (error) {
       toast({
         title: t('validation.error.title'),
-        description: t('validation.error.unknown'),
+        description: t('validation.error.unknown') + `: ${error}`,
         variant: 'destructive',
       });
     } finally {
@@ -187,7 +187,7 @@ const ValidationDialog = ({
   isLoading,
 }: ValidationDialogProps) => {
   const [notes, setNotes] = useState('');
-  const t = useTranslations('actions.profiles.review');
+  const t = useTranslations('admin.profiles.review');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

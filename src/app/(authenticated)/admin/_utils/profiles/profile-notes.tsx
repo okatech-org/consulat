@@ -55,7 +55,7 @@ interface NoteEditorProps {
 
 const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
   const [content, setContent] = useState('');
-  const t = useTranslations('actions.profiles.review.notes');
+  const t = useTranslations('admin.profiles.review.notes');
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
@@ -93,7 +93,7 @@ interface ProfileNotesProps {
 export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const t = useTranslations('actions.profiles.review.notes');
+  const t = useTranslations('admin.profiles.review.notes');
 
   const handleAddNote = async (content: string, type: 'INTERNAL' | 'FEEDBACK') => {
     try {
@@ -119,6 +119,7 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
         variant: 'success',
       });
     } catch (error) {
+      console.error('Error adding note:', error);
       toast({
         title: t('error.title'),
         description: t('error.unknown'),
@@ -175,7 +176,7 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
 }
 
 export const NotesList = ({ notes }: { notes: Note[] }) => {
-  const t = useTranslations('actions.profiles.review.notes');
+  const t = useTranslations('admin.profiles.review.notes');
 
   return (
     <Card>

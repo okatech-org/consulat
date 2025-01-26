@@ -59,6 +59,7 @@ export function SubmitProfileButton({ profileId, isComplete }: SubmitProfileButt
       setIsDialogOpen(false);
       router.refresh();
     } catch (error) {
+      console.error(error);
       toast({
         title: t('error.title'),
         description: t('error.unknown'),

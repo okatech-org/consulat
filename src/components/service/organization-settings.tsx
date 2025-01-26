@@ -231,7 +231,7 @@ export function OrganizationSettings({
             <TabsContent key={country.id} value={country.id} className={'space-y-4'}>
               <CardContainer
                 title={t('settings.configForCountry', {
-                  country: t_countries(country.code.toLowerCase() as any),
+                  country: t_countries(country.code.toLowerCase()),
                 })}
               >
                 <div className={'space-y-6'}>
@@ -398,7 +398,7 @@ export function OrganizationSettings({
                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                       {form
                         .watch(`metadata.${country.code}.settings.holidays`)
-                        ?.map((_: any, index: React.Key | null | undefined) => (
+                        ?.map((_: never, index: React.Key | null | undefined) => (
                           <CardContainer key={index} contentClass={'!p-4 relative'}>
                             <div className="grid gap-4">
                               <div className="flex items-start justify-between">
@@ -491,7 +491,7 @@ export function OrganizationSettings({
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {form
                         .watch(`metadata.${country.code}.settings.closures`)
-                        ?.map((_: any, index: React.Key | null | undefined) => (
+                        ?.map((_: never, index: React.Key | null | undefined) => (
                           <CardContainer key={index} contentClass={'!p-4 relative'}>
                             <div className="grid gap-4">
                               <div className="flex items-start justify-between">
@@ -563,8 +563,10 @@ export function OrganizationSettings({
                                     );
                                     form.setValue(
                                       `metadata.${country.code}.settings.closures`,
-                                      // eslint-disable-next-line
-                                      closures.filter((_: any, i: any) => i !== index),
+                                       
+                                      closures.filter(
+                                        (_: never, i: number) => i !== index,
+                                      ),
                                     );
                                   }}
                                 >

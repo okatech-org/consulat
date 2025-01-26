@@ -23,7 +23,6 @@ export function UserNav({ user }: { user: User }) {
   const { setTheme, resolvedTheme } = useTheme();
 
   return (
-    // eslint-disable-next-line react/jsx-no-undef
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative size-8 rounded-full">

@@ -68,6 +68,7 @@ export async function deleteFiles(keys: string[]) {
   try {
     await Promise.all(keys.map((key) => utapi.deleteFiles(key)));
   } catch (error) {
+    console.error('Error deleting files:', error);
     throw new Error('Error deleting files');
   }
 }

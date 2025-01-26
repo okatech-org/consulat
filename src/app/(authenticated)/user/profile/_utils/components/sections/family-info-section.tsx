@@ -111,6 +111,7 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
 
       setIsEditing(false);
     } catch (error) {
+      console.error('Error updating family info:', error);
       toast({
         title: t_messages('errors.update_failed'),
         description: t_messages('errors.unknown'),

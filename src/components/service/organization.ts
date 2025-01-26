@@ -19,6 +19,7 @@ export async function getOrganizationFromUser(userId: string) {
     },
   });
 
+  // eslint-disable-next-line
   return { data, metadata: JSON.parse(data?.metadata ?? ('{}' as any)) };
 }
 

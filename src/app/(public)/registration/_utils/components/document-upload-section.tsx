@@ -12,9 +12,9 @@ import { DocumentUploadField } from '@/components/ui/document-upload';
 import { Form, FormField } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { getFieldsForDocument } from '@/lib/document-fields';
-import { useToast } from '@/components/ui/use-toast';
 import { DocumentField } from '@/lib/utils';
 import { analyzeDocuments } from '@/actions/documents';
+import { useToast } from '@/hooks/use-toast';
 
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
@@ -39,8 +39,8 @@ export function DocumentUploadSection({
   const requiredDocuments = [
     {
       id: 'passportFile' as const,
-      label: t('components.passport.label'),
-      description: t('components.passport.description'),
+      label: t('documents.passport.label'),
+      description: t('documents.passport.description'),
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
@@ -48,8 +48,8 @@ export function DocumentUploadSection({
     },
     {
       id: 'birthCertificateFile' as const,
-      label: t('components.birth_certificate.label'),
-      description: t('components.birth_certificate.description'),
+      label: t('documents.birth_certificate.label'),
+      description: t('documents.birth_certificate.description'),
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
@@ -57,8 +57,8 @@ export function DocumentUploadSection({
     },
     {
       id: 'residencePermitFile' as const,
-      label: t('components.residence_permit.label'),
-      description: t('components.residence_permit.description'),
+      label: t('documents.residence_permit.label'),
+      description: t('documents.residence_permit.description'),
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
@@ -66,8 +66,8 @@ export function DocumentUploadSection({
     },
     {
       id: 'addressProofFile' as const,
-      label: t('components.address_proof.label'),
-      description: t('components.address_proof.description'),
+      label: t('documents.address_proof.label'),
+      description: t('documents.address_proof.description'),
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
@@ -80,7 +80,7 @@ export function DocumentUploadSection({
     const analysisFields: { key: keyof DocumentsFormData; fields: DocumentField[] }[] =
       [];
 
-    // Collecter les components et leurs champs d'analyse respectifs
+    // Collecter les documents et leurs champs d'analyse respectifs
     Object.entries(form.getValues()).forEach(([key, fileList]) => {
       const doc = requiredDocuments.find((d) => d.id === key);
       if (fileList && doc) {
@@ -94,8 +94,8 @@ export function DocumentUploadSection({
 
     if (analysisFields.length === 0) {
       toast({
-        title: t('components.analysis.error.title'),
-        description: t('components.analysis.error.no_documents'),
+        title: t('documents.analysis.error.title'),
+        description: t('documents.analysis.error.no_documents'),
         variant: 'destructive',
       });
       return;
@@ -111,7 +111,7 @@ export function DocumentUploadSection({
       }
     } catch (error) {
       toast({
-        title: t('components.analysis.error.title'),
+        title: t('documents.analysis.error.title'),
         description: error instanceof Error ? error.message : t('errors.unknown'),
         variant: 'destructive',
       });
@@ -127,7 +127,7 @@ export function DocumentUploadSection({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-8"
       >
-        {/* Section des components */}
+        {/* Section des documents */}
         <Card className="overflow-hidden">
           <CardContent className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
             <AnimatePresence mode="sync">
@@ -177,17 +177,17 @@ export function DocumentUploadSection({
                             src="https://lottie.host/3dcbeb73-3c3f-4dbe-93de-a973430b6c4c/aX6F1INJXN.json"
                             className="size-5"
                           />
-                          {t('components.analysis.analyzing')}
+                          {t('documents.analysis.analyzing')}
                         </>
                       ) : (
                         <>
                           <ScanBarcode className="size-5" />
-                          {t('components.analysis.start')}
+                          {t('documents.analysis.start')}
                         </>
                       )}
                     </Button>
                     <p className="text-sm text-muted-foreground">
-                      {t('components.analysis.help')}
+                      {t('documents.analysis.help')}
                     </p>
                   </div>
                 </CardContent>
@@ -207,16 +207,16 @@ function DocumentUploadGuide() {
   const t = useTranslations('registration');
 
   const documentTips = [
-    t('components.tips.list.quality'),
-    t('components.tips.list.lighting'),
-    t('components.tips.list.reflection'),
-    t('components.tips.list.corners'),
-    t('components.tips.list.validity'),
+    t('documents.tips.list.quality'),
+    t('documents.tips.list.lighting'),
+    t('documents.tips.list.reflection'),
+    t('documents.tips.list.corners'),
+    t('documents.tips.list.validity'),
   ];
 
   return (
     <div className="rounded-lg bg-muted p-4">
-      <h3 className="font-medium">{t('components.tips.title')}</h3>
+      <h3 className="font-medium">{t('documents.tips.title')}</h3>
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
         {documentTips.map((tip, index) => (
           <motion.li

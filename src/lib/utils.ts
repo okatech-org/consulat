@@ -10,15 +10,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type ProfileActions = {
-  contact?: boolean;
-  share?: boolean;
-  message?: boolean;
-  card?: boolean;
-  edit?: boolean;
-  cardPreview?: boolean;
-};
-
 type VCardData = {
   firstName?: string;
   lastName?: string;
@@ -55,29 +46,33 @@ export function generateVCardString(data: VCardData): string {
     vCardString += `ORG:${data.title};\n`;
   }
 
-  data.emails &&
+  if (data.emails) {
     data.emails.forEach((email) => {
       vCardString += `EMAIL;type=INTERNET;type=pref:${email.value}\n`;
     });
+  }
 
-  data.phones &&
+  if (data.phones) {
     data.phones.forEach((phone) => {
       vCardString += `TEL;type=CELL;type=VOICE;type=pref:${phone.value}\n`;
     });
+  }
 
-  data.addresses &&
+  if (data.addresses) {
     data.addresses.forEach((address, index) => {
       const addressType = index === 0 ? 'WORK;type=pref' : 'HOME';
       vCardString += `ADR;type=${addressType}:;;${address.firstLine};${address.city};;${address.zipCode};${address.country}\n`;
     });
+  }
 
-  data.socialLinks &&
+  if (data.socialLinks) {
     data.socialLinks.forEach((socialLink, index) => {
       vCardString += `item${index + 1}.URL;type=pref:${socialLink.url}\n`;
       vCardString += `item${index + 1}.X-ABLabel:${socialLink.type}\n`;
     });
+  }
 
-  data.links &&
+  if (data.links) {
     data.links?.forEach((link, index) => {
       const linkType = index === 0 ? 'pref' : '';
       vCardString += `item${index + 1}.URL;type=${linkType.toLocaleUpperCase()}:${link.url}\n`;
@@ -85,8 +80,9 @@ export function generateVCardString(data: VCardData): string {
         vCardString += `item${index + 1}.X-ABLabel:_$!<HomePage>!$_\n`;
       }
     });
+  }
 
-  data.note && (vCardString += `NOTE:${data.note}\n`);
+  if (data.note) vCardString += `NOTE:${data.note}\n`;
 
   vCardString += `END:VCARD`;
 

@@ -11,7 +11,6 @@ interface NavigationProps<T extends keyof ConsularFormData> {
   currentStep: number;
   totalSteps: number;
   isLoading: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onNext: (data: ConsularFormData[T]) => void;
   onPrevious: () => void;
   forms: Record<T, UseFormReturn<ConsularFormData[T]>>;

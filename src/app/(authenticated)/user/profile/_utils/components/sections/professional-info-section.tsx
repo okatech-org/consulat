@@ -108,6 +108,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
 
       setIsEditing(false);
     } catch (error) {
+      console.error(error);
       toast({
         title: t_messages('errors.update_failed'),
         description: t_messages('errors.unknown'),

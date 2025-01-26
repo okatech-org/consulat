@@ -114,6 +114,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
 
       setIsEditing(false);
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast({
         title: t_messages('errors.update_failed'),
         description: t_messages('errors.unknown'),

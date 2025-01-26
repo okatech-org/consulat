@@ -1305,7 +1305,8 @@
           "documents": "Documents",
           "contact": "Contact",
           "family": "Famille",
-          "professional": "Professionnel"
+          "professional": "Professionnel",
+          "components": "Composants"
         },
         "sections": {
           "basic_info": "Informations de base",
@@ -1473,17 +1474,6 @@
       }
     }
   },
-  "user": {
-    "nav": {
-      "dashboard": "Mon espace",
-      "requests": "Mes demandes",
-      "profile": "Mon profil",
-      "documents": "Mes documents",
-      "procedures": "Démarches",
-      "services": "Nouvelle démarche",
-      "my_requests": "Mes démarches"
-    }
-  },
   "profile": {
     "title": "Mon profil",
     "completion": {
@@ -1641,6 +1631,7 @@
       },
       "edit": "Modifier",
       "view": "Voir",
+      "review": "Examiner",
       "share": "Partager",
       "download": "Télécharger",
       "create": "Créer mon profil",
@@ -3901,6 +3892,27 @@
           "delete": "Erreur lors de la suppression de l'organisation."
         }
       }
+    }
+  },
+  "user": {
+    "title": "Profil utilisateur",
+    "dashboard": {
+      "title": "Tableau de bord",
+      "overview": {
+        "title": "Vue d'ensemble",
+        "pending_requests": "Demandes en attente",
+        "processing_requests": "Demandes en cours",
+        "completed_requests": "Demandes traitées"
+      }
+    },
+    "nav": {
+      "dashboard": "Mon espace",
+      "requests": "Mes demandes",
+      "profile": "Mon profil",
+      "documents": "Mes documents",
+      "procedures": "Démarches",
+      "services": "Nouvelle démarche",
+      "my_requests": "Mes démarches"
     }
   }
 }
