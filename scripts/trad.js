@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const frJsonPath = path.join(__dirname, '../translations', 'fr.json');
-const frSampleJsonPath = path.join(__dirname, '../translations', 'sample.json');
+const frJsonPath = path.join(__dirname, '../locales', 'fr.json');
+const frSampleJsonPath = path.join(__dirname, '../locales', 'sample.json');
 
 // Function to recursively replace all string values with empty strings
 const replaceStrings = (obj) => {

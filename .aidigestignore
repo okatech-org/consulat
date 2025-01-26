@@ -22,5 +22,5 @@ yarn-error.log*
 /ai-sum/*
 /src/assets
 /specs/base
-/translations/en.json
-/translations/es.json
+/locales/en.json
+/locales/es.json
