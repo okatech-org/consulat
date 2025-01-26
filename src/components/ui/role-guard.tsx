@@ -2,6 +2,7 @@
 
 import { UserRole } from '@prisma/client';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { Unauthorized } from '@/components/layouts/unauthorized';
 
 type Props = {
   children: React.ReactNode;
@@ -12,11 +13,11 @@ export function RoleGuard({ roles, children }: Readonly<Props>) {
   const user = useCurrentUser();
 
   if (!user) {
-    return null;
+    return <Unauthorized />;
   }
 
   if (!roles.includes(user.role)) {
-    return null;
+    return <Unauthorized />;
   }
 
   return <>{children}</>;

@@ -13,7 +13,7 @@ export default async function AuthenticatedLayout({
   return (
     <SessionProvider session={session}>
       <ServerAuthGuard>
-        <SidebarProvider defaultOpen={false}>{children}</SidebarProvider>
+        <SidebarProvider>{children}</SidebarProvider>
       </ServerAuthGuard>
     </SessionProvider>
   );

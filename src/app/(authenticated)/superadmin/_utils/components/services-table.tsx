@@ -25,8 +25,7 @@ import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getOrganizationFromId } from '@/app/(authenticated)/superadmin/_utils/services';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
-import { RoleGuard } from '@/components/layouts/role-guard';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { RoleGuard } from '@/components/ui/role-guard';
 
 export function ServicesTable({
   services,
@@ -37,7 +36,6 @@ export function ServicesTable({
   organizations: OrganizationListingItem[];
   columns?: ColumnDef<ConsularServiceListingItem>[];
 }) {
-  const user = useCurrentUser();
   const t = useTranslations('services');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
@@ -177,7 +175,7 @@ export function ServicesTable({
           actions={[
             {
               label: (
-                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
+                <RoleGuard roles={['SUPER_ADMIN']}>
                   <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
                 </RoleGuard>
               ),
@@ -187,7 +185,7 @@ export function ServicesTable({
             },
             {
               label: (
-                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
+                <RoleGuard roles={['SUPER_ADMIN']}>
                   <Copy className="mr-1 size-4" />
                   {t_common('actions.duplicate')}
                 </RoleGuard>
@@ -198,7 +196,7 @@ export function ServicesTable({
             },
             {
               label: (
-                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
+                <RoleGuard roles={['SUPER_ADMIN']}>
                   {row.original.isActive ? (
                     <>
                       <Ban className="mr-1 size-4" />
@@ -218,7 +216,7 @@ export function ServicesTable({
             },
             {
               label: (
-                <RoleGuard roles={['SUPER_ADMIN']} currentRole={user?.role}>
+                <RoleGuard roles={['SUPER_ADMIN']}>
                   <Trash className="mr-1 size-4 text-destructive" />
                   <span className="text-destructive"> {t_common('actions.delete')}</span>
                 </RoleGuard>

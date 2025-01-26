@@ -1,22 +1,14 @@
-import { auth } from '@/auth';
-import { RoleGuard } from '@/components/layouts/role-guard';
-import { Unauthorized } from '@/components/layouts/unauthorized';
 import { UserRole } from '@prisma/client';
 import SuperAdminSidebar from '@/app/(authenticated)/superadmin/_utils/components/sa-sidebar';
+import { RoleGuard } from '@/components/ui/role-guard';
 
 export default async function SuperAdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
-
   return (
-    <RoleGuard
-      roles={[UserRole.SUPER_ADMIN]}
-      currentRole={session?.user.role}
-      fallback={<Unauthorized />}
-    >
+    <RoleGuard roles={[UserRole.SUPER_ADMIN]}>
       <SuperAdminSidebar />
       <main
         className={

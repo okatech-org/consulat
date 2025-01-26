@@ -1,20 +1,12 @@
-import { auth } from '@/auth';
-import { RoleGuard } from '@/components/layouts/role-guard';
-import { Unauthorized } from '@/components/layouts/unauthorized';
 import { UserRole } from '@prisma/client';
 import ManagerSidebar from './_utils/components/manager-sidebar';
+import { RoleGuard } from '@/components/ui/role-guard';
 
 export default async function ManagerLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await auth();
-
   return (
-    <RoleGuard
-      roles={[UserRole.ADMIN, UserRole.MANAGER]}
-      currentRole={session?.user.role}
-      fallback={<Unauthorized />}
-    >
+    <RoleGuard roles={[UserRole.ADMIN, UserRole.MANAGER]}>
       <ManagerSidebar />
       <main
         className={
