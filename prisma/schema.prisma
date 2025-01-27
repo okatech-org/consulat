@@ -8,19 +8,19 @@ generator client {
 }
 
 enum UserRole {
-  SUPER_ADMIN // Super administrateur
-  ADMIN // Administratif Consulaire
-  MANAGER // Responsable (Sous-administrateur)
-  AGENT // Nouveau rôle
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  AGENT
   USER
 }
 
 enum ServiceCategory {
-  IDENTITY // Passeport, carte consulaire
-  CIVIL_STATUS // Actes de naissance, mariage, décès
-  VISA // Visas touristiques, affaires
-  CERTIFICATION // Légalisation de documents
-  REGISTRATION // Inscription consulaire
+  IDENTITY
+  CIVIL_STATUS
+  VISA
+  CERTIFICATION
+  REGISTRATION
   OTHER
 }
 
@@ -189,7 +189,7 @@ model User {
 
 model ProfileNote {
   id        String   @id @default(cuid())
-  content   String   @db.Text // Pour les notes longues
+  content   String   @db.Text
   type      NoteType
   profileId String
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)

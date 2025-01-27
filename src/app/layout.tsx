@@ -12,6 +12,7 @@ import {
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
+import { ChatToggle } from '@/components/chat/chat-toggle';
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -84,6 +85,7 @@ export default async function RootLayout({
           >
             {children}
             <Toaster />
+            <ChatToggle />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

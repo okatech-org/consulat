@@ -2,6 +2,7 @@ import { StatsCard } from '@/components/ui/stats-card';
 import { Building2, Globe, Settings, Users } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { auth } from '@/auth';
+import React from 'react';
 
 export default async function SuperAdminDashboard() {
   const session = await auth();

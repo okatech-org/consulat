@@ -422,6 +422,14 @@
       "reason": "Motif",
       "start_date": "Date de début",
       "end_date": "Date de fin"
+    },
+    "chatbot": {
+      "chat_with_ray": "Discuter avec Ray",
+      "welcome_message": "Bonjour ! Je suis Ray, votre assistant virtuel consulaire. Comment puis-je vous aider aujourd'hui avec vos démarches consulaires ?",
+      "error_message": "Désolé, une erreur s'est produite. Veuillez contacter le service consulaire pour obtenir de l'aide.",
+      "typing": "Ray est en train d'écrire...",
+      "input_placeholder": "Posez votre question sur les services consulaires...",
+      "send": "Envoyer"
     }
   },
   "inputs": {
@@ -952,14 +960,6 @@
     "yemen": "Yémen",
     "zambia": "Zambie",
     "zimbabwe": "Zimbabwe"
-  },
-  "chatbot": {
-    "chat_with_ray": "Discuter avec Ray",
-    "welcome_message": "Bonjour ! Je suis Ray, votre assistant virtuel consulaire. Comment puis-je vous aider aujourd'hui avec vos démarches consulaires ?",
-    "error_message": "Désolé, une erreur s'est produite. Veuillez contacter le service consulaire pour obtenir de l'aide.",
-    "typing": "Ray est en train d'écrire...",
-    "input_placeholder": "Posez votre question sur les services consulaires...",
-    "send": "Envoyer"
   },
   "auth": {
     "layout": {

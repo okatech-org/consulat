@@ -29,8 +29,7 @@ export async function analyzeProfile(profile: FullProfile, user: User) {
       throw new Error('Format de réponse invalide');
     }
 
-    const suggestions = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-    return suggestions;
+    return JSON.parse(jsonMatch[1] || jsonMatch[0]);
   } catch (error) {
     console.error('Error analyzing components:', error);
     return {

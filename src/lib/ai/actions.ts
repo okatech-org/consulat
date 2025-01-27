@@ -1,27 +1,46 @@
 'use server';
 
-import { getCurrentUser } from '@/actions/user';
-import { ContextBuilder } from '@/lib/ai/context-builder';
-import { AssistantFactory } from '@/lib/ai/assistant-factory';
-import { getUserFullProfile } from '@/lib/user/getters';
-import { FullProfile } from '@/types';
+'use server';
 
-export async function chatWithAssistant(message: string) {
+import OpenAI from 'openai';
+
+const openai = new OpenAI();
+
+/**
+ * Server Action to generate chat completion with context and chat history.
+ *
+ * @param {string} userMessage - The user's input message.
+ * @param {string} context - Contextual information to guide the AI's response.
+ * @param {OpenAI.Chat.ChatCompletionMessageParam[]} history - Array of previous chat messages.
+ * @returns {Promise<string | null>} - AI-generated text response or null on error.
+ */
+export async function getChatCompletion(
+  userMessage: string,
+  context: string,
+  history: OpenAI.Chat.ChatCompletionMessageParam[],
+): Promise<string | null> {
   try {
-    const user = await getCurrentUser();
-    const profile = user?.id
-      ? ((await getUserFullProfile(user.id)) ?? (user as unknown as FullProfile))
-      : (user as unknown as FullProfile);
+    const params: OpenAI.Chat.ChatCompletionCreateParams = {
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'developer',
+          content: context,
+        },
+        ...history,
+        {
+          role: 'user',
+          content: userMessage,
+        },
+      ],
+    };
+    const completion: OpenAI.Chat.ChatCompletion =
+      await openai.chat.completions.create(params);
+    const responseContent = completion.choices[0]?.message?.content;
 
-    const context = await ContextBuilder.buildContext(user, profile);
-    const assistant = AssistantFactory.createAssistant(context);
-
-    return await assistant.handleMessage(message);
+    return responseContent || null;
   } catch (error) {
-    console.error('Error in chat action:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to get response: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred');
+    console.error('Error generating chat completion with context:', error);
+    return null;
   }
 }

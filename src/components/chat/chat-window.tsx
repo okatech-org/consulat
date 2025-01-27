@@ -1,169 +1,135 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send } from 'lucide-react';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useTranslations } from 'next-intl';
-import { Send } from 'lucide-react';
-import { Icons } from '../ui/icons';
 import { cn } from '@/lib/utils';
-import ReactMarkdown from 'react-markdown';
-import { SessionManager } from '@/lib/ai/session-manager';
-import { chatWithAssistant } from '@/lib/ai/actions';
+import { useChatHistory } from '@/hooks/use-chat-history';
+import { useTranslations } from 'next-intl';
+import { LoadingState } from '@/components/ui/loading-state';
+import { getChatCompletion } from '@/lib/ai/actions';
+import {
+  ChatCompletionContentPartRefusal,
+  ChatCompletionContentPartText,
+  ChatCompletionContentPart,
+} from 'openai/resources';
 
-type Message = {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant' | 'system';
-  timestamp: Date;
-};
+type MessageContent =
+  | string
+  | ChatCompletionContentPartText[]
+  | ChatCompletionContentPart[]
+  | (ChatCompletionContentPartText | ChatCompletionContentPartRefusal)[]
+  | null
+  | undefined;
 
 export function ChatWindow() {
-  const t = useTranslations('chatbot');
-  const [messages, setMessages] = React.useState<Message[]>([]);
-  const [input, setInput] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const t = useTranslations('common.chatbot');
+  const { history, addMessage } = useChatHistory();
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const inputLength = input.trim().length;
+  const chatWindowRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
-    const loadChatHistory = () => {
-      try {
-        const history = SessionManager.getCurrentSession();
-
-        if (history && history.messages.length > 0) {
-          // Convertir l'historique en messages avec timestamps
-          const formattedHistory = history.messages.map((msg, index) => ({
-            id: index.toString(),
-            content: msg.content,
-            role: msg.role,
-            timestamp: new Date(Date.now() - (history.messages.length - index) * 1000), // Timestamps approximatifs
-          }));
-
-          setMessages(formattedHistory);
-        } else {
-          // Message de bienvenue si pas d'historique
-          setMessages([
-            {
-              id: '0',
-              content: t('welcome_message'),
-              role: 'assistant',
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error('Error loading chat history:', error);
-        // En cas d'erreur, afficher quand même le message de bienvenue
-        setMessages([
-          {
-            id: '0',
-            content: t('welcome_message'),
-            role: 'assistant',
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    };
-
-    loadChatHistory();
-  }, [t]);
-
-  React.useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      role: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+  // Function to send message
+  const sendMessage = async (message: string) => {
     setIsLoading(true);
+    addMessage({ role: 'user', content: message }); // Add user message to history
 
-    try {
-      const response = await chatWithAssistant(input);
+    // Basic context for now - replace with dynamic context later
+    const context = `You are a friendly and helpful consular assistant. Respond concisely and accurately to user questions regarding consular services.`;
 
-      if (response.error) {
-        throw new Error(response.error);
-      }
+    const aiResponse = await getChatCompletion(message, context, history);
+    setIsLoading(false);
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response.message || t('error_message'),
+    if (aiResponse) {
+      addMessage({ role: 'assistant', content: aiResponse }); // Add assistant response to history
+    } else {
+      // Handle error or no response
+      addMessage({
         role: 'assistant',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Chat error:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: t('error_message'),
-        role: 'assistant',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+        content: t('error_message'), // "Sorry, there was an error processing your request."
+      });
     }
   };
 
+  function renderMessageContent(content: MessageContent): React.ReactNode {
+    if (Array.isArray(content)) {
+      return content.map((part, index) => {
+        if ('text' in part) {
+          return <span key={index}>{part.text}</span>;
+        } else if ('refusal' in part) {
+          return <span key={index}>{part.refusal}</span>;
+        }
+        return null;
+      });
+    }
+    return content;
+  }
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    chatWindowRef.current?.scrollTo(0, chatWindowRef.current.scrollHeight);
+  }, [history]);
+
   return (
-    <div className={'flex h-full flex-col gap-4'}>
-      <ScrollArea className="h-full overflow-y-auto overflow-x-hidden pr-4">
-        <div className="flex flex-col gap-4">
-          {messages.map((message) => (
+    <div className="w-full h-full flex flex-col">
+      <div className="flex flex-row items-center space-x-4">
+        <Avatar>
+          <AvatarImage src="/avatars/ray.png" alt="Ray Avatar" />
+          <AvatarFallback>Ray</AvatarFallback>
+        </Avatar>
+        <div className="space-y-1">
+          <p className="text-sm font-medium leading-none">{t('chat_with_ray')}</p>
+          <p className="text-sm text-muted-foreground">
+            {isLoading ? t('typing') : 'Online'}
+          </p>
+        </div>
+      </div>
+      <div className="flex-1 overflow-auto px-4 py-2" ref={chatWindowRef}>
+        <div className="space-y-4">
+          {history.map((message, index) => (
             <div
-              key={message.id}
+              key={index}
               className={cn(
-                'flex w-max max-w-[80%] flex-col gap-2 rounded-lg px-4 py-2',
+                'flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm',
                 message.role === 'user'
                   ? 'ml-auto bg-primary text-primary-foreground'
                   : 'bg-muted',
               )}
             >
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-              <span className="text-xs opacity-50">
-                {message.timestamp.toLocaleTimeString()}
-              </span>
+              {renderMessageContent(message.content)}
             </div>
           ))}
-          {isLoading && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Icons.Spinner className="size-4 animate-spin" />
-              {t('typing')}
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+          {isLoading && <LoadingState centered={false} />}
         </div>
-      </ScrollArea>
-
-      <form onSubmit={handleSubmit} className="flex w-full gap-2">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={t('input_placeholder')}
-          disabled={isLoading}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <Icons.Spinner className="size-4 animate-spin" />
-          ) : (
+      </div>
+      <div className="px-4 py-3">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (inputLength === 0) return;
+            sendMessage(input);
+            setInput('');
+          }}
+          className="flex w-full items-center space-x-2"
+        >
+          <Input
+            id="message"
+            placeholder={t('input_placeholder')} // "Ask me anything about consular services..."
+            className="flex-1"
+            autoComplete="off"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+          />
+          <Button type="submit" size="icon" disabled={isLoading || inputLength === 0}>
             <Send className="size-4" />
-          )}
-          <span className="sr-only">{t('send')}</span>
-        </Button>
-      </form>
+            <span className="sr-only">{t('send')}</span>
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
