@@ -22,7 +22,7 @@ export async function sendOTP(identifier: string, type: AuthType) {
         type,
       },
     });
-
+    
     // Créer nouveau token
     await db.verificationToken.create({
       data: {

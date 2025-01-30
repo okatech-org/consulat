@@ -127,5 +127,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "uglify-js": "^3.19.3"
-  }
+  },
+  "main": "index.js",
+  "repository": "https://github.com/okacoder/consulat.ga.git",
+  "author": "okacoder <admin@okafrancois.dev>",
+  "license": "MIT"
 }

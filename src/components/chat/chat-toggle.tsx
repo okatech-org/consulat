@@ -1,11 +1,5 @@
 'use client';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -38,9 +32,6 @@ export function ChatToggle() {
         </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full max-w-[500px] sm:w-[500px]">
-        <SheetHeader>
-          <SheetTitle>{t('chat_with_ray')}</SheetTitle>
-        </SheetHeader>
         <div className="py-6 h-full">
           <ChatWindow />
         </div>

@@ -2,9 +2,9 @@
 
 import { AssistantFactory } from '@/lib/ai/assistant-factory';
 import { ContextBuilder } from '@/lib/ai/context-builder';
-import { PROFILE_ANALYSIS_PROMPT } from '@/lib/ai/prompts/profile-suggestions';
 import { FullProfile } from '@/types';
 import { User } from '@prisma/client';
+import { PROFILE_ANALYSIS_PROMPT } from '@/lib/ai/prompts';
 
 export async function analyzeProfile(profile: FullProfile, user: User) {
   try {

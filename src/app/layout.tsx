@@ -13,6 +13,9 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
 import { ChatToggle } from '@/components/chat/chat-toggle';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { SessionProvider } from 'next-auth/react';
+import { auth } from '@/auth';
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -72,6 +75,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const session = await auth();
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -83,9 +87,13 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
-            <Toaster />
-            <ChatToggle />
+            <SessionProvider session={session}>
+              <SidebarProvider>
+                {children}
+                <Toaster />
+                <ChatToggle />
+              </SidebarProvider>
+            </SessionProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

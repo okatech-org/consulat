@@ -1,21 +1,25 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { Send, X } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useChatHistory } from '@/hooks/use-chat-history';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { LoadingState } from '@/components/ui/loading-state';
-import { getChatCompletion } from '@/lib/ai/actions';
+import { getChatCompletion, getUserContextData } from '@/lib/ai/actions';
 import {
   ChatCompletionContentPartRefusal,
   ChatCompletionContentPartText,
   ChatCompletionContentPart,
 } from 'openai/resources';
+import { ContextBuilder } from '@/lib/ai/context-builder';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import ReactMarkdown from 'react-markdown';
+import { ContextData } from '@/lib/ai/types';
 
 type MessageContent =
   | string
@@ -27,19 +31,29 @@ type MessageContent =
 
 export function ChatWindow() {
   const t = useTranslations('common.chatbot');
-  const { history, addMessage } = useChatHistory();
+  const currentUser = useCurrentUser();
+  const [previousContext, setPreviousContext] = useState<ContextData | null>(null);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const inputLength = input.trim().length;
   const chatWindowRef = useRef<HTMLDivElement>(null);
+  const locale = useLocale();
+  const { history, addMessage, clearHistory } = useChatHistory();
 
   // Function to send message
   const sendMessage = async (message: string) => {
     setIsLoading(true);
     addMessage({ role: 'user', content: message }); // Add user message to history
 
-    // Basic context for now - replace with dynamic context later
-    const context = `You are a friendly and helpful consular assistant. Respond concisely and accurately to user questions regarding consular services.`;
+    const contextData =
+      previousContext ??
+      (await getUserContextData(locale, currentUser?.id, currentUser?.role));
+
+    if (previousContext === null) {
+      setPreviousContext(contextData);
+    }
+
+    const context = ContextBuilder.buildContext(contextData);
 
     const aiResponse = await getChatCompletion(message, context, history);
     setIsLoading(false);
@@ -59,15 +73,26 @@ export function ChatWindow() {
     if (Array.isArray(content)) {
       return content.map((part, index) => {
         if ('text' in part) {
-          return <span key={index}>{part.text}</span>;
+          return <ReactMarkdown key={index}>{part.text}</ReactMarkdown>;
         } else if ('refusal' in part) {
-          return <span key={index}>{part.refusal}</span>;
+          return <ReactMarkdown key={index}>{part.refusal}</ReactMarkdown>;
         }
         return null;
       });
     }
     return content;
   }
+
+  useLayoutEffect(() => {
+    sessionStorage.setItem('consular_chat_context', JSON.stringify(previousContext));
+  }, [previousContext]);
+
+  useLayoutEffect(() => {
+    const storedContext = sessionStorage.getItem('consular_chat_context');
+    if (storedContext) {
+      setPreviousContext(JSON.parse(storedContext));
+    }
+  }, []);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -127,6 +152,15 @@ export function ChatWindow() {
           <Button type="submit" size="icon" disabled={isLoading || inputLength === 0}>
             <Send className="size-4" />
             <span className="sr-only">{t('send')}</span>
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            disabled={isLoading || history.length === 0}
+            onClick={clearHistory}
+          >
+            <X className="size-4" />
+            <span className="sr-only">{t('clear')}</span>
           </Button>
         </form>
       </div>
