@@ -357,3 +357,13 @@ async function getUserContextDataAdmin(
     return baseData;
   }
 }
+
+export async function storeQuestion(question: string) {
+  try {
+    await db.aIQuestion.create({
+      data: { question, userRole: UserRole.USER, category: 'general' },
+    });
+  } catch (error) {
+    console.error('Error storing question:', error);
+  }
+}

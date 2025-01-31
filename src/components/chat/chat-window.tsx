@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useChatHistory } from '@/hooks/use-chat-history';
 import { useLocale, useTranslations } from 'next-intl';
 import { LoadingState } from '@/components/ui/loading-state';
-import { getChatCompletion, getUserContextData } from '@/lib/ai/actions';
+import { getChatCompletion, getUserContextData, storeQuestion } from '@/lib/ai/actions';
 import {
   ChatCompletionContentPartRefusal,
   ChatCompletionContentPartText,
@@ -20,6 +20,8 @@ import { ContextBuilder } from '@/lib/ai/context-builder';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import ReactMarkdown from 'react-markdown';
 import { ContextData } from '@/lib/ai/types';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
 
 type MessageContent =
   | string
@@ -57,6 +59,19 @@ export function ChatWindow() {
 
     const aiResponse = await getChatCompletion(message, context, history);
     setIsLoading(false);
+
+    if (currentUser && currentUser.role === 'USER') {
+      await storeQuestion(message);
+    }
+
+    if (!currentUser && history.length === 5) {
+      addMessage({
+        role: 'assistant',
+        content: t('please_login'), // "Please login to continue the conversation."
+      });
+
+      return;
+    }
 
     if (aiResponse) {
       addMessage({ role: 'assistant', content: aiResponse }); // Add assistant response to history
@@ -148,6 +163,7 @@ export function ChatWindow() {
             autoComplete="off"
             value={input}
             onChange={(event) => setInput(event.target.value)}
+            disabled={isLoading || (!currentUser && history.length === 5)}
           />
           <Button type="submit" size="icon" disabled={isLoading || inputLength === 0}>
             <Send className="size-4" />
@@ -156,13 +172,24 @@ export function ChatWindow() {
           <Button
             type="button"
             size="icon"
-            disabled={isLoading || history.length === 0}
+            disabled={
+              isLoading || history.length === 0 || (!currentUser && history.length === 5)
+            }
             onClick={clearHistory}
           >
             <X className="size-4" />
             <span className="sr-only">{t('clear')}</span>
           </Button>
         </form>
+
+        {!currentUser && history.length === 5 && (
+          <div className={'flex flex-col pt-4 gap-2 items-center'}>
+            <Button asChild className={'w-full'}>
+              <Link href={ROUTES.user.base}>{t('login')}</Link>
+            </Button>
+            <p>{t('please_login')}</p>
+          </div>
+        )}
       </div>
     </div>
   );

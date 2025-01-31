@@ -430,7 +430,9 @@
       "error_message": "Désolé, une erreur s'est produite. Veuillez contacter le service consulaire pour obtenir de l'aide.",
       "typing": "Ray est en train d'écrire...",
       "input_placeholder": "Posez votre question sur les services consulaires...",
-      "send": "Envoyer"
+      "send": "Envoyer",
+      "please_login": "Veuillez vous connecter pour continuer de discuter avec Ray",
+      "login": "Se connecter"
     }
   },
   "inputs": {
