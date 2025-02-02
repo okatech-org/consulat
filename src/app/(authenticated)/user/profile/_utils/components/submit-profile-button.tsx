@@ -27,10 +27,10 @@ const CHECKLIST_ITEMS = [
 
 interface SubmitProfileButtonProps {
   profileId: string;
-  isComplete: boolean;
+  canSubmit: boolean;
 }
 
-export function SubmitProfileButton({ profileId, isComplete }: SubmitProfileButtonProps) {
+export function SubmitProfileButton({ profileId, canSubmit }: SubmitProfileButtonProps) {
   const t = useTranslations('profile.submission');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,7 +78,7 @@ export function SubmitProfileButton({ profileId, isComplete }: SubmitProfileButt
         onClick={() => setIsDialogOpen(true)}
         className="gap-2"
         variant="default"
-        disabled={!isComplete}
+        disabled={!canSubmit}
       >
         <SendHorizonal className="size-4" />
         {t('submit_button')}

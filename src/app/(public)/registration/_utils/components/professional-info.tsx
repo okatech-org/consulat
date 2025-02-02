@@ -58,7 +58,17 @@ export function ProfessionalInfoForm({
               name="workStatus"
               render={({ field }) => (
                 <FormItem>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      if (value !== WorkStatus.EMPLOYEE) {
+                        form.setValue('profession', undefined);
+                        form.setValue('employer', undefined);
+                        form.setValue('employerAddress', undefined);
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger disabled={isLoading}>
                         <SelectValue placeholder={t('form.select_work_status')} />

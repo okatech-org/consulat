@@ -15,6 +15,7 @@ import { updateProfile } from '@/app/(authenticated)/user/_utils/profile';
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Building2, MapPin } from 'lucide-react';
 import { ProfessionalInfoForm } from '@/app/(public)/registration/_utils/components/professional-info';
+import { filterUneditedKeys } from '@/lib/utils';
 
 interface ProfessionalInfoSectionProps {
   profile: Profile;
@@ -85,6 +86,8 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
     try {
       setIsLoading(true);
       const data = form.getValues();
+
+      filterUneditedKeys<ProfessionalInfoFormData>(data, form.formState.dirtyFields);
 
       const formData = new FormData();
       formData.append('professionalInfo', JSON.stringify(data));

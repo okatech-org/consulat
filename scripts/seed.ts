@@ -15,8 +15,12 @@ async function main() {
 
     // Nettoyer la base de données
     await prisma.timeSlot.deleteMany();
+    await prisma.address.deleteMany();
     await prisma.consulateSchedule.deleteMany();
+    await prisma.emergencyContact.deleteMany();
+    await prisma.addressGabon.deleteMany();
     await prisma.consularService.deleteMany();
+    await prisma.profile.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.country.deleteMany();
     await prisma.user.deleteMany();
@@ -305,6 +309,7 @@ async function main() {
           price: 50000,
           currency: 'EUR',
           organization: { connect: { id: organizations[0].id } },
+          Country: { connect: { id: countries[0].id } },
         },
       }),
 
@@ -324,6 +329,7 @@ async function main() {
           requiresAppointment: false,
           price: 0,
           organization: { connect: { id: organizations[1].id } },
+          Country: { connect: { id: countries[0].id } },
         },
       }),
 
@@ -346,6 +352,7 @@ async function main() {
           appointmentDuration: 45,
           price: 25000,
           currency: 'EUR',
+          Country: { connect: { id: countries[1].id } },
         },
       }),
 
@@ -362,6 +369,7 @@ async function main() {
           requiresAppointment: false,
           price: 15000,
           currency: 'EUR',
+          Country: { connect: { id: countries[1].id } },
         },
       }),
     ]);
@@ -430,14 +438,15 @@ async function main() {
       prisma.user.create({
         data: {
           email: 'itoutouberny+us@gmail.com',
-          name: 'Utilisateur Test 1',
+          firstName: 'Berny',
+          lastName: 'Itoutou',
           role: UserRole.USER,
           emailVerified: new Date(),
           country: { connect: { id: countries[0].id } },
           profile: {
             create: {
-              firstName: 'Jean',
-              lastName: 'Dupont',
+              firstName: 'Berny',
+              lastName: 'Itoutou',
               gender: 'MALE',
               birthDate: '1990-01-01',
               birthPlace: 'Paris',
@@ -455,14 +464,15 @@ async function main() {
       prisma.user.create({
         data: {
           email: 'iasted+us@me.com',
-          name: 'Utilisateur Test 2',
+          firstName: 'Asted',
+          lastName: 'I',
           role: UserRole.USER,
           emailVerified: new Date(),
           country: { connect: { id: countries[0].id } },
           profile: {
             create: {
-              firstName: 'Marie',
-              lastName: 'Martin',
+              firstName: 'Asted',
+              lastName: 'I',
               gender: 'FEMALE',
               birthDate: '1992-05-15',
               birthPlace: 'Lyon',

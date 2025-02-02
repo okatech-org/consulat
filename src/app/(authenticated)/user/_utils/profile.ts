@@ -2,7 +2,13 @@
 
 import { getTranslations } from 'next-intl/server';
 import { ActionResult } from '@/lib/auth/action';
-import { DocumentStatus, DocumentType, Profile, RequestStatus } from '@prisma/client';
+import {
+  DocumentStatus,
+  DocumentType,
+  Prisma,
+  Profile,
+  RequestStatus,
+} from '@prisma/client';
 import { db } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
@@ -293,7 +299,7 @@ export async function postProfile(
       if (registrationService) {
         await db.serviceRequest.create({
           data: {
-            submittedBy: user.id,
+            submittedById: user.id,
             serviceId: registrationService.id,
           },
         });
@@ -337,29 +343,20 @@ type UpdateProfileSection = {
   documents?: DocumentsFormData;
 };
 
-/**
- type DocumentUpdate = {
- fileUrl: string
- type: DocumentType
- status?: DocumentStatus
- issuedAt?: Date
- expiresAt?: Date
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
- metadata?: Record<string, any>
- }*/
-
 export async function updateProfile(
   formData: FormData,
   section: keyof UpdateProfileSection,
 ): Promise<ActionResult<Profile>> {
+  const t = await getTranslations('messages.profile.errors');
+  const user = await getCurrentUser();
+
+  if (!user || !user?.id) {
+    return { error: t('unauthorized') };
+  }
+
+  console.log('section', section, formData);
+
   try {
-    const t = await getTranslations('messages.profile.errors');
-    const user = await getCurrentUser();
-
-    if (!user) {
-      return { error: t('unauthorized') };
-    }
-
     // Récupérer le profil existant
     const existingProfile = await db.profile.findUnique({
       where: { userId: user.id },
@@ -382,186 +379,151 @@ export async function updateProfile(
 
     const data = JSON.parse(sectionData as string);
 
+    const {
+      passportIssueDate,
+      passportExpiryDate,
+      phone,
+      address,
+      addressInGabon,
+      emergencyContact,
+      ...remain
+    } = data;
+
     // Préparer les données de mise à jour en fonction de la section
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let updateData: any = {};
-
-    switch (section) {
-      case 'basicInfo':
-        updateData = {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          gender: data.gender,
-          birthDate: data.birthDate,
-          birthPlace: data.birthPlace,
-          birthCountry: data.birthCountry,
-          nationality: data.nationality,
-          acquisitionMode: data.acquisitionMode,
-          passportNumber: data.passportNumber,
-          passportIssueDate: new Date(data.passportIssueDate),
-          passportExpiryDate: new Date(data.passportExpiryDate),
-          passportIssueAuthority: data.passportIssueAuthority,
-        };
-        break;
-
-      case 'contactInfo':
-        updateData = {
-          email: data.email,
-          phone: {
-            upsert: {
-              create: {
-                number: data.phone.number,
-                countryCode: data.phone.countryCode,
-              },
-              update: {
-                number: data.phone.number,
-                countryCode: data.phone.countryCode,
-              },
-            },
-          },
-          address: {
-            upsert: {
-              create: data.address,
-              update: data.address,
-            },
-          },
-          ...(data.addressInGabon && {
-            addressInGabon: {
-              upsert: {
-                create: {
-                  address: data.addressInGabon.address,
-                  district: data.addressInGabon.district,
-                  city: data.addressInGabon.city,
-                },
-                update: {
-                  address: data.addressInGabon.address,
-                  district: data.addressInGabon.district,
-                  city: data.addressInGabon.city,
-                },
-              },
-            },
-          }),
-        };
-        break;
-
-      case 'familyInfo':
-        const emergencyContactData = {
+    const updateData: Prisma.ProfileUpdateInput = {
+      ...remain,
+      ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
+      ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
+      ...(phone && {
+        phone: {
           upsert: {
             create: {
-              fullName: data.emergencyContact.fullName,
-              relationship: data.emergencyContact.relationship,
+              number: phone.number,
+              countryCode: phone.countryCode,
+            },
+            update: {
+              number: phone.number,
+              countryCode: phone.countryCode,
+            },
+          },
+        },
+      }),
+      ...(address && {
+        address: {
+          upsert: {
+            create: address,
+            update: address,
+          },
+        },
+      }),
+      ...(addressInGabon && {
+        addressInGabon: {
+          upsert: {
+            create: addressInGabon,
+            update: addressInGabon,
+          },
+        },
+      }),
+      ...(emergencyContact && {
+        emergencyContact: {
+          upsert: {
+            create: {
+              fullName: emergencyContact.fullName,
+              relationship: emergencyContact.relationship,
               phone: {
-                create: {
-                  number: data.emergencyContact.phone.number,
-                  countryCode: data.emergencyContact.phone.countryCode,
+                upsert: {
+                  create: {
+                    number: emergencyContact.phone.number,
+                    countryCode: emergencyContact.phone.countryCode,
+                  },
+                  update: {
+                    number: emergencyContact.phone.number,
+                    countryCode: emergencyContact.phone.countryCode,
+                  },
                 },
               },
             },
             update: {
-              fullName: data.emergencyContact.fullName,
-              relationship: data.emergencyContact.relationship,
+              fullName: emergencyContact.fullName,
+              relationship: emergencyContact.relationship,
               phone: {
                 update: {
-                  number: data.emergencyContact.phone.number,
-                  countryCode: data.emergencyContact.phone.countryCode,
+                  number: emergencyContact.phone.number,
+                  countryCode: emergencyContact.phone.countryCode,
                 },
               },
             },
           },
-        };
+        },
+      }),
+    };
 
-        updateData = {
-          maritalStatus: data.maritalStatus,
-          fatherFullName: data.fatherFullName,
-          motherFullName: data.motherFullName,
-          spouseFullName: data.spouseFullName,
-          emergencyContact: emergencyContactData,
-        };
-        break;
+    const documents = {
+      passportFile: formData.get('passportFile') as File,
+      birthCertificateFile: formData.get('birthCertificateFile') as File,
+      residencePermitFile: formData.get('residencePermitFile') as File,
+      addressProofFile: formData.get('addressProofFile') as File,
+    };
 
-      case 'professionalInfo':
-        updateData = {
-          workStatus: data.workStatus,
-          profession: data.profession,
-          employer: data.employer,
-          employerAddress: data.employerAddress,
-          activityInGabon: data.lastActivityGabon,
-        };
-        break;
+    // Traiter chaque document
+    const uploadPromises = Object.entries(documents)
+      .filter(([, file]) => file)
+      .map(async ([key, file]) => {
+        const formDataForUpload = new FormData();
+        formDataForUpload.append('files', file);
+        const uploadedFile = await processFileData(formDataForUpload);
+        return { key, url: uploadedFile?.url };
+      });
 
-      case 'documents':
-        if (section === 'documents') {
-          const documents = {
-            passportFile: formData.get('passportFile') as File,
-            birthCertificateFile: formData.get('birthCertificateFile') as File,
-            residencePermitFile: formData.get('residencePermitFile') as File,
-            addressProofFile: formData.get('addressProofFile') as File,
-          };
+    const uploadedFiles = await Promise.all(uploadPromises);
 
-          // Traiter chaque document
-          const uploadPromises = Object.entries(documents)
-            .filter(([, file]) => file)
-            .map(async ([key, file]) => {
-              const formDataForUpload = new FormData();
-              formDataForUpload.append('files', file);
-              const uploadedFile = await processFileData(formDataForUpload);
-              return { key, url: uploadedFile?.url };
-            });
-
-          const uploadedFiles = await Promise.all(uploadPromises);
-
-          uploadedFiles.forEach(({ key, url }) => {
-            if (url) {
-              switch (key) {
-                case 'passportFile':
-                  updateData.passport = {
-                    create: {
-                      type: DocumentType.PASSPORT,
-                      fileUrl: url,
-                      status: DocumentStatus.PENDING,
-                    },
-                  };
-                  break;
-                case 'birthCertificateFile':
-                  updateData.birthCertificate = {
-                    create: {
-                      type: DocumentType.BIRTH_CERTIFICATE,
-                      fileUrl: url,
-                      status: DocumentStatus.PENDING,
-                    },
-                  };
-                  break;
-                case 'residencePermitFile':
-                  updateData.residencePermit = {
-                    create: {
-                      type: DocumentType.RESIDENCE_PERMIT,
-                      fileUrl: url,
-                      status: DocumentStatus.PENDING,
-                    },
-                  };
-                  break;
-                case 'addressProofFile':
-                  updateData.addressProof = {
-                    create: {
-                      type: DocumentType.PROOF_OF_ADDRESS,
-                      fileUrl: url,
-                      status: DocumentStatus.PENDING,
-                    },
-                  };
-                  break;
-              }
-            }
-          });
+    uploadedFiles.forEach(({ key, url }) => {
+      if (url) {
+        switch (key) {
+          case 'passportFile':
+            updateData.passport = {
+              create: {
+                type: DocumentType.PASSPORT,
+                fileUrl: url,
+                status: DocumentStatus.PENDING,
+              },
+            };
+            break;
+          case 'birthCertificateFile':
+            updateData.birthCertificate = {
+              create: {
+                type: DocumentType.BIRTH_CERTIFICATE,
+                fileUrl: url,
+                status: DocumentStatus.PENDING,
+              },
+            };
+            break;
+          case 'residencePermitFile':
+            updateData.residencePermit = {
+              create: {
+                type: DocumentType.RESIDENCE_PERMIT,
+                fileUrl: url,
+                status: DocumentStatus.PENDING,
+              },
+            };
+            break;
+          case 'addressProofFile':
+            updateData.addressProof = {
+              create: {
+                type: DocumentType.PROOF_OF_ADDRESS,
+                fileUrl: url,
+                status: DocumentStatus.PENDING,
+              },
+            };
+            break;
         }
-        break;
-      default:
-        return { error: t('invalid_section') };
-    }
+      }
+    });
 
     // Mettre à jour le profil
     const updatedProfile = await db.profile.update({
       where: { id: existingProfile.id },
-      data: updateData,
+      data: { ...updateData, status: 'DRAFT' },
       include: {
         address: true,
         addressInGabon: true,
@@ -593,11 +555,9 @@ export async function submitProfileForValidation(
   }
 
   try {
-    console.log('Submitting profile for validation...', currentUser);
     const registrationService = await getRegistrationServiceForUser(
       currentUser.countryId,
     );
-    console.log('Submitting profile for validation...');
 
     if (!registrationService) {
       return { error: 'messages.errors.service_not_found' };
@@ -651,8 +611,16 @@ export async function submitProfileForValidation(
 
     await db.serviceRequest.create({
       data: {
-        submittedBy: currentUser.id,
-        serviceId: registrationService.id,
+        submittedBy: {
+          connect: {
+            id: currentUser.id,
+          },
+        },
+        service: {
+          connect: {
+            id: registrationService.id,
+          },
+        },
       },
     });
 

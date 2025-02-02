@@ -140,7 +140,7 @@ export default async function ProfilePage() {
 
             <div className="flex flex-col items-center">
               <SubmitProfileButton
-                isComplete={completionRate === 100}
+                canSubmit={completionRate === 100 && profile.status !== 'SUBMITTED'}
                 profileId={profile.id}
               />
             </div>

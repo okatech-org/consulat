@@ -8,7 +8,7 @@ import { getTranslations } from 'next-intl/server';
 import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrganizationSettings } from '@/components/service/organization-settings';
-import { GeneralSettings } from '@/app/(authenticated)/manager/_utils/components/general-settings';
+import { GeneralSettings } from '@/app/(authenticated)/admin/_utils/components/general-settings';
 import { CreateServiceButton } from '@/app/(authenticated)/superadmin/_utils/components/create-service-button';
 import { ServicesTable } from '@/app/(authenticated)/superadmin/_utils/components/services-table';
 import CardContainer from '@/components/layouts/card-container';
@@ -17,8 +17,8 @@ import { CreateAgentButton } from '@/app/(authenticated)/superadmin/_utils/compo
 import { UsersTable } from '@/app/(authenticated)/superadmin/_utils/components/users-table';
 
 export default async function OrganizationSettingsPage({
-  params,
-}: {
+                                                         params,
+                                                       }: {
   params: { id: string };
 }) {
   const { id } = await params;

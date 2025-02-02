@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/table';
 
 export function RequestsTable() {
-  const t = useTranslations('actions.requests');
+  const t = useTranslations('admin.requests');
 
   return (
     <div className="rounded-md border">

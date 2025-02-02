@@ -1,10 +1,9 @@
-import { Suspense } from 'react';
 import { getProfiles } from '@/app/(authenticated)/admin/_utils/actions/profiles';
 import { ProfilesTable } from '@/app/(authenticated)/admin/_utils/profiles/profiles-table';
 import { ProfilesFilters } from '@/app/(authenticated)/admin/_utils/profiles/profiles-filters';
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { RequestStatus } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
+import { LoadingSuspense } from '@/components/ui/loading-suspense';
 
 interface ProfilesPageProps {
   searchParams: {
@@ -14,7 +13,7 @@ interface ProfilesPageProps {
 }
 
 export default async function ProfilesPage({ searchParams }: ProfilesPageProps) {
-  const t_profiles = await getTranslations('actions.profiles');
+  const t_profiles = await getTranslations('admin.profiles');
   const profilesResult = await getProfiles({
     search: searchParams.q,
     status: searchParams.status as RequestStatus | undefined,
@@ -29,12 +28,11 @@ export default async function ProfilesPage({ searchParams }: ProfilesPageProps) 
 
       <ProfilesFilters />
 
-      <Suspense
+      <LoadingSuspense
         key={`${searchParams.q}-${searchParams.status}`}
-        fallback={<LoadingSkeleton />}
       >
         <ProfilesTable profiles={profilesResult.profiles} />
-      </Suspense>
+      </LoadingSuspense>
     </div>
   );
 }

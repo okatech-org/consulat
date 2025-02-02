@@ -1,86 +1,86 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslations } from 'next-intl'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormLabel, TradFormMessage } from '@/components/ui/form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, TradFormMessage } from '@/components/ui/form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   generateOrganizationSettingsSchema, getDefaultValues,
   OrganizationSettingsFormData,
-} from '@/schemas/organization'
-import { Organization } from '@/types/organization'
-import { Input } from '@/components/ui/input'
-import { Country } from '@/types/country'
-import { DatePicker } from '@/components/ui/date-picker'
-import { Loader2, Trash } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
-import { DaySchedule } from '@/app/(authenticated)/manager/_utils/components/day-schedule'
-import { useToast } from '@/hooks/use-toast'
-import { useState } from 'react'
-import { updateOrganizationSettings } from '@/app/(authenticated)/manager/_utils/actions/organization'
-import { DocumentUploadField } from '@/components/ui/document-upload'
-import { weekDays } from '@/lib/utils'
+} from '@/schemas/organization';
+import { Organization } from '@/types/organization';
+import { Input } from '@/components/ui/input';
+import { Country } from '@/types/country';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Loader2, Trash } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { DaySchedule } from '@/app/(authenticated)/admin/_utils/components/day-schedule';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { updateOrganizationSettings } from '@/app/(authenticated)/admin/_utils/actions/organization';
+import { DocumentUploadField } from '@/components/ui/document-upload';
+import { weekDays } from '@/lib/utils';
 
 interface OrganizationSettingsProps {
-  organization: Organization
+  organization: Organization;
 }
 
 export function OrganizationSettings({ organization }: OrganizationSettingsProps) {
-  const schema = generateOrganizationSettingsSchema(organization.countries as unknown as Country[])
-  const t = useTranslations('manager.settings')
-  const t_common = useTranslations('common')
-  const t_countries = useTranslations('countries')
-  const [selectedCountry, setSelectedCountry] = React.useState(organization.countries[0]?.id)
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const schema = generateOrganizationSettingsSchema(organization.countries as unknown as Country[]);
+  const t = useTranslations('manager.settings');
+  const t_common = useTranslations('common');
+  const t_countries = useTranslations('countries');
+  const [selectedCountry, setSelectedCountry] = React.useState(organization.countries[0]?.id);
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  console.log(JSON.stringify(organization, null, 2))
+  console.log(JSON.stringify(organization, null, 2));
 
   const form = useForm<OrganizationSettingsFormData>({
     resolver: zodResolver(schema),
     defaultValues: getDefaultValues(organization),
-  })
+  });
 
   const onSubmit = async (data: OrganizationSettingsFormData) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       let file;
       if (data.logoFile) {
-        const formData = new FormData()
+        const formData = new FormData();
 
-        formData.append('files', data.logoFile[0])
-        file = formData
+        formData.append('files', data.logoFile[0]);
+        file = formData;
       }
 
-      const result = await updateOrganizationSettings(organization.id, data, file)
+      const result = await updateOrganizationSettings(organization.id, data, file);
 
       if (result.error) {
         toast({
           title: t('messages.error.update'),
           description: result.error,
-          variant: 'destructive'
-        })
-        return
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
         title: t('messages.success.update'),
         description: t('messages.success.update_description'),
-      })
+      });
     } catch (error) {
       toast({
         title: t('messages.error.update'),
         description: t('messages.error.unknown'),
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -90,7 +90,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
           <CardHeader>
             <CardTitle>{t('organization.title')}</CardTitle>
           </CardHeader>
-          <CardContent className={"space-y-4"}>
+          <CardContent className={'space-y-4'}>
             <FormField
               control={form.control}
               name="logoFile"
@@ -104,10 +104,10 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                   required={true}
                   disabled={isLoading}
                 />
-            )}
-              />
+              )}
+            />
 
-              {/* Nom */}
+            {/* Nom */}
             <FormField
               control={form.control}
               name="name"
@@ -124,82 +124,111 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
           </CardContent>
         </Card>
 
-          <Tabs value={selectedCountry} onValueChange={setSelectedCountry}>
-            <TabsList>
-              {organization.countries.map((country) => (
-                <TabsTrigger key={country.id} value={country.id}>
-                  {country.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
+        <Tabs value={selectedCountry} onValueChange={setSelectedCountry}>
+          <TabsList>
             {organization.countries.map((country) => (
-              <TabsContent key={country.id} value={country.id} className={"space-y-4"}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t('organization.configForCountry', {
-                      country: t_countries(country.code.toLowerCase()),
-                    })}</CardTitle>
-                  </CardHeader>
-                  <CardContent className={'space-y-6'}>
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">
-                        {t('organization.contact.title')}
-                      </h3>
-                      <div className="grid gap-4 lg:grid-cols-2">
-                        {/* Email */}
+              <TabsTrigger key={country.id} value={country.id}>
+                {country.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {organization.countries.map((country) => (
+            <TabsContent key={country.id} value={country.id} className={'space-y-4'}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('organization.configForCountry', {
+                    country: t_countries(country.code.toLowerCase()),
+                  })}</CardTitle>
+                </CardHeader>
+                <CardContent className={'space-y-6'}>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">
+                      {t('organization.contact.title')}
+                    </h3>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      {/* Email */}
+                      <FormField
+                        control={form.control}
+                        name={`metadata.${country.code}.settings.contact.email`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('organization.general.email')}</FormLabel>
+                            <FormControl>
+                              <Input type="email" {...field} placeholder="contact@example.com" />
+                            </FormControl>
+                            <TradFormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Téléphone */}
+                      <FormField
+                        control={form.control}
+                        name={`metadata.${country.code}.settings.contact.phone`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('organization.general.phone')}</FormLabel>
+                            <FormControl>
+                              <Input type={'tel'} {...field} />
+                            </FormControl>
+                            <TradFormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Site web */}
+                      <FormField
+                        control={form.control}
+                        name={`metadata.${country.code}.settings.contact.website`}
+                        render={({ field }) => (
+                          <FormItem className={'lg:col-span-2'}>
+                            <FormLabel>{t('organization.general.website')}</FormLabel>
+                            <FormControl>
+                              <Input {...field} type={'url'} placeholder="https://www.example.com" />
+                            </FormControl>
+                            <TradFormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Adresse */}
+                      <div className="space-y-4 lg:col-span-2">
                         <FormField
                           control={form.control}
-                          name={`metadata.${country.code}.settings.contact.email`}
+                          name={`metadata.${country.code}.settings.contact.address.firstLine`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('organization.general.email')}</FormLabel>
+                              <FormLabel>{t('organization.general.address_line1')}</FormLabel>
                               <FormControl>
-                                <Input type="email" {...field} placeholder="contact@example.com" />
+                                <Input {...field} />
                               </FormControl>
                               <TradFormMessage />
                             </FormItem>
                           )}
                         />
 
-                        {/* Téléphone */}
                         <FormField
                           control={form.control}
-                          name={`metadata.${country.code}.settings.contact.phone`}
+                          name={`metadata.${country.code}.settings.contact.address.secondLine`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('organization.general.phone')}</FormLabel>
+                              <FormLabel>{t('organization.general.address_line2')}</FormLabel>
                               <FormControl>
-                                <Input type={'tel'} {...field} />
+                                <Input {...field} />
                               </FormControl>
                               <TradFormMessage />
                             </FormItem>
                           )}
                         />
 
-                        {/* Site web */}
-                        <FormField
-                          control={form.control}
-                          name={`metadata.${country.code}.settings.contact.website`}
-                          render={({ field }) => (
-                            <FormItem className={'lg:col-span-2'}>
-                              <FormLabel>{t('organization.general.website')}</FormLabel>
-                              <FormControl>
-                                <Input {...field} type={'url'} placeholder="https://www.example.com" />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Adresse */}
-                        <div className="space-y-4 lg:col-span-2">
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
-                            name={`metadata.${country.code}.settings.contact.address.firstLine`}
+                            name={`metadata.${country.code}.settings.contact.address.city`}
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('organization.general.address_line1')}</FormLabel>
+                                <FormLabel>{t('organization.general.city')}</FormLabel>
                                 <FormControl>
                                   <Input {...field} />
                                 </FormControl>
@@ -210,10 +239,10 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
 
                           <FormField
                             control={form.control}
-                            name={`metadata.${country.code}.settings.contact.address.secondLine`}
+                            name={`metadata.${country.code}.settings.contact.address.zipCode`}
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('organization.general.address_line2')}</FormLabel>
+                                <FormLabel>{t('organization.general.zip_code')}</FormLabel>
                                 <FormControl>
                                   <Input {...field} />
                                 </FormControl>
@@ -221,83 +250,54 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                               </FormItem>
                             )}
                           />
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`metadata.${country.code}.settings.contact.address.city`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t('organization.general.city')}</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <TradFormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`metadata.${country.code}.settings.contact.address.zipCode`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t('organization.general.zip_code')}</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <TradFormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
                         </div>
                       </div>
                     </div>
-                    <Separator />
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">
-                        {t('organization.schedule.title')}
-                      </h3>
+                  </div>
+                  <Separator />
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">
+                      {t('organization.schedule.title')}
+                    </h3>
 
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                        {weekDays.map((day) => (
-                          <DaySchedule
-                            key={day}
-                            day={day}
-                            countryCode={country.code}
-                            form={form}
-                            t={t}
-                          />
-                        ))}
-                      </div>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                      {weekDays.map((day) => (
+                        <DaySchedule
+                          key={day}
+                          day={day}
+                          countryCode={country.code}
+                          form={form}
+                          t={t}
+                        />
+                      ))}
                     </div>
-                    <Separator />
+                  </div>
+                  <Separator />
 
-                    {/* Section Jours fériés */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium">
-                          {t('organization.holidays.title')}
-                        </h3>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            const holidays = form.getValues(`metadata.${country.code}.settings.holidays`) || []
-                            form.setValue(`metadata.${country.code}.settings.holidays`, [
-                              ...holidays,
-                              { date: '', name: '' },
-                            ])
-                          }}
-                        >
-                          {t('organization.holidays.add')}
-                        </Button>
-                      </div>
+                  {/* Section Jours fériés */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">
+                        {t('organization.holidays.title')}
+                      </h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const holidays = form.getValues(`metadata.${country.code}.settings.holidays`) || [];
+                          form.setValue(`metadata.${country.code}.settings.holidays`, [
+                            ...holidays,
+                            { date: '', name: '' },
+                          ]);
+                        }}
+                      >
+                        {t('organization.holidays.add')}
+                      </Button>
+                    </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        {// eslint-disable-next-line
-                          form.watch(`metadata.${country.code}.settings.holidays`)?.map((_: any, index: React.Key | null | undefined) => (
+                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                      {// eslint-disable-next-line
+                        form.watch(`metadata.${country.code}.settings.holidays`)?.map((_: any, index: React.Key | null | undefined) => (
                           <Card key={index}>
                             <CardContent className="relative p-4">
                               <div className="grid gap-4">
@@ -338,14 +338,14 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    className={"absolute right-2 top-2"}
+                                    className={'absolute right-2 top-2'}
                                     onClick={() => {
-                                      const holidays = form.getValues(`metadata.${country.code}.settings.holidays`)
+                                      const holidays = form.getValues(`metadata.${country.code}.settings.holidays`);
                                       form.setValue(
                                         `metadata.${country.code}.settings.holidays`,
                                         // eslint-disable-next-line
                                         holidays.filter((_: any, i: any) => i !== index),
-                                      )
+                                      );
                                     }}
                                   >
                                     <Trash className="size-4" />
@@ -355,35 +355,35 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                             </CardContent>
                           </Card>
                         ))}
-                      </div>
                     </div>
-                    <Separator />
+                  </div>
+                  <Separator />
 
-                    {/* Section Fermetures exceptionnelles */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium">
-                          {t('organization.closures.title')}
-                        </h3>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            const closures = form.getValues(`metadata.${country.code}.settings.closures`) || []
-                            form.setValue(`metadata.${country.code}.settings.closures`, [
-                              ...closures,
-                              { start: '', end: '', reason: '' },
-                            ])
-                          }}
-                        >
-                          {t('organization.closures.add')}
-                        </Button>
-                      </div>
+                  {/* Section Fermetures exceptionnelles */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">
+                        {t('organization.closures.title')}
+                      </h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const closures = form.getValues(`metadata.${country.code}.settings.closures`) || [];
+                          form.setValue(`metadata.${country.code}.settings.closures`, [
+                            ...closures,
+                            { start: '', end: '', reason: '' },
+                          ]);
+                        }}
+                      >
+                        {t('organization.closures.add')}
+                      </Button>
+                    </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
-                        {// eslint-disable-next-line
-                          form.watch(`metadata.${country.code}.settings.closures`)?.map((_: any, index: React.Key | null | undefined) => (
+                      {// eslint-disable-next-line
+                        form.watch(`metadata.${country.code}.settings.closures`)?.map((_: any, index: React.Key | null | undefined) => (
                           <Card key={index}>
                             <CardContent className="relative p-4">
                               <div className="grid gap-4">
@@ -443,14 +443,14 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    className={"absolute right-2 top-2"}
+                                    className={'absolute right-2 top-2'}
                                     onClick={() => {
-                                      const closures = form.getValues(`metadata.${country.code}.settings.closures`)
+                                      const closures = form.getValues(`metadata.${country.code}.settings.closures`);
                                       form.setValue(
                                         `metadata.${country.code}.settings.closures`,
                                         // eslint-disable-next-line
                                         closures.filter((_: any, i: any) => i !== index),
-                                      )
+                                      );
                                     }}
                                   >
                                     <Trash className="size-4" />
@@ -460,20 +460,20 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                             </CardContent>
                           </Card>
                         ))}
-                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
-       <div className="actions py-4">
-         <Button type="submit" disabled={isLoading}>
-           {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-           {isLoading ? t_common('actions.saving') : t_common('actions.save')}
-         </Button>
-       </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+        <div className="actions py-4">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {isLoading ? t_common('actions.saving') : t_common('actions.save')}
+          </Button>
+        </div>
       </form>
     </Form>
-  )
+  );
 }

@@ -161,3 +161,40 @@ export async function getDashboardStats(): Promise<DashboardStatsValues | null> 
     return null;
   }
 }
+
+
+export async function getQueueItems() {
+  const authResult = await checkAuth([UserRole.MANAGER]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    const requests = await db.serviceRequest.findMany({
+      where: {
+        status: 'SUBMITTED',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 10,
+    });
+
+    return { data: requests };
+  } catch (error) {
+    console.error('Error fetching queue items:', error);
+    return { error: 'Failed to fetch queue items' };
+  }
+}
+
+export async function getImportantAlerts() {
+  const authResult = await checkAuth([UserRole.MANAGER]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    // TODO: Implémenter la logique des alertes
+    // Par exemple : demandes urgentes, documents expirants, etc.
+    return { data: [] };
+  } catch (error) {
+    console.error('Error fetching alerts:', error);
+    return { error: 'Failed to fetch alerts' };
+  }
+}

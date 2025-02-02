@@ -737,6 +737,7 @@
         "invalid_credentials": "Identifiants invalides",
         "no_document": "Aucun document",
         "profile_not_found": "Profil non trouvé",
+        "invalid_data": "Données invalides",
         "invalid_status": "Le profil ne peut pas être soumis dans son état actuel",
         "missing_documents": "Des documents requis sont manquants",
         "incomplete_profile": "Le profil est incomplet"

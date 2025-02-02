@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { ContactInfoSchema, type ContactInfoFormData } from '@/schemas/registration';
+import {
+  ContactInfoSchema,
+  type ContactInfoFormData,
+  type BasicInfoFormData,
+} from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/app/(authenticated)/user/_utils/profile';
@@ -13,6 +17,7 @@ import { MapPin, Mail, Phone } from 'lucide-react';
 import { ContactInfoForm } from '@/app/(public)/registration/_utils/components/contact-form';
 import { FullProfile } from '@/types';
 import { Address, AddressGabon } from '@prisma/client';
+import { filterUneditedKeys } from '@/lib/utils';
 
 interface ContactInfoSectionProps {
   profile: FullProfile;
@@ -128,6 +133,8 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
     try {
       setIsLoading(true);
       const data = form.getValues();
+
+      filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
 
       const formData = new FormData();
       formData.append('contactInfo', JSON.stringify(data));

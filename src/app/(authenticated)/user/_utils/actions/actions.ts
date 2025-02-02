@@ -10,15 +10,13 @@ export async function getRegistrationServiceForUser(
 ): Promise<ConsularService | null> {
   const authResult = await checkAuth();
   if (authResult.error) return null;
-  
+
   const service = await db.consularService.findFirst({
     where: {
       countryId,
       category: 'REGISTRATION',
     },
   });
-
-  console.log('service', service);
-
+  
   return service;
 }

@@ -26,7 +26,7 @@ import { Country } from '@/types/country';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Loader2, Trash } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { DaySchedule } from '@/app/(authenticated)/manager/_utils/components/day-schedule';
+import { DaySchedule } from '@/app/(authenticated)/admin/_utils/components/day-schedule';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { updateOrganizationSettings } from '@/components/service/organization';
@@ -43,9 +43,9 @@ interface OrganizationSettingsProps {
 }
 
 export function OrganizationSettings({
-  organization,
-  countries = [],
-}: OrganizationSettingsProps) {
+                                       organization,
+                                       countries = [],
+                                     }: OrganizationSettingsProps) {
   const schema = generateOrganizationSettingsSchema(
     organization.countries as unknown as Country[],
   );
@@ -563,7 +563,7 @@ export function OrganizationSettings({
                                     );
                                     form.setValue(
                                       `metadata.${country.code}.settings.closures`,
-                                       
+
                                       closures.filter(
                                         (_: never, i: number) => i !== index,
                                       ),

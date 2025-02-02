@@ -33,7 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MetadataForm } from '@/app/(authenticated)/manager/_utils/components/metadata-form';
+import { MetadataForm } from '@/app/(authenticated)/admin/_utils/components/metadata-form';
 import { ReloadIcon } from '@radix-ui/react-icons';
 
 interface UserDocumentProps {
@@ -55,14 +55,14 @@ const updateDocumentSchema = z.object({
 type UpdateDocumentData = z.infer<typeof updateDocumentSchema>;
 
 export function UserDocument({
-  document,
-  label,
-  description,
-  profileId,
-  expectedType = DocumentType.IDENTITY_PHOTO,
-  required = false,
-  disabled = false,
-}: UserDocumentProps) {
+                               document,
+                               label,
+                               description,
+                               profileId,
+                               expectedType = DocumentType.IDENTITY_PHOTO,
+                               required = false,
+                               disabled = false,
+                             }: UserDocumentProps) {
   const t = useTranslations('common.documents');
   const t_messages = useTranslations('messages');
   const { toast } = useToast();
@@ -335,7 +335,8 @@ export function UserDocument({
                 </DialogContent>
               </Dialog>
             ) : (
-              <div className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted">
+              <div
+                className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted">
                 <FileInput className="size-10 opacity-20" />
               </div>
             )}
@@ -379,13 +380,13 @@ export function UserDocument({
                     {t('validity', {
                       start: document.issuedAt
                         ? format(new Date(document.issuedAt), 'dd-MM-yyyy', {
-                            locale: fr,
-                          })
+                          locale: fr,
+                        })
                         : 'N/A',
                       end: document.expiresAt
                         ? format(new Date(document.expiresAt), 'dd-MM-yyyy', {
-                            locale: fr,
-                          })
+                          locale: fr,
+                        })
                         : 'N/A',
                     })}
                   </>

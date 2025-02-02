@@ -14,6 +14,7 @@ import { Users, User2, Phone } from 'lucide-react';
 import { FamilyInfoForm } from '@/app/(public)/registration/_utils/components/family-info';
 import { Separator } from '@/components/ui/separator';
 import { FullProfile } from '@/types';
+import { filterUneditedKeys } from '@/lib/utils';
 
 interface FamilyInfoSectionProps {
   profile: FullProfile;
@@ -89,6 +90,8 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
       setIsLoading(true);
       const data = form.getValues();
 
+      filterUneditedKeys<FamilyInfoFormData>(data, form.formState.dirtyFields);
+
       const formData = new FormData();
       formData.append('familyInfo', JSON.stringify(data));
 
@@ -128,7 +131,9 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
   };
 
   const showSpouseField =
-    profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING';
+    profile.maritalStatus === 'MARRIED' ||
+    profile.maritalStatus === 'COHABITING' ||
+    profile.maritalStatus === 'CIVIL_UNION';
 
   return (
     <EditableSection

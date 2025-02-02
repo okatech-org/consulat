@@ -252,8 +252,8 @@ model Profile {
   birthPlace             String
   birthCountry           String
   nationality            String                  @default("gabon")
-  maritalStatus          MaritalStatus?
-  workStatus             WorkStatus?
+  maritalStatus          MaritalStatus?          @default(SINGLE)
+  workStatus             WorkStatus?             @default(UNEMPLOYED)
   acquisitionMode        NationalityAcquisition? @default(BIRTH)
   passportNumber         String
   passportIssueDate      DateTime

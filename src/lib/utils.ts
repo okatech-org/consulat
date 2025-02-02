@@ -393,12 +393,10 @@ export function filterUneditedKeys<T extends Record<string, unknown>>(
   data: T,
   dirtyFields: UseFormReturn<T>['formState']['dirtyFields'],
   omit: (keyof T)[] = [],
-): Partial<T> {
+): Partial<T> | undefined {
   if (!dirtyFields || !data) {
     return {};
   }
-
-  console.log('Filtering unedited keys...');
 
   const editedKeys = [...omit, ...Object.keys(dirtyFields)];
 
@@ -407,4 +405,6 @@ export function filterUneditedKeys<T extends Record<string, unknown>>(
       delete data[key as keyof T];
     }
   });
+
+  return data;
 }

@@ -1,10 +1,10 @@
 import { UserRole } from '@prisma/client';
-import ManagerSidebar from './_utils/components/manager-sidebar';
+import ManagerSidebar from '@/app/(authenticated)/admin/_utils/components/manager-sidebar';
 import { RoleGuard } from '@/components/ui/role-guard';
 
 export default async function ManagerLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+                                              children,
+                                            }: Readonly<{ children: React.ReactNode }>) {
   return (
     <RoleGuard roles={[UserRole.ADMIN, UserRole.MANAGER]}>
       <ManagerSidebar />

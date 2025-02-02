@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BasicInfoForm } from '@/app/(public)/registration/_utils/components/basic-info';
+import { filterUneditedKeys } from '@/lib/utils';
 
 interface BasicInfoSectionProps {
   profile: Profile;
@@ -89,10 +90,14 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
       setIsLoading(true);
       const data = form.getValues();
 
+      filterUneditedKeys<BasicInfoFormData>(data, form.formState.dirtyFields);
+
       const formData = new FormData();
+
       if (data.identityPictureFile) {
         formData.append('identityPictureFile', data.identityPictureFile);
       }
+
       formData.append('basicInfo', JSON.stringify(data));
 
       const result = await updateProfile(formData, 'basicInfo');

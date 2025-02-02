@@ -43,7 +43,9 @@ export function FamilyInfoForm({
 
   const maritalStatus = form.watch('maritalStatus');
   const showSpouseFields =
-    maritalStatus === MaritalStatus.MARRIED || maritalStatus === MaritalStatus.COHABITING;
+    maritalStatus === MaritalStatus.MARRIED ||
+    maritalStatus === MaritalStatus.COHABITING ||
+    maritalStatus === MaritalStatus.CIVIL_UNION;
 
   const handlePhoneChange = (phone: PhoneValue) => {
     form.setValue('emergencyContact.phone', phone);
@@ -63,7 +65,19 @@ export function FamilyInfoForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('form.marital_status')}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (
+                          value !== MaritalStatus.MARRIED &&
+                          value !== MaritalStatus.COHABITING &&
+                          value !== MaritalStatus.CIVIL_UNION
+                        ) {
+                          form.setValue('spouseFullName', undefined);
+                        }
+                      }}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger disabled={isLoading}>
                           <SelectValue placeholder={t('form.select_marital_status')} />
