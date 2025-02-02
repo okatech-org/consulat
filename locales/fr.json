@@ -212,6 +212,7 @@
       },
       "actions": {
         "upload": "Téléverser",
+        "uploading": "Téléversement...",
         "reupload": "Remplacer",
         "view": "Voir",
         "delete": "Supprimer",
@@ -727,6 +728,7 @@
     },
     "profile": {
       "errors": {
+        "unknown": "Une erreur inattendue est survenue",
         "update_failed": "Échec de la mise à jour du profil",
         "user_not_found": "Utilisateur introuvable",
         "unauthorized": "Vous devez être connecté pour effectuer cette action",

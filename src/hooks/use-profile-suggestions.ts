@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
 import { analyzeProfile } from '@/actions/profile-suggestions';
 import { User } from '@prisma/client';
@@ -58,7 +58,8 @@ export function useProfileSuggestions(profile: FullProfile, user: User) {
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const t = useTranslations('components.assistant');
+  const locale = useLocale();
+  const t = useTranslations('documents.assistant');
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -80,7 +81,7 @@ export function useProfileSuggestions(profile: FullProfile, user: User) {
         }
 
         // Sinon, faire l'analyse
-        const result = await analyzeProfile(profile, user);
+        const result = await analyzeProfile(profile, user, locale);
 
         if (result.suggestions) {
           // Traduire les messages

@@ -50,20 +50,20 @@ export function ReviewFields<T extends keyof ConsularFormData>({
           <h3 className="font-medium">{t('review.components')}</h3>
           <div className="grid gap-3">
             <DocumentStatus
-              type={t('components.passport.label')}
+              type={t('profile.passport.label')}
               isUploaded={!documents.passportFile?.length}
             />
             <DocumentStatus
-              type={t('components.birth_certificate.label')}
+              type={t('profile.birth_certificate.label')}
               isUploaded={!documents.birthCertificateFile?.length}
             />
             <DocumentStatus
-              type={t('components.residence_permit.label')}
+              type={t('profile.residence_permit.label')}
               isUploaded={!documents.residencePermitFile?.length}
               required={false}
             />
             <DocumentStatus
-              type={t('components.address_proof.label')}
+              type={t('profile.address_proof.label')}
               isUploaded={!documents.addressProofFile?.length}
             />
           </div>
@@ -76,7 +76,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
           <h3 className="font-medium">{t('review.basic_info')}</h3>
           <div className="grid gap-4 md:grid-cols-2">
             <DocumentStatus
-              type={t('components.identity_picture.label')}
+              type={t('profile.identity_picture.label')}
               isUploaded={!basicInfo.identityPictureFile?.length}
             />
             <InfoField

@@ -1,29 +1,28 @@
 'use server';
 
-import { AssistantFactory } from '@/lib/ai/assistant-factory';
 import { ContextBuilder } from '@/lib/ai/context-builder';
 import { FullProfile } from '@/types';
 import { User } from '@prisma/client';
 import { PROFILE_ANALYSIS_PROMPT } from '@/lib/ai/prompts';
+import { getChatCompletion } from '@/lib/ai/actions';
 
-export async function analyzeProfile(profile: FullProfile, user: User) {
+export async function analyzeProfile(profile: FullProfile, user: User, locale: string) {
   try {
-    const context = await ContextBuilder.buildContext(user, profile);
-    const assistant = AssistantFactory.createAssistant(context);
+    const context = ContextBuilder.buildContext({
+      user: JSON.stringify(user, null, 2),
+      profileData: JSON.stringify(profile, null, 2),
+      language: locale,
+      assistantPrompt: PROFILE_ANALYSIS_PROMPT,
+    });
 
-    const profileData = JSON.stringify(profile, null, 2);
-    const response = await assistant.handleMessage(
-      `${PROFILE_ANALYSIS_PROMPT}\n\nProfil à analyser:\n${profileData}`,
-    );
+    const aiResponse = await getChatCompletion('', context, []);
 
-    if (response.error) {
-      throw new Error(response.error);
+    if (!aiResponse) {
+      throw new Error("Réponse de l'IA vide");
     }
 
     // Extraire le JSON de la réponse
-    const jsonMatch =
-      response.message.match(/```json\n([\s\S]*)\n```/) ||
-      response.message.match(/\{[\s\S]*\}/);
+    const jsonMatch = aiResponse;
 
     if (!jsonMatch) {
       throw new Error('Format de réponse invalide');

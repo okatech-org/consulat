@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { useTransition } from 'react';
 import { Locale } from '@/i18n/config';
-import { setUserLocale } from '@/services/locale';
+import { setUserLocale } from '@/i18n/locale';
 import { Icons } from '@/components/ui/icons';
 
 type LanguageSwitcherProps = Readonly<{

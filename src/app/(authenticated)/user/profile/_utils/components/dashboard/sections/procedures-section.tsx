@@ -11,7 +11,7 @@ interface ProceduresSectionProps {
 }
 
 export function ProceduresSection({ stats, onAction }: ProceduresSectionProps) {
-  const t = useTranslations('components.dashboard.sections.procedures');
+  const t = useTranslations('profile.dashboard.sections.procedures');
 
   if (!stats) return null;
 

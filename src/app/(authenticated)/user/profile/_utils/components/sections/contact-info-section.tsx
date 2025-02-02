@@ -95,8 +95,8 @@ function AddressDisplay({
 
 export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
   const t = useTranslations('registration');
-  const t_messages = useTranslations('messages.components');
-  const t_sections = useTranslations('components.sections');
+  const t_messages = useTranslations('messages.profile');
+  const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

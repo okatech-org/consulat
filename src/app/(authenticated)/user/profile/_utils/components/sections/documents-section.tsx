@@ -40,14 +40,14 @@ export function DocumentsSection({
 
   return (
     <EditableSection
-      title={t('sections.components')}
+      title={t('sections.documents')}
       isEditing={false}
       className={className}
     >
       <div className="mb-4 grid gap-6 lg:grid-cols-2">
         <UserDocument
-          label={t_common('components.types.passport')}
-          description={t_common('components.descriptions.passport')}
+          label={t_common('documents.types.passport')}
+          description={t_common('documents.descriptions.passport')}
           document={convertDocument(documents.passport)}
           expectedType={DocumentType.PASSPORT}
           profileId={profileId}
@@ -55,8 +55,8 @@ export function DocumentsSection({
         />
 
         <UserDocument
-          label={t_common('components.types.birth_certificate')}
-          description={t_common('components.descriptions.birth_certificate')}
+          label={t_common('documents.types.birth_certificate')}
+          description={t_common('documents.descriptions.birth_certificate')}
           document={convertDocument(documents.birthCertificate)}
           expectedType={DocumentType.BIRTH_CERTIFICATE}
           profileId={profileId}
@@ -64,16 +64,16 @@ export function DocumentsSection({
         />
 
         <UserDocument
-          label={t_common('components.types.residence_permit')}
-          description={t_common('components.descriptions.residence_permit')}
+          label={t_common('documents.types.residence_permit')}
+          description={t_common('documents.descriptions.residence_permit')}
           document={convertDocument(documents.residencePermit)}
           expectedType={DocumentType.RESIDENCE_PERMIT}
           profileId={profileId}
         />
 
         <UserDocument
-          label={t_common('components.types.proof_of_address')}
-          description={t_common('components.descriptions.proof_of_address')}
+          label={t_common('documents.types.proof_of_address')}
+          description={t_common('documents.descriptions.proof_of_address')}
           document={convertDocument(documents.addressProof)}
           expectedType={DocumentType.PROOF_OF_ADDRESS}
           profileId={profileId}
@@ -81,8 +81,8 @@ export function DocumentsSection({
         />
 
         <UserDocument
-          label={t_common('components.types.identity_photo')}
-          description={t_common('components.descriptions.identity_photo')}
+          label={t_common('documents.types.identity_photo')}
+          description={t_common('documents.descriptions.identity_photo')}
           document={convertDocument(documents.identityPhoto)}
           expectedType={DocumentType.IDENTITY_PHOTO}
           profileId={profileId}

@@ -39,21 +39,21 @@ export function RegistrationForm() {
   const [steps, setSteps] = useState([
     {
       key: 'documents',
-      title: t('steps.components'),
+      title: t('steps.documents'),
       description: t('steps.documents_description'),
-      isComplete: !!forms.documents.formState.isValid,
+      isComplete: forms.documents.formState.isValid,
     },
     {
       key: 'identity',
       title: t('steps.identity'),
       description: t('steps.identity_description'),
-      isComplete: !!forms.basicInfo.formState.isValid,
+      isComplete: forms.basicInfo.formState.isValid,
     },
     {
       key: 'family',
       title: t('steps.family'),
       description: t('steps.family_description'),
-      isComplete: !!forms.familyInfo.formState.isValid,
+      isComplete: forms.familyInfo.formState.isValid,
     },
     {
       key: 'contact',
@@ -65,7 +65,7 @@ export function RegistrationForm() {
       key: 'professional',
       title: t('steps.professional'),
       description: t('steps.professional_description'),
-      isComplete: !!forms.professionalInfo.formState.isValid,
+      isComplete: forms.professionalInfo.formState.isValid,
       isOptional: true,
     },
     {
@@ -104,15 +104,15 @@ export function RegistrationForm() {
         .map(([key]) => t(`sections.${key.replace('has', '').toLowerCase()}`));
 
       toast({
-        title: t('components.analysis.success.title'),
-        description: t('components.analysis.success.description_with_sections', {
+        title: t('profile.analysis.success.title'),
+        description: t('profile.analysis.success.description_with_sections', {
           sections: updatedSections.join(', '),
         }),
         variant: 'success',
         action:
           updatedSections.length > 0 ? (
             <Button onClick={() => setCurrentStep((prev) => prev + 1)} size="sm">
-              {t('components.analysis.success.action')}
+              {t('profile.analysis.success.action')}
             </Button>
           ) : undefined,
       });

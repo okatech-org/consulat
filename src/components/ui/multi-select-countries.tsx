@@ -17,14 +17,14 @@ import { cn } from '@/lib/utils';
 interface MultiSelectCountriesProps {
   countries: { id: string; name: string }[];
   selected: string[];
-  onChange: (values: string[]) => void;
+  onChangeAction: (values: string[]) => void;
   placeholder?: string;
 }
 
 export function MultiSelectCountries({
   countries,
   selected,
-  onChange,
+  onChangeAction,
   placeholder = 'Sélectionner des pays...',
 }: MultiSelectCountriesProps) {
   const [open, setOpen] = React.useState(false);
@@ -40,7 +40,7 @@ export function MultiSelectCountries({
     const updatedValues = selected.includes(countryId)
       ? selected.filter((id) => id !== countryId)
       : [...selected, countryId];
-    onChange(updatedValues);
+    onChangeAction(updatedValues);
   };
 
   return (

@@ -1,8 +1,8 @@
 export type ContextData = {
   user: string;
-  knowledgeBase: string;
   assistantPrompt: string;
   language: string;
+  knowledgeBase?: string;
   profileData?: string;
   countryData?: string;
   serviceRequestsData?: string;

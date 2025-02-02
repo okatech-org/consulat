@@ -31,10 +31,10 @@ export async function getChatCompletion(
 ): Promise<string | null> {
   try {
     const params: OpenAI.Chat.ChatCompletionCreateParams = {
-      model: 'gpt-4o-mini',
+      model: 'o1-mini',
       messages: [
         {
-          role: 'developer',
+          role: 'user',
           content: context,
         },
         ...history,

@@ -1,10 +1,10 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pencil, X, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import CardContainer from '@/components/layouts/card-container';
 
 interface EditableSectionProps {
   title: string;
@@ -30,11 +30,10 @@ export function EditableSection({
   const t = useTranslations('profile');
 
   return (
-    <Card className={cn('relative', className)}>
-      <CardHeader className="mb-2 flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base font-semibold md:text-lg">{title}</CardTitle>
-
-        {onEdit && (
+    <CardContainer
+      title={title}
+      action={
+        onEdit && (
           <>
             {!isEditing ? (
               <Button variant="ghost" size="sm" onClick={onEdit} className="h-8 px-2">
@@ -66,9 +65,11 @@ export function EditableSection({
               </div>
             )}
           </>
-        )}
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+        )
+      }
+      className={cn('relative', className)}
+    >
+      {children}
+    </CardContainer>
   );
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Send, X } from 'lucide-react';
+import MarkdownPreview from '@uiw/react-markdown-preview';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,6 @@ import {
 } from 'openai/resources';
 import { ContextBuilder } from '@/lib/ai/context-builder';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import ReactMarkdown from 'react-markdown';
 import { ContextData } from '@/lib/ai/types';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
@@ -64,7 +64,7 @@ export function ChatWindow() {
       await storeQuestion(message);
     }
 
-    if (!currentUser && history.length === 5) {
+    if (!currentUser && history.length >= 5) {
       addMessage({
         role: 'assistant',
         content: t('please_login'), // "Please login to continue the conversation."
@@ -88,9 +88,9 @@ export function ChatWindow() {
     if (Array.isArray(content)) {
       return content.map((part, index) => {
         if ('text' in part) {
-          return <ReactMarkdown key={index}>{part.text}</ReactMarkdown>;
+          return <MarkdownPreview key={index} source={part.text} />;
         } else if ('refusal' in part) {
-          return <ReactMarkdown key={index}>{part.refusal}</ReactMarkdown>;
+          return <MarkdownPreview key={index} source={part.refusal} />;
         }
         return null;
       });
@@ -163,7 +163,7 @@ export function ChatWindow() {
             autoComplete="off"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            disabled={isLoading || (!currentUser && history.length === 5)}
+            disabled={isLoading || (!currentUser && history.length >= 5)}
           />
           <Button type="submit" size="icon" disabled={isLoading || inputLength === 0}>
             <Send className="size-4" />
@@ -173,7 +173,7 @@ export function ChatWindow() {
             type="button"
             size="icon"
             disabled={
-              isLoading || history.length === 0 || (!currentUser && history.length === 5)
+              isLoading || history.length === 0 || (!currentUser && history.length >= 5)
             }
             onClick={clearHistory}
           >
@@ -182,7 +182,7 @@ export function ChatWindow() {
           </Button>
         </form>
 
-        {!currentUser && history.length === 5 && (
+        {!currentUser && history.length >= 5 && (
           <div className={'flex flex-col pt-4 gap-2 items-center'}>
             <Button asChild className={'w-full'}>
               <Link href={ROUTES.user.base}>{t('login')}</Link>

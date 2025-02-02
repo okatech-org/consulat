@@ -11,7 +11,7 @@ interface InfoFieldProps {
 }
 
 export function InfoField({ label, value, required, icon, className }: InfoFieldProps) {
-  const t = useTranslations('components.review');
+  const t = useTranslations('profile.review');
 
   return (
     <div className={className}>
@@ -50,7 +50,7 @@ export function DocumentStatus({
   customText,
   required = true,
 }: DocumentStatusProps) {
-  const t = useTranslations('components.review');
+  const t = useTranslations('profile.review');
 
   return (
     <div className="flex items-center justify-between">

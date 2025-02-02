@@ -159,7 +159,7 @@ export function AgentForm({ initialData, countries }: AgentFormProps) {
                   placeholder={t_inputs('country.select_placeholder')}
                   countries={countries}
                   selected={field.value}
-                  onChange={field.onChange}
+                  onChangeAction={field.onChange}
                 />
               </FormControl>
               <FormMessage />

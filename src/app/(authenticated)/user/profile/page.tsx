@@ -18,7 +18,6 @@ import { FamilyInfoSection } from '@/app/(authenticated)/user/profile/_utils/com
 import { ProfessionalInfoSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/professional-info-section';
 import { DocumentsSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/documents-section';
 import { ProfileHeaderClient } from '@/app/(authenticated)/user/profile/_utils/components/profile-header-client';
-import { ProfileCompletionAssistant } from '@/app/(authenticated)/user/profile/_utils/components/profile-completion-assistant';
 import { ProfileCompletion } from '@/app/(authenticated)/user/profile/_utils/components/profile-completion';
 import { SubmitProfileButton } from '@/app/(authenticated)/user/profile/_utils/components/submit-profile-button';
 
@@ -108,7 +107,6 @@ export default async function ProfilePage() {
       <Suspense fallback={<LoadingSkeleton />}>
         <div className="flex flex-col gap-4">
           <ProfileHeaderClient profile={profile} />
-          <ProfileCompletionAssistant profile={profile} user={user} />
         </div>
         <div className="grid grid-cols-8 gap-4">
           {profile && (

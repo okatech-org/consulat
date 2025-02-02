@@ -20,7 +20,7 @@ interface DocumentsSectionProps {
 }
 
 export function DocumentsSection({ stats, onAction }: DocumentsSectionProps) {
-  const t = useTranslations('components.dashboard.sections.components');
+  const t = useTranslations('profile.dashboard.sections.components');
 
   if (!stats) return null;
 

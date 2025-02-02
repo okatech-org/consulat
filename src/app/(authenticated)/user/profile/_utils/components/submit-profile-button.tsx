@@ -15,6 +15,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { submitProfileForValidation } from '@/app/(authenticated)/user/_utils/profile';
 import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 // Définir les items de la checklist de manière statique
 const CHECKLIST_ITEMS = [
@@ -30,7 +31,7 @@ interface SubmitProfileButtonProps {
 }
 
 export function SubmitProfileButton({ profileId, isComplete }: SubmitProfileButtonProps) {
-  const t = useTranslations('components.submission');
+  const t = useTranslations('profile.submission');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -39,6 +40,7 @@ export function SubmitProfileButton({ profileId, isComplete }: SubmitProfileButt
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
+      console.log('Submitting profile for validation...');
       const result = await submitProfileForValidation(profileId);
 
       if (result.error) {

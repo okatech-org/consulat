@@ -17,6 +17,7 @@ import {
 } from '@/schemas/registration';
 import { deleteFiles } from '@/actions/uploads';
 import { calculateProfileCompletion, extractNumber } from '@/lib/utils';
+import { getRegistrationServiceForUser } from '@/app/(authenticated)/user/_utils/actions/actions';
 
 export async function postProfile(
   formData: FormData,
@@ -24,7 +25,7 @@ export async function postProfile(
   const uploadedFiles: { key: string; url: string }[] = [];
 
   try {
-    const t = await getTranslations('messages.components');
+    const t = await getTranslations('messages.profile');
     const user = await getCurrentUser();
 
     if (!user) {
@@ -286,14 +287,25 @@ export async function postProfile(
 
     const profileCompletion = await calculateProfileCompletion(profile);
 
-    if (profileCompletion === 100) {
-      await db.profile.update({
-        where: { id: profile.id },
-        data: {
-          status: RequestStatus.SUBMITTED,
-          submittedAt: new Date(),
-        },
-      });
+    if (profileCompletion === 100 && user.countryId) {
+      const registrationService = await getRegistrationServiceForUser(user.countryId);
+
+      if (registrationService) {
+        await db.serviceRequest.create({
+          data: {
+            submittedBy: user.id,
+            serviceId: registrationService.id,
+          },
+        });
+
+        await db.profile.update({
+          where: { id: profile.id },
+          data: {
+            status: RequestStatus.SUBMITTED,
+            submittedAt: new Date(),
+          },
+        });
+      }
     }
 
     // Revalider les pages
@@ -326,22 +338,22 @@ type UpdateProfileSection = {
 };
 
 /**
-type DocumentUpdate = {
-  fileUrl: string
-  type: DocumentType
-  status?: DocumentStatus
-  issuedAt?: Date
-  expiresAt?: Date
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: Record<string, any>
-}*/
+ type DocumentUpdate = {
+ fileUrl: string
+ type: DocumentType
+ status?: DocumentStatus
+ issuedAt?: Date
+ expiresAt?: Date
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ metadata?: Record<string, any>
+ }*/
 
 export async function updateProfile(
   formData: FormData,
   section: keyof UpdateProfileSection,
 ): Promise<ActionResult<Profile>> {
   try {
-    const t = await getTranslations('messages.components.errors');
+    const t = await getTranslations('messages.profile.errors');
     const user = await getCurrentUser();
 
     if (!user) {
@@ -573,8 +585,23 @@ export async function updateProfile(
 export async function submitProfileForValidation(
   profileId: string,
 ): Promise<ActionResult<Profile>> {
+  const t = await getTranslations('messages.profile');
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser || !currentUser.countryId) {
+    return { error: 'messages.errors.unauthorized' };
+  }
+
   try {
-    const t = await getTranslations('messages.components');
+    console.log('Submitting profile for validation...', currentUser);
+    const registrationService = await getRegistrationServiceForUser(
+      currentUser.countryId,
+    );
+    console.log('Submitting profile for validation...');
+
+    if (!registrationService) {
+      return { error: 'messages.errors.service_not_found' };
+    }
 
     // Vérifier que le profil existe et est complet
     const profile = await db.profile.findUnique({
@@ -622,20 +649,19 @@ export async function submitProfileForValidation(
       return { error: t('errors.incomplete_profile') };
     }
 
+    await db.serviceRequest.create({
+      data: {
+        submittedBy: currentUser.id,
+        serviceId: registrationService.id,
+      },
+    });
+
     // Mettre à jour le statut du profil
     const updatedProfile = await db.profile.update({
       where: { id: profileId },
       data: {
-        status: RequestStatus.SUBMITTED,
+        status: 'SUBMITTED',
         submittedAt: new Date(),
-      },
-      include: {
-        passport: true,
-        birthCertificate: true,
-        residencePermit: true,
-        addressProof: true,
-        address: true,
-        emergencyContact: true,
       },
     });
 

@@ -43,22 +43,22 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
   const documents = [
     {
       type: DocumentType.PASSPORT,
-      label: t_review('components.passport'),
+      label: t_review('profile.passport'),
       document: profile.passport,
     },
     {
       type: DocumentType.BIRTH_CERTIFICATE,
-      label: t_review('components.birth_certificate'),
+      label: t_review('profile.birth_certificate'),
       document: profile.birthCertificate,
     },
     {
       type: DocumentType.RESIDENCE_PERMIT,
-      label: t_review('components.residence_permit'),
+      label: t_review('profile.residence_permit'),
       document: profile.residencePermit,
     },
     {
       type: DocumentType.PROOF_OF_ADDRESS,
-      label: t_review('components.address_proof'),
+      label: t_review('profile.address_proof'),
       document: profile.addressProof,
     },
   ];
@@ -86,20 +86,20 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{label}</p>
                   {documentValidations?.[document?.type as DocumentType]?.required && (
-                    <Badge variant="outline">{t_review('components.required')}</Badge>
+                    <Badge variant="outline">{t_review('profile.required')}</Badge>
                   )}
                 </div>
                 {document && (
                   <div className="space-y-1 text-sm text-muted-foreground">
                     {document.issuedAt && (
                       <p>
-                        {t_review('components.issued_at')}:{' '}
+                        {t_review('profile.issued_at')}:{' '}
                         {format(new Date(document.issuedAt), 'PPP', { locale: fr })}
                       </p>
                     )}
                     {document.expiresAt && (
                       <p>
-                        {t_review('components.expires_at')}:{' '}
+                        {t_review('profile.expires_at')}:{' '}
                         {format(new Date(document.expiresAt), 'PPP', { locale: fr })}
                       </p>
                     )}
@@ -154,7 +154,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                       </TooltipTrigger>
                       <TooltipContent>
                         {validation.isValid
-                          ? t_review('components.valid')
+                          ? t_review('profile.valid')
                           : validation.errors.join(', ')}
                       </TooltipContent>
                     </Tooltip>

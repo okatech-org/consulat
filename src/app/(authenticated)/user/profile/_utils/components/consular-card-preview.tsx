@@ -27,7 +27,7 @@ interface ConsularCardPreviewProps {
 const APP_URL = process.env.NEXT_PUBLIC_URL;
 
 export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
-  const t = useTranslations('components.card');
+  const t = useTranslations('profile.card');
   const [isFlipped, setIsFlipped] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 

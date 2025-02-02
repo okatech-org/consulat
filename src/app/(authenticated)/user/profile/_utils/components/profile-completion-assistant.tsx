@@ -36,7 +36,7 @@ export function ProfileCompletionAssistant({
   profile: FullProfile;
   user: User;
 }) {
-  const t = useTranslations('components.assistant');
+  const t = useTranslations('profile.assistant');
   const [isOpen, setIsOpen] = useState(false);
   const { suggestions, isLoading, error } = useProfileSuggestions(profile, user);
 
@@ -110,7 +110,7 @@ export function ProfileCompletionAssistant({
 
 // Composant pour afficher une suggestion
 function SuggestionCard({ suggestion }: { suggestion: ProfileSuggestion }) {
-  const t = useTranslations('components.assistant');
+  const t = useTranslations('profile.assistant');
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {

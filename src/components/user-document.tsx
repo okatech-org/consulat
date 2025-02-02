@@ -63,8 +63,8 @@ export function UserDocument({
   required = false,
   disabled = false,
 }: UserDocumentProps) {
-  const t = useTranslations('common.components');
-  const t_messages = useTranslations('messages.components');
+  const t = useTranslations('common.documents');
+  const t_messages = useTranslations('messages.profile');
   const { toast } = useToast();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [preview, setPreview] = React.useState<string | null>(null);
@@ -252,7 +252,9 @@ export function UserDocument({
       EXPIRING: 'warning',
     };
     return (
-      <Badge variant={variants[status]}>{t(`status.${status.toLowerCase()}`)}</Badge>
+      <Badge className={'min-w-max'} variant={variants[status]}>
+        {t(`status.${status.toLowerCase()}`)}
+      </Badge>
     );
   };
 

@@ -12,7 +12,7 @@ interface RequestsSectionProps {
 }
 
 export function RequestsSection({ stats, onAction }: RequestsSectionProps) {
-  const t = useTranslations('components.dashboard.sections.requests');
+  const t = useTranslations('profile.dashboard.sections.requests');
 
   if (!stats) return null;
 

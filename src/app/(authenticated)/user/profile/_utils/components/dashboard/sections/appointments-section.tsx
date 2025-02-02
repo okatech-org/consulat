@@ -15,7 +15,7 @@ interface AppointmentsSectionProps {
 }
 
 export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProps) {
-  const t = useTranslations('components.dashboard.sections.appointments');
+  const t = useTranslations('profile.dashboard.sections.appointments');
 
   if (!stats) return null;
 

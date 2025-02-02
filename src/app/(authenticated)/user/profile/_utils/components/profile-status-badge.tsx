@@ -9,7 +9,7 @@ interface ProfileStatusBadgeProps {
 }
 
 export function ProfileStatusBadge({ status, className }: ProfileStatusBadgeProps) {
-  const t = useTranslations('components.status');
+  const t = useTranslations('profile.status');
 
   const getStatusStyles = (status: RequestStatus) => {
     switch (status) {

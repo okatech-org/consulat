@@ -18,7 +18,7 @@ interface ProfileNotesProps {
 }
 
 export function ProfileNotes({ notes }: ProfileNotesProps) {
-  const t = useTranslations('components.notes');
+  const t = useTranslations('profile.notes');
 
   if (notes.length === 0) {
     return null;

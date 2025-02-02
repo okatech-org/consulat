@@ -62,7 +62,7 @@ function InfoField({
 
 export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
   const t = useTranslations('registration');
-  const t_messages = useTranslations('messages.components');
+  const t_messages = useTranslations('messages.profile');
   const t_assets = useTranslations('assets');
   const t_profile = useTranslations('profile');
   const { toast } = useToast();

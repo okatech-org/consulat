@@ -7,6 +7,89 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Auth related models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  type       String
+
+  @@unique([identifier, token])
+}
+
+// Modèles principaux
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     Phone?   @relation(fields: [phoneId], references: [id])
+  phoneId   String?  @unique
+  password  String? // Hashed password if needed
+  name      String?
+  firstName String?
+  lastName  String?
+  role      UserRole @default(USER)
+  image     String   @default("https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE")
+
+  // Relations
+  profile Profile?
+
+  // agent fields
+  organizationId    String?
+  serviceCategories ServiceCategory[] @default([])
+  linkedCountries   Country[]         @relation("managedCountries")
+  // Auth related
+  emailVerified     DateTime?
+  phoneVerified     DateTime?
+  accounts          Account[]
+  sessions          Session[]
+  lastLogin         DateTime?
+  messages          Message[]
+
+  submittedRequests ServiceRequest[]
+
+  documents UserDocument[] @relation("userDocuments")
+
+  Appointment          Appointment[]
+  managedOrganizations Organization[]
+
+  // New relations
+  authoredNotes ProfileNote[]  @relation("NoteAuthor")
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  country   Country? @relation(fields: [countryId], references: [id])
+  countryId String?
+}
+
 enum UserRole {
   SUPER_ADMIN
   ADMIN
@@ -135,56 +218,6 @@ model Phone {
   User             User[]
   Profile          Profile[]
   EmergencyContact EmergencyContact[]
-  Consulate        Consulate[]
-}
-
-// Modèles principaux
-model User {
-  id        String   @id @default(cuid())
-  email     String?  @unique
-  phone     Phone?   @relation(fields: [phoneId], references: [id])
-  phoneId   String?  @unique
-  password  String? // Hashed password if needed
-  name      String?
-  firstName String?
-  lastName  String?
-  role      UserRole @default(USER)
-  image     String   @default("https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE")
-
-  // Relations
-  profile     Profile?
-  consulateId String?
-  consulate   Consulate? @relation(fields: [consulateId], references: [id])
-
-  // agent fields
-  organizationId    String?
-  serviceCategories ServiceCategory[] @default([])
-  linkedCountries   Country[]         @relation("managedCountries")
-  // Auth related
-  emailVerified     DateTime?
-  phoneVerified     DateTime?
-  accounts          Account[]
-  sessions          Session[]
-  lastLogin         DateTime?
-  messages          Message[]
-
-  serviceRequests ServiceRequest[]
-
-  documents UserDocument[] @relation("userDocuments")
-
-  Appointment          Appointment[]
-  managedOrganizations Organization[]
-
-  // New relations
-  authoredNotes ProfileNote[]  @relation("NoteAuthor")
-  notifications Notification[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  country   Country? @relation(fields: [countryId], references: [id])
-  countryId String?
-
-  @@index([consulateId])
 }
 
 model ProfileNote {
@@ -269,8 +302,6 @@ model Profile {
   submittedAt     DateTime?
   notes           ProfileNote[]
   notifications   Notification[]
-  consulate       Consulate?     @relation(fields: [consulateId], references: [id])
-  consulateId     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -296,82 +327,15 @@ model AddressGabon {
 }
 
 model Address {
-  id         String  @id @default(cuid())
+  id         String    @id @default(cuid())
   firstLine  String
   secondLine String?
   city       String
   zipCode    String?
   country    String
-
-  // Relations
-  consulate Consulate?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  Profile   Profile[]
-}
-
-model Consulate {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  phone     Phone    @relation(fields: [phoneId], references: [id])
-  phoneId   String
-  address   Address? @relation(fields: [addressId], references: [id])
-  addressId String?  @unique
-  website   String?
-  isGeneral Boolean  @default(false)
-  logo      String?
-
-  serviceRequests ServiceRequest[]
-
-  // Relations
-  users     User[]
-  countries Country[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  appointments   Appointment[]
-  schedule       ConsulateSchedule[]
-  timeSlots      TimeSlot[]
-  linkedProfiles Profile[]
-}
-
-// Auth related models
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  id         String   @id @default(cuid())
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  type       String
-
-  @@unique([identifier, token])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  Profile    Profile[]
 }
 
 // Mettre à jour le modèle Document
@@ -492,6 +456,8 @@ model ConsularService {
   metadata  Json? // Données additionnelles flexibles
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Country   Country? @relation(fields: [countryId], references: [id])
+  countryId String?
 }
 
 model ServiceStep {
@@ -525,28 +491,25 @@ enum ServiceStepType {
 // Modèle pour les demandes de démarches
 model ServiceRequest {
   id       String               @id @default(cuid())
-  status   ServiceRequestStatus @default(DRAFT)
+  status   ServiceRequestStatus @default(SUBMITTED)
   priority ServicePriority      @default(STANDARD)
 
   // Relations
-  serviceId   String
-  service     ConsularService @relation(fields: [serviceId], references: [id])
-  userId      String
-  user        User            @relation(fields: [userId], references: [id])
-  consulateId String
-  consulate   Consulate       @relation(fields: [consulateId], references: [id])
+  serviceId     String
+  service       ConsularService @relation(fields: [serviceId], references: [id])
+  submittedBy   User            @relation(fields: [submittedById], references: [id])
+  submittedById String
 
+  chosenProcessingMode ProcessingMode @default(ONLINE_ONLY)
+  chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
   // Données de la demande
-  formData  Json? // Données du formulaire
-  documents UserDocument[] // Documents fournis
-  notes     Note[] // Notes administratives
-  messages  Message[] // Communications
+  formData             Json? // Données du formulaire
+  documents            UserDocument[] // Documents fournis
+  notes                Note[] // Notes administratives
+  messages             Message[] // Communications
 
   // Rendez-vous associé (si applicable)
   appointment Appointment?
-
-  chosenProcessingMode ProcessingMode
-  chosenDeliveryMode   DeliveryMode
 
   proxyName            String?
   proxyIdentityDoc     String?
@@ -564,9 +527,8 @@ model ServiceRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
+  @@index([submittedById])
   @@index([serviceId])
-  @@index([consulateId])
 }
 
 // Modèle pour les rendez-vous
@@ -581,8 +543,6 @@ model Appointment {
   // Relations
   userId           String
   user             User            @relation(fields: [userId], references: [id])
-  consulateId      String
-  consulate        Consulate       @relation(fields: [consulateId], references: [id])
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?         @unique
 
@@ -594,7 +554,6 @@ model Appointment {
   TimeSlot  TimeSlot[]
 
   @@index([userId])
-  @@index([consulateId])
 }
 
 // Statuts possibles pour les rendez-vous
@@ -616,20 +575,16 @@ enum AppointmentType {
 
 // Horaires d'ouverture du consulat
 model ConsulateSchedule {
-  id          String    @id @default(cuid())
-  consulateId String
-  consulate   Consulate @relation(fields: [consulateId], references: [id])
-  dayOfWeek   Int // 0-6 pour lundi-dimanche
-  openTime    String // Format "HH:mm"
-  closeTime   String
-  isOpen      Boolean   @default(true)
+  id        String  @id @default(cuid())
+  dayOfWeek Int // 0-6 pour lundi-dimanche
+  openTime  String // Format "HH:mm"
+  closeTime String
+  isOpen    Boolean @default(true)
 }
 
 // Créneaux de rendez-vous
 model TimeSlot {
   id            String       @id @default(cuid())
-  consulateId   String
-  consulate     Consulate    @relation(fields: [consulateId], references: [id])
   startTime     DateTime
   endTime       DateTime
   duration      Int // en minutes
@@ -720,14 +675,13 @@ model Country {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  // Relations
-  consulates Consulate[]
-  agents     User[]      @relation("managedCountries")
+  agents User[] @relation("managedCountries")
 
   // Metadata
-  metadata      Json?
-  organizations Organization[]
-  users         User[]
+  metadata          Json?
+  organizations     Organization[]
+  availableServices ConsularService[]
+  users             User[]
 }
 
 enum CountryStatus {
@@ -736,10 +690,10 @@ enum CountryStatus {
 }
 
 enum OrganizationType {
-  EMBASSY // Ambassade
-  CONSULATE // Consulat
-  GENERAL_CONSULATE // Consulat général
-  HONORARY_CONSULATE // Consulat honoraire
+  EMBASSY
+  CONSULATE
+  GENERAL_CONSULATE
+  HONORARY_CONSULATE
   OTHER
 }
 
@@ -758,11 +712,9 @@ model Organization {
 
   countries Country[]
 
-  // Relations inverses
   services ConsularService[]
 
-  // Métadonnées
-  metadata  Json? // Pour des données flexibles supplémentaires
+  metadata  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   User      User?    @relation(fields: [userId], references: [id])

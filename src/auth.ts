@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth';
+import NextAuth, { Session } from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import Credentials from 'next-auth/providers/credentials';
 import { db } from '@/lib/prisma';
@@ -8,6 +8,7 @@ import { FullUser } from '@/types';
 import { validateOTP } from '@/lib/user/otp';
 import { extractNumber } from '@/lib/utils';
 import { UserRole } from '@prisma/client';
+import { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {
@@ -35,32 +36,7 @@ export const {
   },
   callbacks: {
     async session({ session, token }) {
-      if (token.sub && session.user) {
-        const existingUser = await getUserById(token.sub);
-        if (existingUser) {
-          session.user.role = existingUser.role;
-
-          if (existingUser.name) {
-            session.user.name = existingUser.name;
-          }
-
-          if (existingUser.phone) {
-            session.user.phone = existingUser.phone;
-          }
-
-          if (existingUser.email) {
-            session.user.email = existingUser.email;
-          }
-
-          session.user.lastLogin = existingUser.lastLogin ?? new Date();
-
-          if (existingUser.consulateId) {
-            session.user.consulateId = existingUser.consulateId;
-          }
-        }
-        session.user.id = token.sub;
-      }
-      return session;
+      return handleSession({ session, token });
     },
     async jwt({ token, user }) {
       if (user) {
@@ -76,75 +52,106 @@ export const {
       id: 'credentials',
       name: 'Credentials',
       credentials: {
-        identifier: { type: 'text' },
+        identifier: { type: 'string' },
         type: { type: 'text' },
         otp: { type: 'text' },
         callbackUrl: { type: 'text' },
       },
       async authorize(credentials) {
-        try {
-          if (!credentials) throw new Error('No credentials');
-          const { identifier, type, otp } = credentials as unknown as AuthPayload;
-
-          if (!identifier || !otp) {
-            throw new Error('Missing credentials');
-          }
-
-          const isValid = await validateOTP({
-            identifier,
-            otp,
-            type,
-          });
-
-          if (!isValid) {
-            return null;
-          }
-
-          // Trouver ou créer l'utilisateur
-          const userWhere =
-            type === 'EMAIL'
-              ? { email: identifier }
-              : { phone: { number: extractNumber(identifier).number } };
-
-          let user = await db.user.findFirst({
-            where: userWhere,
-            select: {
-              id: true,
-              email: true,
-              role: true,
-              phone: true,
-              lastLogin: true,
-              consulateId: true,
-            },
-          });
-
-          if (!user) {
-            user = await db.user.create({
-              data: {
-                ...(type === 'EMAIL'
-                  ? { email: identifier }
-                  : { phone: { create: extractNumber(identifier) } }),
-                emailVerified: type === 'EMAIL' ? new Date() : null,
-                phoneVerified: type === 'PHONE' ? new Date() : null,
-                role: UserRole.USER, // Rôle par défaut
-              },
-              select: {
-                id: true,
-                email: true,
-                role: true,
-                phone: true,
-                lastLogin: true,
-                consulateId: true,
-              },
-            });
-          }
-
-          return user;
-        } catch (error) {
-          console.error('Auth Error:', error);
-          return null;
-        }
+        return handleAuthorize(credentials);
       },
     }),
   ],
 });
+
+async function handleAuthorize(credentials: unknown) {
+  try {
+    if (!credentials) return new Error('No credentials');
+    const { identifier, type, otp } = credentials as unknown as AuthPayload;
+
+    if (!identifier || !otp) {
+      return new Error('Missing credentials');
+    }
+
+    const isValid = await validateOTP({
+      identifier,
+      otp,
+      type,
+    });
+
+    if (!isValid) {
+      return null;
+    }
+
+    // Trouver ou créer l'utilisateur
+    const userWhere =
+      type === 'EMAIL'
+        ? { email: identifier }
+        : { phone: { number: extractNumber(identifier).number } };
+
+    let user = await db.user.findFirst({
+      where: userWhere,
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        phone: true,
+        lastLogin: true,
+      },
+    });
+
+    if (!user) {
+      user = await db.user.create({
+        data: {
+          ...(type === 'EMAIL'
+            ? { email: identifier }
+            : { phone: { create: extractNumber(identifier) } }),
+          emailVerified: type === 'EMAIL' ? new Date() : null,
+          phoneVerified: type === 'PHONE' ? new Date() : null,
+          role: UserRole.USER, // Rôle par défaut
+        },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          phone: true,
+          lastLogin: true,
+        },
+      });
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Auth Error:', error);
+    return null;
+  }
+}
+
+async function handleSession({ session, token }: { session: Session; token: JWT }) {
+  if (token.sub && session.user) {
+    const existingUser = await getUserById(token.sub);
+    if (existingUser) {
+      session.user.role = existingUser.role;
+
+      if (existingUser.name) {
+        session.user.name = existingUser.name;
+      }
+
+      if (existingUser.phone) {
+        session.user.phone = existingUser.phone;
+      }
+
+      if (existingUser.email) {
+        session.user.email = existingUser.email;
+      }
+
+      session.user.lastLogin = existingUser.lastLogin ?? new Date();
+
+      if (existingUser.countryId) {
+        session.user.countryId = existingUser.countryId;
+      }
+    }
+    session.user.id = token.sub;
+  }
+  return session;
+}

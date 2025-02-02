@@ -9,6 +9,7 @@ type knowledgeBas = {
       id: number;
       question: string;
       response: string;
+      documentsJoints?: string[];
     }[];
   }[];
   ressources_officielles: {
@@ -31,13 +32,14 @@ export const knowledgeBase = {
           id: 1.1,
           question: 'Comment renouveler mon passeport gabonais ?',
           response:
-            'Pour renouveler votre passeport gabonais, vous devez prendre rendez-vous sur le site du consulat, fournir les documents suivants : ancien passeport, photos d\'identité, justificatif de résidence, et payer les frais consulaires. Consultez [le site du consulat](https://consulatdugabon.fr/) pour plus de détails.',
+            "Pour renouveler votre passeport gabonais, vous devez prendre rendez-vous sur le site de la DGDI, fournir les documents suivants : ancien passeport, photos d'identité, justificatif de résidence, et payer les frais consulaires. Consultez [le site de la DGDI](https://dgdi.ga/) pour plus de détails.",
+          documentsJoints: ['https://dgdi.ga/images/NDP-1.pdf'],
         },
         {
           id: 1.2,
           question: 'Comment obtenir une carte consulaire ?',
           response:
-            'La carte consulaire est délivrée sur présentation d\'un passeport valide, d\'un justificatif de résidence et de photos d\'identité. Prenez rendez-vous en ligne sur [le site du consulat](https://consulatdugabon.fr/).',
+            "La carte consulaire est délivrée sur présentation d'un passeport valide, d'un justificatif de résidence et de photos d'identité. Prenez rendez-vous en ligne sur [le site du consulat](https://consulatdugabon.fr/).",
         },
         {
           id: 1.3,
@@ -67,13 +69,13 @@ export const knowledgeBase = {
           id: 2.1,
           question: 'Comment obtenir un visa pour la France ?',
           response:
-            'Pour obtenir un visa pour la France, vous devez déposer une demande auprès de l\'ambassade de France au Gabon. Les documents requis incluent un passeport valide, une lettre d\'invitation, un justificatif de ressources financières et une assurance voyage. Consultez [le site de l\'ambassade de France au Gabon](https://ga.ambafrance.org/) pour plus d\'informations.',
+            "Pour obtenir un visa pour la France, vous devez déposer une demande auprès de l'ambassade de France au Gabon. Les documents requis incluent un passeport valide, une lettre d'invitation, un justificatif de ressources financières et une assurance voyage. Consultez [le site de l'ambassade de France au Gabon](https://ga.ambafrance.org/) pour plus d'informations.",
         },
         {
           id: 2.2,
           question: 'Quels sont les types de visas disponibles ?',
           response:
-            'Les types de visas incluent le visa touristique, le visa d\'affaires, le visa étudiant et le visa de travail. Chaque visa a des conditions spécifiques. Renseignez-vous sur [le site de l\'ambassade de France au Gabon](https://ga.ambafrance.org/).',
+            "Les types de visas incluent le visa touristique, le visa d'affaires, le visa étudiant et le visa de travail. Chaque visa a des conditions spécifiques. Renseignez-vous sur [le site de l'ambassade de France au Gabon](https://ga.ambafrance.org/).",
         },
       ],
     },
@@ -85,19 +87,19 @@ export const knowledgeBase = {
           id: 3.1,
           question: 'Comment obtenir un visa pour le Gabon ?',
           response:
-            'Pour obtenir un visa pour le Gabon, vous devez déposer une demande auprès du consulat ou de l\'ambassade du Gabon dans votre pays. Les documents requis incluent un passeport valide, une lettre d\'invitation, un justificatif de ressources financières et une assurance voyage. Consultez [le site du consulat du Gabon](https://consulatdugabon.fr/) pour plus de détails.',
+            "Pour obtenir un visa pour le Gabon, vous devez déposer une demande auprès du consulat ou de l'ambassade du Gabon dans votre pays. Les documents requis incluent un passeport valide, une lettre d'invitation, un justificatif de ressources financières et une assurance voyage. Consultez [le site du consulat du Gabon](https://consulatdugabon.fr/) pour plus de détails.",
         },
         {
           id: 3.2,
           question: 'Quels sont les types de visas pour le Gabon ?',
           response:
-            'Les types de visas incluent le visa touristique, le visa d\'affaires, le visa étudiant et le visa de travail. Chaque visa a des conditions spécifiques. Renseignez-vous sur [le site du consulat du Gabon](https://consulatdugabon.fr/).',
+            "Les types de visas incluent le visa touristique, le visa d'affaires, le visa étudiant et le visa de travail. Chaque visa a des conditions spécifiques. Renseignez-vous sur [le site du consulat du Gabon](https://consulatdugabon.fr/).",
         },
         {
           id: 3.3,
           question: 'Quelles sont les formalités pour résider au Gabon ?',
           response:
-            'Pour résider au Gabon, vous devez obtenir un permis de séjour. Les documents requis incluent un passeport valide, un visa de long séjour, un justificatif de ressources financières et un certificat médical. Consultez [le site du consulat du Gabon](https://consulatdugabon.fr/) pour plus d\'informations.',
+            "Pour résider au Gabon, vous devez obtenir un permis de séjour. Les documents requis incluent un passeport valide, un visa de long séjour, un justificatif de ressources financières et un certificat médical. Consultez [le site du consulat du Gabon](https://consulatdugabon.fr/) pour plus d'informations.",
         },
       ],
     },
@@ -115,33 +117,33 @@ export const knowledgeBase = {
           id: 4.2,
           question: 'Comment le mariage est-il réglementé au Gabon et en France ?',
           response:
-            'Au Gabon, le mariage est régi par le Code Civil gabonais, qui prévoit des conditions spécifiques pour la célébration et l\'enregistrement. En France, le mariage est soumis au Code Civil français, qui exige une publication des bans et une célébration devant un officier d\'état civil. Les mariages mixtes doivent respecter les lois des deux pays. Pour plus d\'informations, consultez [le Code Civil du Gabon](https://www.legigabon.com) et [le Code Civil français](https://www.legifrance.gouv.fr).',
+            "Au Gabon, le mariage est régi par le Code Civil gabonais, qui prévoit des conditions spécifiques pour la célébration et l'enregistrement. En France, le mariage est soumis au Code Civil français, qui exige une publication des bans et une célébration devant un officier d'état civil. Les mariages mixtes doivent respecter les lois des deux pays. Pour plus d'informations, consultez [le Code Civil du Gabon](https://www.legigabon.com) et [le Code Civil français](https://www.legifrance.gouv.fr).",
         },
         {
           id: 4.3,
           question: 'Quelles sont les règles de filiation au Gabon ?',
           response:
-            'La filiation au Gabon est régie par le Code Civil gabonais. Elle peut être légitime, naturelle ou adoptive. La reconnaissance d\'un enfant est possible devant un officier d\'état civil ou par acte notarié. Pour plus de détails, consultez [le Code Civil du Gabon](https://www.legigabon.com).',
+            "La filiation au Gabon est régie par le Code Civil gabonais. Elle peut être légitime, naturelle ou adoptive. La reconnaissance d'un enfant est possible devant un officier d'état civil ou par acte notarié. Pour plus de détails, consultez [le Code Civil du Gabon](https://www.legigabon.com).",
         },
         {
           id: 4.4,
           question: 'Comment fonctionne le divorce au Gabon et en France ?',
           response:
-            'Au Gabon, le divorce est régi par le Code Civil gabonais et peut être prononcé pour faute, consentement mutuel ou séparation de corps. En France, le Code Civil français prévoit des procédures similaires, mais avec des nuances juridiques. Les ressortissants gabonais en France peuvent choisir de divorcer selon la loi gabonaise ou française, selon leur situation. Consultez [le Code Civil du Gabon](https://www.legigabon.com) et [le Code Civil français](https://www.legifrance.gouv.fr) pour plus d\'informations.',
+            "Au Gabon, le divorce est régi par le Code Civil gabonais et peut être prononcé pour faute, consentement mutuel ou séparation de corps. En France, le Code Civil français prévoit des procédures similaires, mais avec des nuances juridiques. Les ressortissants gabonais en France peuvent choisir de divorcer selon la loi gabonaise ou française, selon leur situation. Consultez [le Code Civil du Gabon](https://www.legigabon.com) et [le Code Civil français](https://www.legifrance.gouv.fr) pour plus d'informations.",
         },
         {
           id: 4.5,
           question:
             'Quels sont les droits des enfants nés de parents gabonais en France ?',
           response:
-            'Les enfants nés de parents gabonais en France ont droit à la double nationalité. Ils sont soumis aux lois françaises en matière de filiation et d\'état civil, mais peuvent également être enregistrés auprès du consulat gabonais pour obtenir la nationalité gabonaise. Pour plus de détails, consultez [le Code Civil français](https://www.legifrance.gouv.fr) et [le site du consulat du Gabon](https://consulatdugabon.fr/).',
+            "Les enfants nés de parents gabonais en France ont droit à la double nationalité. Ils sont soumis aux lois françaises en matière de filiation et d'état civil, mais peuvent également être enregistrés auprès du consulat gabonais pour obtenir la nationalité gabonaise. Pour plus de détails, consultez [le Code Civil français](https://www.legifrance.gouv.fr) et [le site du consulat du Gabon](https://consulatdugabon.fr/).",
         },
         {
           id: 4.6,
           question:
             'Comment gérer une succession impliquant des biens au Gabon et en France ?',
           response:
-            'En cas de succession impliquant des biens au Gabon et en France, les biens mobiliers sont soumis à la loi du dernier domicile du défunt, tandis que les biens immobiliers sont régis par la loi de leur situation. Il est recommandé de consulter un notaire ou un avocat spécialisé en droit international pour gérer ces situations complexes. Pour plus d\'informations, consultez [le Code Civil du Gabon](https://www.legigabon.com) et [le Code Civil français](https://www.legifrance.gouv.fr).',
+            "En cas de succession impliquant des biens au Gabon et en France, les biens mobiliers sont soumis à la loi du dernier domicile du défunt, tandis que les biens immobiliers sont régis par la loi de leur situation. Il est recommandé de consulter un notaire ou un avocat spécialisé en droit international pour gérer ces situations complexes. Pour plus d'informations, consultez [le Code Civil du Gabon](https://www.legigabon.com) et [le Code Civil français](https://www.legifrance.gouv.fr).",
         },
       ],
     },
@@ -151,15 +153,15 @@ export const knowledgeBase = {
       instructions: [
         {
           id: 5.1,
-          question: 'Que faire en cas d\'urgence médicale en France ?',
+          question: "Que faire en cas d'urgence médicale en France ?",
           response:
-            'En cas d\'urgence médicale, appelez le 15 (SAMU) ou le 112 (numéro d\'urgence européen). Contactez également le consulat pour une assistance consulaire si nécessaire.',
+            "En cas d'urgence médicale, appelez le 15 (SAMU) ou le 112 (numéro d'urgence européen). Contactez également le consulat pour une assistance consulaire si nécessaire.",
         },
         {
           id: 5.2,
-          question: 'Que faire en cas d\'arrestation ou de détention en France ?',
+          question: "Que faire en cas d'arrestation ou de détention en France ?",
           response:
-            'En cas d\'arrestation, vous avez le droit de contacter votre consulat. Le consulat peut vous fournir une assistance juridique et vous aider à contacter votre famille.',
+            "En cas d'arrestation, vous avez le droit de contacter votre consulat. Le consulat peut vous fournir une assistance juridique et vous aider à contacter votre famille.",
         },
         {
           id: 5.3,
@@ -177,11 +179,11 @@ export const knowledgeBase = {
           id: 6.1,
           question: 'Comment contacter le consulat du Gabon en France ?',
           response:
-            'Vous pouvez contacter le consulat du Gabon en France par téléphone au +33 (0)1 45 00 60 60 ou par e-mail à contact@consulatdugabon.fr. L\'adresse est : 4 rue Élisée Reclus, 75007 Paris, France.',
+            "Vous pouvez contacter le consulat du Gabon en France par téléphone au +33 (0)1 45 00 60 60 ou par e-mail à contact@consulatdugabon.fr. L'adresse est : 4 rue Élisée Reclus, 75007 Paris, France.",
         },
         {
           id: 6.2,
-          question: 'Quels sont les horaires d\'ouverture du consulat ?',
+          question: "Quels sont les horaires d'ouverture du consulat ?",
           response:
             'Le consulat est ouvert du lundi au vendredi, de 9h30 à 16h30. Prenez rendez-vous en ligne sur [le site du consulat](https://consulatdugabon.fr/).',
         },
@@ -224,21 +226,22 @@ export function getKnowledgeBaseContext(): string {
 Base de connaissances consulaire :
 
 ${knowledgeBase.categories
-    .map(
-      (category) => `
+  .map(
+    (category) => `
 # ${category.name}
 
 ${category.instructions
-        .map(
-          (instruction) => `
+  .map(
+    (instruction) => `
 Q: ${instruction.question}
 R: ${instruction.response}
+S: ${instruction.documentsJoints ? instruction.documentsJoints.join('\n') : ''}
 `,
-        )
-        .join('\n')}
+  )
+  .join('\n')}
 `,
-    )
-    .join('\n')}
+  )
+  .join('\n')}
 
 Ressources officielles :
 ${knowledgeBase.ressources_officielles.map((resource) => `- ${resource.name}: ${resource.url}`).join('\n')}
