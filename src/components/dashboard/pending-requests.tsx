@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ServiceRequestStatus } from '@prisma/client';
+import { RequestStatus } from '@prisma/client';
 
 export function PendingRequests() {
   const t = useTranslations('manager.dashboard');
@@ -37,7 +37,7 @@ function RequestItem({
 }: {
   name: string;
   type: string;
-  status: ServiceRequestStatus;
+  status: RequestStatus;
   date: string;
 }) {
   const t = useTranslations('common');

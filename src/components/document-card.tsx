@@ -20,7 +20,7 @@ interface DocumentCardProps {
 }
 
 export function DocumentCard({ document }: DocumentCardProps) {
-  const t = useTranslations('common.components');
+  const t = useTranslations('common.documents');
 
   const getStatusIcon = () => {
     switch (document.status) {

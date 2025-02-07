@@ -7,7 +7,7 @@ import { User } from '@prisma/client';
 const STORAGE_KEY = 'profile_suggestions';
 
 interface StoredData {
-  profileHash: string; // Pour comparer les profiles
+  profileHash: string; // Pour comparer les profile
   suggestions: ProfileSuggestion[];
   timestamp: number; // Pour potentiellement invalider le cache après un certain temps
 }

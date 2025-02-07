@@ -5,6 +5,8 @@ import {
   ServiceCategory,
   DocumentType,
   OrganizationStatus,
+  FamilyLink,
+  DocumentStatus,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -18,6 +20,7 @@ async function main() {
     await prisma.address.deleteMany();
     await prisma.consulateSchedule.deleteMany();
     await prisma.emergencyContact.deleteMany();
+    await prisma.phone.deleteMany();
     await prisma.addressGabon.deleteMany();
     await prisma.consularService.deleteMany();
     await prisma.profile.deleteMany();
@@ -403,6 +406,16 @@ async function main() {
     const managers = await Promise.all([
       prisma.user.create({
         data: {
+          email: 'itoutouberny+ad@gmail.com',
+          name: 'Berny Itoutou',
+          role: UserRole.ADMIN,
+          emailVerified: new Date(),
+          country: { connect: { id: countries[0].id } },
+          managedOrganizations: { connect: { id: organizations[0].id } },
+        },
+      }),
+      prisma.user.create({
+        data: {
           email: 'itoutouberny+ma@gmail.com',
           name: 'Berny Itoutou',
           role: UserRole.MANAGER,
@@ -437,6 +450,7 @@ async function main() {
     const users = await Promise.all([
       prisma.user.create({
         data: {
+          id: 'user-1',
           email: 'itoutouberny+us@gmail.com',
           firstName: 'Berny',
           lastName: 'Itoutou',
@@ -445,6 +459,9 @@ async function main() {
           country: { connect: { id: countries[0].id } },
           profile: {
             create: {
+              email: 'itoutouberny+us@gmail.com',
+              fatherFullName: 'Jean Itoutou',
+              motherFullName: 'Marie Itoutou',
               firstName: 'Berny',
               lastName: 'Itoutou',
               gender: 'MALE',
@@ -457,6 +474,84 @@ async function main() {
               passportExpiryDate: new Date('2030-01-01'),
               passportIssueAuthority: 'Ambassade du Gabon',
               status: 'PENDING',
+              address: {
+                create: {
+                  firstLine: '123 Rue de la Paix',
+                  secondLine: 'Appartement 4B',
+                  city: 'Paris',
+                  zipCode: '75008',
+                  country: 'France',
+                },
+              },
+              phone: {
+                create: {
+                  number: '0612345678',
+                  countryCode: '+33',
+                },
+              },
+              emergencyContact: {
+                create: {
+                  fullName: 'Jane Doe',
+                  relationship: FamilyLink.FATHER,
+                  phone: {
+                    create: {
+                      number: '0698765432',
+                      countryCode: '+33',
+                    },
+                  },
+                },
+              },
+              activityInGabon: 'Consultant en marketing à Libreville (2015-2018)',
+              addressInGabon: {
+                create: {
+                  address: "Avenue de l'Indépendance",
+                  district: 'Akanda',
+                  city: 'Libreville',
+                },
+              },
+              profession: 'Consultant en Marketing',
+              employer: 'Presteo',
+              employerAddress: 'Paris',
+              passport: {
+                create: {
+                  type: DocumentType.PASSPORT,
+                  fileUrl:
+                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                  status: DocumentStatus.PENDING,
+                },
+              },
+              identityPicture: {
+                create: {
+                  type: DocumentType.IDENTITY_PHOTO,
+                  fileUrl:
+                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                  status: DocumentStatus.PENDING,
+                },
+              },
+              birthCertificate: {
+                create: {
+                  type: DocumentType.BIRTH_CERTIFICATE,
+                  fileUrl:
+                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                  status: DocumentStatus.PENDING,
+                },
+              },
+              addressProof: {
+                create: {
+                  type: DocumentType.PROOF_OF_ADDRESS,
+                  fileUrl:
+                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                  status: DocumentStatus.PENDING,
+                },
+              },
+              residencePermit: {
+                create: {
+                  type: DocumentType.RESIDENCE_PERMIT,
+                  fileUrl:
+                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                  status: DocumentStatus.PENDING,
+                },
+              },
             },
           },
         },

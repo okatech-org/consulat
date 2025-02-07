@@ -3,8 +3,6 @@
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { Prisma, Profile, RequestStatus } from '@prisma/client';
-import { revalidatePath } from 'next/cache';
-import { ROUTES } from '@/schemas/routes';
 import { FullProfile } from '@/types';
 
 interface GetProfilesOptions {
@@ -67,8 +65,8 @@ export async function getProfiles(options?: GetProfilesOptions): Promise<Profile
       },
     };
   } catch (error) {
-    console.error('Error fetching profiles:', error);
-    throw new Error('Failed to fetch profiles');
+    console.error('Error fetching profile:', error);
+    throw new Error('Failed to fetch profile');
   }
 }
 
@@ -148,10 +146,6 @@ export async function validateProfile(input: ValidateProfileInput) {
         validatedBy: authResult.user.id,
       },
     });
-
-    // Revalider les pages concernées
-    revalidatePath(ROUTES.admin_profiles);
-    revalidatePath(`${ROUTES.admin_profiles}/${profile.id}/review`);
 
     return { success: true, data: updatedProfile };
   } catch (error) {

@@ -12,7 +12,7 @@ import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
 
 export function RequestsFilters() {
-  const t = useTranslations('actions.requests');
+  const t = useTranslations('admin.requests');
 
   return (
     <div className="mb-6 space-y-4">

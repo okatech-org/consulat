@@ -3,8 +3,12 @@ import {
   ServiceCategory,
   ServiceStepType,
   Organization,
+  ServiceRequest,
+  RequestStatus,
+  Phone,
 } from '@prisma/client';
-import { ProfileKey } from '@/types/profile';
+import { FullProfile, ProfileKey } from '@/types/profile';
+import { getRegistrationRequestDetailsById } from '@/actions/registrations';
 
 export const fieldTypes = [
   'text',
@@ -89,3 +93,27 @@ export interface ConsularServiceListingItem {
   isActive: boolean;
   organizationId: string | null;
 }
+
+export type RegistrationListingItem = ServiceRequest & {
+  submittedBy: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: Phone;
+    profile: {
+      status: RequestStatus;
+    };
+  };
+  service: ConsularService;
+};
+
+export type RegistrationRequestDetails = ServiceRequest & {
+  submittedBy: {
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    phone: Phone | null;
+    profile: FullProfile | null;
+  };
+  service: ConsularService;
+};

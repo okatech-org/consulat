@@ -180,6 +180,7 @@ enum RequestStatus {
   PENDING
   APPROVED
   REJECTED
+  CANCELLED
   INCOMPLETE
   IN_PROGRESS
   COMPLETED
@@ -399,18 +400,6 @@ enum ConsularServiceType {
   NATIONALITY_CERTIFICATE
 }
 
-// Statut de la démarche
-enum ServiceRequestStatus {
-  DRAFT
-  SUBMITTED
-  IN_REVIEW
-  ADDITIONAL_INFO_NEEDED
-  APPROVED
-  REJECTED
-  COMPLETED
-  CANCELLED
-}
-
 // Priorité de la démarche
 enum ServicePriority {
   STANDARD
@@ -490,9 +479,9 @@ enum ServiceStepType {
 
 // Modèle pour les demandes de démarches
 model ServiceRequest {
-  id       String               @id @default(cuid())
-  status   ServiceRequestStatus @default(SUBMITTED)
-  priority ServicePriority      @default(STANDARD)
+  id       String          @id @default(cuid())
+  status   RequestStatus   @default(SUBMITTED)
+  priority ServicePriority @default(STANDARD)
 
   // Relations
   serviceId     String

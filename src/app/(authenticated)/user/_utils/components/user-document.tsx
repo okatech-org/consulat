@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatDefaultDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { AppUserDocument } from '@/types';
 import { DocumentStatus, DocumentType } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
@@ -55,14 +54,14 @@ const updateDocumentSchema = z.object({
 type UpdateDocumentData = z.infer<typeof updateDocumentSchema>;
 
 export function UserDocument({
-                               document,
-                               label,
-                               description,
-                               profileId,
-                               expectedType = DocumentType.IDENTITY_PHOTO,
-                               required = false,
-                               disabled = false,
-                             }: UserDocumentProps) {
+  document,
+  label,
+  description,
+  profileId,
+  expectedType = DocumentType.IDENTITY_PHOTO,
+  required = false,
+  disabled = false,
+}: UserDocumentProps) {
   const t = useTranslations('common.documents');
   const t_messages = useTranslations('messages');
   const { toast } = useToast();
@@ -164,12 +163,8 @@ export function UserDocument({
   const form = useForm<UpdateDocumentData>({
     resolver: zodResolver(updateDocumentSchema),
     defaultValues: {
-      issuedAt: document?.issuedAt
-        ? format(new Date(document.issuedAt), 'yyyy-MM-dd')
-        : undefined,
-      expiresAt: document?.expiresAt
-        ? format(new Date(document.expiresAt), 'yyyy-MM-dd')
-        : undefined,
+      issuedAt: document?.issuedAt ? formatDefaultDate(document.issuedAt) : undefined,
+      expiresAt: document?.expiresAt ? formatDefaultDate(document.expiresAt) : undefined,
       metadata: document?.metadata,
     },
   });
@@ -335,8 +330,7 @@ export function UserDocument({
                 </DialogContent>
               </Dialog>
             ) : (
-              <div
-                className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted">
+              <div className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted">
                 <FileInput className="size-10 opacity-20" />
               </div>
             )}
@@ -379,14 +373,10 @@ export function UserDocument({
                   <>
                     {t('validity', {
                       start: document.issuedAt
-                        ? format(new Date(document.issuedAt), 'dd-MM-yyyy', {
-                          locale: fr,
-                        })
+                        ? formatDefaultDate(document.issuedAt)
                         : 'N/A',
                       end: document.expiresAt
-                        ? format(new Date(document.expiresAt), 'dd-MM-yyyy', {
-                          locale: fr,
-                        })
+                        ? formatDefaultDate(document.expiresAt)
                         : 'N/A',
                     })}
                   </>

@@ -5,6 +5,7 @@ import { Profile } from '@prisma/client';
 import { phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
+import { useLocale } from 'next-intl';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -256,7 +257,6 @@ const profileFields: {
   { key: 'address', name: 'address' },
   { key: 'addressProof', name: 'address_proof' },
   { key: 'addressInGabon', name: 'gabon_address' },
-  { key: 'activityInGabon', name: 'gabon_activity' },
   { key: 'maritalStatus', name: 'marital_status' },
   { key: 'addressInGabon', name: 'gabon_address' },
   { key: 'activityInGabon', name: 'gabon_activity' },
@@ -407,4 +407,16 @@ export function filterUneditedKeys<T extends Record<string, unknown>>(
   });
 
   return data;
+}
+
+export function formatDefaultDate(
+  date: Date | string | null,
+  options?: Intl.DateTimeFormatOptions,
+) {
+  'use client';
+  if (!date) return '';
+
+  const locale = useLocale();
+
+  return new Intl.DateTimeFormat(locale, options).format(new Date(date));
 }

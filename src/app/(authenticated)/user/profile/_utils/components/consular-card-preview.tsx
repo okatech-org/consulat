@@ -1,6 +1,5 @@
 'use client';
 
-import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -16,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
+import { cn, formatDefaultDate } from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { QRCode } from '@/components/ui/qr-code';
 
@@ -88,8 +87,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                           </h3>
                           <div className="text-sm">
                             <p>
-                              {t('birth')}:{' '}
-                              {format(new Date(profile.birthDate), 'PPP', { locale: fr })}
+                              {t('birth')}: {formatDefaultDate(profile.birthDate)}
                             </p>
                             <p>
                               {t('nationality')}: {profile.nationality}

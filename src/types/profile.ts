@@ -1,40 +1,42 @@
 import { Prisma, UserDocument } from '@prisma/client';
 
-export type FullProfile = Prisma.ProfileGetPayload<{
+export const FullProfileInclude = {
   include: {
-    passport: true;
-    birthCertificate: true;
-    residencePermit: true;
-    addressProof: true;
-    address: true;
-    addressInGabon: true;
+    passport: true,
+    birthCertificate: true,
+    residencePermit: true,
+    addressProof: true,
+    address: true,
+    addressInGabon: true,
     emergencyContact: {
       include: {
         phone: {
           select: {
-            number: true;
-            countryCode: true;
-          };
-        };
-      };
-    };
-    identityPicture: true;
-    phone: true;
+            number: true,
+            countryCode: true,
+          },
+        },
+      },
+    },
+    identityPicture: true,
+    phone: true,
     notes: {
       include: {
         author: {
           select: {
-            name: true;
-            image: true;
-          };
-        };
-      };
+            name: true,
+            image: true,
+          },
+        },
+      },
       orderBy: {
-        createdAt: 'desc';
-      };
-    };
-  };
-}>;
+        createdAt: 'desc' as any,
+      },
+    },
+  },
+};
+
+export type FullProfile = Prisma.ProfileGetPayload<typeof FullProfileInclude>;
 
 export type FullUser = Prisma.UserGetPayload<{
   include: {

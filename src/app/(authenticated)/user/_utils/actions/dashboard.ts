@@ -1,15 +1,15 @@
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
-import { ServiceRequestStatus } from '@prisma/client';
+import { RequestStatus } from '@prisma/client';
 
 export async function getManagerStats() {
   const authResult = await checkAuth(['MANAGER']);
   if (authResult.error) return null;
 
   const [pendingRequests, activeUsers, completedRequests] = await Promise.all([
-    db.serviceRequest.count({ where: { status: ServiceRequestStatus.SUBMITTED } }),
+    db.serviceRequest.count({ where: { status: RequestStatus.SUBMITTED } }),
     db.user.count(),
-    db.serviceRequest.count({ where: { status: ServiceRequestStatus.COMPLETED } }),
+    db.serviceRequest.count({ where: { status: RequestStatus.COMPLETED } }),
   ]);
 
   // Calculer le temps moyen de traitement

@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   MapPin,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ConsularFormData } from '@/schemas/registration';
 import { DocumentStatus, InfoField } from '@/components/ui/info-field';
+import { formatDefaultDate } from '@/lib/utils';
 
 interface ReviewFieldsProps<T extends keyof ConsularFormData> {
   id: T;
@@ -47,7 +47,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
     <>
       {documents && (
         <div className="space-y-4">
-          <h3 className="font-medium">{t('review.components')}</h3>
+          <h3 className="font-medium">{t('review.documents')}</h3>
           <div className="grid gap-3">
             <DocumentStatus
               type={t('profile.passport.label')}
@@ -101,10 +101,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
             />
             <InfoField
               label={t('form.birth_date')}
-              value={
-                basicInfo.birthDate &&
-                format(new Date(basicInfo.birthDate), 'PPP', { locale: fr })
-              }
+              value={basicInfo.birthDate && formatDefaultDate(basicInfo.birthDate)}
               icon={<Calendar className="size-4" />}
               required
             />
@@ -146,7 +143,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
                 label={t('form.passport.issue_date.label')}
                 value={
                   basicInfo.passportIssueDate &&
-                  format(new Date(basicInfo.passportIssueDate), 'PPP', { locale: fr })
+                  formatDefaultDate(basicInfo.passportIssueDate)
                 }
                 required
               />
@@ -154,7 +151,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
                 label={t('form.passport.expiry_date.label')}
                 value={
                   basicInfo.passportExpiryDate &&
-                  format(new Date(basicInfo.passportExpiryDate), 'PPP', { locale: fr })
+                  formatDefaultDate(basicInfo.passportExpiryDate)
                 }
                 required
               />

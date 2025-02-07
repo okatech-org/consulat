@@ -28,7 +28,7 @@ interface MetadataFormProps {
 }
 
 export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormProps) {
-  const t = useTranslations('common.components');
+  const t = useTranslations('common.documents');
 
   // Définir les champs de métadonnées selon le type de document
   const getMetadataFields = (type: DocumentType) => {

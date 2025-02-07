@@ -335,6 +335,8 @@
       "birth_registration": "Déclaration de naissance"
     },
     "data_table": {
+      "createdAt": "Créé le",
+      "updatedAt": "Mis à jour le",
       "go_to_last": "Aller à la dernière page",
       "go_to_first": "Aller à la première page",
       "no_data": "Aucune donnée disponible",
@@ -350,6 +352,7 @@
       "selectedCount": "{selected} sélectionné(s)",
       "rows": "lignes",
       "columns": "Colonnes",
+      "toggleColumns": "Afficher les colonnes",
       "search": "Rechercher",
       "previous": "Précédent",
       "noResults": "Aucun résultat",
@@ -1084,6 +1087,12 @@
       "services": "Services",
       "users": "Utilisateurs"
     },
+    "admin": {
+      "dashboard": "Tableau de bord",
+      "registrations": "Inscriptions",
+      "requests": "Demandes",
+      "settings": "Paramètres"
+    },
     "manager": {
       "dashboard": "Tableau de bord",
       "requests": "Demandes",
@@ -1100,15 +1109,13 @@
     "consular_steps": "Mes démarches",
     "consulates": "Consulats",
     "profiles": "Profils",
-    "admin": "Admin",
-    "dashboard": "Tableau de bord",
     "my_space": "Mon espace",
     "my_documents": "Mes documents",
     "my_applications": "Mes demandes",
     "settings": "Paramètres",
     "help": "Aide",
     "menu": "Menu principal",
-    "logout": "Déconnexion",
+    "logout": "Se déconnecter",
     "back": "Retour",
     "home": "Accueil",
     "profile": "Profil",
@@ -1272,9 +1279,9 @@
       "requests": "Demandes",
       "settings": "Paramètres"
     },
-    "profiles": {
-      "title": "Gestion des profils",
-      "description": "Gérez et suivez les profils des utilisateurs",
+    "registrations": {
+      "title": "Inscriptions Consulaires",
+      "description": "Gérez les demandes d'inscription consulaire",
       "table": {
         "name": "Nom complet",
         "nationality": "Nationalité",
@@ -1283,6 +1290,11 @@
         "updated_at": "Mis à jour le",
         "actions": "Actions",
         "empty": "Aucun profil trouvé"
+      },
+      "fields": {
+        "phone": "Téléphone",
+        "profileStatus": "Statut du profil",
+        "status": "Statut"
       },
       "filters": {
         "search": "Rechercher un profil...",
@@ -1308,8 +1320,8 @@
         "export": "Exporter"
       },
       "empty": {
-        "title": "Aucun profil",
-        "description": "Aucun profil ne correspond à vos critères de recherche"
+        "title": "Aucune demande",
+        "description": "Aucune demande ne correspond à vos critères de recherche"
       },
       "review": {
         "title": "Revue du profil",
@@ -1458,6 +1470,7 @@
       }
     },
     "dashboard": {
+      "title": "Tableau de bord",
       "welcome": "Bonjour, {name}",
       "subtitle": "Voici un aperçu de l'activité consulaire",
       "recent_activity": "Activité récente",
@@ -1466,9 +1479,12 @@
         "total_profiles": "Profils totaux",
         "active_profiles": "{count} profils actifs",
         "pending_reviews": "En attente de revue",
-        "validated_profiles": "Profils validés",
         "expired_documents": "Documents expirés",
-        "expiring_soon": "{count} expirent bientôt"
+        "expiring_soon": "{count} expirent bientôt",
+        "completed_requests": "Demandes traitées",
+        "processing_requests": "Demandes en traitement",
+        "validated_profiles": "Inscriptions validées",
+        "pending_profiles": "Inscriptions en attente"
       },
       "activity": {
         "title": "Activité récente",

@@ -18,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { AppUserDocument } from '@/types';
 import { DocumentStatus, DocumentType } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
@@ -63,8 +62,8 @@ export function UserDocument({
   required = false,
   disabled = false,
 }: UserDocumentProps) {
-  const t = useTranslations('common.components');
-  const t_messages = useTranslations('messages.components');
+  const t = useTranslations('common.documents');
+  const t_messages = useTranslations('messages.documents');
   const { toast } = useToast();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [preview, setPreview] = React.useState<string | null>(null);

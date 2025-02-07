@@ -38,6 +38,15 @@ export const ROUTES = {
     settings: '/manager/settings' as Route<string>,
   },
 
+  admin: {
+    base: '/admin' as Route<string>,
+    registrations: '/admin/registrations' as Route<string>,
+    registrations_review: (id: string) => `/admin/registrations/${id}` as Route<string>,
+    requests: '/admin/requests' as Route<string>,
+    services: '/admin/services' as Route<string>,
+    settings: '/admin/settings' as Route<string>,
+  },
+
   user: {
     base: '/user' as Route<string>,
     profile: '/user/profile' as Route<string>,
@@ -55,15 +64,6 @@ export const ROUTES = {
   service_start: (id: string) => `/user/services/${id}/start` as Route<string>,
   service_edit: (id: string) => `/user/services/${id}/edit` as Route<string>,
   service_view: (id: string) => `/user/services/${id}` as Route<string>,
-
-  // Pages actions
-  admin: '/actions' as Route<string>,
-  admin_dashboard: '/actions' as Route<string>,
-  admin_users: '/actions/users' as Route<string>,
-  admin_requests: '/actions/requests' as Route<string>,
-  admin_settings: '/actions/settings' as Route<string>,
-  admin_profiles: '/actions/profiles' as Route<string>,
-  admin_profiles_review: (id: string) => `/admin/profiles/${id}/review` as Route<string>,
 
   // Pages partagées
   dashboard: '/dashboard' as Route<string>,

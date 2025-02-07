@@ -19,11 +19,11 @@ export async function PublicHeader() {
 
           {/**<LangSwitcher />
            <Link
-            href={ROUTES.components}
+            href={ROUTES.documents}
             className={buttonVariants({ variant: 'default' }) + ' !rounded-full max-[480px]:!px-2'}
           >
             {isAuth ? (
-              <span>{t('nav.components')}</span>
+              <span>{t('nav.documents')}</span>
             ) : (
               <span>{t('nav.login')}</span>
             )}

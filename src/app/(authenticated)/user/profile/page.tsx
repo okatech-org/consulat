@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
 import { calculateProfileCompletion, getProfileFieldsStatus } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { NotesList } from '@/app/(authenticated)/admin/_utils/profiles/profile-notes';
+import { NotesList } from '@/app/(authenticated)/admin/_utils/components/profile/profile-notes';
 import { BasicInfoSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/basic-info-section';
 import { ContactInfoSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/contact-info-section';
 import { FamilyInfoSection } from '@/app/(authenticated)/user/profile/_utils/components/sections/family-info-section';

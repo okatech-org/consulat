@@ -19,7 +19,7 @@ export function ReviewForm({ data, onEdit }: ReviewProps) {
   const sections = [
     {
       key: 'documents',
-      title: t('review.components'),
+      title: t('review.documents'),
       data: data.documents,
       step: 0,
     },

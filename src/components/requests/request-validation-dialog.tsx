@@ -24,7 +24,7 @@ export function RequestValidationDialog({
   onValidate,
   isLoading,
 }: ValidationDialogProps) {
-  const t = useTranslations('actions.requests');
+  const t = useTranslations('admin.requests');
   const [notes, setNotes] = useState('');
 
   return (

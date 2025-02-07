@@ -1,8 +1,8 @@
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatDefaultDate } from '@/lib/utils';
 
 interface Activity {
   id: string;
@@ -55,7 +55,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
                     })}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(activity.createdAt), 'PPp', { locale: fr })}
+                    {formatDefaultDate(activity.createdAt)}
                   </p>
                 </div>
               </div>

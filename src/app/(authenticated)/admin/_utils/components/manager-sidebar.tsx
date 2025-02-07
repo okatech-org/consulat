@@ -22,7 +22,7 @@ export default async function ManagerSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   const user = await getCurrentUser();
   const t = await getTranslations('navigation.manager');
-  const userCountry = 'France'; // TODO: Get from user context
+  const userCountry = 'France';
 
   const navigation = [
     {

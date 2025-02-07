@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
-import { securityHeaders } from './scripts/security';
 import createNextIntlPlugin from 'next-intl/plugin';
+import {securityHeaders} from "./scripts/security";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'flagcdn.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'example.com',
         pathname: '/**',
       },
     ],

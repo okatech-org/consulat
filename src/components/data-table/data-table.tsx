@@ -34,6 +34,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   filters?: FilterOption[];
   onRowClick?: (row: Row<TData>) => void;
+  total?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -41,6 +42,7 @@ export function DataTable<TData, TValue>({
   data,
   filters,
   onRowClick,
+  total,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
   const [rowSelection, setRowSelection] = React.useState({});

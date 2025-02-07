@@ -13,7 +13,7 @@ interface AddNoteInput {
 }
 
 export async function addProfileNote(input: AddNoteInput) {
-  const t = await getTranslations('actions.profiles.review.notes');
+  const t = await getTranslations('admin.registrations.review.notes');
 
   try {
     const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);

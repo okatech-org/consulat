@@ -7,8 +7,8 @@ export const ContentSecurityPolicy = `
   font-src 'self' data:;
   img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io blob: data:;
   media-src 'self' https://player.vimeo.com;
-  connect-src 'self' 
-    https://api.openai.com 
+  connect-src 'self'
+    https://api.openai.com
     https://api.anthropic.com
     https://api.resend.com
     https://uploadthing.com
@@ -24,9 +24,9 @@ export const ContentSecurityPolicy = `
   base-uri 'self';
   form-action 'self';
   manifest-src 'self';
-  worker-src 'self' blob:;
+  worker-src 'self blob:;
   upgrade-insecure-requests;
-`
+`;
 
 export const securityHeaders = [
   {

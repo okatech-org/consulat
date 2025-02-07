@@ -22,6 +22,7 @@ export function ProfileStatusBadge({ status, className }: ProfileStatusBadgeProp
       case RequestStatus.VALIDATED:
         return 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100';
       case RequestStatus.REJECTED:
+      case RequestStatus.CANCELLED:
         return 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100';
       default:
         return 'bg-muted text-muted-foreground';
