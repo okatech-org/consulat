@@ -20,6 +20,7 @@ interface RegistrationsTableProps {
 export function RegistrationsTable({ requests }: RegistrationsTableProps) {
   const t = useTranslations('admin.registrations');
   const t_auth = useTranslations('auth');
+  const t_common = useTranslations('common');
 
   const columns: ColumnDef<RegistrationListingItem>[] = [
     {
@@ -95,9 +96,9 @@ export function RegistrationsTable({ requests }: RegistrationsTableProps) {
       label: t('filters.status'),
       options: [
         { value: 'ALL', label: t('filters.all') },
-        { value: 'SUBMITTED', label: t('status.submitted') },
-        { value: 'APPROVED', label: t('status.approved') },
-        { value: 'REJECTED', label: t('status.rejected') },
+        { value: 'SUBMITTED', label: t_common('status.submitted') },
+        { value: 'APPROVED', label: t_common('status.approved') },
+        { value: 'REJECTED', label: t_common('status.rejected') },
       ],
     },
     {
@@ -106,11 +107,11 @@ export function RegistrationsTable({ requests }: RegistrationsTableProps) {
       label: t('filters.profile_status'),
       options: [
         { value: 'ALL', label: t('filters.all') },
-        { value: 'DRAFT', label: t('profile_status.draft') },
-        { value: 'SUBMITTED', label: t('profile_status.submitted') },
-        { value: 'IN_REVIEW', label: t('profile_status.in_review') },
-        { value: 'VALIDATED', label: t('profile_status.validated') },
-        { value: 'REJECTED', label: t('profile_status.rejected') },
+        { value: 'DRAFT', label: t_common('status.draft') },
+        { value: 'SUBMITTED', label: t_common('status.submitted') },
+        { value: 'IN_REVIEW', label: t_common('status.in_review') },
+        { value: 'VALIDATED', label: t_common('status.validated') },
+        { value: 'REJECTED', label: t_common('status.rejected') },
       ],
     },
   ];

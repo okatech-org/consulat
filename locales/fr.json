@@ -1302,7 +1302,8 @@
         "all": "Tous les statuts",
         "date": "Date",
         "reset": "Réinitialiser les filtres",
-        "active_filters": "Filtres actifs"
+        "active_filters": "Filtres actifs",
+        "profile_status": "Statut du profil"
       },
       "status": {
         "draft": "Brouillon",
