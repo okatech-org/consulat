@@ -13,8 +13,8 @@ import { ROUTES } from '@/schemas/routes';
 
 export interface GetRegistrationsOptions  {
   search?: string;
-  status?: RequestStatus;
-  profileStatus?: RequestStatus;
+  status?: RequestStatus[];
+  profileStatus?: RequestStatus[];
   page?: number;
   limit?: number;
   sortBy?: string ;
@@ -53,11 +53,11 @@ export async function getRegistrations(
       }),
       ...(profileStatus && {
         profile: {
-          status: profileStatus,
+          status: { in: profileStatus },
         },
       }),
     },
-    ...(status && { status }),
+    ...(status && { status: { in: status } }),
   };
 
   try {
@@ -159,15 +159,11 @@ export async function validateRegistrationRequest(input: ValidateRequestInput) {
       },
     });
 
-    console.log('Updated profile:', updatedProfile);
-
     // 2. Mettre à jour la demande
     const updatedRequest = await db.serviceRequest.update({
       where: { id: input.requestId },
       data: { status: input.status },
     });
-
-    console.log('Updated request:', updatedRequest);
 
     revalidatePath(ROUTES.admin.registrations_review(input.profileId));
     revalidatePath(ROUTES.admin.registrations);

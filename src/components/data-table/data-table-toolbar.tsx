@@ -16,11 +16,16 @@ interface DataTableToolbarProps<TData> {
 }
 
 export type FilterOption = {
-  type?: 'search' | 'radio' | 'checkbox';
-  value: string;
+  type: 'search' | 'radio' | 'checkbox';
   label: string;
-  options?: FilterOption[];
-  onChange?: (value: unknown) => void;
+  property?: string;
+  defaultValue?: string | string[];
+  onChange?: (value: string | string[]) => void;
+  options?: {
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }[];
 };
 
 export function DataTableToolbar<TData>({
@@ -34,15 +39,20 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         {filters?.map((filter) => (
-          <Fragment key={filter.type + filter.value}>
+          <Fragment key={filter.type + filter.property}>
             {filter.type === 'search' && (
               <Input
-                key={filter.value}
                 placeholder={filter.label}
-                value={(table.getColumn(filter.value)?.getFilterValue() as string) ?? ''}
-                onChange={(event) =>
-                  table.getColumn(filter.value)?.setFilterValue(event.target.value)
-                }
+                defaultValue={filter.defaultValue}
+                value={table.getColumn(filter.property ?? '')?.getFilterValue() as string}
+                onChange={(event) => {
+                  const value = (event.target as HTMLInputElement).value;
+                  if (filter.onChange) {
+                    filter.onChange(value);
+                  } else {
+                    table.getColumn(filter.property ?? '')?.setFilterValue(value);
+                  }
+                }}
                 className="h-8 w-[150px] lg:w-[250px]"
               />
             )}
@@ -50,20 +60,29 @@ export function DataTableToolbar<TData>({
             {filter.type === 'radio' && filter.options && (
               <DataTableFacetedFilter
                 type={filter.type}
-                key={filter.value}
-                column={table.getColumn(filter.value)}
+                key={filter.property}
+                column={table.getColumn(filter.property ?? '')}
                 title={filter.label}
                 options={filter.options}
+                onChange={(value) => {
+                  if (filter.onChange) {
+                    filter.onChange(value);
+                  } else {
+                    table.getColumn(filter.property ?? '')?.setFilterValue(value);
+                  }
+                }}
               />
             )}
 
             {filter.type === 'checkbox' && filter.options && (
               <DataTableFacetedFilter
                 type={filter.type}
-                key={filter.value}
-                column={table.getColumn(filter.value)}
+                key={filter.property}
+                column={table.getColumn(filter.property ?? '')}
                 title={filter.label}
                 options={filter.options}
+                onChange={filter.onChange}
+                defaultValue={filter.defaultValue}
               />
             )}
           </Fragment>

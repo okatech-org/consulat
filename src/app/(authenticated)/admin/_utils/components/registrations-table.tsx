@@ -10,11 +10,14 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { RegistrationListingItem } from '@/types/consular-service';
 import { formatDefaultDate } from '@/lib/utils';
 import { GetRegistrationsOptions } from '@/actions/registrations';
-    
+import { useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { debounce } from 'lodash';
+import { FilterOption } from '@/components/data-table/data-table-toolbar';
 interface RegistrationsTableProps {
   requests: RegistrationListingItem[];
   total: number;
@@ -22,23 +25,47 @@ interface RegistrationsTableProps {
 }
 
 
-export function RegistrationsTable({ requests }: RegistrationsTableProps) {
+export function RegistrationsTable({ requests, total, filters }: RegistrationsTableProps) {
   const t = useTranslations('admin.registrations');
   const t_auth = useTranslations('auth');
   const t_common = useTranslations('common');
+
+  console.log(filters);
+  
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Créez une fonction pour mettre à jour l'URL avec les filtres
+  const createQueryString = React.useCallback(
+      (name: string, value: string | undefined) => {
+          const params = new URLSearchParams(searchParams.toString());
+          if (value) {
+              params.set(name, value);
+          } else {
+              params.delete(name);
+          }
+          return params.toString();
+      },
+      [searchParams]
+  );
+
+  const handleFilterChange = (name: string, value: string | undefined) => {
+    const newQueryString = createQueryString(name, value);
+    router.push(`${pathname}?${newQueryString}`);
+  };
 
   const columns: ColumnDef<RegistrationListingItem>[] = [
     {
       accessorKey: 'submittedAt',
       header: () => t('table.submitted_at'),
       cell: ({ row }) => {
-        console.log({ row: row.original });
         const date = row.original.submittedAt;
         return date ? formatDefaultDate(date) : '-';
       },
     },
     {
-      accessorKey: 'submittedBy.firstName',
+      accessorKey: 'fullName',
       header: () => t('table.name'),
       cell: ({ row }) =>
         `${row.original.submittedBy.firstName || ''} ${row.original.submittedBy.lastName || ''}`,
@@ -61,7 +88,7 @@ export function RegistrationsTable({ requests }: RegistrationsTableProps) {
     },
     {
       accessorKey: 'submittedBy.profile.status',
-      header: () => t('fields.profileStatus'),
+      header: () => t('fields.profileStatus') as string,
       cell: ({ row }) => (
         <ProfileStatusBadge status={row.original.submittedBy.profile?.status} />
       ),
@@ -92,42 +119,52 @@ export function RegistrationsTable({ requests }: RegistrationsTableProps) {
   const localFilters: FilterOption[] = [
     {
       type: 'search',
-      value: 'search',
+      property: 'submittedBy_email',
       label: t('filters.search'),
+      defaultValue: filters.search,
+      onChange: (value) => {
+        if (typeof value === 'string' && value.length > 2) {
+          const debouncedFilter = debounce(() => handleFilterChange('search', value), 1000);
+          debouncedFilter();
+        }
+      },
     },
     {
-      type: 'radio',
-      value: 'status',
+      type: 'checkbox',
+      property: 'status',
       label: t('filters.status'),
+      defaultValue: filters.status?.toString().split(",") ?? undefined,
       options: [
-        { value: 'ALL', label: t('filters.all') },
         { value: 'SUBMITTED', label: t_common('status.submitted') },
         { value: 'APPROVED', label: t_common('status.approved') },
         { value: 'REJECTED', label: t_common('status.rejected') },
+        { value: 'VALIDATED', label: t_common('status.validated') },
       ],
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('status', value.join("_"));
+        }
+      },
     },
     {
-      type: 'radio',
-      value: 'profileStatus',
+      type: 'checkbox',
+      property: 'submittedBy_profile_status',
       label: t('filters.profile_status'),
+      defaultValue: filters.profileStatus?.toString().split(",") ?? undefined,
       options: [
-        { value: 'ALL', label: t('filters.all') },
         { value: 'DRAFT', label: t_common('status.draft') },
         { value: 'SUBMITTED', label: t_common('status.submitted') },
         { value: 'IN_REVIEW', label: t_common('status.in_review') },
         { value: 'VALIDATED', label: t_common('status.validated') },
         { value: 'REJECTED', label: t_common('status.rejected') },
       ],
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('profileStatus', value.join("_"));
+        }
+      },
     },
   ];
 
-  if (requests.length === 0) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-sm text-gray-500">{t('table.empty')}</p>
-      </div>
-    );
-  }
-
-  return <DataTable columns={columns} data={requests} filters={localFilters} />;
+  return <DataTable columns={columns} data={requests} filters={localFilters} pageCount={total}/>;
 }

@@ -33,6 +33,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filters?: FilterOption[];
+  pageCount?: number;
   onRowClick?: (row: Row<TData>) => void;
 }
 
@@ -40,7 +41,8 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   filters,
-  onRowClick,
+  pageCount,
+  onRowClick
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
   const [rowSelection, setRowSelection] = React.useState({});
@@ -68,11 +70,13 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    ...(pageCount && { pageCount }),
   });
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar filters={filters} table={table} />
+      {filters?.length ? <DataTableToolbar filters={filters} table={table} /> : null}
+      
       <div className="rounded-md border">
         <Table>
           <TableHeader>
