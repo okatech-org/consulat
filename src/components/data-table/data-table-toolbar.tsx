@@ -20,6 +20,7 @@ export type FilterOption = {
   value: string;
   label: string;
   options?: FilterOption[];
+  onChange?: (value: unknown) => void;
 };
 
 export function DataTableToolbar<TData>({

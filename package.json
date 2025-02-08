@@ -21,6 +21,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "ai-sum": "pnpx ai-digest -o ai-sum/.code_base.md --whitespace-removal --show-output-files",
+    "postai-sum": "node ./scripts/minifyMarkdown.js",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache"
   },

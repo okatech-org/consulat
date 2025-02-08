@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText } from 'lucide-react';
@@ -12,10 +13,14 @@ import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/co
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { RegistrationListingItem } from '@/types/consular-service';
 import { formatDefaultDate } from '@/lib/utils';
-
+import { GetRegistrationsOptions } from '@/actions/registrations';
+    
 interface RegistrationsTableProps {
   requests: RegistrationListingItem[];
+  total: number;
+  filters: GetRegistrationsOptions;
 }
+
 
 export function RegistrationsTable({ requests }: RegistrationsTableProps) {
   const t = useTranslations('admin.registrations');

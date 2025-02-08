@@ -11,22 +11,20 @@ import { FullProfileInclude } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 
-interface GetRegistrationsOptions {
+export interface GetRegistrationsOptions  {
+  search?: string;
   status?: RequestStatus;
   profileStatus?: RequestStatus;
-  search?: string;
   page?: number;
   limit?: number;
+  sortBy?: string ;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface RegistrationsResult {
   requests: RegistrationListingItem[];
   total: number;
-  filters: {
-    search?: string;
-    status?: RequestStatus;
-    profileStatus?: RequestStatus;
-  };
+  filters: GetRegistrationsOptions
 }
 
 export async function getRegistrations(
@@ -38,7 +36,7 @@ export async function getRegistrations(
     throw new Error(authResult.error);
   }
 
-  const { status, profileStatus, search, page = 1, limit = 10 } = options || {};
+  const { status, profileStatus, search, page = 1, limit = 10, sortBy, sortOrder } = options || {};
 
   const where: Prisma.ServiceRequestWhereInput = {
     service: {
@@ -82,11 +80,15 @@ export async function getRegistrations(
           },
           service: true,
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip: (page - 1) * limit,
-        take: limit,
+        ...(sortBy && {
+          orderBy: {
+            [sortBy]: sortOrder || 'desc',
+          },
+        }),
+        ...(page && limit && {
+          skip: (page - 1) * limit,
+          take: limit,
+        })
       }),
       db.serviceRequest.count({ where }),
     ]);
@@ -95,10 +97,8 @@ export async function getRegistrations(
       requests: requests as unknown as RegistrationListingItem[],
       total,
       filters: {
-        search,
-        status,
-        profileStatus,
-      },
+        ...options,
+      }
     };
   } catch (error) {
     console.error('Error fetching registrations:', error);

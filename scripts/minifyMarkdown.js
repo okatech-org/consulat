@@ -1,23 +1,27 @@
-const fs = require('fs');
-const path = require('path');
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
 
-const filePath = path.join(__dirname, '../ai-sum/.code_base.md');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-fs.readFile(filePath, 'utf8', (err, data) => {
-  if (err) {
-    console.error('Error reading the file:', err);
-    return;
-  }
+const filePath = join(__dirname, '../ai-sum/.code_base.md');
+const outputPath = join(__dirname, '../ai-sum/.code_base.md');
 
-  // Remove unnecessary spaces
-  const minifiedContent = data.replace(/\s+/g, ' ').trim();
+async function minifyMarkdown() {
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
 
-  fs.writeFile(filePath, minifiedContent, 'utf8', (err) => {
-    if (err) {
-      console.error('Error writing the file:', err);
-      return;
+        // Markdown is text, so basic minification is just removing extra whitespace.
+        // More advanced minification could involve parsing and reformatting, but is likely overkill.
+        const minifiedData = data.replace(/\s+/g, ' ').trim();
+
+
+        fs.writeFileSync(outputPath, minifiedData);
+        console.log('Markdown minified successfully!');
+    } catch (err) {
+        console.error('Error minifying Markdown:', err);
     }
+}
 
-    console.log('File minified successfully.');
-  });
-});
+minifyMarkdown();
