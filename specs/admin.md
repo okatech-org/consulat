@@ -1,6 +1,6 @@
-# Spécifications Fonctionnelles - MANAGER
+# Spécifications Fonctionnelles - Admin
 
-## 1. Tableau de Bord Manager
+## 1. Tableau de Bord Admin
 
 ### Interface principale
 

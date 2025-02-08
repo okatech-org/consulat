@@ -11,6 +11,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { RegistrationListingItem } from '@/types/consular-service';
+import { formatDefaultDate } from '@/lib/utils';
 
 interface RegistrationsTableProps {
   requests: RegistrationListingItem[];
@@ -21,6 +22,15 @@ export function RegistrationsTable({ requests }: RegistrationsTableProps) {
   const t_auth = useTranslations('auth');
 
   const columns: ColumnDef<RegistrationListingItem>[] = [
+    {
+      accessorKey: 'submittedAt',
+      header: () => t('table.submitted_at'),
+      cell: ({ row }) => {
+        console.log({ row: row.original });
+        const date = row.original.submittedAt;
+        return date ? formatDefaultDate(date) : '-';
+      },
+    },
     {
       accessorKey: 'submittedBy.firstName',
       header: () => t('table.name'),
@@ -62,7 +72,7 @@ export function RegistrationsTable({ requests }: RegistrationsTableProps) {
                   href={ROUTES.admin.registrations_review(row.original.id)}
                 >
                   <FileText className="mr-2 size-4" />
-                  Traiter
+                  {t('actions.review')}
                 </Link>
               ),
             },
@@ -74,32 +84,44 @@ export function RegistrationsTable({ requests }: RegistrationsTableProps) {
   ];
 
   const localFilters: FilterOption[] = [
-    { type: 'search', value: 'submittedBy.firstName', label: t('filters.search') },
+    {
+      type: 'search',
+      value: 'search',
+      label: t('filters.search'),
+    },
     {
       type: 'radio',
       value: 'status',
       label: t('filters.status'),
       options: [
         { value: 'ALL', label: t('filters.all') },
-        { value: 'SUBMITTED', label: 'Soumis' },
-        { value: 'APPROVED', label: 'Approuvé' },
-        { value: 'REJECTED', label: 'Rejeté' },
+        { value: 'SUBMITTED', label: t('status.submitted') },
+        { value: 'APPROVED', label: t('status.approved') },
+        { value: 'REJECTED', label: t('status.rejected') },
       ],
     },
     {
       type: 'radio',
       value: 'profileStatus',
-      label: 'Profile status',
+      label: t('filters.profile_status'),
       options: [
         { value: 'ALL', label: t('filters.all') },
-        { value: 'DRAFT', label: 'Brouillon' },
-        { value: 'SUBMITTED', label: 'Soumis' },
-        { value: 'IN_REVIEW', label: 'En cours de vérification' },
-        { value: 'VALIDATED', label: 'Validé' },
-        { value: 'REJECTED', label: 'Rejeté' },
+        { value: 'DRAFT', label: t('profile_status.draft') },
+        { value: 'SUBMITTED', label: t('profile_status.submitted') },
+        { value: 'IN_REVIEW', label: t('profile_status.in_review') },
+        { value: 'VALIDATED', label: t('profile_status.validated') },
+        { value: 'REJECTED', label: t('profile_status.rejected') },
       ],
     },
   ];
+
+  if (requests.length === 0) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-sm text-gray-500">{t('table.empty')}</p>
+      </div>
+    );
+  }
 
   return <DataTable columns={columns} data={requests} filters={localFilters} />;
 }

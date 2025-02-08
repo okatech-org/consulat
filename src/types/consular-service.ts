@@ -6,6 +6,7 @@ import {
   ServiceRequest,
   RequestStatus,
   Phone,
+  ProfileStatus,
 } from '@prisma/client';
 import { FullProfile, ProfileKey } from '@/types/profile';
 import { getRegistrationRequestDetailsById } from '@/actions/registrations';
@@ -94,17 +95,23 @@ export interface ConsularServiceListingItem {
   organizationId: string | null;
 }
 
-export type RegistrationListingItem = ServiceRequest & {
+export type RegistrationListingItem = {
+  id: string;
+  status: RequestStatus;
+  submittedAt: string | Date | null;
+  updatedAt: string | Date | null;
   submittedBy: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: Phone;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    nationality: string | null;
+    phone: {
+      number: string | null
+    } | null
     profile: {
-      status: RequestStatus;
-    };
+      status: ProfileStatus | null;
+    } | null;
   };
-  service: ConsularService;
 };
 
 export type RegistrationRequestDetails = ServiceRequest & {
