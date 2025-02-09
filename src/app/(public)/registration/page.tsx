@@ -1,13 +1,23 @@
 import { RegistrationForm } from '@/app/(public)/registration/_utils/components/form';
-import { ServerAuthGuard } from '@/components/layouts/server-auth-guard';
 import { auth } from '@/auth';
 import { SessionProvider } from 'next-auth/react';
-
+import { UserRole } from '@prisma/client';
+import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
+import { ROUTES } from '@/schemas/routes';
+import { headers } from 'next/headers';
 export default async function RegistrationPage() {
   const session = await auth();
+  const headersList = await headers();
+  const pathname = headersList.get('x-current-path') || '/';
+  const fallbackUrl = `${ROUTES.login}?callbackUrl=${encodeURIComponent(pathname)}`;
+
   return (
     <SessionProvider session={session}>
-      <ServerAuthGuard>
+      <RouteAuthGuard
+        fallbackUrl={fallbackUrl}
+        roles={[UserRole.USER]}
+        currentUserRole={session?.user?.role}
+      >
         <main
           className={
             'min-h-screen w-screen overflow-auto overflow-x-hidden bg-muted py-6 pt-14'
@@ -17,7 +27,7 @@ export default async function RegistrationPage() {
             <RegistrationForm />
           </div>
         </main>
-      </ServerAuthGuard>
+      </RouteAuthGuard>
     </SessionProvider>
   );
 }

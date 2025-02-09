@@ -6,17 +6,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useTabs } from '@/hooks/use-tabs';
+import { NewAppointmentDialog } from '@/components/appointments/new-appointment-dialog';
+import { useState } from 'react';
 
 export default function UserAppointmentsPage() {
   const t = useTranslations('user.dashboard.appointments');
   const { handleTabChange, searchParams } = useTabs();
   const tab = searchParams.get('tab') || 'upcoming';
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
 
   return (
     <div className="container space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t('title')}</h1>
-        <Button>
+        <Button onClick={() => setShowNewAppointment(true)}>
           <Plus className="mr-2 h-4 w-4" />
           {t('new_appointment')}
         </Button>
@@ -68,6 +71,11 @@ export default function UserAppointmentsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <NewAppointmentDialog
+        isOpen={showNewAppointment}
+        onClose={() => setShowNewAppointment(false)}
+      />
     </div>
   );
 }

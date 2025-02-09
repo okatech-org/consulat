@@ -44,17 +44,20 @@ export const metadata: Metadata = {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
-    images: '/cover-image-contact.ga.jpg',
+    images: '/images/cover-image-contact.ga.jpg',
     description: APP_DESCRIPTION,
   },
   twitter: {
     card: 'summary',
-    images: '/cover-image-contact.ga.jpg',
+    images: '/images/cover-image-contact.ga.jpg',
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
+  },
+  icons: {
+    icon: '/images/favicon.ico',
   },
 };
 

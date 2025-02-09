@@ -4032,6 +4032,23 @@
         "cancelled": {
           "title": "Rendez-vous annulés",
           "empty": "Aucun rendez-vous annulé"
+        },
+        "new_appointment_dialog": {
+          "title": "Prendre un rendez-vous",
+          "steps": {
+            "service": "Service",
+            "date": "Date",
+            "confirm": "Confirmation"
+          },
+          "duration": "Durée : {duration} minutes"
+        },
+        "services": {
+          "document_submission": "Dépôt de documents",
+          "document_submission_description": "Déposez vos documents pour traitement",
+          "document_collection": "Retrait de documents",
+          "document_collection_description": "Retirez vos documents traités",
+          "first_registration": "Première inscription",
+          "first_registration_description": "Inscription consulaire initiale"
         }
       }
     },

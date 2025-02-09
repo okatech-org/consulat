@@ -92,7 +92,7 @@ export default async function UserSidebar({
       {user && (
         <SidebarFooter>
           <UserNav user={user} />
-          <SidebarTrigger className="rotate-180" />
+          <SidebarTrigger className="rotate-180 size-6" />
         </SidebarFooter>
       )}
     </Sidebar>
