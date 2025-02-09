@@ -32,7 +32,7 @@ import { useTranslations } from 'next-intl';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  filters?: FilterOption[];
+  filters?: FilterOption<TData>[];
   pageCount?: number;
   onRowClick?: (row: Row<TData>) => void;
   isLoading?: boolean;
@@ -77,8 +77,10 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      {filters?.length ? <DataTableToolbar isLoading={isLoading} filters={filters} table={table} /> : null}
-      
+      {filters?.length ? (
+        <DataTableToolbar isLoading={isLoading} filters={filters} table={table} />
+      ) : null}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>

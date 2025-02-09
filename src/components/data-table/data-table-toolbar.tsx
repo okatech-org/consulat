@@ -9,20 +9,22 @@ import { Button } from '@/components/ui/button';
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options';
 import { useTranslations } from 'next-intl';
 import { Fragment } from 'react';
-import { Loader2 } from "lucide-react"
+import { Loader2 } from 'lucide-react';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  filters?: FilterOption[];
+  filters?: FilterOption<TData>[];
   isLoading?: boolean;
 }
 
-export type FilterOption = {
+export type FilterOption<TData> = {
   type: 'search' | 'radio' | 'checkbox';
   label: string;
   property?: string;
   defaultValue?: string | string[];
   onChange?: (value: string | string[]) => void;
+  filterFn?: (row: TData) => boolean;
+  filterKeys?: (keyof TData)[];
   options?: {
     label: string;
     value: string;
@@ -41,14 +43,18 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        <div className={`flex items-center space-x-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div
+          className={`flex items-center space-x-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+        >
           {filters?.map((filter) => (
             <Fragment key={filter.type + filter.property}>
               {filter.type === 'search' && (
                 <Input
                   placeholder={filter.label}
                   defaultValue={filter.defaultValue}
-                  value={table.getColumn(filter.property ?? '')?.getFilterValue() as string}
+                  value={
+                    table.getColumn(filter.property ?? '')?.getFilterValue() as string
+                  }
                   onChange={(event) => {
                     const value = (event.target as HTMLInputElement).value;
                     if (filter.onChange) {
@@ -105,10 +111,9 @@ export function DataTableToolbar<TData>({
         )}
         {isLoading && <Loader2 className="animate-spin ml-2 h-4 w-4" />}
       </div>
-      <div className={isLoading ? "opacity-50 pointer-events-none" : ""}>
+      <div className={isLoading ? 'opacity-50 pointer-events-none' : ''}>
         <DataTableViewOptions table={table} />
       </div>
-      
     </div>
   );
 }

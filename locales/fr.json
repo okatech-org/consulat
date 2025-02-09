@@ -3702,7 +3702,9 @@
       "services": "Services",
       "actions": "Actions",
       "empty": "Aucun organisme trouvé",
-      "category": "Catégorie"
+      "category": "Catégorie",
+      "lastName": "Nom",
+      "firstName": "Prénom"
     },
     "form": {
       "create_title": "Ajouter un organisme",
@@ -3964,6 +3966,8 @@
           "email": "Email",
           "phone": "Téléphone",
           "organization": "Organisme",
+          "lastName": "Nom",
+          "firstName": "Prénom",
           "countries": "Pays",
           "service_categories": "Catégories de services",
           "actions": "Actions",

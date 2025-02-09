@@ -195,7 +195,14 @@ export async function getOrganizationById(id: string): Promise<{
             services: true,
           },
         },
-        User: true,
+        agents: {
+          include: {
+            linkedCountries: true,
+            phone: true,
+          },
+        },
+        timeSlots: true,
+        adminUser: true,
       },
     });
 
@@ -219,10 +226,7 @@ export async function getOrganizationById(id: string): Promise<{
 
 export async function createNewAgent(data: AgentFormData) {
   try {
-    const authResult = await checkAuth([
-      UserRole.SUPER_ADMIN,
-      UserRole.ADMIN
-    ]);
+    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
     if (authResult.error) {
       return { error: authResult.error };
     }
@@ -256,10 +260,7 @@ export async function createNewAgent(data: AgentFormData) {
 
 export async function updateAgent(id: string, data: Partial<AgentFormData>) {
   try {
-    const authResult = await checkAuth([
-      UserRole.SUPER_ADMIN,
-      UserRole.ADMIN,
-    ]);
+    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
     if (authResult.error) {
       return { error: authResult.error };
     }

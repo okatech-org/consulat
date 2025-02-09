@@ -4,6 +4,7 @@ import {
   Country,
   User,
   ServiceCategory,
+  TimeSlot,
 } from '@prisma/client';
 import { ConsularServiceListingItem } from '@/types/consular-service';
 import { CountryListingItem } from '@/types/country';
@@ -18,12 +19,13 @@ export interface Organization {
   countries: Country[];
   metadata: Record<string, unknown> | null;
   services: ConsularServiceListingItem[] | null;
+  timeSlots: TimeSlot[] | null;
+  adminUser: User | null;
+  agents: User[] | null;
   createdAt: Date;
   updatedAt: Date;
-  User: User | null;
 
-  // Relations calculées
-  _count?: {
+  _count: {
     services: number;
   };
 }

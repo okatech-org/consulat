@@ -97,6 +97,8 @@ async function handleAuthorize(credentials: unknown) {
         role: true,
         phone: true,
         lastLogin: true,
+        organizationId: true,
+        agentOrganizationId: true,
       },
     });
 
@@ -116,6 +118,8 @@ async function handleAuthorize(credentials: unknown) {
           role: true,
           phone: true,
           lastLogin: true,
+          organizationId: true,
+          agentOrganizationId: true,
         },
       });
     }
@@ -143,6 +147,14 @@ async function handleSession({ session, token }: { session: Session; token: JWT 
 
       if (existingUser.email) {
         session.user.email = existingUser.email;
+      }
+
+      if (existingUser.organizationId) {
+        session.user.organizationId = existingUser.organizationId;
+      }
+
+      if (existingUser.agentOrganizationId) {
+        session.user.agentOrganizationId = existingUser.agentOrganizationId;
       }
 
       session.user.lastLogin = existingUser.lastLogin ?? new Date();

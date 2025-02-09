@@ -10,6 +10,7 @@ import { RoleGuard } from '@/components/ui/role-guard';
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { OrganizationAgents } from '@/types/organization';
+import { ServiceCategory } from '@prisma/client';
 
 interface UsersTableProps {
   agents: OrganizationAgents[];
@@ -21,17 +22,27 @@ export function UsersTable({ agents }: UsersTableProps) {
 
   const columns: ColumnDef<OrganizationAgents>[] = [
     {
-      header: t('table.name'),
-      accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+      header: t('table.lastName'),
+      accessorKey: 'lastName',
+      cell: ({ row }) => row.original.lastName || '-',
     },
     {
-      accessorKey: 'email',
+      header: t('table.firstName'),
+      accessorKey: 'firstName',
+      cell: ({ row }) => row.original.firstName || '-',
+    },
+    {
       header: t('table.email'),
+      accessorKey: 'email',
+      cell: ({ row }) => row.original.email || '-',
     },
     {
-      accessorFn: (row) =>
-        row.phone ? `${row.phone?.countryCode} ${row.phone?.number}` : '',
       header: t('table.phone'),
+      accessorKey: 'phone',
+      cell: ({ row }) =>
+        row.original.phone
+          ? `${row.original.phone?.countryCode} ${row.original.phone?.number}`
+          : '-',
     },
     {
       accessorKey: 'linkedCountries',
@@ -52,7 +63,7 @@ export function UsersTable({ agents }: UsersTableProps) {
             <Badge className="mr-1" key={cat.toString()} variant="secondary">
               {t_base(`services.categories.${cat}`)}
             </Badge>
-          )) || t_base('common.status.not_assigned')}
+          )) || '-'}
         </div>
       ),
     },
@@ -60,7 +71,7 @@ export function UsersTable({ agents }: UsersTableProps) {
       id: 'actions',
       header: t_base('common.data_table.actions'),
       cell: ({ row }) => (
-        <RoleGuard roles={['SUPER_ADMIN']}>
+        <RoleGuard roles={['SUPER_ADMIN', 'ADMIN']}>
           <DataTableRowActions<OrganizationAgents>
             actions={[
               {
@@ -85,11 +96,36 @@ export function UsersTable({ agents }: UsersTableProps) {
     },
   ];
 
-  const localFilters: FilterOption[] = [
+  const localFilters: FilterOption<OrganizationAgents>[] = [
     {
       type: 'search',
-      value: 'name',
-      label: t('table.name'),
+      property: 'firstName',
+      label: t('table.firstName'),
+    },
+    {
+      type: 'checkbox',
+      property: 'serviceCategories',
+      label: t('table.service_categories'),
+      options: Object.values(ServiceCategory).map((category) => ({
+        label: category,
+        value: category,
+      })),
+    },
+    {
+      type: 'checkbox',
+      property: 'countries',
+      label: t('table.countries'),
+      options: Array.from(
+        new Set(
+          agents
+            .flatMap((agent) => agent.linkedCountries)
+            .filter((country): country is NonNullable<typeof country> => Boolean(country))
+            .map((country) => ({
+              label: country.name,
+              value: country.id || '',
+            })),
+        ),
+      ),
     },
   ];
 
