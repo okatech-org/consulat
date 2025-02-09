@@ -498,7 +498,8 @@ model ServiceRequest {
   messages             Message[] // Communications
 
   // Rendez-vous associé (si applicable)
-  appointment Appointment?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  appointmentId String?    @unique
 
   proxyName            String?
   proxyIdentityDoc     String?
@@ -534,8 +535,7 @@ model Appointment {
   // Relations existantes
   userId           String
   user             User            @relation(fields: [userId], references: [id])
-  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
-  serviceRequestId String?         @unique
+  serviceRequest   ServiceRequest?
 
   // Métadonnées
   createdAt        DateTime       @default(now())
@@ -546,11 +546,11 @@ model Appointment {
   
   // Relation avec les créneaux
   TimeSlot         TimeSlot[]
+  notifications Notification[] @relation(name: "AppointmentNotifications")
 
   @@index([userId])
   @@index([organizationId])
   @@index([date])
-  Notification Notification[] @relation(name: "AppointmentNotifications")
 }
 
 // Mise à jour des types de rendez-vous selon les specs
@@ -720,7 +720,7 @@ model Organization {
   updatedAt DateTime @updatedAt
   User      User?    @relation(fields: [userId], references: [id])
   userId    String?
+  appointments Appointment[]
 
   @@map("organizations")
-  Appointment Appointment[]
 }
