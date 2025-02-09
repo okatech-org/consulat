@@ -15,7 +15,13 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import Image from 'next/image';
 import { UserNav } from '@/components/layouts/user-nav';
-import { FileSlidersIcon, FolderIcon, LayoutIcon, UserIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  FileSlidersIcon,
+  FolderIcon,
+  LayoutIcon,
+  UserIcon,
+} from 'lucide-react';
 
 export default async function UserSidebar({
   ...props
@@ -39,6 +45,11 @@ export default async function UserSidebar({
       title: t('requests'),
       href: ROUTES.user.requests,
       icon: <FileSlidersIcon className="size-4" />,
+    },
+    {
+      title: t('appointments'),
+      href: ROUTES.user.appointments,
+      icon: <CalendarIcon className="size-4" />,
     },
     {
       title: t('documents'),

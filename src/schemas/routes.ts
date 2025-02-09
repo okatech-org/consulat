@@ -51,10 +51,13 @@ export const ROUTES = {
 
   user: {
     base: '/user' as Route<string>,
-    profile: '/user/profile' as Route<string>,
-    settings: '/user/settings' as Route<string>,
-    documents: '/user/components' as Route<string>,
+    dashboard: '/user/dashboard' as Route<string>,
     requests: '/user/requests' as Route<string>,
+    profile: '/user/profile' as Route<string>,
+    appointments: '/user/appointments' as Route<string>,
+    documents: '/user/documents' as Route<string>,
+    procedures: '/user/procedures' as Route<string>,
+    settings: '/user/settings' as Route<string>,
   },
 
   // Pages utilisateur
