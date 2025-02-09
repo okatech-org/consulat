@@ -409,14 +409,10 @@ export function filterUneditedKeys<T extends Record<string, unknown>>(
   return data;
 }
 
-export function formatDefaultDate(
-  date: Date | string | null,
-  options?: Intl.DateTimeFormatOptions,
-) {
-  'use client';
-  if (!date) return '';
-
+export function DisplayDate(date: Date | string, options?: Intl.DateTimeFormatOptions) {
   const locale = useLocale();
+  if (!date) return '-';
+  const dateValue = new Intl.DateTimeFormat(locale, options).format(new Date(date))
 
-  return new Intl.DateTimeFormat(locale, options).format(new Date(date));
+  return dateValue;
 }

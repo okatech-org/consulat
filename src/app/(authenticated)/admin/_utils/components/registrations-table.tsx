@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
 import { RegistrationListingItem } from '@/types/consular-service';
-import { formatDefaultDate } from '@/lib/utils';
+import { DisplayDate } from '@/lib/utils';
 import { GetRegistrationsOptions } from '@/actions/registrations';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
@@ -19,27 +19,33 @@ import { useRouter } from 'next/navigation';
 import { debounce } from 'lodash';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 interface RegistrationsTableProps {
-  requests: RegistrationListingItem[];
-  total: number;
+  requests?: RegistrationListingItem[];
   filters: GetRegistrationsOptions;
+  totalCount?: number;
 }
 
 
-export function RegistrationsTable({ requests, total, filters }: RegistrationsTableProps) {
+export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: RegistrationsTableProps) {
   const t = useTranslations('admin.registrations');
   const t_auth = useTranslations('auth');
   const t_common = useTranslations('common');
 
-  console.log(filters);
-  
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [items, setItems] = React.useState<RegistrationListingItem[]>(requests);
+  const [itemsTotalCount, setItemsTotalCount] = React.useState(totalCount);
+
+  
+  
 
   // Créez une fonction pour mettre à jour l'URL avec les filtres
   const createQueryString = React.useCallback(
       (name: string, value: string | undefined) => {
           const params = new URLSearchParams(searchParams.toString());
+
           if (value) {
               params.set(name, value);
           } else {
@@ -61,7 +67,7 @@ export function RegistrationsTable({ requests, total, filters }: RegistrationsTa
       header: () => t('table.submitted_at'),
       cell: ({ row }) => {
         const date = row.original.submittedAt;
-        return date ? formatDefaultDate(date) : '-';
+        return date ? DisplayDate(date) : '-';
       },
     },
     {
@@ -166,5 +172,5 @@ export function RegistrationsTable({ requests, total, filters }: RegistrationsTa
     },
   ];
 
-  return <DataTable columns={columns} data={requests} filters={localFilters} pageCount={total}/>;
+  return <DataTable isLoading={isLoading} columns={columns} data={items} filters={localFilters} pageCount={itemsTotalCount}/>;
 }

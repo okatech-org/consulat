@@ -30,7 +30,7 @@ import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/co
 import { RegistrationRequestDetails } from '@/types/consular-service';
 import {
   calculateProfileCompletion,
-  formatDefaultDate,
+  DisplayDate,
   getProfileFieldsStatus,
 } from '@/lib/utils';
 import { ProfileCompletion } from '@/app/(authenticated)/user/profile/_utils/components/profile-completion';
@@ -44,6 +44,10 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   const t = useTranslations('admin.registrations.review');
   const profile = request?.submittedBy?.profile;
   const user = request.submittedBy;
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null);
+  const router = useRouter();
+  const { toast } = useToast();
 
   if (!profile || !user) {
     return null;
@@ -51,11 +55,6 @@ export function ProfileReview({ request }: ProfileReviewProps) {
 
   const completionRate = calculateProfileCompletion(profile);
   const fieldStatus = getProfileFieldsStatus(profile);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null);
-  const router = useRouter();
-  const { toast } = useToast();
 
   const handleValidation = async (notes: string) => {
     try {
@@ -168,7 +167,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               <div className="flex items-center gap-2">
                 <ProfileStatusBadge status={request.status} />
                 <span className="text-sm text-muted-foreground">
-                  {t('submitted_on')}: {formatDefaultDate(request.createdAt)}
+                  {t('submitted_on')}: {DisplayDate(request.createdAt)}
                 </span>
               </div>
             </div>

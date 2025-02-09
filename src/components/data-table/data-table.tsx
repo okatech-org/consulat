@@ -35,6 +35,7 @@ interface DataTableProps<TData, TValue> {
   filters?: FilterOption[];
   pageCount?: number;
   onRowClick?: (row: Row<TData>) => void;
+  isLoading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -42,7 +43,8 @@ export function DataTable<TData, TValue>({
   data,
   filters,
   pageCount,
-  onRowClick
+  onRowClick,
+  isLoading = false,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
   const [rowSelection, setRowSelection] = React.useState({});
@@ -75,7 +77,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      {filters?.length ? <DataTableToolbar filters={filters} table={table} /> : null}
+      {filters?.length ? <DataTableToolbar isLoading={isLoading} filters={filters} table={table} /> : null}
       
       <div className="rounded-md border">
         <Table>

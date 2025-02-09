@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
-import { cn, formatDefaultDate } from '@/lib/utils';
+import { cn, DisplayDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -163,8 +163,8 @@ export function UserDocument({
   const form = useForm<UpdateDocumentData>({
     resolver: zodResolver(updateDocumentSchema),
     defaultValues: {
-      issuedAt: document?.issuedAt ? formatDefaultDate(document.issuedAt) : undefined,
-      expiresAt: document?.expiresAt ? formatDefaultDate(document.expiresAt) : undefined,
+      issuedAt: document?.issuedAt ? DisplayDate(document.issuedAt) : undefined,
+      expiresAt: document?.expiresAt ? DisplayDate(document.expiresAt) : undefined,
       metadata: document?.metadata,
     },
   });
@@ -373,10 +373,10 @@ export function UserDocument({
                   <>
                     {t('validity', {
                       start: document.issuedAt
-                        ? formatDefaultDate(document.issuedAt)
+                        ? DisplayDate(document.issuedAt)
                         : 'N/A',
                       end: document.expiresAt
-                        ? formatDefaultDate(document.expiresAt)
+                        ? DisplayDate(document.expiresAt)
                         : 'N/A',
                     })}
                   </>

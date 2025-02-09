@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { fr } from 'date-fns/locale';
 import {
   MapPin,
   User,
@@ -16,7 +15,7 @@ import {
 } from 'lucide-react';
 import { ConsularFormData } from '@/schemas/registration';
 import { DocumentStatus, InfoField } from '@/components/ui/info-field';
-import { formatDefaultDate } from '@/lib/utils';
+import { DisplayDate } from '@/lib/utils';
 
 interface ReviewFieldsProps<T extends keyof ConsularFormData> {
   id: T;
@@ -101,7 +100,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
             />
             <InfoField
               label={t('form.birth_date')}
-              value={basicInfo.birthDate && formatDefaultDate(basicInfo.birthDate)}
+              value={basicInfo.birthDate && DisplayDate(basicInfo.birthDate)}
               icon={<Calendar className="size-4" />}
               required
             />
@@ -143,7 +142,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
                 label={t('form.passport.issue_date.label')}
                 value={
                   basicInfo.passportIssueDate &&
-                  formatDefaultDate(basicInfo.passportIssueDate)
+                  DisplayDate(basicInfo.passportIssueDate)
                 }
                 required
               />
@@ -151,7 +150,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
                 label={t('form.passport.expiry_date.label')}
                 value={
                   basicInfo.passportExpiryDate &&
-                  formatDefaultDate(basicInfo.passportExpiryDate)
+                  DisplayDate(basicInfo.passportExpiryDate)
                 }
                 required
               />

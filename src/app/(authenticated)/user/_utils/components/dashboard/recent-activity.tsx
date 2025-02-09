@@ -1,8 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { fr } from 'date-fns/locale';
-import { formatDefaultDate } from '@/lib/utils';
+import { DisplayDate } from '@/lib/utils';
 
 interface Activity {
   id: string;
@@ -27,7 +26,7 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ activities = [] }: RecentActivityProps) {
-  const t = useTranslations('manager.dashboard.activity');
+  const t = useTranslations('admin.dashboard.activity');
 
   return (
     <Card>
@@ -55,7 +54,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
                     })}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatDefaultDate(activity.createdAt)}
+                    {DisplayDate(activity.createdAt)}
                   </p>
                 </div>
               </div>

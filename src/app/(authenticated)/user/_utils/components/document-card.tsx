@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { fr } from 'date-fns/locale';
 import {
   Card,
   CardContent,
@@ -13,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Download, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { AppUserDocument } from '@/types';
-import { formatDefaultDate } from '@/lib/utils';
+import { DisplayDate } from '@/lib/utils';
 
 interface DocumentCardProps {
   document: AppUserDocument;
@@ -84,7 +83,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
           {document.expiresAt && (
             <p className="text-sm text-muted-foreground">
               {t('expires_on', {
-                date: formatDefaultDate(document.expiresAt),
+                date: DisplayDate(document.expiresAt),
               })}
             </p>
           )}
