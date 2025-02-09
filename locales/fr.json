@@ -3854,6 +3854,7 @@
     },
     "settings": {
       "title": "Paramètres de l'organisation",
+      "time_slots_configuration": "Configuration des créneaux pour {countryName}",
       "description": "Personnalisez les paramètres de votre organisation",
       "copy_config": "Copier la configuration",
       "copy_from": "Copier depuis",
@@ -3863,7 +3864,8 @@
         "organization": "Informations de l'organisme",
         "general": "Paramètres généraux",
         "services": "Services",
-        "agents": "Agents"
+        "agents": "Agents",
+        "slots": "Créneaux horaires"
       },
       "configForCountry": "Configuration - {country}",
       "general": {
@@ -3894,6 +3896,19 @@
         "placeholders": {
           "name": "Nom de l'organisme",
           "address": "Numéro et nom de rue"
+        },
+        "slots": {
+          "title": "Gestion des créneaux horaires",
+          "description": "Configurez les créneaux de rendez-vous disponibles par pays",
+          "generation": {
+            "title": "Génération des créneaux",
+            "months_in_advance": "Générer les créneaux pour les prochains mois",
+            "months_in_advance_description": "Nombre de mois à l'avance pour lesquels générer les créneaux",
+            "generate": "Générer les créneaux",
+            "generating": "Génération en cours...",
+            "success": "Créneaux générés avec succès",
+            "error": "Erreur lors de la génération des créneaux"
+          }
         }
       },
       "schedule": {
@@ -3981,6 +3996,10 @@
           "name": "Nom de l'agent",
           "email": "Email de l'agent"
         }
+      },
+      "slots": {
+        "title": "Gestion des créneaux horaires",
+        "description": "Configurez les créneaux de rendez-vous disponibles par pays"
       }
     }
   },

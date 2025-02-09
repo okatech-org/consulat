@@ -13,6 +13,7 @@ import * as React from 'react';
 import { Organization } from '@/types/organization';
 import { CountryMetadata } from '@/types/country';
 import { useTabs } from '@/hooks/use-tabs';
+import { TimeSlotsSettings } from './time-slots-settings';
 
 interface SettingsTabsProps {
   organization: Organization;
@@ -31,6 +32,7 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
         <TabsTrigger value="organization">{t('settings.tabs.organization')}</TabsTrigger>
         <TabsTrigger value="services">{t('settings.tabs.services')}</TabsTrigger>
         <TabsTrigger value="agents">{t('settings.tabs.agents')}</TabsTrigger>
+        <TabsTrigger value="slots">{t('settings.tabs.slots')}</TabsTrigger>
         <TabsTrigger value="general">{t('settings.tabs.general')}</TabsTrigger>
       </TabsList>
 
@@ -82,6 +84,12 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
             agents={organization.agents ?? []}
             countries={organization.countries ?? []}
           />
+        </CardContainer>
+      </TabsContent>
+
+      <TabsContent value="slots" className="space-y-4">
+        <CardContainer title={t('settings.slots.title')}>
+          <TimeSlotsSettings organization={organization} />
         </CardContainer>
       </TabsContent>
     </Tabs>

@@ -56,14 +56,8 @@ export function OrganizationSettings({
   const t_messages = useTranslations('messages');
   const { handleTabChange, searchParams } = useTabs();
 
-  React.useLayoutEffect(() => {
-    if (organization.countries.length > 0) {
-      handleTabChange(organization.countries[0]?.code ?? '', 'country');
-    }
-  }, [handleTabChange, organization.countries]);
-
   // Récupérer la valeur de l'onglet depuis l'URL ou utiliser la valeur par défaut
-  const tab = searchParams.get('tab');
+  const countryTab = searchParams.get('country') ?? organization.countries[0]?.code;
 
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -228,7 +222,7 @@ export function OrganizationSettings({
         </CardContainer>
 
         <Tabs
-          value={tab ?? undefined}
+          value={countryTab ?? undefined}
           onValueChange={(value) => handleTabChange(value, 'country')}
         >
           <TabsList>
