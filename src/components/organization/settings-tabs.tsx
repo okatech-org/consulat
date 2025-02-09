@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { OrganizationSettings } from '@/components/service/organization-settings';
+import { OrganizationSettings } from '@/components/organization/organization-settings';
 import { GeneralSettings } from '@/app/(authenticated)/admin/_utils/components/general-settings';
 import { CreateServiceButton } from '@/components/organization/create-service-button';
 import { ServicesTable } from '@/components/organization/services-table';

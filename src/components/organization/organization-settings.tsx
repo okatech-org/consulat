@@ -29,13 +29,14 @@ import { Separator } from '@/components/ui/separator';
 import { DaySchedule } from '@/app/(authenticated)/admin/_utils/components/day-schedule';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { updateOrganizationSettings } from '@/components/service/organization';
+import { updateOrganizationSettings } from '@/components/organization/organization';
 import { DocumentUploadField } from '@/components/ui/document-upload';
 import { filterUneditedKeys, weekDays } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { OrganizationStatus, OrganizationType } from '@prisma/client';
 import { RoleGuard } from '@/components/ui/role-guard';
+import { useTabs } from '@/hooks/use-tabs';
 
 interface OrganizationSettingsProps {
   organization: Organization;
@@ -53,9 +54,17 @@ export function OrganizationSettings({
   const t_common = useTranslations();
   const t_countries = useTranslations('countries');
   const t_messages = useTranslations('messages');
-  const [selectedCountry, setSelectedCountry] = React.useState(
-    organization.countries[0]?.id,
-  );
+  const { handleTabChange, searchParams } = useTabs();
+
+  React.useLayoutEffect(() => {
+    if (organization.countries.length > 0) {
+      handleTabChange(organization.countries[0]?.code ?? '', 'country');
+    }
+  }, [handleTabChange, organization.countries]);
+
+  // Récupérer la valeur de l'onglet depuis l'URL ou utiliser la valeur par défaut
+  const tab = searchParams.get('tab');
+
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -218,17 +227,20 @@ export function OrganizationSettings({
           </div>
         </CardContainer>
 
-        <Tabs value={selectedCountry} onValueChange={setSelectedCountry}>
+        <Tabs
+          value={tab ?? undefined}
+          onValueChange={(value) => handleTabChange(value, 'country')}
+        >
           <TabsList>
             {organization.countries.map((country) => (
-              <TabsTrigger key={country.id} value={country.id}>
+              <TabsTrigger key={country.id} value={country.code}>
                 {country.name}
               </TabsTrigger>
             ))}
           </TabsList>
 
           {organization.countries.map((country) => (
-            <TabsContent key={country.id} value={country.id} className={'space-y-4'}>
+            <TabsContent key={country.id} value={country.code} className={'space-y-4'}>
               <CardContainer
                 title={t('settings.configForCountry', {
                   country: t_countries(country.code.toLowerCase()),

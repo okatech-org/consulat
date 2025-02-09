@@ -595,6 +595,7 @@ model TimeSlot {
   organization  Organization      @relation(fields: [organizationId], references: [id])
   organizationId String
   appointments  Appointment[]
+  countryCode String?
 
   // Pour les créneaux d'urgence
   isEmergency   Boolean           @default(false)
