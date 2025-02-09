@@ -2,19 +2,19 @@ import {
   getOrganizationAgents,
   getOrganizationById,
   getOrganizations,
-} from '@/app/(authenticated)/superadmin/_utils/actions/organizations';
+} from '@/actions/organizations';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrganizationSettings } from '@/components/service/organization-settings';
 import { GeneralSettings } from '@/app/(authenticated)/admin/_utils/components/general-settings';
-import { CreateServiceButton } from '@/app/(authenticated)/superadmin/_utils/components/create-service-button';
-import { ServicesTable } from '@/app/(authenticated)/superadmin/_utils/components/services-table';
+import { CreateServiceButton } from '@/components/organization/create-service-button';
+import { ServicesTable } from '@/components/organization/services-table';
 import CardContainer from '@/components/layouts/card-container';
 import { getCountries } from '@/actions/countries';
-import { CreateAgentButton } from '@/app/(authenticated)/superadmin/_utils/components/CreateAgentButton';
-import { UsersTable } from '@/app/(authenticated)/superadmin/_utils/components/users-table';
+import { CreateAgentButton } from '@/components/organization/CreateAgentButton';
+import { UsersTable } from '@/components/organization/users-table';
 
 export default async function OrganizationSettingsPage({
                                                          params,

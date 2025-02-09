@@ -7,7 +7,7 @@ import {
   deleteOrganization,
   updateOrganization,
   updateOrganizationStatus,
-} from '@/app/(authenticated)/superadmin/_utils/actions/organizations';
+} from '@/actions/organizations';
 import { CreateOrganizationInput, UpdateOrganizationInput } from '@/schemas/organization';
 
 export function useOrganizationActions() {

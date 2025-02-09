@@ -11,8 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { OrganizationForm } from './organization-form';
 import { Country } from '@prisma/client';
+import { OrganizationForm } from './organization-form';
 
 interface CreateOrganizationButtonProps {
   countries: Country[];

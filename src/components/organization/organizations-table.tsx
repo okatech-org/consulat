@@ -13,7 +13,7 @@ import { ROUTES } from '@/schemas/routes';
 import { Ban, CheckCircle, Pencil, Trash } from 'lucide-react';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import * as React from 'react';
-import { useOrganizationActions } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-actions';
+import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useState } from 'react';
 

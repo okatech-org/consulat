@@ -1,8 +1,8 @@
-import { getOrganizations } from '@/app/(authenticated)/superadmin/_utils/actions/organizations';
-import { OrganizationsTable } from '@/app/(authenticated)/superadmin/_utils/components/organizations-table';
-import { OrganizationDialog } from '@/app/(authenticated)/superadmin/_utils/components/organization-dialog';
+import { getOrganizations } from '@/actions/organizations';
+import { OrganizationsTable } from '@/components/organization/organizations-table';
+import { OrganizationDialog } from '@/components/organization/organization-dialog';
 import { getCountries } from '@/actions/countries';
-import { CreateOrganizationButton } from '@/app/(authenticated)/superadmin/_utils/components/create-organization-button';
+import { CreateOrganizationButton } from '@/components/organization/create-organization-button';
 import { getTranslations } from 'next-intl/server';
 import CardContainer from '@/components/layouts/card-container';
 

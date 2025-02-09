@@ -1,8 +1,8 @@
-import { ServiceEditForm } from '@/app/(authenticated)/superadmin/_utils/components/service-edit-form';
+import { ServiceEditForm } from '@/components/organization/service-edit-form';
 import { getTranslations } from 'next-intl/server';
 import CardContainer from '@/components/layouts/card-container';
 import { getFullService } from '@/app/(authenticated)/superadmin/_utils/actions/services';
-import { getOrganizations } from '@/app/(authenticated)/superadmin/_utils/actions/organizations';
+import { getOrganizations } from '@/actions/organizations';
 import NotFound from 'next/dist/client/components/not-found-error';
 
 export default async function EditServicePage({ params }: { params: { id: string } }) {

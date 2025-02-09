@@ -1,9 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import CardContainer from '@/components/layouts/card-container';
 import { getServices } from '../_utils/actions/services';
-import { getOrganizations } from '@/app/(authenticated)/superadmin/_utils/actions/organizations';
-import { CreateServiceButton } from '@/app/(authenticated)/superadmin/_utils/components/create-service-button';
-import { ServicesTable } from '@/app/(authenticated)/superadmin/_utils/components/services-table';
+import { getOrganizations } from '@/actions/organizations';
+import { CreateServiceButton } from '@/components/organization/create-service-button';
+import { ServicesTable } from '@/components/organization/services-table';
 
 export default async function ServicesPage() {
   const [

@@ -40,7 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DynamicFieldsEditor } from '@/app/(authenticated)/superadmin/_utils/components/dynamic-fields-editor';
+import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
 import { profileFields } from '@/types/profile';
 import { Separator } from '@/components/ui/separator';
 import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';

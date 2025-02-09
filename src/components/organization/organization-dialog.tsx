@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslations } from 'next-intl';
 import { OrganizationForm } from './organization-form';
-import { useOrganizationDialog } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-dialog';
+import { useOrganizationDialog } from '@/hooks/use-organization-dialog';
 import { Country } from '@prisma/client';
 
 export function OrganizationDialog({ countries }: { countries: Country[] }) {

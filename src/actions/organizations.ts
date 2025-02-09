@@ -84,7 +84,7 @@ export async function createOrganization(data: CreateOrganizationInput) {
 
 export async function updateOrganization(id: string, data: UpdateOrganizationInput) {
   try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
     if (authResult.error) {
       return { error: authResult.error };
     }
@@ -111,7 +111,7 @@ export async function updateOrganization(id: string, data: UpdateOrganizationInp
 
 export async function updateOrganizationStatus(id: string, status: OrganizationStatus) {
   try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
     if (authResult.error) {
       return { error: authResult.error };
     }
@@ -172,7 +172,7 @@ export async function getOrganizationById(id: string): Promise<{
   data?: Organization | null;
   error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
   if (authResult.error) return { error: authResult.error };
 
   try {
@@ -221,8 +221,7 @@ export async function createNewAgent(data: AgentFormData) {
   try {
     const authResult = await checkAuth([
       UserRole.SUPER_ADMIN,
-      UserRole.ADMIN,
-      UserRole.MANAGER,
+      UserRole.ADMIN
     ]);
     if (authResult.error) {
       return { error: authResult.error };
@@ -260,7 +259,6 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
     const authResult = await checkAuth([
       UserRole.SUPER_ADMIN,
       UserRole.ADMIN,
-      UserRole.MANAGER,
     ]);
     if (authResult.error) {
       return { error: authResult.error };
@@ -297,7 +295,7 @@ export async function getOrganizationAgents(id: string): Promise<{
   data?: OrganizationAgents[];
   error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
   if (authResult.error) return { error: authResult.error };
 
   try {

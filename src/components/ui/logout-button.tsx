@@ -7,15 +7,17 @@ import * as React from 'react';
 import { LogOutIcon } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Icons } from './icons';
+import { useRouter } from 'next/navigation';
 
 type LogoutButtonProps = {
   customClass?: string;
 };
 
-export function LogoutButton({ customClass }: Readonly<LogoutButtonProps>) {
+export function LogoutButton({ customClass }: LogoutButtonProps) {
   const t = useTranslations('auth.actions');
   const user = useCurrentUser();
   const [isPending, startTransition] = React.useTransition();
+  const router = useRouter();
 
   if (!user) {
     return null;
@@ -26,7 +28,7 @@ export function LogoutButton({ customClass }: Readonly<LogoutButtonProps>) {
       onClick={() => {
         startTransition(async () => {
           await logUserOut().then(() => {
-            window.location.reload();
+            router.refresh();
           });
         });
       }}

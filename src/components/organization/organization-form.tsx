@@ -43,7 +43,7 @@ import {
   updateOrganizationSchema,
 } from '@/schemas/organization';
 import { Organization } from '@/types/organization';
-import { useOrganizationActions } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-actions';
+import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { InfoField } from '@/components/ui/info-field';
 
 interface CountryOption {

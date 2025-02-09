@@ -16,7 +16,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
-import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form';
+import { NewServiceForm } from '@/components/organization/new-service-form';
 import { useRouter } from 'next/navigation';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import { ROUTES } from '@/schemas/routes';

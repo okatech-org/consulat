@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Pencil, Trash, Ban, CheckCircle } from 'lucide-react';
-import { useOrganizationDialog } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-dialog';
-import { useOrganizationActions } from '@/app/(authenticated)/superadmin/_utils/hooks/use-organization-actions';
+import { useOrganizationDialog } from '@/hooks/use-organization-dialog';
+import { useOrganizationActions } from '@/hooks/use-organization-actions';
 
 export function OrganizationActions({ organization }: { organization: Organization }) {
   const t = useTranslations('sa.organizations');

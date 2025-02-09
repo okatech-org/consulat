@@ -22,7 +22,7 @@ import { AgentFormData, AgentSchema } from '@/schemas/user';
 import { useToast } from '@/hooks/use-toast';
 import { ServiceCategory } from '@prisma/client';
 import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
-import { createNewAgent } from '@/app/(authenticated)/superadmin/_utils/actions/organizations';
+import { createNewAgent } from '@/actions/organizations';
 import { Organization } from '@/types/organization';
 
 interface AgentFormProps {

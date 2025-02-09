@@ -11,10 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { createService } from '../actions/services';
+import { createService } from '../../app/(authenticated)/superadmin/_utils/actions/services';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { NewServiceForm } from '@/app/(authenticated)/superadmin/_utils/components/new-service-form';
+import { NewServiceForm } from '@/components/organization/new-service-form';
 import { NewServiceSchemaInput } from '@/schemas/consular-service';
 
 export function CreateServiceButton({
