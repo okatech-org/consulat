@@ -1,0 +1,12 @@
+---
+description: Server Action Rules
+globs: ["src/actions/**/*"]
+---
+
+# Server Action Rules
+
+- "src/actions/**/*": "Validate all inputs and implement proper error handling with try-catch blocks"
+- "src/actions/**/*": "Use Prisma transactions for multi-step operations"
+- "src/actions/**/*": "Implement revalidatePath for cache updates after mutations"
+- "src/actions/**/*": "Perform authorization checks before executing actions"
+- "src/actions/**/*": "Return structured error messages and log errors for debugging"

@@ -1,0 +1,12 @@
+---
+description: Internationalization Rules
+globs: ["**/*.{ts,tsx}"]
+---
+
+# Internationalization Rules
+
+- "**/*.{ts,tsx}": "Use next-intl for all user-facing strings"
+- "**/*.{ts,tsx}": "Use descriptive translation keys (e.g., component.button.submit)"
+- "**/*.{ts,tsx}": "Wrap components with NextIntlClientProvider in layout.tsx"
+- "**/*.{ts,tsx}": "Ensure all text content is internationalized"
+- "**/*.{ts,tsx}": "Document i18n keys and their usage patterns"

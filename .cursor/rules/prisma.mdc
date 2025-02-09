@@ -1,0 +1,12 @@
+---
+description: Prisma Schema and Migration Rules
+globs: ["prisma/**/*"]
+---
+
+# Prisma Rules
+
+- "prisma/**/*": "Use snake_case for database naming"
+- "prisma/**/*": "Define explicit relationships with appropriate onDelete strategies"
+- "prisma/**/*": "Use appropriate Prisma data types and enums"
+- "prisma/**/*": "Generate migrations using prisma migrate dev"
+- "prisma/**/*": "Implement proper access control at the Prisma level"
