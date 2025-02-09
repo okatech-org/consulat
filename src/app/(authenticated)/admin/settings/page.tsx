@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import * as React from 'react';
 import { getCurrentUser } from '@/actions/user';
-import { SettingsTabs } from './_components/settings-tabs';
+import { SettingsTabs } from '../../../../components/organization/settings-tabs';
 
 export default async function OrganizationSettingsPage() {
   const user = await getCurrentUser();

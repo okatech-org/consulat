@@ -43,9 +43,9 @@ interface OrganizationSettingsProps {
 }
 
 export function OrganizationSettings({
-                                       organization,
-                                       countries = [],
-                                     }: OrganizationSettingsProps) {
+  organization,
+  countries = [],
+}: OrganizationSettingsProps) {
   const schema = generateOrganizationSettingsSchema(
     organization.countries as unknown as Country[],
   );
@@ -143,7 +143,7 @@ export function OrganizationSettings({
               )}
             />
 
-            <RoleGuard roles={['SUPER_ADMIN']}>
+            <RoleGuard roles={['SUPER_ADMIN']} fallback={<></>}>
               {/* Type */}
               <FormField
                 control={form.control}

@@ -240,7 +240,7 @@ export function ServicesTable({
       label: t('table.name'),
     },
     {
-      type: 'radio',
+      type: 'checkbox',
       property: 'category',
       label: t('table.category'),
       options: Object.values(ServiceCategory).map((category) => ({
@@ -249,7 +249,7 @@ export function ServicesTable({
       })),
     },
     {
-      type: 'radio',
+      type: 'checkbox',
       property: 'isActive',
       label: t('table.status'),
       options: [
