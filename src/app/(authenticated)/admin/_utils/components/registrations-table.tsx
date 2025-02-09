@@ -12,7 +12,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
 import { RegistrationListingItem } from '@/types/consular-service';
 import { DisplayDate } from '@/lib/utils';
-import { GetRegistrationsOptions } from '@/actions/registrations';
+import { getRegistrations, GetRegistrationsOptions } from '@/actions/registrations';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
@@ -38,8 +38,16 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
   const [items, setItems] = React.useState<RegistrationListingItem[]>(requests);
   const [itemsTotalCount, setItemsTotalCount] = React.useState(totalCount);
 
-  
-  
+  React.useEffect(() => {
+    setIsLoading(true);
+    const fetchData = async () => {
+      const {requests, total} = await getRegistrations(filters);
+      setItems(requests);
+      setItemsTotalCount(total);
+      setIsLoading(false);
+    };
+    fetchData().finally(() => setIsLoading(false));
+  }, [filters]);
 
   // Créez une fonction pour mettre à jour l'URL avec les filtres
   const createQueryString = React.useCallback(
@@ -68,13 +76,15 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       cell: ({ row }) => {
         const date = row.original.submittedAt;
         return date ? DisplayDate(date) : '-';
-      },
+      }
     },
     {
-      accessorKey: 'fullName',
-      header: () => t('table.name'),
-      cell: ({ row }) =>
-        `${row.original.submittedBy.firstName || ''} ${row.original.submittedBy.lastName || ''}`,
+      accessorKey: 'submittedBy.lastName',
+      header: () => t('table.last_name'),
+    },
+    {
+      accessorKey: 'submittedBy.firstName',
+      header: () => t('table.first_name'),
     },
     {
       accessorKey: 'submittedBy.email',
@@ -129,8 +139,8 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       label: t('filters.search'),
       defaultValue: filters.search,
       onChange: (value) => {
-        if (typeof value === 'string' && value.length > 2) {
-          const debouncedFilter = debounce(() => handleFilterChange('search', value), 1000);
+        if (typeof value === 'string') {
+          const debouncedFilter = debounce(() => handleFilterChange('search', value), 300);
           debouncedFilter();
         }
       },

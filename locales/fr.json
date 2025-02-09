@@ -1289,7 +1289,9 @@
         "submitted_at": "Soumis le",
         "updated_at": "Mis à jour le",
         "actions": "Actions",
-        "empty": "Aucun profil trouvé"
+        "empty": "Aucun profil trouvé",
+        "first_name": "Prénom",
+        "last_name": "Nom"
       },
       "fields": {
         "phone": "Téléphone",
