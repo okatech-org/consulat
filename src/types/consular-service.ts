@@ -6,10 +6,8 @@ import {
   ServiceRequest,
   RequestStatus,
   Phone,
-  ProfileStatus,
 } from '@prisma/client';
 import { FullProfile, ProfileKey } from '@/types/profile';
-import { getRegistrationRequestDetailsById } from '@/actions/registrations';
 
 export const fieldTypes = [
   'text',
@@ -106,10 +104,10 @@ export type RegistrationListingItem = {
     email: string | null;
     nationality: string | null;
     phone: {
-      number: string | null
-    } | null
+      number: string | null;
+    } | null;
     profile: {
-      status: ProfileStatus | null;
+      status: RequestStatus | null;
     } | null;
   };
 };

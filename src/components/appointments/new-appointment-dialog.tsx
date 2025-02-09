@@ -4,40 +4,88 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AppointmentType } from '@prisma/client';
+import { ConsularService, User } from '@prisma/client';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  TradFormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+const appointmentFormSchema = z.object({
+  serviceId: z.string(),
+  date: z.date().optional(),
+  time: z.string().optional(),
+});
+
+type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
 
 interface NewAppointmentDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  services: ConsularService[];
+  user: User;
 }
 
-export function NewAppointmentDialog({ isOpen, onClose }: NewAppointmentDialogProps) {
+export function NewAppointmentDialog({
+  isOpen,
+  onClose,
+  services,
+  user,
+}: NewAppointmentDialogProps) {
   const t = useTranslations('user.dashboard.appointments');
   const [step, setStep] = useState<'service' | 'date' | 'confirm'>('service');
-  const [selectedService, setSelectedService] = useState<AppointmentType | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const services = [
-    {
-      type: AppointmentType.DOCUMENT_SUBMISSION,
-      title: t('services.document_submission'),
-      description: t('services.document_submission_description'),
-      duration: 30,
-    },
-    {
-      type: AppointmentType.DOCUMENT_COLLECTION,
-      title: t('services.document_collection'),
-      description: t('services.document_collection_description'),
-      duration: 15,
-    },
-    {
-      type: AppointmentType.FIRST_REGISTRATION,
-      title: t('services.first_registration'),
-      description: t('services.first_registration_description'),
-      duration: 45,
-    },
-    // ... autres services
-  ];
+  const form = useForm<AppointmentFormValues>({
+    resolver: zodResolver(appointmentFormSchema),
+  });
+
+  const selectedService = services.find(
+    (service) => service.id === form.watch('serviceId'),
+  );
+
+  const onSubmit = async (data: AppointmentFormValues) => {
+    if (step === 'service' && selectedService) {
+      setStep('date');
+      return;
+    }
+
+    if (step === 'date') {
+      setStep('confirm');
+      return;
+    }
+
+    // TODO: Submit appointment
+    console.log('Submit appointment', data);
+  };
+
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[600px]">
+          <div className="flex h-40 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -46,54 +94,138 @@ export function NewAppointmentDialog({ isOpen, onClose }: NewAppointmentDialogPr
           <DialogTitle>{t('new_appointment_dialog.title')}</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={step} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="service" disabled={step !== 'service'}>
-              {t('new_appointment_dialog.steps.service')}
-            </TabsTrigger>
-            <TabsTrigger value="date" disabled={step !== 'date'}>
-              {t('new_appointment_dialog.steps.date')}
-            </TabsTrigger>
-            <TabsTrigger value="confirm" disabled={step !== 'confirm'}>
-              {t('new_appointment_dialog.steps.confirm')}
-            </TabsTrigger>
-          </TabsList>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <Tabs value={step} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="service" disabled={step !== 'service'}>
+                  {t('new_appointment_dialog.steps.service')}
+                </TabsTrigger>
+                <TabsTrigger value="date" disabled={step !== 'date'}>
+                  {t('new_appointment_dialog.steps.date')}
+                </TabsTrigger>
+                <TabsTrigger value="confirm" disabled={step !== 'confirm'}>
+                  {t('new_appointment_dialog.steps.confirm')}
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="service">
-            <div className="grid gap-4">
-              {services.map((service) => (
-                <Card
-                  key={service.type}
-                  className={`cursor-pointer transition-colors hover:bg-accent ${
-                    selectedService === service.type ? 'border-primary' : ''
-                  }`}
-                  onClick={() => {
-                    setSelectedService(service.type);
-                    setStep('date');
-                  }}
+              <TabsContent value="service">
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="serviceId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {t('new_appointment_dialog.service_select')}
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={t('new_appointment_dialog.select_service')}
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {services.map((service) => (
+                              <SelectItem key={service.id} value={service.id}>
+                                {service.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <TradFormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {selectedService && (
+                    <Card className="mt-4">
+                      <CardContent className="pt-6">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="font-medium">
+                              {t('new_appointment_dialog.service_details')}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {selectedService.appointmentInstructions ??
+                                selectedService.description}
+                            </p>
+                          </div>
+
+                          <div className="flex justify-between">
+                            <div>
+                              <h3 className="font-medium">
+                                {t('new_appointment_dialog.duration')}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {t('new_appointment_dialog.duration_value', {
+                                  duration: selectedService.appointmentDuration,
+                                })}
+                              </p>
+                            </div>
+                            <div>
+                              <h3 className="font-medium">
+                                {t('new_appointment_dialog.price')}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {t('new_appointment_dialog.price_value', {
+                                  price: selectedService.price,
+                                })}
+                              </p>
+                            </div>
+                          </div>
+
+                          {selectedService.appointmentInstructions && (
+                            <div>
+                              <h3 className="font-medium">
+                                {t('new_appointment_dialog.instructions')}
+                              </h3>
+                              <p className="text-sm text-muted-foreground whitespace-pre-line">
+                                {selectedService.appointmentInstructions}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="date">
+                {/* TODO: Ajouter le sélecteur de date/heure */}
+              </TabsContent>
+
+              <TabsContent value="confirm">
+                {/* TODO: Ajouter la confirmation */}
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-between">
+              {step !== 'service' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep('service')}
                 >
-                  <CardHeader>
-                    <CardTitle className="text-lg">{service.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{service.description}</p>
-                    <p className="mt-2 text-sm">
-                      {t('new_appointment_dialog.duration', {
-                        duration: service.duration,
-                      })}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+                  {t('new_appointment_dialog.back')}
+                </Button>
+              )}
+              <Button
+                type="submit"
+                disabled={
+                  !selectedService || (step === 'service' && !form.watch('serviceId'))
+                }
+              >
+                {step === 'confirm'
+                  ? t('new_appointment_dialog.submit')
+                  : t('new_appointment_dialog.next')}
+              </Button>
             </div>
-          </TabsContent>
-
-          <TabsContent value="date">
-            {/* TODO: Ajouter le sélecteur de date/heure */}
-          </TabsContent>
-
-          <TabsContent value="confirm">{/* TODO: Ajouter la confirmation */}</TabsContent>
-        </Tabs>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

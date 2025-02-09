@@ -4040,15 +4040,17 @@
             "date": "Date",
             "confirm": "Confirmation"
           },
-          "duration": "Durée : {duration} minutes"
-        },
-        "services": {
-          "document_submission": "Dépôt de documents",
-          "document_submission_description": "Déposez vos documents pour traitement",
-          "document_collection": "Retrait de documents",
-          "document_collection_description": "Retirez vos documents traités",
-          "first_registration": "Première inscription",
-          "first_registration_description": "Inscription consulaire initiale"
+          "service_select": "Sélectionnez un service",
+          "select_service": "Choisir un service",
+          "service_details": "Détails du service",
+          "duration": "Durée du rendez-vous",
+          "duration_value": "{duration} minutes",
+          "instructions": "Instructions",
+          "next": "Suivant",
+          "back": "Retour",
+          "price": "Prix",
+          "price_value": "{price} €",
+          "submit": "Confirmer le rendez-vous"
         }
       }
     },
