@@ -2,7 +2,6 @@
 
 import { db } from '@/lib/prisma';
 import { addMinutes, setHours, setMinutes, startOfDay } from 'date-fns';
-import { generateAvailableSlots } from '@/lib/appointments/slots';
 import { AppointmentType } from '@prisma/client';
 
 export async function getConsulateSchedule(consulateId: string) {
@@ -159,7 +158,7 @@ export async function getAvailableSlots({
   // Récupérer l'organisation avec ses pays
   const organization = await db.organization.findUnique({
     where: { id: organizationId },
-    include: { countries: true }
+    include: { countries: true },
   });
 
   if (!organization) {
@@ -171,7 +170,7 @@ export async function getAvailableSlots({
     date,
     organization,
     countryCode,
-    appointmentType
+    appointmentType,
   );
 
   // Récupérer les créneaux déjà réservés
@@ -186,9 +185,9 @@ export async function getAvailableSlots({
   });
 
   // Filtrer les créneaux disponibles
-  return possibleSlots.filter(slot => {
+  return possibleSlots.filter((slot) => {
     const slotEnd = addMinutes(slot, APPOINTMENT_DURATIONS[appointmentType]);
-    return !bookedSlots.some(booking => {
+    return !bookedSlots.some((booking) => {
       const bookingEnd = addMinutes(booking.date, booking.duration);
       return (
         (slot >= booking.date && slot < bookingEnd) ||

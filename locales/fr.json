@@ -4051,6 +4051,10 @@
           "price": "Prix",
           "price_value": "{price} €",
           "submit": "Confirmer le rendez-vous"
+        },
+        "date_picker": {
+          "select_date": "Sélectionnez une date",
+          "no_slots": "Aucun créneau disponible pour cette date"
         }
       }
     },

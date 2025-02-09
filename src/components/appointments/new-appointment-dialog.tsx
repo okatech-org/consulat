@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateTimePicker } from '@/components/appointments/date-time-picker';
+import { MultiSelect } from '../ui/multi-select';
 
 const appointmentFormSchema = z.object({
   serviceId: z.string(),
@@ -119,22 +121,19 @@ export function NewAppointmentDialog({
                         <FormLabel>
                           {t('new_appointment_dialog.service_select')}
                         </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={t('new_appointment_dialog.select_service')}
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {services.map((service) => (
-                              <SelectItem key={service.id} value={service.id}>
-                                {service.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <MultiSelect<string>
+                          options={services.map((service) => ({
+                            label: service.name,
+                            value: service.id,
+                          }))}
+                          selected={field.value ? [field.value] : []}
+                          onChange={(values) => {
+                            if (values.length > 0) {
+                              field.onChange(values[0]);
+                            }
+                          }}
+                          type={'single'}
+                        />
                         <TradFormMessage />
                       </FormItem>
                     )}
@@ -195,7 +194,23 @@ export function NewAppointmentDialog({
               </TabsContent>
 
               <TabsContent value="date">
-                {/* TODO: Ajouter le sélecteur de date/heure */}
+                <DateTimePicker
+                  organizationId={selectedService?.organizationId ?? ''}
+                  countryCode={user.countryId ?? ''}
+                  serviceId={selectedService?.id ?? ''}
+                  value={
+                    form.watch('date') && form.watch('time')
+                      ? {
+                          date: form.watch('date'),
+                          time: form.watch('time'),
+                        }
+                      : undefined
+                  }
+                  onChange={({ date, time }) => {
+                    form.setValue('date', date);
+                    form.setValue('time', time);
+                  }}
+                />
               </TabsContent>
 
               <TabsContent value="confirm">
