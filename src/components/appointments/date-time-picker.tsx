@@ -11,13 +11,13 @@ import { useTranslations } from 'next-intl';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
-import { TimeSlot } from '@prisma/client';
+import { AppointmentType, ConsularService, TimeSlot } from '@prisma/client';
 import { getAvailableSlots } from '@/actions/appointments';
 
 interface DateTimePickerProps {
   organizationId: string;
   countryCode: string;
-  serviceId: string;
+  selectedService: ConsularService;
   value?: { date: Date; time: string };
   onChange: (value: { date: Date; time: string }) => void;
 }
@@ -25,7 +25,7 @@ interface DateTimePickerProps {
 export function DateTimePicker({
   organizationId,
   countryCode,
-  serviceId,
+  selectedService,
   value,
   onChange,
 }: DateTimePickerProps) {
@@ -45,7 +45,7 @@ export function DateTimePicker({
           date,
           organizationId,
           countryCode,
-          serviceId,
+          appointmentType: AppointmentType.DOCUMENT_SUBMISSION,
         });
         setSlots(availableSlots);
       } catch (error) {
@@ -56,7 +56,7 @@ export function DateTimePicker({
     }
 
     loadSlots();
-  }, [date, organizationId, countryCode, serviceId]);
+  }, [date, organizationId, countryCode, selectedService]);
 
   return (
     <div className="space-y-4">
@@ -102,10 +102,12 @@ export function DateTimePicker({
                       }
                       onClick={() => {
                         setTime(format(slot.startTime, 'HH:mm'));
-                        onChange({
-                          date,
-                          time: format(slot.startTime, 'HH:mm'),
-                        });
+                        if (date) {
+                          onChange({
+                            date,
+                            time: format(slot.startTime, 'HH:mm'),
+                          });
+                        }
                       }}
                       className="w-full"
                     >

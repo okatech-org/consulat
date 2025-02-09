@@ -11,19 +11,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateTimePicker } from '@/components/appointments/date-time-picker';
@@ -197,13 +189,10 @@ export function NewAppointmentDialog({
                 <DateTimePicker
                   organizationId={selectedService?.organizationId ?? ''}
                   countryCode={user.countryId ?? ''}
-                  serviceId={selectedService?.id ?? ''}
+                  selectedService={selectedService}
                   value={
                     form.watch('date') && form.watch('time')
-                      ? {
-                          date: form.watch('date'),
-                          time: form.watch('time'),
-                        }
+                      ? { date: form.watch('date')!, time: form.watch('time')! }
                       : undefined
                   }
                   onChange={({ date, time }) => {
