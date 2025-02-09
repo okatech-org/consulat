@@ -522,44 +522,56 @@ model ServiceRequest {
 
 // Modèle pour les rendez-vous
 model Appointment {
-  id           String            @id @default(cuid())
-  date         DateTime
-  instructions String?
-  duration     Int // en minutes
-  type         AppointmentType
-  status       AppointmentStatus @default(PENDING)
+  id              String            @id @default(cuid())
+  date            DateTime
+  instructions    String?
+  duration        Int               // en minutes
+  type            AppointmentType
+  status          AppointmentStatus @default(PENDING)
+  organizationId  String           // Pour lier au consulat spécifique
+  organization    Organization     @relation(fields: [organizationId], references: [id])
 
-  // Relations
+  // Relations existantes
   userId           String
   user             User            @relation(fields: [userId], references: [id])
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?         @unique
 
-  notifications Notification[] @relation("AppointmentNotifications")
-
   // Métadonnées
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  TimeSlot  TimeSlot[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  cancelledAt      DateTime?      // Pour tracker les annulations
+  cancelReason     String?        // Raison de l'annulation
+  rescheduledFrom  DateTime?      // Pour tracker les reports
+  
+  // Relation avec les créneaux
+  TimeSlot         TimeSlot[]
 
   @@index([userId])
+  @@index([organizationId])
+  @@index([date])
+  Notification Notification[] @relation(name: "AppointmentNotifications")
 }
 
-// Statuts possibles pour les rendez-vous
-enum AppointmentStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-  MISSED
-}
-
-// Types de rendez-vous
+// Mise à jour des types de rendez-vous selon les specs
 enum AppointmentType {
-  DOCUMENT_SUBMISSION
-  DOCUMENT_COLLECTION
-  INTERVIEW
-  OTHER
+  DOCUMENT_SUBMISSION    // Dépôt de documents (30min)
+  DOCUMENT_COLLECTION   // Retrait de documents (15min)
+  FIRST_REGISTRATION    // Première inscription (45min)
+  INTERVIEW            // Entretien (45min)
+  MARRIAGE_CEREMONY    // Cérémonie de mariage (60min)
+  EMERGENCY           // Urgence (60min)
+  OTHER              // Autre
+}
+
+// Mise à jour des statuts
+enum AppointmentStatus {
+  PENDING    // En attente de confirmation
+  CONFIRMED  // Confirmé
+  CANCELLED  // Annulé
+  COMPLETED  // Terminé
+  MISSED     // Manqué
+  RESCHEDULED // Reporté
 }
 
 // Horaires d'ouverture du consulat
@@ -710,4 +722,5 @@ model Organization {
   userId    String?
 
   @@map("organizations")
+  Appointment Appointment[]
 }
