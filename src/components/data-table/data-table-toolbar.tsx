@@ -17,10 +17,10 @@ interface DataTableToolbarProps<TData> {
   isLoading?: boolean;
 }
 
-export type FilterOption<TData> = {
+export type FilterOption<TData = unknown> = {
   type: 'search' | 'radio' | 'checkbox';
   label: string;
-  property?: string;
+  property?: keyof TData & string;
   defaultValue?: string | string[];
   onChange?: (value: string | string[]) => void;
   filterFn?: (row: TData) => boolean;

@@ -233,15 +233,15 @@ export function ServicesTable({
     },
   ];
 
-  const localFilters: FilterOption[] = [
+  const localFilters: FilterOption<ConsularServiceListingItem>[] = [
     {
       type: 'search',
-      value: 'name',
+      property: 'name',
       label: t('table.name'),
     },
     {
       type: 'radio',
-      value: 'category',
+      property: 'category',
       label: t('table.category'),
       options: Object.values(ServiceCategory).map((category) => ({
         value: category,
@@ -250,7 +250,7 @@ export function ServicesTable({
     },
     {
       type: 'radio',
-      value: 'isActive',
+      property: 'isActive',
       label: t('table.status'),
       options: [
         { value: 'true', label: t_common('status.active') },

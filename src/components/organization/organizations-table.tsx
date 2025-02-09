@@ -131,37 +131,37 @@ export function OrganizationsTable({
     },
   ];
 
-  const localFilters: FilterOption[] = [
+  const localFilters: FilterOption<OrganizationListingItem>[] = [
     {
       type: 'search',
-      value: 'name',
+      property: 'name',
       label: t('table.name'),
     },
     {
       type: 'radio',
-      value: 'type',
+      property: 'status',
+      label: t('table.status'),
+      options: [
+        { value: OrganizationStatus.ACTIVE, label: t_common('status.active') },
+        { value: OrganizationStatus.INACTIVE, label: t_common('status.inactive') },
+      ],
+    },
+    {
+      type: 'radio',
+      property: 'type',
       label: t('table.type'),
       options: Object.values(OrganizationType).map((type) => ({
         value: type,
-        label: t(`types.${type}`),
+        label: t_common(`organization_types.${type}`),
       })),
     },
     {
       type: 'radio',
-      value: 'countries',
+      property: 'countries',
       label: t('table.country'),
       options: countries.map((country) => ({
         value: country.code,
         label: country.name,
-      })),
-    },
-    {
-      type: 'radio',
-      value: 'status',
-      label: t('table.status'),
-      options: Object.values(OrganizationStatus).map((status) => ({
-        value: status,
-        label: t(`status.${status}`),
       })),
     },
   ];

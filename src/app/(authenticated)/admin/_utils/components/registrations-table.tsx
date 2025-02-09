@@ -24,8 +24,11 @@ interface RegistrationsTableProps {
   totalCount?: number;
 }
 
-
-export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: RegistrationsTableProps) {
+export function RegistrationsTable({
+  requests = [],
+  filters,
+  totalCount = 0,
+}: RegistrationsTableProps) {
   const t = useTranslations('admin.registrations');
   const t_auth = useTranslations('auth');
   const t_common = useTranslations('common');
@@ -41,7 +44,7 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
   React.useEffect(() => {
     setIsLoading(true);
     const fetchData = async () => {
-      const {requests, total} = await getRegistrations(filters);
+      const { requests, total } = await getRegistrations(filters);
       setItems(requests);
       setItemsTotalCount(total);
       setIsLoading(false);
@@ -51,17 +54,17 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
 
   // Créez une fonction pour mettre à jour l'URL avec les filtres
   const createQueryString = React.useCallback(
-      (name: string, value: string | undefined) => {
-          const params = new URLSearchParams(searchParams.toString());
+    (name: string, value: string | undefined) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-          if (value) {
-              params.set(name, value);
-          } else {
-              params.delete(name);
-          }
-          return params.toString();
-      },
-      [searchParams]
+      if (value) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+      return params.toString();
+    },
+    [searchParams],
   );
 
   const handleFilterChange = (name: string, value: string | undefined) => {
@@ -76,7 +79,7 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       cell: ({ row }) => {
         const date = row.original.submittedAt;
         return date ? DisplayDate(date) : '-';
-      }
+      },
     },
     {
       accessorKey: 'submittedBy.lastName',
@@ -132,7 +135,7 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
     },
   ];
 
-  const localFilters: FilterOption[] = [
+  const localFilters: FilterOption<RegistrationListingItem>[] = [
     {
       type: 'search',
       property: 'submittedBy_email',
@@ -140,7 +143,10 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       defaultValue: filters.search,
       onChange: (value) => {
         if (typeof value === 'string') {
-          const debouncedFilter = debounce(() => handleFilterChange('search', value), 300);
+          const debouncedFilter = debounce(
+            () => handleFilterChange('search', value),
+            300,
+          );
           debouncedFilter();
         }
       },
@@ -149,7 +155,7 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       type: 'checkbox',
       property: 'status',
       label: t('filters.status'),
-      defaultValue: filters.status?.toString().split(",") ?? undefined,
+      defaultValue: filters.status?.toString().split(',') ?? undefined,
       options: [
         { value: 'SUBMITTED', label: t_common('status.submitted') },
         { value: 'APPROVED', label: t_common('status.approved') },
@@ -158,7 +164,7 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       ],
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('status', value.join("_"));
+          handleFilterChange('status', value.join('_'));
         }
       },
     },
@@ -166,7 +172,7 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       type: 'checkbox',
       property: 'submittedBy_profile_status',
       label: t('filters.profile_status'),
-      defaultValue: filters.profileStatus?.toString().split(",") ?? undefined,
+      defaultValue: filters.profileStatus?.toString().split(',') ?? undefined,
       options: [
         { value: 'DRAFT', label: t_common('status.draft') },
         { value: 'SUBMITTED', label: t_common('status.submitted') },
@@ -176,11 +182,19 @@ export function RegistrationsTable({ requests = [], filters, totalCount = 0 }: R
       ],
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('profileStatus', value.join("_"));
+          handleFilterChange('profileStatus', value.join('_'));
         }
       },
     },
   ];
 
-  return <DataTable isLoading={isLoading} columns={columns} data={items} filters={localFilters} pageCount={itemsTotalCount}/>;
+  return (
+    <DataTable
+      isLoading={isLoading}
+      columns={columns}
+      data={items}
+      filters={localFilters}
+      pageCount={itemsTotalCount}
+    />
+  );
 }
