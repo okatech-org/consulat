@@ -10,13 +10,14 @@ import { RoleGuard } from '@/components/ui/role-guard';
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { OrganizationAgents } from '@/types/organization';
-import { ServiceCategory } from '@prisma/client';
+import { Country, ServiceCategory } from '@prisma/client';
 
 interface UsersTableProps {
   agents: OrganizationAgents[];
+  countries: Country[];
 }
 
-export function UsersTable({ agents }: UsersTableProps) {
+export function UsersTable({ agents, countries }: UsersTableProps) {
   const t = useTranslations('organization.settings.agents');
   const t_base = useTranslations();
 
@@ -107,25 +108,18 @@ export function UsersTable({ agents }: UsersTableProps) {
       property: 'serviceCategories',
       label: t('table.service_categories'),
       options: Object.values(ServiceCategory).map((category) => ({
-        label: category,
+        label: t_base(`services.categories.${category}`),
         value: category,
       })),
     },
     {
       type: 'checkbox',
-      property: 'countries',
+      property: 'linkedCountries',
       label: t('table.countries'),
-      options: Array.from(
-        new Set(
-          agents
-            .flatMap((agent) => agent.linkedCountries)
-            .filter((country): country is NonNullable<typeof country> => Boolean(country))
-            .map((country) => ({
-              label: country.name,
-              value: country.id || '',
-            })),
-        ),
-      ),
+      options: countries.map((country) => ({
+        label: country.name,
+        value: country.id,
+      })),
     },
   ];
 
