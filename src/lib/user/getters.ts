@@ -1,7 +1,13 @@
 import { db } from '@/lib/prisma';
 import { FullProfile, FullUser } from '@/types';
 
-export async function getUserById(id: string): Promise<FullUser | null> {
+export async function getUserById(
+  id: string | undefined | null,
+): Promise<FullUser | null> {
+  if (!id) {
+    return null;
+  }
+
   try {
     return await db.user.findFirst({
       where: {

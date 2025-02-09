@@ -1,12 +1,15 @@
 import { UserRole } from '@prisma/client';
 import UserSidebar from '@/app/(authenticated)/user/_utils/components/user-sidebar';
-import { RoleGuard } from '@/components/ui/role-guard';
+import { getCurrentUser } from '@/actions/user';
+import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 
 export default async function ManagerLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const user = await getCurrentUser();
+
   return (
-    <RoleGuard roles={[UserRole.USER]}>
+    <RouteAuthGuard roles={[UserRole.USER]} currentUserRole={user?.role}>
       <UserSidebar />
       <main
         className={
@@ -15,6 +18,6 @@ export default async function ManagerLayout({
       >
         {children}
       </main>
-    </RoleGuard>
+    </RouteAuthGuard>
   );
 }

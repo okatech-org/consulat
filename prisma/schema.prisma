@@ -592,8 +592,6 @@ model TimeSlot {
   type          AppointmentType   // Type de créneau (EMERGENCY, etc.)
   maxCapacity   Int               @default(1) // Capacité simultanée
   isAvailable   Boolean           @default(true)
-  organization  Organization      @relation(fields: [organizationId], references: [id])
-  organizationId String
   appointments  Appointment[]
   countryCode String?
 
@@ -602,7 +600,7 @@ model TimeSlot {
   emergencyOnly Boolean           @default(false)
 
   @@index([startTime])
-  @@index([organizationId])
+  @@index([countryCode])
 }
 
 model Notification {
@@ -731,8 +729,7 @@ model Organization {
   updatedAt DateTime @updatedAt
   adminUser      User?
   appointments Appointment[]
-  timeSlots TimeSlot[]
-  appointmentSettings Json? // Configuration des créneaux
+  appointmentSettings Json? // Pour stocker les quotas par type de service
 
   agents    User[]          @relation("OrganizationAgents")
 

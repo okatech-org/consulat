@@ -4012,6 +4012,27 @@
         "pending_requests": "Demandes en attente",
         "processing_requests": "Demandes en cours",
         "completed_requests": "Demandes traitées"
+      },
+      "appointments": {
+        "title": "Mes rendez-vous",
+        "new_appointment": "Nouveau rendez-vous",
+        "tabs": {
+          "upcoming": "À venir",
+          "past": "Passés",
+          "cancelled": "Annulés"
+        },
+        "upcoming": {
+          "title": "Prochains rendez-vous",
+          "empty": "Aucun rendez-vous à venir"
+        },
+        "past": {
+          "title": "Rendez-vous passés",
+          "empty": "Aucun rendez-vous passé"
+        },
+        "cancelled": {
+          "title": "Rendez-vous annulés",
+          "empty": "Aucun rendez-vous annulé"
+        }
       }
     },
     "nav": {
