@@ -1,5 +1,6 @@
 import { GetRegistrationsOptions } from '@/actions/registrations';
 import { RegistrationsTable } from '@/app/(authenticated)/admin/_utils/components/registrations-table';
+import CardContainer from '@/components/layouts/card-container';
 import { RequestStatus } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 
@@ -14,13 +15,15 @@ export default async function RegistrationsPage({ searchParams }: Props) {
   return (
     <div className="container space-y-6">
       <h1 className="text-3xl font-bold">{t('title')}</h1>
+      <CardContainer>
       <RegistrationsTable filters={
         {
           ...queryParams,
           status: queryParams.status?.split('_').map((status) => status as RequestStatus),
           profileStatus: queryParams.profileStatus?.split('_').map((status) => status as RequestStatus),
-        }
-      } />
+          }
+        } />
+      </CardContainer>
     </div>
   );
 }

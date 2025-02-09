@@ -1515,23 +1515,11 @@
       }
     },
     "appointments": {
-      "title": "Gestion des rendez-vous",
-      "views": {
-        "calendar": "Calendrier",
-        "list": "Liste",
-        "stats": "Statistiques"
-      },
-      "filters": {
-        "date": "Date",
-        "type": "Type",
-        "status": "Statut",
-        "search": "Rechercher"
-      },
-      "actions": {
-        "confirm": "Confirmer",
-        "cancel": "Annuler",
-        "reschedule": "Reporter"
-      }
+      "title": "Gestion des Rendez-vous",
+      "upcoming": "Prochains RDV",
+      "coming_soon": "Interface de gestion des rendez-vous - Bientôt disponible",
+      "calendar": "Calendrier des RDV",
+      "calendar_placeholder": "Calendrier interactif en cours de développement"
     }
   },
   "profile": {

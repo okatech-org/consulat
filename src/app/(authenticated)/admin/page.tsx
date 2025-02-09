@@ -10,7 +10,7 @@ export default async function AdminDashboard() {
   if (!stats) return <p>Error loading data</p>;
 
   return (
-    <div className="container space-y-8">
+    <div className="container space-y-6">
       <h1 className="text-3xl font-bold">{t('title')}</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
