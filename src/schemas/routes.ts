@@ -42,6 +42,8 @@ export const ROUTES = {
     base: '/admin' as Route<string>,
     registrations: '/admin/registrations' as Route<string>,
     registrations_review: (id: string) => `/admin/registrations/${id}` as Route<string>,
+    appointments: '/admin/appointments' as Route<string>,
+    users: '/admin/users' as Route<string>,
     requests: '/admin/requests' as Route<string>,
     services: '/admin/services' as Route<string>,
     settings: '/admin/settings' as Route<string>,

@@ -2,6 +2,9 @@
 
 import { db } from '@/lib/prisma';
 import { addMinutes, setHours, setMinutes, startOfDay } from 'date-fns';
+import { generateAvailableSlots } from '@/lib/appointments/slots';
+import { AppointmentType } from '@prisma/client';
+
 export async function getConsulateSchedule(consulateId: string) {
   return db.consulateSchedule.findMany({
     where: { consulateId },
@@ -139,5 +142,58 @@ export async function getUpcomingAppointments(userId: string) {
       consulate: true,
       serviceRequest: true,
     },
+  });
+}
+
+export async function getAvailableSlots({
+  date,
+  organizationId,
+  countryCode,
+  appointmentType,
+}: {
+  date: Date;
+  organizationId: string;
+  countryCode: string;
+  appointmentType: AppointmentType;
+}) {
+  // Récupérer l'organisation avec ses pays
+  const organization = await db.organization.findUnique({
+    where: { id: organizationId },
+    include: { countries: true }
+  });
+
+  if (!organization) {
+    throw new Error('Organization not found');
+  }
+
+  // Générer tous les créneaux possibles
+  const possibleSlots = generateAvailableSlots(
+    date,
+    organization,
+    countryCode,
+    appointmentType
+  );
+
+  // Récupérer les créneaux déjà réservés
+  const bookedSlots = await db.appointment.findMany({
+    where: {
+      organizationId,
+      date: {
+        gte: possibleSlots[0],
+        lte: possibleSlots[possibleSlots.length - 1],
+      },
+    },
+  });
+
+  // Filtrer les créneaux disponibles
+  return possibleSlots.filter(slot => {
+    const slotEnd = addMinutes(slot, APPOINTMENT_DURATIONS[appointmentType]);
+    return !bookedSlots.some(booking => {
+      const bookingEnd = addMinutes(booking.date, booking.duration);
+      return (
+        (slot >= booking.date && slot < bookingEnd) ||
+        (slotEnd > booking.date && slotEnd <= bookingEnd)
+      );
+    });
   });
 }

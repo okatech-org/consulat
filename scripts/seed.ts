@@ -15,13 +15,18 @@ async function main() {
   try {
     console.log('🌱 Starting seed...');
 
-    // Nettoyer la base de données
+    // Nettoyer la base de données dans le bon ordre
     await prisma.timeSlot.deleteMany();
     await prisma.address.deleteMany();
     await prisma.consulateSchedule.deleteMany();
     await prisma.emergencyContact.deleteMany();
     await prisma.phone.deleteMany();
     await prisma.addressGabon.deleteMany();
+    await prisma.appointment.deleteMany();
+    await prisma.notification.deleteMany();
+    // Delete ServiceRequest before ConsularService
+    await prisma.serviceRequest.deleteMany();
+    // Now we can safely delete ConsularService
     await prisma.consularService.deleteMany();
     await prisma.profile.deleteMany();
     await prisma.organization.deleteMany();
@@ -406,6 +411,7 @@ async function main() {
     const managers = await Promise.all([
       prisma.user.create({
         data: {
+          id: 'user-admin-1',
           email: 'itoutouberny+ad@gmail.com',
           name: 'Berny Itoutou',
           role: UserRole.ADMIN,
@@ -416,6 +422,7 @@ async function main() {
       }),
       prisma.user.create({
         data: {
+          id: 'user-manager-1',
           email: 'itoutouberny+ma@gmail.com',
           name: 'Berny Itoutou',
           role: UserRole.MANAGER,
@@ -426,6 +433,7 @@ async function main() {
       }),
       prisma.user.create({
         data: {
+          id: 'user-manager-2',
           email: 'iasted+ma@me.com',
           name: 'Asted Manager',
           role: UserRole.MANAGER,
@@ -436,6 +444,7 @@ async function main() {
       }),
       prisma.user.create({
         data: {
+          id: 'user-manager-3',
           email: 'iasted+sma@me.com',
           name: 'Asted Manager 2',
           role: UserRole.MANAGER,
@@ -450,7 +459,7 @@ async function main() {
     const users = await Promise.all([
       prisma.user.create({
         data: {
-          id: 'user-1',
+          id: 'user-31',
           email: 'itoutouberny+us@gmail.com',
           firstName: 'Berny',
           lastName: 'Itoutou',
@@ -558,6 +567,7 @@ async function main() {
       }),
       prisma.user.create({
         data: {
+          id: 'user-46',
           email: 'iasted+us@me.com',
           firstName: 'Asted',
           lastName: 'I',
@@ -582,7 +592,172 @@ async function main() {
           },
         },
       }),
+      ...Array.from({ length: 15 }).map((_, i) =>
+        prisma.user.create({
+          data: {
+            id: `user-${i + 2}`,
+            email: `user+${i + 2}@example.com`,
+            firstName: `User${i + 2}`,
+            lastName: `Example${i + 2}`,
+            role: UserRole.USER,
+            emailVerified: new Date(),
+            country: { connect: { id: countries[0].id } },
+            profile: {
+              create: {
+                email: `user+${i + 2}@example.com`,
+                fatherFullName: `Father ${i + 2}`,
+                motherFullName: `Mother ${i + 2}`,
+                firstName: `User${i + 2}`,
+                lastName: `Example${i + 2}`,
+                gender: i % 2 === 0 ? 'MALE' : 'FEMALE',
+                birthDate: new Date(1990 + i, i % 12, i + 1).toISOString(),
+                birthPlace: `City${i + 2}`,
+                birthCountry: 'france',
+                nationality: 'gabon',
+                passportNumber: `GA${123456 + i}`,
+                passportIssueDate: new Date(2020 + i, i % 12, i + 1),
+                passportExpiryDate: new Date(2030 + i, i % 12, i + 1),
+                passportIssueAuthority: 'Ambassade du Gabon',
+                status: i < 4 ? 'SUBMITTED' : i < 6 ? 'IN_REVIEW' : 'REJECTED',
+                address: {
+                  create: {
+                    firstLine: `${123 + i} Street Name`,
+                    secondLine: `Apt ${i + 1}`,
+                    city: `City${i + 2}`,
+                    zipCode: `${75000 + i}`,
+                    country: 'France',
+                  },
+                },
+                phone: {
+                  create: {
+                    number: `06${String(20000000 + (i * 2)).padStart(8, '0')}`,
+                    countryCode: '+33',
+                  },
+                },
+                emergencyContact: {
+                  create: {
+                    fullName: `Emergency Contact ${i + 2}`,
+                    relationship: i % 2 === 0 ? FamilyLink.FATHER : FamilyLink.MOTHER,
+                    phone: {
+                      create: {
+                        number: `06${String(30000000 + (i * 2)).padStart(8, '0')}`,
+                        countryCode: '+33',
+                      },
+                    },
+                  },
+                },
+                activityInGabon: `Activity ${i + 2}`,
+                addressInGabon: {
+                  create: {
+                    address: `Gabon Address ${i + 2}`,
+                    district: `District ${i + 2}`,
+                    city: `Libreville`,
+                  },
+                },
+                profession: `Profession ${i + 2}`,
+                employer: `Employer ${i + 2}`,
+                employerAddress: `Employer Address ${i + 2}`,
+                passport: {
+                  create: {
+                    type: DocumentType.PASSPORT,
+                    fileUrl:
+                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                    status: DocumentStatus.PENDING,
+                  },
+                },
+                identityPicture: {
+                  create: {
+                    type: DocumentType.IDENTITY_PHOTO,
+                    fileUrl:
+                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                    status: DocumentStatus.PENDING,
+                  },
+                },
+                birthCertificate: {
+                  create: {
+                    type: DocumentType.BIRTH_CERTIFICATE,
+                    fileUrl:
+                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                    status: DocumentStatus.PENDING,
+                  },
+                },
+                addressProof: {
+                  create: {
+                    type: DocumentType.PROOF_OF_ADDRESS,
+                    fileUrl:
+                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                    status: DocumentStatus.PENDING,
+                  },
+                },
+                residencePermit: {
+                  create: {
+                    type: DocumentType.RESIDENCE_PERMIT,
+                    fileUrl:
+                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
+                    status: DocumentStatus.PENDING,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ),
+      // Additional user without submitted request
+      prisma.user.create({
+        data: {
+          id: 'user-40',
+          email: `user+40@example.com`,
+          firstName: `User10`,
+          lastName: `Example10`,
+          role: UserRole.USER,
+          emailVerified: new Date(),
+          country: { connect: { id: countries[0].id } },
+          profile: {
+            create: {
+              firstName: 'User10',
+              lastName: 'Example10',
+              gender: 'MALE',
+              birthDate: '1995-03-20',
+              birthPlace: 'Paris',
+              birthCountry: 'france',
+              nationality: 'gabon',
+              passportNumber: 'GA987654',
+              passportIssueDate: new Date('2022-01-01'),
+              passportExpiryDate: new Date('2032-01-01'),
+              passportIssueAuthority: 'Ambassade du Gabon',
+              status: 'PENDING',
+            },
+          },
+        },
+      }),
     ]);
+
+    console.log('Creating registration requests...');
+
+    // Trouver le service d'inscription consulaire
+    const registrationService = await prisma.consularService.findFirst({
+      where: {
+        category: ServiceCategory.REGISTRATION,
+      },
+    });
+
+    if (!registrationService) {
+      throw new Error('Registration service not found');
+    }
+
+    // Créer des demandes d'inscription pour les 8 premiers utilisateurs
+    await Promise.all(
+      users.slice(0, 15).map(async (user, index) => {
+        return prisma.serviceRequest.create({
+          data: {
+            service: { connect: { id: registrationService.id } },
+            submittedBy: { connect: { id: user.id } },
+            status: index < 4 ? 'SUBMITTED' : index < 6 ? 'IN_REVIEW' : 'REJECTED',
+            submittedAt: new Date(2024, 0, index + 1), // Dates échelonnées en janvier 2024
+          },
+        });
+      }),
+    );
 
     console.log('✅ Seed completed successfully!');
     console.log({

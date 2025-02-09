@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Settings, Globe, UsersIcon } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Globe, UsersIcon, Calendar, Users } from 'lucide-react';
 import { NavMain } from '@/components/ui/nav-main';
 import {
   Sidebar,
@@ -36,9 +36,14 @@ export default async function AdminSidebar({
       icon: <UsersIcon className="size-4" />,
     },
     {
-      title: t('requests'),
-      href: ROUTES.admin.requests,
-      icon: <FileText className="size-4" />,
+      title: t('appointments'),
+      href: ROUTES.admin.appointments,
+      icon: <Calendar className="size-4" />,
+    },
+    {
+      title: t('users'),
+      href: ROUTES.admin.users,
+      icon: <Users className="size-4" />,
     },
     {
       title: t('settings'),
