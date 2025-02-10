@@ -4080,5 +4080,55 @@
       "services": "Nouvelle démarche",
       "my_requests": "Mes démarches"
     }
+  },
+  "appointments": {
+    "steps": {
+      "service": "Service consulaire",
+      "type": "Type de rendez-vous",
+      "datetime": "Date et heure",
+      "confirmation": "Confirmation"
+    },
+    "service": {
+      "label": "Service consulaire",
+      "placeholder": "Sélectionnez un service"
+    },
+    "type": {
+      "label": "Type de rendez-vous",
+      "placeholder": "Sélectionnez un type",
+      "options": {
+        "DOCUMENT_SUBMISSION": "Dépôt de documents",
+        "DOCUMENT_COLLECTION": "Retrait de documents",
+        "INTERVIEW": "Entretien",
+        "INFORMATION": "Information",
+        "OTHER": "Autre"
+      }
+    },
+    "datetime": {
+      "no_slots": "Aucun créneau disponible",
+      "no_slots_description": "Aucun créneau n'est disponible pour cette date",
+      "select_another_date": "Sélectionner une autre date",
+      "select_date_message": "Veuillez sélectionner une date pour voir les créneaux disponibles",
+      "view": {
+        "day": "Vue par jour",
+        "week": "Vue par semaine"
+      }
+    },
+    "confirmation": {
+      "service": "Service",
+      "type": "Type",
+      "date": "Date",
+      "time": "Heure"
+    },
+    "actions": {
+      "back": "Retour",
+      "next": "Suivant",
+      "confirm": "Confirmer",
+      "submitting": "En cours..."
+    },
+    "validation": {
+      "service_required": "Veuillez sélectionner un service",
+      "type_required": "Veuillez sélectionner un type de rendez-vous",
+      "date_required": "Veuillez sélectionner une date et un horaire"
+    }
   }
 }

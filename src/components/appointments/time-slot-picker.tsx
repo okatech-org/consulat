@@ -1,24 +1,36 @@
+'use client';
+
 import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { format, isBefore, startOfToday } from 'date-fns';
+import {
+  format,
+  isBefore,
+  startOfToday,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+} from 'date-fns';
 import { generateTimeSlots } from '@/actions/appointments';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Loader } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+import type { SelectSingleEventHandler } from 'react-day-picker';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TradFormMessage } from '@/components/ui/form';
 
 interface TimeSlotPickerProps {
   consulateId: string;
   duration: number;
   onSelect: (data: { date: Date; time: string }) => void;
   isLoading?: boolean;
-  selectedDate?: Date;
-  selectedTime?: string;
+  selectedDate?: Date | null;
+  selectedTime?: string | null;
 }
+
+type ViewMode = 'day' | 'week';
 
 export function TimeSlotPicker({
   consulateId,
@@ -27,12 +39,13 @@ export function TimeSlotPicker({
   selectedDate,
   selectedTime,
 }: TimeSlotPickerProps) {
-  const t = useTranslations('consular.services.form.appointment');
+  const t = useTranslations('appointments.datetime');
 
-  const [date, setDate] = useState<Date | undefined>(selectedDate);
-  const [time, setTime] = useState<string | undefined>(selectedTime);
+  const [date, setDate] = useState<Date | undefined>(selectedDate ?? undefined);
+  const [time, setTime] = useState<string | null>(selectedTime ?? null);
   const [slots, setSlots] = useState<Date[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('day');
 
   // Fonction pour désactiver les dates passées et weekends
   const disableDate = (date: Date) => {
@@ -40,21 +53,13 @@ export function TimeSlotPicker({
     return isBefore(date, today) || [0, 6].includes(date.getDay());
   };
 
-  // Charger les créneaux disponibles quand une date est sélectionnée
-  const handleDateSelect = async (newDate: Date | undefined) => {
-    setDate(newDate);
-    setTime(undefined);
-
-    if (!newDate) {
-      setSlots([]);
-      return;
-    }
-
+  // Charger les créneaux disponibles pour une période donnée
+  const loadSlots = async (startDate: Date, endDate: Date) => {
     setLoadingSlots(true);
     try {
       const availableSlots = await generateTimeSlots({
         consulateId,
-        date: newDate,
+        date: startDate,
         duration,
       });
       setSlots(availableSlots);
@@ -66,86 +71,131 @@ export function TimeSlotPicker({
     }
   };
 
-  // Gérer la sélection d'un créneau
-  const handleTimeSelect = (newTime: string) => {
-    setTime(newTime);
-    if (date) {
-      onSelect({ date, time: newTime });
+  // Charger les créneaux disponibles quand une date est sélectionnée
+  const handleDateSelect: SelectSingleEventHandler = (newDate) => {
+    setDate(newDate ?? undefined);
+    setTime(null);
+
+    if (!newDate) {
+      setSlots([]);
+      return;
+    }
+
+    if (viewMode === 'day') {
+      loadSlots(newDate, newDate);
+    } else {
+      const weekStart = startOfWeek(newDate, { locale: fr });
+      const weekEnd = endOfWeek(newDate, { locale: fr });
+      loadSlots(weekStart, weekEnd);
     }
   };
 
+  // Gérer la sélection d'un créneau
+  const handleTimeSelect = (slotDate: Date, slotTime: string) => {
+    setTime(slotTime);
+    onSelect({ date: slotDate, time: slotTime });
+  };
+
+  const renderTimeSlots = (day: Date) => {
+    const daySlots = slots.filter(
+      (slot) => format(slot, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'),
+    );
+
+    if (daySlots.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-2 py-4 text-center text-muted-foreground">
+          <p>{t('no_slots')}</p>
+          <p className="text-sm">{t('no_slots_description')}</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-3 gap-2 p-1">
+        {daySlots.map((slot) => (
+          <Button
+            type="button"
+            key={slot.toISOString()}
+            variant={time === format(slot, 'HH:mm') ? 'default' : 'outline'}
+            onClick={() => handleTimeSelect(day, format(slot, 'HH:mm'))}
+            className="w-full"
+          >
+            {format(slot, 'HH:mm')}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
+  const renderWeekView = () => {
+    if (!date) return null;
+
+    const weekStart = startOfWeek(date, { locale: fr });
+    const weekDays = eachDayOfInterval({
+      start: weekStart,
+      end: endOfWeek(date, { locale: fr }),
+    });
+
+    return (
+      <div className="grid grid-cols-5 gap-4">
+        {weekDays.slice(0, 5).map((day) => (
+          <Card key={day.toISOString()}>
+            <CardContent className="p-3">
+              <div className="mb-2 text-center font-medium">
+                {format(day, 'EEEE d MMMM', { locale: fr })}
+              </div>
+              {renderTimeSlots(day)}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="pt-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                type={'button'}
-                variant={'outline'}
-                className={cn(
-                  'w-[240px] justify-start text-left font-normal',
-                  !date && 'text-muted-foreground',
-                )}
-              >
-                <CalendarIcon />
-                {date ? (
-                  format(date, 'PPP', {
-                    locale: fr,
-                  })
-                ) : (
-                  <span>{t('select_date')}</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={handleDateSelect}
-                locale={fr}
-                disabled={disableDate}
-                className="rounded-md border"
-              />
-            </PopoverContent>
-          </Popover>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <Calendar
+        mode="single"
+        selected={date}
+        onSelect={handleDateSelect}
+        disabled={disableDate}
+        locale={fr}
+        className="rounded-md border"
+      />
 
       {date && (
         <Card>
           <CardContent className="pt-4">
-            {loadingSlots ? (
-              <div className="flex h-[200px] items-center justify-center">
-                <Loader className="size-6 animate-spin" />
-              </div>
-            ) : slots.length === 0 ? (
-              <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-                {t('no_slots')}
-                <p className="text-sm">{t('no_slots_description')}</p>
-                <Button type={'button'} variant="link" onClick={() => setDate(undefined)}>
-                  {t('select_another_date')}
-                </Button>
-              </div>
-            ) : (
-              <ScrollArea className="h-[200px]">
-                <div className="grid grid-cols-3 gap-2 p-1">
-                  {slots.map((slot) => (
-                    <Button
-                      type={'button'}
-                      key={slot.toISOString()}
-                      variant={time === format(slot, 'HH:mm') ? 'default' : 'outline'}
-                      onClick={() => handleTimeSelect(format(slot, 'HH:mm'))}
-                      className="w-full"
-                    >
-                      {format(slot, 'HH:mm')}
-                    </Button>
-                  ))}
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+              <TabsList className="mb-4 grid w-full grid-cols-2">
+                <TabsTrigger value="day">{t('view.day')}</TabsTrigger>
+                <TabsTrigger value="week">{t('view.week')}</TabsTrigger>
+              </TabsList>
+
+              {loadingSlots ? (
+                <div className="flex h-[200px] items-center justify-center">
+                  <Loader className="size-6 animate-spin" />
                 </div>
-              </ScrollArea>
-            )}
+              ) : (
+                <>
+                  <TabsContent value="day">
+                    <ScrollArea className="h-[300px]">{renderTimeSlots(date)}</ScrollArea>
+                  </TabsContent>
+                  <TabsContent value="week">
+                    <ScrollArea className="h-[500px]">{renderWeekView()}</ScrollArea>
+                  </TabsContent>
+                </>
+              )}
+            </Tabs>
           </CardContent>
         </Card>
+      )}
+
+      {!date && (
+        <TradFormMessage
+          message={t('select_date_message')}
+          className="text-center text-muted-foreground"
+        />
       )}
     </div>
   );

@@ -324,3 +324,15 @@ export async function getOrganizationAgents(id: string): Promise<{
     return { error: 'messages.error.fetch' };
   }
 }
+
+export async function getOrganizationByCountry(countryCode: string) {
+  return db.organization.findFirst({
+    where: {
+      countries: {
+        some: {
+          code: countryCode,
+        },
+      },
+    },
+  });
+}

@@ -23,6 +23,12 @@ interface AgentWithAppointments {
   }>;
 }
 
+interface GenerateTimeSlotsParams {
+  consulateId: string;
+  date: Date;
+  duration: number;
+}
+
 export async function getAvailableTimeSlots(
   serviceCategory: ServiceCategory,
   organizationId: string,
@@ -199,4 +205,27 @@ function isOverlapping(
     (slot.start >= appointment.date && slot.start < appointmentEnd) ||
     (slot.end > appointment.date && slot.end <= appointmentEnd)
   );
+}
+
+export async function generateTimeSlots({
+  consulateId,
+  date,
+  duration,
+}: GenerateTimeSlotsParams): Promise<Date[]> {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const slots = await getAvailableTimeSlots(
+    ServiceCategory.OTHER, // TODO: Get from service
+    consulateId,
+    'FR', // TODO: Get from user
+    startOfDay,
+    endOfDay,
+    duration,
+  );
+
+  return slots.map((slot) => slot.start);
 }
