@@ -201,7 +201,6 @@ export async function getOrganizationById(id: string): Promise<{
             phone: true,
           },
         },
-        timeSlots: true,
         adminUser: true,
       },
     });

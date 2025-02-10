@@ -11,7 +11,7 @@ export default async function UserAppointmentsPage() {
     redirect(ROUTES.login);
   }
 
-  const services = await getAvailableServices(user.countryId ?? '');
+  const services = await getAvailableServices(user.countryCode ?? '');
 
   return (
     <div className="container space-y-6">

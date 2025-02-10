@@ -159,8 +159,8 @@ async function handleSession({ session, token }: { session: Session; token: JWT 
 
       session.user.lastLogin = existingUser.lastLogin ?? new Date();
 
-      if (existingUser.countryId) {
-        session.user.countryId = existingUser.countryId;
+      if (existingUser.countryCode) {
+        session.user.countryCode = existingUser.countryCode;
       }
     }
     session.user.id = token.sub;

@@ -23,7 +23,8 @@
     "ai-sum": "pnpx ai-digest -o ai-sum/.code_base.md --whitespace-removal --show-output-files",
     "postai-sum": "node ./scripts/minifyMarkdown.js",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
+    "test": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.29.2",
@@ -137,7 +138,8 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
-    "uglify-js": "^3.19.3"
+    "uglify-js": "^3.19.3",
+    "vitest": "^3.0.5"
   },
   "ct3aMetadata": {
     "initVersion": "7.38.1"

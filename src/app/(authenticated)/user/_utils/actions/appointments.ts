@@ -2,16 +2,22 @@
 
 import { db } from '@/lib/prisma';
 
-export async function getAvailableServices(countryId: string) {
-  const services = await db.consularService.findMany({
+export async function getAvailableServices(countryCode: string) {
+  const countryData = await db.country.findUnique({
     where: {
-      isActive: true,
-      countryId,
+      code: countryCode,
     },
-    orderBy: {
-      name: 'asc',
+    include: {
+      availableServices: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      },
     },
   });
 
-  return services;
+  return countryData?.availableServices ?? [];
 }

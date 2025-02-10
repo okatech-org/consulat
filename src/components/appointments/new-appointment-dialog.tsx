@@ -1,320 +1,261 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ConsularService, User } from '@prisma/client';
-import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { DateTimePicker } from '@/components/appointments/date-time-picker';
-import { MultiSelect } from '../ui/multi-select';
-import { format } from 'date-fns';
+  addWeeks,
+  eachDayOfInterval,
+  endOfWeek,
+  format,
+  startOfWeek,
+  isSameWeek,
+} from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-const appointmentFormSchema = z.object({
-  serviceId: z.string(),
-  date: z.date().optional(),
-  time: z.string().optional(),
-});
-
-type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getAvailableTimeSlots } from '@/actions/appointments';
+import { AppointmentInput, AppointmentSchema } from '@/schemas/appointment';
 
 interface NewAppointmentDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
   services: ConsularService[];
   user: User;
+  organizations: Organization[];
 }
 
 export function NewAppointmentDialog({
-  isOpen,
-  onClose,
   services,
   user,
+  organizations,
 }: NewAppointmentDialogProps) {
-  const t = useTranslations('user.dashboard.appointments');
-  const [step, setStep] = useState<'service' | 'date' | 'confirm'>('service');
-  const [isLoading, setIsLoading] = useState(false);
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [timeSlots, setTimeSlots] = useState<TimeSlotInput[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const form = useForm<AppointmentFormValues>({
-    resolver: zodResolver(appointmentFormSchema),
+  const form = useForm<AppointmentInput>({
+    resolver: zodResolver(AppointmentSchema),
+    defaultValues: {
+      countryCode: user.countryCode ?? '',
+      serviceId: services[0]?.id, // Sélection automatique du premier service
+      organizationId: organizations[0]?.id, // Sélection automatique de la première organisation
+    },
   });
 
   const selectedService = services.find(
     (service) => service.id === form.watch('serviceId'),
   );
+  const selectedOrganization = organizations.find(
+    (org) => org.id === form.watch('organizationId'),
+  );
 
-  const onSubmit = async (data: AppointmentFormValues) => {
-    if (step === 'service' && selectedService) {
-      setStep('date');
-      return;
-    }
+  // Charger les créneaux pour la semaine en cours
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!selectedService || !selectedOrganization) return;
 
-    if (step === 'date') {
-      setStep('confirm');
-      return;
-    }
+      setLoadingSlots(true);
 
-    // TODO: Submit appointment
-    console.log('Submit appointment', data);
+      const weekStart = startOfWeek(currentWeek, { locale: fr });
+      const weekEnd = endOfWeek(currentWeek, { locale: fr });
+
+      try {
+        const slots = await getAvailableTimeSlots(
+          selectedService.category,
+          selectedOrganization.id,
+          user.countryCode!,
+          weekStart,
+          weekEnd,
+          selectedService.appointmentDuration,
+        );
+
+        setTimeSlots(slots);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+    fetchSlots();
+  }, [currentWeek, selectedService, selectedOrganization]);
+
+  const handleWeekChange = (weeks: number) => {
+    setCurrentWeek((prev) => addWeeks(prev, weeks));
   };
 
-  if (isLoading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[600px]">
-          <div className="flex h-40 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        </DialogContent>
-      </Dialog>
+  const daysOfWeek = eachDayOfInterval({
+    start: startOfWeek(currentWeek, { locale: fr }),
+    end: endOfWeek(currentWeek, { locale: fr }),
+  });
+
+  const groupSlotsByDay = (slots: TimeSlotInput[]) => {
+    return slots.reduce(
+      (acc, slot) => {
+        const dayKey = format(slot.start, 'yyyy-MM-dd');
+        if (!acc[dayKey]) acc[dayKey] = [];
+        acc[dayKey].push(slot);
+        return acc;
+      },
+      {} as Record<string, TimeSlotInput[]>,
     );
-  }
+  };
+
+  const groupedSlots = groupSlotsByDay(timeSlots);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>{t('new_appointment_dialog.title')}</DialogTitle>
-        </DialogHeader>
+    <Dialog>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Sélection du service et organisation */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="serviceId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Service consulaire</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez un service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map((service) => (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <Tabs value={step} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="service" disabled={step !== 'service'}>
-                  {t('new_appointment_dialog.steps.service')}
-                </TabsTrigger>
-                <TabsTrigger value="date" disabled={step !== 'date'}>
-                  {t('new_appointment_dialog.steps.date')}
-                </TabsTrigger>
-                <TabsTrigger value="confirm" disabled={step !== 'confirm'}>
-                  {t('new_appointment_dialog.steps.confirm')}
-                </TabsTrigger>
-              </TabsList>
+            <FormField
+              control={form.control}
+              name="organizationId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lieu de rendez-vous</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez un lieu" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+          </div>
 
-              <TabsContent value="service">
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="serviceId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {t('new_appointment_dialog.service_select')}
-                        </FormLabel>
-                        <MultiSelect<string>
-                          options={services.map((service) => ({
-                            label: service.name,
-                            value: service.id,
-                          }))}
-                          selected={field.value ? [field.value] : []}
-                          onChange={(values) => {
-                            if (values.length > 0) {
-                              field.onChange(values[0]);
-                            }
-                          }}
-                          type={'single'}
-                        />
-                        <TradFormMessage />
-                      </FormItem>
+          {/* Navigation par semaine */}
+          <div className="flex items-center justify-between">
+            <Button type="button" variant="outline" onClick={() => handleWeekChange(-1)}>
+              Semaine précédente
+            </Button>
+
+            <div className="font-medium">
+              {format(startOfWeek(currentWeek, { locale: fr }), 'd MMM', { locale: fr })}{' '}
+              - {format(endOfWeek(currentWeek, { locale: fr }), 'd MMM', { locale: fr })}
+            </div>
+
+            <Button type="button" variant="outline" onClick={() => handleWeekChange(1)}>
+              Semaine suivante
+            </Button>
+          </div>
+
+          {/* Grille des créneaux */}
+          {loadingSlots ? (
+            <div className="grid grid-cols-7 gap-2">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-7 gap-2">
+              {daysOfWeek.map((day) => {
+                const dayKey = format(day, 'yyyy-MM-dd');
+                const slots = groupedSlots[dayKey] || [];
+
+                return (
+                  <div
+                    key={dayKey}
+                    className={cn(
+                      'rounded-lg border p-2',
+                      !isSameWeek(day, currentWeek, { locale: fr }) && 'opacity-50',
                     )}
-                  />
+                  >
+                    <div className="mb-2 text-center text-sm font-medium">
+                      {format(day, 'EEE d', { locale: fr })}
+                    </div>
 
-                  {selectedService && (
-                    <Card className="mt-4">
-                      <CardContent className="pt-6">
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="font-medium">
-                              {t('new_appointment_dialog.service_details')}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {selectedService.appointmentInstructions ??
-                                selectedService.description}
-                            </p>
-                          </div>
+                    <div className="space-y-1">
+                      {slots.map((slot) => (
+                        <Button
+                          key={slot.start.toISOString()}
+                          type="button"
+                          variant={
+                            form.watch('date')?.toDateString() === day.toDateString()
+                              ? 'default'
+                              : 'outline'
+                          }
+                          className="w-full text-xs"
+                          onClick={() => {
+                            form.setValue('date', slot.start);
+                            form.setValue('time', format(slot.start, 'HH:mm'));
+                          }}
+                        >
+                          {format(slot.start, 'HH:mm')}
+                        </Button>
+                      ))}
 
-                          <div className="flex justify-between">
-                            <div>
-                              <h3 className="font-medium">
-                                {t('new_appointment_dialog.duration')}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                {t('new_appointment_dialog.duration_value', {
-                                  duration: selectedService.appointmentDuration,
-                                })}
-                              </p>
-                            </div>
-                            <div>
-                              <h3 className="font-medium">
-                                {t('new_appointment_dialog.price')}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                {t('new_appointment_dialog.price_value', {
-                                  price: selectedService.price,
-                                })}
-                              </p>
-                            </div>
-                          </div>
-
-                          {selectedService.appointmentInstructions && (
-                            <div>
-                              <h3 className="font-medium">
-                                {t('new_appointment_dialog.instructions')}
-                              </h3>
-                              <p className="text-sm text-muted-foreground whitespace-pre-line">
-                                {selectedService.appointmentInstructions}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="date">
-                <DateTimePicker
-                  organizationId={selectedService?.organizationId ?? ''}
-                  countryCode={user.countryId ?? ''}
-                  selectedService={selectedService}
-                  value={
-                    form.watch('date') && form.watch('time')
-                      ? { date: form.watch('date')!, time: form.watch('time')! }
-                      : undefined
-                  }
-                  onChange={({ date, time }) => {
-                    form.setValue('date', date);
-                    form.setValue('time', time);
-                  }}
-                />
-              </TabsContent>
-
-              <TabsContent value="confirm">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-medium">
-                          {t('new_appointment_dialog.confirmation.service')}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedService?.name}
-                        </p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h3 className="font-medium">
-                            {t('new_appointment_dialog.confirmation.date')}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {form.watch('date') &&
-                              format(form.watch('date'), 'PPP', { locale: fr })}
-                          </p>
-                        </div>
-                        <div>
-                          <h3 className="font-medium">
-                            {t('new_appointment_dialog.confirmation.time')}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {form.watch('time')}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h3 className="font-medium">
-                            {t('new_appointment_dialog.confirmation.duration')}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {t('new_appointment_dialog.duration_value', {
-                              duration: selectedService?.appointmentDuration,
-                            })}
-                          </p>
-                        </div>
-                        <div>
-                          <h3 className="font-medium">
-                            {t('new_appointment_dialog.confirmation.price')}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {t('new_appointment_dialog.price_value', {
-                              price: selectedService?.price,
-                            })}
-                          </p>
-                        </div>
-                      </div>
-
-                      {selectedService?.appointmentInstructions && (
-                        <div>
-                          <h3 className="font-medium">
-                            {t('new_appointment_dialog.confirmation.instructions')}
-                          </h3>
-                          <p className="text-sm text-muted-foreground whitespace-pre-line">
-                            {selectedService.appointmentInstructions}
-                          </p>
+                      {slots.length === 0 && (
+                        <div className="text-center text-xs text-muted-foreground">
+                          Aucun créneau
                         </div>
                       )}
-
-                      <div className="rounded-lg bg-muted p-4">
-                        <h3 className="font-medium text-primary">
-                          {t('new_appointment_dialog.confirmation.important')}
-                        </h3>
-                        <ul className="mt-2 list-inside list-disc text-sm text-muted-foreground">
-                          <li>
-                            {t('new_appointment_dialog.confirmation.bring_documents')}
-                          </li>
-                          <li>{t('new_appointment_dialog.confirmation.arrive_early')}</li>
-                          <li>
-                            {t('new_appointment_dialog.confirmation.cancel_notice')}
-                          </li>
-                        </ul>
-                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex justify-between">
-              {step !== 'service' && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setStep('service')}
-                >
-                  {t('new_appointment_dialog.back')}
-                </Button>
-              )}
-              <Button
-                type="submit"
-                disabled={
-                  !selectedService || (step === 'service' && !form.watch('serviceId'))
-                }
-              >
-                {step === 'confirm'
-                  ? t('new_appointment_dialog.submit')
-                  : t('new_appointment_dialog.next')}
-              </Button>
+                  </div>
+                );
+              })}
             </div>
-          </form>
-        </Form>
-      </DialogContent>
+          )}
+
+          {/* Confirmation */}
+          {form.watch('date') && (
+            <div className="rounded-lg bg-muted p-4">
+              <h3 className="font-medium">Récapitulatif du rendez-vous</h3>
+              <div className="mt-2 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Date</p>
+                  <p>{format(form.watch('date'), 'PPPP', { locale: fr })}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Heure</p>
+                  <p>{form.watch('time')}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Durée</p>
+                  <p>{selectedService?.appointmentDuration} minutes</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Tarif</p>
+                  <p>{selectedService?.price} €</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Button type="submit" disabled={!form.formState.isValid}>
+            Confirmer le rendez-vous
+          </Button>
+        </form>
+      </Form>
     </Dialog>
   );
 }

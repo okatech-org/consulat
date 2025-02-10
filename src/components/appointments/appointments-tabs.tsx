@@ -6,8 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useTabs } from '@/hooks/use-tabs';
-import { NewAppointmentDialog } from './new-appointment-dialog';
-import { useState } from 'react';
+import {} from 'react';
 import { User } from '@prisma/client';
 import { ConsularService } from '@prisma/client';
 
@@ -19,21 +18,19 @@ export function AppointmentsTabs({
   services: ConsularService[];
 }) {
   const t = useTranslations('user.dashboard.appointments');
-  const { handleTabChange, searchParams } = useTabs();
-  const [showNewAppointment, setShowNewAppointment] = useState(false);
-  const tab = searchParams.get('tab') || 'upcoming';
+  const { handleTabChange, currentTab } = useTabs('tab', 'upcoming');
 
   return (
     <>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t('title')}</h1>
-        <Button onClick={() => setShowNewAppointment(true)}>
+        <Button onClick={() => {}}>
           <Plus className="mr-2 h-4 w-4" />
           {t('new_appointment')}
         </Button>
       </div>
 
-      <Tabs value={tab} onValueChange={handleTabChange}>
+      <Tabs value={currentTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="upcoming">{t('tabs.upcoming')}</TabsTrigger>
           <TabsTrigger value="past">{t('tabs.past')}</TabsTrigger>
@@ -79,13 +76,6 @@ export function AppointmentsTabs({
           </Card>
         </TabsContent>
       </Tabs>
-
-      <NewAppointmentDialog
-        user={user}
-        services={services}
-        isOpen={showNewAppointment}
-        onClose={() => setShowNewAppointment(false)}
-      />
     </>
   );
 }

@@ -96,7 +96,7 @@ async function main() {
           name: 'Ambassade du Gabon en France',
           type: OrganizationType.EMBASSY,
           status: OrganizationStatus.ACTIVE,
-          countries: { connect: [{ id: 'country-france' }] },
+          countries: { connect: [{ code: 'FR' }] },
           metadata: JSON.stringify({
             FR: {
               settings: {
@@ -121,6 +121,12 @@ async function main() {
                   saturday: { isOpen: false },
                   sunday: { isOpen: false },
                 },
+                holidays: [
+                  {
+                    date: '2024-01-01',
+                    name: "Jour de l'an",
+                  },
+                ],
               },
             },
           }),
@@ -164,6 +170,12 @@ async function main() {
                   thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                   friday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                 },
+                holidays: [
+                  {
+                    date: '2024-01-01',
+                    name: "Jour de l'an",
+                  },
+                ],
               },
             },
           }),
@@ -189,7 +201,8 @@ async function main() {
         data: {
           id: 'user-super-admin-1',
           email: 'itoutouberny+sa@gmail.com',
-          name: 'Super Admin 1',
+          firstName: 'Super',
+          lastName: 'Admin',
           role: UserRole.SUPER_ADMIN,
           emailVerified: new Date(),
           country: { connect: { code: 'FR' } },
@@ -203,11 +216,12 @@ async function main() {
         data: {
           id: 'user-admin-1',
           email: 'itoutouberny+ad@gmail.com',
-          name: 'Berny Itoutou',
+          firstName: 'Admin',
+          lastName: '1',
           role: UserRole.ADMIN,
           emailVerified: new Date(),
           country: { connect: { code: 'FR' } },
-          agentOrganization: { connect: { id: 'organization-ambassade-france' } },
+          managedOrganization: { connect: { id: 'organization-ambassade-france' } },
         },
       }),
     ]);
@@ -219,23 +233,32 @@ async function main() {
         data: {
           id: 'user-agent-1',
           email: 'agent1@consulat.ga',
-          name: 'Agent 1',
+          firstName: 'Agent',
+          lastName: '1',
           role: UserRole.AGENT,
           emailVerified: new Date(),
           country: { connect: { code: 'FR' } },
           agentOrganization: { connect: { id: 'organization-ambassade-france' } },
-          serviceCategories: [ServiceCategory.IDENTITY, ServiceCategory.CIVIL_STATUS],
+          serviceCategories: [
+            ServiceCategory.IDENTITY,
+            ServiceCategory.CIVIL_STATUS,
+            ServiceCategory.REGISTRATION,
+            ServiceCategory.CERTIFICATION,
+          ],
         },
       }),
       prisma.user.create({
         data: {
           id: 'user-agent-2',
           email: 'agent2@consulat.ga',
-          name: 'Agent 2',
+          firstName: 'Agent',
+          lastName: '2',
           role: UserRole.AGENT,
           emailVerified: new Date(),
           country: { connect: { code: 'FR' } },
-          agentOrganization: { connect: { id: 'organization-ambassade-france' } },
+          agentOrganization: {
+            connect: { id: 'organization-consulat-general-marseille' },
+          },
           serviceCategories: [
             ServiceCategory.REGISTRATION,
             ServiceCategory.CERTIFICATION,
@@ -264,7 +287,7 @@ async function main() {
           optionalDocuments: [DocumentType.RESIDENCE_PERMIT],
           requiresAppointment: true,
           appointmentDuration: 30,
-          price: 50000,
+          price: 50,
           currency: 'EUR',
           organization: { connect: { id: 'organization-ambassade-france' } },
           Country: { connect: { id: 'country-france' } },
@@ -444,7 +467,7 @@ async function main() {
           duration: 45,
           type: AppointmentType.INTERVIEW,
           status: AppointmentStatus.CONFIRMED,
-          organization: { connect: { id: 'organization-ambassade-france' } },
+          organization: { connect: { id: 'organization-consulat-general-marseille' } },
           attendee: { connect: { id: 'user-berny-itoutou' } },
           agent: { connect: { id: 'user-agent-2' } },
           instructions: 'Entretien pour inscription consulaire.',

@@ -503,8 +503,7 @@ model ServiceRequest {
   messages             Message[] // Communications
 
   // Rendez-vous associé (si applicable)
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
-  appointmentId String?    @unique
+  appointment   Appointment?
 
   proxyName            String?
   proxyIdentityDoc     String?
@@ -534,17 +533,20 @@ model Appointment {
   endTime         DateTime
   instructions    String?
   duration        Int               // en minutes
-  type            AppointmentType
+  type            AppointmentType    @default(DOCUMENT_SUBMISSION)
   status          AppointmentStatus @default(CONFIRMED)
   organizationId  String            // Pour lier au consulat spécifique
   organization    Organization      @relation(fields: [organizationId], references: [id])
+  countryCode     String
 
   // Relations existantes
   attendeeId       String           // Utilisateur qui prend le RDV
   attendee         User             @relation(fields: [attendeeId], references: [id], name: "AppointmentAttendee")
   agentId          String?          // Agent assigné (optional)
   agent            User?            @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
-  serviceRequest   ServiceRequest?
+  request          ServiceRequest? @relation(fields: [requestId], references: [id])
+  requestId        String?          @unique
+  serviceId        String?          @unique
 
   // Métadonnées
   createdAt        DateTime       @default(now())
@@ -559,6 +561,8 @@ model Appointment {
   @@index([agentId])
   @@index([organizationId])
   @@index([date])
+  @@index([serviceId])
+  @@index([requestId])
 }
 
 // Mise à jour des types de rendez-vous selon les specs

@@ -78,7 +78,7 @@ export function MultiSelect<T extends string | number>({
               {type === 'single' && (
                 <>
                   {selectedOptions.length > 0 ? (
-                    <Badge variant={'info'}>{selectedOptions[0].label}</Badge>
+                    <Badge variant={'info'}>{selectedOptions[0]?.label}</Badge>
                   ) : (
                     <span className="opacity-50">{placeholder}</span>
                   )}
@@ -88,7 +88,7 @@ export function MultiSelect<T extends string | number>({
             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
+        <PopoverContent className="w-full p-0 z-999">
           <Command>
             <CommandInput
               placeholder={searchPlaceholder}
