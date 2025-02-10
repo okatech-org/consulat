@@ -5,8 +5,13 @@ import {
   ServiceCategory,
   DocumentType,
   OrganizationStatus,
-  FamilyLink,
   DocumentStatus,
+  AppointmentType,
+  AppointmentStatus,
+  ProcessingMode,
+  DeliveryMode,
+  ServicePriority,
+  RequestStatus,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -16,28 +21,29 @@ async function main() {
     console.log('🌱 Starting seed...');
 
     // Nettoyer la base de données dans le bon ordre
-    await prisma.timeSlot.deleteMany();
-    await prisma.address.deleteMany();
-    await prisma.consulateSchedule.deleteMany();
+    await prisma.notification.deleteMany();
+    await prisma.appointment.deleteMany();
+    await prisma.note.deleteMany();
+    await prisma.message.deleteMany();
+    await prisma.userDocument.deleteMany();
+    await prisma.serviceRequest.deleteMany();
+    await prisma.consularService.deleteMany();
     await prisma.emergencyContact.deleteMany();
     await prisma.phone.deleteMany();
     await prisma.addressGabon.deleteMany();
-    await prisma.appointment.deleteMany();
-    await prisma.notification.deleteMany();
-    // Delete ServiceRequest before ConsularService
-    await prisma.serviceRequest.deleteMany();
-    // Now we can safely delete ConsularService
-    await prisma.consularService.deleteMany();
+    await prisma.address.deleteMany();
+    await prisma.profileNote.deleteMany();
     await prisma.profile.deleteMany();
+    await prisma.user.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.country.deleteMany();
-    await prisma.user.deleteMany();
 
     // Créer les pays
     console.log('Creating countries...');
-    const countries = await Promise.all([
+    await Promise.all([
       prisma.country.create({
         data: {
+          id: 'country-france',
           name: 'France',
           code: 'FR',
           flag: 'https://flagcdn.com/fr.svg',
@@ -59,6 +65,7 @@ async function main() {
       }),
       prisma.country.create({
         data: {
+          id: 'country-belgique',
           name: 'Belgique',
           code: 'BE',
           flag: 'https://flagcdn.com/be.svg',
@@ -78,80 +85,18 @@ async function main() {
           }),
         },
       }),
-      prisma.country.create({
-        data: {
-          name: 'Suisse',
-          code: 'CH',
-          flag: 'https://flagcdn.com/ch.svg',
-          status: 'ACTIVE',
-          // Ajout metadata pour la Suisse (exemple)
-          metadata: JSON.stringify({
-            currency: {
-              code: 'CHF',
-              symbol: 'CHF',
-              format: '#,##0.00',
-              symbolPosition: 'before',
-            },
-            language: { defaultLocale: 'fr', locales: ['fr', 'de', 'it', 'rm'] },
-            dateFormat: 'DD.MM.YYYY',
-            timeFormat: '24h',
-            timeZone: 'Europe/Zurich',
-          }),
-        },
-      }),
-      prisma.country.create({
-        data: {
-          name: 'Canada',
-          code: 'CA',
-          flag: 'https://flagcdn.com/ca.svg',
-          status: 'ACTIVE',
-          // Ajout metadata pour le Canada (exemple)
-          metadata: JSON.stringify({
-            currency: {
-              code: 'CAD',
-              symbol: '$',
-              format: '#,##0.00',
-              symbolPosition: 'before',
-            },
-            language: { defaultLocale: 'en', locales: ['en', 'fr'] },
-            dateFormat: 'YYYY-MM-DD',
-            timeFormat: '12h',
-            timeZone: 'America/Toronto',
-          }),
-        },
-      }),
-      prisma.country.create({
-        data: {
-          name: 'États-Unis',
-          code: 'US',
-          flag: 'https://flagcdn.com/us.svg',
-          status: 'ACTIVE',
-          // Ajout metadata pour les États-Unis (exemple)
-          metadata: JSON.stringify({
-            currency: {
-              code: 'USD',
-              symbol: '$',
-              format: '#,##0.00',
-              symbolPosition: 'before',
-            },
-            language: { defaultLocale: 'en', locales: ['en', 'es'] },
-            dateFormat: 'MM/DD/YYYY',
-            timeFormat: '12h',
-            timeZone: 'America/New_York',
-          }),
-        },
-      }),
     ]);
 
     // Créer les organisations
     console.log('Creating organizations...');
-    const organizations = await Promise.all([
+    await Promise.all([
       prisma.organization.create({
         data: {
+          id: 'organization-ambassade-france',
           name: 'Ambassade du Gabon en France',
           type: OrganizationType.EMBASSY,
           status: OrganizationStatus.ACTIVE,
-          countries: { connect: [{ id: countries[0].id }] },
+          countries: { connect: [{ id: 'country-france' }] },
           metadata: JSON.stringify({
             FR: {
               settings: {
@@ -176,31 +121,27 @@ async function main() {
                   saturday: { isOpen: false },
                   sunday: { isOpen: false },
                 },
-                holidays: [
-                  { date: '2024-01-01', name: "Jour de l'An" },
-                  { date: '2024-04-01', name: 'Lundi de Pâques' },
-                  { date: '2024-05-01', name: 'Fête du Travail' },
-                  { date: '2024-05-08', name: 'Victoire 1945' },
-                  { date: '2024-08-17', name: 'Fête Nationale du Gabon' },
-                ],
-                closures: [
-                  {
-                    start: '2024-08-01',
-                    end: '2024-08-15',
-                    reason: "Fermeture annuelle d'été",
-                  },
-                ],
               },
+            },
+          }),
+          appointmentSettings: JSON.stringify({
+            quotas: {
+              DOCUMENT_SUBMISSION: 10,
+              DOCUMENT_COLLECTION: 15,
+              INTERVIEW: 5,
+              MARRIAGE_CEREMONY: 2,
+              EMERGENCY: 3,
             },
           }),
         },
       }),
       prisma.organization.create({
         data: {
+          id: 'organization-consulat-general-marseille',
           name: 'Consulat Général du Gabon à Marseille',
           type: OrganizationType.GENERAL_CONSULATE,
           status: OrganizationStatus.ACTIVE,
-          countries: { connect: [{ id: countries[0].id }] },
+          countries: { connect: [{ id: 'country-france' }] },
           metadata: JSON.stringify({
             FR: {
               settings: {
@@ -222,75 +163,83 @@ async function main() {
                   wednesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                   thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
                   friday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  saturday: { isOpen: false },
-                  sunday: { isOpen: false },
                 },
-                holidays: [
-                  { date: '2024-01-01', name: "Jour de l'An" },
-                  { date: '2024-04-01', name: 'Lundi de Pâques' },
-                  { date: '2024-05-01', name: 'Fête du Travail' },
-                  { date: '2024-05-08', name: 'Victoire 1945' },
-                  { date: '2024-08-17', name: 'Fête Nationale du Gabon' },
-                ],
-                closures: [
-                  {
-                    start: '2024-08-01',
-                    end: '2024-08-15',
-                    reason: "Fermeture annuelle d'été",
-                  },
-                ],
               },
+            },
+          }),
+          appointmentSettings: JSON.stringify({
+            quotas: {
+              DOCUMENT_SUBMISSION: 8,
+              DOCUMENT_COLLECTION: 12,
+              INTERVIEW: 4,
+              MARRIAGE_CEREMONY: 1,
+              EMERGENCY: 2,
             },
           }),
         },
       }),
-      prisma.organization.create({
+    ]);
+
+    // Créer les utilisateurs
+    console.log('Creating users...');
+
+    // Super Admins
+    await Promise.all([
+      prisma.user.create({
         data: {
-          name: 'Consulat du Gabon en Belgique',
-          type: OrganizationType.CONSULATE,
-          status: OrganizationStatus.INACTIVE,
-          countries: { connect: [{ id: countries[1].id }] },
-          metadata: JSON.stringify({
-            BE: {
-              settings: {
-                logo: 'https://example.com/logo-belgique.png',
-                contact: {
-                  address: {
-                    firstLine: 'Avenue Franklin Roosevelt 196',
-                    city: 'Bruxelles',
-                    zipCode: '1050',
-                    country: 'belgique',
-                  },
-                  phone: '+3226405000',
-                  email: 'contact@consulatgabon-be.org',
-                  website: 'https://consulatgabon-be.org',
-                },
-                schedule: {
-                  monday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  friday: { open: '09:00', close: '15:30', isOpen: true },
-                  saturday: { isOpen: false },
-                  sunday: { isOpen: false },
-                },
-                holidays: [
-                  { date: '2024-01-01', name: "Jour de l'An" },
-                  { date: '2024-04-01', name: 'Lundi de Pâques' },
-                  { date: '2024-05-01', name: 'Fête du Travail' },
-                  { date: '2024-07-21', name: 'Fête Nationale Belge' },
-                  { date: '2024-08-17', name: 'Fête Nationale du Gabon' },
-                ],
-                closures: [
-                  {
-                    start: '2024-07-22',
-                    end: '2024-08-15',
-                    reason: "Fermeture annuelle d'été",
-                  },
-                ],
-              },
-            },
-          }),
+          id: 'user-super-admin-1',
+          email: 'itoutouberny+sa@gmail.com',
+          name: 'Super Admin 1',
+          role: UserRole.SUPER_ADMIN,
+          emailVerified: new Date(),
+          country: { connect: { code: 'FR' } },
+        },
+      }),
+    ]);
+
+    // Admins et Managers
+    await Promise.all([
+      prisma.user.create({
+        data: {
+          id: 'user-admin-1',
+          email: 'itoutouberny+ad@gmail.com',
+          name: 'Berny Itoutou',
+          role: UserRole.ADMIN,
+          emailVerified: new Date(),
+          country: { connect: { code: 'FR' } },
+          agentOrganization: { connect: { id: 'organization-ambassade-france' } },
+        },
+      }),
+    ]);
+
+    // Agents
+    console.log('Creating agents...');
+    await Promise.all([
+      prisma.user.create({
+        data: {
+          id: 'user-agent-1',
+          email: 'agent1@consulat.ga',
+          name: 'Agent 1',
+          role: UserRole.AGENT,
+          emailVerified: new Date(),
+          country: { connect: { code: 'FR' } },
+          agentOrganization: { connect: { id: 'organization-ambassade-france' } },
+          serviceCategories: [ServiceCategory.IDENTITY, ServiceCategory.CIVIL_STATUS],
+        },
+      }),
+      prisma.user.create({
+        data: {
+          id: 'user-agent-2',
+          email: 'agent2@consulat.ga',
+          name: 'Agent 2',
+          role: UserRole.AGENT,
+          emailVerified: new Date(),
+          country: { connect: { code: 'FR' } },
+          agentOrganization: { connect: { id: 'organization-ambassade-france' } },
+          serviceCategories: [
+            ServiceCategory.REGISTRATION,
+            ServiceCategory.CERTIFICATION,
+          ],
         },
       }),
     ]);
@@ -300,6 +249,7 @@ async function main() {
       // Service 1: Demande de passeport
       prisma.consularService.create({
         data: {
+          id: 'service-passport',
           name: 'Demande de passeport',
           description:
             'Service de demande et de renouvellement de passeport pour les ressortissants gabonais',
@@ -316,14 +266,17 @@ async function main() {
           appointmentDuration: 30,
           price: 50000,
           currency: 'EUR',
-          organization: { connect: { id: organizations[0].id } },
-          Country: { connect: { id: countries[0].id } },
+          organization: { connect: { id: 'organization-ambassade-france' } },
+          Country: { connect: { id: 'country-france' } },
+          processingMode: ProcessingMode.PRESENCE_REQUIRED,
+          deliveryMode: [DeliveryMode.IN_PERSON],
         },
       }),
 
       // Service 2: Inscription consulaire
       prisma.consularService.create({
         data: {
+          id: 'service-registration',
           name: 'Inscription consulaire',
           description:
             "Enregistrement auprès du consulat pour les Gabonais résidant à l'étranger",
@@ -334,143 +287,31 @@ async function main() {
             DocumentType.PROOF_OF_ADDRESS,
             DocumentType.RESIDENCE_PERMIT,
           ],
-          requiresAppointment: false,
-          price: 0,
-          organization: { connect: { id: organizations[1].id } },
-          Country: { connect: { id: countries[0].id } },
-        },
-      }),
-
-      // Service 3: Transcription d'acte de naissance
-      prisma.consularService.create({
-        data: {
-          name: "Transcription d'acte de naissance",
-          description:
-            "Transcription d'un acte de naissance étranger dans les registres consulaires",
-          category: ServiceCategory.CIVIL_STATUS,
-          organization: { connect: { id: organizations[2].id } },
-          isActive: true,
-          requiredDocuments: [
-            DocumentType.BIRTH_CERTIFICATE,
-            DocumentType.PASSPORT,
-            DocumentType.PROOF_OF_ADDRESS,
-          ],
-          optionalDocuments: [DocumentType.MARRIAGE_CERTIFICATE],
           requiresAppointment: true,
           appointmentDuration: 45,
-          price: 25000,
-          currency: 'EUR',
-          Country: { connect: { id: countries[1].id } },
-        },
-      }),
-
-      // Service 4: Légalisation de documents
-      prisma.consularService.create({
-        data: {
-          name: 'Légalisation de documents',
-          description:
-            "Service de légalisation et d'authentification de documents officiels",
-          category: ServiceCategory.CERTIFICATION,
-          organization: { connect: { id: organizations[0].id } },
-          isActive: true,
-          requiredDocuments: [DocumentType.IDENTITY_CARD, DocumentType.PROOF_OF_ADDRESS],
-          requiresAppointment: false,
-          price: 15000,
-          currency: 'EUR',
-          Country: { connect: { id: countries[1].id } },
+          price: 0,
+          organization: { connect: { id: 'organization-ambassade-france' } },
+          Country: { connect: { id: 'country-france' } },
+          processingMode: ProcessingMode.PRESENCE_REQUIRED,
+          deliveryMode: [DeliveryMode.IN_PERSON],
         },
       }),
     ]);
 
-    // Créer les utilisateurs
-    console.log('Creating users...');
-
-    // Super Admins
-    const superAdmins = await Promise.all([
+    // Créer des utilisateurs normaux avec leurs profils
+    console.log('Creating regular users with profiles...');
+    await Promise.all([
       prisma.user.create({
         data: {
-          email: 'itoutouberny+sa@gmail.com',
-          name: 'Super Admin 1',
-          role: UserRole.SUPER_ADMIN,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-        },
-      }),
-      prisma.user.create({
-        data: {
-          email: 'iasted+sa@me.com',
-          name: 'Super Admin 2',
-          role: UserRole.SUPER_ADMIN,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-        },
-      }),
-    ]);
-
-    // Managers
-    const managers = await Promise.all([
-      prisma.user.create({
-        data: {
-          id: 'user-admin-1',
-          email: 'itoutouberny+ad@gmail.com',
-          name: 'Berny Itoutou',
-          role: UserRole.ADMIN,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-          managedOrganizations: { connect: { id: organizations[0].id } },
-        },
-      }),
-      prisma.user.create({
-        data: {
-          id: 'user-manager-1',
-          email: 'itoutouberny+ma@gmail.com',
-          name: 'Berny Itoutou',
-          role: UserRole.MANAGER,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-          managedOrganizations: { connect: { id: organizations[0].id } },
-        },
-      }),
-      prisma.user.create({
-        data: {
-          id: 'user-manager-2',
-          email: 'iasted+ma@me.com',
-          name: 'Asted Manager',
-          role: UserRole.MANAGER,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-          managedOrganizations: { connect: { id: organizations[1].id } },
-        },
-      }),
-      prisma.user.create({
-        data: {
-          id: 'user-manager-3',
-          email: 'iasted+sma@me.com',
-          name: 'Asted Manager 2',
-          role: UserRole.MANAGER,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-          managedOrganizations: { connect: { id: organizations[2].id } },
-        },
-      }),
-    ]);
-
-    // Utilisateurs normaux
-    const users = await Promise.all([
-      prisma.user.create({
-        data: {
-          id: 'user-31',
+          id: 'user-berny-itoutou',
           email: 'itoutouberny+us@gmail.com',
           firstName: 'Berny',
           lastName: 'Itoutou',
           role: UserRole.USER,
           emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
+          country: { connect: { code: 'FR' } },
           profile: {
             create: {
-              email: 'itoutouberny+us@gmail.com',
-              fatherFullName: 'Jean Itoutou',
-              motherFullName: 'Marie Itoutou',
               firstName: 'Berny',
               lastName: 'Itoutou',
               gender: 'MALE',
@@ -479,10 +320,19 @@ async function main() {
               birthCountry: 'france',
               nationality: 'gabon',
               passportNumber: 'GA123456',
+              email: 'itoutouberny+us@gmail.com',
               passportIssueDate: new Date('2020-01-01'),
               passportExpiryDate: new Date('2030-01-01'),
               passportIssueAuthority: 'Ambassade du Gabon',
-              status: 'PENDING',
+              status: 'SUBMITTED',
+              maritalStatus: 'SINGLE',
+              workStatus: 'EMPLOYEE',
+              profession: 'Développeur',
+              employer: 'Consulat.ga',
+              employerAddress: '123 Rue de la Tech, 75008 Paris',
+              fatherFullName: 'Jean Itoutou',
+              motherFullName: 'Marie Itoutou',
+              activityInGabon: 'Consultant IT',
               address: {
                 create: {
                   firstLine: '123 Rue de la Paix',
@@ -490,6 +340,13 @@ async function main() {
                   city: 'Paris',
                   zipCode: '75008',
                   country: 'France',
+                },
+              },
+              addressInGabon: {
+                create: {
+                  address: "42 Boulevard de l'Indépendance",
+                  district: 'Batterie IV',
+                  city: 'Libreville',
                 },
               },
               phone: {
@@ -500,276 +357,156 @@ async function main() {
               },
               emergencyContact: {
                 create: {
-                  fullName: 'Jane Doe',
-                  relationship: FamilyLink.FATHER,
+                  fullName: 'Pierre Itoutou',
+                  relationship: 'FATHER',
                   phone: {
                     create: {
-                      number: '0698765432',
+                      number: '0687654321',
                       countryCode: '+33',
                     },
                   },
                 },
               },
-              activityInGabon: 'Consultant en marketing à Libreville (2015-2018)',
-              addressInGabon: {
-                create: {
-                  address: "Avenue de l'Indépendance",
-                  district: 'Akanda',
-                  city: 'Libreville',
-                },
-              },
-              profession: 'Consultant en Marketing',
-              employer: 'Presteo',
-              employerAddress: 'Paris',
-              passport: {
-                create: {
-                  type: DocumentType.PASSPORT,
-                  fileUrl:
-                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                  status: DocumentStatus.PENDING,
-                },
-              },
               identityPicture: {
                 create: {
                   type: DocumentType.IDENTITY_PHOTO,
-                  fileUrl:
-                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                  status: DocumentStatus.PENDING,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: '/images/avatar-placeholder.png',
+                  issuedAt: new Date('2024-01-01'),
+                  expiresAt: new Date('2029-01-01'),
+                },
+              },
+              passport: {
+                create: {
+                  type: DocumentType.PASSPORT,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/passport.pdf',
+                  issuedAt: new Date('2020-01-01'),
+                  expiresAt: new Date('2030-01-01'),
                 },
               },
               birthCertificate: {
                 create: {
                   type: DocumentType.BIRTH_CERTIFICATE,
-                  fileUrl:
-                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                  status: DocumentStatus.PENDING,
-                },
-              },
-              addressProof: {
-                create: {
-                  type: DocumentType.PROOF_OF_ADDRESS,
-                  fileUrl:
-                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                  status: DocumentStatus.PENDING,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/birth-certificate.pdf',
+                  issuedAt: new Date('1990-01-01'),
                 },
               },
               residencePermit: {
                 create: {
                   type: DocumentType.RESIDENCE_PERMIT,
-                  fileUrl:
-                    'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                  status: DocumentStatus.PENDING,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/residence-permit.pdf',
+                  issuedAt: new Date('2023-01-01'),
+                  expiresAt: new Date('2028-01-01'),
                 },
               },
-            },
-          },
-        },
-      }),
-      prisma.user.create({
-        data: {
-          id: 'user-46',
-          email: 'iasted+us@me.com',
-          firstName: 'Asted',
-          lastName: 'I',
-          role: UserRole.USER,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-          profile: {
-            create: {
-              firstName: 'Asted',
-              lastName: 'I',
-              gender: 'FEMALE',
-              birthDate: '1992-05-15',
-              birthPlace: 'Lyon',
-              birthCountry: 'france',
-              nationality: 'gabon',
-              passportNumber: 'GA789012',
-              passportIssueDate: new Date('2021-01-01'),
-              passportExpiryDate: new Date('2031-01-01'),
-              passportIssueAuthority: 'Ambassade du Gabon',
-              status: 'PENDING',
-            },
-          },
-        },
-      }),
-      ...Array.from({ length: 15 }).map((_, i) =>
-        prisma.user.create({
-          data: {
-            id: `user-${i + 2}`,
-            email: `user+${i + 2}@example.com`,
-            firstName: `User${i + 2}`,
-            lastName: `Example${i + 2}`,
-            role: UserRole.USER,
-            emailVerified: new Date(),
-            country: { connect: { id: countries[0].id } },
-            profile: {
-              create: {
-                email: `user+${i + 2}@example.com`,
-                fatherFullName: `Father ${i + 2}`,
-                motherFullName: `Mother ${i + 2}`,
-                firstName: `User${i + 2}`,
-                lastName: `Example${i + 2}`,
-                gender: i % 2 === 0 ? 'MALE' : 'FEMALE',
-                birthDate: new Date(1990 + i, i % 12, i + 1).toISOString(),
-                birthPlace: `City${i + 2}`,
-                birthCountry: 'france',
-                nationality: 'gabon',
-                passportNumber: `GA${123456 + i}`,
-                passportIssueDate: new Date(2020 + i, i % 12, i + 1),
-                passportExpiryDate: new Date(2030 + i, i % 12, i + 1),
-                passportIssueAuthority: 'Ambassade du Gabon',
-                status: i < 4 ? 'SUBMITTED' : i < 6 ? 'IN_REVIEW' : 'REJECTED',
-                address: {
-                  create: {
-                    firstLine: `${123 + i} Street Name`,
-                    secondLine: `Apt ${i + 1}`,
-                    city: `City${i + 2}`,
-                    zipCode: `${75000 + i}`,
-                    country: 'France',
-                  },
-                },
-                phone: {
-                  create: {
-                    number: `06${String(20000000 + (i * 2)).padStart(8, '0')}`,
-                    countryCode: '+33',
-                  },
-                },
-                emergencyContact: {
-                  create: {
-                    fullName: `Emergency Contact ${i + 2}`,
-                    relationship: i % 2 === 0 ? FamilyLink.FATHER : FamilyLink.MOTHER,
-                    phone: {
-                      create: {
-                        number: `06${String(30000000 + (i * 2)).padStart(8, '0')}`,
-                        countryCode: '+33',
-                      },
-                    },
-                  },
-                },
-                activityInGabon: `Activity ${i + 2}`,
-                addressInGabon: {
-                  create: {
-                    address: `Gabon Address ${i + 2}`,
-                    district: `District ${i + 2}`,
-                    city: `Libreville`,
-                  },
-                },
-                profession: `Profession ${i + 2}`,
-                employer: `Employer ${i + 2}`,
-                employerAddress: `Employer Address ${i + 2}`,
-                passport: {
-                  create: {
-                    type: DocumentType.PASSPORT,
-                    fileUrl:
-                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                    status: DocumentStatus.PENDING,
-                  },
-                },
-                identityPicture: {
-                  create: {
-                    type: DocumentType.IDENTITY_PHOTO,
-                    fileUrl:
-                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                    status: DocumentStatus.PENDING,
-                  },
-                },
-                birthCertificate: {
-                  create: {
-                    type: DocumentType.BIRTH_CERTIFICATE,
-                    fileUrl:
-                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                    status: DocumentStatus.PENDING,
-                  },
-                },
-                addressProof: {
-                  create: {
-                    type: DocumentType.PROOF_OF_ADDRESS,
-                    fileUrl:
-                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                    status: DocumentStatus.PENDING,
-                  },
-                },
-                residencePermit: {
-                  create: {
-                    type: DocumentType.RESIDENCE_PERMIT,
-                    fileUrl:
-                      'https://utfs.io/f/64944b0c-4641-4b76-a2c9-0c9e56ffb29f-65424kbk.pdf',
-                    status: DocumentStatus.PENDING,
-                  },
+              addressProof: {
+                create: {
+                  type: DocumentType.PROOF_OF_ADDRESS,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/proof-of-address.pdf',
+                  issuedAt: new Date('2024-01-01'),
+                  expiresAt: new Date('2025-01-01'),
                 },
               },
-            },
-          },
-        }),
-      ),
-      // Additional user without submitted request
-      prisma.user.create({
-        data: {
-          id: 'user-40',
-          email: `user+40@example.com`,
-          firstName: `User10`,
-          lastName: `Example10`,
-          role: UserRole.USER,
-          emailVerified: new Date(),
-          country: { connect: { id: countries[0].id } },
-          profile: {
-            create: {
-              firstName: 'User10',
-              lastName: 'Example10',
-              gender: 'MALE',
-              birthDate: '1995-03-20',
-              birthPlace: 'Paris',
-              birthCountry: 'france',
-              nationality: 'gabon',
-              passportNumber: 'GA987654',
-              passportIssueDate: new Date('2022-01-01'),
-              passportExpiryDate: new Date('2032-01-01'),
-              passportIssueAuthority: 'Ambassade du Gabon',
-              status: 'PENDING',
             },
           },
         },
       }),
     ]);
 
-    console.log('Creating registration requests...');
-
-    // Trouver le service d'inscription consulaire
-    const registrationService = await prisma.consularService.findFirst({
-      where: {
-        category: ServiceCategory.REGISTRATION,
-      },
-    });
-
-    if (!registrationService) {
-      throw new Error('Registration service not found');
-    }
-
-    // Créer des demandes d'inscription pour les 8 premiers utilisateurs
-    await Promise.all(
-      users.slice(0, 15).map(async (user, index) => {
-        return prisma.serviceRequest.create({
-          data: {
-            service: { connect: { id: registrationService.id } },
-            submittedBy: { connect: { id: user.id } },
-            status: index < 4 ? 'SUBMITTED' : index < 6 ? 'IN_REVIEW' : 'REJECTED',
-            submittedAt: new Date(2024, 0, index + 1), // Dates échelonnées en janvier 2024
-          },
-        });
+    // Créer des rendez-vous
+    console.log('Creating appointments...');
+    await Promise.all([
+      prisma.appointment.create({
+        data: {
+          id: 'appointment-berny-itoutou-1',
+          date: new Date('2024-04-15'),
+          startTime: new Date('2024-04-15T09:00:00Z'),
+          endTime: new Date('2024-04-15T09:30:00Z'),
+          duration: 30,
+          type: AppointmentType.DOCUMENT_SUBMISSION,
+          status: AppointmentStatus.CONFIRMED,
+          organization: { connect: { id: 'organization-ambassade-france' } },
+          attendee: { connect: { id: 'user-berny-itoutou' } },
+          agent: { connect: { id: 'user-agent-1' } },
+          instructions: 'Veuillez apporter tous les documents originaux.',
+        },
       }),
-    );
+      prisma.appointment.create({
+        data: {
+          id: 'appointment-berny-itoutou-2',
+          date: new Date('2024-04-16'),
+          startTime: new Date('2024-04-16T14:00:00Z'),
+          endTime: new Date('2024-04-16T14:45:00Z'),
+          duration: 45,
+          type: AppointmentType.INTERVIEW,
+          status: AppointmentStatus.CONFIRMED,
+          organization: { connect: { id: 'organization-ambassade-france' } },
+          attendee: { connect: { id: 'user-berny-itoutou' } },
+          agent: { connect: { id: 'user-agent-2' } },
+          instructions: 'Entretien pour inscription consulaire.',
+        },
+      }),
+    ]);
+
+    // Créer des demandes de service
+    console.log('Creating service requests...');
+    await Promise.all([
+      prisma.serviceRequest.create({
+        data: {
+          id: 'service-request-berny-itoutou-1',
+          status: RequestStatus.SUBMITTED,
+          priority: ServicePriority.STANDARD,
+          service: { connect: { id: 'service-passport' } },
+          submittedBy: { connect: { id: 'user-berny-itoutou' } },
+          chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
+          chosenDeliveryMode: DeliveryMode.IN_PERSON,
+          appointment: { connect: { id: 'appointment-berny-itoutou-1' } },
+          submittedAt: new Date(),
+          documents: {
+            create: [
+              {
+                type: DocumentType.PASSPORT,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/passport.pdf',
+              },
+              {
+                type: DocumentType.IDENTITY_PHOTO,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/photo.jpg',
+              },
+            ],
+          },
+        },
+      }),
+      prisma.serviceRequest.create({
+        data: {
+          id: 'service-request-berny-itoutou-2',
+          status: RequestStatus.IN_REVIEW,
+          priority: ServicePriority.STANDARD,
+          service: { connect: { id: 'service-registration' } },
+          submittedBy: { connect: { id: 'user-berny-itoutou' } },
+          chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
+          chosenDeliveryMode: DeliveryMode.IN_PERSON,
+          appointment: { connect: { id: 'appointment-berny-itoutou-2' } },
+          submittedAt: new Date(),
+          documents: {
+            create: [
+              {
+                type: DocumentType.PROOF_OF_ADDRESS,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/proof.pdf',
+              },
+            ],
+          },
+        },
+      }),
+    ]);
 
     console.log('✅ Seed completed successfully!');
-    console.log({
-      countriesCount: countries.length,
-      organizationsCount: organizations.length,
-      servicesPerOrg: 2,
-      users: {
-        superAdmins: superAdmins.map((admin) => admin.email),
-        managers: managers.map((manager) => manager.email),
-        users: users.map((user) => user.email),
-      },
-    });
   } catch (error) {
     console.error('❌ Error during seed:', error);
     throw error;

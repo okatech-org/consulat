@@ -20,6 +20,7 @@ import { DocumentsSection } from '@/app/(authenticated)/user/profile/_utils/comp
 import { ProfileHeaderClient } from '@/app/(authenticated)/user/profile/_utils/components/profile-header-client';
 import { ProfileCompletion } from '@/app/(authenticated)/user/profile/_utils/components/profile-completion';
 import { SubmitProfileButton } from '@/app/(authenticated)/user/profile/_utils/components/submit-profile-button';
+import { ProfileTabs } from './_utils/components/profile-tabs';
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -62,46 +63,6 @@ export default async function ProfilePage() {
     );
   }
 
-  const profileTabs = [
-    {
-      id: 'basic-info',
-      title: t('sections.basic_info'),
-      content: <BasicInfoSection profile={profile} />,
-    },
-    {
-      id: 'contact-info',
-      title: t('sections.contact_info'),
-      content: <ContactInfoSection profile={profile} />,
-    },
-    {
-      id: 'family-info',
-      title: t('sections.family_info'),
-      content: <FamilyInfoSection profile={profile} />,
-    },
-    {
-      id: 'professional-info',
-      title: t('sections.professional_info'),
-      content: <ProfessionalInfoSection profile={profile} />,
-    },
-    {
-      id: 'documents',
-      title: t('sections.documents'),
-      content: (
-        <DocumentsSection
-          documents={{
-            passport: profile.passport,
-            birthCertificate: profile.birthCertificate,
-            residencePermit: profile.residencePermit,
-            addressProof: profile.addressProof,
-            identityPhoto: profile.identityPicture,
-          }}
-          profileId={profile.id}
-          className="md:col-span-2"
-        />
-      ),
-    },
-  ];
-
   return (
     <div className="container relative space-y-6">
       <Suspense fallback={<LoadingSkeleton />}>
@@ -109,24 +70,7 @@ export default async function ProfilePage() {
           <ProfileHeaderClient profile={profile} />
         </div>
         <div className="grid grid-cols-8 gap-4">
-          {profile && (
-            <Tabs className={'col-span-full lg:col-span-6'} defaultValue="basic-info">
-              <TabsList className="mb-2 w-full">
-                <div className="carousel-zone flex items-center gap-2">
-                  {profileTabs.map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id}>
-                      {tab.title}
-                    </TabsTrigger>
-                  ))}
-                </div>
-              </TabsList>
-              {profileTabs.map((tab) => (
-                <TabsContent key={tab.id} value={tab.id}>
-                  {tab.content}
-                </TabsContent>
-              ))}
-            </Tabs>
-          )}
+          {profile && <ProfileTabs profile={profile} />}
           <div className={'col-span-full flex flex-col gap-4 lg:col-span-2'}>
             {profile.notes.filter((note) => note.type === 'FEEDBACK').length > 0 && (
               <NotesList

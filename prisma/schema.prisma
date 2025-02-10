@@ -85,8 +85,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  country   Country? @relation(fields: [countryId], references: [id])
-  countryId String?
+  country   Country? @relation(fields: [countryCode], references: [code])
+  countryCode String?
 
   managedAppointments Appointment[] @relation("AppointmentAgent")
   appointments        Appointment[] @relation("AppointmentAttendee")
@@ -530,10 +530,12 @@ model ServiceRequest {
 model Appointment {
   id              String            @id @default(cuid())
   date            DateTime
+  startTime       DateTime
+  endTime         DateTime
   instructions    String?
   duration        Int               // en minutes
   type            AppointmentType
-  status          AppointmentStatus @default(PENDING)
+  status          AppointmentStatus @default(CONFIRMED)
   organizationId  String            // Pour lier au consulat spécifique
   organization    Organization      @relation(fields: [organizationId], references: [id])
 
@@ -551,9 +553,6 @@ model Appointment {
   cancelReason     String?        // Raison de l'annulation
   rescheduledFrom  DateTime?      // Pour tracker les reports
   
-  // Relation avec les créneaux
-  timeSlot   TimeSlot? @relation(fields: [timeSlotId], references: [id])
-  timeSlotId String? @unique
   notifications Notification[] @relation(name: "AppointmentNotifications")
 
   @@index([attendeeId])
@@ -566,7 +565,6 @@ model Appointment {
 enum AppointmentType {
   DOCUMENT_SUBMISSION    // Dépôt de documents (30min)
   DOCUMENT_COLLECTION   // Retrait de documents (15min)
-  FIRST_REGISTRATION    // Première inscription (45min)
   INTERVIEW            // Entretien (45min)
   MARRIAGE_CEREMONY    // Cérémonie de mariage (60min)
   EMERGENCY           // Urgence (60min)
@@ -581,26 +579,6 @@ enum AppointmentStatus {
   COMPLETED  // Terminé
   MISSED     // Manqué
   RESCHEDULED // Reporté
-}
-
-// Créneaux de rendez-vous
-model TimeSlot {
-  id            String       @id @default(cuid())
-  startTime     DateTime
-  endTime       DateTime
-  duration      Int               // en minutes
-  type          AppointmentType   // Type de créneau (EMERGENCY, etc.)
-  maxCapacity   Int               @default(1) // Capacité simultanée
-  isAvailable   Boolean           @default(true)
-  appointments  Appointment[]
-  countryCode String?
-
-  // Pour les créneaux d'urgence
-  isEmergency   Boolean           @default(false)
-  emergencyOnly Boolean           @default(false)
-
-  @@index([startTime])
-  @@index([countryCode])
 }
 
 model Notification {
@@ -681,7 +659,7 @@ model Country {
   name      String
   code      String        @unique
   status    CountryStatus @default(ACTIVE)
-  flag      String? // URL of the flag
+  flag      String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
@@ -692,6 +670,8 @@ model Country {
   organizations     Organization[]
   availableServices ConsularService[]
   users             User[]
+  
+  @@index([code])
 }
 
 enum CountryStatus {

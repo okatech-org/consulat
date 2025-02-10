@@ -20,6 +20,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateTimePicker } from '@/components/appointments/date-time-picker';
 import { MultiSelect } from '../ui/multi-select';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const appointmentFormSchema = z.object({
   serviceId: z.string(),
@@ -203,7 +205,89 @@ export function NewAppointmentDialog({
               </TabsContent>
 
               <TabsContent value="confirm">
-                {/* TODO: Ajouter la confirmation */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="font-medium">
+                          {t('new_appointment_dialog.confirmation.service')}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedService?.name}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="font-medium">
+                            {t('new_appointment_dialog.confirmation.date')}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {form.watch('date') &&
+                              format(form.watch('date'), 'PPP', { locale: fr })}
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium">
+                            {t('new_appointment_dialog.confirmation.time')}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {form.watch('time')}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="font-medium">
+                            {t('new_appointment_dialog.confirmation.duration')}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {t('new_appointment_dialog.duration_value', {
+                              duration: selectedService?.appointmentDuration,
+                            })}
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium">
+                            {t('new_appointment_dialog.confirmation.price')}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {t('new_appointment_dialog.price_value', {
+                              price: selectedService?.price,
+                            })}
+                          </p>
+                        </div>
+                      </div>
+
+                      {selectedService?.appointmentInstructions && (
+                        <div>
+                          <h3 className="font-medium">
+                            {t('new_appointment_dialog.confirmation.instructions')}
+                          </h3>
+                          <p className="text-sm text-muted-foreground whitespace-pre-line">
+                            {selectedService.appointmentInstructions}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="rounded-lg bg-muted p-4">
+                        <h3 className="font-medium text-primary">
+                          {t('new_appointment_dialog.confirmation.important')}
+                        </h3>
+                        <ul className="mt-2 list-inside list-disc text-sm text-muted-foreground">
+                          <li>
+                            {t('new_appointment_dialog.confirmation.bring_documents')}
+                          </li>
+                          <li>{t('new_appointment_dialog.confirmation.arrive_early')}</li>
+                          <li>
+                            {t('new_appointment_dialog.confirmation.cancel_notice')}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
 
