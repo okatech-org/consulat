@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppointmentType, ConsularService } from '@prisma/client';
@@ -204,6 +204,10 @@ export function NewAppointmentForm({
     );
   };
 
+  useEffect(() => {
+    console.log('form', form.formState.errors);
+  }, [form.formState.errors]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -213,10 +217,7 @@ export function NewAppointmentForm({
           <CardHeader>
             <CardTitle>{t(`steps.${step}`)}</CardTitle>
             {step === 'service' && (
-              <CardDescription>
-                Sélectionnez le service consulaire pour lequel vous souhaitez prendre
-                rendez-vous
-              </CardDescription>
+              <CardDescription>{t('service.description')}</CardDescription>
             )}
           </CardHeader>
 
@@ -327,7 +328,7 @@ export function NewAppointmentForm({
               </Button>
             )}
             <Button
-              type="submit"
+              type={step === 'confirmation' ? 'submit' : 'button'}
               className={cn(step === 'service' && 'ml-auto')}
               disabled={
                 isSubmitting ||
@@ -335,6 +336,7 @@ export function NewAppointmentForm({
                 (step === 'type' && !form.watch('type')) ||
                 (step === 'datetime' && !form.watch('date'))
               }
+              onClick={step === 'confirmation' ? undefined : handleNext}
             >
               {step === 'confirmation' ? (
                 isSubmitting ? (
