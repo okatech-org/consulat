@@ -11,6 +11,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,10 +25,11 @@ import {
 import { TimeSlotPicker } from './time-slot-picker';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Badge } from '@/components/ui/badge';
 
 interface NewAppointmentFormProps {
   services: ConsularService[];
@@ -74,15 +76,23 @@ export function NewAppointmentForm({
   };
 
   const handleNext = () => {
+    const currentValue = form.getValues();
+
     switch (step) {
       case 'service':
-        setStep('type');
+        if (currentValue.serviceId) {
+          setStep('type');
+        }
         break;
       case 'type':
-        setStep('datetime');
+        if (currentValue.type) {
+          setStep('datetime');
+        }
         break;
       case 'datetime':
-        setStep('confirmation');
+        if (currentValue.date) {
+          setStep('confirmation');
+        }
         break;
     }
   };
@@ -168,6 +178,32 @@ export function NewAppointmentForm({
     label: t(`type.options.${type}`),
   }));
 
+  const renderServiceInfo = () => {
+    if (!selectedService) return null;
+
+    return (
+      <div className="mt-6 rounded-lg border p-4">
+        <h3 className="font-medium">{selectedService.name}</h3>
+        {selectedService.description && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {selectedService.description}
+          </p>
+        )}
+        <div className="mt-4 flex items-center gap-2">
+          <Clock className="size-4" />
+          <span className="text-sm">
+            Durée : {selectedService.appointmentDuration} minutes
+          </span>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Badge variant="outline">
+            {t(`service_categories.${selectedService.category}`)}
+          </Badge>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -176,29 +212,38 @@ export function NewAppointmentForm({
         <Card>
           <CardHeader>
             <CardTitle>{t(`steps.${step}`)}</CardTitle>
+            {step === 'service' && (
+              <CardDescription>
+                Sélectionnez le service consulaire pour lequel vous souhaitez prendre
+                rendez-vous
+              </CardDescription>
+            )}
           </CardHeader>
 
           <CardContent>
             {step === 'service' && (
-              <FormField
-                control={form.control}
-                name="serviceId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('service.label')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect
-                        options={serviceOptions}
-                        selected={field.value ? [field.value] : []}
-                        onChange={(values) => field.onChange(values[0])}
-                        placeholder={t('service.placeholder')}
-                        type="single"
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="serviceId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('service.label')}</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={serviceOptions}
+                          selected={field.value ? [field.value] : []}
+                          onChange={(values) => field.onChange(values[0])}
+                          placeholder={t('service.placeholder')}
+                          type="single"
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+                {renderServiceInfo()}
+              </div>
             )}
 
             {step === 'type' && selectedService && (

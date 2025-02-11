@@ -4082,6 +4082,13 @@
     }
   },
   "appointments": {
+    "title": "Mes rendez-vous",
+    "new": {
+      "title": "Prendre un rendez-vous",
+      "description": "Sélectionnez un service et un créneau disponible pour votre rendez-vous",
+      "button": "Prendre rendez-vous",
+      "back": "Retour aux rendez-vous"
+    },
     "steps": {
       "service": "Service consulaire",
       "type": "Type de rendez-vous",
@@ -4090,7 +4097,8 @@
     },
     "service": {
       "label": "Service consulaire",
-      "placeholder": "Sélectionnez un service"
+      "placeholder": "Sélectionnez un service",
+      "description": "Sélectionnez le service consulaire pour lequel vous souhaitez prendre rendez-vous"
     },
     "type": {
       "label": "Type de rendez-vous",
@@ -4099,7 +4107,8 @@
         "DOCUMENT_SUBMISSION": "Dépôt de documents",
         "DOCUMENT_COLLECTION": "Retrait de documents",
         "INTERVIEW": "Entretien",
-        "INFORMATION": "Information",
+        "MARRIAGE_CEREMONY": "Cérémonie de mariage",
+        "EMERGENCY": "Urgence",
         "OTHER": "Autre"
       }
     },
@@ -4128,7 +4137,17 @@
     "validation": {
       "service_required": "Veuillez sélectionner un service",
       "type_required": "Veuillez sélectionner un type de rendez-vous",
-      "date_required": "Veuillez sélectionner une date et un horaire"
+      "date_required": "Veuillez sélectionner une date et un horaire",
+      "organization_required": "Organisation requise",
+      "country_required": "Pays requis"
+    },
+    "service_categories": {
+      "IDENTITY": "Identité",
+      "CIVIL_STATUS": "État civil",
+      "VISA": "Visa",
+      "CERTIFICATION": "Certification",
+      "REGISTRATION": "Inscription",
+      "OTHER": "Autre"
     }
   }
 }

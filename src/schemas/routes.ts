@@ -55,6 +55,7 @@ export const ROUTES = {
     requests: '/user/requests' as Route<string>,
     profile: '/user/profile' as Route<string>,
     appointments: '/user/appointments' as Route<string>,
+    new_appointment: '/user/appointments/new' as Route<string>,
     documents: '/user/documents' as Route<string>,
     procedures: '/user/procedures' as Route<string>,
     settings: '/user/settings' as Route<string>,
