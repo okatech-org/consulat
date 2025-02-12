@@ -414,8 +414,8 @@ export function filterUneditedKeys<T extends Record<string, unknown>>(
 export function DisplayDate(
   date: Date | string,
   formatStr?: string,
-  options?: DateTimeFormatOptions,
   locale?: Locale,
+  options?: DateTimeFormatOptions,
 ) {
   if (!date) return '-';
 

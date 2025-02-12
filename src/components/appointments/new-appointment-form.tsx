@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppointmentType, ConsularService } from '@prisma/client';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
@@ -26,7 +26,7 @@ import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment'
 import { cn, DisplayDate } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { addMinutes, format } from 'date-fns';
-import { fr, Locale } from 'date-fns/locale';
+import { fr } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
@@ -46,7 +46,6 @@ export function NewAppointmentForm({
   countryCode,
   organizationId,
 }: NewAppointmentFormProps) {
-  const locale = useLocale() as unknown as Locale;
   const t = useTranslations('appointments');
   const [step, setStep] = useState<Step>('service');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -236,6 +235,11 @@ export function NewAppointmentForm({
               </Button>
             );
           })}
+          {availableTimeSlots.length === 0 && (
+            <div className="col-span-3 text-center text-muted-foreground">
+              {t('new.no_slots_available')}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -248,12 +252,6 @@ export function NewAppointmentForm({
       selectedDate,
       (selectedService.appointmentDuration ?? 15) * 60,
     );
-
-    console.log({
-      duration: selectedService.appointmentDuration ?? 15,
-      selectedDate: format(selectedDate, 'PPPP', { locale: fr }),
-      endDate: format(endDate, 'PPPP', { locale: fr }),
-    });
 
     getAvailableTimeSlots(
       selectedService.category,
@@ -342,13 +340,7 @@ export function NewAppointmentForm({
                     <FormItem>
                       <FormLabel>{t('datetime.pick_date')}</FormLabel>
                       <FormControl>
-                        <DatePicker
-                          date={field.value}
-                          onSelect={(date) => {
-                            console.log('date', date);
-                            field.onChange(date);
-                          }}
-                        />
+                        <DatePicker date={field.value} onSelect={field.onChange} />
                       </FormControl>
                       <TradFormMessage />
                     </FormItem>

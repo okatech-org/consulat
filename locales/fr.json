@@ -4091,7 +4091,8 @@
       "title": "Prendre un rendez-vous",
       "description": "Sélectionnez un service et un créneau disponible pour votre rendez-vous",
       "button": "Prendre rendez-vous",
-      "back": "Retour aux rendez-vous"
+      "back": "Retour aux rendez-vous",
+      "no_slots_available": "Aucun créneau disponible"
     },
     "steps": {
       "service": "Choix du service",
