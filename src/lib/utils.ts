@@ -5,7 +5,9 @@ import { Profile } from '@prisma/client';
 import { phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
-import { useLocale } from 'next-intl';
+import { DateTimeFormatOptions, useLocale } from 'next-intl';
+import { fr, Locale } from 'date-fns/locale';
+import { format } from 'date-fns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -409,10 +411,16 @@ export function filterUneditedKeys<T extends Record<string, unknown>>(
   return data;
 }
 
-export function DisplayDate(date: Date | string, options?: Intl.DateTimeFormatOptions) {
-  const locale = useLocale();
+export function DisplayDate(
+  date: Date | string,
+  formatStr?: string,
+  options?: DateTimeFormatOptions,
+  locale?: Locale,
+) {
   if (!date) return '-';
-  const dateValue = new Intl.DateTimeFormat(locale, options).format(new Date(date))
 
-  return dateValue;
+  return format(new Date(date), formatStr ?? 'PPP', {
+    locale: locale ?? fr,
+    ...options,
+  });
 }

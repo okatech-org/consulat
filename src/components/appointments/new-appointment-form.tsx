@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppointmentType, ConsularService } from '@prisma/client';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
@@ -23,10 +23,10 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
-import { cn } from '@/lib/utils';
+import { cn, DisplayDate } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { addMinutes, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, Locale } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
@@ -46,6 +46,7 @@ export function NewAppointmentForm({
   countryCode,
   organizationId,
 }: NewAppointmentFormProps) {
+  const locale = useLocale() as unknown as Locale;
   const t = useTranslations('appointments');
   const [step, setStep] = useState<Step>('service');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -222,17 +223,16 @@ export function NewAppointmentForm({
 
         <div className="grid grid-cols-3 gap-3">
           {availableTimeSlots.map((slot) => {
-            const time = format(new Date(slot.start), 'HH:mm', { locale: fr });
             const isSelected = selectedTimeSlot?.start === slot.start;
 
             return (
               <Button
-                key={slot.start}
+                key={slot.start.toISOString()}
                 variant={isSelected ? 'default' : 'outline'}
                 className="h-auto py-4"
                 onClick={() => setSelectedTimeSlot(slot)}
               >
-                {time}
+                {DisplayDate(slot.start, 'HH:mm')}
               </Button>
             );
           })}
@@ -412,8 +412,7 @@ export function NewAppointmentForm({
               disabled={
                 isSubmitting ||
                 (step === 'service' && !form.watch('serviceId')) ||
-                (step === 'type' && !form.watch('type')) ||
-                (step === 'datetime' && !form.watch('date'))
+                (step === 'slot' && !form.watch('date'))
               }
               onClick={step === 'confirmation' ? undefined : handleNext}
             >
