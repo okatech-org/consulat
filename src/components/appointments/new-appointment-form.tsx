@@ -205,11 +205,7 @@ export function NewAppointmentForm({
     return (
       <div className="mt-6 rounded-lg border p-4">
         <h3 className="font-medium">Créneaux disponibles</h3>
-        {availableTimeSlots.map((slot) => (
-          <div key={slot.id}>
-            <p>{slot.start}</p>
-          </div>
-        ))}
+        <pre>{JSON.stringify(availableTimeSlots, null, 2)}</pre>
       </div>
     );
   };

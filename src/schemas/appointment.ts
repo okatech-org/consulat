@@ -45,6 +45,16 @@ export const TimeSlotSchema = z.object({
   duration: z.number().optional(),
 });
 
+export interface TimeSlotInput {
+  start: string;
+  end: string;
+}
+
+export interface DayScheduleInput {
+  isOpen: boolean;
+  slots: TimeSlotInput[];
+}
+
 export type TimeSlotInput = z.infer<typeof TimeSlotSchema>;
 
 export const DayScheduleSchema = z.object({

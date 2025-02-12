@@ -1,8 +1,13 @@
 'use server';
 
 import { db } from '@/lib/prisma';
-import { DayScheduleInput, TimeSlotInput } from '@/schemas/appointment';
-import { CountryMetadata, OrganizationMetadata } from '@/schemas/organization';
+import {
+  CountryMetadata,
+  OrganizationMetadata,
+  OrganizationMetadataSchedule,
+  OrganizationMetadataHoliday,
+  WeekDay,
+} from '@/schemas/organization';
 import { ServiceCategory, UserRole } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 
@@ -38,14 +43,6 @@ export async function getAvailableTimeSlots(
   endDate: Date,
   duration: number,
 ): Promise<TimeSlotWithAgent[]> {
-  console.log({
-    serviceCategory,
-    organizationId,
-    countryCode,
-    startDate,
-    endDate,
-    duration,
-  });
   // 1. Récupération des données nécessaires
   const [agents, countryData, organizationData] = await Promise.all([
     db.user.findMany({
@@ -84,23 +81,25 @@ export async function getAvailableTimeSlots(
   const organizationMetadata = JSON.parse(
     organizationData.metadata as string,
   ) as OrganizationMetadata;
-  const countryCodeMetadata = organizationMetadata[countryCode];
+  const countrySettings = organizationMetadata[countryCode]?.settings;
 
-  console.log({ countryCodeMetadata: countryCodeMetadata?.settings.schedule });
+  if (!countrySettings) {
+    return [];
+  }
 
   // 2. Génération des créneaux de base à partir des horaires d'ouverture
   const baseSlots = await generateBaseSlotsFromSchedule(
     startDate,
     endDate,
     duration,
-    countryCodeMetadata?.settings.schedule ?? {},
+    countrySettings.schedule,
   );
 
   // 3. Filtrage des jours fériés et vacances
   const slotsExcludingHolidays = filterHolidaysAndClosures(
     baseSlots,
-    countryHolidays,
-    organizationHolidays,
+    countryMetadata.holidays ?? [],
+    countrySettings.holidays,
   );
 
   // 4. Vérification de la disponibilité des agents
@@ -114,36 +113,32 @@ export async function generateBaseSlotsFromSchedule(
   startDate: Date,
   endDate: Date,
   duration: number,
-  schedule: Record<string, DayScheduleInput>,
+  schedule: OrganizationMetadataSchedule,
 ): Promise<BaseTimeSlot[]> {
   const slots: BaseTimeSlot[] = [];
   const days = eachDayOfInterval({ start: startDate, end: endDate });
 
   for (const day of days) {
-    const dayName = format(day, 'EEEE').toLowerCase();
+    const dayName = format(day, 'EEEE').toLowerCase() as WeekDay;
     const daySchedule = schedule[dayName];
 
-    if (!daySchedule?.isOpen) continue;
+    if (!daySchedule?.isOpen || !daySchedule.slots?.length) continue;
 
     for (const timeSlot of daySchedule.slots) {
-      if (!timeSlot?.start || !timeSlot?.end) continue;
+      const start = timeSlot?.start;
+      const end = timeSlot?.end;
 
-      const startParts = timeSlot.start.toString().split(':');
-      const endParts = timeSlot.end.toString().split(':');
+      if (!start || !end) continue;
+
+      const startParts = start.split(':');
+      const endParts = end.split(':');
 
       if (startParts.length !== 2 || endParts.length !== 2) continue;
 
-      const startHourStr = startParts[0];
-      const startMinuteStr = startParts[1];
-      const endHourStr = endParts[0];
-      const endMinuteStr = endParts[1];
-
-      if (!startHourStr || !startMinuteStr || !endHourStr || !endMinuteStr) continue;
-
-      const startHour = parseInt(startHourStr, 10);
-      const startMinute = parseInt(startMinuteStr, 10);
-      const endHour = parseInt(endHourStr, 10);
-      const endMinute = parseInt(endMinuteStr, 10);
+      const startHour = parseInt(startParts[0], 10);
+      const startMinute = parseInt(startParts[1], 10);
+      const endHour = parseInt(endParts[0], 10);
+      const endMinute = parseInt(endParts[1], 10);
 
       if (isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute))
         continue;
@@ -154,7 +149,7 @@ export async function generateBaseSlotsFromSchedule(
       const slotEnd = new Date(day);
       slotEnd.setHours(endHour, endMinute, 0, 0);
 
-      while (addMinutes(currentStart, duration) <= slotEnd) {
+      while (currentStart.getTime() + duration * 60000 <= slotEnd.getTime()) {
         slots.push({
           start: new Date(currentStart),
           end: addMinutes(currentStart, duration),
@@ -170,14 +165,18 @@ export async function generateBaseSlotsFromSchedule(
 
 function filterHolidaysAndClosures(
   slots: BaseTimeSlot[],
-  countryHolidays: Array<{ date: string }>,
-  organizationHolidays: Array<{ date: string }>,
+  countryHolidays: OrganizationMetadataHoliday[],
+  organizationHolidays: OrganizationMetadataHoliday[],
 ): BaseTimeSlot[] {
   return slots.filter(
     (slot) =>
       !isHoliday(slot.start, countryHolidays) &&
       !isHoliday(slot.start, organizationHolidays),
   );
+}
+
+function isHoliday(date: Date, holidays: OrganizationMetadataHoliday[]): boolean {
+  return holidays.some((h) => h.date && isSameDay(parseISO(h.date), date));
 }
 
 function checkAgentAvailability(
@@ -201,12 +200,8 @@ function checkAgentAvailability(
   });
 }
 
-function isHoliday(date: Date, holidays: Array<{ date: string }>): boolean {
-  return holidays.some((h) => isSameDay(parseISO(h.date), date));
-}
-
 function isOverlapping(
-  slot: TimeSlotInput,
+  slot: BaseTimeSlot,
   appointment: { date: Date; duration: number },
 ): boolean {
   const appointmentEnd = addMinutes(appointment.date, appointment.duration);
