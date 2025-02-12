@@ -8,9 +8,22 @@ import {
   OrganizationMetadataHoliday,
   WeekDay,
 } from '@/schemas/organization';
-import { ServiceCategory, UserRole } from '@prisma/client';
+import {
+  Appointment,
+  OrgaServiceRequest,
+  nization,
+  ServiceCategory,
+  User,
+  UserRole,
+  ServiceRequest,
+  Organization,
+} from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
-import { AppointmentInput, AppointmentSchema } from '@/schemas/appointment';
+import {
+  AppointmentInput,
+  AppointmentSchema,
+  AppointmentWithRelations,
+} from '@/schemas/appointment';
 
 export interface BaseTimeSlot {
   start: Date;
@@ -282,5 +295,63 @@ export async function createAppointment(data: AppointmentInput) {
   } catch (error) {
     console.error('Failed to create appointment:', error);
     return { success: false, error: 'Failed to create appointment' };
+  }
+}
+
+interface GroupedAppointments {
+  upcoming: AppointmentWithRelations[];
+  past: AppointmentWithRelations[];
+  cancelled: AppointmentWithRelations[];
+}
+
+export async function getUserAppointments(userId: string): Promise<{
+  success: boolean;
+  data?: GroupedAppointments;
+  error?: string;
+}> {
+  try {
+    const appointments = await db.appointment.findMany({
+      where: {
+        attendeeId: userId,
+      },
+      include: {
+        organization: true,
+        agent: true,
+        request: {
+          include: {
+            service: true,
+          },
+        },
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+
+    // Grouper les rendez-vous par statut
+    const now = new Date();
+    const grouped = appointments.reduce(
+      (acc, appointment) => {
+        const appointmentDate = new Date(appointment.date);
+        if (appointment.status === 'CANCELLED') {
+          acc.cancelled.push(appointment);
+        } else if (appointmentDate < now) {
+          acc.past.push(appointment);
+        } else {
+          acc.upcoming.push(appointment);
+        }
+        return acc;
+      },
+      {
+        upcoming: [],
+        past: [],
+        cancelled: [],
+      } as GroupedAppointments,
+    );
+
+    return { success: true, data: grouped };
+  } catch (error) {
+    console.error('Failed to fetch user appointments:', error);
+    return { success: false, error: 'Failed to fetch appointments' };
   }
 }

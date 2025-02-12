@@ -1,40 +1,20 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { useCallback, useLayoutEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
-export function useTabs(tabName: string = 'tab', defaultTab?: string) {
+export function useTabs<T extends string>(key: string, defaultValue: T) {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get(tabName) || defaultTab || undefined;
+  const currentTab = (searchParams.get(key) as T) ?? defaultValue;
 
-  const createQueryString = React.useCallback(
-    (name: string, value: string | undefined) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(name, value);
-      } else {
-        params.delete(name);
-      }
-      return params.toString();
-    },
-    [searchParams],
-  );
+  const handleTabChange = (value: T) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(key, value);
+    router.push(`?${params.toString()}`);
+  };
 
-  const handleTabChange = useCallback(
-    (value: string, name: string = tabName) => {
-      const newQueryString = createQueryString(name, value);
-      router.push(`${pathname}?${newQueryString}`);
-    },
-    [createQueryString, pathname, router, tabName],
-  );
-
-  useLayoutEffect(() => {
-    if (defaultTab && !currentTab) {
-      handleTabChange(defaultTab);
-    }
-  }, [defaultTab, currentTab, handleTabChange]);
-
-  return { handleTabChange, searchParams, currentTab };
+  return {
+    currentTab,
+    handleTabChange,
+  };
 }

@@ -1,21 +1,29 @@
 import { getCurrentUser } from '@/actions/user';
 import { AppointmentsTabs } from '@/components/appointments/appointments-tabs';
 import { AppointmentsHeader } from '@/components/appointments/appointments-header';
-import { ROUTES } from '@/schemas/routes';
-import { redirect } from 'next/navigation';
+import { getUserAppointments } from '@/actions/appointments';
+import { ErrorCard } from '@/components/ui/error-card';
 
 export default async function UserAppointmentsPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect(ROUTES.login);
+    return undefined;
+  }
+
+  const { error, data } = await getUserAppointments(user?.id ?? '');
+
+  if (error) {
+    return <ErrorCard title="Erreur lors de la récupération des rendez-vous" />;
   }
 
   return (
     <div className="container space-y-8 py-6">
       <AppointmentsHeader />
       <div className="space-y-6">
-        <AppointmentsTabs />
+        <AppointmentsTabs
+          appointments={data ?? { upcoming: [], past: [], cancelled: [] }}
+        />
       </div>
     </div>
   );

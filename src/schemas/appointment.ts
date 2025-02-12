@@ -1,4 +1,11 @@
-import { AppointmentType } from '@prisma/client';
+import {
+  AppointmentType,
+  User,
+  ServiceRequest,
+  Organization,
+  Appointment,
+  ConsularService,
+} from '@prisma/client';
 import { AppointmentStatus } from '@prisma/client';
 import { z } from 'zod';
 
@@ -46,16 +53,6 @@ export const TimeSlotSchema = z.object({
   duration: z.number().optional(),
 });
 
-export interface TimeSlotInput {
-  start: string;
-  end: string;
-}
-
-export interface DayScheduleInput {
-  isOpen: boolean;
-  slots: TimeSlotInput[];
-}
-
 export type TimeSlotInput = z.infer<typeof TimeSlotSchema>;
 
 export const DayScheduleSchema = z.object({
@@ -64,3 +61,9 @@ export const DayScheduleSchema = z.object({
 });
 
 export type DayScheduleInput = z.infer<typeof DayScheduleSchema>;
+
+export interface AppointmentWithRelations extends Appointment {
+  organization: Organization;
+  agent: User | null;
+  request?: (ServiceRequest & { service: ConsularService }) | null;
+}

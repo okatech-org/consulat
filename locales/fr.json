@@ -117,7 +117,10 @@
       "validated": "Validé",
       "active": "Actif",
       "inactive": "Inactif",
-      "suspended": "Suspendu"
+      "suspended": "Suspendu",
+      "confirmed": "Confirmé",
+      "rescheduled": "Réschéduler",
+      "missed": "Manqué"
     },
     "confirm": {
       "title": "Confirmation",
@@ -4086,7 +4089,6 @@
     }
   },
   "appointments": {
-    "title": "Mes rendez-vous",
     "new": {
       "title": "Prendre un rendez-vous",
       "description": "Sélectionnez un service et un créneau disponible pour votre rendez-vous",
@@ -4096,15 +4098,57 @@
       "loading": "Chargement des créneaux...",
       "attendee_id_required": "Vous devez être connecté pour prendre un rendez-vous"
     },
-    "steps": {
-      "service": "Choix du service",
-      "slot": "Choix du créneau",
-      "confirmation": "Confirmation"
+    "tabs": {
+      "upcoming": {
+        "title": "Rendez-vous à venir",
+        "empty": "Aucun rendez-vous à venir"
+      },
+      "past": {
+        "title": "Rendez-vous passés",
+        "empty": "Aucun rendez-vous passé"
+      },
+      "cancelled": {
+        "title": "Rendez-vous annulés",
+        "empty": "Aucun rendez-vous annulé"
+      }
+    },
+    "service_categories": {
+      "IDENTITY": "Identité",
+      "CIVIL_STATUS": "État civil",
+      "VISA": "Visa",
+      "CERTIFICATION": "Certification",
+      "REGISTRATION": "Inscription",
+      "OTHER": "Autre"
+    },
+    "title": "Mes rendez-vous",
+    "status": {
+      "loading": "Chargement des rendez-vous...",
+      "no_appointments": "Aucun rendez-vous",
+      "upcoming": "À venir",
+      "past": "Passés",
+      "cancelled": "Annulés",
+      "upcoming_title": "Rendez-vous à venir",
+      "past_title": "Rendez-vous passés",
+      "cancelled_title": "Rendez-vous annulés",
+      "confirmed": "Confirmé",
+      "completed": "Terminé",
+      "missed": "Manqué",
+      "rescheduled": "Reporté"
+    },
+    "actions": {
+      "new": "Nouveau rendez-vous",
+      "reschedule": "Reporter",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "back": "Retour",
+      "next": "Suivant",
+      "submitting": "Envoi en cours...",
+      "loading": "Chargement des rendez-vous..."
     },
     "service": {
-      "label": "Service consulaire",
+      "label": "Service",
       "placeholder": "Sélectionnez un service",
-      "description": "Sélectionnez le service consulaire pour lequel vous souhaitez prendre rendez-vous"
+      "description": "Choisissez le service pour lequel vous souhaitez prendre rendez-vous"
     },
     "type": {
       "label": "Type de rendez-vous",
@@ -4119,42 +4163,29 @@
       }
     },
     "datetime": {
-      "pick_date": "Choisir une date",
-      "no_slots": "Aucun créneau disponible",
-      "no_slots_description": "Aucun créneau n'est disponible pour cette date",
-      "select_another_date": "Sélectionner une autre date",
-      "select_date_message": "Veuillez sélectionner une date pour voir les créneaux disponibles",
-      "view": {
-        "day": "Vue par jour",
-        "week": "Vue par semaine"
-      }
+      "pick_date": "Sélectionnez une date",
+      "pick_time": "Sélectionnez un horaire"
     },
     "confirmation": {
       "service": "Service",
       "type": "Type",
       "date": "Date",
-      "time": "Heure"
+      "time": "Horaire"
     },
-    "actions": {
-      "back": "Retour",
-      "next": "Suivant",
-      "confirm": "Confirmer",
-      "submitting": "En cours..."
+    "steps": {
+      "service": "Service",
+      "slot": "Horaire",
+      "confirmation": "Confirmation"
     },
+    "agent": "Agent consulaire",
     "validation": {
-      "service_required": "Veuillez sélectionner un service",
-      "type_required": "Veuillez sélectionner un type de rendez-vous",
-      "date_required": "Veuillez sélectionner une date et un horaire",
-      "organization_required": "Organisation requise",
-      "country_required": "Pays requis"
-    },
-    "service_categories": {
-      "IDENTITY": "Identité",
-      "CIVIL_STATUS": "État civil",
-      "VISA": "Visa",
-      "CERTIFICATION": "Certification",
-      "REGISTRATION": "Inscription",
-      "OTHER": "Autre"
+      "date_required": "La date est requise",
+      "start_time_required": "L'heure de début est requise",
+      "end_time_required": "L'heure de fin est requise",
+      "type_required": "Le type de rendez-vous est requis",
+      "organization_required": "L'organisation est requise",
+      "service_required": "Le service est requis",
+      "country_required": "Le pays est requis"
     }
   }
 }

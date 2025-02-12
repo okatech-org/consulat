@@ -1,7 +1,6 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardDescription,
@@ -9,33 +8,27 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Icons } from '@/components/ui/icons';
-import { useRouter } from 'next/navigation';
-import { ROUTES } from '@/schemas/routes';
 
-type CardProps = React.ComponentProps<typeof Card>;
+type CardProps = React.ComponentProps<typeof Card> & {
+  title?: string;
+  description?: string;
+  action?: React.ReactNode;
+};
 
-export function ErrorCard({ className, ...props }: CardProps) {
-  const router = useRouter();
-
+export function ErrorCard({
+  className,
+  title = "Oups, quelque chose s'est mal passé",
+  description = "Votre demande n'a pas été traitée. Veuillez réessayer.",
+  action,
+  ...props
+}: CardProps) {
   return (
     <Card className={cn('w-[380px] mx-auto', className)} {...props}>
       <CardHeader>
-        <CardTitle className={'mb-2'}>{"Oups, quelque chose s'est mal passé"}</CardTitle>
-        <CardDescription>
-          {"Nous n'avons pas pu vous connecter. Veuillez réessayer."}
-        </CardDescription>
+        <CardTitle className={'mb-2'}>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardFooter>
-        <Button
-          onClick={() => {
-            router.push(ROUTES.login);
-          }}
-        >
-          <Icons.Back />
-          <span>Retour à la connexion</span>
-        </Button>
-      </CardFooter>
+      {action && <CardFooter>{action}</CardFooter>}
     </Card>
   );
 }
