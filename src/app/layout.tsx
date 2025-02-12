@@ -94,7 +94,9 @@ export default async function RootLayout({
               <SidebarProvider>
                 {children}
                 <Toaster />
-                <ChatToggle />
+                <div className="hidden sm:block fixed flex flex-col bg-sidebar p-2 items-center bottom-10 right-4 rounded-full p-0 md:bottom-4 md:right-6">
+                  <ChatToggle />
+                </div>
               </SidebarProvider>
             </SessionProvider>
           </ThemeProvider>
