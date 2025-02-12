@@ -57,6 +57,7 @@ export default async function NewAppointmentPage() {
           services={services}
           countryCode={user.countryCode ?? ''}
           organizationId={organization.id}
+          attendeeId={user.id}
         />
       </div>
     </div>

@@ -7,8 +7,12 @@ export const AppointmentSchema = z.object({
   date: z.date({
     required_error: 'appointments.validation.date_required',
   }),
-  startTime: z.date(),
-  endTime: z.date(),
+  startTime: z.date({
+    required_error: 'appointments.validation.start_time_required',
+  }),
+  endTime: z.date({
+    required_error: 'appointments.validation.end_time_required',
+  }),
   duration: z.number(),
   type: z.nativeEnum(AppointmentType, {
     required_error: 'appointments.validation.type_required',
@@ -32,9 +36,6 @@ export const AppointmentSchema = z.object({
   cancelledAt: z.date().optional(),
   cancelReason: z.string().optional(),
   rescheduledFrom: z.date().optional(),
-  time: z.string({
-    required_error: 'messages.error.required',
-  }),
 });
 
 export type AppointmentInput = z.infer<typeof AppointmentSchema>;

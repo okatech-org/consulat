@@ -4092,7 +4092,9 @@
       "description": "Sélectionnez un service et un créneau disponible pour votre rendez-vous",
       "button": "Prendre rendez-vous",
       "back": "Retour aux rendez-vous",
-      "no_slots_available": "Aucun créneau disponible"
+      "no_slots_available": "Aucun créneau disponible",
+      "loading": "Chargement des créneaux...",
+      "attendee_id_required": "Vous devez être connecté pour prendre un rendez-vous"
     },
     "steps": {
       "service": "Choix du service",

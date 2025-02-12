@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppointmentType, ConsularService } from '@prisma/client';
@@ -25,7 +25,7 @@ import {
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
 import { cn, DisplayDate } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
-import { addMinutes, format } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,7 @@ interface NewAppointmentFormProps {
   services: ConsularService[];
   countryCode: string;
   organizationId: string;
+  attendeeId: string;
 }
 
 type Step = 'service' | 'slot' | 'confirmation';
@@ -45,10 +46,11 @@ export function NewAppointmentForm({
   services,
   countryCode,
   organizationId,
+  attendeeId,
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
   const [step, setStep] = useState<Step>('service');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent | null>(
     null,
@@ -59,8 +61,18 @@ export function NewAppointmentForm({
     defaultValues: {
       countryCode,
       organizationId,
+      date: new Date(),
+      attendeeId,
     },
   });
+
+  if (!attendeeId) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-muted-foreground">{t('new.attendee_id_required')}</p>
+      </div>
+    );
+  }
 
   const selectedService = services.find(
     (service) => service.id === form.watch('serviceId'),
@@ -68,21 +80,14 @@ export function NewAppointmentForm({
   const selectedDate = form.watch('date');
 
   const onSubmit = async (data: AppointmentInput) => {
-    if (!selectedTimeSlot) return;
-
-    setIsSubmitting(true);
+    setIsLoading(true);
     try {
-      // Add selected time slot data to form submission
-      data.startTime = new Date(selectedTimeSlot.start);
-      data.endTime = new Date(selectedTimeSlot.end);
-      data.duration = selectedTimeSlot.duration;
-
       // TODO: Submit form
       console.log(data);
     } catch (error) {
       console.error(error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -220,7 +225,7 @@ export function NewAppointmentForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
           {availableTimeSlots.map((slot) => {
             const isSelected = selectedTimeSlot?.start === slot.start;
 
@@ -228,16 +233,32 @@ export function NewAppointmentForm({
               <Button
                 key={slot.start.toISOString()}
                 variant={isSelected ? 'default' : 'outline'}
+                disabled={!slot.availableAgents[0]}
                 className="h-auto py-4"
-                onClick={() => setSelectedTimeSlot(slot)}
+                onClick={() => {
+                  const { start, end, availableAgents } = slot;
+                  const agentId = availableAgents[0];
+
+                  if (!agentId) return;
+
+                  form.setValue('startTime', start);
+                  form.setValue('endTime', end);
+                  form.setValue('agentId', agentId);
+                  setSelectedTimeSlot(slot);
+                }}
               >
                 {DisplayDate(slot.start, 'HH:mm')}
               </Button>
             );
           })}
           {availableTimeSlots.length === 0 && (
-            <div className="col-span-3 text-center text-muted-foreground">
+            <div className="col-span-full text-center text-muted-foreground">
               {t('new.no_slots_available')}
+            </div>
+          )}
+          {isLoading && (
+            <div className="col-span-full text-center text-muted-foreground">
+              {t('new.loading')}
             </div>
           )}
         </div>
@@ -262,10 +283,24 @@ export function NewAppointmentForm({
       startOfDay,
       endOfDay,
       selectedService.appointmentDuration ?? 15,
-    ).then((slots) => {
-      setAvailableTimeSlots(slots);
-    });
+    )
+      .then((slots) => {
+        setAvailableTimeSlots(slots);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [selectedService, selectedDate, organizationId, countryCode]);
+
+  useEffect(() => {
+    console.log({
+      formValues: form.getValues(),
+      errors: form.formState.errors,
+    });
+  }, [form.formState, form]);
 
   return (
     <Form {...form}>
@@ -293,7 +328,13 @@ export function NewAppointmentForm({
                         <MultiSelect
                           options={serviceOptions}
                           selected={field.value ? [field.value] : []}
-                          onChange={(values) => field.onChange(values[0])}
+                          onChange={(values) => {
+                            field.onChange(values[0]);
+                            form.setValue(
+                              'duration',
+                              selectedService?.appointmentDuration ?? 15,
+                            );
+                          }}
                           placeholder={t('service.placeholder')}
                           type="single"
                         />
@@ -366,7 +407,11 @@ export function NewAppointmentForm({
                     </div>
                     <div className="grid grid-cols-2 gap-4 py-3">
                       <dt className="font-medium">{t('confirmation.time')}</dt>
-                      <dd>{format(form.watch('date'), 'HH:mm')}</dd>
+                      <dd>
+                        {format(form.watch('startTime'), 'HH:mm')}
+                        {' - '}
+                        {format(form.watch('endTime'), 'HH:mm')}
+                      </dd>
                     </div>
                   </dl>
                 </div>
@@ -380,7 +425,7 @@ export function NewAppointmentForm({
                 type="button"
                 variant="outline"
                 onClick={handleBack}
-                disabled={isSubmitting}
+                disabled={isLoading}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 {t('actions.back')}
@@ -390,14 +435,17 @@ export function NewAppointmentForm({
               type={step === 'confirmation' ? 'submit' : 'button'}
               className={cn(step === 'service' && 'ml-auto')}
               disabled={
-                isSubmitting ||
+                isLoading ||
                 (step === 'service' && !form.watch('serviceId')) ||
-                (step === 'slot' && !form.watch('date'))
+                (step === 'service' && !form.watch('type')) ||
+                (step === 'slot' && !form.watch('date')) ||
+                (step === 'slot' && !form.watch('startTime')) ||
+                (step === 'slot' && !form.watch('endTime'))
               }
               onClick={step === 'confirmation' ? undefined : handleNext}
             >
               {step === 'confirmation' ? (
-                isSubmitting ? (
+                isLoading ? (
                   t('actions.submitting')
                 ) : (
                   t('actions.confirm')
