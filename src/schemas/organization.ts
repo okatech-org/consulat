@@ -183,3 +183,80 @@ export function getDefaultValues(
     metadata: defaultMetadata,
   };
 }
+
+export interface OrganizationMetadataTimeSlot {
+  start: string;
+  end: string;
+}
+
+export interface OrganizationMetadataDaySchedule {
+  isOpen: boolean;
+  slots?: OrganizationMetadataTimeSlot[];
+}
+
+export type WeekDay =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
+
+export type OrganizationMetadataSchedule = Record<
+  WeekDay,
+  OrganizationMetadataDaySchedule
+>;
+
+export interface OrganizationMetadataHoliday {
+  date: string;
+  name: string;
+}
+
+export interface OrganizationMetadataAddress {
+  firstLine: string;
+  city: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface OrganizationMetadataContact {
+  address: OrganizationMetadataAddress;
+  phone: string;
+  email: string;
+  website: string;
+}
+
+export interface OrganizationMetadataSettings {
+  logo: string;
+  contact: OrganizationMetadataContact;
+  schedule: OrganizationMetadataSchedule;
+  holidays: OrganizationMetadataHoliday[];
+}
+
+export interface CountryMetadataCurrency {
+  code: string;
+  symbol: string;
+  format: string;
+  symbolPosition: 'before' | 'after';
+}
+
+export interface CountryMetadataLanguage {
+  defaultLocale: string;
+  locales: string[];
+}
+
+export interface CountryMetadata {
+  currency: CountryMetadataCurrency;
+  language: CountryMetadataLanguage;
+  dateFormat: string;
+  timeFormat: '12h' | '24h';
+  timeZone: string;
+  holidays?: OrganizationMetadataHoliday[];
+}
+
+export interface OrganizationMetadata {
+  [countryCode: string]: {
+    settings: OrganizationMetadataSettings;
+  };
+}

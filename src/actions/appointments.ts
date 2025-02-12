@@ -2,6 +2,7 @@
 
 import { db } from '@/lib/prisma';
 import { DayScheduleInput, TimeSlotInput } from '@/schemas/appointment';
+import { CountryMetadata, OrganizationMetadata } from '@/schemas/organization';
 import { ServiceCategory, UserRole } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 
@@ -79,21 +80,21 @@ export async function getAvailableTimeSlots(
     return [];
   }
 
-  const countryHolidays = JSON.parse(countryData.metadata as string).holidays || [];
-  const organizationSchedule: Record<string, DayScheduleInput> =
-    JSON.parse(organizationData.metadata as string).schedule || {};
-  const organizationHolidays =
-    JSON.parse(organizationData.metadata as string).holidays || [];
+  const countryMetadata = JSON.parse(countryData.metadata as string) as CountryMetadata;
+  const organizationMetadata = JSON.parse(
+    organizationData.metadata as string,
+  ) as OrganizationMetadata;
+  const countryCodeMetadata = organizationMetadata[countryCode];
+
+  console.log({ countryCodeMetadata: countryCodeMetadata?.settings.schedule });
 
   // 2. Génération des créneaux de base à partir des horaires d'ouverture
   const baseSlots = await generateBaseSlotsFromSchedule(
     startDate,
     endDate,
     duration,
-    organizationSchedule,
+    countryCodeMetadata?.settings.schedule ?? {},
   );
-
-  console.log({ baseSlots });
 
   // 3. Filtrage des jours fériés et vacances
   const slotsExcludingHolidays = filterHolidaysAndClosures(
