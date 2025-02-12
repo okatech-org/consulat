@@ -1,12 +1,4 @@
-import {
-  LayoutDashboard,
-  FileText,
-  Settings,
-  Globe,
-  UsersIcon,
-  Calendar,
-  Users,
-} from 'lucide-react';
+import { LayoutDashboard, Settings, UsersIcon, Calendar, Users } from 'lucide-react';
 import { NavMain } from '@/components/ui/nav-main';
 import {
   Sidebar,

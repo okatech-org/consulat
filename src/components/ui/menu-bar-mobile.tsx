@@ -1,20 +1,8 @@
 'use client';
 
-import { useCurrentUser } from '@/hooks/use-current-user';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import {
-  Calendar,
-  FileText,
-  FolderOpen,
-  LayoutDashboard,
-  Settings,
-  User,
-  Users,
-  Bot,
-  Menu,
-} from 'lucide-react';
-import { UserRole } from '@prisma/client';
+import { Settings, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavItem } from '@/types/navigation';
