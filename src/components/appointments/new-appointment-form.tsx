@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AppointmentType, ConsularService } from '@prisma/client';
+import { AppointmentType, ConsularService, AppointmentStatus } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import {
   Card,
@@ -30,8 +30,14 @@ import { fr } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
-import { getAvailableTimeSlots, TimeSlotWithAgent } from '@/actions/appointments';
+import {
+  getAvailableTimeSlots,
+  TimeSlotWithAgent,
+  createAppointment,
+} from '@/actions/appointments';
 import React from 'react';
+import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/schemas/routes';
 
 interface NewAppointmentFormProps {
   services: ConsularService[];
@@ -42,6 +48,14 @@ interface NewAppointmentFormProps {
 
 type Step = 'service' | 'slot' | 'confirmation';
 
+const steps = ['service', 'slot', 'confirmation'] as const;
+
+const stepTranslations = {
+  service: 'steps.service',
+  slot: 'steps.slot',
+  confirmation: 'steps.confirmation',
+} as const;
+
 export function NewAppointmentForm({
   services,
   countryCode,
@@ -49,6 +63,7 @@ export function NewAppointmentForm({
   attendeeId,
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
+  const router = useRouter();
   const [step, setStep] = useState<Step>('service');
   const [isLoading, setIsLoading] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
@@ -66,26 +81,44 @@ export function NewAppointmentForm({
     },
   });
 
-  if (!attendeeId) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">{t('new.attendee_id_required')}</p>
-      </div>
-    );
-  }
-
   const selectedService = services.find(
     (service) => service.id === form.watch('serviceId'),
   );
   const selectedDate = form.watch('date');
 
   const onSubmit = async (data: AppointmentInput) => {
+    if (!selectedTimeSlot) return;
+
+    // Vérifier qu'un agent est disponible
+    const agentId = selectedTimeSlot.availableAgents[0];
+    if (!agentId) {
+      console.error('No agent available for this time slot');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Submit form
-      console.log(data);
+      // Préparer les données du rendez-vous
+      const appointment = {
+        ...data,
+        startTime: selectedTimeSlot.start,
+        endTime: selectedTimeSlot.end,
+        duration: selectedTimeSlot.duration,
+        agentId,
+        status: AppointmentStatus.CONFIRMED,
+      };
+
+      // Appeler l'action serveur
+      const result = await createAppointment(appointment);
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      router.push(ROUTES.user.appointments);
     } catch (error) {
       console.error(error);
+      // TODO: Afficher une notification d'erreur
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +153,6 @@ export function NewAppointmentForm({
   };
 
   const renderStepIndicator = () => {
-    const steps = ['service', 'slot', 'confirmation'];
     const currentIndex = steps.indexOf(step);
 
     return (
@@ -168,7 +200,7 @@ export function NewAppointmentForm({
                 'text-muted-foreground': s !== step,
               })}
             >
-              {t(`steps.${s}`)}
+              {t(stepTranslations[s])}
             </span>
           ))}
         </div>
@@ -231,6 +263,7 @@ export function NewAppointmentForm({
 
             return (
               <Button
+                type="button"
                 key={slot.start.toISOString()}
                 variant={isSelected ? 'default' : 'outline'}
                 disabled={!slot.availableAgents[0]}
@@ -295,12 +328,13 @@ export function NewAppointmentForm({
       });
   }, [selectedService, selectedDate, organizationId, countryCode]);
 
-  useEffect(() => {
-    console.log({
-      formValues: form.getValues(),
-      errors: form.formState.errors,
-    });
-  }, [form.formState, form]);
+  if (!attendeeId) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-muted-foreground">{t('new.attendee_id_required')}</p>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -333,6 +367,10 @@ export function NewAppointmentForm({
                             form.setValue(
                               'duration',
                               selectedService?.appointmentDuration ?? 15,
+                            );
+                            form.setValue(
+                              'instructions',
+                              selectedService?.appointmentInstructions ?? '',
                             );
                           }}
                           placeholder={t('service.placeholder')}

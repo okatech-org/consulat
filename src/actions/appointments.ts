@@ -10,6 +10,7 @@ import {
 } from '@/schemas/organization';
 import { ServiceCategory, UserRole } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
+import { AppointmentInput, AppointmentSchema } from '@/schemas/appointment';
 
 export interface BaseTimeSlot {
   start: Date;
@@ -252,4 +253,34 @@ export async function getAvailableServices(countryCode: string) {
   });
 
   return countryData?.availableServices ?? [];
+}
+
+export async function createAppointment(data: AppointmentInput) {
+  try {
+    // Valider les données avec Zod
+    const validatedData = AppointmentSchema.parse(data);
+
+    // Créer le rendez-vous dans la base de données
+    const appointment = await db.appointment.create({
+      data: {
+        date: validatedData.date,
+        startTime: validatedData.startTime,
+        endTime: validatedData.endTime,
+        duration: validatedData.duration,
+        type: validatedData.type,
+        status: validatedData.status,
+        organizationId: validatedData.organizationId,
+        serviceId: validatedData.serviceId,
+        attendeeId: validatedData.attendeeId,
+        agentId: validatedData.agentId,
+        countryCode: validatedData.countryCode,
+        instructions: validatedData.instructions,
+      },
+    });
+
+    return { success: true, data: appointment };
+  } catch (error) {
+    console.error('Failed to create appointment:', error);
+    return { success: false, error: 'Failed to create appointment' };
+  }
 }
