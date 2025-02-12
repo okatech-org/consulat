@@ -22,15 +22,16 @@ import {
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import { TimeSlotPicker } from './time-slot-picker';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { addMinutes, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
+import { getAvailableTimeSlots, TimeSlotWithAgent } from '@/actions/appointments';
+import React from 'react';
 
 interface NewAppointmentFormProps {
   services: ConsularService[];
@@ -48,6 +49,7 @@ export function NewAppointmentForm({
   const t = useTranslations('appointments');
   const [step, setStep] = useState<Step>('service');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
@@ -60,6 +62,7 @@ export function NewAppointmentForm({
   const selectedService = services.find(
     (service) => service.id === form.watch('serviceId'),
   );
+  const selectedDate = form.watch('date');
 
   const onSubmit = async (data: AppointmentInput) => {
     if (step !== 'confirmation') {
@@ -197,6 +200,51 @@ export function NewAppointmentForm({
     );
   };
 
+  const renderTimeSlotPicker = () => {
+    if (!selectedService || !selectedDate) return null;
+    return (
+      <div className="mt-6 rounded-lg border p-4">
+        <h3 className="font-medium">Créneaux disponibles</h3>
+        {availableTimeSlots.map((slot) => (
+          <div key={slot.id}>
+            <p>{slot.start}</p>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  React.useEffect(() => {
+    if (!selectedService || !selectedDate) return;
+
+    const endDate = addMinutes(
+      selectedDate,
+      (selectedService.appointmentDuration ?? 15) * 60,
+    );
+
+    console.log({
+      duration: selectedService.appointmentDuration ?? 15,
+      selectedDate: format(selectedDate, 'PPPP', { locale: fr }),
+      endDate: format(endDate, 'PPPP', { locale: fr }),
+    });
+
+    getAvailableTimeSlots(
+      selectedService.category,
+      organizationId,
+      countryCode,
+      selectedDate,
+      endDate,
+      selectedService.appointmentDuration ?? 15,
+    ).then((slots) => {
+      console.log({
+        slots,
+        selectedDate: format(selectedDate, 'PPPP', { locale: fr }),
+        endDate: format(endDate, 'PPPP', { locale: fr }),
+      });
+      setAvailableTimeSlots(slots);
+    });
+  }, [selectedService, selectedDate, organizationId, countryCode]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -288,6 +336,8 @@ export function NewAppointmentForm({
                     </FormItem>
                   )}
                 />
+
+                {selectedDate && renderTimeSlotPicker()}
               </>
             )}
 

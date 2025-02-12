@@ -244,6 +244,8 @@ async function main() {
             ServiceCategory.CIVIL_STATUS,
             ServiceCategory.REGISTRATION,
             ServiceCategory.CERTIFICATION,
+            ServiceCategory.OTHER,
+            ServiceCategory.VISA,
           ],
         },
       }),
@@ -260,8 +262,12 @@ async function main() {
             connect: { id: 'organization-consulat-general-marseille' },
           },
           serviceCategories: [
+            ServiceCategory.IDENTITY,
+            ServiceCategory.CIVIL_STATUS,
             ServiceCategory.REGISTRATION,
             ServiceCategory.CERTIFICATION,
+            ServiceCategory.OTHER,
+            ServiceCategory.VISA,
           ],
         },
       }),
@@ -446,6 +452,7 @@ async function main() {
       prisma.appointment.create({
         data: {
           id: 'appointment-berny-itoutou-1',
+          countryCode: 'FR',
           date: new Date('2024-04-15'),
           startTime: new Date('2024-04-15T09:00:00Z'),
           endTime: new Date('2024-04-15T09:30:00Z'),
@@ -461,6 +468,7 @@ async function main() {
       prisma.appointment.create({
         data: {
           id: 'appointment-berny-itoutou-2',
+          countryCode: 'FR',
           date: new Date('2024-04-16'),
           startTime: new Date('2024-04-16T14:00:00Z'),
           endTime: new Date('2024-04-16T14:45:00Z'),

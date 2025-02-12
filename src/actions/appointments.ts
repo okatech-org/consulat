@@ -5,13 +5,13 @@ import { DayScheduleInput, TimeSlotInput } from '@/schemas/appointment';
 import { ServiceCategory, UserRole } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 
-interface BaseTimeSlot {
+export interface BaseTimeSlot {
   start: Date;
   end: Date;
   duration: number;
 }
 
-interface TimeSlotWithAgent extends BaseTimeSlot {
+export interface TimeSlotWithAgent extends BaseTimeSlot {
   availableAgents: string[]; // IDs des agents disponibles
 }
 
@@ -36,13 +36,21 @@ export async function getAvailableTimeSlots(
   startDate: Date,
   endDate: Date,
   duration: number,
-) {
+): Promise<TimeSlotWithAgent[]> {
+  console.log({
+    serviceCategory,
+    organizationId,
+    countryCode,
+    startDate,
+    endDate,
+    duration,
+  });
   // 1. Récupération des données nécessaires
   const [agents, countryData, organizationData] = await Promise.all([
     db.user.findMany({
       where: {
         role: UserRole.AGENT,
-        organizationId: organizationId,
+        agentOrganizationId: organizationId,
         serviceCategories: {
           has: serviceCategory,
         },
@@ -78,12 +86,14 @@ export async function getAvailableTimeSlots(
     JSON.parse(organizationData.metadata as string).holidays || [];
 
   // 2. Génération des créneaux de base à partir des horaires d'ouverture
-  const baseSlots = generateBaseSlotsFromSchedule(
+  const baseSlots = await generateBaseSlotsFromSchedule(
     startDate,
     endDate,
     duration,
     organizationSchedule,
   );
+
+  console.log({ baseSlots });
 
   // 3. Filtrage des jours fériés et vacances
   const slotsExcludingHolidays = filterHolidaysAndClosures(
@@ -96,9 +106,7 @@ export async function getAvailableTimeSlots(
   const slotsWithAgents = checkAgentAvailability(slotsExcludingHolidays, agents);
 
   // 5. Ne retourner que les créneaux qui ont au moins un agent disponible
-  return slotsWithAgents
-    .filter((slot) => slot.availableAgents.length > 0)
-    .map(({ start, end, duration }) => ({ start, end, duration }));
+  return slotsWithAgents.filter((slot) => slot.availableAgents.length > 0);
 }
 
 export async function generateBaseSlotsFromSchedule(

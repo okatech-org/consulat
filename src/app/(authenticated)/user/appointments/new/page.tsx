@@ -45,7 +45,7 @@ export default async function NewAppointmentPage() {
 
   if (!organization) {
     // TODO: Handle no organization found for country
-    return null;
+    return <div>No organization found for country</div>;
   }
 
   return (
