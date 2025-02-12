@@ -113,11 +113,38 @@ async function main() {
                   website: 'https://ambagabon-fr.org',
                 },
                 schedule: {
-                  monday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
-                  friday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  monday: {
+                    isOpen: true,
+                    slots: [
+                      { start: '09:00', end: '12:00' },
+                      { start: '14:00', end: '17:00' },
+                    ],
+                  },
+                  tuesday: {
+                    isOpen: true,
+                    slots: [
+                      { start: '09:00', end: '12:00' },
+                      { start: '14:00', end: '17:00' },
+                    ],
+                  },
+                  wednesday: {
+                    isOpen: true,
+                    slots: [
+                      { start: '09:00', end: '12:00' },
+                      { start: '14:00', end: '17:00' },
+                    ],
+                  },
+                  thursday: {
+                    isOpen: true,
+                    slots: [
+                      { start: '09:00', end: '12:00' },
+                      { start: '14:00', end: '17:00' },
+                    ],
+                  },
+                  friday: {
+                    isOpen: true,
+                    slots: [{ start: '09:00', end: '18:00' }],
+                  },
                   saturday: { isOpen: false },
                   sunday: { isOpen: false },
                 },

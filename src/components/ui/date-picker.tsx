@@ -13,6 +13,7 @@ import { useState } from 'react';
 
 interface DatePickerProps {
   date?: Date;
+  dateStr?: string;
   onSelect?: (date: Date | undefined) => void;
   placeholder?: string;
   className?: string;
@@ -21,6 +22,7 @@ interface DatePickerProps {
 
 export function DatePicker({
   date,
+  dateStr = 'PPP',
   onSelect,
   placeholder,
   className,
@@ -31,6 +33,11 @@ export function DatePicker({
   const t = useTranslations('inputs.datetime');
   const localeMapping: Record<string, Locale> = { fr };
   const mappedLocale = localeMapping[localeCode] ?? fr;
+
+  const handleSelect = (newDate: Date | undefined) => {
+    setPopoverOpen(false);
+    onSelect?.(newDate);
+  };
 
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -47,7 +54,7 @@ export function DatePicker({
         >
           <CalendarIcon className="mr-1 size-4" />
           {date ? (
-            format(date, 'PPP', { locale: fr })
+            format(date, dateStr, { locale: mappedLocale })
           ) : (
             <span>{placeholder ?? t('pick_date')}</span>
           )}
@@ -57,10 +64,7 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={date}
-          onSelect={(newDate) => {
-            setPopoverOpen(false);
-            onSelect?.(newDate);
-          }}
+          onSelect={handleSelect}
           initialFocus
           locale={mappedLocale}
         />

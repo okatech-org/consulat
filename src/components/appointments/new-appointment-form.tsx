@@ -344,21 +344,12 @@ export function NewAppointmentForm({
                       <FormControl>
                         <DatePicker
                           date={field.value}
-                          onSelect={(date) => field.onChange(date)}
+                          onSelect={(date) => {
+                            console.log('date', date);
+                            field.onChange(date);
+                          }}
                         />
                       </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel></FormLabel>
-                      <FormControl></FormControl>
                       <TradFormMessage />
                     </FormItem>
                   )}
