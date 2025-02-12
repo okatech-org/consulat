@@ -248,24 +248,21 @@ export function NewAppointmentForm({
   React.useEffect(() => {
     if (!selectedService || !selectedDate) return;
 
-    const endDate = addMinutes(
-      selectedDate,
-      (selectedService.appointmentDuration ?? 15) * 60,
-    );
+    // Définir le début et la fin de la journée sélectionnée
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
 
     getAvailableTimeSlots(
       selectedService.category,
       organizationId,
       countryCode,
-      selectedDate,
-      endDate,
+      startOfDay,
+      endOfDay,
       selectedService.appointmentDuration ?? 15,
     ).then((slots) => {
-      console.log({
-        slots,
-        selectedDate: format(selectedDate, 'PPPP', { locale: fr }),
-        endDate: format(endDate, 'PPPP', { locale: fr }),
-      });
       setAvailableTimeSlots(slots);
     });
   }, [selectedService, selectedDate, organizationId, countryCode]);

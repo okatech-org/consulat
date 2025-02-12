@@ -95,11 +95,6 @@ export async function getAvailableTimeSlots(
     countrySettings.schedule,
   );
 
-  console.log({
-    schedule: countrySettings.schedule,
-    baseSlots,
-  });
-
   // 3. Filtrage des jours fériés et vacances
   const slotsExcludingHolidays = filterHolidaysAndClosures(
     baseSlots,
