@@ -13,7 +13,7 @@ import {
   endOfWeek,
   eachDayOfInterval,
 } from 'date-fns';
-import { generateTimeSlots } from '@/actions/appointments';
+import { generateBaseSlotsFromSchedule, generateTimeSlots } from '@/actions/appointments';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -57,7 +57,7 @@ export function TimeSlotPicker({
   const loadSlots = async (startDate: Date, endDate: Date) => {
     setLoadingSlots(true);
     try {
-      const availableSlots = await generateTimeSlots({
+      const availableSlots = await generateBaseSlotsFromSchedule({
         consulateId,
         date: startDate,
         duration,
@@ -191,12 +191,7 @@ export function TimeSlotPicker({
         </Card>
       )}
 
-      {!date && (
-        <TradFormMessage
-          message={t('select_date_message')}
-          className="text-center text-muted-foreground"
-        />
-      )}
+      {!date && <TradFormMessage className="text-center text-muted-foreground" />}
     </div>
   );
 }

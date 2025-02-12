@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppointmentType, ConsularService } from '@prisma/client';
@@ -30,6 +30,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
+import { DatePicker } from '../ui/date-picker';
 
 interface NewAppointmentFormProps {
   services: ConsularService[];
@@ -37,7 +38,7 @@ interface NewAppointmentFormProps {
   organizationId: string;
 }
 
-type Step = 'service' | 'type' | 'datetime' | 'confirmation';
+type Step = 'service' | 'slot' | 'confirmation';
 
 export function NewAppointmentForm({
   services,
@@ -81,15 +82,10 @@ export function NewAppointmentForm({
     switch (step) {
       case 'service':
         if (currentValue.serviceId) {
-          setStep('type');
+          setStep('slot');
         }
         break;
-      case 'type':
-        if (currentValue.type) {
-          setStep('datetime');
-        }
-        break;
-      case 'datetime':
+      case 'slot':
         if (currentValue.date) {
           setStep('confirmation');
         }
@@ -99,20 +95,17 @@ export function NewAppointmentForm({
 
   const handleBack = () => {
     switch (step) {
-      case 'type':
+      case 'slot':
         setStep('service');
         break;
-      case 'datetime':
-        setStep('type');
-        break;
       case 'confirmation':
-        setStep('datetime');
+        setStep('slot');
         break;
     }
   };
 
   const renderStepIndicator = () => {
-    const steps = ['service', 'type', 'datetime', 'confirmation'];
+    const steps = ['service', 'slot', 'confirmation'];
     const currentIndex = steps.indexOf(step);
 
     return (
@@ -204,10 +197,6 @@ export function NewAppointmentForm({
     );
   };
 
-  useEffect(() => {
-    console.log('form', form.formState.errors);
-  }, [form.formState.errors]);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -221,7 +210,7 @@ export function NewAppointmentForm({
             )}
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="space-y-4">
             {step === 'service' && (
               <div className="space-y-4">
                 <FormField
@@ -247,7 +236,7 @@ export function NewAppointmentForm({
               </div>
             )}
 
-            {step === 'type' && selectedService && (
+            {step === 'service' && selectedService && (
               <FormField
                 control={form.control}
                 name="type"
@@ -269,24 +258,37 @@ export function NewAppointmentForm({
               />
             )}
 
-            {step === 'datetime' && selectedService && (
-              <div className="space-y-4">
-                <TimeSlotPicker
-                  consulateId={organizationId}
-                  duration={selectedService.appointmentDuration}
-                  onSelect={({ date, time }) => {
-                    const datetime = new Date(date);
-                    const [hours, minutes] = time.split(':').map(Number);
-                    datetime.setHours(hours, minutes, 0, 0);
-                    form.setValue('date', datetime);
-                  }}
-                  selectedDate={form.watch('date')}
-                  selectedTime={
-                    form.watch('date') ? format(form.watch('date'), 'HH:mm') : undefined
-                  }
+            {step === 'slot' && selectedService && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('datetime.pick_date')}</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          date={field.value}
+                          onSelect={(date) => field.onChange(date)}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
                 />
-                <TradFormMessage name="date" />
-              </div>
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel></FormLabel>
+                      <FormControl></FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
 
             {step === 'confirmation' && selectedService && form.watch('date') && (

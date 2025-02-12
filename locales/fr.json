@@ -619,6 +619,10 @@
     "country": {
       "select_placeholder": "Sélectionner un pays",
       "label": "Pays"
+    },
+    "datetime": {
+      "pick_date": "Choisir une date",
+      "pick_time": "Choisir une heure"
     }
   },
   "feedback": {
@@ -4090,9 +4094,8 @@
       "back": "Retour aux rendez-vous"
     },
     "steps": {
-      "service": "Service consulaire",
-      "type": "Type de rendez-vous",
-      "datetime": "Date et heure",
+      "service": "Choix du service",
+      "slot": "Choix du créneau",
       "confirmation": "Confirmation"
     },
     "service": {
@@ -4113,6 +4116,7 @@
       }
     },
     "datetime": {
+      "pick_date": "Choisir une date",
       "no_slots": "Aucun créneau disponible",
       "no_slots_description": "Aucun créneau n'est disponible pour cette date",
       "select_another_date": "Sélectionner une autre date",

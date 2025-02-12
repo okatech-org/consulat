@@ -101,12 +101,12 @@ export async function getAvailableTimeSlots(
     .map(({ start, end, duration }) => ({ start, end, duration }));
 }
 
-function generateBaseSlotsFromSchedule(
+export async function generateBaseSlotsFromSchedule(
   startDate: Date,
   endDate: Date,
   duration: number,
   schedule: Record<string, DayScheduleInput>,
-): BaseTimeSlot[] {
+): Promise<BaseTimeSlot[]> {
   const slots: BaseTimeSlot[] = [];
   const days = eachDayOfInterval({ start: startDate, end: endDate });
 
