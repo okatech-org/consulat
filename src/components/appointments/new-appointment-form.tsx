@@ -50,6 +50,9 @@ export function NewAppointmentForm({
   const [step, setStep] = useState<Step>('service');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent | null>(
+    null,
+  );
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
@@ -65,15 +68,19 @@ export function NewAppointmentForm({
   const selectedDate = form.watch('date');
 
   const onSubmit = async (data: AppointmentInput) => {
-    if (step !== 'confirmation') {
-      handleNext();
-      return;
-    }
+    if (!selectedTimeSlot) return;
 
     setIsSubmitting(true);
     try {
-      // TODO: Implement appointment creation
-      console.log('Creating appointment:', data);
+      // Add selected time slot data to form submission
+      data.startTime = new Date(selectedTimeSlot.start);
+      data.endTime = new Date(selectedTimeSlot.end);
+      data.duration = selectedTimeSlot.duration;
+
+      // TODO: Submit form
+      console.log(data);
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -202,10 +209,34 @@ export function NewAppointmentForm({
 
   const renderTimeSlotPicker = () => {
     if (!selectedService || !selectedDate) return null;
+
     return (
-      <div className="mt-6 rounded-lg border p-4">
-        <h3 className="font-medium">Créneaux disponibles</h3>
-        <pre>{JSON.stringify(availableTimeSlots, null, 2)}</pre>
+      <div className="mt-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Sélectionnez un créneau</h3>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="size-4" />
+            <span>{selectedService.appointmentDuration} min</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {availableTimeSlots.map((slot) => {
+            const time = format(new Date(slot.start), 'HH:mm', { locale: fr });
+            const isSelected = selectedTimeSlot?.start === slot.start;
+
+            return (
+              <Button
+                key={slot.start}
+                variant={isSelected ? 'default' : 'outline'}
+                className="h-auto py-4"
+                onClick={() => setSelectedTimeSlot(slot)}
+              >
+                {time}
+              </Button>
+            );
+          })}
+        </div>
       </div>
     );
   };
