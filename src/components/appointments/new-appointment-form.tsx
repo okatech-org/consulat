@@ -470,7 +470,8 @@ export function NewAppointmentForm({
               </Button>
             )}
             <Button
-              type={step === 'confirmation' ? 'submit' : 'button'}
+              type="button"
+              onClick={step === 'confirmation' ? form.handleSubmit(onSubmit) : handleNext}
               className={cn(step === 'service' && 'ml-auto')}
               disabled={
                 isLoading ||
@@ -480,7 +481,6 @@ export function NewAppointmentForm({
                 (step === 'slot' && !form.watch('startTime')) ||
                 (step === 'slot' && !form.watch('endTime'))
               }
-              onClick={step === 'confirmation' ? undefined : handleNext}
             >
               {step === 'confirmation' ? (
                 isLoading ? (
