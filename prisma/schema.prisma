@@ -250,6 +250,10 @@ model Profile {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Add organization relation
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
   // Informations personnelles
   firstName              String
   lastName               String
@@ -353,8 +357,10 @@ model UserDocument {
   issuedAt  DateTime?
   expiresAt DateTime?
   metadata  Json? // Métadonnées additionnelles
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+
+  // Add organization relation
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
 
   userId String?
   user   User?   @relation("userDocuments", fields: [userId], references: [id])
@@ -493,6 +499,10 @@ model ServiceRequest {
   service       ConsularService @relation(fields: [serviceId], references: [id])
   submittedBy   User            @relation(fields: [submittedById], references: [id])
   submittedById String
+
+  // Add organization relation
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
 
   chosenProcessingMode ProcessingMode @default(ONLINE_ONLY)
   chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
@@ -716,6 +726,11 @@ model Organization {
   appointmentSettings Json? // Pour stocker les quotas par type de service
 
   agents    User[]          @relation("OrganizationAgents")
+
+  // Add missing relations
+  profiles Profile[]
+  documents UserDocument[]
+  serviceRequests ServiceRequest[]
 
   @@map("organizations")
 }
