@@ -1,0 +1,45 @@
+---
+description: TypeScript Types and Type Safety
+globs: 
+---
+Type Organization:
+- Place shared types in src/types
+- Group by domain/feature
+- Use index files for exports
+- Follow naming conventions
+- Document complex types
+
+Prisma Types:
+- Extend Prisma types for full models
+- Create partial types for forms
+- Define proper relations
+- Use type helpers (Pick, Omit)
+- Example: type FullUser = User & { profile: Profile }
+
+Component Types:
+- Define prop interfaces
+- Use HTMLProps when extending HTML elements
+- Type event handlers properly
+- Handle optional props
+- Example: interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
+
+Schema Types:
+- Use Zod for runtime validation
+- Define schema types in src/schemas
+- Generate TypeScript types from schemas
+- Keep schemas and types in sync
+- Example: const UserSchema = z.object({...})
+
+Best Practices:
+- Prefer interfaces over types
+- Use strict type checking
+- Avoid any and unknown
+- Implement proper generics
+- Use satisfies operator for type validation
+
+Common Patterns:
+- ActionResult<T> for server actions
+- ComponentProps<T> for components
+- RouteParams for dynamic routes
+- RequestBody for API endpoints
+- ResponseData for API responses
