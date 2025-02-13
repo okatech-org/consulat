@@ -6,6 +6,7 @@ import {
   Organization,
   ConsularService,
   UserDocument,
+  UserRole,
 } from '@prisma/client';
 
 export type ResourceType = {
@@ -50,5 +51,3 @@ export type RolesWithPermissions = {
     }>;
   }>;
 };
-
-export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'AGENT' | 'USER';

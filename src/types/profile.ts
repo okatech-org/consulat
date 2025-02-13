@@ -1,7 +1,24 @@
 import { Prisma, UserDocument } from '@prisma/client';
 
+// Base includes pour un profil
+export const BaseProfileInclude = {
+  include: {
+    user: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        image: true,
+      },
+    },
+    organization: true,
+  },
+} as const;
+
+// Includes complet pour un profil avec tous les documents
 export const FullProfileInclude = {
   include: {
+    ...BaseProfileInclude.include,
     passport: true,
     birthCertificate: true,
     residencePermit: true,
@@ -30,13 +47,36 @@ export const FullProfileInclude = {
         },
       },
       orderBy: {
-        createdAt: 'desc' as any,
+        createdAt: 'desc' as const,
       },
     },
   },
-};
+} as const;
 
+// Type pour un profil de base
+export type BaseProfile = Prisma.ProfileGetPayload<typeof BaseProfileInclude>;
+
+// Type pour un profil complet
 export type FullProfile = Prisma.ProfileGetPayload<typeof FullProfileInclude>;
+
+// Fonction helper pour créer un include personnalisé
+export function createProfileInclude<T extends keyof typeof FullProfileInclude.include>(
+  fields: T[]
+) {
+  return {
+    include: Object.fromEntries(
+      fields.map((field) => [field, FullProfileInclude.include[field]])
+    ),
+  } as const;
+}
+
+// Type helper pour un profil avec des includes spécifiques
+export type ProfileWithIncludes<T extends keyof typeof FullProfileInclude.include> = 
+  Prisma.ProfileGetPayload<ReturnType<typeof createProfileInclude<T>>>;
+
+// Exemple d'utilisation:
+// const documentsInclude = createProfileInclude(['passport', 'birthCertificate', 'residencePermit']);
+// type ProfileWithDocuments = ProfileWithIncludes<'passport' | 'birthCertificate' | 'residencePermit'>;
 
 export type FullUser = Prisma.UserGetPayload<{
   include: {

@@ -251,8 +251,8 @@ model Profile {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Add organization relation
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
 
   // Informations personnelles
   firstName              String
@@ -359,8 +359,8 @@ model UserDocument {
   metadata  Json? // Métadonnées additionnelles
 
   // Add organization relation
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
 
   userId String?
   user   User?   @relation("userDocuments", fields: [userId], references: [id])
@@ -501,8 +501,8 @@ model ServiceRequest {
   submittedById String
 
   // Add organization relation
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
 
   chosenProcessingMode ProcessingMode @default(ONLINE_ONLY)
   chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
