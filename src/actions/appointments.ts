@@ -295,10 +295,7 @@ interface GroupedAppointments {
   cancelled: AppointmentWithRelations[];
 }
 
-export async function getUserAppointments({
-  userId,
-  agentId,
-}: {
+export async function getUserAppointments(params: {
   userId?: string;
   agentId?: string;
 }): Promise<{
@@ -309,8 +306,8 @@ export async function getUserAppointments({
   try {
     const appointments = await db.appointment.findMany({
       where: {
-        ...(userId && { attendeeId: userId }),
-        ...(agentId && { agentId: agentId }),
+        ...(params.userId && { attendeeId: params.userId }),
+        ...(params.agentId && { agentId: params.agentId }),
       },
       include: {
         organization: true,
@@ -330,7 +327,7 @@ export async function getUserAppointments({
     const now = new Date();
     const grouped = appointments.reduce(
       (acc, appointment) => {
-        const appointmentDate = new Date(appointment.date);
+        const appointmentDate = new Date(appointment.startTime);
         if (appointment.status === 'CANCELLED') {
           acc.cancelled.push(appointment);
         } else if (appointmentDate < now) {
@@ -428,7 +425,6 @@ export async function completeAppointment(id: string) {
     where: { id },
     data: {
       status: AppointmentStatus.COMPLETED,
-      completedAt: new Date(),
     },
   });
 }
@@ -440,7 +436,6 @@ export async function missAppointment(id: string) {
     where: { id },
     data: {
       status: AppointmentStatus.MISSED,
-      missedAt: new Date(),
     },
   });
 }

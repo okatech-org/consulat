@@ -4106,6 +4106,7 @@
       "loading": "Chargement des créneaux...",
       "attendee_id_required": "Vous devez être connecté pour prendre un rendez-vous"
     },
+    "appointmentWith": "Rendez-vous avec {name}",
     "cancel": {
       "title": "Annuler le rendez-vous",
       "description": "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible."

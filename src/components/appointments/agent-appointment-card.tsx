@@ -1,6 +1,6 @@
 'use client';
 
-import { Appointment, AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
       router.refresh();
     } catch {
       toast({
-        title: t('error.failed'),
+        title: commonT('error.unknown'),
         variant: 'destructive',
       });
     } finally {
@@ -58,7 +58,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
       router.refresh();
     } catch {
       toast({
-        title: t('error.failed'),
+        title: commonT('error.unknown'),
         variant: 'destructive',
       });
     } finally {
@@ -115,20 +115,26 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             {commonT(`status.${getStatusText(appointment.status)}`)}
           </Badge>
           <h3 className="font-semibold">
-            {appointment.request?.service.name ?? t('service.placeholder')}
+            {t('appointmentWith', {
+              name: `${appointment.attendee?.firstName ?? ''} ${appointment.attendee?.lastName ?? 'N/A'}`,
+            })}
           </h3>
-          <p className="text-sm text-muted-foreground">{appointment.organization.name}</p>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="size-4" />
-            <span>
-              {appointment.attendee.firstName} {appointment.attendee.lastName}
-            </span>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            {appointment.request?.service.name ?? t('type.options.OTHER')}
+          </p>
+          {appointment.attendee && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="size-4" />
+              <span>
+                {appointment.attendee.firstName} {appointment.attendee.lastName}
+              </span>
+            </div>
+          )}
         </div>
         <Button variant="ghost" size="icon" asChild className="shrink-0">
           <Link href={`${ROUTES.agent.appointments}/${appointment.id}`}>
             <ExternalLink className="size-4" />
-            <span className="sr-only">{t('actions.view')}</span>
+            <span className="sr-only">{commonT('actions.view')}</span>
           </Link>
         </Button>
       </CardHeader>
@@ -149,9 +155,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline">{t(`type.options.${appointment.type}`)}</Badge>
-          <Badge variant="outline">
-            {t('duration', { duration: appointment.duration })}
-          </Badge>
+          <Badge variant="outline">{appointment.duration} min</Badge>
         </div>
       </CardContent>
       {appointment.status === AppointmentStatus.CONFIRMED && (
@@ -164,7 +168,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             disabled={isLoading}
           >
             <Check className="size-4" />
-            {t('actions.confirm')}
+            {commonT('status.completed')}
           </Button>
           <Button
             variant="outline"
