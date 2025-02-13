@@ -17,7 +17,7 @@ export function RoleGuard({ roles, children, fallback }: Readonly<Props>) {
     return fallback ?? <Unauthorized />;
   }
 
-  if (!roles.includes(user.role)) {
+  if (!roles.some((role) => user.roles.includes(role))) {
     return fallback ?? <Unauthorized />;
   }
 
