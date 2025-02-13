@@ -4213,6 +4213,11 @@
         "failed": "Échec du report",
         "failed_description": "Une erreur est survenue lors du report du rendez-vous"
       }
+    },
+    "error": {
+      "failed": "Une erreur est survenue",
+      "not_found": "Rendez-vous introuvable",
+      "not_found_description": "Le rendez-vous que vous essayez de gérer n'existe pas ou a été supprimé"
     }
   },
   "agent": {

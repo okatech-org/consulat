@@ -422,3 +422,27 @@ export async function getAppointment(id: string) {
     return null;
   }
 }
+
+export async function completeAppointment(id: string) {
+  'use server';
+
+  return db.appointment.update({
+    where: { id },
+    data: {
+      status: AppointmentStatus.COMPLETED,
+      completedAt: new Date(),
+    },
+  });
+}
+
+export async function missAppointment(id: string) {
+  'use server';
+
+  return db.appointment.update({
+    where: { id },
+    data: {
+      status: AppointmentStatus.MISSED,
+      missedAt: new Date(),
+    },
+  });
+}
