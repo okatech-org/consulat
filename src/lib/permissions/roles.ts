@@ -1,6 +1,6 @@
-import { RolesWithPermissions } from './types';
+import { RolesConfig } from './types';
 
-export const ROLES = {
+export const ROLES: RolesConfig = {
   SUPER_ADMIN: {
     profiles: {
       view: true,
@@ -173,4 +173,29 @@ export const ROLES = {
       view: true,
     },
   },
-} as const satisfies RolesWithPermissions;
+  MANAGER: {
+    profiles: {
+      view: (user, profile) => profile.organizationId === user.organizationId,
+      validate: (user, profile) => profile.organizationId === user.organizationId,
+    },
+    appointments: {
+      view: (user, appointment) => appointment.organizationId === user.organizationId,
+      update: (user, appointment) => appointment.organizationId === user.organizationId,
+      reschedule: (user, appointment) =>
+        appointment.organizationId === user.organizationId,
+      cancel: (user, appointment) => appointment.organizationId === user.organizationId,
+    },
+    serviceRequests: {
+      view: (user, request) => request.organizationId === user.organizationId,
+      process: (user, request) => request.organizationId === user.organizationId,
+      validate: (user, request) => request.organizationId === user.organizationId,
+    },
+    documents: {
+      view: (user, doc) => doc.organizationId === user.organizationId,
+      validate: (user, doc) => doc.organizationId === user.organizationId,
+    },
+    users: {
+      view: (user, targetUser) => targetUser.organizationId === user.organizationId,
+    },
+  },
+};

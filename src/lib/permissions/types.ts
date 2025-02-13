@@ -44,10 +44,12 @@ export type PermissionCheck<Key extends keyof ResourceType> =
   | boolean
   | ((user: User, data: ResourceType[Key]['dataType']) => boolean);
 
-export type RolesWithPermissions = {
-  [R in UserRole]: Partial<{
-    [Key in keyof ResourceType]: Partial<{
-      [Action in ResourceType[Key]['action']]: PermissionCheck<Key>;
-    }>;
-  }>;
+export type RolePermissions = {
+  [Key in keyof ResourceType]?: {
+    [Action in ResourceType[Key]['action']]?: PermissionCheck<Key>;
+  };
+};
+
+export type RolesConfig = {
+  [R in UserRole]: RolePermissions;
 };

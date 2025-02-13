@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 import { ROLES } from './roles';
 import { ResourceType } from './types';
 
@@ -8,12 +8,15 @@ export function hasPermission<Resource extends keyof ResourceType>(
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
 ): boolean {
-  const permission = ROLES[user.role]?.[resource]?.[action];
+  // Vérifie si l'un des rôles de l'utilisateur a la permission
+  return user.roles.some((role) => {
+    const permission = ROLES[role]?.[resource]?.[action];
 
-  if (permission == null) return false;
+    if (permission == null) return false;
 
-  if (typeof permission === 'boolean') return permission;
-  return data != null && permission(user, data);
+    if (typeof permission === 'boolean') return permission;
+    return data != null && permission(user, data);
+  });
 }
 
 export function assertPermission<Resource extends keyof ResourceType>(
@@ -47,4 +50,19 @@ export function usePermission<Resource extends keyof ResourceType>(
   data?: ResourceType[Resource]['dataType'],
 ): boolean {
   return hasPermission(user, resource, action, data);
+}
+
+// Nouvelle fonction utilitaire pour vérifier si un utilisateur a un rôle spécifique
+export function hasRole(user: User, role: UserRole): boolean {
+  return user.roles.includes(role);
+}
+
+// Nouvelle fonction utilitaire pour vérifier si un utilisateur a l'un des rôles spécifiés
+export function hasAnyRole(user: User, roles: UserRole[]): boolean {
+  return user.roles.some((role) => roles.includes(role));
+}
+
+// Nouvelle fonction utilitaire pour vérifier si un utilisateur a tous les rôles spécifiés
+export function hasAllRoles(user: User, roles: UserRole[]): boolean {
+  return roles.every((role) => user.roles.includes(role));
 }

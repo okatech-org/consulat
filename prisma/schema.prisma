@@ -55,7 +55,7 @@ model User {
   name      String?
   firstName String?
   lastName  String?
-  role      UserRole @default(USER)
+  roles     UserRole[] @default([USER])
   image     String   @default("https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE")
 
   // Relations

@@ -40,7 +40,7 @@ export const {
     },
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as FullUser).role;
+        token.roles = (user as FullUser).roles;
       }
       return token;
     },
@@ -94,7 +94,7 @@ async function handleAuthorize(credentials: unknown) {
       select: {
         id: true,
         email: true,
-        role: true,
+        roles: true,
         phone: true,
         lastLogin: true,
         organizationId: true,
@@ -110,12 +110,12 @@ async function handleAuthorize(credentials: unknown) {
             : { phone: { create: extractNumber(identifier) } }),
           emailVerified: type === 'EMAIL' ? new Date() : null,
           phoneVerified: type === 'PHONE' ? new Date() : null,
-          role: UserRole.USER, // Rôle par défaut
+          roles: [UserRole.USER], // Rôle par défaut
         },
         select: {
           id: true,
           email: true,
-          role: true,
+          roles: true,
           phone: true,
           lastLogin: true,
           organizationId: true,
@@ -135,7 +135,7 @@ async function handleSession({ session, token }: { session: Session; token: JWT 
   if (token.sub && session.user) {
     const existingUser = await getUserById(token.sub);
     if (existingUser) {
-      session.user.role = existingUser.role;
+      session.user.roles = existingUser.roles;
 
       if (existingUser.name) {
         session.user.name = existingUser.name;
