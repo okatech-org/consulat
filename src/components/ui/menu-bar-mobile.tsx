@@ -65,7 +65,7 @@ export function MenuBarMobile({
           </div>
 
           {/* Chatbot button in the middle */}
-          <div className="absolute size-16 left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 rounded-full border-2 bg-background p-2">
+          <div className="absolute size-16 left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 rounded-full border-2 d p-2">
             <ChatToggle />
             <span className="sr-only">Assistant</span>
           </div>

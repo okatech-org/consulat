@@ -1,6 +1,6 @@
 'use client';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { MessageCircleMore } from 'lucide-react';
+import { MessageCircleQuestion } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChatWindow } from './chat-window';
@@ -13,7 +13,7 @@ export function ChatToggle() {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <button aria-label={t('chat_with_ray')}>
-          <MessageCircleMore className="size-10" />
+          <MessageCircleQuestion className="size-10" />
         </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full max-w-[500px] sm:w-[500px]">

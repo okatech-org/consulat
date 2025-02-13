@@ -93,7 +93,7 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
             <div className="flex items-center gap-2">
               <Badge variant="outline">{t(`type.options.${appointment.type}`)}</Badge>
               <Badge variant="outline">
-                {t('duration', { duration: appointment.duration })}
+                {t('details.duration', { duration: appointment.duration })}
               </Badge>
             </div>
             {appointment.instructions && (
