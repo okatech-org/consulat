@@ -1,7 +1,7 @@
 import { ServerRoleGuard } from '@/lib/permissions/utils';
-import SuperAdminDashboard from './_utils/dashboards/superadmin';
+import SuperAdminDashboard from './_utils/components/superadmin';
 import { getCurrentUser } from '@/actions/user';
-import AgentDashboard from './_utils/dashboards/agent';
+import AgentDashboard from './_utils/components/agent';
 import AdminDashboard from './(admin)/_utils/dashboard';
 import { getTranslations } from 'next-intl/server';
 

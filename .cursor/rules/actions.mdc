@@ -1,6 +1,6 @@
 ---
-description: Server Action Rules
-globs: ["src/actions/**/*"]
+description: 
+globs: 
 ---
 
 # Server Action Rules

@@ -1,4 +1,4 @@
-import DashboardSidebar from '@/app/(authenticated)/dashboard/_utils/dashboard-sidebar';
+import DashboardSidebar from '@/app/(authenticated)/dashboard/_utils/components/dashboard-sidebar';
 
 export default async function SuperAdminLayout({
   children,
