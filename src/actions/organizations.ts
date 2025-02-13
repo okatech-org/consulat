@@ -4,7 +4,11 @@ import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
-import { CreateOrganizationInput, UpdateOrganizationInput } from '@/schemas/organization';
+import {
+  CreateOrganizationInput,
+  OrganizationSettingsFormData,
+  UpdateOrganizationInput,
+} from '@/schemas/organization';
 import { OrganizationStatus, UserRole } from '@prisma/client';
 import {
   Organization,
@@ -12,6 +16,7 @@ import {
   OrganizationListingItem,
 } from '@/types/organization';
 import { AgentFormData } from '@/schemas/user';
+import { processFileData } from './utils';
 
 export async function getOrganizations(): Promise<{
   data?: OrganizationListingItem[];
@@ -249,7 +254,6 @@ export async function createNewAgent(data: AgentFormData) {
       },
     });
 
-    revalidatePath(ROUTES.dashboard.edit_organization(data.organizationId));
     return { data: agent };
   } catch (error) {
     console.error('Failed to create agent:', error);
@@ -335,4 +339,49 @@ export async function getOrganizationByCountry(countryCode: string) {
       },
     },
   });
+}
+
+export async function updateOrganizationSettings(
+  organizationId: string,
+  data: OrganizationSettingsFormData,
+  logoFile?: FormData,
+) {
+  const authResult = await checkAuth([
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+  ]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    let logoUrl = data.logo;
+    if (logoFile) {
+      const uploadResult = await processFileData(logoFile);
+      if (uploadResult?.url) {
+        logoUrl = uploadResult.url;
+      }
+    }
+
+    const { countryIds, metadata, ...rest } = data;
+
+    const organization = await db.organization.update({
+      where: { id: organizationId },
+      data: {
+        ...rest,
+        ...(metadata && { metadata: JSON.stringify(metadata) }),
+        ...(logoUrl && { logo: logoUrl }),
+        ...(countryIds && {
+          countries: {
+            connect: countryIds.map((id) => ({ id })),
+          },
+        }),
+      },
+    });
+
+    revalidatePath(ROUTES.dashboard.settings);
+    return { data: organization };
+  } catch (error) {
+    console.error('Error updating organization settings:', error);
+    return { error: 'Failed to update organization settings' };
+  }
 }

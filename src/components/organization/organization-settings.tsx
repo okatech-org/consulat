@@ -26,17 +26,17 @@ import { Country } from '@/types/country';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Loader2, Trash } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { DaySchedule } from '@/app/(authenticated)/admin/_utils/components/day-schedule';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { updateOrganizationSettings } from '@/components/organization/organization';
 import { DocumentUploadField } from '@/components/ui/document-upload';
 import { filterUneditedKeys, weekDays } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { OrganizationStatus, OrganizationType } from '@prisma/client';
-import { RoleGuard } from '@/components/ui/role-guard';
 import { useTabs } from '@/hooks/use-tabs';
+import { RoleGuard } from '@/lib/permissions/utils';
+import { DaySchedule } from './day-schedule';
+import { updateOrganizationSettings } from '@/actions/organizations';
 
 interface OrganizationSettingsProps {
   organization: Organization;
@@ -54,10 +54,10 @@ export function OrganizationSettings({
   const t_common = useTranslations();
   const t_countries = useTranslations('countries');
   const t_messages = useTranslations('messages');
-  const { handleTabChange, searchParams } = useTabs();
-
-  // Récupérer la valeur de l'onglet depuis l'URL ou utiliser la valeur par défaut
-  const countryTab = searchParams.get('country') ?? organization.countries[0]?.code;
+  const { handleTabChange, currentTab } = useTabs(
+    'country',
+    organization.countries[0]?.code ?? '',
+  );
 
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -221,10 +221,7 @@ export function OrganizationSettings({
           </div>
         </CardContainer>
 
-        <Tabs
-          value={countryTab ?? undefined}
-          onValueChange={(value) => handleTabChange(value, 'country')}
-        >
+        <Tabs value={currentTab} onValueChange={handleTabChange}>
           <TabsList>
             {organization.countries.map((country) => (
               <TabsTrigger key={country.id} value={country.code}>
