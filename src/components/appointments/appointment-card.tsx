@@ -6,6 +6,21 @@ import { useTranslations } from 'next-intl';
 import { DisplayDate } from '@/lib/utils';
 import { AppointmentStatus } from '@prisma/client';
 import { AppointmentWithRelations } from '@/schemas/appointment';
+import { cancelAppointment } from '@/actions/appointments';
+import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/schemas/routes';
+import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface AppointmentCardProps {
   appointment: AppointmentWithRelations;
@@ -14,6 +29,8 @@ interface AppointmentCardProps {
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const t = useTranslations('appointments');
   const t_common = useTranslations('common');
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const getStatusColor = (status: AppointmentStatus) => {
     switch (status) {
@@ -30,6 +47,24 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
       default:
         return 'secondary';
     }
+  };
+
+  const handleCancel = async () => {
+    try {
+      setIsLoading(true);
+      const result = await cancelAppointment(appointment.id);
+      if (result.success) {
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReschedule = () => {
+    router.push(`${ROUTES.user.appointments}/reschedule/${appointment.id}`);
   };
 
   return (
@@ -81,12 +116,35 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
       <CardFooter className="flex justify-end gap-2">
         {appointment.status === 'CONFIRMED' && (
           <>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReschedule}
+              disabled={isLoading}
+            >
               {t('actions.reschedule')}
             </Button>
-            <Button variant="destructive" size="sm">
-              {t('actions.cancel')}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" disabled={isLoading}>
+                  {t('actions.cancel')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('cancel.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('cancel.description')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('actions.back')}</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleCancel}>
+                    {t('actions.confirm')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
       </CardFooter>

@@ -112,6 +112,17 @@ export function NewAppointmentForm({
       const result = await createAppointment(appointment);
 
       if (!result.success) {
+        // Gérer l'erreur de rendez-vous en double
+        if (
+          result.error?.includes('Unique constraint failed on the fields: (`serviceId`)')
+        ) {
+          form.setError('serviceId', {
+            type: 'manual',
+            message: t('validation.duplicate_service'),
+          });
+          setStep('service'); // Retourner à l'étape de sélection du service
+          return;
+        }
         throw new Error(result.error);
       }
 

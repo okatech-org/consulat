@@ -17,6 +17,7 @@ import {
   UserRole,
   ServiceRequest,
   Organization,
+  AppointmentStatus,
 } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 import {
@@ -353,5 +354,71 @@ export async function getUserAppointments(userId: string): Promise<{
   } catch (error) {
     console.error('Failed to fetch user appointments:', error);
     return { success: false, error: 'Failed to fetch appointments' };
+  }
+}
+
+export async function cancelAppointment(appointmentId: string) {
+  try {
+    const appointment = await db.appointment.update({
+      where: { id: appointmentId },
+      data: {
+        status: AppointmentStatus.CANCELLED,
+        cancelledAt: new Date(),
+      },
+    });
+
+    return { success: true, appointment };
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    return { success: false, error: 'Failed to cancel appointment' };
+  }
+}
+
+export async function rescheduleAppointment(
+  appointmentId: string,
+  newDate: Date,
+  newStartTime: Date,
+  newEndTime: Date,
+  newAgentId: string,
+) {
+  try {
+    const appointment = await db.appointment.update({
+      where: { id: appointmentId },
+      data: {
+        date: newDate,
+        startTime: newStartTime,
+        endTime: newEndTime,
+        agentId: newAgentId,
+        status: AppointmentStatus.CONFIRMED,
+        rescheduledFrom: new Date(),
+      },
+    });
+
+    return { success: true, appointment };
+  } catch (error) {
+    console.error('Error rescheduling appointment:', error);
+    return { success: false, error: 'Failed to reschedule appointment' };
+  }
+}
+
+export async function getAppointment(id: string) {
+  try {
+    const appointment = await db.appointment.findUnique({
+      where: { id },
+      include: {
+        organization: true,
+        agent: true,
+        request: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
+
+    return appointment;
+  } catch (error) {
+    console.error('Failed to fetch appointment:', error);
+    return null;
   }
 }
