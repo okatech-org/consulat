@@ -1,0 +1,31 @@
+---
+description: Authentication and Authorization
+globs: 
+---
+NextAuth Setup:
+- Use NextAuth.js v5
+- Implement Prisma adapter
+- Define session types
+- Use JWT strategy
+- Handle custom callbacks
+
+Guards and Protection:
+- Use auth() for server-side checks
+- Implement useSession() for client-side
+- Create proper route guards
+- Check user roles and permissions
+- Handle unauthorized access
+
+User Management:
+- Store user data in Prisma
+- Handle user roles and permissions
+- Implement proper session handling
+- Use proper type safety
+- Follow security best practices
+
+Routes:
+- Protected routes under (authenticated)
+- Public routes under (public)
+- Implement proper middleware checks
+- Handle auth redirects
+- Maintain proper route types

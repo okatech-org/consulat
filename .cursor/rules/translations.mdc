@@ -1,0 +1,31 @@
+---
+description:  Translation Keys Management
+globs: 
+---
+Key Structure:
+- Use nested dot notation (e.g., "feature.section.key")
+- Group by feature or module first
+- Keep hierarchy depth <= 3 levels
+- Use camelCase for key names
+- Avoid dynamic key generation
+
+Common Patterns:
+- actions: "{action}.{state}" (e.g., "submit.success")
+- errors: "{scope}.{type}" (e.g., "form.required")
+- titles: "{feature}.{page}.title"
+- buttons: "{action}.{context}" (e.g., "save.profile")
+- messages: "{type}.{context}" (e.g., "success.update")
+
+Variables:
+- Use {placeholder} syntax for variables
+- Document required variables in comments
+- Keep variable names descriptive
+- Use consistent naming across translations
+- Handle pluralization with {count}
+
+Organization:
+- Split files by major features
+- Keep shared strings in common.json
+- Group validation messages
+- Maintain consistent structure across locales
+- Document complex translation patterns

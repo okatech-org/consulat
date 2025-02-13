@@ -1,0 +1,29 @@
+---
+description: Data Management and State
+globs: 
+---
+Database:
+- Use Prisma as ORM
+- Define models in prisma/schema.prisma
+- Follow database-first approach
+- Implement proper relations and indexes
+
+Server Actions:
+- Place in src/actions directory
+- Name as {model}-{action} (e.g., user-create.action.ts)
+- Implement proper error handling
+- Add type safety with Zod schemas
+- Check permissions using auth guards
+
+Client State:
+- Use Zustand for complex client state
+- Implement React Query for server state
+- Follow optimistic updates pattern
+- Cache invalidation strategies
+- Use proper loading states
+
+Error Handling:
+- Return ActionResult type for all actions
+- Implement proper error boundaries
+- Use toast notifications for user feedback
+- Handle edge cases and validation errors 

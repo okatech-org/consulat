@@ -1,0 +1,26 @@
+---
+description: Component Structure and Patterns
+globs: 
+---
+Components should follow these conventions:
+- Use named exports instead of default exports
+- Place in appropriate directory under src/components
+- Follow kebab-case naming convention
+- Implement as Server Components by default
+- Add 'use client' directive only when needed
+- Use TypeScript interfaces for props
+- Implement proper error boundaries
+- Use Shadcn UI components when possible
+
+UI Components:
+- Base components in src/components/ui
+- Layout components in src/components/layouts
+- Feature components in src/components/{feature-name}
+- Use Radix UI primitives for complex interactions
+- Implement Framer Motion for animations
+
+Forms:
+- Use react-hook-form for form state
+- Implement Zod schemas for validation
+- Place form schemas in src/schemas/{model}.ts
+- Use FormField compound components from shadcn/ui
