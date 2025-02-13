@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { createService } from '../../app/(authenticated)/superadmin/_utils/actions/services';
+import { createService } from '../../app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { NewServiceForm } from '@/components/organization/new-service-form';

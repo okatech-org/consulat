@@ -74,7 +74,7 @@ export async function createOrganization(data: CreateOrganizationInput) {
       });
     }
 
-    revalidatePath(ROUTES.sa.organizations);
+    revalidatePath(ROUTES.dashboard.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to create organization:', error);
@@ -101,7 +101,7 @@ export async function updateOrganization(id: string, data: UpdateOrganizationInp
       },
     });
 
-    revalidatePath(ROUTES.sa.organizations);
+    revalidatePath(ROUTES.dashboard.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to update organization:', error);
@@ -121,7 +121,7 @@ export async function updateOrganizationStatus(id: string, status: OrganizationS
       data: { status },
     });
 
-    revalidatePath(ROUTES.sa.organizations);
+    revalidatePath(ROUTES.dashboard.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to update organization status:', error);
@@ -160,7 +160,7 @@ export async function deleteOrganization(id: string) {
       where: { id },
     });
 
-    revalidatePath(ROUTES.sa.organizations);
+    revalidatePath(ROUTES.dashboard.organizations);
     return { success: true };
   } catch (error) {
     console.error('Error deleting organization:', error);
@@ -249,7 +249,7 @@ export async function createNewAgent(data: AgentFormData) {
       },
     });
 
-    revalidatePath(ROUTES.sa.edit_organization(data.organizationId));
+    revalidatePath(ROUTES.dashboard.edit_organization(data.organizationId));
     return { data: agent };
   } catch (error) {
     console.error('Failed to create agent:', error);
@@ -283,7 +283,7 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
       },
     });
 
-    revalidatePath(ROUTES.sa.organizations);
+    revalidatePath(ROUTES.dashboard.organizations);
     return { data: agent };
   } catch (error) {
     console.error('Failed to update agent:', error);

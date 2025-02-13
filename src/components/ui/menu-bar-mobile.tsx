@@ -73,10 +73,10 @@ export function MenuBarMobile({
           {/* Menu button and additional items on the right */}
           <div className="flex items-center gap-2">
             <Link
-              href={ROUTES.settings}
+              href={ROUTES.dashboard.settings}
               className={cn(
                 'flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 text-sm transition-colors',
-                path === ROUTES.settings
+                path === ROUTES.dashboard.settings
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground',
               )}

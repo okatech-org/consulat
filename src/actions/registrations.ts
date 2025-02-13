@@ -11,20 +11,20 @@ import { FullProfileInclude } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 
-export interface GetRegistrationsOptions  {
+export interface GetRegistrationsOptions {
   search?: string;
   status?: RequestStatus[];
   profileStatus?: RequestStatus[];
   page?: number;
   limit?: number;
-  sortBy?: string ;
+  sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
 
 export interface RegistrationsResult {
   requests: RegistrationListingItem[];
   total: number;
-  filters: GetRegistrationsOptions
+  filters: GetRegistrationsOptions;
 }
 
 export async function getRegistrations(
@@ -36,7 +36,15 @@ export async function getRegistrations(
     throw new Error(authResult.error);
   }
 
-  const { status, profileStatus, search, page = 1, limit = 10, sortBy, sortOrder } = options || {};
+  const {
+    status,
+    profileStatus,
+    search,
+    page = 1,
+    limit = 10,
+    sortBy,
+    sortOrder,
+  } = options || {};
 
   const where: Prisma.ServiceRequestWhereInput = {
     service: {
@@ -85,10 +93,11 @@ export async function getRegistrations(
             [sortBy]: sortOrder || 'desc',
           },
         }),
-        ...(page && limit && {
-          skip: (page - 1) * limit,
-          take: limit,
-        })
+        ...(page &&
+          limit && {
+            skip: (page - 1) * limit,
+            take: limit,
+          }),
       }),
       db.serviceRequest.count({ where }),
     ]);
@@ -98,7 +107,7 @@ export async function getRegistrations(
       total,
       filters: {
         ...options,
-      }
+      },
     };
   } catch (error) {
     console.error('Error fetching registrations:', error);
@@ -165,8 +174,8 @@ export async function validateRegistrationRequest(input: ValidateRequestInput) {
       data: { status: input.status },
     });
 
-    revalidatePath(ROUTES.admin.registrations_review(input.profileId));
-    revalidatePath(ROUTES.admin.registrations);
+    revalidatePath(ROUTES.dashboard.registrations_review(input.profileId));
+    revalidatePath(ROUTES.dashboard.registrations);
 
     return { success: true, data: { updatedProfile, updatedRequest } };
   } catch (error) {

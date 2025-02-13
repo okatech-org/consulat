@@ -1087,6 +1087,10 @@
     }
   },
   "navigation": {
+    "dashboard": {
+      "title": "Tableau de bord",
+      "welcome": "Bienvenue sur le tableau de bord, {name}"
+    },
     "super_admin": {
       "dashboard": "Tableau de bord",
       "countries": "Pays",

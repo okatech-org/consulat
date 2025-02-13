@@ -83,7 +83,7 @@ export function OrganizationsTable({
               component: (
                 <Link
                   onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.sa.edit_organization(row.original.id)}
+                  href={ROUTES.dashboard.edit_organization(row.original.id)}
                 >
                   <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
                 </Link>

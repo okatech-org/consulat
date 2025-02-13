@@ -1,0 +1,30 @@
+import { ServerRoleGuard } from '@/lib/permissions/utils';
+import SuperAdminDashboard from './_utils/dashboards/superadmin';
+import { getCurrentUser } from '@/actions/user';
+import AgentDashboard from './_utils/dashboards/agent';
+import AdminDashboard from './(admin)/_utils/dashboard';
+import { getTranslations } from 'next-intl/server';
+
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  const t = await getTranslations('navigation.dashboard');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('welcome', { name: user?.firstName })}</p>
+      </div>
+
+      <ServerRoleGuard roles={['SUPER_ADMIN']} user={user}>
+        <SuperAdminDashboard />
+      </ServerRoleGuard>
+      <ServerRoleGuard roles={['ADMIN']} user={user}>
+        <AdminDashboard />
+      </ServerRoleGuard>
+      <ServerRoleGuard roles={['AGENT']} user={user}>
+        <AgentDashboard />
+      </ServerRoleGuard>
+    </div>
+  );
+}

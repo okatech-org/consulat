@@ -18,14 +18,16 @@ export function ServerAuthGuard({ children }: BaseLayoutProps) {
 
   useLayoutEffect(() => {
     if (!user) {
-      router.push(`${ROUTES.login}?callbackUrl=${encodeURIComponent(pathname)}`);
+      router.push(`${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`);
     }
 
     if (user) {
       checkUserExist(user.id).then((exist) => {
         if (!exist) {
           logUserOut().then(() => {
-            router.push(`${ROUTES.login}?callbackUrl=${encodeURIComponent(pathname)}`);
+            router.push(
+              `${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`,
+            );
           });
         }
       });

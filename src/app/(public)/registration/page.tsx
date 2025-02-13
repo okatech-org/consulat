@@ -9,7 +9,7 @@ export default async function RegistrationPage() {
   const session = await auth();
   const headersList = await headers();
   const pathname = headersList.get('x-current-path') || '/';
-  const fallbackUrl = `${ROUTES.login}?callbackUrl=${encodeURIComponent(pathname)}`;
+  const fallbackUrl = `${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`;
 
   return (
     <SessionProvider session={session}>

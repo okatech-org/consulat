@@ -15,7 +15,7 @@ export default async function AuthenticatedLayout({
   const dbUser = await getUserById(session?.user?.id);
   const headersList = await headers();
   const pathname = headersList.get('x-current-path') || '/';
-  const fallbackUrl = `${ROUTES.login}?callbackUrl=${encodeURIComponent(pathname)}`;
+  const fallbackUrl = `${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`;
 
   if (!session?.user) {
     redirect(fallbackUrl);

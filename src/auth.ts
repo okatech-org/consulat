@@ -7,12 +7,14 @@ import { getUserById } from '@/lib/user/getters';
 import { FullUser } from '@/types';
 import { validateOTP } from '@/lib/user/otp';
 import { extractNumber } from '@/lib/utils';
-import { UserRole } from '@prisma/client';
+import { Phone, User, UserRole } from '@prisma/client';
 import { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {
-    user: FullUser;
+    user: User & {
+      phone: Phone | null;
+    };
   }
 }
 
@@ -31,8 +33,8 @@ export const {
 } = NextAuth({
   adapter: PrismaAdapter(db),
   pages: {
-    signIn: ROUTES.login,
-    error: ROUTES.auth_error,
+    signIn: ROUTES.auth.login,
+    error: ROUTES.auth.auth_error,
   },
   callbacks: {
     async session({ session, token }) {

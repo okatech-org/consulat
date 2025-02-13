@@ -19,7 +19,7 @@ import { Loader2, Plus, ArrowUp, Trash } from 'lucide-react';
 import { ConsularServiceItem, ServiceStep } from '@/types/consular-service';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { useState } from 'react';
-import { updateService } from '@/app/(authenticated)/superadmin/_utils/actions/services';
+import { updateService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

@@ -46,8 +46,8 @@ export async function updateUserDocument(documentId: string, data: UpdateDocumen
       },
     });
 
-    revalidatePath(ROUTES.profile);
-    revalidatePath(ROUTES.documents);
+    revalidatePath(ROUTES.user.profile);
+    revalidatePath(ROUTES.user.documents);
 
     return { success: true, data: updatedDocument };
   } catch (error) {
@@ -101,8 +101,8 @@ export async function reuploadUserDocument(documentId: string, file: File) {
       },
     });
 
-    revalidatePath(ROUTES.profile);
-    revalidatePath(ROUTES.documents);
+    revalidatePath(ROUTES.user.profile);
+    revalidatePath(ROUTES.user.documents);
 
     return { success: true, data: updatedDocument };
   } catch (error) {
@@ -117,7 +117,7 @@ export async function deleteUserDocument(documentId: string) {
     if (authResult.error || !authResult.user) {
       return { error: authResult.error };
     }
-    
+
     // Vérifier que le document appartient à l'utilisateur
     const document = await db.userDocument.findFirst({
       where: {
@@ -138,8 +138,8 @@ export async function deleteUserDocument(documentId: string) {
       where: { id: documentId },
     });
 
-    revalidatePath(ROUTES.profile);
-    revalidatePath(ROUTES.documents);
+    revalidatePath(ROUTES.user.profile);
+    revalidatePath(ROUTES.user.documents);
 
     return { success: true };
   } catch (error) {
@@ -182,8 +182,8 @@ export async function createUserDocument(
       await connectDocumentToProfile(profileId, document.id, type);
     }
 
-    revalidatePath(ROUTES.profile);
-    revalidatePath(ROUTES.documents);
+    revalidatePath(ROUTES.user.profile);
+    revalidatePath(ROUTES.user.documents);
 
     return { success: true, data: document };
   } catch (error) {

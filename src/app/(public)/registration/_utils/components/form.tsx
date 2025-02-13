@@ -190,7 +190,7 @@ export function RegistrationForm() {
         description: t('submission.success.description'),
       });
 
-      router.push(ROUTES.profile);
+      router.push(ROUTES.user.profile);
     } catch (error) {
       const { title, description } = handleFormError(error, t);
       toast({ title, description, variant: 'destructive' });

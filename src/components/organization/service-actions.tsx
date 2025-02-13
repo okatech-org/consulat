@@ -40,7 +40,7 @@ export function ServiceActions({
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
           <Link
-            href={ROUTES.sa.edit_service(service.id)}
+            href={ROUTES.dashboard.edit_service(service.id)}
             onClick={(event) => {
               event.stopPropagation();
             }}

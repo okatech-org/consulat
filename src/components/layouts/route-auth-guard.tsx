@@ -1,6 +1,6 @@
 import { UserRole } from '@prisma/client';
-import { Unauthorized } from './unauthorized';
 import { redirect } from 'next/navigation';
+import { ROUTES } from '@/schemas/routes';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
@@ -19,7 +19,7 @@ export function RouteAuthGuard({
     if (fallbackUrl) {
       redirect(fallbackUrl);
     } else {
-      return <Unauthorized />;
+      return redirect(ROUTES.auth.login);
     }
   }
 
@@ -27,7 +27,7 @@ export function RouteAuthGuard({
     if (fallbackUrl) {
       redirect(fallbackUrl);
     } else {
-      return <Unauthorized />;
+      return redirect(ROUTES.auth.login);
     }
   }
 

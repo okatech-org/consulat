@@ -12,7 +12,7 @@ import {
   duplicateService,
   updateService,
   updateServiceStatus,
-} from '@/app/(authenticated)/superadmin/_utils/actions/services';
+} from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
@@ -23,7 +23,7 @@ import { ROUTES } from '@/schemas/routes';
 import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react';
 import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { getOrganizationFromId } from '@/app/(authenticated)/superadmin/_utils/services';
+import { getOrganizationFromId } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/services';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { RoleGuard } from '@/components/ui/role-guard';
 
@@ -180,7 +180,7 @@ export function ServicesTable({
                 </RoleGuard>
               ),
               onClick: (row) => {
-                router.push(ROUTES.sa.edit_service(row.id));
+                router.push(ROUTES.dashboard.edit_service(row.id));
               },
             },
             {

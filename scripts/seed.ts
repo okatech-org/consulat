@@ -360,7 +360,7 @@ async function main() {
       prisma.user.create({
         data: {
           id: 'user-berny-itoutou',
-          email: 'itoutouberny+us@gmail.com',
+          email: 'itoutouberny@gmail.com',
           firstName: 'Berny',
           lastName: 'Itoutou',
           roles: [UserRole.USER],
@@ -375,9 +375,8 @@ async function main() {
               birthPlace: 'Paris',
               birthCountry: 'france',
               nationality: 'gabon',
-              organization: { connect: { id: 'organization-ambassade-france' } },
               passportNumber: 'GA123456',
-              email: 'itoutouberny+us@gmail.com',
+              email: 'itoutouberny@gmail.com',
               passportIssueDate: new Date('2020-01-01'),
               passportExpiryDate: new Date('2030-01-01'),
               passportIssueAuthority: 'Ambassade du Gabon',
@@ -431,7 +430,6 @@ async function main() {
                   fileUrl: '/images/avatar-placeholder.png',
                   issuedAt: new Date('2024-01-01'),
                   expiresAt: new Date('2029-01-01'),
-                  organization: { connect: { id: 'organization-ambassade-france' } },
                 },
               },
               passport: {
@@ -441,7 +439,6 @@ async function main() {
                   fileUrl: 'https://example.com/passport.pdf',
                   issuedAt: new Date('2020-01-01'),
                   expiresAt: new Date('2030-01-01'),
-                  organization: { connect: { id: 'organization-ambassade-france' } },
                 },
               },
               birthCertificate: {
@@ -450,7 +447,6 @@ async function main() {
                   status: DocumentStatus.VALIDATED,
                   fileUrl: 'https://example.com/birth-certificate.pdf',
                   issuedAt: new Date('1990-01-01'),
-                  organization: { connect: { id: 'organization-ambassade-france' } },
                 },
               },
               residencePermit: {
@@ -460,7 +456,6 @@ async function main() {
                   fileUrl: 'https://example.com/residence-permit.pdf',
                   issuedAt: new Date('2023-01-01'),
                   expiresAt: new Date('2028-01-01'),
-                  organization: { connect: { id: 'organization-ambassade-france' } },
                 },
               },
               addressProof: {
@@ -470,7 +465,6 @@ async function main() {
                   fileUrl: 'https://example.com/proof-of-address.pdf',
                   issuedAt: new Date('2024-01-01'),
                   expiresAt: new Date('2025-01-01'),
-                  organization: { connect: { id: 'organization-ambassade-france' } },
                 },
               },
             },
@@ -537,13 +531,11 @@ async function main() {
                 type: DocumentType.PASSPORT,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/passport.pdf',
-                organization: { connect: { id: 'organization-ambassade-france' } },
               },
               {
                 type: DocumentType.IDENTITY_PHOTO,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/photo.jpg',
-                organization: { connect: { id: 'organization-ambassade-france' } },
               },
             ],
           },
@@ -567,7 +559,6 @@ async function main() {
                 type: DocumentType.PROOF_OF_ADDRESS,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/proof.pdf',
-                organization: { connect: { id: 'organization-ambassade-france' } },
               },
             ],
           },

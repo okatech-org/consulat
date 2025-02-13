@@ -7,8 +7,9 @@ import Anthropic from '@anthropic-ai/sdk';
 import { pdfToImages } from '@/actions/convert';
 import { getCurrentUser } from '@/actions/user';
 import { db } from '@/lib/prisma';
-import { UserDocument } from '@prisma/client';
+import { DocumentStatus, UserDocument } from '@prisma/client';
 import { AppUserDocument } from '@/types';
+import { checkAuth } from '@/lib/auth/action';
 
 // Types
 interface DocumentAnalysisResult {
@@ -396,4 +397,39 @@ export async function getUserProfileDocuments(userId: string) {
   ];
 
   return documents.filter(Boolean) as UserDocument[];
+}
+
+interface ValidateDocumentInput {
+  documentId: string;
+  status: DocumentStatus;
+  notes?: string;
+}
+
+export async function validateDocument(input: ValidateDocumentInput) {
+  try {
+    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+    if (authResult.error || !authResult.user) {
+      return { error: authResult.error };
+    }
+
+    const document = await db.userDocument.update({
+      where: { id: input.documentId },
+      data: {
+        status: input.status,
+        metadata: {
+          ...(input.notes && { validationNotes: input.notes }),
+          validatedBy: authResult.user.id,
+          validatedAt: new Date().toISOString(),
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return { success: true, data: document };
+  } catch (error) {
+    console.error('Error validating document:', error);
+    return { error: 'Failed to validate document' };
+  }
 }

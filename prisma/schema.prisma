@@ -250,10 +250,6 @@ model Profile {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Add organization relation
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  organizationId String?
-
   // Informations personnelles
   firstName              String
   lastName               String
@@ -358,10 +354,6 @@ model UserDocument {
   expiresAt DateTime?
   metadata  Json? // Métadonnées additionnelles
 
-  // Add organization relation
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  organizationId String?
-
   userId String?
   user   User?   @relation("userDocuments", fields: [userId], references: [id])
 
@@ -456,8 +448,8 @@ model ConsularService {
   metadata  Json? // Données additionnelles flexibles
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Country   Country? @relation(fields: [countryId], references: [id])
-  countryId String?
+  Country   Country? @relation(fields: [countryCode], references: [code])
+  countryCode String?
 }
 
 model ServiceStep {
@@ -727,9 +719,6 @@ model Organization {
 
   agents    User[]          @relation("OrganizationAgents")
 
-  // Add missing relations
-  profiles Profile[]
-  documents UserDocument[]
   serviceRequests ServiceRequest[]
 
   @@map("organizations")

@@ -60,7 +60,7 @@ export async function updateOrganizationSettings(
       },
     });
 
-    revalidatePath(ROUTES.manager.settings);
+    revalidatePath(ROUTES.dashboard.settings);
     return { data: organization };
   } catch (error) {
     console.error('Error updating organization settings:', error);

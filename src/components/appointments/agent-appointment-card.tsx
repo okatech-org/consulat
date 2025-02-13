@@ -132,7 +132,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
           )}
         </div>
         <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link href={`${ROUTES.agent.appointments}/${appointment.id}`}>
+          <Link href={`${ROUTES.dashboard.appointments}/${appointment.id}`}>
             <ExternalLink className="size-4" />
             <span className="sr-only">{commonT('actions.view')}</span>
           </Link>
