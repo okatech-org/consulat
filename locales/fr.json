@@ -1134,7 +1134,15 @@
     "consular_card_request": "Demande de carte consulaire",
     "feedback": "Feedback",
     "assistance": "Assistance",
-    "tasks": "Tâches"
+    "tasks": "Tâches",
+    "agent": {
+      "dashboard": "Tableau de bord",
+      "appointments": "Rendez-vous",
+      "requests": "Demandes",
+      "users": "Utilisateurs",
+      "messages": "Messages",
+      "notifications": "Notifications"
+    }
   },
   "home": {
     "consulat": "Consulat",
@@ -4204,6 +4212,20 @@
         "not_found_description": "Le rendez-vous que vous essayez de reporter n'existe pas ou a été supprimé",
         "failed": "Échec du report",
         "failed_description": "Une erreur est survenue lors du report du rendez-vous"
+      }
+    }
+  },
+  "agent": {
+    "dashboard": {
+      "title": "Tableau de bord",
+      "welcome": "Bienvenue, {name}",
+      "stats": {
+        "appointments": "Rendez-vous",
+        "appointments_description": "Rendez-vous à venir aujourd'hui",
+        "requests": "Demandes",
+        "requests_description": "Demandes en attente de traitement",
+        "users": "Utilisateurs",
+        "users_description": "Utilisateurs actifs"
       }
     }
   }

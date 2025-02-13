@@ -83,6 +83,13 @@ export const ROUTES = {
   consular_registration: '/consular-components' as Route<string>,
   privacy_policy: '#' as Route<string>,
   terms: '#' as Route<string>,
+
+  agent: {
+    base: '/agent',
+    appointments: '/agent/appointments',
+    requests: '/agent/requests',
+    users: '/agent/users',
+  },
 } as const;
 
 export type PageRoute = (typeof ROUTES)[keyof typeof ROUTES];
