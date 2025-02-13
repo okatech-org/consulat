@@ -1,48 +1,15 @@
 'use client';
 
-import { Appointment } from '@prisma/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslations } from 'next-intl';
 import { AgentAppointmentsList } from './agent-appointments-list';
 import { useTabs } from '@/hooks/use-tabs';
+import { AppointmentWithRelations } from '@/schemas/appointment';
 
 interface AgentAppointmentsTabsProps {
-  upcoming: Array<
-    Appointment & {
-      organization: {
-        name: string;
-      };
-      request: {
-        service: {
-          name: string;
-        };
-      } | null;
-    }
-  >;
-  past: Array<
-    Appointment & {
-      organization: {
-        name: string;
-      };
-      request: {
-        service: {
-          name: string;
-        };
-      } | null;
-    }
-  >;
-  cancelled: Array<
-    Appointment & {
-      organization: {
-        name: string;
-      };
-      request: {
-        service: {
-          name: string;
-        };
-      } | null;
-    }
-  >;
+  upcoming: AppointmentWithRelations[];
+  past: AppointmentWithRelations[];
+  cancelled: AppointmentWithRelations[];
 }
 
 export function AgentAppointmentsTabs({

@@ -8,17 +8,7 @@ import {
   OrganizationMetadataHoliday,
   WeekDay,
 } from '@/schemas/organization';
-import {
-  Appointment,
-  OrgaServiceRequest,
-  nization,
-  ServiceCategory,
-  User,
-  UserRole,
-  ServiceRequest,
-  Organization,
-  AppointmentStatus,
-} from '@prisma/client';
+import { ServiceCategory, UserRole, AppointmentStatus } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 import {
   AppointmentInput,
@@ -305,7 +295,13 @@ interface GroupedAppointments {
   cancelled: AppointmentWithRelations[];
 }
 
-export async function getUserAppointments(userId: string): Promise<{
+export async function getUserAppointments({
+  userId,
+  agentId,
+}: {
+  userId?: string;
+  agentId?: string;
+}): Promise<{
   success: boolean;
   data?: GroupedAppointments;
   error?: string;
@@ -313,7 +309,8 @@ export async function getUserAppointments(userId: string): Promise<{
   try {
     const appointments = await db.appointment.findMany({
       where: {
-        attendeeId: userId,
+        ...(userId && { attendeeId: userId }),
+        ...(agentId && { agentId: agentId }),
       },
       include: {
         organization: true,
@@ -413,6 +410,7 @@ export async function getAppointment(id: string) {
             service: true,
           },
         },
+        attendee: true,
       },
     });
 

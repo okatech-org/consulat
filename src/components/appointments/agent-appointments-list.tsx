@@ -1,19 +1,8 @@
-import { Appointment } from '@prisma/client';
 import { AgentAppointmentCard } from './agent-appointment-card';
+import { AppointmentWithRelations } from '@/schemas/appointment';
 
 interface AgentAppointmentsListProps {
-  appointments: Array<
-    Appointment & {
-      organization: {
-        name: string;
-      };
-      request: {
-        service: {
-          name: string;
-        };
-      } | null;
-    }
-  >;
+  appointments: AppointmentWithRelations[];
   emptyMessage: string;
 }
 

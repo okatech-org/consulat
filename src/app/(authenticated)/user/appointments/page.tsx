@@ -11,7 +11,7 @@ export default async function UserAppointmentsPage() {
     return undefined;
   }
 
-  const { error, data } = await getUserAppointments(user?.id ?? '');
+  const { error, data } = await getUserAppointments({ userId: user.id });
 
   if (error) {
     return <ErrorCard title="Erreur lors de la récupération des rendez-vous" />;

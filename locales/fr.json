@@ -4218,6 +4218,15 @@
       "failed": "Une erreur est survenue",
       "not_found": "Rendez-vous introuvable",
       "not_found_description": "Le rendez-vous que vous essayez de gérer n'existe pas ou a été supprimé"
+    },
+    "details": {
+      "title": "Détails du rendez-vous",
+      "subtitle": "Rendez-vous #{id}",
+      "service": "Service",
+      "attendee": "Personne",
+      "datetime": "Date et heure",
+      "location": "Lieu",
+      "duration": "{duration} minutes"
     }
   },
   "agent": {
