@@ -3,6 +3,7 @@ import {
   RequestStatus,
   ServicePriority,
   RequestActionType,
+  ServiceCategory,
 } from '@prisma/client';
 
 // Base includes pour une demande de service
@@ -149,7 +150,7 @@ export interface ServiceRequestFilters {
   search?: string;
   status?: RequestStatus[];
   priority?: ServicePriority[];
-  category?: string[];
+  category?: ServiceCategory[];
   assignedToId?: string;
   organizationId?: string;
   startDate?: Date;
