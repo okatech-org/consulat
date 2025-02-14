@@ -51,7 +51,6 @@ model User {
   email     String?  @unique
   phone     Phone?   @relation(fields: [phoneId], references: [id])
   phoneId   String?  @unique
-  password  String? // Hashed password if needed
   name      String?
   firstName String?
   lastName  String?
@@ -61,8 +60,7 @@ model User {
   // Relations
   profile Profile?
 
-  // agent fields
-  serviceCategories ServiceCategory[] @default([])
+  
   linkedCountries   Country[]         @relation("managedCountries")
   // Auth related
   emailVerified     DateTime?
@@ -71,28 +69,36 @@ model User {
   sessions          Session[]
   lastLogin         DateTime?
   messages          Message[]
-
-  submittedRequests ServiceRequest[]
-
-  documents UserDocument[] @relation("userDocuments")
+  country   Country? @relation(fields: [countryCode], references: [code])
+  countryCode String?
 
   managedOrganization Organization? @relation(fields: [organizationId], references: [id])
   organizationId String? @unique
 
-  // New relations
-  authoredNotes ProfileNote[]  @relation("NoteAuthor")
+  // user fields
   notifications Notification[]
+  submittedRequests ServiceRequest[]
+  documents UserDocument[] @relation("userDocuments")
+
+  appointmentsToAttend        Appointment[] @relation("AppointmentAttendee")
+
+  // agent fields
+  assignedOrganization Organization? @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
+  assignedOrganizationId String?
+  authoredNotes ProfileNote[]  @relation("NoteAuthor")
+  assignedRequests ServiceRequest[] @relation("AssignedRequests")
+  assignedAppointments Appointment[] @relation("AppointmentAgent")
+  requestActions   RequestAction[]
+  maxActiveRequests Int? // Nombre maximum de demandes actives
+  specializations  ServiceCategory[] // Spécialisations de l'agent
+  availability     Json? // Configuration de disponibilité
+  completedRequests Int @default(0)
+  averageProcessingTime Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  country   Country? @relation(fields: [countryCode], references: [code])
-  countryCode String?
-
-  managedAppointments Appointment[] @relation("AppointmentAgent")
-  appointments        Appointment[] @relation("AppointmentAttendee")
-
-  agentOrganization Organization? @relation("OrganizationAgents", fields: [agentOrganizationId], references: [id])
-  agentOrganizationId String?
+  @@index([roles])
+  @@index([organizationId])
 }
 
 enum UserRole {
@@ -182,19 +188,18 @@ enum DocumentStatus {
 }
 
 enum RequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CANCELLED
-  INCOMPLETE
-  IN_PROGRESS
-  COMPLETED
-  VALID
   DRAFT
   SUBMITTED
+  ASSIGNED
   IN_REVIEW
   ADDITIONAL_INFO_NEEDED
-  VALIDATED
+  PENDING_APPOINTMENT
+  PENDING_PAYMENT
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+  EXPIRED
 }
 
 enum DocumentType {
@@ -519,12 +524,36 @@ model ServiceRequest {
   submittedAt DateTime?
   completedAt DateTime?
 
+  // Ajout de champs pour le suivi et l'assignation
+  assignedToId String? // Agent assigné
+  assignedTo   User?   @relation("AssignedRequests", fields: [assignedToId], references: [id])
+  assignedAt   DateTime? // Date d'assignation
+  
+  // Amélioration du suivi des étapes
+  currentStep  Int @default(1) // Étape actuelle du processus
+  stepsData    Json? // Données pour chaque étape complétée
+  
+  // Champs pour la gestion des délais
+  deadline     DateTime? // Date limite de traitement
+  estimatedCompletionDate DateTime? // Date estimée de finalisation
+  
+  // Amélioration du suivi des interactions
+  lastActionAt DateTime? // Dernière action sur la demande
+  lastActionBy String? // ID de l'utilisateur ayant effectué la dernière action
+
+  // Add this relation
+  actions RequestAction[]
+
   // Métadonnées
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([submittedById])
   @@index([serviceId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([lastActionAt])
+  @@index([deadline])
 }
 
 // Modèle pour les rendez-vous
@@ -617,6 +646,16 @@ enum NotificationType {
   PROFILE_REJECTED
   DOCUMENT_VALIDATED
   DOCUMENT_REJECTED
+  REQUEST_SUBMITTED
+  REQUEST_ASSIGNED
+  REQUEST_COMPLETED
+  REQUEST_CANCELLED
+  REQUEST_EXPIRED
+  REQUEST_REJECTED
+  REQUEST_APPROVED
+  REQUEST_ADDITIONAL_INFO_NEEDED
+  REQUEST_PENDING_APPOINTMENT
+  REQUEST_PENDING_PAYMENT
 }
 
 enum NotificationStatus {
@@ -722,4 +761,32 @@ model Organization {
   serviceRequests ServiceRequest[]
 
   @@map("organizations")
+}
+
+// Ajout d'un enum pour le type d'action
+enum RequestActionType {
+  ASSIGNMENT
+  STATUS_CHANGE
+  NOTE_ADDED
+  DOCUMENT_ADDED
+  DOCUMENT_VALIDATED
+  APPOINTMENT_SCHEDULED
+  PAYMENT_RECEIVED
+  COMPLETED
+}
+
+// Nouveau modèle pour l'historique des actions
+model RequestAction {
+  id        String           @id @default(cuid())
+  type      RequestActionType
+  requestId String
+  request   ServiceRequest   @relation(fields: [requestId], references: [id])
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  data      Json? // Données spécifiques à l'action
+  createdAt DateTime        @default(now())
+
+  @@index([requestId])
+  @@index([userId])
+  @@index([createdAt])
 }
