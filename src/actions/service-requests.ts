@@ -8,7 +8,6 @@ import {
   ServiceRequestFilters,
   PaginatedServiceRequests,
   FullServiceRequestInclude,
-  ServiceRequestAction,
   ServiceRequestStats,
 } from '@/types/service-request';
 import {
@@ -223,7 +222,7 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
       priorityStats,
       completedToday,
       pendingUrgent,
-      avgProcessingTime,
+      agentsStats,
     ] = await Promise.all([
       db.serviceRequest.count(),
       db.serviceRequest.groupBy({
@@ -254,12 +253,14 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
           },
         },
       }),
-      db.serviceRequest.aggregate({
+      // Get average processing time from agents
+      db.user.aggregate({
+        where: {
+          roles: { has: UserRole.AGENT },
+          averageProcessingTime: { not: null },
+        },
         _avg: {
           averageProcessingTime: true,
-        },
-        where: {
-          status: RequestStatus.COMPLETED,
         },
       }),
     ]);
@@ -272,7 +273,7 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
       byPriority: Object.fromEntries(
         priorityStats.map((stat) => [stat.priority, stat._count]),
       ) as Record<ServicePriority, number>,
-      averageProcessingTime: avgProcessingTime._avg?.averageProcessingTime ?? 0,
+      averageProcessingTime: agentsStats._avg?.averageProcessingTime ?? 0,
       completedToday,
       pendingUrgent,
     };
