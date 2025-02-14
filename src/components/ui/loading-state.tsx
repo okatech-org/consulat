@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
-import { Icons } from './icons';
+import { LoaderIcon } from 'lucide-react';
 
 interface LoadingStateProps extends React.HTMLAttributes<HTMLDivElement> {
   text?: string;
@@ -23,7 +23,7 @@ export function LoadingState({
       className={cn('flex items-center gap-2', centered && 'justify-center', className)}
       {...props}
     >
-      <Icons.Spinner
+      <LoaderIcon
         className={cn(
           'animate-spin',
           size === 'sm' && 'h-4 w-4',

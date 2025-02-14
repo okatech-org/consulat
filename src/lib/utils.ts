@@ -110,8 +110,7 @@ export function checkFileType(files: FileList | File[] | undefined, types: strin
 }
 
 export const APP_NAME = 'Consulat';
-export const APP_DEFAULT_TITLE =
-  'Contact.ga - Développez votre réseau en toute simplicité !';
+export const APP_DEFAULT_TITLE = 'Consulat - Les services consulaires à votre portée';
 export const APP_TITLE_TEMPLATE = '%s - Consulat';
 export const APP_DESCRIPTION =
   "Consulat vous permet de partager vos informations de contact simplement et sans contact par QR Code, en NFC ou en lien direct. Vous pouvez aussi acceder à un vaste réseau de professionnels et d'entreprises gabonais.";

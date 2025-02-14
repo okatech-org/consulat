@@ -11,7 +11,7 @@ import {
 import { useTransition } from 'react';
 import { Locale } from '@/i18n/config';
 import { setUserLocale } from '@/i18n/locale';
-import { Icons } from '@/components/ui/icons';
+import { LoaderIcon } from 'lucide-react';
 
 type LanguageSwitcherProps = Readonly<{
   defaultValue: string;
@@ -35,7 +35,7 @@ export default function LanguageSwitcher({
     <Select value={defaultValue} onValueChange={onChange}>
       <SelectTrigger disabled={isPending} className="w-max max-w-[150px] gap-2">
         <SelectValue placeholder={label} />
-        {isPending && <Icons.Spinner className="size-6 animate-spin" />}
+        {isPending && <LoaderIcon className="size-6 animate-spin" />}
       </SelectTrigger>
       <SelectContent>
         {languages.map((lang) => (

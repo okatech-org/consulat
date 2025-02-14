@@ -4,9 +4,8 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { logUserOut } from '@/actions/auth';
 import * as React from 'react';
-import { LogOutIcon } from 'lucide-react';
+import { LogOutIcon, LoaderIcon } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { Icons } from './icons';
 import { useRouter } from 'next/navigation';
 
 type LogoutButtonProps = {
@@ -38,7 +37,7 @@ export function LogoutButton({ customClass }: LogoutButtonProps) {
       disabled={isPending}
     >
       {isPending ? (
-        <Icons.Spinner className="mr-2 size-4 animate-spin" />
+        <LoaderIcon className="mr-2 size-4 animate-spin" />
       ) : (
         <LogOutIcon className={'size-4'} />
       )}

@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Circle,
   HelpCircle,
+  LoaderIcon,
   XCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -26,7 +27,6 @@ import {
   ProfileSuggestion,
   useProfileSuggestions,
 } from '@/hooks/use-profile-suggestions';
-import { Icons } from '@/components/ui/icons';
 import { User } from '@prisma/client';
 
 export function ProfileCompletionAssistant({
@@ -75,7 +75,7 @@ export function ProfileCompletionAssistant({
           <CollapsibleContent className="space-y-4">
             {isLoading ? (
               <div className="flex items-center justify-center py-4">
-                <Icons.Spinner className="size-6 animate-spin" />
+                <LoaderIcon className="size-6 animate-spin" />
               </div>
             ) : error ? (
               <div className="flex items-center gap-2 text-sm text-destructive">
