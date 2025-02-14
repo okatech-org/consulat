@@ -1,4 +1,9 @@
-import { Prisma } from '@prisma/client';
+import {
+  Prisma,
+  RequestStatus,
+  ServicePriority,
+  RequestActionType,
+} from '@prisma/client';
 
 // Base includes pour une demande de service
 export const BaseServiceRequestInclude = {
@@ -11,8 +16,22 @@ export const BaseServiceRequestInclude = {
         image: true,
       },
     },
-    service: true,
-    organization: true,
+    service: {
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        requiredDocuments: true,
+        optionalDocuments: true,
+      },
+    },
+    organization: {
+      select: {
+        id: true,
+        name: true,
+        type: true,
+      },
+    },
   },
 } as const;
 
@@ -20,7 +39,31 @@ export const BaseServiceRequestInclude = {
 export const FullServiceRequestInclude = {
   include: {
     ...BaseServiceRequestInclude.include,
+    assignedTo: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        image: true,
+        serviceCategories: true,
+        linkedCountries: {
+          select: {
+            code: true,
+            name: true,
+          },
+        },
+      },
+    },
     documents: {
+      include: {
+        validatedBy: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc' as const,
       },
@@ -37,6 +80,7 @@ export const FullServiceRequestInclude = {
             id: true,
             name: true,
             image: true,
+            roles: true,
           },
         },
       },
@@ -53,6 +97,21 @@ export const FullServiceRequestInclude = {
             image: true,
           },
         },
+      },
+    },
+    actions: {
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            roles: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc' as const,
       },
     },
   },
@@ -79,11 +138,46 @@ export function createServiceRequestInclude<
   } as const;
 }
 
-// Type helper pour une demande de service avec des includes spécifiques
+// Type helper pour une demande avec des includes spécifiques
 export type ServiceRequestWithIncludes<
   T extends keyof typeof FullServiceRequestInclude.include,
 > = Prisma.ServiceRequestGetPayload<ReturnType<typeof createServiceRequestInclude<T>>>;
 
-// Exemple d'utilisation:
-// const documentsInclude = createServiceRequestInclude(['documents', 'messages']);
-// type ServiceRequestWithDocuments = ServiceRequestWithIncludes<'documents' | 'messages'>;
+// Types pour les filtres de recherche
+export interface ServiceRequestFilters {
+  search?: string;
+  status?: RequestStatus[];
+  priority?: ServicePriority[];
+  category?: string[];
+  assignedToId?: string;
+  organizationId?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+// Type pour les résultats de recherche paginés
+export interface PaginatedServiceRequests {
+  items: FullServiceRequest[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
+// Type pour les actions sur les demandes
+export interface ServiceRequestAction {
+  type: RequestActionType;
+  requestId: string;
+  userId: string;
+  data?: Record<string, unknown>;
+}
+
+// Type pour les statistiques des demandes
+export interface ServiceRequestStats {
+  total: number;
+  byStatus: Record<RequestStatus, number>;
+  byPriority: Record<ServicePriority, number>;
+  averageProcessingTime: number;
+  completedToday: number;
+  pendingUrgent: number;
+}
