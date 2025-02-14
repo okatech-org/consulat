@@ -1,6 +1,6 @@
 ---
 description: TypeScript Types and Type Safety
-globs: 
+globs: src/types/**/*.ts, src/schemas/**/*.ts
 ---
 Type Organization:
 - Place shared types in src/types
@@ -42,4 +42,4 @@ Common Patterns:
 - ComponentProps<T> for components
 - RouteParams for dynamic routes
 - RequestBody for API endpoints
-- ResponseData for API responses
+- ResponseData for API responses 

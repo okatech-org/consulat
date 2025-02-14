@@ -1,6 +1,6 @@
 ---
-description:  Translation Keys Management
-globs: 
+description: Translation Keys Management
+globs: src/i18n/**/*.json
 ---
 Key Structure:
 - Use nested dot notation (e.g., "feature.section.key")
@@ -28,4 +28,4 @@ Organization:
 - Keep shared strings in common.json
 - Group validation messages
 - Maintain consistent structure across locales
-- Document complex translation patterns
+- Document complex translation patterns 
