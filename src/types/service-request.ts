@@ -59,13 +59,14 @@ export const FullServiceRequestInclude = {
         validatedBy: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
           },
         },
       },
       orderBy: {
-        createdAt: 'desc' as const,
+        createdAt: 'desc' as Prisma.SortOrder,
       },
     },
     notes: {

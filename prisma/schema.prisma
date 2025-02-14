@@ -79,6 +79,7 @@ model User {
   notifications Notification[]
   submittedRequests ServiceRequest[]
   documents UserDocument[] @relation("userDocuments")
+  validatedDocuments UserDocument[] @relation("validatedDocuments")
 
   appointmentsToAttend        Appointment[] @relation("AppointmentAttendee")
 
@@ -364,6 +365,8 @@ model UserDocument {
 
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?
+  validatedBy      User?          @relation("validatedDocuments", fields: [validatedById], references: [id])
+  validatedById    String? @unique
 
   // Relations inverses spécifiques
   passportProfile         Profile? @relation("passport")
@@ -371,6 +374,12 @@ model UserDocument {
   residencePermitProfile  Profile? @relation("residencePermit")
   addressProofProfile     Profile? @relation("addressProof")
   identityPictureProfile  Profile? @relation("identityPicture")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceRequestId])
 }
 
 model Message {
