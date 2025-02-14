@@ -1,0 +1,56 @@
+---
+description: UI/UX Design System and Responsive Patterns
+globs: 
+---
+Mobile First:
+- Start with mobile layout
+- Use min-width media queries
+- Follow Tailwind breakpoints:
+  * sm: 640px
+  * md: 768px
+  * lg: 1024px
+  * xl: 1280px
+  * 2xl: 1536px
+- Test on real devices
+
+Layout Patterns:
+- Use flex and grid layouts
+- Implement proper spacing
+- Handle safe areas
+- Consider keyboard overlays
+- Example: className="flex flex-col md:flex-row gap-4"
+
+Component Adaptation:
+- Hide/show elements responsively
+- Adapt navigation for mobile
+- Use proper touch targets (min 44px)
+- Handle hover vs touch
+- Example: className="hidden md:block"
+
+User Experience:
+- Implement loading states
+- Show proper feedback
+- Handle offline states
+- Use proper animations
+- Support reduced motion
+
+Accessibility:
+- Follow WCAG guidelines
+- Use proper ARIA labels
+- Implement keyboard navigation
+- Support screen readers
+- Test with assistive tech
+
+Interactive Elements:
+- Clear focus states
+- Proper hover effects
+- Touch feedback on mobile
+- Loading indicators
+- Error states
+
+Performance:
+- Lazy load images
+- Optimize animations
+- Reduce layout shifts
+- Handle font loading
+- Monitor Core Web Vitals

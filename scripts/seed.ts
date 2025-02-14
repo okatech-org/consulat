@@ -85,6 +85,69 @@ async function main() {
           }),
         },
       }),
+      prisma.country.create({
+        data: {
+          id: 'country-canada',
+          name: 'Canada',
+          code: 'CA',
+          flag: 'https://flagcdn.com/ca.svg',
+          status: 'ACTIVE',
+          metadata: JSON.stringify({
+            currency: {
+              code: 'CAD',
+              symbol: '$',
+              format: '#,##0.00',
+              symbolPosition: 'before',
+            },
+            language: { defaultLocale: 'en', locales: ['en', 'fr'] },
+            dateFormat: 'MM/DD/YYYY',
+            timeFormat: '12h',
+            timeZone: 'America/Toronto',
+          }),
+        },
+      }),
+      prisma.country.create({
+        data: {
+          id: 'country-usa',
+          name: 'États-Unis',
+          code: 'US',
+          flag: 'https://flagcdn.com/us.svg',
+          status: 'ACTIVE',
+          metadata: JSON.stringify({
+            currency: {
+              code: 'USD',
+              symbol: '$',
+              format: '#,##0.00',
+              symbolPosition: 'before',
+            },
+            language: { defaultLocale: 'en', locales: ['en', 'es'] },
+            dateFormat: 'MM/DD/YYYY',
+            timeFormat: '12h',
+            timeZone: 'America/New_York',
+          }),
+        },
+      }),
+      prisma.country.create({
+        data: {
+          id: 'country-uk',
+          name: 'Royaume-Uni',
+          code: 'GB',
+          flag: 'https://flagcdn.com/gb.svg',
+          status: 'ACTIVE',
+          metadata: JSON.stringify({
+            currency: {
+              code: 'GBP',
+              symbol: '£',
+              format: '#,##0.00',
+              symbolPosition: 'before',
+            },
+            language: { defaultLocale: 'en', locales: ['en'] },
+            dateFormat: 'DD/MM/YYYY',
+            timeFormat: '24h',
+            timeZone: 'Europe/London',
+          }),
+        },
+      }),
     ]);
 
     // Créer les organisations
@@ -217,6 +280,153 @@ async function main() {
           }),
         },
       }),
+      prisma.organization.create({
+        data: {
+          id: 'organization-ambassade-canada',
+          name: 'Ambassade du Gabon au Canada',
+          type: OrganizationType.EMBASSY,
+          status: OrganizationStatus.ACTIVE,
+          countries: { connect: [{ code: 'CA' }] },
+          metadata: JSON.stringify({
+            FR: {
+              settings: {
+                logo: 'https://example.com/logo-canada.png',
+                contact: {
+                  address: {
+                    firstLine: '4 Range Road',
+                    city: 'Ottawa',
+                    zipCode: 'K1N 8J5',
+                    country: 'canada',
+                  },
+                  phone: '+16137891234',
+                  email: 'contact@ambagabon-ca.org',
+                  website: 'https://ambagabon-ca.org',
+                },
+                schedule: {
+                  monday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  friday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                },
+                holidays: [
+                  {
+                    date: '2024-01-01',
+                    name: "Jour de l'an",
+                  },
+                ],
+              },
+            },
+          }),
+          appointmentSettings: JSON.stringify({
+            quotas: {
+              DOCUMENT_SUBMISSION: 8,
+              DOCUMENT_COLLECTION: 10,
+              INTERVIEW: 4,
+              MARRIAGE_CEREMONY: 1,
+              EMERGENCY: 2,
+            },
+          }),
+        },
+      }),
+      prisma.organization.create({
+        data: {
+          id: 'organization-ambassade-usa',
+          name: 'Ambassade du Gabon aux États-Unis',
+          type: OrganizationType.EMBASSY,
+          status: OrganizationStatus.ACTIVE,
+          countries: { connect: [{ code: 'US' }] },
+          metadata: JSON.stringify({
+            FR: {
+              settings: {
+                logo: 'https://example.com/logo-usa.png',
+                contact: {
+                  address: {
+                    firstLine: '2034 20th Street NW',
+                    city: 'Washington',
+                    zipCode: '20009',
+                    country: 'usa',
+                  },
+                  phone: '+12023324567',
+                  email: 'contact@ambagabon-us.org',
+                  website: 'https://ambagabon-us.org',
+                },
+                schedule: {
+                  monday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '17:00' }] },
+                  friday: { isOpen: true, slots: [{ start: '09:00', end: '15:00' }] },
+                },
+                holidays: [
+                  {
+                    date: '2024-01-01',
+                    name: "Jour de l'an",
+                  },
+                ],
+              },
+            },
+          }),
+          appointmentSettings: JSON.stringify({
+            quotas: {
+              DOCUMENT_SUBMISSION: 12,
+              DOCUMENT_COLLECTION: 15,
+              INTERVIEW: 6,
+              MARRIAGE_CEREMONY: 2,
+              EMERGENCY: 3,
+            },
+          }),
+        },
+      }),
+      prisma.organization.create({
+        data: {
+          id: 'organization-consulat-new-york',
+          name: 'Consulat du Gabon à New York',
+          type: OrganizationType.CONSULATE,
+          status: OrganizationStatus.ACTIVE,
+          countries: { connect: [{ code: 'US' }] },
+          metadata: JSON.stringify({
+            FR: {
+              settings: {
+                logo: 'https://example.com/logo-ny.png',
+                contact: {
+                  address: {
+                    firstLine: '18 East 41st Street',
+                    city: 'New York',
+                    zipCode: '10017',
+                    country: 'usa',
+                  },
+                  phone: '+12127598999',
+                  email: 'contact@consulatgabon-ny.org',
+                  website: 'https://consulatgabon-ny.org',
+                },
+                schedule: {
+                  monday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  tuesday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  wednesday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  thursday: { isOpen: true, slots: [{ start: '09:00', end: '16:00' }] },
+                  friday: { isOpen: true, slots: [{ start: '09:00', end: '14:00' }] },
+                },
+                holidays: [
+                  {
+                    date: '2024-01-01',
+                    name: "Jour de l'an",
+                  },
+                ],
+              },
+            },
+          }),
+          appointmentSettings: JSON.stringify({
+            quotas: {
+              DOCUMENT_SUBMISSION: 10,
+              DOCUMENT_COLLECTION: 12,
+              INTERVIEW: 5,
+              MARRIAGE_CEREMONY: 1,
+              EMERGENCY: 2,
+            },
+          }),
+        },
+      }),
     ]);
 
     // Créer les utilisateurs
@@ -294,6 +504,59 @@ async function main() {
             ServiceCategory.REGISTRATION,
             ServiceCategory.CERTIFICATION,
             ServiceCategory.OTHER,
+            ServiceCategory.VISA,
+          ],
+        },
+      }),
+      prisma.user.create({
+        data: {
+          id: 'user-agent-3',
+          email: 'agent3@consulat.ga',
+          firstName: 'Agent',
+          lastName: '3',
+          roles: [UserRole.AGENT],
+          emailVerified: new Date(),
+          country: { connect: { code: 'US' } },
+          agentOrganization: { connect: { id: 'organization-ambassade-usa' } },
+          serviceCategories: [
+            ServiceCategory.IDENTITY,
+            ServiceCategory.CIVIL_STATUS,
+            ServiceCategory.VISA,
+          ],
+        },
+      }),
+      prisma.user.create({
+        data: {
+          id: 'user-agent-4',
+          email: 'agent4@consulat.ga',
+          firstName: 'Agent',
+          lastName: '4',
+          roles: [UserRole.AGENT],
+          emailVerified: new Date(),
+          country: { connect: { code: 'US' } },
+          agentOrganization: { connect: { id: 'organization-consulat-new-york' } },
+          serviceCategories: [
+            ServiceCategory.REGISTRATION,
+            ServiceCategory.CERTIFICATION,
+            ServiceCategory.OTHER,
+          ],
+        },
+      }),
+      prisma.user.create({
+        data: {
+          id: 'user-agent-5',
+          email: 'agent5@consulat.ga',
+          firstName: 'Agent',
+          lastName: '5',
+          roles: [UserRole.AGENT],
+          emailVerified: new Date(),
+          country: { connect: { code: 'CA' } },
+          agentOrganization: { connect: { id: 'organization-ambassade-canada' } },
+          serviceCategories: [
+            ServiceCategory.IDENTITY,
+            ServiceCategory.CIVIL_STATUS,
+            ServiceCategory.REGISTRATION,
+            ServiceCategory.CERTIFICATION,
             ServiceCategory.VISA,
           ],
         },
@@ -471,6 +734,146 @@ async function main() {
           },
         },
       }),
+      prisma.user.create({
+        data: {
+          id: 'user-sarah-smith',
+          email: 'sarah.smith@example.com',
+          firstName: 'Sarah',
+          lastName: 'Smith',
+          roles: [UserRole.USER],
+          emailVerified: new Date(),
+          country: { connect: { code: 'US' } },
+          profile: {
+            create: {
+              firstName: 'Sarah',
+              lastName: 'Smith',
+              gender: 'FEMALE',
+              birthDate: '1988-05-15',
+              birthPlace: 'New York',
+              birthCountry: 'usa',
+              nationality: 'gabon',
+              passportNumber: 'GA789012',
+              email: 'sarah.smith@example.com',
+              passportIssueDate: new Date('2021-03-15'),
+              passportExpiryDate: new Date('2031-03-15'),
+              passportIssueAuthority: 'Consulat du Gabon à New York',
+              status: 'PENDING',
+              maritalStatus: 'MARRIED',
+              workStatus: 'EMPLOYEE',
+              profession: 'Médecin',
+              employer: 'Mount Sinai Hospital',
+              employerAddress: '1468 Madison Ave, New York, NY 10029',
+              fatherFullName: 'John Smith',
+              motherFullName: 'Mary Smith',
+              activityInGabon: 'Missions humanitaires',
+              address: {
+                create: {
+                  firstLine: '350 5th Avenue',
+                  secondLine: 'Apt 789',
+                  city: 'New York',
+                  zipCode: '10118',
+                  country: 'États-Unis',
+                },
+              },
+              addressInGabon: {
+                create: {
+                  address: '123 Boulevard Triomphal',
+                  district: 'Quartier Louis',
+                  city: 'Libreville',
+                },
+              },
+              phone: {
+                create: {
+                  number: '2125550199',
+                  countryCode: '+1',
+                },
+              },
+              emergencyContact: {
+                create: {
+                  fullName: 'Michael Smith',
+                  relationship: 'SPOUSE',
+                  phone: {
+                    create: {
+                      number: '2125550198',
+                      countryCode: '+1',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.user.create({
+        data: {
+          id: 'user-jean-dupont',
+          email: 'jean.dupont@example.com',
+          firstName: 'Jean',
+          lastName: 'Dupont',
+          roles: [UserRole.USER],
+          emailVerified: new Date(),
+          country: { connect: { code: 'CA' } },
+          profile: {
+            create: {
+              firstName: 'Jean',
+              lastName: 'Dupont',
+              gender: 'MALE',
+              birthDate: '1995-09-20',
+              birthPlace: 'Montreal',
+              birthCountry: 'canada',
+              nationality: 'gabon',
+              passportNumber: 'GA456789',
+              email: 'jean.dupont@example.com',
+              passportIssueDate: new Date('2022-01-10'),
+              passportExpiryDate: new Date('2032-01-10'),
+              passportIssueAuthority: 'Ambassade du Gabon au Canada',
+              status: 'SUBMITTED',
+              maritalStatus: 'SINGLE',
+              workStatus: 'STUDENT',
+              profession: 'Étudiant',
+              employer: 'Université de Montréal',
+              employerAddress: '2900 Boulevard Edouard-Montpetit, Montréal, QC H3T 1J4',
+              fatherFullName: 'Pierre Dupont',
+              motherFullName: 'Marie Dupont',
+              activityInGabon: "Stages d'été",
+              address: {
+                create: {
+                  firstLine: '1234 Rue Sainte-Catherine',
+                  secondLine: 'App 567',
+                  city: 'Montréal',
+                  zipCode: 'H3H 2R9',
+                  country: 'Canada',
+                },
+              },
+              addressInGabon: {
+                create: {
+                  address: "45 Boulevard de l'Indépendance",
+                  district: 'Lalala',
+                  city: 'Libreville',
+                },
+              },
+              phone: {
+                create: {
+                  number: '5145550123',
+                  countryCode: '+1',
+                },
+              },
+              emergencyContact: {
+                create: {
+                  fullName: 'Pierre Dupont',
+                  relationship: 'FATHER',
+                  phone: {
+                    create: {
+                      number: '5145550124',
+                      countryCode: '+1',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
     ]);
 
     // Créer des rendez-vous
@@ -506,6 +909,55 @@ async function main() {
           attendee: { connect: { id: 'user-berny-itoutou' } },
           agent: { connect: { id: 'user-agent-2' } },
           instructions: 'Entretien pour inscription consulaire.',
+        },
+      }),
+      prisma.appointment.create({
+        data: {
+          id: 'appointment-sarah-smith-1',
+          countryCode: 'US',
+          date: new Date('2024-04-20'),
+          startTime: new Date('2024-04-20T14:00:00Z'),
+          endTime: new Date('2024-04-20T14:30:00Z'),
+          duration: 30,
+          type: AppointmentType.DOCUMENT_SUBMISSION,
+          status: AppointmentStatus.CONFIRMED,
+          organization: { connect: { id: 'organization-consulat-new-york' } },
+          attendee: { connect: { id: 'user-sarah-smith' } },
+          agent: { connect: { id: 'user-agent-4' } },
+          instructions: 'Please bring all original documents and their copies.',
+        },
+      }),
+      prisma.appointment.create({
+        data: {
+          id: 'appointment-sarah-smith-2',
+          countryCode: 'US',
+          date: new Date('2024-04-25'),
+          startTime: new Date('2024-04-25T15:00:00Z'),
+          endTime: new Date('2024-04-25T15:45:00Z'),
+          duration: 45,
+          type: AppointmentType.INTERVIEW,
+          status: AppointmentStatus.PENDING,
+          organization: { connect: { id: 'organization-consulat-new-york' } },
+          attendee: { connect: { id: 'user-sarah-smith' } },
+          agent: { connect: { id: 'user-agent-4' } },
+          instructions: 'Interview for consular registration.',
+        },
+      }),
+      prisma.appointment.create({
+        data: {
+          id: 'appointment-jean-dupont-1',
+          countryCode: 'CA',
+          date: new Date('2024-04-22'),
+          startTime: new Date('2024-04-22T13:00:00Z'),
+          endTime: new Date('2024-04-22T13:30:00Z'),
+          duration: 30,
+          type: AppointmentType.DOCUMENT_COLLECTION,
+          status: AppointmentStatus.CONFIRMED,
+          organization: { connect: { id: 'organization-ambassade-canada' } },
+          attendee: { connect: { id: 'user-jean-dupont' } },
+          agent: { connect: { id: 'user-agent-5' } },
+          instructions:
+            "Veuillez apporter une pièce d'identité pour récupérer vos documents.",
         },
       }),
     ]);
@@ -559,6 +1011,72 @@ async function main() {
                 type: DocumentType.PROOF_OF_ADDRESS,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/proof.pdf',
+              },
+            ],
+          },
+        },
+      }),
+      prisma.serviceRequest.create({
+        data: {
+          id: 'service-request-sarah-smith-1',
+          status: RequestStatus.PENDING,
+          priority: ServicePriority.URGENT,
+          service: { connect: { id: 'service-passport' } },
+          submittedBy: { connect: { id: 'user-sarah-smith' } },
+          organization: { connect: { id: 'organization-consulat-new-york' } },
+          chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
+          chosenDeliveryMode: DeliveryMode.IN_PERSON,
+          appointment: { connect: { id: 'appointment-sarah-smith-1' } },
+          submittedAt: new Date(),
+          documents: {
+            create: [
+              {
+                type: DocumentType.PASSPORT,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/sarah-passport.pdf',
+              },
+              {
+                type: DocumentType.IDENTITY_PHOTO,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/sarah-photo.jpg',
+              },
+              {
+                type: DocumentType.PROOF_OF_ADDRESS,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/sarah-proof.pdf',
+              },
+            ],
+          },
+        },
+      }),
+      prisma.serviceRequest.create({
+        data: {
+          id: 'service-request-jean-dupont-1',
+          status: RequestStatus.IN_REVIEW,
+          priority: ServicePriority.STANDARD,
+          service: { connect: { id: 'service-registration' } },
+          submittedBy: { connect: { id: 'user-jean-dupont' } },
+          organization: { connect: { id: 'organization-ambassade-canada' } },
+          chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
+          chosenDeliveryMode: DeliveryMode.IN_PERSON,
+          appointment: { connect: { id: 'appointment-jean-dupont-1' } },
+          submittedAt: new Date(),
+          documents: {
+            create: [
+              {
+                type: DocumentType.PASSPORT,
+                status: DocumentStatus.VALIDATED,
+                fileUrl: 'https://example.com/jean-passport.pdf',
+              },
+              {
+                type: DocumentType.PROOF_OF_ADDRESS,
+                status: DocumentStatus.VALIDATED,
+                fileUrl: 'https://example.com/jean-proof.pdf',
+              },
+              {
+                type: DocumentType.RESIDENCE_PERMIT,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/jean-permit.pdf',
               },
             ],
           },
