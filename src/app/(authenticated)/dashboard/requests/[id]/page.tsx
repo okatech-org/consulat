@@ -1,5 +1,3 @@
-import { getRegistrationRequestDetailsById } from '@/actions/registrations';
-import { ProfileReview } from '@/app/(authenticated)/admin/_utils/components/profile/profile-review';
 import { notFound } from 'next/navigation';
 
 type Props = {
@@ -10,15 +8,14 @@ type Props = {
 
 export default async function RegistrationReview({ params }: Props) {
   const awaitedParams = await params;
-  const details = await getRegistrationRequestDetailsById(awaitedParams.id);
 
-  if (!details) {
+  if (!awaitedParams.id) {
     return notFound();
   }
 
   return (
     <div className="container">
-      <ProfileReview request={details} />;
+      <pre>{JSON.stringify(awaitedParams, null, 2)}</pre>
     </div>
   );
 }

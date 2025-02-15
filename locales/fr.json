@@ -105,6 +105,7 @@
     },
     "status": {
       "not_assigned": "Non attribué",
+      "assigned": "Assigné",
       "pending": "En attente",
       "approved": "Approuvé",
       "rejected": "Rejeté",
@@ -117,7 +118,7 @@
       "valid": "Valide",
       "draft": "Brouillon",
       "submitted": "Soumis",
-      "in_review": "En cours d'examen",
+      "in_review": "En traitement",
       "additional_info_needed": "À compléter",
       "completed": "Terminé",
       "cancelled": "Annulé",
@@ -126,7 +127,7 @@
       "inactive": "Inactif",
       "suspended": "Suspendu",
       "confirmed": "Confirmé",
-      "rescheduled": "Réschéduler",
+      "rescheduled": "Reporté",
       "missed": "Manqué"
     },
     "confirm": {
@@ -784,6 +785,12 @@
       "delete": "Suppression réussie",
       "create": "Création réussie",
       "duplicate": "Duplication réussie"
+    },
+    "requests": {
+      "assign": {
+        "success": "Demande assignée avec succès",
+        "error": "Échec de l'assignation de la demande"
+      }
     }
   },
   "countries": {
@@ -3125,6 +3132,13 @@
       },
       "actions": {
         "view_details": "Voir les détails"
+      },
+      "assign": {
+        "title": "Assigner la demande",
+        "agent": "Agent",
+        "select_agent": "Sélectionner un agent",
+        "success": "La demande a été assignée avec succès",
+        "error": "Une erreur est survenue lors de l'assignation de la demande"
       }
     },
     "sections": {

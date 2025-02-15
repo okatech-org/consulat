@@ -2,22 +2,51 @@ import CardContainer from '@/components/layouts/card-container';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { auth } from '@/auth';
-import { hasPermission } from '@/lib/permissions/utils';
+import { hasAnyRole, hasPermission } from '@/lib/permissions/utils';
 import { GetRequestsOptions } from '@/actions/service-requests';
 import { RequestsTable } from './_components/requests-table';
-import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
+import {
+  getAvailableServiceCategories,
+  getOrganizationWithSpecificIncludes,
+} from '@/actions/organizations';
 interface Props {
   searchParams: Record<keyof GetRequestsOptions, string | undefined>;
 }
 
 export default async function RequestsPage({ searchParams }: Props) {
   const session = await auth();
+  const queryParams = await searchParams;
   const t = await getTranslations('dashboard.requests');
-  const organization = session?.user?.organizationId
-    ? await getOrganizationWithSpecificIncludes(session.user.organizationId, ['agents'])
+
+  const isAdmin = session?.user
+    ? hasAnyRole(session.user, ['ADMIN', 'SUPER_ADMIN'])
+    : false;
+  const isAgent = session?.user ? hasAnyRole(session.user, ['AGENT']) : false;
+
+  const organization = isAdmin
+    ? await getOrganizationWithSpecificIncludes(session?.user.organizationId as string, [
+        'agents',
+      ])
     : undefined;
 
-  const queryParams = await searchParams;
+  let serviceCategories = [];
+  if (isAdmin) {
+    const serviceCategoriesResult = await getAvailableServiceCategories(
+      session?.user.organizationId as string,
+    );
+    if (serviceCategoriesResult.data) {
+      serviceCategories = serviceCategoriesResult.data;
+    }
+  }
+
+  if (isAgent) {
+    const serviceCategoriesResult = await getAvailableServiceCategories(
+      session?.user.assignedOrganizationId as string,
+    );
+    if (serviceCategoriesResult.data) {
+      serviceCategories = serviceCategoriesResult.data;
+    }
+  }
 
   const formattedQueryParams: GetRequestsOptions = {
     ...queryParams,
@@ -36,7 +65,7 @@ export default async function RequestsPage({ searchParams }: Props) {
     endDate: queryParams.endDate ? new Date(queryParams.endDate) : undefined,
     organizationId:
       queryParams.organizationId ?? session?.user?.organizationId ?? undefined,
-    assignedToId: queryParams.assignedToId,
+    assignedToId: isAgent ? session?.user?.id : undefined,
   };
 
   return (
@@ -50,6 +79,7 @@ export default async function RequestsPage({ searchParams }: Props) {
               user={session.user}
               filters={formattedQueryParams}
               agents={(organization?.data?.agents as User[]) ?? []}
+              availableServiceCategories={serviceCategories}
             />
           </CardContainer>
         </>

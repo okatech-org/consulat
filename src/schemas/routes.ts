@@ -27,6 +27,7 @@ export const ROUTES = {
     edit_service: (id: string) => `/dashboard/services/${id}/edit` as Route<string>,
     registrations_review: (id: string) =>
       `/dashboard/registrations/${id}` as Route<string>,
+    service_requests: (id: string) => `/dashboard/requests/${id}` as Route<string>,
     registrations: '/dashboard/registrations' as Route<string>,
   },
 

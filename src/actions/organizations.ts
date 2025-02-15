@@ -9,7 +9,7 @@ import {
   OrganizationSettingsFormData,
   UpdateOrganizationInput,
 } from '@/schemas/organization';
-import { OrganizationStatus, UserRole } from '@prisma/client';
+import { OrganizationStatus, ServiceCategory, UserRole } from '@prisma/client';
 import {
   OrganizationAgents,
   OrganizationListingItem,
@@ -244,6 +244,51 @@ export async function getOrganizationWithSpecificIncludes<
     };
   } catch (error) {
     console.error('Error fetching organization:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function getAvailableServiceCategories(id: string): Promise<{
+  data?: ServiceCategory[];
+  error?: string;
+}> {
+  try {
+    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+    if (authResult.error) return { error: authResult.error };
+
+    const organization = await db.organization.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!organization) {
+      return { error: 'messages.error.not_found' };
+    }
+
+    const categories = await db.consularService.groupBy({
+      by: ['category'],
+      where: {
+        organizationId: id,
+        isActive: true,
+      },
+      orderBy: {
+        category: 'asc',
+      },
+      having: {
+        category: {
+          _count: {
+            gt: 0,
+          },
+        },
+      },
+    });
+
+    const availableCategories = categories.map(({ category }) => category);
+
+    return { data: availableCategories };
+    return { data: availableCategories };
+  } catch (error) {
+    console.error('Error fetching service categories:', error);
     return { error: 'messages.error.fetch' };
   }
 }

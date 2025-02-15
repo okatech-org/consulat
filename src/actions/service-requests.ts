@@ -136,7 +136,6 @@ export async function assignServiceRequest(requestId: string, agentId: string) {
       data: {
         assignedToId: agentId,
         assignedAt: new Date(),
-        status: RequestStatus.ASSIGNED,
         lastActionAt: new Date(),
         lastActionBy: authResult.user.id,
         actions: {
@@ -147,7 +146,6 @@ export async function assignServiceRequest(requestId: string, agentId: string) {
           },
         },
       },
-      ...FullServiceRequestInclude,
     });
 
     revalidatePath(ROUTES.dashboard.requests);

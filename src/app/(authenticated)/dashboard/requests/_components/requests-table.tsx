@@ -20,13 +20,21 @@ import { GetRequestsOptions, getServiceRequests } from '@/actions/service-reques
 import { ServiceCategory, ServicePriority } from '@prisma/client';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { User } from '@prisma/client';
+import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
+
 interface RequestsTableProps {
   user: User;
   filters: GetRequestsOptions;
   agents?: User[];
+  availableServiceCategories: ServiceCategory[];
 }
 
-export function RequestsTable({ user, filters, agents }: RequestsTableProps) {
+export function RequestsTable({
+  user,
+  filters,
+  agents,
+  availableServiceCategories = [],
+}: RequestsTableProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
@@ -141,29 +149,37 @@ export function RequestsTable({ user, filters, agents }: RequestsTableProps) {
       enableSorting: true,
       filterFn: 'auto',
     });
-
-    columns.push({
-      id: 'actions',
-      cell: ({ row }) => (
-        <DataTableRowActions
-          actions={[
-            {
-              component: (
-                <Link
-                  onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.dashboard.registrations_review(row.original.id)}
-                >
-                  <FileText className="mr-2 size-4" />
-                  {t('common.actions.review')}
-                </Link>
-              ),
-            },
-          ]}
-          row={row}
-        />
-      ),
-    });
   }
+
+  columns.push({
+    id: 'actions',
+    cell: ({ row }) => (
+      <DataTableRowActions
+        actions={[
+          {
+            component: (
+              <Link
+                onClick={(e) => e.stopPropagation()}
+                href={ROUTES.dashboard.service_requests(row.original.id)}
+              >
+                <FileText className="mr-1 size-icon" />
+                {t('common.actions.view')}
+              </Link>
+            ),
+          },
+          {
+            component: hasAnyRole(user, ['ADMIN', 'MANAGER']) ? (
+              <RequestQuickEditFormDialog
+                agents={agents as User[]}
+                request={row.original}
+              />
+            ) : undefined,
+          },
+        ]}
+        row={row}
+      />
+    ),
+  });
 
   const localFilters: FilterOption<FullServiceRequest>[] = [
     {
@@ -221,7 +237,7 @@ export function RequestsTable({ user, filters, agents }: RequestsTableProps) {
       property: 'serviceCategory',
       label: t('dashboard.requests.filters.service_category'),
       defaultValue: filters.serviceCategory?.toString().split(',') ?? undefined,
-      options: Object.values(ServiceCategory).map((category) => ({
+      options: availableServiceCategories.map((category) => ({
         value: category,
         label: t('common.service_categories.' + category),
       })),
