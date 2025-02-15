@@ -11,7 +11,6 @@ import {
 } from '@/schemas/organization';
 import { OrganizationStatus, ServiceCategory, UserRole } from '@prisma/client';
 import {
-  OrganizationAgents,
   OrganizationListingItem,
   FullOrganizationInclude,
   createOrganizationInclude,
@@ -296,27 +295,34 @@ export async function getAvailableServiceCategories(id: string): Promise<{
 export async function createNewAgent(data: AgentFormData) {
   try {
     const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
+    if (authResult.error) return { error: authResult.error };
 
-    const { countryIds, phone, ...rest } = data;
+    const { countryIds, phone, serviceCategories, ...rest } = data;
+
+    // Créer le téléphone d'abord si nécessaire
+    let phoneId: string | undefined;
+
+    if (phone) {
+      const newPhone = await db.phone.create({
+        data: {
+          number: phone.number,
+          countryCode: phone.countryCode,
+        },
+      });
+      phoneId = newPhone.id;
+    }
 
     const agent = await db.user.create({
       data: {
         ...rest,
         roles: [UserRole.AGENT],
-        ...(countryIds && {
-          linkedCountries: {
-            connect: countryIds.map((id) => ({ id })),
-          },
-        }),
-        ...(phone && {
-          phone: {
-            create: phone,
-          },
-        }),
+        specializations: serviceCategories,
+        linkedCountries: {
+          connect: countryIds.map((id) => ({ id })),
+        },
+        ...(phoneId && { phoneId }),
       },
+      include: BaseAgentInclude.include,
     });
 
     return { data: agent };
@@ -335,6 +341,19 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
 
     const { countryIds, phone, ...rest } = data;
 
+    // Créer le téléphone d'abord si nécessaire
+    let phoneId: string | undefined;
+
+    if (phone) {
+      const newPhone = await db.phone.create({
+        data: {
+          number: phone.number,
+          countryCode: phone.countryCode,
+        },
+      });
+      phoneId = newPhone.id;
+    }
+
     const agent = await db.user.update({
       where: { id },
       data: {
@@ -344,11 +363,7 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
             set: countryIds.map((id) => ({ id })),
           },
         }),
-        ...(phone && {
-          phone: {
-            update: phone,
-          },
-        }),
+        ...(phoneId && { phoneId }),
       },
     });
 
