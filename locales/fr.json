@@ -4321,7 +4321,11 @@
       "view_profile": "Voir le profil",
       "applicant_profile": "Profil du demandeur",
       "documents": "Documents fournis",
-      "form_data": "Données du formulaire"
+      "form_data": "Données du formulaire",
+      "priority": "Priorité",
+      "select_priority": "Sélectionner une priorité",
+      "admin_notes": "Notes administratives",
+      "notes_placeholder": "Ajouter une note administrative"
     },
     "status": {
       "submitted": "Soumise",
@@ -4360,7 +4364,9 @@
     "actions": {
       "view_details": "Voir les détails",
       "start_processing": "Commencer à traiter",
-      "continue_processing": "Continuer à traiter"
+      "continue_processing": "Continuer à traiter",
+      "complete": "Terminer",
+      "reject": "Rejeter"
     },
     "assign": {
       "title": "Assigner la demande",

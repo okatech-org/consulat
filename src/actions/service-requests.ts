@@ -159,47 +159,44 @@ export async function assignServiceRequest(requestId: string, agentId: string) {
 /**
  * Mettre à jour le statut d'une demande
  */
-export async function updateServiceRequestStatus(
-  requestId: string,
-  status: RequestStatus,
-  notes?: string,
-) {
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
+export async function updateServiceRequest({
+  requestId,
+  status,
+  notes,
+  priority,
+}: {
+  requestId: string;
+  status?: RequestStatus;
+  notes?: string;
+  priority?: ServicePriority;
+}) {
+  const authResult = await checkAuth(['ADMIN', 'MANAGER']);
+  if (authResult.error) return { error: authResult.error };
 
   try {
-    const updatedRequest = await db.serviceRequest.update({
+    await db.serviceRequest.update({
       where: { id: requestId },
       data: {
-        status,
-        lastActionAt: new Date(),
-        lastActionBy: authResult.user.id,
-        ...(status === RequestStatus.COMPLETED && { completedAt: new Date() }),
-        actions: {
-          create: {
-            type: RequestActionType.STATUS_CHANGE,
-            userId: authResult.user.id,
-            data: { status, notes },
-          },
-        },
+        ...(status && { status }),
+        ...(priority && { priority }),
         ...(notes && {
           notes: {
             create: {
               content: notes,
+              authorId: authResult.user.id,
             },
           },
         }),
+        lastActionAt: new Date(),
+        lastActionBy: authResult.user.id,
       },
-      ...FullServiceRequestInclude,
     });
 
-    revalidatePath(ROUTES.dashboard.requests);
-    return { success: true, data: updatedRequest };
+    revalidatePath('/dashboard/requests');
+    return { success: true };
   } catch (error) {
-    console.error('Error updating service request status:', error);
-    throw new Error('Failed to update service request status');
+    console.error('Error updating service request:', error);
+    return { error: 'Failed to update service request' };
   }
 }
 
