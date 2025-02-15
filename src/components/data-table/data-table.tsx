@@ -33,24 +33,36 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filters?: FilterOption<TData>[];
-  pageCount?: number;
+  totalCount?: number;
+  pageSize?: number;
   onRowClick?: (row: Row<TData>) => void;
   isLoading?: boolean;
+  pageIndex?: number;
+  onPageChange?: (pageIndex: number) => void;
+  onLimitChange?: (pageSize: number) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   filters,
-  pageCount,
+  totalCount,
+  pageIndex,
+  pageSize,
   onRowClick,
   isLoading = false,
+  onPageChange,
+  onLimitChange,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = React.useState({
+    pageIndex: pageIndex ?? 1,
+    pageSize: pageSize ?? 10,
+  });
 
   const table = useReactTable({
     data,
@@ -60,7 +72,15 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
+      pagination,
     },
+    initialState: {
+      pagination: {
+        pageIndex: pageIndex ?? 1,
+        pageSize: pageSize ?? 10,
+      },
+    },
+    manualPagination: true,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -72,7 +92,15 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    ...(pageCount && { pageCount }),
+    onPaginationChange: (updater) => {
+      setPagination((prev) => {
+        const newPagination = typeof updater === 'function' ? updater(prev) : updater;
+        onPageChange?.(newPagination.pageIndex);
+        onLimitChange?.(newPagination.pageSize);
+        return newPagination;
+      });
+    },
+    rowCount: totalCount,
   });
 
   return (

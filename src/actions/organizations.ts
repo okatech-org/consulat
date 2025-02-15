@@ -14,6 +14,10 @@ import {
   Organization,
   OrganizationAgents,
   OrganizationListingItem,
+  FullOrganizationInclude,
+  createOrganizationInclude,
+  FullOrganization,
+  OrganizationWithIncludes,
 } from '@/types/organization';
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
@@ -174,7 +178,7 @@ export async function deleteOrganization(id: string) {
 }
 
 export async function getOrganizationById(id: string): Promise<{
-  data?: Organization | null;
+  data?: FullOrganization | null;
   error?: string;
 }> {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
@@ -183,31 +187,43 @@ export async function getOrganizationById(id: string): Promise<{
   try {
     const organization = await db.organization.findUnique({
       where: { id },
-      include: {
-        countries: true,
-        services: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            category: true,
-            isActive: true,
-            organizationId: true,
-          },
-        },
-        _count: {
-          select: {
-            services: true,
-          },
-        },
-        agents: {
-          include: {
-            linkedCountries: true,
-            phone: true,
-          },
-        },
-        adminUser: true,
+      ...FullOrganizationInclude,
+    });
+
+    if (!organization) {
+      return { error: 'messages.error.not_found' };
+    }
+
+    return {
+      data: {
+        ...organization,
+        metadata: JSON.parse(
+          typeof organization.metadata === 'string' ? organization.metadata : '{}',
+        ),
       },
+    };
+  } catch (error) {
+    console.error('Error fetching organization:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function getOrganizationWithSpecificIncludes<
+  T extends keyof typeof FullOrganizationInclude.include,
+>(
+  id: string,
+  includes: T[],
+): Promise<{
+  data?: OrganizationWithIncludes<T> | null;
+  error?: string;
+}> {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    const organization = await db.organization.findUnique({
+      where: { id },
+      ...createOrganizationInclude(includes),
     });
 
     if (!organization) {
@@ -240,7 +256,7 @@ export async function createNewAgent(data: AgentFormData) {
     const agent = await db.user.create({
       data: {
         ...rest,
-        role: UserRole.AGENT,
+        roles: [UserRole.AGENT],
         ...(countryIds && {
           linkedCountries: {
             connect: countryIds.map((id) => ({ id })),

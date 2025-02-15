@@ -13,7 +13,8 @@ export const BaseServiceRequestInclude = {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         image: true,
       },
     },
@@ -44,9 +45,10 @@ export const FullServiceRequestInclude = {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         image: true,
-        serviceCategories: true,
+        specializations: true,
         linkedCountries: {
           select: {
             code: true,
@@ -150,7 +152,7 @@ export interface ServiceRequestFilters {
   search?: string;
   status?: RequestStatus[];
   priority?: ServicePriority[];
-  category?: ServiceCategory[];
+  serviceCategory?: ServiceCategory[];
   assignedToId?: string;
   organizationId?: string;
   startDate?: Date;

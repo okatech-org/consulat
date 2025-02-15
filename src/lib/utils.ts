@@ -423,3 +423,26 @@ export function DisplayDate(
     ...options,
   });
 }
+
+export function useDateLocale() {
+  'use client';
+
+  const locale = useLocale();
+
+  function formatDate(
+    date: Date | string,
+    formatStr?: string,
+    locale?: Locale,
+    options?: DateTimeFormatOptions,
+  ) {
+    return format(new Date(date), formatStr ?? 'PPP', {
+      locale: locale ?? fr,
+      ...options,
+    });
+  }
+
+  return {
+    locale,
+    formatDate,
+  };
+}

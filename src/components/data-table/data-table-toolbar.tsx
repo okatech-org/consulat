@@ -30,12 +30,14 @@ export type FilterOption<TData = unknown> = {
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
   }[];
+  isDisabled?: boolean;
 };
 
 export function DataTableToolbar<TData>({
   table,
   filters,
   isLoading = false,
+  isDisabled = false,
 }: DataTableToolbarProps<TData>) {
   const t = useTranslations('common.data_table');
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -50,6 +52,7 @@ export function DataTableToolbar<TData>({
             <Fragment key={filter.type + filter.property}>
               {filter.type === 'search' && (
                 <Input
+                  disabled={isDisabled}
                   placeholder={filter.label}
                   defaultValue={filter.defaultValue}
                   value={
@@ -69,6 +72,7 @@ export function DataTableToolbar<TData>({
 
               {filter.type === 'radio' && filter.options && (
                 <DataTableFacetedFilter
+                  isDisabled={isDisabled}
                   type={filter.type}
                   key={filter.property}
                   column={table.getColumn(filter.property ?? '')}
@@ -86,6 +90,7 @@ export function DataTableToolbar<TData>({
 
               {filter.type === 'checkbox' && filter.options && (
                 <DataTableFacetedFilter
+                  isDisabled={isDisabled}
                   type={filter.type}
                   key={filter.property}
                   column={table.getColumn(filter.property ?? '')}

@@ -20,7 +20,7 @@ export type ResourceType = {
   };
   serviceRequests: {
     dataType: ServiceRequest;
-    action: 'view' | 'create' | 'update' | 'delete' | 'process' | 'validate';
+    action: 'view' | 'create' | 'update' | 'delete' | 'process' | 'validate' | 'list';
   };
   organizations: {
     dataType: Organization;

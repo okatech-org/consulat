@@ -24,6 +24,7 @@ export const ROLES: RolesConfig = {
       delete: true,
       process: true,
       validate: true,
+      list: true,
     },
     organizations: {
       view: true,
@@ -70,6 +71,7 @@ export const ROLES: RolesConfig = {
       cancel: (user, appointment) => appointment.organizationId === user.organizationId,
     },
     serviceRequests: {
+      list: true,
       view: (user, request) => request.organizationId === user.organizationId,
       process: (user, request) => request.organizationId === user.organizationId,
       validate: (user, request) => request.organizationId === user.organizationId,
@@ -121,6 +123,7 @@ export const ROLES: RolesConfig = {
       reschedule: (user, appointment) => appointment.agentId === user.id,
     },
     serviceRequests: {
+      list: true,
       view: (user, request) => {
         return (
           request.organizationId === user.organizationId &&
@@ -174,6 +177,9 @@ export const ROLES: RolesConfig = {
     },
   },
   MANAGER: {
+    serviceRequests: {
+      list: true,
+    },
     profiles: {
       view: (user, profile) => profile.organizationId === user.organizationId,
       validate: (user, profile) => profile.organizationId === user.organizationId,

@@ -1,5 +1,12 @@
 {
   "common": {
+    "priority": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "urgent": "Urgent",
+      "standard": "Standard"
+    },
     "languages": {
       "label": "Langue",
       "fr": "Français",
@@ -447,9 +454,21 @@
       "label": "Prénom",
       "placeholder": "Prénom"
     },
+    "fullName": {
+      "label": "Nom complet",
+      "placeholder": "Nom complet"
+    },
+    "serviceCategory": {
+      "label": "Catégorie de service",
+      "placeholder": "Catégorie de service"
+    },
     "lastName": {
       "label": "Nom",
       "placeholder": "Nom"
+    },
+    "status": {
+      "label": "Statut",
+      "placeholder": "Statut"
     },
     "phone": {
       "label": "Numéro de téléphone",
@@ -3088,6 +3107,26 @@
     }
   },
   "dashboard": {
+    "requests": {
+      "title": "Gestion des demandes consulaires",
+      "table": {
+        "submitted_at": "Soumise le",
+        "service": "Service",
+        "status": "Statut",
+        "priority": "Priorité",
+        "assigned_to": "Assigné à"
+      },
+      "filters": {
+        "search": "Rechercher",
+        "status": "Statut",
+        "priority": "Priorité",
+        "service_category": "Catégorie de service",
+        "assigned_to": "Assigné à"
+      },
+      "actions": {
+        "view_details": "Voir les détails"
+      }
+    },
     "sections": {
       "profile": {
         "title": "Mon profil",

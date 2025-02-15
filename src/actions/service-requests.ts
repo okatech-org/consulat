@@ -41,7 +41,7 @@ export async function getServiceRequests(
     search,
     status,
     priority,
-    category,
+    serviceCategory,
     assignedToId,
     organizationId,
     startDate,
@@ -57,7 +57,7 @@ export async function getServiceRequests(
     // Filtres de base
     ...(status && { status: { in: status } }),
     ...(priority && { priority: { in: priority } }),
-    ...(category && { service: { category: { in: category } } }),
+    ...(serviceCategory && { service: { category: { in: serviceCategory } } }),
     ...(assignedToId && { assignedToId }),
     ...(organizationId && { organizationId }),
     ...(startDate && { createdAt: { gte: startDate } }),

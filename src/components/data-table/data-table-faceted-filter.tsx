@@ -17,7 +17,6 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { useTranslations } from 'next-intl';
-import { log } from 'console';
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
@@ -30,6 +29,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   }[];
   onChange?: (value: string | string[]) => void;
   defaultValue?: string | string[];
+  isDisabled?: boolean;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
@@ -39,17 +39,22 @@ export function DataTableFacetedFilter<TData, TValue>({
   type = 'checkbox',
   onChange,
   defaultValue,
+  isDisabled = false,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-  console.log(defaultValue);
   const t = useTranslations('common.data_table');
   const facets = column?.getFacetedUniqueValues();
-  const defaultValues = defaultValue ?? column?.getFilterValue() as string[];
+  const defaultValues = defaultValue ?? (column?.getFilterValue() as string[]);
   const selectedValues = new Set(defaultValues);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
+        <Button
+          disabled={isDisabled}
+          variant="outline"
+          size="sm"
+          className="h-8 border-dashed"
+        >
           <PlusCircle />
           {title}
           {selectedValues?.size > 0 && (
@@ -122,8 +127,8 @@ export function DataTableFacetedFilter<TData, TValue>({
                         column?.setFilterValue(
                           filterValues.length ? filterValues : undefined,
                         );
+                      }
                     }}
-                  }
                   >
                     <div
                       className={cn(

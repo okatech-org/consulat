@@ -1,8 +1,9 @@
 ---
 description: Translation Keys Management
-globs: src/i18n/**/*.json
+globs: /locales
 ---
 Key Structure:
+- the trad files are put in /locales folder
 - Use nested dot notation (e.g., "feature.section.key")
 - Group by feature or module first
 - Keep hierarchy depth <= 3 levels
@@ -24,6 +25,8 @@ Variables:
 - Handle pluralization with {count}
 
 Organization:
+- Always use translation for all texts the user will see
+- By default generate/edit translation for fr.json
 - Split files by major features
 - Keep shared strings in common.json
 - Group validation messages
