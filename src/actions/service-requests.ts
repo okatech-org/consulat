@@ -17,7 +17,6 @@ import {
   RequestActionType,
   UserRole,
 } from '@prisma/client';
-import { hasRole, withPermission } from '@/lib/permissions/utils';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -30,80 +29,83 @@ export interface GetRequestsOptions extends ServiceRequestFilters {
 /**
  * Récupérer les demandes de services avec filtres et pagination
  */
-export const getServiceRequests = withPermission(
-  'serviceRequests',
-  'view',
-  async (user, options?: GetRequestsOptions): Promise<PaginatedServiceRequests> => {
-    const {
-      search,
-      status,
-      priority,
-      category,
-      assignedToId,
-      organizationId,
-      startDate,
-      endDate,
-      page = 1,
-      limit = 10,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-    } = options || {};
+export async function getServiceRequests(
+  options?: GetRequestsOptions,
+): Promise<PaginatedServiceRequests> {
+  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  if (authResult.error || !authResult.user) {
+    throw new Error(authResult.error || 'Unauthorized');
+  }
 
-    // Construire la requête where
-    const where: Prisma.ServiceRequestWhereInput = {
-      // Filtres de base
-      ...(status && { status: { in: status } }),
-      ...(priority && { priority: { in: priority } }),
-      ...(category && { service: { category: { in: category } } }),
-      ...(assignedToId && { assignedToId }),
-      ...(organizationId && { organizationId }),
-      ...(startDate && { createdAt: { gte: startDate } }),
-      ...(endDate && { createdAt: { lte: endDate } }),
+  const {
+    search,
+    status,
+    priority,
+    category,
+    assignedToId,
+    organizationId,
+    startDate,
+    endDate,
+    page = 1,
+    limit = 10,
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+  } = options || {};
 
-      // Recherche
-      ...(search && {
-        OR: [
-          { submittedBy: { firstName: { contains: search, mode: 'insensitive' } } },
-          { submittedBy: { lastName: { contains: search, mode: 'insensitive' } } },
-          { submittedBy: { email: { contains: search, mode: 'insensitive' } } },
-          { service: { name: { contains: search, mode: 'insensitive' } } },
-        ],
+  // Construire la requête where
+  const where: Prisma.ServiceRequestWhereInput = {
+    // Filtres de base
+    ...(status && { status: { in: status } }),
+    ...(priority && { priority: { in: priority } }),
+    ...(category && { service: { category: { in: category } } }),
+    ...(assignedToId && { assignedToId }),
+    ...(organizationId && { organizationId }),
+    ...(startDate && { createdAt: { gte: startDate } }),
+    ...(endDate && { createdAt: { lte: endDate } }),
+
+    // Recherche
+    ...(search && {
+      OR: [
+        { submittedBy: { firstName: { contains: search, mode: 'insensitive' } } },
+        { submittedBy: { lastName: { contains: search, mode: 'insensitive' } } },
+        { submittedBy: { email: { contains: search, mode: 'insensitive' } } },
+        { service: { name: { contains: search, mode: 'insensitive' } } },
+      ],
+    }),
+
+    // Filtres selon le rôle
+    ...(authResult.user.roles.includes(UserRole.AGENT) && {
+      OR: [
+        { assignedToId: authResult.user.id },
+        { assignedToId: null, organizationId: authResult.user.assignedOrganizationId },
+      ],
+    }),
+  };
+
+  try {
+    const [requests, total] = await Promise.all([
+      db.serviceRequest.findMany({
+        where,
+        ...FullServiceRequestInclude,
+        orderBy: { [sortBy]: sortOrder },
+        skip: (page - 1) * limit,
+        take: limit,
       }),
+      db.serviceRequest.count({ where }),
+    ]);
 
-      // Filtres selon le rôle
-      ...(hasRole(user, UserRole.AGENT) && {
-        OR: [
-          { assignedToId: user.id },
-          { assignedToId: null, organizationId: user.assignedOrganizationId },
-        ],
-      }),
+    return {
+      items: requests,
+      total,
+      page,
+      limit,
+      hasMore: total > page * limit,
     };
-
-    try {
-      const [requests, total] = await Promise.all([
-        db.serviceRequest.findMany({
-          where,
-          ...FullServiceRequestInclude,
-          orderBy: { [sortBy]: sortOrder },
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-        db.serviceRequest.count({ where }),
-      ]);
-
-      return {
-        items: requests,
-        total,
-        page,
-        limit,
-        hasMore: total > page * limit,
-      };
-    } catch (error) {
-      console.error('Error fetching service requests:', error);
-      throw new Error('Failed to fetch service requests');
-    }
-  },
-);
+  } catch (error) {
+    console.error('Error fetching service requests:', error);
+    throw new Error('Failed to fetch service requests');
+  }
+}
 
 /**
  * Assigner une demande à un agent
