@@ -126,25 +126,38 @@ export const ROLES: RolesConfig = {
       list: true,
       view: (user, request) => {
         return (
-          request.organizationId === user.organizationId &&
-          user.serviceCategories.includes(request.service.category)
+          request.organizationId === user.assignedOrganizationId &&
+          user.specializations.includes(request.serviceCategory)
         );
       },
       process: (user, request) => {
         return (
-          request.organizationId === user.organizationId &&
-          user.serviceCategories.includes(request.service.category)
+          request.organizationId === user.assignedOrganizationId &&
+          user.specializations.includes(request.serviceCategory)
+        );
+      },
+      update: (user, request) => {
+        return (
+          request.organizationId === user.assignedOrganizationId &&
+          user.specializations.includes(request.serviceCategory)
+        );
+      },
+      validate: (user, request) => {
+        return (
+          request.organizationId === user.assignedOrganizationId &&
+          user.specializations.includes(request.serviceCategory)
+        );
+      },
+      complete: (user, request) => {
+        return (
+          request.organizationId === user.assignedOrganizationId &&
+          user.specializations.includes(request.serviceCategory)
         );
       },
     },
     documents: {
-      view: (user, doc) => doc.organizationId === user.organizationId,
-      validate: (user, doc) => {
-        return (
-          doc.organizationId === user.organizationId &&
-          user.serviceCategories.includes(doc.serviceRequest?.service.category)
-        );
-      },
+      view: true,
+      validate: true,
     },
   },
   USER: {
@@ -177,9 +190,6 @@ export const ROLES: RolesConfig = {
     },
   },
   MANAGER: {
-    serviceRequests: {
-      list: true,
-    },
     profiles: {
       view: (user, profile) => profile.organizationId === user.organizationId,
       validate: (user, profile) => profile.organizationId === user.organizationId,
@@ -192,6 +202,7 @@ export const ROLES: RolesConfig = {
       cancel: (user, appointment) => appointment.organizationId === user.organizationId,
     },
     serviceRequests: {
+      list: true,
       view: (user, request) => request.organizationId === user.organizationId,
       process: (user, request) => request.organizationId === user.organizationId,
       validate: (user, request) => request.organizationId === user.organizationId,

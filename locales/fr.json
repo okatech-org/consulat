@@ -333,7 +333,8 @@
       "mark_as_read": "Marquer comme lu",
       "clear_all": "Tout effacer",
       "mark_all_read": "Tout marquer comme lu",
-      "review": "Traiter"
+      "review": "Traiter",
+      "consult": "Consulter"
     },
     "no_country_found": "Aucun pays trouvé",
     "request_types": {
@@ -3131,7 +3132,9 @@
         "assigned_to": "Assigné à"
       },
       "actions": {
-        "view_details": "Voir les détails"
+        "view_details": "Voir les détails",
+        "start_processing": "Commencer à traiter",
+        "continue_processing": "Continuer à traiter"
       },
       "assign": {
         "title": "Assigner la demande",
@@ -3139,6 +3142,14 @@
         "select_agent": "Sélectionner un agent",
         "success": "La demande a été assignée avec succès",
         "error": "Une erreur est survenue lors de l'assignation de la demande"
+      },
+      "view": {
+        "title": "Détails de la demande",
+        "request_info": "Informations de la demande",
+        "requester_info": "Informations du demandeur",
+        "submitted_at": "Soumis le",
+        "assigned_to": "Assigné à",
+        "last_action": "Dernière action le"
       }
     },
     "sections": {

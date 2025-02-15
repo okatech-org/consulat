@@ -163,7 +163,7 @@ export function RequestsTable({
                 href={ROUTES.dashboard.service_requests(row.original.id)}
               >
                 <FileText className="mr-1 size-icon" />
-                {t('common.actions.view')}
+                {t('common.actions.consult')}
               </Link>
             ),
           },

@@ -28,6 +28,8 @@ export const ROUTES = {
     registrations_review: (id: string) =>
       `/dashboard/registrations/${id}` as Route<string>,
     service_requests: (id: string) => `/dashboard/requests/${id}` as Route<string>,
+    service_request_review: (id: string) =>
+      `/dashboard/requests/${id}/review` as Route<string>,
     registrations: '/dashboard/registrations' as Route<string>,
   },
 

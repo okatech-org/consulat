@@ -279,3 +279,29 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
     throw new Error('Failed to fetch service request stats');
   }
 }
+
+/**
+ * Récupérer une demande de service par son ID
+ */
+export async function getServiceRequest(id: string) {
+  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  if (authResult.error || !authResult.user) {
+    throw new Error(authResult.error || 'Unauthorized');
+  }
+
+  try {
+    const request = await db.serviceRequest.findUnique({
+      where: { id },
+      ...FullServiceRequestInclude,
+    });
+
+    if (!request) {
+      return null;
+    }
+
+    return request;
+  } catch (error) {
+    console.error('Error fetching service request:', error);
+    throw new Error('Failed to fetch service request');
+  }
+}

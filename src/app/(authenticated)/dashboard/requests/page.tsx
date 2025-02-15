@@ -29,7 +29,8 @@ export default async function RequestsPage({ searchParams }: Props) {
       ])
     : undefined;
 
-  let serviceCategories = [];
+  let serviceCategories: ServiceCategory[] = [];
+
   if (isAdmin) {
     const serviceCategoriesResult = await getAvailableServiceCategories(
       session?.user.organizationId as string,

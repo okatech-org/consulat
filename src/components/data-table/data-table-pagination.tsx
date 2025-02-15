@@ -15,7 +15,6 @@ interface DataTablePaginationProps<TData> {
 }
 
 export function DataTablePagination<TData>({ table }: DataTablePaginationProps<TData>) {
-  console.log(table.getPageCount());
   const t = useTranslations('common.data_table');
 
   return (

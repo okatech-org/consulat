@@ -10,7 +10,6 @@ export function hasPermission<Resource extends keyof ResourceType>(
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
 ): boolean {
-  // Vérifie si l'un des rôles de l'utilisateur a la permission
   return user.roles.some((role) => {
     const permission = ROLES[role]?.[resource]?.[action];
 
