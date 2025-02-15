@@ -99,7 +99,6 @@ export async function getServiceRequests(
       total,
       page,
       limit,
-      hasMore: total > page * limit,
     };
   } catch (error) {
     console.error('Error fetching service requests:', error);

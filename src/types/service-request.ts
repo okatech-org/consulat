@@ -163,7 +163,6 @@ export interface PaginatedServiceRequests {
   total: number;
   page: number;
   limit: number;
-  hasMore: boolean;
 }
 
 // Type pour les actions sur les demandes
