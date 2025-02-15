@@ -4,7 +4,6 @@ import {
   Country,
   User,
   ServiceCategory,
-  TimeSlot,
   Prisma,
 } from '@prisma/client';
 import { ConsularServiceListingItem } from '@/types/consular-service';
@@ -20,7 +19,6 @@ export interface Organization {
   countries: Country[];
   metadata: Record<string, unknown> | null;
   services: ConsularServiceListingItem[] | null;
-  timeSlots: TimeSlot[] | null;
   adminUser: User | null;
   agents: User[] | null;
   createdAt: Date;
@@ -130,3 +128,52 @@ export interface PaginatedOrganizations {
   page: number;
   limit: number;
 }
+
+// Ajout des includes pour les agents
+export const BaseAgentInclude = {
+  include: {
+    linkedCountries: {
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        status: true,
+        flag: true,
+      },
+    },
+    phone: true,
+  },
+} as const;
+
+export const FullAgentInclude = {
+  include: {
+    ...BaseAgentInclude.include,
+    serviceCategories: true,
+    organization: {
+      select: {
+        id: true,
+        name: true,
+        type: true,
+      },
+    },
+  },
+} as const;
+
+// Types pour les agents
+export type BaseAgent = Prisma.UserGetPayload<typeof BaseAgentInclude>;
+export type FullAgent = Prisma.UserGetPayload<typeof FullAgentInclude>;
+
+// Helper pour créer des includes personnalisés pour les agents
+export function createAgentInclude<T extends keyof typeof FullAgentInclude.include>(
+  fields: T[],
+) {
+  return {
+    include: Object.fromEntries(
+      fields.map((field) => [field, FullAgentInclude.include[field]]),
+    ),
+  } as const;
+}
+
+// Type helper pour les agents avec des includes spécifiques
+export type AgentWithIncludes<T extends keyof typeof FullAgentInclude.include> =
+  Prisma.UserGetPayload<ReturnType<typeof createAgentInclude<T>>>;

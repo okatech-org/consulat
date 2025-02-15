@@ -25,7 +25,7 @@ import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getOrganizationFromId } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/services';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
-import { RoleGuard } from '@/components/ui/role-guard';
+import { RoleGuard } from '@/lib/permissions/utils';
 
 export function ServicesTable({
   services,

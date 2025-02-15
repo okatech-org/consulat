@@ -11,13 +11,17 @@ import {
 } from '@/schemas/organization';
 import { OrganizationStatus, UserRole } from '@prisma/client';
 import {
-  Organization,
   OrganizationAgents,
   OrganizationListingItem,
   FullOrganizationInclude,
   createOrganizationInclude,
   FullOrganization,
   OrganizationWithIncludes,
+  BaseAgentInclude,
+  FullAgentInclude,
+  BaseAgent,
+  AgentWithIncludes,
+  createAgentInclude,
 } from '@/types/organization';
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
@@ -75,15 +79,15 @@ export async function createOrganization(data: CreateOrganizationInput) {
       await db.user.create({
         data: {
           email: data.adminEmail,
-          role: UserRole.ADMIN,
-          managedOrganizations: {
+          roles: [UserRole.ADMIN],
+          managedOrganization: {
             connect: { id: organization.id },
           },
         },
       });
     }
 
-    revalidatePath(ROUTES.dashboard.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to create organization:', error);
@@ -110,7 +114,7 @@ export async function updateOrganization(id: string, data: UpdateOrganizationInp
       },
     });
 
-    revalidatePath(ROUTES.dashboard.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to update organization:', error);
@@ -130,7 +134,7 @@ export async function updateOrganizationStatus(id: string, status: OrganizationS
       data: { status },
     });
 
-    revalidatePath(ROUTES.dashboard.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { data: organization };
   } catch (error) {
     console.error('Failed to update organization status:', error);
@@ -169,7 +173,7 @@ export async function deleteOrganization(id: string) {
       where: { id },
     });
 
-    revalidatePath(ROUTES.dashboard.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { success: true };
   } catch (error) {
     console.error('Error deleting organization:', error);
@@ -303,7 +307,7 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
       },
     });
 
-    revalidatePath(ROUTES.dashboard.organizations);
+    revalidatePath(ROUTES.sa.organizations);
     return { data: agent };
   } catch (error) {
     console.error('Failed to update agent:', error);
@@ -312,7 +316,7 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
 }
 
 export async function getOrganizationAgents(id: string): Promise<{
-  data?: OrganizationAgents[];
+  data?: BaseAgent[];
   error?: string;
 }> {
   const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
@@ -322,19 +326,46 @@ export async function getOrganizationAgents(id: string): Promise<{
     const agents = await db.user.findMany({
       where: {
         organizationId: id,
-        role: UserRole.AGENT,
-      },
-      include: {
-        linkedCountries: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            status: true,
-            flag: true,
-          },
+        roles: {
+          has: UserRole.AGENT,
         },
-        phone: true,
+      },
+      ...BaseAgentInclude,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { data: agents };
+  } catch (error) {
+    console.error('Error fetching agents:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function getOrganizationAgentsWithIncludes<
+  T extends keyof typeof FullAgentInclude.include,
+>(
+  id: string,
+  includes: T[],
+): Promise<{
+  data?: AgentWithIncludes<T>[];
+  error?: string;
+}> {
+  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  if (authResult.error) return { error: authResult.error };
+
+  try {
+    const agents = await db.user.findMany({
+      where: {
+        organizationId: id,
+        roles: {
+          has: UserRole.AGENT,
+        },
+      },
+      ...createAgentInclude(includes),
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
