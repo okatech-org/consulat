@@ -1033,12 +1033,17 @@
       "create_card_prompt": "Créez votre carte consulaire gratuitement."
     },
     "login": {
-      "welcome": "Bienvenue sur Consulat 👋",
-      "description": "Connectez-vous pour accéder à votre espace",
+      "welcome": "Bienvenue 👋",
+      "description": "Identifiez-vous pour accéder à votre espace consulaire",
       "tabs": {
         "phone": "Téléphone",
         "email": "Email"
       },
+      "agreement": "En cliquant sur Continuer, vous acceptez nos",
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité",
+      "and": "et",
+      "or": "Ou se connecter avec",
       "inputs": {
         "phone": {
           "label": "Numéro de téléphone",

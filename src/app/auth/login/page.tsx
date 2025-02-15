@@ -1,68 +1,10 @@
-import { LoadingSuspense } from '@/components/ui/loading-suspense';
-import { LoginForm } from '@/app/auth/_utils/login-form';
-import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
-import { ROUTES } from '@/schemas/routes';
-import Image from 'next/image';
-import { ArrowLeft } from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
+import { LoginForm } from '../_utils/login-form';
 
-export default async function LoginPage() {
-  const t = await getTranslations('auth.login');
-  const currentYear = new Date().getFullYear();
-
+export default function LoginPage() {
   return (
-    <div className="container relative grid min-h-screen flex-col items-center justify-center lg:max-w-none lg:px-0">
-      <Link
-        href={ROUTES.base}
-        className={
-          buttonVariants({ variant: 'ghost' }) +
-          ' absolute left-4 top-4 md:left-8 md:top-8'
-        }
-      >
-        <ArrowLeft className="mr-2 size-4" />
-        {t('back_home')}
-      </Link>
-
-      <div className="lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
-          <div className="flex flex-col space-y-2 text-center">
-            <div className="mb-4 flex justify-center lg:hidden">
-              <Image
-                src="/images/logo_consulat_ga_512.jpeg"
-                alt="Consulat Logo"
-                width={128}
-                height={128}
-                priority
-                className={'rounded'}
-              />
-            </div>
-          </div>
-
-          <LoadingSuspense>
-            <LoginForm />
-          </LoadingSuspense>
-
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            {t('footer.copyright', { year: currentYear })}
-          </p>
-
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            <Link
-              href={ROUTES.privacy_policy}
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              {t('footer.privacy_policy')}
-            </Link>
-            {' · '}
-            <Link
-              href={ROUTES.terms}
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              {t('footer.terms')}
-            </Link>
-          </p>
-        </div>
+    <div className="flex min-h-svh w-full flex-col items-center justify-center bg-muted p-6 md:p-10">
+      <div className="w-full max-w-sm md:max-w-4xl">
+        <LoginForm />
       </div>
     </div>
   );

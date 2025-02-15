@@ -4,7 +4,7 @@ import { EmailSchema, NameSchema, PhoneValueSchema } from '@/schemas/inputs';
 
 export const LoginSchema = z
   .object({
-    identifier: z.string().min(1, 'identifier_required'),
+    identifier: z.string().min(1, 'messages.errors.identifier_required'),
     type: z.enum(['EMAIL', 'PHONE']),
     otp: z.string().optional(),
   })
@@ -13,7 +13,7 @@ export const LoginSchema = z
       if (!z.string().email().safeParse(data.identifier).success) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'invalid_email',
+          message: 'messages.errors.invalid_email',
           path: ['identifier'],
         });
       }
@@ -23,7 +23,7 @@ export const LoginSchema = z
       if (!phoneRegex.test(data.identifier)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'invalid_phone',
+          message: 'messages.errors.invalid_phone',
           path: ['identifier'],
         });
       }
