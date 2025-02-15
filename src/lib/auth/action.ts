@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { UserRole } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
+import { hasAnyRole } from '../permissions/utils';
 
 export type ActionResult<T> = {
   data?: T;
@@ -56,7 +57,7 @@ export async function checkAuth(roles?: UserRole[]) {
     };
   }
 
-  if (roles && !roles.includes(session.user.role)) {
+  if (roles && !hasAnyRole(session.user, roles)) {
     return {
       error: t('auth.forbidden'),
     };

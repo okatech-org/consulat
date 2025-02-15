@@ -94,6 +94,12 @@ export const ROLES: RolesConfig = {
       update: (user, targetUser) => targetUser.organizationId === user.organizationId,
       manage: (user, targetUser) => targetUser.organizationId === user.organizationId,
     },
+    serviceRequest: {
+      list: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
   },
   AGENT: {
     profiles: {
@@ -124,7 +130,7 @@ export const ROLES: RolesConfig = {
       view: (user, request) => {
         return (
           request.organizationId === user.organizationId &&
-          user.serviceCategories.includes(request.service.category)
+          user.specializations.includes(request.service.category)
         );
       },
       process: (user, request) => {

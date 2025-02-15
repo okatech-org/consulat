@@ -501,10 +501,11 @@ model ServiceRequest {
   priority ServicePriority @default(STANDARD)
 
   // Relations
-  serviceId     String
   service       ConsularService @relation(fields: [serviceId], references: [id])
+  serviceId     String
   submittedBy   User            @relation(fields: [submittedById], references: [id])
   submittedById String
+  serviceCategory ServiceCategory
 
   // Add organization relation
   organization   Organization? @relation(fields: [organizationId], references: [id])

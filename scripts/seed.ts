@@ -475,8 +475,8 @@ async function main() {
           roles: [UserRole.AGENT],
           emailVerified: new Date(),
           country: { connect: { code: 'FR' } },
-          agentOrganization: { connect: { id: 'organization-ambassade-france' } },
-          serviceCategories: [
+          assignedOrganization: { connect: { id: 'organization-ambassade-france' } },
+          specializations: [
             ServiceCategory.IDENTITY,
             ServiceCategory.CIVIL_STATUS,
             ServiceCategory.REGISTRATION,
@@ -495,10 +495,10 @@ async function main() {
           roles: [UserRole.AGENT],
           emailVerified: new Date(),
           country: { connect: { code: 'FR' } },
-          agentOrganization: {
+          assignedOrganization: {
             connect: { id: 'organization-consulat-general-marseille' },
           },
-          serviceCategories: [
+          specializations: [
             ServiceCategory.IDENTITY,
             ServiceCategory.CIVIL_STATUS,
             ServiceCategory.REGISTRATION,
@@ -517,8 +517,8 @@ async function main() {
           roles: [UserRole.AGENT],
           emailVerified: new Date(),
           country: { connect: { code: 'US' } },
-          agentOrganization: { connect: { id: 'organization-ambassade-usa' } },
-          serviceCategories: [
+          assignedOrganization: { connect: { id: 'organization-ambassade-usa' } },
+          specializations: [
             ServiceCategory.IDENTITY,
             ServiceCategory.CIVIL_STATUS,
             ServiceCategory.VISA,
@@ -534,8 +534,8 @@ async function main() {
           roles: [UserRole.AGENT],
           emailVerified: new Date(),
           country: { connect: { code: 'US' } },
-          agentOrganization: { connect: { id: 'organization-consulat-new-york' } },
-          serviceCategories: [
+          assignedOrganization: { connect: { id: 'organization-consulat-new-york' } },
+          specializations: [
             ServiceCategory.REGISTRATION,
             ServiceCategory.CERTIFICATION,
             ServiceCategory.OTHER,
@@ -551,8 +551,8 @@ async function main() {
           roles: [UserRole.AGENT],
           emailVerified: new Date(),
           country: { connect: { code: 'CA' } },
-          agentOrganization: { connect: { id: 'organization-ambassade-canada' } },
-          serviceCategories: [
+          assignedOrganization: { connect: { id: 'organization-ambassade-canada' } },
+          specializations: [
             ServiceCategory.IDENTITY,
             ServiceCategory.CIVIL_STATUS,
             ServiceCategory.REGISTRATION,
@@ -757,7 +757,7 @@ async function main() {
               passportIssueDate: new Date('2021-03-15'),
               passportExpiryDate: new Date('2031-03-15'),
               passportIssueAuthority: 'Consulat du Gabon à New York',
-              status: 'PENDING',
+              status: 'SUBMITTED',
               maritalStatus: 'MARRIED',
               workStatus: 'EMPLOYEE',
               profession: 'Médecin',
@@ -971,6 +971,7 @@ async function main() {
           status: RequestStatus.SUBMITTED,
           priority: ServicePriority.STANDARD,
           service: { connect: { id: 'service-passport' } },
+          serviceCategory: 'IDENTITY',
           submittedBy: { connect: { id: 'user-berny-itoutou' } },
           organization: { connect: { id: 'organization-ambassade-france' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
@@ -998,6 +999,7 @@ async function main() {
           id: 'service-request-berny-itoutou-2',
           status: RequestStatus.IN_REVIEW,
           priority: ServicePriority.STANDARD,
+          serviceCategory: 'REGISTRATION',
           service: { connect: { id: 'service-registration' } },
           submittedBy: { connect: { id: 'user-berny-itoutou' } },
           organization: { connect: { id: 'organization-ambassade-france' } },
@@ -1019,9 +1021,10 @@ async function main() {
       prisma.serviceRequest.create({
         data: {
           id: 'service-request-sarah-smith-1',
-          status: RequestStatus.PENDING,
+          status: RequestStatus.SUBMITTED,
           priority: ServicePriority.URGENT,
           service: { connect: { id: 'service-passport' } },
+          serviceCategory: 'IDENTITY',
           submittedBy: { connect: { id: 'user-sarah-smith' } },
           organization: { connect: { id: 'organization-consulat-new-york' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
@@ -1054,6 +1057,7 @@ async function main() {
           id: 'service-request-jean-dupont-1',
           status: RequestStatus.IN_REVIEW,
           priority: ServicePriority.STANDARD,
+          serviceCategory: 'REGISTRATION',
           service: { connect: { id: 'service-registration' } },
           submittedBy: { connect: { id: 'user-jean-dupont' } },
           organization: { connect: { id: 'organization-ambassade-canada' } },
