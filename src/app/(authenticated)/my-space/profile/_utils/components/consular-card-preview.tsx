@@ -14,7 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { cn, DisplayDate } from '@/lib/utils';
+import { cn, useDateLocale } from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { QRCode } from '@/components/ui/qr-code';
 
@@ -28,7 +28,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
   const t = useTranslations('profile.card');
   const [isFlipped, setIsFlipped] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-
+  const { formatDate } = useDateLocale();
   const handleFlip = () => setIsFlipped(!isFlipped);
 
   return (
@@ -86,7 +86,7 @@ export function ConsularCardPreview({ profile }: ConsularCardPreviewProps) {
                           </h3>
                           <div className="text-sm">
                             <p>
-                              {t('birth')}: {DisplayDate(profile.birthDate)}
+                              {t('birth')}: {formatDate(profile.birthDate)}
                             </p>
                             <p>
                               {t('nationality')}: {profile.nationality}

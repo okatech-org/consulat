@@ -23,10 +23,8 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
-import { cn, DisplayDate } from '@/lib/utils';
+import { cn, useDateLocale } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
@@ -70,6 +68,7 @@ export function NewAppointmentForm({
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent | null>(
     null,
   );
+  const { formatDate } = useDateLocale();
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
@@ -291,7 +290,7 @@ export function NewAppointmentForm({
                   setSelectedTimeSlot(slot);
                 }}
               >
-                {DisplayDate(slot.start, 'HH:mm')}
+                {formatDate(slot.start, 'HH:mm')}
               </Button>
             );
           })}
@@ -452,14 +451,14 @@ export function NewAppointmentForm({
                     </div>
                     <div className="grid grid-cols-2 gap-4 py-3">
                       <dt className="font-medium">{t('confirmation.date')}</dt>
-                      <dd>{format(form.watch('date'), 'PPPP', { locale: fr })}</dd>
+                      <dd>{formatDate(form.watch('date'), 'PPPP')}</dd>
                     </div>
                     <div className="grid grid-cols-2 gap-4 py-3">
                       <dt className="font-medium">{t('confirmation.time')}</dt>
                       <dd>
-                        {format(form.watch('startTime'), 'HH:mm')}
+                        {formatDate(form.watch('startTime'), 'HH:mm')}
                         {' - '}
-                        {format(form.watch('endTime'), 'HH:mm')}
+                        {formatDate(form.watch('endTime'), 'HH:mm')}
                       </dd>
                     </div>
                   </dl>

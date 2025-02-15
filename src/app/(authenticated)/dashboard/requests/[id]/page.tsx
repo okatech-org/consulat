@@ -31,7 +31,6 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
-  // Récupérer les agents si l'utilisateur est admin
   let agents: User[] = [];
   if (hasPermission(user, 'serviceRequests', 'update') && request.organizationId) {
     const { data } = await getOrganizationAgents(request.organizationId);

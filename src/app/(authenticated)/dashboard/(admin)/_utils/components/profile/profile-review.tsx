@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { FullProfile } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileBasicInfo } from './basic-info';
@@ -23,32 +22,32 @@ import {
 import { RequestStatus } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast, useToast } from '@/hooks/use-toast';
 import { ROUTES } from '@/schemas/routes';
-import { ProfileNotes } from '@/app/(authenticated)/admin/_utils/components/profile/profile-notes';
-import { ProfileStatusBadge } from '@/app/(authenticated)/user/profile/_utils/components/profile-status-badge';
-import { RegistrationRequestDetails } from '@/types/consular-service';
 import {
   calculateProfileCompletion,
-  DisplayDate,
+  useDateLocale,
   getProfileFieldsStatus,
 } from '@/lib/utils';
-import { ProfileCompletion } from '@/app/(authenticated)/user/profile/_utils/components/profile-completion';
 import { validateRegistrationRequest } from '@/actions/registrations';
+import { FullServiceRequest } from '@/types/service-request';
+import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
+import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
+import { ProfileNotes } from './profile-notes';
+import { FullProfile } from '@/types/profile';
 
 interface ProfileReviewProps {
-  request: RegistrationRequestDetails;
+  request: FullServiceRequest & { profile: FullProfile | null };
 }
 
 export function ProfileReview({ request }: ProfileReviewProps) {
   const t = useTranslations('admin.registrations.review');
-  const profile = request?.submittedBy?.profile;
+  const profile = request?.profile;
   const user = request.submittedBy;
   const [isLoading, setIsLoading] = useState(false);
   const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null);
   const router = useRouter();
-  const { toast } = useToast();
-
+  const { formatDate } = useDateLocale();
   if (!profile || !user) {
     return null;
   }
@@ -84,7 +83,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
 
       // Fermer le dialogue et rediriger
       setValidationStatus(null);
-      router.push(ROUTES.admin.registrations);
+      router.push(ROUTES.dashboard.service_request_review(request.id));
     } catch (error) {
       toast({
         title: t('validation.error.title'),
@@ -118,12 +117,12 @@ export function ProfileReview({ request }: ProfileReviewProps) {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {status === RequestStatus.VALIDATED
+                {status === RequestStatus.APPROVED
                   ? t('validation.title')
                   : t('rejection.title')}
               </DialogTitle>
               <DialogDescription>
-                {status === RequestStatus.VALIDATED
+                {status === RequestStatus.APPROVED
                   ? t('validation.description')
                   : t('rejection.description')}
               </DialogDescription>
@@ -138,12 +137,12 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                 {t('validation.cancel')}
               </Button>
               <Button
-                variant={status === RequestStatus.VALIDATED ? 'default' : 'destructive'}
+                variant={status === RequestStatus.APPROVED ? 'default' : 'destructive'}
                 onClick={() => onConfirm(notes)}
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {status === RequestStatus.VALIDATED
+                {status === RequestStatus.APPROVED
                   ? t('validation.validate')
                   : t('validation.reject')}
               </Button>
@@ -153,6 +152,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
       );
     },
   );
+  ValidationDialog.displayName = 'ValidationDialog';
 
   return (
     <div className="space-y-6">
@@ -167,7 +167,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               <div className="flex items-center gap-2">
                 <ProfileStatusBadge status={request.status} />
                 <span className="text-sm text-muted-foreground">
-                  {t('submitted_on')}: {DisplayDate(request.createdAt)}
+                  {t('submitted_on')}: {formatDate(request.createdAt ?? '')}
                 </span>
               </div>
             </div>
@@ -183,9 +183,9 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </Button>
               <Button
                 variant={
-                  profile.status === RequestStatus.VALIDATED ? 'default' : 'success'
+                  profile.status === RequestStatus.APPROVED ? 'default' : 'success'
                 }
-                onClick={() => setValidationStatus(RequestStatus.VALIDATED)}
+                onClick={() => setValidationStatus(RequestStatus.APPROVED)}
                 disabled={isLoading}
               >
                 {t('validation.validate')}

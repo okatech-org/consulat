@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Download, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { AppUserDocument } from '@/types';
-import { DisplayDate } from '@/lib/utils';
+import { useDateLocale } from '@/lib/utils';
 
 interface DocumentCardProps {
   document: AppUserDocument;
@@ -20,7 +20,7 @@ interface DocumentCardProps {
 
 export function DocumentCard({ document }: DocumentCardProps) {
   const t = useTranslations('common.documents');
-
+  const { formatDate } = useDateLocale();
   const getStatusIcon = () => {
     switch (document.status) {
       case 'VALIDATED':
@@ -83,7 +83,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
           {document.expiresAt && (
             <p className="text-sm text-muted-foreground">
               {t('expires_on', {
-                date: DisplayDate(document.expiresAt),
+                date: formatDate(document.expiresAt ?? ''),
               })}
             </p>
           )}

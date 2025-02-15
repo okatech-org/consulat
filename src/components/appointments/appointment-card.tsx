@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { DisplayDate } from '@/lib/utils';
+import { useDateLocale } from '@/lib/utils';
 import { AppointmentStatus } from '@prisma/client';
 import { AppointmentWithRelations } from '@/schemas/appointment';
 import { cancelAppointment } from '@/actions/appointments';
@@ -29,6 +29,7 @@ interface AppointmentCardProps {
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const t = useTranslations('appointments');
   const t_common = useTranslations('common');
+  const { formatDate } = useDateLocale();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -90,13 +91,13 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Calendar className="size-4 text-muted-foreground" />
-            <span>{DisplayDate(appointment.date, 'PPP')}</span>
+            <span>{formatDate(appointment.date, 'PPP')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="size-4 text-muted-foreground" />
             <span>
-              {DisplayDate(appointment.startTime, 'HH:mm')} -{' '}
-              {DisplayDate(appointment.endTime, 'HH:mm')}
+              {formatDate(appointment.startTime, 'HH:mm')} -{' '}
+              {formatDate(appointment.endTime, 'HH:mm')}
             </span>
           </div>
           <div className="flex items-center gap-2">

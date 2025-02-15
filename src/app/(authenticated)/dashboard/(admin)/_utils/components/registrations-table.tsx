@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { RegistrationListingItem } from '@/types/consular-service';
-import { DisplayDate } from '@/lib/utils';
+import { useDateLocale } from '@/lib/utils';
 import { getRegistrations, GetRegistrationsOptions } from '@/actions/registrations';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
@@ -32,7 +32,7 @@ export function RegistrationsTable({
   const t = useTranslations('admin.registrations');
   const t_auth = useTranslations('auth');
   const t_common = useTranslations('common');
-
+  const { formatDate } = useDateLocale();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -78,7 +78,7 @@ export function RegistrationsTable({
       header: () => t('table.submitted_at'),
       cell: ({ row }) => {
         const date = row.original.submittedAt;
-        return date ? DisplayDate(date) : '-';
+        return date ? formatDate(date) : '-';
       },
     },
     {
@@ -121,7 +121,7 @@ export function RegistrationsTable({
               component: (
                 <Link
                   onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.admin.registrations_review(row.original.id)}
+                  href={ROUTES.dashboard.registrations_review(row.original.id)}
                 >
                   <FileText className="mr-2 size-4" />
                   {t('actions.review')}
@@ -194,7 +194,15 @@ export function RegistrationsTable({
       columns={columns}
       data={items}
       filters={localFilters}
-      pageCount={itemsTotalCount}
+      totalCount={itemsTotalCount}
+      pageSize={filters.limit}
+      pageIndex={filters.page}
+      onLimitChange={(pageSize) => {
+        handleFilterChange('limit', pageSize.toString());
+      }}
+      onPageChange={(pageIndex) => {
+        handleFilterChange('page', pageIndex.toString());
+      }}
     />
   );
 }

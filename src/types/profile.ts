@@ -18,25 +18,27 @@ export const BaseProfileInclude = {
 // Includes complet pour un profil avec tous les documents
 export const FullProfileInclude = {
   include: {
-    ...BaseProfileInclude.include,
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+      },
+    },
+    phone: true,
+    emergencyContact: {
+      include: {
+        phone: true,
+      },
+    },
+    address: true,
+    addressInGabon: true,
     passport: true,
     birthCertificate: true,
     residencePermit: true,
     addressProof: true,
-    address: true,
-    addressInGabon: true,
-    emergencyContact: {
-      include: {
-        phone: {
-          select: {
-            number: true,
-            countryCode: true,
-          },
-        },
-      },
-    },
     identityPicture: true,
-    phone: true,
     notes: {
       include: {
         author: {
@@ -47,9 +49,18 @@ export const FullProfileInclude = {
         },
       },
       orderBy: {
-        createdAt: 'desc' as const,
+        createdAt: 'desc',
       },
     },
+  },
+} as const;
+
+export const FullUserInclude = {
+  include: {
+    profile: true,
+    phone: true,
+    country: true,
+    notifications: true,
   },
 } as const;
 
@@ -78,13 +89,7 @@ export type ProfileWithIncludes<T extends keyof typeof FullProfileInclude.includ
 // const documentsInclude = createProfileInclude(['passport', 'birthCertificate', 'residencePermit']);
 // type ProfileWithDocuments = ProfileWithIncludes<'passport' | 'birthCertificate' | 'residencePermit'>;
 
-export type FullUser = Prisma.UserGetPayload<{
-  include: {
-    profile: true;
-    phone: true;
-    linkedCountries: true;
-  };
-}>;
+export type FullUser = Prisma.UserGetPayload<typeof FullUserInclude>;
 
 export type ProfileKey = keyof FullProfile;
 

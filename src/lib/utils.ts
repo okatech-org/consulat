@@ -410,20 +410,6 @@ export function filterUneditedKeys<T extends Record<string, unknown>>(
   return data;
 }
 
-export function DisplayDate(
-  date: Date | string,
-  formatStr?: string,
-  locale?: Locale,
-  options?: DateTimeFormatOptions,
-) {
-  if (!date) return '-';
-
-  return format(new Date(date), formatStr ?? 'PPP', {
-    locale: locale ?? fr,
-    ...options,
-  });
-}
-
 export function useDateLocale() {
   'use client';
 

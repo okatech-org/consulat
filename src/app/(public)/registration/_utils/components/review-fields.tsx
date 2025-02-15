@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { ConsularFormData } from '@/schemas/registration';
 import { DocumentStatus, InfoField } from '@/components/ui/info-field';
-import { DisplayDate } from '@/lib/utils';
+import { useDateLocale } from '@/lib/utils';
 
 interface ReviewFieldsProps<T extends keyof ConsularFormData> {
   id: T;
@@ -28,6 +28,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
 }: ReviewFieldsProps<T>) {
   const t = useTranslations('registration');
   const t_assets = useTranslations('assets');
+  const { formatDate } = useDateLocale();
 
   const documents: ConsularFormData['documents'] | undefined =
     id === 'documents' ? (data as ConsularFormData['documents']) : undefined;
@@ -100,7 +101,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
             />
             <InfoField
               label={t('form.birth_date')}
-              value={basicInfo.birthDate && DisplayDate(basicInfo.birthDate)}
+              value={basicInfo.birthDate && formatDate(basicInfo.birthDate)}
               icon={<Calendar className="size-4" />}
               required
             />
@@ -141,16 +142,14 @@ export function ReviewFields<T extends keyof ConsularFormData>({
               <InfoField
                 label={t('form.passport.issue_date.label')}
                 value={
-                  basicInfo.passportIssueDate &&
-                  DisplayDate(basicInfo.passportIssueDate)
+                  basicInfo.passportIssueDate && formatDate(basicInfo.passportIssueDate)
                 }
                 required
               />
               <InfoField
                 label={t('form.passport.expiry_date.label')}
                 value={
-                  basicInfo.passportExpiryDate &&
-                  DisplayDate(basicInfo.passportExpiryDate)
+                  basicInfo.passportExpiryDate && formatDate(basicInfo.passportExpiryDate)
                 }
                 required
               />

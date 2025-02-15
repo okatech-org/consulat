@@ -131,7 +131,13 @@ export type BaseServiceRequest = Prisma.ServiceRequestGetPayload<
 // Type pour une demande de service complète
 export type FullServiceRequest = Prisma.ServiceRequestGetPayload<
   typeof FullServiceRequestInclude
->;
+> & {
+  service: ConsularService;
+  submittedBy: User;
+  documents: UserDocument[];
+  formData?: Record<string, unknown>;
+  // ... autres relations nécessaires
+};
 
 // Fonction helper pour créer un include personnalisé
 export function createServiceRequestInclude<

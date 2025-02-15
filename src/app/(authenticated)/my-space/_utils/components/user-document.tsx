@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
-import { cn, DisplayDate } from '@/lib/utils';
+import { cn, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { AppUserDocument } from '@/types';
 import { DocumentStatus, DocumentType } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
-import { fr } from 'date-fns/locale';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -28,12 +27,12 @@ import {
   deleteUserDocument,
   updateUserDocument,
 } from '@/actions/user-documents';
-import { useToast } from '@/hooks/use-toast';
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MetadataForm } from '@/app/(authenticated)/admin/_utils/components/metadata-form';
 import { ReloadIcon } from '@radix-ui/react-icons';
+import { toast } from '@/hooks/use-toast';
+import { MetadataForm } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/metadata-form';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -64,7 +63,6 @@ export function UserDocument({
 }: UserDocumentProps) {
   const t = useTranslations('common.documents');
   const t_messages = useTranslations('messages');
-  const { toast } = useToast();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [preview, setPreview] = React.useState<string | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
@@ -163,8 +161,8 @@ export function UserDocument({
   const form = useForm<UpdateDocumentData>({
     resolver: zodResolver(updateDocumentSchema),
     defaultValues: {
-      issuedAt: document?.issuedAt ? DisplayDate(document.issuedAt) : undefined,
-      expiresAt: document?.expiresAt ? DisplayDate(document.expiresAt) : undefined,
+      issuedAt: document?.issuedAt ? formatDate(document.issuedAt) : undefined,
+      expiresAt: document?.expiresAt ? formatDate(document.expiresAt) : undefined,
       metadata: document?.metadata,
     },
   });
@@ -372,12 +370,8 @@ export function UserDocument({
                 {(document.issuedAt || document.expiresAt) && (
                   <>
                     {t('validity', {
-                      start: document.issuedAt
-                        ? DisplayDate(document.issuedAt)
-                        : 'N/A',
-                      end: document.expiresAt
-                        ? DisplayDate(document.expiresAt)
-                        : 'N/A',
+                      start: document.issuedAt ? formatDate(document.issuedAt) : 'N/A',
+                      end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
                     })}
                   </>
                 )}

@@ -1,9 +1,11 @@
 import { db } from '@/lib/prisma';
-import { FullProfile, FullUser } from '@/types';
+import { FullProfile, FullProfileInclude, FullUser, FullUserInclude } from '@/types';
 
 export async function getUserById(
   id: string | undefined | null,
 ): Promise<FullUser | null> {
+  'use server';
+
   if (!id) {
     return null;
   }
@@ -13,11 +15,7 @@ export async function getUserById(
       where: {
         id: id,
       },
-      include: {
-        phone: true,
-        profile: true,
-        linkedCountries: true,
-      },
+      ...FullUserInclude,
     });
   } catch {
     return null;
@@ -25,39 +23,12 @@ export async function getUserById(
 }
 
 export async function getUserFullProfile(id: string): Promise<FullProfile | null> {
+  'use server';
+
   try {
     return db.profile.findFirst({
-      where: {
-        userId: id,
-      },
-      include: {
-        passport: true,
-        birthCertificate: true,
-        residencePermit: true,
-        addressProof: true,
-        address: true,
-        addressInGabon: true,
-        identityPicture: true,
-        emergencyContact: {
-          include: {
-            phone: true,
-          },
-        },
-        phone: true,
-        notes: {
-          include: {
-            author: {
-              select: {
-                name: true,
-                image: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
+      where: { userId: id },
+      ...FullProfileInclude,
     });
   } catch (e) {
     console.error(e);
