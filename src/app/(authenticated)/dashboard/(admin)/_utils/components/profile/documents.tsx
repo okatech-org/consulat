@@ -2,17 +2,16 @@ import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, AlertCircle, Shield } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useDateLocale } from '@/lib/utils';
 import { Badge, BadgeVariant } from '@/components/ui/badge';
 import { DocumentPreview } from '@/components/ui/document-preview';
 import { documentValidations, validateDocument } from '@/lib/document-validation';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { DocumentValidationDialog } from '@/app/(authenticated)/admin/_utils/components/profile/document-validation-dialog';
 import { useRouter } from 'next/navigation';
 import { DocumentType } from '@prisma/client';
+import { DocumentValidationDialog } from './document-validation-dialog';
 
 interface ProfileDocumentsProps {
   profile: FullProfile;
@@ -22,6 +21,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
   const t = useTranslations('common');
   const t_review = useTranslations('admin.registrations.review');
   const router = useRouter();
+  const { formatDate } = useDateLocale();
 
   const handleDownload = async (url: string, filename: string) => {
     try {
@@ -94,13 +94,13 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                     {document.issuedAt && (
                       <p>
                         {t_review('documents.issued_at')}:{' '}
-                        {format(new Date(document.issuedAt), 'PPP', { locale: fr })}
+                        {formatDate(document.issuedAt, 'PPP')}
                       </p>
                     )}
                     {document.expiresAt && (
                       <p>
                         {t_review('documents.expires_at')}:{' '}
-                        {format(new Date(document.expiresAt), 'PPP', { locale: fr })}
+                        {formatDate(document.expiresAt, 'PPP')}
                       </p>
                     )}
                   </div>
