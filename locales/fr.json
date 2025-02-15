@@ -1605,6 +1605,20 @@
       "show_more": "Voir {count} de plus",
       "show_less": "Voir moins"
     },
+    "tabs": {
+      "personal": "Informations personnelles",
+      "contact": "Contact"
+    },
+    "personal_info": {
+      "title": "Informations personnelles",
+      "birth": "Date de naissance",
+      "nationality": "Nationalité"
+    },
+    "contact_info": {
+      "title": "Informations de contact",
+      "phone": "Téléphone",
+      "address": "Adresse"
+    },
     "last_update": "Dernière mise à jour",
     "missing_fields": "Champs manquants",
     "submission": {
@@ -3136,55 +3150,6 @@
     }
   },
   "dashboard": {
-    "requests": {
-      "title": "Gestion des demandes consulaires",
-      "table": {
-        "submitted_at": "Soumise le",
-        "service": "Service",
-        "status": "Statut",
-        "priority": "Priorité",
-        "assigned_to": "Assigné à"
-      },
-      "filters": {
-        "search": "Rechercher",
-        "status": "Statut",
-        "priority": "Priorité",
-        "service_category": "Catégorie de service",
-        "assigned_to": "Assigné à"
-      },
-      "actions": {
-        "view_details": "Voir les détails",
-        "start_processing": "Commencer à traiter",
-        "continue_processing": "Continuer à traiter"
-      },
-      "assign": {
-        "title": "Assigner la demande",
-        "agent": "Agent",
-        "select_agent": "Sélectionner un agent",
-        "success": "La demande a été assignée avec succès",
-        "error": "Une erreur est survenue lors de l'assignation de la demande"
-      },
-      "view": {
-        "title": "Détails de la demande",
-        "request_info": "Informations de la demande",
-        "requester_info": "Informations du demandeur",
-        "submitted_at": "Soumis le",
-        "assigned_to": "Assigné à",
-        "last_action": "Dernière action le",
-        "service_info": "Informations sur le service",
-        "appointment": "Rendez-vous",
-        "history": "Historique des actions",
-        "actions": {
-          "types": {
-            "status_change": "Changement de statut",
-            "note_added": "Note ajoutée",
-            "document_uploaded": "Document téléchargé",
-            "appointment_scheduled": "Rendez-vous planifié"
-          },
-          "edit_assigned_agent": "Modifier l'agent assigné"
-        }
-      }
-    },
     "sections": {
       "profile": {
         "title": "Mon profil",
@@ -4342,6 +4307,86 @@
         "requests_description": "Demandes en attente de traitement",
         "users": "Utilisateurs",
         "users_description": "Utilisateurs actifs"
+      }
+    }
+  },
+  "requests": {
+    "service_request": {
+      "title": "Détails de la demande",
+      "service_info": "Informations sur le service",
+      "submission_info": "Informations de soumission",
+      "submitted_on": "Soumis le {date}",
+      "processing_mode": "Mode de traitement",
+      "delivery_mode": "Mode de livraison",
+      "view_profile": "Voir le profil",
+      "applicant_profile": "Profil du demandeur",
+      "documents": "Documents fournis",
+      "form_data": "Données du formulaire"
+    },
+    "status": {
+      "submitted": "Soumise",
+      "in_progress": "En cours",
+      "completed": "Terminée",
+      "rejected": "Rejetée",
+      "cancelled": "Annulée"
+    },
+    "processing_mode": {
+      "online_only": "En ligne uniquement",
+      "presence_required": "Présence requise",
+      "hybrid": "Hybride",
+      "by_proxy": "Par procuration"
+    },
+    "delivery_mode": {
+      "in_person": "En personne",
+      "postal": "Par courrier",
+      "electronic": "Électronique",
+      "by_proxy": "Par procuration"
+    },
+    "title": "Gestion des demandes consulaires",
+    "table": {
+      "submitted_at": "Soumise le",
+      "service": "Service",
+      "status": "Statut",
+      "priority": "Priorité",
+      "assigned_to": "Assigné à"
+    },
+    "filters": {
+      "search": "Rechercher",
+      "status": "Statut",
+      "priority": "Priorité",
+      "service_category": "Catégorie de service",
+      "assigned_to": "Assigné à"
+    },
+    "actions": {
+      "view_details": "Voir les détails",
+      "start_processing": "Commencer à traiter",
+      "continue_processing": "Continuer à traiter"
+    },
+    "assign": {
+      "title": "Assigner la demande",
+      "agent": "Agent",
+      "select_agent": "Sélectionner un agent",
+      "success": "La demande a été assignée avec succès",
+      "error": "Une erreur est survenue lors de l'assignation de la demande"
+    },
+    "view": {
+      "title": "Détails de la demande",
+      "request_info": "Informations de la demande",
+      "requester_info": "Informations du demandeur",
+      "submitted_at": "Soumis le",
+      "assigned_to": "Assigné à",
+      "last_action": "Dernière action le",
+      "service_info": "Informations sur le service",
+      "appointment": "Rendez-vous",
+      "history": "Historique des actions",
+      "actions": {
+        "types": {
+          "status_change": "Changement de statut",
+          "note_added": "Note ajoutée",
+          "document_uploaded": "Document téléchargé",
+          "appointment_scheduled": "Rendez-vous planifié"
+        },
+        "edit_assigned_agent": "Modifier l'agent assigné"
       }
     }
   }

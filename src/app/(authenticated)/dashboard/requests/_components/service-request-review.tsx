@@ -73,7 +73,7 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
                 {t('service_request.view_profile')}
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-xl">
+            <SheetContent side="right" className="w-full sm:max-w-4xl">
               <SheetHeader>
                 <SheetTitle>{t('service_request.applicant_profile')}</SheetTitle>
               </SheetHeader>
