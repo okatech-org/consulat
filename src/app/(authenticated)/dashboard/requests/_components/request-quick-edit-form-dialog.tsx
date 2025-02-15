@@ -97,7 +97,7 @@ export function RequestQuickEditFormDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('dashboard.requests.assign.title')}</DialogTitle>
+          <DialogTitle>{t('requests.assign.title')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -106,7 +106,7 @@ export function RequestQuickEditFormDialog({
               name="assignedToId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('dashboard.requests.assign.agent')}</FormLabel>
+                  <FormLabel>{t('requests.assign.agent')}</FormLabel>
                   <MultiSelect
                     options={agents.map((agent) => ({
                       label: `${agent.firstName} ${agent.lastName}`,

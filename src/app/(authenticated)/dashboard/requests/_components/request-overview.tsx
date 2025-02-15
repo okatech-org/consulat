@@ -34,8 +34,8 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
 
     const isSubmitted = request.status === 'SUBMITTED';
     const label = isSubmitted
-      ? t('dashboard.requests.actions.start_processing')
-      : t('dashboard.requests.actions.continue_processing');
+      ? t('requests.actions.start_processing')
+      : t('requests.actions.continue_processing');
 
     return (
       <Button asChild>
@@ -50,15 +50,12 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('dashboard.requests.view.title')}</h1>
+        <h1 className="text-2xl font-bold">{t('requests.view.title')}</h1>
         {getActionButton()}
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
         <div className="col-span-full space-y-6 md:col-span-8">
-          <CardContainer
-            title={t('dashboard.requests.view.request_info')}
-            contentClass="space-y-4"
-          >
+          <CardContainer title={t('requests.view.request_info')} contentClass="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge variant={request.status === 'SUBMITTED' ? 'outline' : 'default'}>
@@ -75,26 +72,26 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="size-4" />
-                {t('dashboard.requests.view.submitted_at')}:{' '}
+                {t('requests.view.submitted_at')}:{' '}
                 {formatDate(request.submittedAt || request.createdAt, 'PPP')}
               </div>
               {request.assignedTo && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="size-4" />
-                  {t('dashboard.requests.view.assigned_to')}:{' '}
-                  {request.assignedTo.firstName} {request.assignedTo.lastName}
+                  {t('requests.view.assigned_to')}: {request.assignedTo.firstName}{' '}
+                  {request.assignedTo.lastName}
                 </div>
               )}
               {request.lastActionAt && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="size-4" />
-                  {t('dashboard.requests.view.last_action')}:{' '}
+                  {t('requests.view.last_action')}:{' '}
                   {formatDate(request.lastActionAt, 'PPP')}
                 </div>
               )}
             </div>
           </CardContainer>
-          <CardContainer title={t('dashboard.requests.view.requester_info')}>
+          <CardContainer title={t('requests.view.requester_info')}>
             <h3 className="font-medium">
               {request.submittedBy.firstName} {request.submittedBy.lastName}
             </h3>
@@ -104,9 +101,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
         <div className="col-span-full flex h-full flex-col gap-4 md:col-span-4">
           {/* Change or set assigned agent */}
           {isAdmin && (
-            <CardContainer
-              title={t('dashboard.requests.view.actions.edit_assigned_agent')}
-            >
+            <CardContainer title={t('requests.view.actions.edit_assigned_agent')}>
               <div className="space-y-4">
                 {request.assignedTo && (
                   <p className="text-sm text-muted-foreground">
@@ -118,7 +113,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             </CardContainer>
           )}
           {/* Service Info */}
-          <CardContainer title={t('dashboard.requests.view.service_info')}>
+          <CardContainer title={t('requests.view.service_info')}>
             <div className="space-y-4">
               <div>
                 <h4 className="font-medium">{request.service.name}</h4>
@@ -134,7 +129,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
 
           {/* Appointment Info if exists */}
           {request.appointment && (
-            <CardContainer title={t('dashboard.requests.view.appointment')}>
+            <CardContainer title={t('requests.view.appointment')}>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="size-4" />
@@ -157,10 +152,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
           )}
 
           {/* Action History */}
-          <CardContainer
-            className="flex-grow"
-            title={t('dashboard.requests.view.history')}
-          >
+          <CardContainer className="flex-grow" title={t('requests.view.history')}>
             <ScrollArea className="h-full pr-4">
               <Timeline>
                 {request.actions.map((action) => (

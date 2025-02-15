@@ -16,7 +16,7 @@ interface Props {
 export default async function RequestsPage({ searchParams }: Props) {
   const session = await auth();
   const queryParams = await searchParams;
-  const t = await getTranslations('dashboard.requests');
+  const t = await getTranslations('requests');
 
   const isAdmin = session?.user
     ? hasAnyRole(session.user, ['ADMIN', 'SUPER_ADMIN'])

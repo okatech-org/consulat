@@ -78,7 +78,7 @@ export function RequestsTable({
   const columns: ColumnDef<FullServiceRequest>[] = [
     {
       accessorKey: 'submittedAt',
-      header: () => t('dashboard.requests.table.submitted_at'),
+      header: () => t('requests.table.submitted_at'),
       enableSorting: true,
       cell: ({ row }) => {
         const date = row.original.submittedAt;
@@ -112,7 +112,7 @@ export function RequestsTable({
     },
     {
       accessorKey: 'priority',
-      header: () => t('dashboard.requests.table.priority'),
+      header: () => t('requests.table.priority'),
       enableSorting: true,
       sortingFn: (a, b) => {
         return a.original.priority.localeCompare(b.original.priority);
@@ -141,7 +141,7 @@ export function RequestsTable({
   if (isAdmin) {
     columns.push({
       accessorKey: 'assignedTo',
-      header: () => t('dashboard.requests.table.assigned_to'),
+      header: () => t('requests.table.assigned_to'),
       cell: ({ row }) => {
         const assignedTo = row.original.assignedTo;
         return assignedTo ? assignedTo.firstName + ' ' + assignedTo.lastName : '-';
@@ -185,7 +185,7 @@ export function RequestsTable({
     {
       type: 'search',
       property: 'submittedBy_email',
-      label: t('dashboard.requests.filters.search'),
+      label: t('requests.filters.search'),
       defaultValue: filters.search,
       onChange: (value) => {
         if (typeof value === 'string') {
@@ -200,7 +200,7 @@ export function RequestsTable({
     {
       type: 'checkbox',
       property: 'status',
-      label: t('dashboard.requests.filters.status'),
+      label: t('requests.filters.status'),
       defaultValue: filters.status?.toString().split(',') ?? undefined,
       options: [
         { value: 'SUBMITTED', label: t('common.status.submitted') },
@@ -220,7 +220,7 @@ export function RequestsTable({
     {
       type: 'checkbox',
       property: 'priority',
-      label: t('dashboard.requests.filters.priority'),
+      label: t('requests.filters.priority'),
       defaultValue: filters.priority?.toString().split(',') ?? undefined,
       options: Object.values(ServicePriority).map((priority) => ({
         value: priority,
@@ -235,7 +235,7 @@ export function RequestsTable({
     {
       type: 'checkbox',
       property: 'serviceCategory',
-      label: t('dashboard.requests.filters.service_category'),
+      label: t('requests.filters.service_category'),
       defaultValue: filters.serviceCategory?.toString().split(',') ?? undefined,
       options: availableServiceCategories.map((category) => ({
         value: category,
@@ -254,7 +254,7 @@ export function RequestsTable({
     localFilters.push({
       type: 'checkbox',
       property: 'assignedTo',
-      label: t('dashboard.requests.filters.assigned_to'),
+      label: t('requests.filters.assigned_to'),
       defaultValue: filters.assignedToId?.toString().split(',') ?? undefined,
       options: agents.map((agent) => ({
         value: agent.id,
