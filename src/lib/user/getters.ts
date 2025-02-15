@@ -16,6 +16,7 @@ export async function getUserById(
       include: {
         phone: true,
         profile: true,
+        linkedCountries: true,
       },
     });
   } catch {

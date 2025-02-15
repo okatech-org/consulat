@@ -61,17 +61,17 @@ export type FullProfile = Prisma.ProfileGetPayload<typeof FullProfileInclude>;
 
 // Fonction helper pour créer un include personnalisé
 export function createProfileInclude<T extends keyof typeof FullProfileInclude.include>(
-  fields: T[]
+  fields: T[],
 ) {
   return {
     include: Object.fromEntries(
-      fields.map((field) => [field, FullProfileInclude.include[field]])
+      fields.map((field) => [field, FullProfileInclude.include[field]]),
     ),
   } as const;
 }
 
 // Type helper pour un profil avec des includes spécifiques
-export type ProfileWithIncludes<T extends keyof typeof FullProfileInclude.include> = 
+export type ProfileWithIncludes<T extends keyof typeof FullProfileInclude.include> =
   Prisma.ProfileGetPayload<ReturnType<typeof createProfileInclude<T>>>;
 
 // Exemple d'utilisation:
@@ -82,6 +82,7 @@ export type FullUser = Prisma.UserGetPayload<{
   include: {
     profile: true;
     phone: true;
+    linkedCountries: true;
   };
 }>;
 

@@ -7,13 +7,14 @@ import { getUserById } from '@/lib/user/getters';
 import { FullUser } from '@/types';
 import { validateOTP } from '@/lib/user/otp';
 import { extractNumber } from '@/lib/utils';
-import { Phone, User, UserRole } from '@prisma/client';
+import { Country, Phone, User, UserRole } from '@prisma/client';
 import { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {
     user: User & {
       phone: Phone | null;
+      linkedCountries: Country[];
     };
   }
 }
@@ -100,7 +101,10 @@ async function handleAuthorize(credentials: unknown) {
         phone: true,
         lastLogin: true,
         organizationId: true,
-        agentOrganizationId: true,
+        assignedOrganizationId: true,
+        countryCode: true,
+        specializations: true,
+        linkedCountries: true,
       },
     });
 
@@ -121,7 +125,10 @@ async function handleAuthorize(credentials: unknown) {
           phone: true,
           lastLogin: true,
           organizationId: true,
-          agentOrganizationId: true,
+          assignedOrganizationId: true,
+          countryCode: true,
+          specializations: true,
+          linkedCountries: true,
         },
       });
     }
@@ -155,14 +162,22 @@ async function handleSession({ session, token }: { session: Session; token: JWT 
         session.user.organizationId = existingUser.organizationId;
       }
 
-      if (existingUser.agentOrganizationId) {
-        session.user.agentOrganizationId = existingUser.agentOrganizationId;
+      if (existingUser.assignedOrganizationId) {
+        session.user.assignedOrganizationId = existingUser.assignedOrganizationId;
       }
 
       session.user.lastLogin = existingUser.lastLogin ?? new Date();
 
       if (existingUser.countryCode) {
         session.user.countryCode = existingUser.countryCode;
+      }
+
+      if (existingUser.specializations) {
+        session.user.specializations = existingUser.specializations;
+      }
+
+      if (existingUser.linkedCountries) {
+        session.user.linkedCountries = existingUser.linkedCountries;
       }
     }
     session.user.id = token.sub;
