@@ -8,11 +8,7 @@ export default async function SuperAdminLayout({
   return (
     <>
       <DashboardSidebar />
-      <main
-        className={
-          'min-h-screen w-screen overflow-auto overflow-x-hidden pb-24 pt-4 md:py-6'
-        }
-      >
+      <main className={'min-h-screen w-screen overflow-auto overflow-x-hidden py-6'}>
         <div className="container">{children}</div>
       </main>
     </>

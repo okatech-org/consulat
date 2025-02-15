@@ -23,6 +23,7 @@ export const BaseServiceRequestInclude = {
         id: true,
         name: true,
         category: true,
+        description: true,
         requiredDocuments: true,
         optionalDocuments: true,
       },
@@ -101,6 +102,7 @@ export const FullServiceRequestInclude = {
             image: true,
           },
         },
+        location: true,
       },
     },
     actions: {

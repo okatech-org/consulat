@@ -2,27 +2,32 @@
 
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Clock, User, Calendar } from 'lucide-react';
+import { FileText, Clock, User, Calendar, MapPin, ClipboardList } from 'lucide-react';
 import { FullServiceRequest } from '@/types/service-request';
 import { User as PrismaUser } from '@prisma/client';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useDateLocale } from '@/lib/utils';
 import { hasAnyRole } from '@/lib/permissions/utils';
+import { Timeline } from '@/components/ui/timeline';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import CardContainer from '@/components/layouts/card-container';
+import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
 
 interface RequestOverviewProps {
   request: FullServiceRequest;
   user: PrismaUser;
+  agents: PrismaUser[];
 }
 
-export function RequestOverview({ request, user }: RequestOverviewProps) {
+export function RequestOverview({ request, user, agents = [] }: RequestOverviewProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
   const canProcess = hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT']);
   const isProcessable = !['COMPLETED', 'CANCELLED'].includes(request.status);
+  const isAdmin = hasAnyRole(user, ['ADMIN', 'MANAGER']);
 
   const getActionButton = () => {
     if (!canProcess || !isProcessable) return null;
@@ -43,18 +48,17 @@ export function RequestOverview({ request, user }: RequestOverviewProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t('dashboard.requests.view.title')}</h1>
         {getActionButton()}
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.requests.view.request_info')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+        <div className="col-span-full space-y-6 md:col-span-8">
+          <CardContainer
+            title={t('dashboard.requests.view.request_info')}
+            contentClass="space-y-4"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge variant={request.status === 'SUBMITTED' ? 'outline' : 'default'}>
@@ -89,22 +93,89 @@ export function RequestOverview({ request, user }: RequestOverviewProps) {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.requests.view.requester_info')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-medium">
-                {request.submittedBy.firstName} {request.submittedBy.lastName}
-              </h3>
-              <p className="text-sm text-muted-foreground">{request.submittedBy.email}</p>
+          </CardContainer>
+          <CardContainer title={t('dashboard.requests.view.requester_info')}>
+            <h3 className="font-medium">
+              {request.submittedBy.firstName} {request.submittedBy.lastName}
+            </h3>
+            <p className="text-sm text-muted-foreground">{request.submittedBy.email}</p>
+          </CardContainer>
+        </div>
+        <div className="col-span-full flex h-full flex-col gap-4 md:col-span-4">
+          {/* Change or set assigned agent */}
+          {isAdmin && (
+            <CardContainer
+              title={t('dashboard.requests.view.actions.edit_assigned_agent')}
+            >
+              <div className="space-y-4">
+                {request.assignedTo && (
+                  <p className="text-sm text-muted-foreground">
+                    {request.assignedTo.firstName} {request.assignedTo.lastName}
+                  </p>
+                )}
+                <RequestQuickEditFormDialog request={request} agents={agents} />
+              </div>
+            </CardContainer>
+          )}
+          {/* Service Info */}
+          <CardContainer title={t('dashboard.requests.view.service_info')}>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium">{request.service.name}</h4>
+                <p className="text-sm text-muted-foreground">
+                  {request.service.description}
+                </p>
+              </div>
+              <Badge variant="outline">
+                {t(`common.service_categories.${request.serviceCategory}`)}
+              </Badge>
             </div>
-          </CardContent>
-        </Card>
+          </CardContainer>
+
+          {/* Appointment Info if exists */}
+          {request.appointment && (
+            <CardContainer title={t('dashboard.requests.view.appointment')}>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="size-4" />
+                  {formatDate(request.appointment.date, 'PPP')}
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="size-4" />
+                  {t('common.duration.in_minutes', {
+                    minutes: request.appointment.duration,
+                  })}
+                </div>
+                {request.appointment.location && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="size-4" />
+                    {request.appointment.location}
+                  </div>
+                )}
+              </div>
+            </CardContainer>
+          )}
+
+          {/* Action History */}
+          <CardContainer
+            className="flex-grow"
+            title={t('dashboard.requests.view.history')}
+          >
+            <ScrollArea className="h-full pr-4">
+              <Timeline>
+                {request.actions.map((action) => (
+                  <Timeline.Item
+                    key={action.id}
+                    icon={<ClipboardList className="size-4" />}
+                    time={formatDate(action.createdAt, 'Pp')}
+                    title={t(`common.request.actions.${action.type.toLowerCase()}`)}
+                    description={action.data.agentId}
+                  />
+                ))}
+              </Timeline>
+            </ScrollArea>
+          </CardContainer>
+        </div>
       </div>
     </div>
   );

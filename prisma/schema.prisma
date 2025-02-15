@@ -348,6 +348,7 @@ model Address {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   Profile    Profile[]
+  appointments Appointment[]
 }
 
 // Mettre à jour le modèle Document
@@ -578,6 +579,8 @@ model Appointment {
   status          AppointmentStatus @default(CONFIRMED)
   organizationId  String            // Pour lier au consulat spécifique
   organization    Organization      @relation(fields: [organizationId], references: [id])
+  location        Address?          @relation(fields: [locationId], references: [id])
+  locationId      String?
   countryCode     String
 
   // Relations existantes

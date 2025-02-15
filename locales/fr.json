@@ -1,5 +1,22 @@
 {
   "common": {
+    "request": {
+      "actions": {
+        "status_change": "Changement de statut",
+        "note_added": "Note ajoutée",
+        "document_uploaded": "Document téléchargé",
+        "appointment_scheduled": "Rendez-vous planifié",
+        "assigned": "Assigné",
+        "submitted": "Soumis",
+        "in_review": "En traitement",
+        "additional_info_needed": "À compléter",
+        "completed": "Terminé",
+        "cancelled": "Annulé",
+        "validated": "Validé",
+        "assignment": "Assignement",
+        "rejection": "Rejet"
+      }
+    },
     "priority": {
       "low": "Faible",
       "medium": "Moyen",
@@ -48,6 +65,10 @@
           "save": "Enregistrer"
         }
       }
+    },
+    "duration": {
+      "label": "Durée",
+      "in_minutes": "{minutes} minutes"
     },
     "acquiring_mode": {
       "birth": "Par naissance",
@@ -3149,7 +3170,19 @@
         "requester_info": "Informations du demandeur",
         "submitted_at": "Soumis le",
         "assigned_to": "Assigné à",
-        "last_action": "Dernière action le"
+        "last_action": "Dernière action le",
+        "service_info": "Informations sur le service",
+        "appointment": "Rendez-vous",
+        "history": "Historique des actions",
+        "actions": {
+          "types": {
+            "status_change": "Changement de statut",
+            "note_added": "Note ajoutée",
+            "document_uploaded": "Document téléchargé",
+            "appointment_scheduled": "Rendez-vous planifié"
+          },
+          "edit_assigned_agent": "Modifier l'agent assigné"
+        }
       }
     },
     "sections": {

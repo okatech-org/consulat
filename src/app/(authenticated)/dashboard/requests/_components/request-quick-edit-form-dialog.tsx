@@ -15,25 +15,18 @@ import {
 } from '@/components/ui/dialog';
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  TradFormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { assignServiceRequest } from '@/actions/service-requests';
 import { FullServiceRequest } from '@/types/service-request';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 import { User } from '@prisma/client';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 // Schéma de validation pour le formulaire
 const formSchema = z.object({
@@ -59,7 +52,7 @@ export function RequestQuickEditFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      assignedToId: request.assignedTo?.id || '',
+      ...(request.assignedTo && { assignedToId: request.assignedTo.id }),
     },
   });
 
@@ -114,27 +107,16 @@ export function RequestQuickEditFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('dashboard.requests.assign.agent')}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={isLoading}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={t('dashboard.requests.assign.select_agent')}
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {agents.map((agent) => (
-                        <SelectItem key={agent.id} value={agent.id}>
-                          {agent.firstName} {agent.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
+                  <MultiSelect
+                    options={agents.map((agent) => ({
+                      label: `${agent.firstName} ${agent.lastName}`,
+                      value: agent.id,
+                    }))}
+                    onChange={(value) => field.onChange(value[0])}
+                    selected={[field.value]}
+                    type="single"
+                  />
+                  <TradFormMessage />
                 </FormItem>
               )}
             />
