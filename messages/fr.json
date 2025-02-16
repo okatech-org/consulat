@@ -1664,7 +1664,7 @@
       "complete": "Complet",
       "draft": "Brouillon",
       "submitted": "Soumis",
-      "in_review": "En révision"
+      "review": "En traitement"
     },
     "sections": {
       "basic_info": "Informations personnelles",
