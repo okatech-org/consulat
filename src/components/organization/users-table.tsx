@@ -75,7 +75,7 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
       header: t_base('common.data_table.actions'),
       cell: ({ row }) => (
         <RoleGuard roles={['SUPER_ADMIN', 'ADMIN']}>
-          <DataTableRowActions<OrganizationAgents>
+          <DataTableRowActions<BaseAgent>
             actions={[
               {
                 label: (
@@ -87,8 +87,7 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
                   </>
                 ),
                 onClick: (row) => {
-                  // TODO: Implement delete logic
-                  console.log('Supprimer l’agent', row);
+                  console.log("Supprimer l'agent", row);
                 },
               },
             ]}

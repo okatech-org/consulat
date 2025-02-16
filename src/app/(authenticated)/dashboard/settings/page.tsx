@@ -29,6 +29,7 @@ export default async function OrganizationSettingsPage() {
       <SettingsTabs
         organization={{
           ...organization,
+          metadata: organization.metadata as Record<string, unknown> | null,
           countries: organization.countries ?? [],
           services: organization.services ?? [],
           agents: organization.agents ?? [],
