@@ -379,9 +379,6 @@ export async function getOrganizationAgents(id: string): Promise<{
   data?: BaseAgent[];
   error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-  if (authResult.error) return { error: authResult.error };
-
   try {
     const agents = await db.user.findMany({
       where: {

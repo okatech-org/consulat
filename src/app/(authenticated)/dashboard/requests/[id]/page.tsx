@@ -31,14 +31,12 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
-  let agents: User[] = [];
-  if (hasPermission(user, 'serviceRequests', 'update') && request.organizationId) {
-    const { data } = await getOrganizationAgents(request.organizationId);
-    agents = data || [];
-  }
+  const { data: agents } = request.organizationId
+    ? await getOrganizationAgents(request.organizationId)
+    : { data: [] };
 
   if (review) {
-    return <RequestReview request={request} />;
+    return <RequestReview request={request} agents={agents} />;
   }
 
   return (

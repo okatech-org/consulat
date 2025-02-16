@@ -22,7 +22,9 @@ export function BreadcrumbMenu() {
           <Fragment key={index}>
             <BreadcrumbItem key={index}>
               {index !== pathnameParts.length - 1 ? (
-                <BreadcrumbLink href={`/${part}`}>{part}</BreadcrumbLink>
+                <BreadcrumbLink href={`/${pathnameParts.slice(0, index + 1).join('/')}`}>
+                  {part}
+                </BreadcrumbLink>
               ) : (
                 <BreadcrumbPage>{part}</BreadcrumbPage>
               )}

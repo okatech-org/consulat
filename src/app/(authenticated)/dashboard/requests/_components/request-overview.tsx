@@ -144,7 +144,9 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                 {request.appointment.location && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="size-4" />
-                    {request.appointment.location}
+                    <span>
+                      {`${request.appointment.location.firstLine}, ${request.appointment.location.secondLine}, ${request.appointment.location.zipCode} ${request.appointment.location.city}`}
+                    </span>
                   </div>
                 )}
               </div>
@@ -161,7 +163,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                     icon={<ClipboardList className="size-4" />}
                     time={formatDate(action.createdAt, 'Pp')}
                     title={t(`common.request.actions.${action.type.toLowerCase()}`)}
-                    description={action.data.agentId}
+                    description={action.data?.agentId}
                   />
                 ))}
               </Timeline>

@@ -66,19 +66,12 @@ export function ServiceRequestReview({
         notes || undefined,
       );
 
-      if (result.error) {
+      if (result.success) {
         toast({
-          title: t('update.error.title'),
-          description: result.error,
-          variant: 'destructive',
+          title: t('update.success.title'),
+          description: t('update.success.description'),
         });
-        return;
       }
-
-      toast({
-        title: t('update.success.title'),
-        description: t('update.success.description'),
-      });
     } catch (error) {
       toast({
         title: t('update.error.title'),
