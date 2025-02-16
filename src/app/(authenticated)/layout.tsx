@@ -4,14 +4,6 @@ import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { getUserById } from '@/lib/user/getters';
 import { AppSidebar } from '@/components/layouts/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@radix-ui/react-separator';
 import { BreadcrumbMenu } from '@/components/layouts/breadcrumb-menu';

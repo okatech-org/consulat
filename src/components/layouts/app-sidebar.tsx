@@ -2,17 +2,25 @@
 
 import * as React from 'react';
 import {
+  Bell,
   BookOpen,
   Bot,
-  Frame,
+  Building2,
+  Calendar,
+  FileSliders,
+  FileText,
+  Folder,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
+  Globe,
+  LayoutDashboard,
+  Settings,
   Settings2,
   TerminalSquare,
+  User,
+  Users,
 } from 'lucide-react';
 
-import { NavMain } from '@/components/layouts/nav-main';
+import { NavMain, NavMainItem } from '@/components/layouts/nav-main';
 import { NavUser } from '@/components/layouts/nav-user';
 import { TeamSwitcher } from '@/components/layouts/team-switcher';
 import {
@@ -23,133 +31,155 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { FullUser } from '@/types';
-
-// This is sample data.
-const data = {
-  teams: [
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-  ],
-  navMain: [
-    {
-      title: 'Playground',
-      url: '#',
-      icon: TerminalSquare,
-      isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Models',
-      url: '#',
-      icon: Bot,
-      items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-        {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Documentation',
-      url: '#',
-      icon: BookOpen,
-      items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: Settings2,
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-        {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
-          url: '#',
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: 'Design Engineering',
-      url: '#',
-      icon: Frame,
-    },
-    {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: PieChart,
-    },
-    {
-      name: 'Travel',
-      url: '#',
-      icon: Map,
-    },
-  ],
-};
+import { UserRole } from '@prisma/client';
+import { useTranslations } from 'next-intl';
+import { ROUTES } from '@/schemas/routes';
 
 export function AppSidebar({
   user,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { user: FullUser }) {
+}: React.ComponentProps<typeof Sidebar> & {
+  user: FullUser;
+}) {
+  const t = useTranslations('navigation');
+  const t_nav = useTranslations('user.nav');
+
+  const AdminNavigation: NavMainItem[] = [
+    {
+      title: t('admin.dashboard'),
+      url: ROUTES.dashboard.base,
+      icon: LayoutDashboard,
+      isActive: true,
+    },
+    {
+      title: t('admin.registrations'),
+      url: ROUTES.dashboard.appointments,
+      icon: Calendar,
+    },
+    {
+      title: t('admin.requests'),
+      url: ROUTES.dashboard.requests,
+      icon: FileText,
+    },
+    {
+      title: t('admin.settings'),
+      url: ROUTES.dashboard.settings,
+      icon: Settings,
+    },
+  ];
+
+  const AgentNavigation: NavMainItem[] = [
+    {
+      title: t('agent.dashboard'),
+      url: ROUTES.dashboard.base,
+      icon: LayoutDashboard,
+      isActive: true,
+    },
+    {
+      title: t('agent.appointments'),
+      url: ROUTES.dashboard.appointments,
+      icon: Calendar,
+    },
+    {
+      title: t('agent.requests'),
+      url: ROUTES.dashboard.requests,
+      icon: FileText,
+    },
+    {
+      title: t('agent.notifications'),
+      url: ROUTES.dashboard.notifications,
+      icon: Bell,
+    },
+  ];
+
+  const SuperAdminNavigation: NavMainItem[] = [
+    {
+      title: t('super_admin.dashboard'),
+      url: ROUTES.dashboard.base,
+      icon: LayoutDashboard,
+    },
+    {
+      title: t('super_admin.countries'),
+      url: ROUTES.sa.countries,
+      icon: Globe,
+    },
+    {
+      title: t('super_admin.organizations'),
+      url: ROUTES.sa.organizations,
+      icon: Building2,
+    },
+    {
+      title: t('super_admin.services'),
+      url: ROUTES.dashboard.services,
+      icon: Settings,
+    },
+    {
+      title: t('super_admin.users'),
+      url: ROUTES.dashboard.users,
+      icon: Users,
+    },
+  ];
+
+  const UserNavigation: NavMainItem[] = [
+    {
+      title: t_nav('dashboard'),
+      url: ROUTES.base,
+      icon: LayoutDashboard,
+    },
+    {
+      title: t_nav('profile'),
+      url: ROUTES.user.profile,
+      icon: User,
+    },
+    {
+      title: t_nav('requests'),
+      url: ROUTES.user.requests,
+      icon: FileSliders,
+    },
+    {
+      title: t_nav('appointments'),
+      url: ROUTES.user.appointments,
+      icon: Calendar,
+    },
+    {
+      title: t_nav('documents'),
+      url: ROUTES.user.documents,
+      icon: Folder,
+    },
+  ];
+
+  function getUserMenu(userRole: UserRole): NavMainItem[] {
+    switch (userRole) {
+      case UserRole.SUPER_ADMIN:
+        return SuperAdminNavigation;
+      case UserRole.ADMIN:
+        return AdminNavigation;
+      case UserRole.AGENT:
+        return AgentNavigation;
+      case UserRole.USER:
+        return UserNavigation;
+      default:
+        return [];
+    }
+  }
+
+  const userMenu = user?.roles[0] ? getUserMenu(user.roles[0]) : [];
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher
+          teams={[
+            {
+              name: 'Consulat',
+              logo: GalleryVerticalEnd,
+              plan: user.country?.name ?? user.countryCode ?? '',
+            },
+          ]}
+        />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={userMenu} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser
