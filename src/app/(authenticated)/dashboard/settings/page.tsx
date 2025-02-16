@@ -20,7 +20,7 @@ export default async function OrganizationSettingsPage() {
   }
 
   return (
-    <div className="container space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{t('organization.title')}</h1>
         <p className="text-muted-foreground">{t('organization.settings.description')}</p>

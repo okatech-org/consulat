@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrganizationSettings } from '@/components/organization/organization-settings';
-import { GeneralSettings } from '@/app/(authenticated)/admin/_utils/components/general-settings';
 import { CreateServiceButton } from '@/components/organization/create-service-button';
 import { ServicesTable } from '@/components/organization/services-table';
 import CardContainer from '@/components/layouts/card-container';
@@ -20,13 +19,10 @@ interface SettingsTabsProps {
 
 export function SettingsTabs({ organization }: SettingsTabsProps) {
   const t = useTranslations('organization');
-  const { handleTabChange, searchParams } = useTabs();
-
-  // Récupérer la valeur de l'onglet depuis l'URL ou utiliser la valeur par défaut
-  const tab = searchParams.get('tab') || 'organization';
+  const { handleTabChange, currentTab } = useTabs<string>('tab', 'organization');
 
   return (
-    <Tabs defaultValue={tab} className="space-y-4" onValueChange={handleTabChange}>
+    <Tabs defaultValue={currentTab} className="space-y-4" onValueChange={handleTabChange}>
       <TabsList>
         <TabsTrigger value="organization">{t('settings.tabs.organization')}</TabsTrigger>
         <TabsTrigger value="services">{t('settings.tabs.services')}</TabsTrigger>
@@ -63,7 +59,7 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
       </TabsContent>
 
       <TabsContent value="general" className="space-y-4">
-        <GeneralSettings />
+        <h2>General settings</h2>
       </TabsContent>
 
       <TabsContent value="agents" className="space-y-4">

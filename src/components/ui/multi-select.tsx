@@ -88,7 +88,7 @@ export function MultiSelect<T extends string | number>({
             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 z-999">
+        <PopoverContent className="w-full p-0 z-[99999]">
           <Command>
             <CommandInput
               placeholder={searchPlaceholder}

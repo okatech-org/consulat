@@ -4070,7 +4070,7 @@
           "lastName": "Nom",
           "firstName": "Prénom",
           "countries": "Pays",
-          "service_categories": "Catégories de services",
+          "specializations": "Spécialisations",
           "actions": "Actions",
           "empty": "Aucun agent trouvé"
         },

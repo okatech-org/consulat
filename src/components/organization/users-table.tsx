@@ -6,14 +6,15 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import { Trash } from 'lucide-react';
-import { RoleGuard } from '@/components/ui/role-guard';
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
-import { OrganizationAgents } from '@/types/organization';
+import { BaseAgent, FullOrganization, OrganizationAgents } from '@/types/organization';
 import { Country, ServiceCategory } from '@prisma/client';
+import { RoleGuard } from '@/lib/permissions/utils';
+import { CollapseList } from '../ui/collapse-list';
 
 interface UsersTableProps {
-  agents: OrganizationAgents[];
+  agents: FullOrganization['agents'];
   countries: Country[];
 }
 
@@ -21,7 +22,7 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
   const t = useTranslations('organization.settings.agents');
   const t_base = useTranslations();
 
-  const columns: ColumnDef<OrganizationAgents>[] = [
+  const columns: ColumnDef<BaseAgent>[] = [
     {
       header: t('table.lastName'),
       accessorKey: 'lastName',
@@ -56,16 +57,17 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
       ),
     },
     {
-      accessorKey: 'serviceCategories',
-      header: () => <>{t('table.service_categories')}</>, // Clé de traduction à ajouter
+      accessorKey: 'specializations',
+      header: () => <>{t('table.specializations')}</>, // Clé de traduction à ajouter
       cell: ({ row }) => (
-        <div>
-          {row.original.serviceCategories?.map((cat) => (
-            <Badge className="mr-1" key={cat.toString()} variant="secondary">
+        <CollapseList<ServiceCategory>
+          items={row.original.specializations}
+          renderItem={(cat) => (
+            <Badge className="mr-1" key={cat} variant="secondary">
               {t_base(`services.categories.${cat}`)}
             </Badge>
-          )) || '-'}
-        </div>
+          )}
+        />
       ),
     },
     {
@@ -97,7 +99,7 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
     },
   ];
 
-  const localFilters: FilterOption<OrganizationAgents>[] = [
+  const localFilters: FilterOption<BaseAgent>[] = [
     {
       type: 'search',
       property: 'firstName',
@@ -105,8 +107,8 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
     },
     {
       type: 'checkbox',
-      property: 'serviceCategories',
-      label: t('table.service_categories'),
+      property: 'specializations',
+      label: t('table.specializations'),
       options: Object.values(ServiceCategory).map((category) => ({
         label: t_base(`services.categories.${category}`),
         value: category,
@@ -124,7 +126,7 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
   ];
 
   return (
-    <DataTable<OrganizationAgents, unknown>
+    <DataTable<BaseAgent, unknown>
       filters={localFilters}
       columns={columns}
       data={agents}
