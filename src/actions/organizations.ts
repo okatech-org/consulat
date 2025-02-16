@@ -382,7 +382,7 @@ export async function getOrganizationAgents(id: string): Promise<{
   try {
     const agents = await db.user.findMany({
       where: {
-        organizationId: id,
+        assignedOrganizationId: id,
         roles: {
           has: UserRole.AGENT,
         },

@@ -5,7 +5,6 @@ import { getCurrentUser } from '@/actions/user';
 import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
 import { getOrganizationAgents } from '@/actions/organizations';
-import { User } from '@prisma/client';
 
 interface Props {
   params: { id: string };
@@ -31,7 +30,7 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
-  const { data: agents } = request.organizationId
+  const { data: agents = [] } = request.organizationId
     ? await getOrganizationAgents(request.organizationId)
     : { data: [] };
 

@@ -111,7 +111,7 @@ export async function getServiceRequests(
  * Assigner une demande à un agent
  */
 export async function assignServiceRequest(requestId: string, agentId: string) {
-  const authResult = await checkAuth(['ADMIN', 'MANAGER']);
+  const authResult = await checkAuth();
   if (authResult.error || !authResult.user) {
     throw new Error(authResult.error || 'Unauthorized');
   }
@@ -131,7 +131,8 @@ export async function assignServiceRequest(requestId: string, agentId: string) {
       throw new Error('Request or agent not found');
     }
 
-    // Mettre à jour la demande
+    const shouldUpdateStatus = request.status === RequestStatus.SUBMITTED;
+
     const updatedRequest = await db.serviceRequest.update({
       where: { id: requestId },
       data: {
@@ -139,9 +140,14 @@ export async function assignServiceRequest(requestId: string, agentId: string) {
         assignedAt: new Date(),
         lastActionAt: new Date(),
         lastActionBy: authResult.user.id,
+        ...(shouldUpdateStatus && {
+          status: RequestStatus.ASSIGNED,
+        }),
         actions: {
           create: {
-            type: RequestActionType.ASSIGNMENT,
+            type: shouldUpdateStatus
+              ? RequestActionType.STATUS_CHANGE
+              : RequestActionType.ASSIGNMENT,
             userId: authResult.user.id,
             data: { agentId },
           },

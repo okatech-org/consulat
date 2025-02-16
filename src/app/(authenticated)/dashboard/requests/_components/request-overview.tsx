@@ -5,44 +5,61 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Clock, User, Calendar, MapPin, ClipboardList } from 'lucide-react';
 import { FullServiceRequest } from '@/types/service-request';
-import { User as PrismaUser } from '@prisma/client';
-import Link from 'next/link';
+import { User as PrismaUser, UserRole } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import { useDateLocale } from '@/lib/utils';
-import { hasAnyRole } from '@/lib/permissions/utils';
+import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
 import { Timeline } from '@/components/ui/timeline';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import CardContainer from '@/components/layouts/card-container';
 import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
+import { BaseAgent } from '@/types/organization';
+import { useRouter } from 'next/navigation';
+import { assignServiceRequest } from '@/actions/service-requests';
 
 interface RequestOverviewProps {
   request: FullServiceRequest;
   user: PrismaUser;
-  agents: PrismaUser[];
+  agents: BaseAgent[];
 }
 
 export function RequestOverview({ request, user, agents = [] }: RequestOverviewProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
+  const router = useRouter();
 
-  const canProcess = hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT']);
   const isProcessable = !['COMPLETED', 'CANCELLED'].includes(request.status);
+  const isAgent = hasRole(user, UserRole.AGENT);
   const isAdmin = hasAnyRole(user, ['ADMIN', 'MANAGER']);
 
   const getActionButton = () => {
-    if (!canProcess || !isProcessable) return null;
-
     const isSubmitted = request.status === 'SUBMITTED';
     const label = isSubmitted
       ? t('requests.actions.start_processing')
       : t('requests.actions.continue_processing');
 
-    return (
-      <Button asChild>
-        <Link href={ROUTES.dashboard.service_request_review(request.id)}>
-          <FileText className="mr-2 size-4" />
+    if (isProcessable && isAgent)
+      return (
+        <Button
+          onClick={async () => {
+            await assignServiceRequest(request.id, user.id);
+            router.push(ROUTES.dashboard.service_request_review(request.id));
+          }}
+        >
+          <FileText className="size-4" />
           {label}
-        </Link>
+        </Button>
+      );
+
+    return (
+      <Button
+        disabled={!isProcessable || !isAgent}
+        onClick={async () => {
+          router.push(ROUTES.dashboard.service_request_review(request.id));
+        }}
+      >
+        <FileText className="size-4" />
+        {label}
       </Button>
     );
   };

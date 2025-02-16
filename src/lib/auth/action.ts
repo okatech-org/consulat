@@ -46,7 +46,6 @@ export async function withAuth<TInput, TOutput>(
   };
 }
 
-// Helper function pour la vérification d'auth
 export async function checkAuth(roles?: UserRole[]) {
   const t = await getTranslations('errors');
   const session = await auth();
