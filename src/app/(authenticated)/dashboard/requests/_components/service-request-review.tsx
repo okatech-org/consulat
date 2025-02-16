@@ -38,7 +38,7 @@ import {
   updateServiceRequestStatus,
 } from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { hasAnyRole } from '@/lib/permissions/utils';
+import { hasAnyRole, RoleGuard } from '@/lib/permissions/utils';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { FullProfile } from '@/types/profile';
 interface ServiceRequestReviewProps {
@@ -264,7 +264,7 @@ export function ServiceRequestReview({
           </div>
 
           {/* Assign to (ADMIN, MANAGER, SUPER_ADMIN) */}
-          {user && hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) && (
+          <RoleGuard roles={['ADMIN', 'MANAGER', 'SUPER_ADMIN']}>
             <div className="space-y-2">
               <h3 className="font-medium">{t('service_request.assign_to')}</h3>
               <MultiSelect
@@ -282,7 +282,7 @@ export function ServiceRequestReview({
                 placeholder={t('service_request.select_agent')}
               />
             </div>
-          )}
+          </RoleGuard>
 
           {/* Request status */}
           <div className="space-y-2">
@@ -309,33 +309,25 @@ export function ServiceRequestReview({
               ].filter((option) => {
                 // Filter out ASSIGNED status
                 if (option.value === 'ASSIGNED') return false;
-                // Only show COMPLETED status for admins if not already completed
+                // Only show COMPLETED status for admins if already completed
                 if (option.value === 'COMPLETED' && request.status === 'COMPLETED') {
-                  return user && hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']);
+                  return user && hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN']);
                 }
-                return true;
+                // Show all other statuses if not completed
+                return request.status !== 'COMPLETED';
               })}
               selected={[request.status]}
               onChange={async (values) => {
                 if (values[0]) {
-                  // Don't allow status change if completed (except for admins)
-                  if (
-                    request.status === 'COMPLETED' &&
-                    !hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN'])
-                  ) {
-                    toast({
-                      title: t('update.error.title'),
-                      description: t('update.error.completed_status'),
-                      variant: 'destructive',
-                    });
-                    return;
-                  }
-
                   await handleStatusUpdate(values[0] as RequestStatus);
                 }
               }}
               placeholder={t('service_request.select_status')}
-              disabled={isUpdating}
+              disabled={
+                request.status === 'COMPLETED' &&
+                user &&
+                !hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN'])
+              }
             />
           </div>
         </div>

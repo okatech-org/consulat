@@ -1,4 +1,4 @@
-import fr from './locales/fr.json';
+import fr from './messages/fr.json';
 
 type Locales = typeof fr;
 
