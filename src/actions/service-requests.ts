@@ -230,7 +230,9 @@ export async function updateServiceRequest(
       const request = await tx.serviceRequest.update({
         where: { id: data.id },
         data: {
-          ...requestData,
+          ...Object.fromEntries(
+            Object.entries(requestData).filter(([key]) => key !== 'serviceId'),
+          ),
           ...(organizationId && {
             organization: { connect: { id: organizationId } },
           }),
@@ -247,8 +249,8 @@ export async function updateServiceRequest(
       // Journalisation des modifications
       await tx.requestAction.create({
         data: {
-          type: RequestActionType.UPDATE,
-          userId: authResult.user?.id,
+          type: RequestActionType.STATUS_CHANGE,
+          userId: authResult.user?.id ?? data.lastActionBy!,
           requestId: data.id,
           data: {
             updates: Object.keys(requestData),
