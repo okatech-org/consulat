@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   BadgeCheck,
@@ -6,14 +6,12 @@ import {
   ChevronsUpDown,
   CreditCard,
   LogOut,
+  MoonIcon,
   Sparkles,
-} from "lucide-react"
+  SunIcon,
+} from 'lucide-react';
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,25 +19,31 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
+import { useTranslations } from 'next-intl';
+import { logUserOut } from '@/actions/auth';
+import { useTheme } from 'next-themes';
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
+  const { setTheme, resolvedTheme } = useTheme();
+  const t = useTranslations();
 
   return (
     <SidebarMenu>
@@ -63,7 +67,7 @@ export function NavUser({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -82,19 +86,29 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
+              <DropdownMenuItem
+                onClick={() => {
+                  if (resolvedTheme === 'dark') {
+                    setTheme('light');
+                  } else {
+                    setTheme('dark');
+                  }
+                }}
+              >
+                {resolvedTheme === 'dark' ? (
+                  <>
+                    <SunIcon className={'w-4'} />
+                    <span>Mode clair</span>
+                  </>
+                ) : (
+                  <>
+                    <MoonIcon className={'w-4'} />
+                    <span>Mode sombre</span>
+                  </>
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
@@ -102,13 +116,18 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                await logUserOut();
+              }}
+            >
               <LogOut />
-              Log out
+              {t('auth.actions.logout')}
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

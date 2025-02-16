@@ -2,10 +2,8 @@
 
 import * as React from 'react';
 import {
-  AudioWaveform,
   BookOpen,
   Bot,
-  Command,
   Frame,
   GalleryVerticalEnd,
   Map,
@@ -15,7 +13,6 @@ import {
 } from 'lucide-react';
 
 import { NavMain } from '@/components/layouts/nav-main';
-import { NavProjects } from '@/components/layouts/nav-projects';
 import { NavUser } from '@/components/layouts/nav-user';
 import { TeamSwitcher } from '@/components/layouts/team-switcher';
 import {
@@ -25,29 +22,15 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
+import { FullUser } from '@/types';
 
 // This is sample data.
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
   teams: [
     {
       name: 'Acme Inc',
       logo: GalleryVerticalEnd,
       plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
     },
   ],
   navMain: [
@@ -156,7 +139,10 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  user,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { user: FullUser }) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -164,10 +150,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email ?? user.phone?.number ?? '',
+            avatar: user.image ?? '/images/avatar-placeholder.png',
+          }}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

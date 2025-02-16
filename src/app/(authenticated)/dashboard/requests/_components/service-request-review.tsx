@@ -30,16 +30,9 @@ import { UserProfile } from '@/components/profile/user-profile';
 import CardContainer from '@/components/layouts/card-container';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { RequestStatus, ServicePriority } from '@prisma/client';
 import { toast } from '@/hooks/use-toast';
-import { updateServiceRequest } from '@/actions/service-requests';
+import { updateServiceRequestStatus } from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
 
 interface ServiceRequestReviewProps {
@@ -56,11 +49,11 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
   const handleStatusUpdate = async (newStatus: RequestStatus) => {
     setIsUpdating(true);
     try {
-      const result = await updateServiceRequest({
-        requestId: request.id,
-        status: newStatus,
-        notes: notes || undefined,
-      });
+      const result = await updateServiceRequestStatus(
+        request.id,
+        newStatus,
+        notes || undefined,
+      );
 
       if (result.error) {
         toast({

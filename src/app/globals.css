@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 98%;
     --foreground: 240 10% 3.9%;
 
     /* Couleur principale #04387E convertie en HSL */
@@ -39,7 +39,7 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
 
@@ -57,7 +57,7 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
+    --background: 240 5.9% 15%;
     --foreground: 210 40% 98%;
 
     /* Version sombre de la couleur principale */
@@ -67,8 +67,8 @@
     --secondary: 215 25% 27%;
     --secondary-foreground: 210 40% 98%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 5.9% 10%;
+    --card-foreground: 240 4.8% 95.9%;
 
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
@@ -437,8 +437,4 @@ html {
 .backface-hidden {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-}
-
-.bg-sidebar {
-  @apply bg-background;
 }

@@ -13,7 +13,6 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
 import { ChatToggle } from '@/components/chat/chat-toggle';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 
@@ -91,13 +90,11 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <SessionProvider session={session}>
-              <SidebarProvider>
-                {children}
-                <Toaster />
-                <div className="hidden sm:block fixed flex flex-col p-2 items-center bottom-10 right-4 rounded-full p-0 md:bottom-4 md:right-6">
-                  <ChatToggle />
-                </div>
-              </SidebarProvider>
+              {children}
+              <Toaster />
+              <div className="hidden sm:block fixed flex flex-col p-2 items-center bottom-10 right-4 rounded-full p-0 md:bottom-4 md:right-6">
+                <ChatToggle />
+              </div>
             </SessionProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
