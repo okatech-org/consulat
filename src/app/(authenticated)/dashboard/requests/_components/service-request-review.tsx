@@ -284,7 +284,60 @@ export function ServiceRequestReview({
             </div>
           )}
 
-          {/* Assign to (AGENT) */}
+          {/* Request status */}
+          <div className="space-y-2">
+            <h3 className="font-medium">{t('service_request.status')}</h3>
+            <MultiSelect
+              type="single"
+              options={[
+                { value: 'SUBMITTED', label: t_common('status.submitted') },
+                { value: 'REVIEW', label: t_common('status.review') },
+                { value: 'PENDING', label: t_common('status.pending') },
+                {
+                  value: 'ADDITIONAL_INFO_NEEDED',
+                  label: t_common('status.additional_info_needed'),
+                },
+                {
+                  value: 'PENDING_APPOINTMENT',
+                  label: t_common('status.pending_appointment'),
+                },
+                { value: 'PENDING_PAYMENT', label: t_common('status.pending_payment') },
+                { value: 'APPROVED', label: t_common('status.approved') },
+                { value: 'REJECTED', label: t_common('status.rejected') },
+                { value: 'COMPLETED', label: t_common('status.completed') },
+                { value: 'CANCELLED', label: t_common('status.cancelled') },
+              ].filter((option) => {
+                // Filter out ASSIGNED status
+                if (option.value === 'ASSIGNED') return false;
+                // Only show COMPLETED status for admins if not already completed
+                if (option.value === 'COMPLETED' && request.status === 'COMPLETED') {
+                  return user && hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']);
+                }
+                return true;
+              })}
+              selected={[request.status]}
+              onChange={async (values) => {
+                if (values[0]) {
+                  // Don't allow status change if completed (except for admins)
+                  if (
+                    request.status === 'COMPLETED' &&
+                    !hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN'])
+                  ) {
+                    toast({
+                      title: t('update.error.title'),
+                      description: t('update.error.completed_status'),
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+
+                  await handleStatusUpdate(values[0] as RequestStatus);
+                }
+              }}
+              placeholder={t('service_request.select_status')}
+              disabled={isUpdating}
+            />
+          </div>
         </div>
       </CardContainer>
 
