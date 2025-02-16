@@ -29,7 +29,7 @@ import {
 import { UserProfile } from '@/components/profile/user-profile';
 import CardContainer from '@/components/layouts/card-container';
 import { Textarea } from '@/components/ui/textarea';
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { RequestStatus, ServicePriority, User as DbUser } from '@prisma/client';
 import { toast } from '@/hooks/use-toast';
 import {

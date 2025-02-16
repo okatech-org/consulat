@@ -21,6 +21,8 @@ import { ServiceCategory, ServicePriority } from '@prisma/client';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { User } from '@prisma/client';
 import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 
 interface RequestsTableProps {
   user: User;
@@ -44,6 +46,17 @@ export function RequestsTable({
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [result, setResult] = React.useState<PaginatedServiceRequests | null>(null);
+
+  const statuses = [
+    { value: 'SUBMITTED', label: t('common.status.submitted') },
+    { value: 'APPROVED', label: t('common.status.approved') },
+    { value: 'REJECTED', label: t('common.status.rejected') },
+    { value: 'VALIDATED', label: t('common.status.validated') },
+    { value: 'REVIEW', label: t('common.status.review') },
+    { value: 'ASSIGNED', label: t('common.status.assigned') },
+    { value: 'COMPLETED', label: t('common.status.completed') },
+    { value: 'CANCELLED', label: t('common.status.cancelled') },
+  ];
 
   React.useEffect(() => {
     setIsLoading(true);
@@ -75,64 +88,138 @@ export function RequestsTable({
     router.push(`${pathname}?${newQueryString}`);
   };
 
-  const columns: ColumnDef<FullServiceRequest>[] = [
+  const columns: ColumnDef<PaginatedServiceRequests['items'][number]>[] = [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="translate-y-[2px]"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-[2px]"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'id',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+      cell: ({ row }) => <div className="w-[80px] truncate">{row.getValue('id')}</div>,
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'fullName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
+      ),
+      cell: ({ row }) => {
+        const fullName =
+          row.original.submittedBy.firstName + ' ' + row.original.submittedBy.lastName;
+
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">{fullName}</span>
+          </div>
+        );
+      },
+    },
     {
       accessorKey: 'submittedAt',
-      header: () => t('requests.table.submitted_at'),
-      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('requests.table.submitted_at')} />
+      ),
       cell: ({ row }) => {
         const date = row.original.submittedAt;
         return date ? formatDate(date, 'dd/MM/yyyy') : '-';
       },
     },
     {
-      accessorKey: 'fullName',
-      enableSorting: true,
-      filterFn: 'auto',
-      header: () => t('inputs.fullName.label'),
-      cell: ({ row }) => {
-        const fullName =
-          row.original.submittedBy.firstName + ' ' + row.original.submittedBy.lastName;
-        return fullName;
-      },
-    },
-    {
-      accessorKey: 'submittedBy.email',
-      header: () => t('inputs.email.label'),
-    },
-    {
       accessorKey: 'status',
-      header: () => t('inputs.status.label'),
-      enableSorting: true,
-      cell: ({ row }) => (
-        <Badge variant={row.original.status === 'SUBMITTED' ? 'outline' : 'default'}>
-          {t('common.status.' + row.original.status.toLowerCase())}
-        </Badge>
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
       ),
-    },
-    {
-      accessorKey: 'priority',
-      header: () => t('requests.table.priority'),
-      enableSorting: true,
-      sortingFn: (a, b) => {
-        return a.original.priority.localeCompare(b.original.priority);
+      cell: ({ row }) => {
+        const status = statuses.find((status) => status.value === row.getValue('status'));
+
+        console.log(row.original.status, statuses, status);
+        if (!status) {
+          return null;
+        }
+
+        return (
+          <div className="flex w-[100px] items-center">
+            <Badge variant={'outline'}>{status.label}</Badge>
+          </div>
+        );
       },
-      cell: ({ row }) => (
-        <Badge variant={row.original.priority === 'URGENT' ? 'destructive' : 'outline'}>
-          {t('common.priority.' + row.original.priority.toLowerCase())}
-        </Badge>
-      ),
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
     {
       accessorKey: 'serviceCategory',
-      header: () => t('inputs.serviceCategory.label'),
-      enableSorting: true,
-      filterFn: 'arrIncludesSome',
-      cell: ({ row }) => (
-        <Badge variant={'outline'}>
-          {t('common.service_categories.' + row.original.serviceCategory)}
-        </Badge>
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('inputs.serviceCategory.label')}
+        />
       ),
+      cell: ({ row }) => {
+        const serviceCategory = Object.values(ServiceCategory).find(
+          (serviceCategory) => serviceCategory === row.getValue('serviceCategory'),
+        );
+
+        if (!serviceCategory) {
+          return null;
+        }
+
+        return (
+          <div className="flex items-center">
+            <Badge variant={'outline'}>
+              {t('common.service_categories.' + serviceCategory)}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'priority',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.priority.label')} />
+      ),
+      cell: ({ row }) => {
+        const priority = Object.values(ServicePriority).find(
+          (priority) => priority === row.getValue('priority'),
+        );
+
+        if (!priority) {
+          return null;
+        }
+
+        return (
+          <div className="flex items-center">
+            <Badge variant={priority === 'URGENT' ? 'destructive' : 'outline'}>
+              {t('inputs.priority.options.' + priority)}
+            </Badge>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
   ];
 
@@ -141,13 +228,13 @@ export function RequestsTable({
   if (isAdmin) {
     columns.push({
       accessorKey: 'assignedTo',
-      header: () => t('requests.table.assigned_to'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('requests.table.assigned_to')} />
+      ),
       cell: ({ row }) => {
         const assignedTo = row.original.assignedTo;
         return assignedTo ? assignedTo.firstName + ' ' + assignedTo.lastName : '-';
       },
-      enableSorting: true,
-      filterFn: 'auto',
     });
   }
 

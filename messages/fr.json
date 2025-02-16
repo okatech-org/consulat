@@ -399,7 +399,10 @@
       "clearFilters": "Effacer les filtres",
       "export": "Exporter",
       "do_to_first": "Aller à la première page",
-      "do_to_last": "Aller à la dernière page"
+      "do_to_last": "Aller à la dernière page",
+      "asc": "Croissant",
+      "desc": "Décroissant",
+      "hide": "Masquer"
     },
     "field_types": {
       "text": "Texte",
@@ -473,6 +476,16 @@
     }
   },
   "inputs": {
+    "priority": {
+      "label": "Priorité",
+      "options": {
+        "STANDARD": "Standard",
+        "LOW": "Faible",
+        "MEDIUM": "Moyenne",
+        "HIGH": "Élevée",
+        "URGENT": "Urgent"
+      }
+    },
     "firstName": {
       "label": "Prénom",
       "placeholder": "Prénom"
