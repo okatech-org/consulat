@@ -19,10 +19,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { RequestStatus } from '@prisma/client';
+import { RequestStatus, User } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
-import { toast, useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { ROUTES } from '@/schemas/routes';
 import {
   calculateProfileCompletion,
@@ -38,9 +38,10 @@ import { FullProfile } from '@/types/profile';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
+  agents: User[];
 }
 
-export function ProfileReview({ request }: ProfileReviewProps) {
+export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
   const t = useTranslations('admin.registrations.review');
   const profile = request?.profile;
   const user = request.submittedBy;

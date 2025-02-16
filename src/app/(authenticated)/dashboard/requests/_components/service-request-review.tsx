@@ -30,17 +30,27 @@ import { UserProfile } from '@/components/profile/user-profile';
 import CardContainer from '@/components/layouts/card-container';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
-import { RequestStatus, ServicePriority } from '@prisma/client';
+import { RequestStatus, ServicePriority, User as DbUser } from '@prisma/client';
 import { toast } from '@/hooks/use-toast';
-import { updateServiceRequestStatus } from '@/actions/service-requests';
+import {
+  assignServiceRequest,
+  updateServiceRequest,
+  updateServiceRequestStatus,
+} from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { updateService } from '../../(superadmin)/_utils/actions/services';
-
+import { hasAnyRole } from '@/lib/permissions/utils';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { FullProfile } from '@/types/profile';
 interface ServiceRequestReviewProps {
-  request: FullServiceRequest;
+  request: FullServiceRequest & { profile: FullProfile | null };
+  agents: DbUser[];
 }
 
-export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
+export function ServiceRequestReview({
+  request,
+  agents = [],
+}: ServiceRequestReviewProps) {
+  const user = useCurrentUser();
   const { formatDate } = useDateLocale();
   const t = useTranslations('requests');
   const t_common = useTranslations('common');
@@ -98,7 +108,7 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
             <>
               <Button
                 variant="outline"
-                onClick={() => handleStatusUpdate('IN_REVIEW')}
+                onClick={() => handleStatusUpdate('REVIEW')}
                 disabled={isUpdating}
               >
                 <Clock className="mr-2 size-4" />
@@ -114,7 +124,7 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
               </Button>
             </>
           )}
-          {request.status === 'IN_REVIEW' && (
+          {request.status === 'REVIEW' && (
             <Button
               variant="default"
               onClick={() => handleStatusUpdate('COMPLETED')}
@@ -192,14 +202,17 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
                 <SheetHeader>
                   <SheetTitle>{t('service_request.applicant_profile')}</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6">
-                  <UserProfile user={request.submittedBy} />
-                </div>
+
+                {request.profile && (
+                  <div className="mt-6">
+                    <UserProfile profile={request.profile} />
+                  </div>
+                )}
               </SheetContent>
             </Sheet>
 
             {/* Autres actions */}
-            {request.status === 'IN_REVIEW' && (
+            {request.status === 'REVIEW' && (
               <>
                 <Button variant="outline" className="gap-2">
                   <MessageSquare className="size-4" />
@@ -235,14 +248,13 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
               type="single"
               options={[
                 { value: 'STANDARD', label: t_common('priority.standard') },
-                { value: 'HIGH', label: t_common('priority.high') },
                 { value: 'URGENT', label: t_common('priority.urgent') },
               ]}
               selected={[request.priority]}
-              onChange={(values) => {
+              onChange={async (values) => {
                 if (values[0]) {
-                  updateServiceRequestStatus({
-                    id: request.serviceId,
+                  await updateServiceRequest({
+                    id: request.id,
                     priority: values[0] as ServicePriority,
                   });
                 }
@@ -250,6 +262,29 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
               placeholder={t('service_request.select_priority')}
             />
           </div>
+
+          {/* Assign to (ADMIN, MANAGER, SUPER_ADMIN) */}
+          {user && hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) && (
+            <div className="space-y-2">
+              <h3 className="font-medium">{t('service_request.assign_to')}</h3>
+              <MultiSelect
+                type="single"
+                options={agents.map((agent) => ({
+                  value: agent.id,
+                  label: `${agent.firstName} ${agent.lastName}`,
+                }))}
+                selected={request.assignedToId ? [request.assignedToId] : []}
+                onChange={async (values) => {
+                  if (values[0]) {
+                    await assignServiceRequest(request.id, values[0]);
+                  }
+                }}
+                placeholder={t('service_request.select_agent')}
+              />
+            </div>
+          )}
+
+          {/* Assign to (AGENT) */}
         </div>
       </CardContainer>
 
