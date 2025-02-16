@@ -16,6 +16,7 @@ import {
   ServicePriority,
   RequestActionType,
   UserRole,
+  ServiceRequest,
 } from '@prisma/client';
 
 // Options pour la récupération des demandes
@@ -200,6 +201,69 @@ export async function updateServiceRequestStatus(
   } catch (error) {
     console.error('Error updating service request status:', error);
     throw new Error('Failed to update service request status');
+  }
+}
+
+/**
+ * Mettre à jour la requette
+ */
+export async function updateServiceRequest(
+  data: Partial<ServiceRequest> & {
+    id: string;
+    organizationId?: string | null;
+    assignedToId?: string | null;
+  },
+) {
+  const authResult = await checkAuth(['ADMIN', 'MANAGER', 'SUPER_ADMIN']);
+  if (authResult.error) return { error: authResult.error };
+
+  if (!data.id) {
+    return { error: 'Service request ID is required' };
+  }
+
+  try {
+    const updatedRequest = await db.$transaction(async (tx) => {
+      // Extraction des relations
+      const { assignedToId, organizationId, ...requestData } = data;
+
+      // Mise à jour de la demande principale
+      const request = await tx.serviceRequest.update({
+        where: { id: data.id },
+        data: {
+          ...requestData,
+          ...(organizationId && {
+            organization: { connect: { id: organizationId } },
+          }),
+          ...(assignedToId && {
+            assignedTo: { connect: { id: assignedToId } },
+            assignedAt: new Date(),
+          }),
+          lastActionAt: new Date(),
+          lastActionBy: authResult.user?.id,
+        },
+        ...FullServiceRequestInclude,
+      });
+
+      // Journalisation des modifications
+      await tx.requestAction.create({
+        data: {
+          type: RequestActionType.UPDATE,
+          userId: authResult.user?.id,
+          requestId: data.id,
+          data: {
+            updates: Object.keys(requestData),
+          },
+        },
+      });
+
+      return request;
+    });
+
+    revalidatePath(ROUTES.dashboard.requests);
+    return { data: updatedRequest };
+  } catch (error) {
+    console.error('Error updating service request:', error);
+    return { error: 'Failed to update service request' };
   }
 }
 

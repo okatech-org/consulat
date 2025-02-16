@@ -3,8 +3,6 @@
 import * as React from 'react';
 import {
   Bell,
-  BookOpen,
-  Bot,
   Building2,
   Calendar,
   FileSliders,
@@ -14,8 +12,6 @@ import {
   Globe,
   LayoutDashboard,
   Settings,
-  Settings2,
-  TerminalSquare,
   User,
   Users,
 } from 'lucide-react';

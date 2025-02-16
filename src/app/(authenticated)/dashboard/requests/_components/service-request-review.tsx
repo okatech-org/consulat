@@ -34,6 +34,7 @@ import { RequestStatus, ServicePriority } from '@prisma/client';
 import { toast } from '@/hooks/use-toast';
 import { updateServiceRequestStatus } from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { updateService } from '../../(superadmin)/_utils/actions/services';
 
 interface ServiceRequestReviewProps {
   request: FullServiceRequest;
@@ -85,7 +86,9 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CardTitle>{t('service_request.title')}</CardTitle>
-          <Badge variant="secondary">{t(`status.${request.status.toLowerCase()}`)}</Badge>
+          <Badge variant="secondary">
+            {t_common(`status.${request.status.toLowerCase()}`)}
+          </Badge>
           <Badge variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}>
             {t_common(`priority.${request.priority.toLowerCase()}`)}
           </Badge>
@@ -238,8 +241,8 @@ export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
               selected={[request.priority]}
               onChange={(values) => {
                 if (values[0]) {
-                  updateServiceRequest({
-                    requestId: request.id,
+                  updateServiceRequestStatus({
+                    id: request.serviceId,
                     priority: values[0] as ServicePriority,
                   });
                 }
