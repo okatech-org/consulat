@@ -26,6 +26,7 @@ async function main() {
     await prisma.note.deleteMany();
     await prisma.message.deleteMany();
     await prisma.userDocument.deleteMany();
+    await prisma.requestAction.deleteMany();
     await prisma.serviceRequest.deleteMany();
     await prisma.consularService.deleteMany();
     await prisma.emergencyContact.deleteMany();
@@ -997,7 +998,7 @@ async function main() {
       prisma.serviceRequest.create({
         data: {
           id: 'service-request-berny-itoutou-2',
-          status: RequestStatus.IN_REVIEW,
+          status: RequestStatus.REVIEW,
           priority: ServicePriority.STANDARD,
           serviceCategory: 'REGISTRATION',
           service: { connect: { id: 'service-registration' } },
@@ -1055,7 +1056,7 @@ async function main() {
       prisma.serviceRequest.create({
         data: {
           id: 'service-request-jean-dupont-1',
-          status: RequestStatus.IN_REVIEW,
+          status: RequestStatus.REVIEW,
           priority: ServicePriority.STANDARD,
           serviceCategory: 'REGISTRATION',
           service: { connect: { id: 'service-registration' } },

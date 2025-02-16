@@ -176,7 +176,7 @@ export function RegistrationsTable({
       options: [
         { value: 'DRAFT', label: t_common('status.draft') },
         { value: 'SUBMITTED', label: t_common('status.submitted') },
-        { value: 'IN_REVIEW', label: t_common('status.in_review') },
+        { value: 'REVIEW', label: t_common('status.in_review') },
         { value: 'VALIDATED', label: t_common('status.validated') },
         { value: 'REJECTED', label: t_common('status.rejected') },
       ],

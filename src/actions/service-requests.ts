@@ -308,11 +308,7 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
         where: {
           priority: ServicePriority.URGENT,
           status: {
-            in: [
-              RequestStatus.SUBMITTED,
-              RequestStatus.ASSIGNED,
-              RequestStatus.IN_REVIEW,
-            ],
+            in: [RequestStatus.SUBMITTED, RequestStatus.ASSIGNED, RequestStatus.REVIEW],
           },
         },
       }),

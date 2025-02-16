@@ -16,7 +16,7 @@ export async function getAdminStats() {
     const processingRequests = await db.serviceRequest.count({
       where: {
         status: {
-          in: [RequestStatus.IN_REVIEW, RequestStatus.ADDITIONAL_INFO_NEEDED],
+          in: [RequestStatus.REVIEW, RequestStatus.ADDITIONAL_INFO_NEEDED],
         },
       },
     });
@@ -28,7 +28,7 @@ export async function getAdminStats() {
     const pendingProfiles = await db.profile.count({
       where: {
         status: {
-          in: [RequestStatus.SUBMITTED, RequestStatus.IN_REVIEW],
+          in: [RequestStatus.SUBMITTED, RequestStatus.REVIEW],
         },
       },
     });

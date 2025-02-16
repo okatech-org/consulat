@@ -17,7 +17,7 @@ export function ProfileStatusBadge({ status, className }: ProfileStatusBadgeProp
         return 'bg-muted text-muted-foreground';
       case RequestStatus.SUBMITTED:
         return 'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100';
-      case RequestStatus.IN_REVIEW:
+      case RequestStatus.REVIEW:
         return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100';
       case RequestStatus.VALIDATED:
         return 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100';
