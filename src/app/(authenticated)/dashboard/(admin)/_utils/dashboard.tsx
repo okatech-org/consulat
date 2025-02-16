@@ -10,30 +10,27 @@ export default async function AdminDashboard() {
   if (!stats) return <p>Error loading data</p>;
 
   return (
-    <div className="container space-y-6">
-      <h1 className="text-3xl font-bold">{t('title')}</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title={t('stats.completed_requests')}
-          value={stats.completedRequests}
-          icon={CheckCircle}
-        />
-        <StatsCard
-          title={t('stats.processing_requests')}
-          value={stats.processingRequests}
-          icon={Clock}
-        />
-        <StatsCard
-          title={t('stats.validated_profiles')}
-          value={stats.validatedProfiles}
-          icon={Users}
-        />
-        <StatsCard
-          title={t('stats.pending_profiles')}
-          value={stats.pendingProfiles}
-          icon={FileText}
-        />
-      </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <StatsCard
+        title={t('stats.completed_requests')}
+        value={stats.completedRequests}
+        icon={CheckCircle}
+      />
+      <StatsCard
+        title={t('stats.processing_requests')}
+        value={stats.processingRequests}
+        icon={Clock}
+      />
+      <StatsCard
+        title={t('stats.validated_profiles')}
+        value={stats.validatedProfiles}
+        icon={Users}
+      />
+      <StatsCard
+        title={t('stats.pending_profiles')}
+        value={stats.pendingProfiles}
+        icon={FileText}
+      />
     </div>
   );
 }
