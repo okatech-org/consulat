@@ -271,7 +271,6 @@ export function RequestsTable({
   const localFilters: FilterOption<FullServiceRequest>[] = [
     {
       type: 'search',
-      property: 'submittedBy_email',
       label: t('requests.filters.search'),
       defaultValue: filters.search,
       onChange: (value) => {
@@ -289,15 +288,7 @@ export function RequestsTable({
       property: 'status',
       label: t('requests.filters.status'),
       defaultValue: filters.status?.toString().split(',') ?? undefined,
-      options: [
-        { value: 'SUBMITTED', label: t('common.status.submitted') },
-        { value: 'APPROVED', label: t('common.status.approved') },
-        { value: 'REJECTED', label: t('common.status.rejected') },
-        { value: 'VALIDATED', label: t('common.status.validated') },
-        { value: 'PENDING', label: t('common.status.pending') },
-        { value: 'COMPLETED', label: t('common.status.completed') },
-        { value: 'CANCELLED', label: t('common.status.cancelled') },
-      ],
+      options: statuses,
       onChange: (value) => {
         if (Array.isArray(value)) {
           handleFilterChange('status', value.join('_'));

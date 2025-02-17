@@ -51,41 +51,35 @@ export function UserProfile({ profile }: UserProfileProps) {
       </Card>
 
       {/* Contenu principal */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="space-y-6 md:col-span-2">
-          <Tabs defaultValue="basic" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="basic">{t_review('tabs.basic')}</TabsTrigger>
-              <TabsTrigger value="documents">{t_review('tabs.documents')}</TabsTrigger>
-              <TabsTrigger value="contact">{t_review('tabs.contact')}</TabsTrigger>
-              <TabsTrigger value="family">{t_review('tabs.family')}</TabsTrigger>
-              <TabsTrigger value="professional">
-                {t_review('tabs.professional')}
-              </TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue="basic" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="basic">{t_review('tabs.basic')}</TabsTrigger>
+          <TabsTrigger value="documents">{t_review('tabs.documents')}</TabsTrigger>
+          <TabsTrigger value="contact">{t_review('tabs.contact')}</TabsTrigger>
+          <TabsTrigger value="family">{t_review('tabs.family')}</TabsTrigger>
+          <TabsTrigger value="professional">{t_review('tabs.professional')}</TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="basic" className="space-y-4">
-              <ProfileBasicInfo profile={profile} />
-            </TabsContent>
+        <TabsContent value="basic" className="space-y-4">
+          <ProfileBasicInfo profile={profile} />
+        </TabsContent>
 
-            <TabsContent value="documents" className="space-y-4">
-              <ProfileDocuments profile={profile} />
-            </TabsContent>
+        <TabsContent value="documents" className="space-y-4">
+          <ProfileDocuments profile={profile} />
+        </TabsContent>
 
-            <TabsContent value="contact" className="space-y-4">
-              <ProfileContact profile={profile} />
-            </TabsContent>
+        <TabsContent value="contact" className="space-y-4">
+          <ProfileContact profile={profile} />
+        </TabsContent>
 
-            <TabsContent value="family" className="space-y-4">
-              <ProfileFamily profile={profile} />
-            </TabsContent>
+        <TabsContent value="family" className="space-y-4">
+          <ProfileFamily profile={profile} />
+        </TabsContent>
 
-            <TabsContent value="professional" className="space-y-4">
-              <ProfileProfessional profile={profile} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        <TabsContent value="professional" className="space-y-4">
+          <ProfileProfessional profile={profile} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -8,13 +8,6 @@ import { Button } from '@/components/ui/button';
 import { useDateLocale } from '@/lib/utils';
 import { DocumentsList } from '@/components/documents-list';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import {
   Calendar,
   Clock,
   FileText,
@@ -41,6 +34,13 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { hasAnyRole, RoleGuard } from '@/lib/permissions/utils';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { FullProfile } from '@/types/profile';
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 
 interface ServiceRequestReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };

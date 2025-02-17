@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/actions/user';
 import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
 import { getOrganizationAgents } from '@/actions/organizations';
+import { getUserFullProfile } from '@/lib/user/getters';
 
 interface Props {
   params: { id: string };
@@ -26,6 +27,8 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
+  const profile = await getUserFullProfile(request.submittedById);
+
   if (!hasPermission(user, 'serviceRequests', 'view', request)) {
     return notFound();
   }
@@ -40,7 +43,14 @@ export default async function ViewRequest({ params, searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <RequestOverview request={request} user={user} agents={agents} />
+      <RequestOverview
+        request={{
+          ...request,
+          profile,
+        }}
+        user={user}
+        agents={agents}
+      />
     </div>
   );
 }

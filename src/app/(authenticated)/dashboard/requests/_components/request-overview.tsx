@@ -16,9 +16,17 @@ import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
 import { BaseAgent } from '@/types/organization';
 import { useRouter } from 'next/navigation';
 import { assignServiceRequest } from '@/actions/service-requests';
-
+import { FullProfile } from '@/types/profile';
+import { UserProfile } from '@/components/profile/user-profile';
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 interface RequestOverviewProps {
-  request: FullServiceRequest;
+  request: FullServiceRequest & { profile?: FullProfile | null };
   user: PrismaUser;
   agents: BaseAgent[];
 }
@@ -108,11 +116,36 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
               )}
             </div>
           </CardContainer>
-          <CardContainer title={t('requests.view.requester_info')}>
+          <CardContainer
+            title={t('requests.view.requester_info')}
+            contentClass="space-y-2"
+          >
             <h3 className="font-medium">
               {request.submittedBy.firstName} {request.submittedBy.lastName}
             </h3>
             <p className="text-sm text-muted-foreground">{request.submittedBy.email}</p>
+
+            {request.profile && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <User className="size-4" />
+                    {t('requests.service_request.view_profile')}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-4xl">
+                  <SheetHeader>
+                    <SheetTitle>
+                      {t('requests.service_request.applicant_profile')}
+                    </SheetTitle>
+                  </SheetHeader>
+
+                  <div className="mt-6">
+                    <UserProfile profile={request.profile} />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
           </CardContainer>
         </div>
         <div className="col-span-full flex h-full flex-col gap-4 md:col-span-4">

@@ -78,11 +78,11 @@ export function RoleGuard({ roles, children, fallback }: Readonly<Props>) {
   const user = useCurrentUser();
 
   if (!user) {
-    return fallback ?? <Unauthorized />;
+    return fallback ?? undefined;
   }
 
   if (!hasAnyRole(user, roles)) {
-    return fallback ?? <Unauthorized />;
+    return fallback ?? undefined;
   }
 
   return <>{children}</>;

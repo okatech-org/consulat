@@ -21,16 +21,25 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { assignServiceRequest } from '@/actions/service-requests';
+import { updateServiceRequest } from '@/actions/service-requests';
 import { FullServiceRequest } from '@/types/service-request';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
-import { User } from '@prisma/client';
+import { RequestStatus, ServicePriority, User } from '@prisma/client';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { filterUneditedKeys } from '@/lib/utils';
 
 // Schéma de validation pour le formulaire
 const formSchema = z.object({
   assignedToId: z.string().min(1, 'Required'),
+  priority: z.nativeEnum(ServicePriority, {
+    required_error: 'Priority is required',
+    invalid_type_error: 'Invalid priority value',
+  }),
+  status: z.nativeEnum(RequestStatus, {
+    required_error: 'Status is required',
+    invalid_type_error: 'Invalid status value',
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -52,23 +61,29 @@ export function RequestQuickEditFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      ...(request.assignedTo && { assignedToId: request.assignedTo.id }),
+      assignedToId: request.assignedToId || '',
+      priority: request.priority,
+      status: request.status,
     },
   });
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      const result = await assignServiceRequest(request.id, values.assignedToId);
+      filterUneditedKeys(values, form.formState.dirtyFields);
+      const result = await updateServiceRequest({
+        id: request.id,
+        ...values,
+      });
 
-      if (result.success) {
-        toast({
-          title: t('messages.success.update'),
-          description: t('messages.requests.assign.success'),
-        });
-        setOpen(false);
-        router.refresh();
-      } else {
+      toast({
+        title: t('messages.success.update'),
+        description: t('messages.requests.assign.success'),
+      });
+      setOpen(false);
+      router.refresh();
+
+      if (result.error) {
         toast({
           variant: 'destructive',
           title: t('messages.errors.update'),
@@ -97,7 +112,7 @@ export function RequestQuickEditFormDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('requests.assign.title')}</DialogTitle>
+          <DialogTitle>{t('requests.quick_edit.title')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -106,12 +121,68 @@ export function RequestQuickEditFormDialog({
               name="assignedToId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('requests.assign.agent')}</FormLabel>
+                  <FormLabel>{t('inputs.agent.assigned_to')}</FormLabel>
                   <MultiSelect
                     options={agents.map((agent) => ({
                       label: `${agent.firstName} ${agent.lastName}`,
                       value: agent.id,
                     }))}
+                    onChange={(value) => field.onChange(value[0])}
+                    selected={[field.value]}
+                    type="single"
+                  />
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('inputs.priority.label')}</FormLabel>
+                  <MultiSelect
+                    options={[
+                      { value: 'STANDARD', label: t('common.priority.standard') },
+                      { value: 'URGENT', label: t('common.priority.urgent') },
+                    ]}
+                    onChange={(value) => field.onChange(value[0])}
+                    selected={[field.value]}
+                    type="single"
+                  />
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('inputs.status.label')}</FormLabel>
+                  <MultiSelect
+                    options={[
+                      { value: 'SUBMITTED', label: t('common.status.submitted') },
+                      { value: 'REVIEW', label: t('common.status.review') },
+                      { value: 'PENDING', label: t('common.status.pending') },
+                      {
+                        value: 'ADDITIONAL_INFO_NEEDED',
+                        label: t('common.status.additional_info_needed'),
+                      },
+                      {
+                        value: 'PENDING_APPOINTMENT',
+                        label: t('common.status.pending_appointment'),
+                      },
+                      {
+                        value: 'PENDING_PAYMENT',
+                        label: t('common.status.pending_payment'),
+                      },
+                      { value: 'APPROVED', label: t('common.status.approved') },
+                      { value: 'REJECTED', label: t('common.status.rejected') },
+                      { value: 'COMPLETED', label: t('common.status.completed') },
+                      { value: 'CANCELLED', label: t('common.status.cancelled') },
+                      { value: 'ASSIGNED', label: t('common.status.assigned') },
+                    ]}
                     onChange={(value) => field.onChange(value[0])}
                     selected={[field.value]}
                     type="single"

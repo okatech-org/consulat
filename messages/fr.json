@@ -149,7 +149,9 @@
       "suspended": "Suspendu",
       "confirmed": "Confirmé",
       "rescheduled": "Reporté",
-      "missed": "Manqué"
+      "missed": "Manqué",
+      "pending_appointment": "À venir",
+      "pending_payment": "À payer"
     },
     "confirm": {
       "title": "Confirmation",
@@ -681,6 +683,11 @@
     "datetime": {
       "pick_date": "Choisir une date",
       "pick_time": "Choisir une heure"
+    },
+    "agent": {
+      "label": "Agent",
+      "placeholder": "Sélectionner un agent",
+      "assigned_to": "Assigné à"
     }
   },
   "feedback": {
@@ -4412,6 +4419,13 @@
         },
         "edit_assigned_agent": "Modifier l'agent assigné"
       }
+    },
+    "quick_edit": {
+      "title": "Modifier la demande",
+      "agent": "Agent",
+      "select_agent": "Sélectionner un agent",
+      "success": "La demande a été modifiée avec succès",
+      "error": "Une erreur est survenue lors de la modification de la demande"
     }
   }
 }
