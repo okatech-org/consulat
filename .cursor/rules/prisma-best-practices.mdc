@@ -1,10 +1,8 @@
 ---
-name: prisma-best-practices.mdc
 description: Best practices for using Prisma ORM
 globs: **/*.{ts,tsx}
 ---
-
 - Use Prisma Client in a centralized way to avoid multiple instances.
 - Implement proper error handling and logging for database operations.
 - Use Prisma's transaction API for operations that require atomicity.
-- Regularly run `prisma migrate dev` to keep your schema in sync with your Prisma schema. 
+- Regularly run `prisma migrate dev` to keep your schema in sync with your Prisma schema.

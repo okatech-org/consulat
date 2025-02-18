@@ -1,10 +1,8 @@
 ---
-name: react-hook-form-best-practices.mdc
 description: Best practices for form handling with React Hook Form
 globs: **/*.{ts,tsx}
 ---
-
 - Use the `useForm` hook to manage form state and validation.
 - Implement custom validation rules using the `validate` option.
 - Use `Controller` for integrating with UI libraries that don't support uncontrolled components.
-- Leverage the `useFormContext` for sharing form state across components. 
+- Leverage the `useFormContext` for sharing form state across components.

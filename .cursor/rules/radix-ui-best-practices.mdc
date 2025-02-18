@@ -1,10 +1,8 @@
 ---
-name: radix-ui-best-practices.mdc
 description: Best practices for using Radix UI components
 globs: **/*.{ts,tsx}
 ---
-
 - Use Radix UI primitives as building blocks for custom components.
 - Implement proper accessibility features using Radix UI's built-in props.
 - Customize Radix UI components with CSS or styled-components for your design system.
-- Utilize Radix UI's state management hooks for controlled components. 
+- Utilize Radix UI's state management hooks for controlled components.

@@ -1,10 +1,8 @@
 ---
-name: tailwindcss-best-practices.mdc
 description: Best practices for styling with Tailwind CSS
 globs: **/*.{ts,tsx,css}
 ---
-
 - Use utility classes directly in your JSX for rapid development.
 - Create custom components with predefined Tailwind classes for reusability.
 - Utilize the `@apply` directive in your CSS to create custom utility classes.
-- Ensure responsive design by using Tailwind's responsive modifiers. 
+- Ensure responsive design by using Tailwind's responsive modifiers.

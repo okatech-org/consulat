@@ -1,10 +1,8 @@
 ---
-name: react-query-best-practices.mdc
-description: Best practices for managing data with React Query
+description: Best practices for form handling with React Hook Form
 globs: **/*.{ts,tsx}
 ---
-
-- Use `useQuery` for fetching data and `useMutation` for data modifications.
-- Implement proper error boundaries to handle query errors gracefully.
-- Utilize `queryClient.invalidateQueries` to refetch data when needed.
-- Use `staleTime` and `cacheTime` to optimize data fetching and caching. 
+- Use the `useForm` hook to manage form state and validation.
+- Implement custom validation rules using the `validate` option.
+- Use `Controller` for integrating with UI libraries that don't support uncontrolled components.
+- Leverage the `useFormContext` for sharing form state across components.
