@@ -1,0 +1,10 @@
+---
+name: react-query-best-practices.mdc
+description: Best practices for managing data with React Query
+globs: **/*.{ts,tsx}
+---
+
+- Use `useQuery` for fetching data and `useMutation` for data modifications.
+- Implement proper error boundaries to handle query errors gracefully.
+- Utilize `queryClient.invalidateQueries` to refetch data when needed.
+- Use `staleTime` and `cacheTime` to optimize data fetching and caching. 

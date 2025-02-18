@@ -154,7 +154,6 @@ export function RequestsTable({
       cell: ({ row }) => {
         const status = statuses.find((status) => status.value === row.getValue('status'));
 
-        console.log(row.original.status, statuses, status);
         if (!status) {
           return null;
         }

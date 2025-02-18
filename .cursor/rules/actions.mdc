@@ -1,5 +1,0 @@
----
-description: Handle actions on database datas
-globs: 
----
-Each actions should be typed, with error management et permissions checks
