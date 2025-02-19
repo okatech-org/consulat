@@ -1,10 +1,1 @@
----
-description: Best practices for using Next.js Server Actions
-globs: **/*.{ts,tsx}
----
-- Toutes les interactions avec la base de données (création, lecture, mise à jour, suppression) DOIVENT être effectuées via des Server Actions.
-- Utiliser la directive `'use server'` en haut de chaque fichier contenant des Server Actions.
-- Valider TOUTES les données entrantes des Server Actions avec Zod.
-- Gérer les erreurs dans les Server Actions avec des blocs `try...catch` et retourner des objets d'erreur structurés.
-- Ne JAMAIS exposer de données sensibles directement dans les Server Actions.
-- Utiliser des Server Actions pour la soumission de formulaires, en combinaison avec React Hook Form et Zod. 
+ 

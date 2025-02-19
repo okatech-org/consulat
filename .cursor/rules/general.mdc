@@ -1,4 +1,8 @@
 ---
-description: 
-globs: 
+description: General JavaScript/TypeScript best practices
+globs: **/*.{ts,tsx}
 ---
+- Prefer const over let and var.
+- Use early returns in functions to improve readability.
+- Use descriptive variable and function names.
+- Avoid using 'any' without explicit justification and comments.
