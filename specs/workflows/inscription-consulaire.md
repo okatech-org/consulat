@@ -4,18 +4,18 @@
 
 ### A. États Possibles
 
-- DRAFT (Brouillon)
-- SUBMITTED (Soumis)
+- DRAFT (Brouillon - Demande en cours de remplissage)
+- SUBMITTED (Soumis - En attente de vérification)
 - DOCUMENTS_VALIDATION (Vérification documents)
-- PENDING_COMPLETION (Documents manquants)
-- VALIDATED (Documents validés)
-- APPOINTMENT_SCHEDULED (RDV programmé)
+- PENDING_COMPLETION (Documents/Informations manquants)
+- VALIDATED (Dossier validé - En attente de production)
+- APPOINTMENT_SCHEDULED (RDV de retrait/entretien programmé)
 - PENDING_INTERVIEW (En attente d'entretien)
 - APPROVED (Approuvé)
-- REJECTED (Rejeté)
-- CARD_IN_PRODUCTION (Carte en production)
-- READY_FOR_PICKUP (Prêt pour retrait)
-- COMPLETED (Terminé)
+- REJECTED (Rejeté - Motif spécifié)
+- CARD_IN_PRODUCTION (Carte en cours de production)
+- READY_FOR_PICKUP (Prêt pour retrait et entretien)
+- COMPLETED (Carte remise après entretien)
 
 ### B. Règles de Transition
 
