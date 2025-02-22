@@ -11,6 +11,7 @@ import { ProfileBasicInfo } from '@/app/(authenticated)/dashboard/(admin)/_utils
 import { ProfileContact } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/contact';
 import { ProfileDocuments } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/documents';
 import { ProfileFamily } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/family';
+import CardContainer from '../layouts/card-container';
 
 interface UserProfileProps {
   profile: FullProfile;
@@ -22,33 +23,31 @@ export function UserProfile({ profile }: UserProfileProps) {
   return (
     <div className="space-y-6">
       {/* En-tête avec informations de base */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-4">
-            <Avatar className="size-16">
-              <AvatarImage
-                src={profile.identityPicture?.fileUrl ?? ''}
-                alt={profile.firstName ?? ''}
-              />
-              <AvatarFallback>
-                {profile.firstName?.[0]}
-                {profile.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 space-y-1">
-              <h2 className="text-2xl font-semibold">
-                {profile.firstName} {profile.lastName}
-              </h2>
-              {profile.user.email && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="size-4" />
-                  {profile.user.email}
-                </div>
-              )}
-            </div>
+      <CardContainer contentClass="pt-6">
+        <div className="flex items-start gap-4">
+          <Avatar className="size-16">
+            <AvatarImage
+              src={profile.identityPicture?.fileUrl ?? ''}
+              alt={profile.firstName ?? ''}
+            />
+            <AvatarFallback>
+              {profile.firstName?.[0]}
+              {profile.lastName?.[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 space-y-1">
+            <h2 className="text-2xl font-semibold">
+              {profile.firstName} {profile.lastName}
+            </h2>
+            {profile.user.email && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail className="size-4" />
+                {profile.user.email}
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </CardContainer>
 
       {/* Contenu principal */}
       <Tabs defaultValue="basic" className="space-y-4">

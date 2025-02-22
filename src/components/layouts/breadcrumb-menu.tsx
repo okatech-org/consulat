@@ -16,11 +16,11 @@ export function BreadcrumbMenu() {
   const pathnameParts = pathname.split('/').filter(Boolean);
 
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
+    <Breadcrumb className="w-full overflow-hidden">
+      <BreadcrumbList className="truncate text-nowrap flex-nowrap">
         {pathnameParts.map((part, index) => (
           <Fragment key={index}>
-            <BreadcrumbItem key={index}>
+            <BreadcrumbItem key={index} className="">
               {index !== pathnameParts.length - 1 ? (
                 <BreadcrumbLink href={`/${pathnameParts.slice(0, index + 1).join('/')}`}>
                   {part}
@@ -29,9 +29,7 @@ export function BreadcrumbMenu() {
                 <BreadcrumbPage>{part}</BreadcrumbPage>
               )}
             </BreadcrumbItem>
-            {index !== pathnameParts.length - 1 && (
-              <BreadcrumbSeparator className="hidden md:block" />
-            )}
+            {index !== pathnameParts.length - 1 && <BreadcrumbSeparator />}
           </Fragment>
         ))}
       </BreadcrumbList>
