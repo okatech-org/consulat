@@ -43,7 +43,8 @@ export const FullProfileInclude = {
       include: {
         author: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
           },
         },

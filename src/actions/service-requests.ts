@@ -18,7 +18,9 @@ import {
   RequestActionType,
   UserRole,
   ServiceRequest,
+  NoteType,
 } from '@prisma/client';
+import { getTranslations } from 'next-intl/server';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -196,6 +198,8 @@ export async function updateServiceRequestStatus(
           notes: {
             create: {
               content: notes,
+              type: NoteType.INTERNAL,
+              authorId: authResult.user.id,
             },
           },
         }),
@@ -376,5 +380,76 @@ export async function getServiceRequest(id: string) {
   } catch (error) {
     console.error('Error fetching service request:', error);
     throw new Error('Failed to fetch service request');
+  }
+}
+
+interface AddNoteInput {
+  requestId: string;
+  content: string;
+  type: NoteType;
+}
+
+export async function addServiceRequestNote(input: AddNoteInput) {
+  const t = await getTranslations('admin.registrations.review.notes');
+
+  try {
+    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
+    if (authResult.error || !authResult.user) {
+      return { error: authResult.error };
+    }
+
+    // Récupérer le profil pour avoir l'userId
+    const request = await db.serviceRequest.update({
+      where: { id: input.requestId },
+      data: {
+        notes: {
+          create: {
+            content: input.content,
+            type: input.type,
+            authorId: authResult.user.id,
+          },
+        },
+      },
+    });
+
+    if (!request) {
+      return { error: 'Request not found' };
+    }
+
+    // Créer la note
+    const note = await db.note.create({
+      data: {
+        content: input.content,
+        type: input.type,
+        requestId: input.requestId,
+        createdBy: authResult.user.id,
+      },
+      include: {
+        author: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    // Si c'est un feedback, créer une notification pour l'utilisateur
+    if (input.type === 'FEEDBACK') {
+      await createNotification({
+        userId: profile.userId,
+        type: 'PROFILE_FEEDBACK',
+        title: t('notification.title'),
+        message: input.content,
+        profileId: input.profileId,
+      });
+    }
+
+    revalidatePath(`${ROUTES.dashboard.requests}`);
+
+    return { success: true, data: note };
+  } catch (error) {
+    console.error('Error adding note:', error);
+    return { error: 'Failed to add note' };
   }
 }

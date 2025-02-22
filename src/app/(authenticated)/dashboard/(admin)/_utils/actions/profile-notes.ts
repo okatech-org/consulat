@@ -16,7 +16,7 @@ export async function addProfileNote(input: AddNoteInput) {
   const t = await getTranslations('admin.registrations.review.notes');
 
   try {
-    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
     if (authResult.error || !authResult.user) {
       return { error: authResult.error };
     }
@@ -42,7 +42,8 @@ export async function addProfileNote(input: AddNoteInput) {
       include: {
         author: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
           },
         },
       },
@@ -59,7 +60,7 @@ export async function addProfileNote(input: AddNoteInput) {
       });
     }
 
-    revalidatePath(`${ROUTES.admin_profiles}/${input.profileId}/review`);
+    revalidatePath(`${ROUTES.dashboard.requests}`);
 
     return { success: true, data: note };
   } catch (error) {

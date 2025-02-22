@@ -2,30 +2,24 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Loader2, MessageCircle, Lock } from 'lucide-react';
-
-interface Note {
-  id: string;
-  content: string;
-  type: 'INTERNAL' | 'FEEDBACK';
-  createdAt: Date;
-  author: {
-    name: string | null;
-  };
-}
+import { addProfileNote } from '../../actions/profile-notes';
+import CardContainer from '@/components/layouts/card-container';
+import { useDateLocale } from '@/lib/utils';
+import { FullProfile } from '@/types/profile';
+import { FullServiceRequest } from '@/types/service-request';
 
 interface NoteItemProps {
-  note: Note;
+  note: FullProfile['notes'][number];
 }
 
 export const NoteItem = ({ note }: NoteItemProps) => {
+  const { formatDate } = useDateLocale();
+
   return (
     <div className="border-b py-4 last:border-0">
       <div className="mb-2 flex items-center justify-between">
@@ -35,10 +29,12 @@ export const NoteItem = ({ note }: NoteItemProps) => {
           ) : (
             <MessageCircle className="size-4 text-muted-foreground" />
           )}
-          <span className="text-sm font-medium">{note.author.name}</span>
+          <span className="text-sm font-medium">
+            {note.author.firstName ?? ''} {note.author.lastName ?? ''}
+          </span>
         </div>
         <span className="text-xs text-muted-foreground">
-          {format(new Date(note.createdAt), 'dd/MM/yyyy', { locale: fr })}
+          {formatDate(new Date(note.createdAt), 'dd/MM/yyyy')}
         </span>
       </div>
       <p className="whitespace-pre-wrap text-sm">{note.content}</p>
@@ -84,12 +80,12 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
   );
 };
 
-interface ProfileNotesProps {
-  profileId: string;
-  notes: Note[];
+interface ReviewNotesProps {
+  requestId: string;
+  notes: FullServiceRequest['notes'];
 }
 
-export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
+export function ReviewNotes({ requestId, notes }: ReviewNotesProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const t = useTranslations('admin.registrations.review.notes');
@@ -98,7 +94,7 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
     try {
       setIsLoading(true);
       const result = await addProfileNote({
-        profileId,
+        requestId,
         content,
         type,
       });
@@ -130,63 +126,53 @@ export function ProfileNotes({ profileId, notes }: ProfileNotesProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="internal">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="internal">
-              <Lock className="mr-2 size-4" />
-              {t('tabs.internal')}
-            </TabsTrigger>
-            <TabsTrigger value="feedback">
-              <MessageCircle className="mr-2 size-4" />
-              {t('tabs.feedback')}
-            </TabsTrigger>
-          </TabsList>
+    <CardContainer title={t('title')}>
+      <Tabs defaultValue="internal">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="internal">
+            <Lock className="mr-2 size-4" />
+            {t('tabs.internal')}
+          </TabsTrigger>
+          <TabsTrigger value="feedback">
+            <MessageCircle className="mr-2 size-4" />
+            {t('tabs.feedback')}
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="internal" className="mt-4 space-y-4">
-            <NoteEditor type="INTERNAL" onSubmit={handleAddNote} isLoading={isLoading} />
-            <div className="space-y-4">
-              {notes
-                .filter((note) => note.type === 'INTERNAL')
-                .map((note) => (
-                  <NoteItem key={note.id} note={note} />
-                ))}
-            </div>
-          </TabsContent>
+        <TabsContent value="internal" className="mt-4 space-y-4">
+          <div className="space-y-4">
+            {notes
+              .filter((note) => note.type === 'INTERNAL')
+              .map((note) => (
+                <NoteItem key={note.id} note={note} />
+              ))}
+          </div>
+          <NoteEditor type="INTERNAL" onSubmit={handleAddNote} isLoading={isLoading} />
+        </TabsContent>
 
-          <TabsContent value="feedback" className="mt-4 space-y-4">
-            <NoteEditor type="FEEDBACK" onSubmit={handleAddNote} isLoading={isLoading} />
-            <div className="space-y-4">
-              {notes
-                .filter((note) => note.type === 'FEEDBACK')
-                .map((note) => (
-                  <NoteItem key={note.id} note={note} />
-                ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        <TabsContent value="feedback" className="mt-4 space-y-4">
+          <div className="space-y-4">
+            {notes
+              .filter((note) => note.type === 'FEEDBACK')
+              .map((note) => (
+                <NoteItem key={note.id} note={note} />
+              ))}
+          </div>
+          <NoteEditor type="FEEDBACK" onSubmit={handleAddNote} isLoading={isLoading} />
+        </TabsContent>
+      </Tabs>
+    </CardContainer>
   );
 }
 
-export const NotesList = ({ notes }: { notes: Note[] }) => {
+export const NotesList = ({ notes }: { notes: FullProfile['notes'] }) => {
   const t = useTranslations('admin.registrations.review.notes');
 
   return (
-    <Card>
-      <CardHeader className={'pb-0'}>
-        <CardTitle>{t('title')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {notes.map((note) => (
-          <NoteItem key={note.id} note={note} />
-        ))}
-      </CardContent>
-    </Card>
+    <CardContainer title={t('title')} contentClass="pt-0">
+      {notes.map((note) => (
+        <NoteItem key={note.id} note={note} />
+      ))}
+    </CardContainer>
   );
 };

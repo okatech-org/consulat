@@ -77,6 +77,16 @@ export const FullServiceRequestInclude = {
       },
     },
     notes: {
+      include: {
+        author: {
+          select: {
+            id: true,
+            image: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc' as const,
       },

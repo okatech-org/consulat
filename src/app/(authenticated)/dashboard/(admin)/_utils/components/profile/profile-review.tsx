@@ -18,7 +18,7 @@ import {
 import { FullServiceRequest } from '@/types/service-request';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
-import { ProfileNotes } from './profile-notes';
+import { ReviewNotes } from './profile-notes';
 import { FullProfile } from '@/types/profile';
 import { Label } from '@/components/ui/label';
 import {
@@ -62,6 +62,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   const statusOptions = STATUS_ORDER.map((item) => {
     return {
       value: item,
+      // @ts-expect-error - can miss the status in the translation
       label: t(`common.status.${item.toLowerCase()}`),
     };
   });
@@ -262,7 +263,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </Button>
             )}
           </CardContainer>
-          <ProfileNotes profileId={profile.id} notes={profile.notes} />
+          <ReviewNotes profileId={profile.id} notes={profile.notes} />
         </div>
       </div>
     </div>

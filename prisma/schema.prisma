@@ -86,7 +86,7 @@ model User {
   // agent fields
   assignedOrganization Organization? @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
   assignedOrganizationId String?
-  authoredNotes ProfileNote[]  @relation("NoteAuthor")
+  authoredNotes Note[]
   assignedRequests ServiceRequest[] @relation("AssignedRequests")
   assignedAppointments Appointment[] @relation("AppointmentAgent")
   requestActions   RequestAction[]
@@ -230,20 +230,6 @@ model Phone {
   EmergencyContact EmergencyContact[]
 }
 
-model ProfileNote {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  type      NoteType
-  profileId String
-  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  createdBy String
-  author    User     @relation(fields: [createdBy], references: [id], name: "NoteAuthor")
-
-  @@index([profileId])
-  @@index([createdBy])
-}
-
 enum NoteType {
   INTERNAL
   FEEDBACK
@@ -310,7 +296,6 @@ model Profile {
   validatedAt     DateTime?
   validatedBy     String?
   submittedAt     DateTime?
-  notes           ProfileNote[]
   notifications   Notification[]
 
   createdAt DateTime @default(now())
@@ -396,6 +381,8 @@ model Note {
   id      String @id @default(cuid())
   content String
   type    NoteType
+  author  User?   @relation(fields: [authorId], references: [id])
+  authorId String?
 
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?
