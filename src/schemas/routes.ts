@@ -51,6 +51,7 @@ export const ROUTES = {
     documents: '/my-space/documents' as Route<string>,
     procedures: '/my-space/procedures' as Route<string>,
     settings: '/my-space/settings' as Route<string>,
+    notifications: '/my-space/notifications' as Route<string>,
   },
 
   help: '/help' as Route<string>,

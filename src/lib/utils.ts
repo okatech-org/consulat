@@ -6,7 +6,7 @@ import { phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
 import { DateTimeFormatOptions, useLocale } from 'next-intl';
-import { fr, Locale } from 'date-fns/locale';
+import { es, fr, enUS, Locale } from 'date-fns/locale';
 import { format } from 'date-fns';
 
 export function cn(...inputs: ClassValue[]) {
@@ -441,5 +441,18 @@ export async function safePromise<T, E = Error>(
     return [null, result];
   } catch (error) {
     return [error as E, null];
+  }
+}
+
+export function currentFnsLocale(localeString: string): Locale {
+  switch (localeString) {
+    case 'fr':
+      return fr;
+    case 'en':
+      return enUS;
+    case 'es':
+      return es;
+    default:
+      return fr;
   }
 }

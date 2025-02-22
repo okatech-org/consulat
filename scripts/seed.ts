@@ -40,9 +40,9 @@ async function main() {
 
     // Créer les pays
     console.log('Creating countries...');
-    await Promise.all([
-      prisma.country.create({
-        data: {
+    await prisma.country.createMany({
+      data: [
+        {
           id: 'country-france',
           name: 'France',
           code: 'FR',
@@ -62,9 +62,7 @@ async function main() {
             timeZone: 'Europe/Paris',
           }),
         },
-      }),
-      prisma.country.create({
-        data: {
+        {
           id: 'country-belgique',
           name: 'Belgique',
           code: 'BE',
@@ -84,9 +82,7 @@ async function main() {
             timeZone: 'Europe/Brussels',
           }),
         },
-      }),
-      prisma.country.create({
-        data: {
+        {
           id: 'country-canada',
           name: 'Canada',
           code: 'CA',
@@ -105,9 +101,7 @@ async function main() {
             timeZone: 'America/Toronto',
           }),
         },
-      }),
-      prisma.country.create({
-        data: {
+        {
           id: 'country-usa',
           name: 'États-Unis',
           code: 'US',
@@ -126,9 +120,7 @@ async function main() {
             timeZone: 'America/New_York',
           }),
         },
-      }),
-      prisma.country.create({
-        data: {
+        {
           id: 'country-uk',
           name: 'Royaume-Uni',
           code: 'GB',
@@ -147,8 +139,8 @@ async function main() {
             timeZone: 'Europe/London',
           }),
         },
-      }),
-    ]);
+      ],
+    });
 
     // Créer les organisations
     console.log('Creating organizations...');
@@ -525,42 +517,6 @@ async function main() {
           ],
         },
       }),
-      prisma.user.create({
-        data: {
-          id: 'user-agent-4',
-          email: 'agent4@consulat.ga',
-          firstName: 'Agent',
-          lastName: '4',
-          roles: [UserRole.AGENT],
-          emailVerified: new Date(),
-          country: { connect: { code: 'US' } },
-          assignedOrganization: { connect: { id: 'organization-consulat-new-york' } },
-          specializations: [
-            ServiceCategory.REGISTRATION,
-            ServiceCategory.CERTIFICATION,
-            ServiceCategory.OTHER,
-          ],
-        },
-      }),
-      prisma.user.create({
-        data: {
-          id: 'user-agent-5',
-          email: 'agent5@consulat.ga',
-          firstName: 'Agent',
-          lastName: '5',
-          roles: [UserRole.AGENT],
-          emailVerified: new Date(),
-          country: { connect: { code: 'CA' } },
-          assignedOrganization: { connect: { id: 'organization-ambassade-canada' } },
-          specializations: [
-            ServiceCategory.IDENTITY,
-            ServiceCategory.CIVIL_STATUS,
-            ServiceCategory.REGISTRATION,
-            ServiceCategory.CERTIFICATION,
-            ServiceCategory.VISA,
-          ],
-        },
-      }),
     ]);
 
     console.log('Creating consular services...');
@@ -925,7 +881,7 @@ async function main() {
           status: AppointmentStatus.CONFIRMED,
           organization: { connect: { id: 'organization-consulat-new-york' } },
           attendee: { connect: { id: 'user-sarah-smith' } },
-          agent: { connect: { id: 'user-agent-4' } },
+          agent: { connect: { id: 'user-agent-1' } },
           instructions: 'Please bring all original documents and their copies.',
         },
       }),
@@ -941,7 +897,7 @@ async function main() {
           status: AppointmentStatus.PENDING,
           organization: { connect: { id: 'organization-consulat-new-york' } },
           attendee: { connect: { id: 'user-sarah-smith' } },
-          agent: { connect: { id: 'user-agent-4' } },
+          agent: { connect: { id: 'user-agent-1' } },
           instructions: 'Interview for consular registration.',
         },
       }),
@@ -957,7 +913,7 @@ async function main() {
           status: AppointmentStatus.CONFIRMED,
           organization: { connect: { id: 'organization-ambassade-canada' } },
           attendee: { connect: { id: 'user-jean-dupont' } },
-          agent: { connect: { id: 'user-agent-5' } },
+          agent: { connect: { id: 'user-agent-2' } },
           instructions:
             "Veuillez apporter une pièce d'identité pour récupérer vos documents.",
         },
@@ -1043,7 +999,7 @@ async function main() {
           status: RequestStatus.PENDING,
           priority: ServicePriority.URGENT,
           service: { connect: { id: 'service-passport' } },
-          assignedTo: { connect: { id: 'user-agent-4' } },
+          assignedTo: { connect: { id: 'user-agent-1' } },
           serviceCategory: 'IDENTITY',
           submittedBy: { connect: { id: 'user-sarah-smith' } },
           organization: { connect: { id: 'organization-consulat-new-york' } },
@@ -1078,7 +1034,7 @@ async function main() {
           priority: ServicePriority.STANDARD,
           serviceCategory: 'REGISTRATION',
           service: { connect: { id: 'service-registration' } },
-          assignedTo: { connect: { id: 'user-agent-1' } },
+          assignedTo: { connect: { id: 'user-agent-2' } },
           submittedBy: { connect: { id: 'user-jean-dupont' } },
           organization: { connect: { id: 'organization-ambassade-canada' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
@@ -1106,6 +1062,107 @@ async function main() {
         },
       }),
     ]);
+
+    // Créer les notifications
+    console.log('Creating notifications...');
+    await prisma.notification.createMany({
+      data: [
+        // Notifications pour Berny Itoutou
+        {
+          id: 'notification-1',
+          userId: 'user-berny-itoutou',
+          type: 'CONSULAR_REGISTRATION_SUBMITTED',
+          title: 'Inscription consulaire soumise',
+          message: "Votre demande d'inscription consulaire a été soumise avec succès.",
+          createdAt: new Date('2024-03-20T10:00:00Z'),
+          read: true,
+        },
+        {
+          id: 'notification-2',
+          userId: 'user-berny-itoutou',
+          type: 'CONSULAR_REGISTRATION_VALIDATED',
+          title: 'Dossier validé',
+          message:
+            "Votre dossier d'inscription consulaire a été validé. Vous pouvez accéder à votre carte consulaire virtuelle dès maintenant.",
+          createdAt: new Date('2024-03-21T14:30:00Z'),
+          read: false,
+        },
+        {
+          id: 'notification-3',
+          userId: 'user-berny-itoutou',
+          type: 'CONSULAR_CARD_READY',
+          title: 'Carte prête pour retrait',
+          message:
+            "Votre carte consulaire est prête pour le retrait. <a href='/my-space/appointments/new'>Cliquez ici pour prendre rendez-vous</a>",
+          createdAt: new Date('2024-03-22T09:15:00Z'),
+          read: false,
+        },
+        // Notifications pour Jean Dupont
+        {
+          id: 'notification-4',
+          userId: 'user-jean-dupont',
+          type: 'CONSULAR_REGISTRATION_SUBMITTED',
+          title: 'Inscription consulaire soumise',
+          message: "Votre demande d'inscription consulaire a été soumise avec succès.",
+          createdAt: new Date('2024-03-19T11:00:00Z'),
+          read: true,
+        },
+        {
+          id: 'notification-5',
+          userId: 'user-jean-dupont',
+          type: 'CONSULAR_REGISTRATION_REJECTED',
+          title: 'Dossier rejeté',
+          message:
+            "Votre dossier d'inscription consulaire a été rejeté. <a href='/my-space/requests'>Consultez les détails ici</a>",
+          createdAt: new Date('2024-03-20T16:45:00Z'),
+          read: false,
+        },
+        // Notifications pour les agents
+        {
+          id: 'notification-6',
+          userId: 'user-agent-1',
+          type: 'REQUEST_ASSIGNED',
+          title: 'Nouvelle demande assignée',
+          message:
+            "Une nouvelle demande d'inscription consulaire vous a été assignée. <a href='/dashboard/requests'>Voir la demande</a>",
+          createdAt: new Date('2024-03-20T09:30:00Z'),
+          read: false,
+        },
+        {
+          id: 'notification-7',
+          userId: 'user-agent-1',
+          type: 'REQUEST_PENDING_APPOINTMENT',
+          title: 'RDV à planifier',
+          message:
+            "Un rendez-vous doit être planifié pour la demande #REQ-001. <a href='/dashboard/appointments'>Gérer les rendez-vous</a>",
+          createdAt: new Date('2024-03-21T10:15:00Z'),
+          read: false,
+        },
+      ],
+    });
+
+    // Optimisation des mises à jour avec updateMany
+    await prisma.serviceRequest.updateMany({
+      where: {
+        id: {
+          in: ['service-request-sarah-smith-1', 'service-request-jean-dupont-1'],
+        },
+      },
+      data: {
+        assignedToId: 'user-agent-1',
+      },
+    });
+
+    await prisma.appointment.updateMany({
+      where: {
+        id: {
+          in: ['appointment-sarah-smith-1', 'appointment-jean-dupont-1'],
+        },
+      },
+      data: {
+        agentId: 'user-agent-1',
+      },
+    });
 
     console.log('✅ Seed completed successfully!');
   } catch (error) {

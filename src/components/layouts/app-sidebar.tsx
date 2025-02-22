@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import {
+  Badge,
   Bell,
   Building2,
   Calendar,
@@ -30,6 +31,7 @@ import { FullUser } from '@/types';
 import { UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
+import { useNotifications } from '@/hooks/use-notifications';
 
 export function AppSidebar({
   user,
@@ -39,6 +41,7 @@ export function AppSidebar({
 }) {
   const t = useTranslations('navigation');
   const t_nav = useTranslations('user.nav');
+  const { unreadCount } = useNotifications();
 
   const AdminNavigation: NavMainItem[] = [
     {
@@ -62,6 +65,20 @@ export function AppSidebar({
       url: ROUTES.dashboard.settings,
       icon: Settings,
     },
+    {
+      title: t('admin.notifications'),
+      url: ROUTES.dashboard.notifications,
+      iconComponent: (
+        <div className="relative">
+          <Bell className="size-4" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+              {unreadCount}
+            </Badge>
+          )}
+        </div>
+      ),
+    },
   ];
 
   const AgentNavigation: NavMainItem[] = [
@@ -84,7 +101,16 @@ export function AppSidebar({
     {
       title: t('agent.notifications'),
       url: ROUTES.dashboard.notifications,
-      icon: Bell,
+      iconComponent: (
+        <div className="relative">
+          <Bell className="size-4" />
+          {unreadCount > 0 && (
+            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+              {unreadCount}
+            </div>
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -114,6 +140,20 @@ export function AppSidebar({
       url: ROUTES.dashboard.users,
       icon: Users,
     },
+    {
+      title: t('super_admin.notifications'),
+      url: ROUTES.dashboard.notifications,
+      iconComponent: (
+        <div className="relative">
+          <Bell className="size-4" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+              {unreadCount}
+            </Badge>
+          )}
+        </div>
+      ),
+    },
   ];
 
   const UserNavigation: NavMainItem[] = [
@@ -141,6 +181,20 @@ export function AppSidebar({
       title: t_nav('documents'),
       url: ROUTES.user.documents,
       icon: Folder,
+    },
+    {
+      title: t('notifications'),
+      url: ROUTES.user.notifications,
+      iconComponent: (
+        <div className="relative">
+          <Bell className="size-4" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+              {unreadCount}
+            </Badge>
+          )}
+        </div>
+      ),
     },
   ];
 

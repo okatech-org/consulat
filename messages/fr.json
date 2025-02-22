@@ -119,11 +119,6 @@
       "unknown": "Une erreur est survenue",
       "try_again": "Veuillez réessayer"
     },
-    "notifications": {
-      "empty": "Aucune notification",
-      "mark_all_read": "Tout marquer comme lu",
-      "clear_all": "Tout effacer"
-    },
     "status": {
       "not_assigned": "Non attribué",
       "assigned": "Assigné",
@@ -480,6 +475,30 @@
       "send": "Envoyer",
       "please_login": "Veuillez vous connecter pour continuer de discuter avec Ray",
       "login": "Se connecter"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "mark_all_read": "Tout marquer comme lu",
+      "loading": "Chargement...",
+      "empty": "Aucune notification",
+      "types": {
+        "consular_registration": {
+          "submitted": "Demande soumise",
+          "validated": "Dossier validé",
+          "rejected": "Dossier rejeté",
+          "card_in_production": "Carte en production",
+          "card_ready": "Carte prête",
+          "completed": "Inscription terminée"
+        }
+      },
+      "messages": {
+        "submitted": "Votre demande d'inscription consulaire a été soumise avec succès.",
+        "validated": "Votre dossier d'inscription consulaire a été validé.",
+        "rejected": "Votre dossier d'inscription consulaire a été rejeté.",
+        "card_in_production": "Votre carte consulaire est en cours de production.",
+        "card_ready": "Votre carte consulaire est prête pour le retrait.",
+        "completed": "Votre inscription consulaire est terminée."
+      }
     }
   },
   "inputs": {
@@ -1188,7 +1207,8 @@
       "countries": "Pays",
       "organizations": "Organismes",
       "services": "Services",
-      "users": "Utilisateurs"
+      "users": "Utilisateurs",
+      "notifications": "Notifications"
     },
     "admin": {
       "dashboard": "Tableau de bord",
@@ -1231,6 +1251,8 @@
     "feedback": "Feedback",
     "assistance": "Assistance",
     "tasks": "Tâches",
+    "dark_mode": "Mode sombre",
+    "light_mode": "Mode clair",
     "agent": {
       "dashboard": "Tableau de bord",
       "appointments": "Rendez-vous",
@@ -3238,13 +3260,15 @@
   },
   "notifications": {
     "title": "Notifications",
+    "subtitle": "Gérez les notifications du système.",
     "empty": "Aucune notification",
     "mark_all_read": "Tout marquer comme lu",
     "types": {
       "PROFILE_FEEDBACK": "Retour sur votre profil",
       "PROFILE_VALIDATED": "Profil validé",
       "PROFILE_REJECTED": "Profil rejeté"
-    }
+    },
+    "clear_all": "Tout effacer"
   },
   "sa": {
     "welcome": "Bienvenue {name}",

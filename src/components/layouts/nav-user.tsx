@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  LogOut,
-  MoonIcon,
-  SunIcon,
-} from 'lucide-react';
+import { BadgeCheck, ChevronsUpDown, LogOut, MoonIcon, SunIcon } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -85,7 +78,7 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheck />
-                Mon compte
+                {t('navigation.my_account')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
@@ -99,18 +92,14 @@ export function NavUser({
                 {resolvedTheme === 'dark' ? (
                   <>
                     <SunIcon className={'w-4'} />
-                    <span>Mode clair</span>
+                    {t('navigation.light_mode')}
                   </>
                 ) : (
                   <>
                     <MoonIcon className={'w-4'} />
-                    <span>Mode sombre</span>
+                    {t('navigation.dark_mode')}
                   </>
                 )}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

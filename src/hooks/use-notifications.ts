@@ -1,52 +1,70 @@
-import { useEffect, useState } from 'react';
-import { Notification } from '@prisma/client';
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import type { Notification } from '@prisma/client';
 import {
-  getNotifications,
-  getUnreadNotificationsCount,
   markNotificationAsRead,
+  markAllNotificationsAsRead,
+  getNotifications,
 } from '@/actions/notifications';
 
 export function useNotifications() {
-  const [count, setCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchCount = async () => {
-      setIsLoading(true);
-
-      const result = await getUnreadNotificationsCount();
-      setCount(result.count);
-    };
-
-    const fetchNotifications = async () => {
-      setIsLoading(true);
-
-      const result = await getNotifications();
-      setNotifications(result);
-    };
-
-    const promises = [fetchCount(), fetchNotifications()];
-
-    Promise.all(promises).then(() => {
+  // Charger les notifications
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
       setIsLoading(false);
-    });
-    const interval = setInterval(fetchCount, 60000);
-    return () => clearInterval(interval);
+    }
   }, []);
 
-  const markAsRead = async (notificationId: string) => {
-    const result = await markNotificationAsRead(notificationId);
-    if (result.success) {
-      setCount((prev) => Math.max(0, prev - 1));
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Calculer le nombre de notifications non lues
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Marquer une notification comme lue
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      // Mise à jour optimiste
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      // En cas d'erreur, recharger les notifications
+      fetchNotifications();
     }
-    return result;
+  };
+
+  // Marquer toutes les notifications comme lues
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      // Mise à jour optimiste
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      // En cas d'erreur, recharger les notifications
+      fetchNotifications();
+    }
   };
 
   return {
-    unreadCount: count,
     notifications,
+    unreadCount,
     isLoading,
-    markAsRead,
+    markAsRead: handleMarkAsRead,
+    markAllAsRead: handleMarkAllAsRead,
+    refresh: fetchNotifications,
   };
 }

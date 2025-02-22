@@ -3,6 +3,7 @@
 import { getCurrentUser } from '@/actions/user';
 import { db } from '@/lib/prisma';
 import { Notification, NotificationType } from '@prisma/client';
+import { checkAuth } from '@/lib/auth/action';
 
 export async function getUnreadNotificationsCount() {
   try {
@@ -26,26 +27,48 @@ export async function getUnreadNotificationsCount() {
 }
 
 export async function markNotificationAsRead(notificationId: string) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return { error: 'Unauthorized' };
-    }
+  const authResult = await checkAuth();
+  if (authResult.error || !authResult.user) {
+    throw new Error(authResult.error || 'Unauthorized');
+  }
 
+  try {
     await db.notification.update({
       where: {
         id: notificationId,
-        userId: user.id,
+        userId: authResult.user.id,
       },
       data: {
         read: true,
       },
     });
-
-    return { success: true };
+    return true;
   } catch (error) {
     console.error('Error marking notification as read:', error);
-    return { error: 'Failed to mark notification as read' };
+    return false;
+  }
+}
+
+export async function markAllNotificationsAsRead() {
+  const authResult = await checkAuth();
+  if (authResult.error || !authResult.user) {
+    throw new Error(authResult.error || 'Unauthorized');
+  }
+
+  try {
+    await db.notification.updateMany({
+      where: {
+        userId: authResult.user.id,
+        read: false,
+      },
+      data: {
+        read: true,
+      },
+    });
+    return true;
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    return false;
   }
 }
 

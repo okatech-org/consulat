@@ -26,6 +26,7 @@ export type NavMainItem = {
   url: Route<string>;
   icon?: LucideIcon;
   isActive?: boolean;
+  iconComponent?: React.ReactNode;
   items?: Pick<NavMainItem, 'title' | 'url'>[];
 };
 
@@ -48,6 +49,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton tooltip={item.title}>
                       {item.icon && <item.icon />}
+                      {item.iconComponent && item.iconComponent}
                       <span>{item.title}</span>
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
@@ -72,6 +74,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                 <SidebarMenuButton tooltip={item.title} asChild>
                   <a href={item.url}>
                     {item.icon && <item.icon />}
+                    {item.iconComponent && item.iconComponent}
                     <span>{item.title}</span>
                   </a>
                 </SidebarMenuButton>
