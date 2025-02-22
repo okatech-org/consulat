@@ -101,7 +101,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   return (
     <div className="space-y-6">
       {/* En-tête avec statut et actions */}
-      <CardContainer contentClass="pt-6">
+      <CardContainer>
         <div className="flex items-start gap-4">
           <Avatar className="size-14 md:size-24">
             <AvatarImage
@@ -139,7 +139,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
           </div>
         </div>
       </CardContainer>
-      <CardContainer contentClass="pt-6">
+      <CardContainer>
         <StatusTimeline
           currentStatus={request.status}
           request={request}
