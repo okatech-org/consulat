@@ -1,9 +1,9 @@
 import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CheckCircle2, XCircle } from 'lucide-react';
+import CardContainer from '@/components/layouts/card-container';
 
 interface ProfileBasicInfoProps {
   profile: FullProfile;
@@ -37,28 +37,23 @@ export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
   ];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('sections.basic_info')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {fields.map((field, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between border-b py-2 last:border-0"
-          >
-            <div>
-              <p className="text-sm text-muted-foreground">{field.label}</p>
-              <p className="font-medium">{field.value}</p>
-            </div>
-            {field.isValid ? (
-              <CheckCircle2 className="text-success size-5" />
-            ) : (
-              <XCircle className="size-5 text-destructive" />
-            )}
+    <CardContainer title={t('sections.basic_info')} contentClass="space-y-4">
+      {fields.map((field, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between border-b py-2 last:border-0"
+        >
+          <div>
+            <p className="text-sm text-muted-foreground">{field.label}</p>
+            <p className="font-medium">{field.value}</p>
           </div>
-        ))}
-      </CardContent>
-    </Card>
+          {field.isValid ? (
+            <CheckCircle2 className="text-success size-5" />
+          ) : (
+            <XCircle className="size-5 text-destructive" />
+          )}
+        </div>
+      ))}
+    </CardContainer>
   );
 }

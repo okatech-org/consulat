@@ -150,6 +150,14 @@ export function ProfileReview({ request }: ProfileReviewProps) {
       {/* Contenu principal */}
       <div className="grid gap-6 md:grid-cols-3">
         <div className="space-y-6 md:col-span-2">
+          {request.appointment && (
+            <CardContainer title={t('admin.registrations.review.appointment.title')}>
+              <div className="space-y-2">
+                <Label>{t('admin.registrations.review.appointment.date')}</Label>
+                <p>{formatDate(request.appointment.date)}</p>
+              </div>
+            </CardContainer>
+          )}
           <Tabs defaultValue="basic" className="space-y-4">
             <TabsList>
               {profileTabs.map((tab) => (
@@ -190,7 +198,6 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                     <SelectItem
                       disabled={
                         !canSwitchTo(option.value as RequestStatus, request, profile) ||
-                        option.value === selectedStatus ||
                         isStatusCompleted(option.value as RequestStatus)
                       }
                       defaultChecked={option.value === selectedStatus}
@@ -240,6 +247,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
             {selectedStatus !== RequestStatus.VALIDATED && (
               <Button
                 className="w-full"
+                disabled={isLoading || selectedStatus === request.status}
                 onClick={async () => {
                   setIsLoading(true);
                   await updateConsularRegistrationStatus(

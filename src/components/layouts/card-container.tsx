@@ -20,7 +20,7 @@ export default function CardContainer({
   return (
     <Card.Card className={'flex flex-col ' + className}>
       {(title || subtitle || action) && (
-        <Card.CardHeader className={'flex-row space-y-0'}>
+        <Card.CardHeader className={'flex-row pb-2 space-y-0'}>
           <div>
             {title && (
               <Card.CardTitle className={'text-2xl font-bold tracking-tight'}>

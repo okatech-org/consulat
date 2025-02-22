@@ -1573,6 +1573,11 @@
         "rejection": {
           "title": "Rejet du profil",
           "description": "Veuillez expliquer la raison du rejet"
+        },
+        "appointment": {
+          "title": "Rendez-vous programmé",
+          "date": "Date du rendez-vous",
+          "no_appointment": "Aucun rendez-vous programmé pour le moment"
         }
       }
     },

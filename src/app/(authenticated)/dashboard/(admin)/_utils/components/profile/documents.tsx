@@ -1,6 +1,5 @@
 import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 import { useDateLocale } from '@/lib/utils';
 import { Badge, BadgeVariant } from '@/components/ui/badge';
@@ -12,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { DocumentType } from '@prisma/client';
 import { DocumentValidationDialog } from './document-validation-dialog';
+import CardContainer from '@/components/layouts/card-container';
 
 interface ProfileDocumentsProps {
   profile: FullProfile;
@@ -69,102 +69,97 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
   } | null>(null);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t_review('sections.documents')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {documents.map(({ type, label, document }) => {
-          const validation = validateDocument(document);
+    <CardContainer title={t_review('sections.documents')} contentClass="space-y-4">
+      {documents.map(({ type, label, document }) => {
+        const validation = validateDocument(document);
 
-          return (
-            <div
-              key={type}
-              className="flex items-center justify-between border-b py-4 last:border-0"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium">{label}</p>
-                  {documentValidations?.[document?.type as DocumentType]?.required && (
-                    <Badge variant="outline">{t_review('documents.required')}</Badge>
+        return (
+          <div
+            key={type}
+            className="flex items-center justify-between border-b py-4 last:border-0"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <p className="font-medium">{label}</p>
+                {documentValidations?.[document?.type as DocumentType]?.required && (
+                  <Badge variant="outline">{t_review('documents.required')}</Badge>
+                )}
+              </div>
+              {document && (
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  {document.issuedAt && (
+                    <p>
+                      {t_review('documents.issued_at')}:{' '}
+                      {formatDate(document.issuedAt, 'PPP')}
+                    </p>
+                  )}
+                  {document.expiresAt && (
+                    <p>
+                      {t_review('documents.expires_at')}:{' '}
+                      {formatDate(document.expiresAt, 'PPP')}
+                    </p>
                   )}
                 </div>
-                {document && (
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    {document.issuedAt && (
-                      <p>
-                        {t_review('documents.issued_at')}:{' '}
-                        {formatDate(document.issuedAt, 'PPP')}
-                      </p>
-                    )}
-                    {document.expiresAt && (
-                      <p>
-                        {t_review('documents.expires_at')}:{' '}
-                        {formatDate(document.expiresAt, 'PPP')}
-                      </p>
-                    )}
-                  </div>
-                )}
-                {validation.errors.length > 0 && (
-                  <div className="mt-2">
-                    {validation.errors.map((error, index) => (
-                      <p key={index} className="text-sm text-destructive">
-                        {error}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {document && (
-                  <>
-                    <Badge variant={document.status.toLowerCase() as BadgeVariant}>
-                      {t(`status.${document.status.toLowerCase()}`)}
-                    </Badge>
-                    <DocumentPreview
-                      url={document.fileUrl}
-                      title={label}
-                      type={type}
-                      onDownload={() =>
-                        handleDownload(
-                          document.fileUrl,
-                          `${type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
-                        )
-                      }
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setSelectedDocument({
-                          id: document.id,
-                          type: label,
-                        })
-                      }
-                    >
-                      <Shield className="size-4" />
-                    </Button>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        {validation.isValid ? (
-                          <CheckCircle2 className="text-success size-5" />
-                        ) : (
-                          <AlertCircle className="size-5 text-destructive" />
-                        )}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {validation.isValid
-                          ? t_review('documents.valid')
-                          : validation.errors.join(', ')}
-                      </TooltipContent>
-                    </Tooltip>
-                  </>
-                )}
-              </div>
+              )}
+              {validation.errors.length > 0 && (
+                <div className="mt-2">
+                  {validation.errors.map((error, index) => (
+                    <p key={index} className="text-sm text-destructive">
+                      {error}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
-          );
-        })}
-      </CardContent>
+            <div className="flex items-center gap-2">
+              {document && (
+                <>
+                  <Badge variant={document.status.toLowerCase() as BadgeVariant}>
+                    {t(`status.${document.status.toLowerCase()}`)}
+                  </Badge>
+                  <DocumentPreview
+                    url={document.fileUrl}
+                    title={label}
+                    type={type}
+                    onDownload={() =>
+                      handleDownload(
+                        document.fileUrl,
+                        `${type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
+                      )
+                    }
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setSelectedDocument({
+                        id: document.id,
+                        type: label,
+                      })
+                    }
+                  >
+                    <Shield className="size-4" />
+                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      {validation.isValid ? (
+                        <CheckCircle2 className="text-success size-5" />
+                      ) : (
+                        <AlertCircle className="size-5 text-destructive" />
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {validation.isValid
+                        ? t_review('documents.valid')
+                        : validation.errors.join(', ')}
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })}
 
       {selectedDocument && (
         <DocumentValidationDialog
@@ -177,6 +172,6 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
           }}
         />
       )}
-    </Card>
+    </CardContainer>
   );
 }
