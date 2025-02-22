@@ -255,15 +255,6 @@ export async function getAvailableServiceCategories(id: string): Promise<{
     const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
     if (authResult.error) return { error: authResult.error };
 
-    const organization = await db.organization.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-
-    if (!organization) {
-      return { error: 'messages.error.not_found' };
-    }
-
     const categories = await db.consularService.groupBy({
       by: ['category'],
       where: {
@@ -281,6 +272,8 @@ export async function getAvailableServiceCategories(id: string): Promise<{
         },
       },
     });
+
+    console.log({ categories });
 
     const availableCategories = categories.map(({ category }) => category);
 
