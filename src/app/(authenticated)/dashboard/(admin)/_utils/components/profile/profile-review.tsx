@@ -38,6 +38,9 @@ import {
 } from '@/actions/consular-registration';
 import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
+import { ValidationNotes } from '@/components/consular/validation-notes';
+import { addProfileNote } from '@/actions/profile-notes';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -51,6 +54,8 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   const { formatDate } = useDateLocale();
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
   const [validationNotes, setValidationNotes] = useState('');
+  const { toast } = useToast();
+  const [isAddingNote, setIsAddingNote] = useState(false);
 
   if (!profile || !user) {
     return null;
@@ -62,7 +67,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   const statusOptions = STATUS_ORDER.map((item) => {
     return {
       value: item,
-      label: t(`common.status.${item.toLowerCase()}`),
+      label: t(('common.status.' + item.toLowerCase()) as any),
     };
   });
 
@@ -97,6 +102,28 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   function isStatusCompleted(status: RequestStatus) {
     return STATUS_ORDER.indexOf(status) <= STATUS_ORDER.indexOf(request.status);
   }
+
+  const handleAddNote = async (data: { content: string; type: NoteType }) => {
+    try {
+      setIsAddingNote(true);
+      await addProfileNote({
+        profileId: profile.id,
+        ...data,
+      });
+      toast({
+        title: t('admin.registrations.review.notes.success.title'),
+        description: t('admin.registrations.review.notes.success.description'),
+      });
+    } catch (error) {
+      toast({
+        title: t('admin.registrations.review.notes.error.title'),
+        description: t('admin.registrations.review.notes.error.description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAddingNote(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -262,6 +289,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </Button>
             )}
           </CardContainer>
+          <ValidationNotes onSubmit={handleAddNote} isLoading={isAddingNote} />
           <ProfileNotes profileId={profile.id} notes={profile.notes} />
         </div>
       </div>

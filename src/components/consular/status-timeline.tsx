@@ -82,7 +82,7 @@ export function StatusTimeline({
                           },
                         )}
                       >
-                        {t(status.toLowerCase())}
+                        {t(('common.status.' + status.toLowerCase()) as any)}
                       </p>
                     </div>
                   </TooltipTrigger>
