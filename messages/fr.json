@@ -1442,6 +1442,13 @@
           "professional": "Professionnel",
           "components": "Composants"
         },
+        "transitions": {
+          "unauthorized": "Non autorisée",
+          "completed": "Déjà validé",
+          "incomplete_profile": "Profil incomplet",
+          "incomplete_documents": "Documents incomplets",
+          "incomplete_appointment": "Rendez-vous non terminé"
+        },
         "sections": {
           "basic_info": "Informations de base",
           "documents": "Documents",

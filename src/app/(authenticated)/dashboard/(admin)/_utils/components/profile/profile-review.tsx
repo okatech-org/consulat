@@ -117,7 +117,11 @@ export function ProfileReview({ request }: ProfileReviewProps) {
           <div className="flex-1 space-y-1">
             <h2 className="text-xl md:text-2xl flex items-center gap-2 font-semibold">
               {profile.firstName} {profile.lastName}{' '}
-              <ProfileStatusBadge status={request.status} />
+              <ProfileStatusBadge
+                status={request.status}
+                // @ts-expect-error - translations are in lowercase
+                label={t(`common.status.${request.status.toLocaleLowerCase()}`)}
+              />
             </h2>
             {profile.user.email && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
@@ -195,28 +199,35 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {statusOptions.map((option) => (
-                    <SelectItem
-                      disabled={
-                        !canSwitchTo(option.value as RequestStatus, request, profile) ||
-                        isStatusCompleted(option.value as RequestStatus)
-                      }
-                      defaultChecked={option.value === selectedStatus}
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}{' '}
-                      {!canSwitchTo(option.value as RequestStatus, request, profile) &&
-                        `(${t('common.status.completed')})`}
-                      {isStatusCompleted(option.value as RequestStatus) &&
-                        `(${t('common.status.completed')})`}
-                    </SelectItem>
-                  ))}
+                  {statusOptions.map((option) => {
+                    const { can, reason } = canSwitchTo(
+                      option.value as RequestStatus,
+                      request,
+                      profile,
+                    );
+
+                    const isCompleted = isStatusCompleted(option.value as RequestStatus);
+
+                    return (
+                      <SelectItem
+                        disabled={isCompleted || !can}
+                        defaultChecked={option.value === selectedStatus}
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}{' '}
+                        {!isCompleted &&
+                          reason &&
+                          `(${t(`admin.registrations.review.transitions.${reason}`)})`}
+                        {isCompleted && `(${t('common.status.completed')})`}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
             {selectedStatus === RequestStatus.VALIDATED &&
-              profile.status !== 'VALIDATED' && (
+              RequestStatus.VALIDATED !== request.status && (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>{t('admin.registrations.review.validation.notes')}</Label>
@@ -229,6 +240,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                     />
                   </div>
                   <Button
+                    disabled={isLoading}
                     className="w-full"
                     onClick={async () => {
                       setIsLoading(true);

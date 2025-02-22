@@ -163,7 +163,7 @@ export function RequestsTable({
         }
 
         return (
-          <div className="flex w-[100px] items-center">
+          <div className="flex min-w-max items-center">
             <Badge variant={'outline'}>{status.label}</Badge>
           </div>
         );
