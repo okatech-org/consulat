@@ -4357,7 +4357,14 @@
       "in_progress": "En cours",
       "completed": "Terminée",
       "rejected": "Rejetée",
-      "cancelled": "Annulée"
+      "cancelled": "Annulée",
+      "pending": "En traitement",
+      "pending_completion": "Documents manquants",
+      "validated": "Dossier validé",
+      "card_in_production": "Carte en production",
+      "ready_for_pickup": "Prête pour retrait",
+      "appointment_scheduled": "RDV programmé",
+      "completed": "Terminée"
     },
     "processing_mode": {
       "online_only": "En ligne uniquement",
@@ -4426,6 +4433,14 @@
       "select_agent": "Sélectionner un agent",
       "success": "La demande a été modifiée avec succès",
       "error": "Une erreur est survenue lors de la modification de la demande"
+    },
+    "notifications": {
+      "consular_registration_submitted": "Inscription consulaire soumise",
+      "consular_registration_validated": "Inscription consulaire validée",
+      "consular_registration_rejected": "Inscription consulaire rejetée",
+      "consular_card_in_production": "Carte consulaire en production",
+      "consular_card_ready": "Carte consulaire prête",
+      "consular_registration_completed": "Inscription consulaire terminée"
     }
   }
 }

@@ -606,9 +606,11 @@ async function main() {
             DocumentType.PASSPORT,
             DocumentType.PROOF_OF_ADDRESS,
             DocumentType.RESIDENCE_PERMIT,
+            DocumentType.IDENTITY_PHOTO,
+            DocumentType.BIRTH_CERTIFICATE,
           ],
           requiresAppointment: true,
-          appointmentDuration: 45,
+          appointmentDuration: 30,
           price: 0,
           organization: { connect: { id: 'organization-ambassade-france' } },
           Country: { connect: { id: 'country-france' } },
@@ -904,12 +906,12 @@ async function main() {
           startTime: new Date('2024-04-16T14:00:00Z'),
           endTime: new Date('2024-04-16T14:45:00Z'),
           duration: 45,
-          type: AppointmentType.INTERVIEW,
+          type: AppointmentType.DOCUMENT_COLLECTION,
           status: AppointmentStatus.CONFIRMED,
           organization: { connect: { id: 'organization-consulat-general-marseille' } },
           attendee: { connect: { id: 'user-berny-itoutou' } },
           agent: { connect: { id: 'user-agent-2' } },
-          instructions: 'Entretien pour inscription consulaire.',
+          instructions: 'Retrait de la carte consulaire et entretien.',
         },
       }),
       prisma.appointment.create({
@@ -979,7 +981,7 @@ async function main() {
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
           appointment: { connect: { id: 'appointment-berny-itoutou-1' } },
           submittedAt: new Date(),
-          documents: {
+          requiredDocuments: {
             create: [
               {
                 type: DocumentType.PASSPORT,
@@ -998,7 +1000,7 @@ async function main() {
       prisma.serviceRequest.create({
         data: {
           id: 'service-request-berny-itoutou-2',
-          status: RequestStatus.REVIEW,
+          status: RequestStatus.SUBMITTED,
           priority: ServicePriority.STANDARD,
           serviceCategory: 'REGISTRATION',
           service: { connect: { id: 'service-registration' } },
@@ -1006,14 +1008,30 @@ async function main() {
           organization: { connect: { id: 'organization-ambassade-france' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
-          appointment: { connect: { id: 'appointment-berny-itoutou-2' } },
           submittedAt: new Date(),
-          documents: {
+          firstPassValidation: true,
+          processingTime: 0,
+          requiredDocuments: {
             create: [
+              {
+                type: DocumentType.PASSPORT,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/passport.pdf',
+              },
               {
                 type: DocumentType.PROOF_OF_ADDRESS,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/proof.pdf',
+              },
+              {
+                type: DocumentType.BIRTH_CERTIFICATE,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/birth.pdf',
+              },
+              {
+                type: DocumentType.IDENTITY_PHOTO,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/photo.jpg',
               },
             ],
           },
@@ -1032,7 +1050,7 @@ async function main() {
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
           appointment: { connect: { id: 'appointment-sarah-smith-1' } },
           submittedAt: new Date(),
-          documents: {
+          requiredDocuments: {
             create: [
               {
                 type: DocumentType.PASSPORT,
@@ -1066,7 +1084,7 @@ async function main() {
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
           appointment: { connect: { id: 'appointment-jean-dupont-1' } },
           submittedAt: new Date(),
-          documents: {
+          requiredDocuments: {
             create: [
               {
                 type: DocumentType.PASSPORT,
