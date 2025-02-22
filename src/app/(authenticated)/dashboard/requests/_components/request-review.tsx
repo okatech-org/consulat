@@ -22,7 +22,6 @@ export default async function RequestReview({
             ...request,
             profile: fullProfile,
           }}
-          agents={agents}
         />
       );
     default:

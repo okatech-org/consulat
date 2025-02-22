@@ -1,22 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsListMobile,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileBasicInfo } from './basic-info';
 import { ProfileDocuments } from './documents';
 import { ProfileContact } from './contact';
 import { ProfileFamily } from './family';
 import { ProfileProfessional } from './professional';
 import React, { useState } from 'react';
-import { RequestStatus, User } from '@prisma/client';
+import { RequestStatus } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
-import { useRouter } from 'next/navigation';
 import {
   calculateProfileCompletion,
   useDateLocale,
@@ -38,13 +31,14 @@ import {
 import CardContainer from '@/components/layouts/card-container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Mail, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { validateConsularRegistration } from '@/actions/consular-registration';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
-  agents: User[];
 }
 
-export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
+export function ProfileReview({ request }: ProfileReviewProps) {
   const t = useTranslations();
   const profile = request?.profile;
   const user = request.submittedBy;
@@ -69,11 +63,31 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
   ];
 
   const profileTabs = [
-    { value: 'basic', label: t('admin.registrations.review.tabs.basic') },
-    { value: 'documents', label: t('admin.registrations.review.tabs.documents') },
-    { value: 'contact', label: t('admin.registrations.review.tabs.contact') },
-    { value: 'family', label: t('admin.registrations.review.tabs.family') },
-    { value: 'professional', label: t('admin.registrations.review.tabs.professional') },
+    {
+      value: 'basic',
+      label: t('admin.registrations.review.tabs.basic'),
+      component: <ProfileBasicInfo profile={profile} />,
+    },
+    {
+      value: 'documents',
+      label: t('admin.registrations.review.tabs.documents'),
+      component: <ProfileDocuments profile={profile} />,
+    },
+    {
+      value: 'contact',
+      label: t('admin.registrations.review.tabs.contact'),
+      component: <ProfileContact profile={profile} />,
+    },
+    {
+      value: 'family',
+      label: t('admin.registrations.review.tabs.family'),
+      component: <ProfileFamily profile={profile} />,
+    },
+    {
+      value: 'professional',
+      label: t('admin.registrations.review.tabs.professional'),
+      component: <ProfileProfessional profile={profile} />,
+    },
   ];
 
   return (
@@ -130,25 +144,11 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
               ))}
             </TabsList>
 
-            <TabsContent value="basic" className="space-y-4">
-              <ProfileBasicInfo profile={profile} />
-            </TabsContent>
-
-            <TabsContent value="documents" className="space-y-4">
-              <ProfileDocuments profile={profile} />
-            </TabsContent>
-
-            <TabsContent value="contact" className="space-y-4">
-              <ProfileContact profile={profile} />
-            </TabsContent>
-
-            <TabsContent value="family" className="space-y-4">
-              <ProfileFamily profile={profile} />
-            </TabsContent>
-
-            <TabsContent value="professional" className="space-y-4">
-              <ProfileProfessional profile={profile} />
-            </TabsContent>
+            {profileTabs.map((tab) => (
+              <TabsContent key={tab.value} value={tab.value} className="space-y-4">
+                {tab.component}
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
 
@@ -183,14 +183,35 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>{t('admin.registrations.review.validation.notes')}</Label>
-              <Textarea
-                value={validationNotes}
-                onChange={(e) => setValidationNotes(e.target.value)}
-                placeholder={t('admin.registrations.review.validation.notes_placeholder')}
-              />
-            </div>
+            {selectedStatus === RequestStatus.VALIDATED && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t('admin.registrations.review.validation.notes')}</Label>
+                  <Textarea
+                    value={validationNotes}
+                    onChange={(e) => setValidationNotes(e.target.value)}
+                    placeholder={t(
+                      'admin.registrations.review.validation.notes_placeholder',
+                    )}
+                  />
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={async () => {
+                    setIsLoading(true);
+                    await validateConsularRegistration(
+                      request.id,
+                      profile.id,
+                      'VALIDATED',
+                      validationNotes,
+                    );
+                    setIsLoading(false);
+                  }}
+                >
+                  {t('admin.registrations.review.validation.validate')}
+                </Button>
+              </div>
+            )}
           </CardContainer>
           <ProfileNotes profileId={profile.id} notes={profile.notes} />
         </div>

@@ -1,3 +1,5 @@
+'use server';
+
 import { revalidatePath } from 'next/cache';
 import type { RequestStatus } from '@prisma/client';
 
@@ -9,6 +11,7 @@ import { ROUTES } from '@/schemas/routes';
  */
 export async function validateConsularRegistration(
   requestId: string,
+  profileId: string,
   status: RequestStatus,
   notes?: string,
 ) {
@@ -18,10 +21,17 @@ export async function validateConsularRegistration(
   }
 
   try {
+    await db.profile.update({
+      where: { id: profileId },
+      data: {
+        status: 'VALIDATED',
+      },
+    });
+
     const updatedRequest = await db.serviceRequest.update({
       where: { id: requestId },
       data: {
-        status,
+        status: 'VALIDATED',
         lastActionAt: new Date(),
         lastActionBy: authResult.user.id,
         ...(notes && {
@@ -35,7 +45,7 @@ export async function validateConsularRegistration(
           create: {
             type: 'STATUS_CHANGE',
             userId: authResult.user.id,
-            data: { status, notes },
+            data: { status: 'VALIDATED', notes },
           },
         },
       },
