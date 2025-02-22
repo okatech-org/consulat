@@ -4,6 +4,9 @@ import {
   ServicePriority,
   RequestActionType,
   ServiceCategory,
+  ConsularService,
+  User,
+  UserDocument,
 } from '@prisma/client';
 
 // Base includes pour une demande de service
@@ -58,7 +61,7 @@ export const FullServiceRequestInclude = {
         },
       },
     },
-    documents: {
+    requiredDocuments: {
       include: {
         validatedBy: {
           select: {
@@ -134,7 +137,7 @@ export type FullServiceRequest = Prisma.ServiceRequestGetPayload<
 > & {
   service: ConsularService;
   submittedBy: User;
-  documents: UserDocument[];
+  requiredDocuments: UserDocument[];
   formData?: Record<string, unknown>;
   // ... autres relations nécessaires
 };

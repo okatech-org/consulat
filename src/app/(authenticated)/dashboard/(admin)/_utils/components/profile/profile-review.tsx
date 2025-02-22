@@ -37,7 +37,7 @@ import { ProfileNotes } from './profile-notes';
 import { FullProfile } from '@/types/profile';
 import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectItem } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -277,11 +277,13 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
                   value={selectedStatus}
                   onValueChange={(value) => setSelectedStatus(value as RequestStatus)}
                 >
-                  {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
+                  <SelectContent>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">

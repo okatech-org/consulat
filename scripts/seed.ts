@@ -974,12 +974,12 @@ async function main() {
           status: RequestStatus.SUBMITTED,
           priority: ServicePriority.STANDARD,
           service: { connect: { id: 'service-passport' } },
+          assignedTo: { connect: { id: 'user-agent-1' } },
           serviceCategory: 'IDENTITY',
           submittedBy: { connect: { id: 'user-berny-itoutou' } },
           organization: { connect: { id: 'organization-ambassade-france' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
-          appointment: { connect: { id: 'appointment-berny-itoutou-1' } },
           submittedAt: new Date(),
           requiredDocuments: {
             create: [
@@ -1000,9 +1000,10 @@ async function main() {
       prisma.serviceRequest.create({
         data: {
           id: 'service-request-berny-itoutou-2',
-          status: RequestStatus.SUBMITTED,
+          status: RequestStatus.PENDING,
           priority: ServicePriority.STANDARD,
           serviceCategory: 'REGISTRATION',
+          assignedTo: { connect: { id: 'user-agent-1' } },
           service: { connect: { id: 'service-registration' } },
           submittedBy: { connect: { id: 'user-berny-itoutou' } },
           organization: { connect: { id: 'organization-ambassade-france' } },
@@ -1040,15 +1041,15 @@ async function main() {
       prisma.serviceRequest.create({
         data: {
           id: 'service-request-sarah-smith-1',
-          status: RequestStatus.SUBMITTED,
+          status: RequestStatus.PENDING,
           priority: ServicePriority.URGENT,
           service: { connect: { id: 'service-passport' } },
+          assignedTo: { connect: { id: 'user-agent-4' } },
           serviceCategory: 'IDENTITY',
           submittedBy: { connect: { id: 'user-sarah-smith' } },
           organization: { connect: { id: 'organization-consulat-new-york' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
-          appointment: { connect: { id: 'appointment-sarah-smith-1' } },
           submittedAt: new Date(),
           requiredDocuments: {
             create: [
@@ -1074,15 +1075,15 @@ async function main() {
       prisma.serviceRequest.create({
         data: {
           id: 'service-request-jean-dupont-1',
-          status: RequestStatus.REVIEW,
+          status: RequestStatus.PENDING,
           priority: ServicePriority.STANDARD,
           serviceCategory: 'REGISTRATION',
           service: { connect: { id: 'service-registration' } },
+          assignedTo: { connect: { id: 'user-agent-1' } },
           submittedBy: { connect: { id: 'user-jean-dupont' } },
           organization: { connect: { id: 'organization-ambassade-canada' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
-          appointment: { connect: { id: 'appointment-jean-dupont-1' } },
           submittedAt: new Date(),
           requiredDocuments: {
             create: [

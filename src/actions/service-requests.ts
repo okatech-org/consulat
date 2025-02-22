@@ -9,6 +9,7 @@ import {
   PaginatedServiceRequests,
   FullServiceRequestInclude,
   ServiceRequestStats,
+  FullServiceRequest,
 } from '@/types/service-request';
 import {
   Prisma,
@@ -96,7 +97,7 @@ export async function getServiceRequests(
     ]);
 
     return {
-      items: requests,
+      items: requests as FullServiceRequest[],
       total,
       page,
       limit,
@@ -141,7 +142,7 @@ export async function assignServiceRequest(requestId: string, agentId: string) {
         lastActionAt: new Date(),
         lastActionBy: authResult.user.id,
         ...(shouldUpdateStatus && {
-          status: RequestStatus.ASSIGNED,
+          status: RequestStatus.PENDING,
         }),
         actions: {
           create: {
@@ -314,7 +315,11 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
         where: {
           priority: ServicePriority.URGENT,
           status: {
-            in: [RequestStatus.SUBMITTED, RequestStatus.ASSIGNED, RequestStatus.REVIEW],
+            in: [
+              RequestStatus.SUBMITTED,
+              RequestStatus.PENDING,
+              RequestStatus.PENDING_COMPLETION,
+            ],
           },
         },
       }),

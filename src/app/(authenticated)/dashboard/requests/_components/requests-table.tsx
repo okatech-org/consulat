@@ -17,7 +17,7 @@ import { debounce } from 'lodash';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
 import { GetRequestsOptions, getServiceRequests } from '@/actions/service-requests';
-import { ServiceCategory, ServicePriority } from '@prisma/client';
+import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { User } from '@prisma/client';
 import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
@@ -47,15 +47,19 @@ export function RequestsTable({
   const [isLoading, setIsLoading] = React.useState(false);
   const [result, setResult] = React.useState<PaginatedServiceRequests | null>(null);
 
-  const statuses = [
-    { value: 'SUBMITTED', label: t('common.status.submitted') },
-    { value: 'APPROVED', label: t('common.status.approved') },
-    { value: 'REJECTED', label: t('common.status.rejected') },
-    { value: 'VALIDATED', label: t('common.status.validated') },
-    { value: 'REVIEW', label: t('common.status.review') },
-    { value: 'ASSIGNED', label: t('common.status.assigned') },
-    { value: 'COMPLETED', label: t('common.status.completed') },
-    { value: 'CANCELLED', label: t('common.status.cancelled') },
+  const statuses: {
+    value: RequestStatus;
+    label: string;
+  }[] = [
+    { value: RequestStatus.SUBMITTED, label: t('common.status.submitted') },
+    { value: RequestStatus.PENDING, label: t('common.status.pending') },
+    {
+      value: RequestStatus.PENDING_COMPLETION,
+      label: t('common.status.pending_completion'),
+    },
+    { value: RequestStatus.VALIDATED, label: t('common.status.validated') },
+    { value: RequestStatus.REJECTED, label: t('common.status.rejected') },
+    { value: RequestStatus.COMPLETED, label: t('common.status.completed') },
   ];
 
   React.useEffect(() => {
