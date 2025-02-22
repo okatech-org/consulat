@@ -189,19 +189,16 @@ enum DocumentStatus {
 }
 
 enum RequestStatus {
-  DRAFT
-  SUBMITTED
-  ASSIGNED
-  REVIEW
-  PENDING
-  ADDITIONAL_INFO_NEEDED
-  PENDING_APPOINTMENT
-  PENDING_PAYMENT
-  APPROVED
-  REJECTED
-  COMPLETED
-  CANCELLED
-  EXPIRED
+  DRAFT              // Brouillon - Demande en cours de remplissage
+  SUBMITTED          // Soumis - En attente de vérification
+  PENDING // En traitement
+  PENDING_COMPLETION // Documents/Informations manquants
+  VALIDATED          // Dossier validé - En attente de production
+  REJECTED          // Rejeté - Motif spécifié
+  CARD_IN_PRODUCTION // Carte en cours de production
+  READY_FOR_PICKUP   // Prêt pour retrait et entretien
+  APPOINTMENT_SCHEDULED // RDV de retrait/entretien programmé
+  COMPLETED          // Carte remise après entretien
 }
 
 enum DocumentType {
@@ -517,7 +514,7 @@ model ServiceRequest {
   chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
   // Données de la demande
   formData             Json? // Données du formulaire
-  documents            UserDocument[] // Documents fournis
+  requiredDocuments            UserDocument[] // Documents fournis
   notes                Note[] // Notes administratives
   messages             Message[] // Communications
 
@@ -540,11 +537,7 @@ model ServiceRequest {
   assignedToId String? // Agent assigné
   assignedTo   User?   @relation("AssignedRequests", fields: [assignedToId], references: [id])
   assignedAt   DateTime? // Date d'assignation
-  
-  // Amélioration du suivi des étapes
-  currentStep  Int @default(1) // Étape actuelle du processus
-  stepsData    Json? // Données pour chaque étape complétée
-  
+
   // Champs pour la gestion des délais
   deadline     DateTime? // Date limite de traitement
   estimatedCompletionDate DateTime? // Date estimée de finalisation
@@ -559,6 +552,10 @@ model ServiceRequest {
   // Métadonnées
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Indicateurs de performance
+  firstPassValidation Boolean? // Validation au premier passage
+  processingTime Int? // Temps de traitement en heures
 
   @@index([submittedById])
   @@index([serviceId])
@@ -670,6 +667,12 @@ enum NotificationType {
   REQUEST_ADDITIONAL_INFO_NEEDED
   REQUEST_PENDING_APPOINTMENT
   REQUEST_PENDING_PAYMENT
+  CONSULAR_REGISTRATION_SUBMITTED
+  CONSULAR_REGISTRATION_VALIDATED
+  CONSULAR_REGISTRATION_REJECTED
+  CONSULAR_CARD_IN_PRODUCTION
+  CONSULAR_CARD_READY
+  CONSULAR_REGISTRATION_COMPLETED
 }
 
 enum NotificationStatus {
