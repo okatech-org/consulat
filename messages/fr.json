@@ -127,7 +127,7 @@
     "status": {
       "not_assigned": "Non attribué",
       "assigned": "Assigné",
-      "pending": "En attente",
+      "pending": "En traitement",
       "approved": "Approuvé",
       "rejected": "Rejeté",
       "in_progress": "En cours",
