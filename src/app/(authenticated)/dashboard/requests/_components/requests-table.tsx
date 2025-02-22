@@ -192,6 +192,7 @@ export function RequestsTable({
         return (
           <div className="flex items-center">
             <Badge variant={'outline'}>
+              {/* @ts-expect-error - translations are in lowercase */}
               {t('common.service_categories.' + serviceCategory)}
             </Badge>
           </div>
@@ -215,6 +216,7 @@ export function RequestsTable({
         return (
           <div className="flex items-center">
             <Badge variant={priority === 'URGENT' ? 'destructive' : 'outline'}>
+              {/* @ts-expect-error - translations are in lowercase */}
               {t('inputs.priority.options.' + priority)}
             </Badge>
           </div>
@@ -305,6 +307,7 @@ export function RequestsTable({
       defaultValue: filters.priority?.toString().split(',') ?? undefined,
       options: Object.values(ServicePriority).map((priority) => ({
         value: priority,
+        // @ts-expect-error - translations are in lowercase
         label: t('common.priority.' + priority.toLowerCase()),
       })),
       onChange: (value) => {
@@ -320,6 +323,7 @@ export function RequestsTable({
       defaultValue: filters.serviceCategory?.toString().split(',') ?? undefined,
       options: availableServiceCategories.map((category) => ({
         value: category,
+        // @ts-expect-error - translations are in lowercase
         label: t('common.service_categories.' + category),
       })),
       onChange: (value) => {
