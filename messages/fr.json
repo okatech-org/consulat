@@ -151,7 +151,9 @@
       "rescheduled": "Reporté",
       "missed": "Manqué",
       "pending_appointment": "À venir",
-      "pending_payment": "À payer"
+      "pending_payment": "À payer",
+      "documents_validation": "Validation des documents",
+      "pending_completion": "À compléter"
     },
     "confirm": {
       "title": "Confirmation",
@@ -1546,6 +1548,10 @@
         },
         "validation": {
           "title": "Validation du profil",
+          "notes": "Notes",
+          "status": "Statut",
+          "processing": "Traitement...",
+          "submit": "Soumettre",
           "description": "Veuillez ajouter des notes ou commentaires concernant votre décision",
           "notes_placeholder": "Ajouter des notes de validation...",
           "cancel": "Annuler",
@@ -4355,7 +4361,6 @@
     "status": {
       "submitted": "Soumise",
       "in_progress": "En cours",
-      "completed": "Terminée",
       "rejected": "Rejetée",
       "cancelled": "Annulée",
       "pending": "En traitement",
@@ -4441,6 +4446,18 @@
       "consular_card_in_production": "Carte consulaire en production",
       "consular_card_ready": "Carte consulaire prête",
       "consular_registration_completed": "Inscription consulaire terminée"
+    },
+    "validation": {
+      "title": "Validation du dossier",
+      "status": "Statut",
+      "notes": "Notes",
+      "notes_placeholder": "Ajouter des notes sur la validation...",
+      "submit": "Valider",
+      "processing": "Validation en cours...",
+      "success": "Dossier validé",
+      "success_description": "Le dossier a été validé avec succès",
+      "error": "Erreur",
+      "error_description": "Une erreur est survenue lors de la validation"
     }
   }
 }

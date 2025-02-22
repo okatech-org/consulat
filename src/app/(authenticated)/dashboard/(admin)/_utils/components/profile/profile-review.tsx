@@ -35,6 +35,9 @@ import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
 import { ProfileNotes } from './profile-notes';
 import { FullProfile } from '@/types/profile';
+import { CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectItem } from '@/components/ui/select';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -42,13 +45,17 @@ interface ProfileReviewProps {
 }
 
 export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
-  const t = useTranslations('admin.registrations.review');
+  const t = useTranslations();
   const profile = request?.profile;
   const user = request.submittedBy;
   const [isLoading, setIsLoading] = useState(false);
   const [validationStatus, setValidationStatus] = useState<RequestStatus | null>(null);
   const router = useRouter();
   const { formatDate } = useDateLocale();
+  const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationNotes, setValidationNotes] = useState('');
+
   if (!profile || !user) {
     return null;
   }
@@ -56,20 +63,26 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
   const completionRate = calculateProfileCompletion(profile);
   const fieldStatus = getProfileFieldsStatus(profile);
 
-  const handleValidation = async (notes: string) => {
-    try {
-      setIsLoading(true);
+  const statusOptions = [
+    { value: 'DOCUMENTS_VALIDATION', label: t('common.status.documents_validation') },
+    { value: 'PENDING_COMPLETION', label: t('common.status.pending_completion') },
+    { value: 'VALIDATED', label: t('common.status.validated') },
+    { value: 'REJECTED', label: t('common.status.rejected') },
+  ];
 
+  const handleValidation = async () => {
+    setIsValidating(true);
+    try {
       const result = await validateRegistrationRequest({
         requestId: request.id,
         profileId: profile.id,
-        status: validationStatus!,
-        notes,
+        status: selectedStatus,
+        notes: validationNotes,
       });
 
       if (result.error) {
         toast({
-          title: t('validation.error.title'),
+          title: t('admin.registrations.review.validation.error.title'),
           description: result.error,
           variant: 'destructive',
         });
@@ -77,8 +90,8 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
       }
 
       toast({
-        title: t('validation.success.title'),
-        description: t('validation.success.description'),
+        title: t('admin.registrations.review.validation.success.title'),
+        description: t('admin.registrations.review.validation.success.description'),
         variant: 'success',
       });
 
@@ -87,12 +100,13 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
       router.push(ROUTES.dashboard.service_request_review(request.id));
     } catch (error) {
       toast({
-        title: t('validation.error.title'),
-        description: t('validation.error.unknown') + `: ${error}`,
+        title: t('admin.registrations.review.validation.error.title'),
+        description:
+          t('admin.registrations.review.validation.error.unknown') + `: ${error}`,
         variant: 'destructive',
       });
     } finally {
-      setIsLoading(false);
+      setIsValidating(false);
     }
   };
 
@@ -118,12 +132,12 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {status === RequestStatus.APPROVED
+                {status === RequestStatus.VALIDATED
                   ? t('validation.title')
                   : t('rejection.title')}
               </DialogTitle>
               <DialogDescription>
-                {status === RequestStatus.APPROVED
+                {status === RequestStatus.VALIDATED
                   ? t('validation.description')
                   : t('rejection.description')}
               </DialogDescription>
@@ -138,12 +152,12 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
                 {t('validation.cancel')}
               </Button>
               <Button
-                variant={status === RequestStatus.APPROVED ? 'default' : 'destructive'}
+                variant={status === RequestStatus.VALIDATED ? 'default' : 'destructive'}
                 onClick={() => onConfirm(notes)}
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {status === RequestStatus.APPROVED
+                {status === RequestStatus.VALIDATED
                   ? t('validation.validate')
                   : t('validation.reject')}
               </Button>
@@ -168,7 +182,8 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
               <div className="flex items-center gap-2">
                 <ProfileStatusBadge status={request.status} />
                 <span className="text-sm text-muted-foreground">
-                  {t('submitted_on')}: {formatDate(request.createdAt ?? '')}
+                  {t('admin.registrations.review.submitted_on')}:{' '}
+                  {formatDate(request.createdAt ?? '')}
                 </span>
               </div>
             </div>
@@ -180,16 +195,16 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
                 onClick={() => setValidationStatus(RequestStatus.REJECTED)}
                 disabled={isLoading}
               >
-                {t('validation.reject')}
+                {t('admin.registrations.actions.reject')}
               </Button>
               <Button
                 variant={
-                  profile.status === RequestStatus.APPROVED ? 'default' : 'success'
+                  profile.status === RequestStatus.VALIDATED ? 'default' : 'success'
                 }
-                onClick={() => setValidationStatus(RequestStatus.APPROVED)}
+                onClick={() => setValidationStatus(RequestStatus.VALIDATED)}
                 disabled={isLoading}
               >
-                {t('validation.validate')}
+                {t('admin.registrations.actions.validate')}
               </Button>
             </div>
           </div>
@@ -209,11 +224,21 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
         <div className="space-y-6 md:col-span-2">
           <Tabs defaultValue="basic" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="basic">{t('tabs.basic')}</TabsTrigger>
-              <TabsTrigger value="documents">{t('tabs.documents')}</TabsTrigger>
-              <TabsTrigger value="contact">{t('tabs.contact')}</TabsTrigger>
-              <TabsTrigger value="family">{t('tabs.family')}</TabsTrigger>
-              <TabsTrigger value="professional">{t('tabs.professional')}</TabsTrigger>
+              <TabsTrigger value="basic">
+                {t('admin.registrations.review.tabs.basic')}
+              </TabsTrigger>
+              <TabsTrigger value="documents">
+                {t('admin.registrations.review.tabs.documents')}
+              </TabsTrigger>
+              <TabsTrigger value="contact">
+                {t('admin.registrations.review.tabs.contact')}
+              </TabsTrigger>
+              <TabsTrigger value="family">
+                {t('admin.registrations.review.tabs.family')}
+              </TabsTrigger>
+              <TabsTrigger value="professional">
+                {t('admin.registrations.review.tabs.professional')}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4">
@@ -239,9 +264,49 @@ export function ProfileReview({ request, agents = [] }: ProfileReviewProps) {
         </div>
 
         {/* Panneau latéral pour les notes et validations */}
-        <div className="space-y-4">
+        <div className="space-y-4 w-80">
           <ProfileCompletion completionRate={completionRate} fieldStatus={fieldStatus} />
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('admin.registrations.review.validation.title')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t('admin.registrations.review.validation.status')}</Label>
+                <Select
+                  value={selectedStatus}
+                  onValueChange={(value) => setSelectedStatus(value as RequestStatus)}
+                >
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('admin.registrations.review.validation.notes')}</Label>
+                <Textarea
+                  value={validationNotes}
+                  onChange={(e) => setValidationNotes(e.target.value)}
+                  placeholder={t(
+                    'admin.registrations.review.validation.notes_placeholder',
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
           <ProfileNotes profileId={profile.id} notes={profile.notes} />
+          <Button onClick={handleValidation} disabled={isValidating} className="w-full">
+            {isValidating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t('admin.registrations.review.validation.processing')}
+              </>
+            ) : (
+              t('admin.registrations.review.validation.submit')
+            )}
+          </Button>
         </div>
       </div>
     </div>
