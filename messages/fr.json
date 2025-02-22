@@ -153,7 +153,10 @@
       "pending_appointment": "À venir",
       "pending_payment": "À payer",
       "documents_validation": "Validation des documents",
-      "pending_completion": "À compléter"
+      "pending_completion": "À compléter",
+      "card_in_production": "Carte en production",
+      "ready_for_pickup": "Prêt à récupérer",
+      "appointment_scheduled": "Rendez-vous planifié"
     },
     "confirm": {
       "title": "Confirmation",

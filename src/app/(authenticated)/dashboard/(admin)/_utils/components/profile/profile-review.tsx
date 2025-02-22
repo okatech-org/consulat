@@ -33,6 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { validateConsularRegistration } from '@/actions/consular-registration';
+import { StatusTimeline } from '@/components/consular/status-timeline';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -90,6 +91,14 @@ export function ProfileReview({ request }: ProfileReviewProps) {
     },
   ];
 
+  function canSwitchStatus(status: RequestStatus) {
+    if (status === RequestStatus.VALIDATED) {
+      return false;
+    }
+
+    return true;
+  }
+
   return (
     <div className="space-y-6">
       {/* En-tête avec statut et actions */}
@@ -130,6 +139,13 @@ export function ProfileReview({ request }: ProfileReviewProps) {
             </div>
           </div>
         </div>
+      </CardContainer>
+      <CardContainer contentClass="pt-6">
+        <StatusTimeline
+          currentStatus={request.status}
+          request={request}
+          profile={profile}
+        />
       </CardContainer>
 
       {/* Contenu principal */}
@@ -173,11 +189,15 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                 <SelectContent>
                   {statusOptions.map((option) => (
                     <SelectItem
+                      disabled={!canSwitchStatus(option.value as RequestStatus)}
                       defaultChecked={option.value === selectedStatus}
                       key={option.value}
                       value={option.value}
                     >
-                      {option.label}
+                      {option.label}{' '}
+                      {canSwitchStatus(option.value as RequestStatus)
+                        ? ''
+                        : '(non modifiable)'}
                     </SelectItem>
                   ))}
                 </SelectContent>
