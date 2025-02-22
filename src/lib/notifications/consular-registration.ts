@@ -2,6 +2,7 @@
 
 import { db } from '@/lib/prisma';
 import { NotificationType, RequestStatus, Notification } from '@prisma/client';
+import { getTranslations } from 'next-intl/server';
 
 interface NotificationData {
   userId: string;
@@ -14,6 +15,7 @@ interface NotificationData {
  * Crée une notification pour l'inscription consulaire
  */
 async function createConsularNotification({ userId, status, notes }: NotificationData) {
+  const t = await getTranslations('messages.requests.notifications');
   let notificationData: Pick<Notification, 'type' | 'title' | 'message'> | null = null;
 
   // Déterminer le type de notification en fonction du statut
@@ -21,29 +23,36 @@ async function createConsularNotification({ userId, status, notes }: Notificatio
     case 'SUBMITTED':
       notificationData = {
         type: NotificationType.CONSULAR_REGISTRATION_SUBMITTED,
-        title: 'Demande soumise',
-        message: "Votre demande d'inscription consulaire a été soumise avec succès.",
+        title: t('consular_registration_submitted'),
+        message: t('messages.submitted'),
       };
       break;
     case 'VALIDATED':
       notificationData = {
         type: NotificationType.CONSULAR_REGISTRATION_VALIDATED,
-        title: 'Dossier validé',
-        message: "Votre dossier d'inscription consulaire a été validé.",
+        title: t('consular_registration_validated'),
+        message: t('messages.validated'),
       };
       break;
     case 'REJECTED':
       notificationData = {
         type: NotificationType.CONSULAR_REGISTRATION_REJECTED,
-        title: 'Dossier rejeté',
-        message: notes || "Votre dossier d'inscription consulaire a été rejeté.",
+        title: t('consular_registration_rejected'),
+        message: notes || t('messages.rejected'),
       };
       break;
     case 'READY_FOR_PICKUP':
       notificationData = {
         type: NotificationType.CONSULAR_CARD_READY,
-        title: 'Carte prête',
-        message: 'Votre carte consulaire est prête pour le retrait.',
+        title: t('consular_card_ready'),
+        message: t('messages.ready_for_pickup'),
+      };
+      break;
+    case 'COMPLETED':
+      notificationData = {
+        type: NotificationType.CONSULAR_REGISTRATION_COMPLETED,
+        title: t('consular_registration_completed'),
+        message: t('messages.completed'),
       };
       break;
     default:

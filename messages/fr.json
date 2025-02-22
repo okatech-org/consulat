@@ -837,6 +837,20 @@
       "assign": {
         "success": "Demande assignée avec succès",
         "error": "Échec de l'assignation de la demande"
+      },
+      "notifications": {
+        "consular_registration_submitted": "Inscription consulaire soumise",
+        "consular_registration_validated": "Votre dossier d'inscription consulaire a été validé. Vous pouvez, dès lors, accéder à votre carte consulaire virtuelle en attendant la production de votre carte physique.",
+        "consular_registration_rejected": "Votre dossier d'inscription consulaire a été rejeté.",
+        "consular_card_ready": "Votre carte consulaire est prête pour le retrait. Rendez-vous sur l'onglet Rendez-vous pour planifier votre rendez-vous de retrait.",
+        "consular_registration_completed": "Votre inscription consulaire est terminée.",
+        "messages": {
+          "submitted": "Votre demande d'inscription consulaire a été soumise avec succès.",
+          "validated": "Votre dossier d'inscription consulaire a été validé.",
+          "rejected": "Votre dossier d'inscription consulaire a été rejeté.",
+          "ready_for_pickup": "Votre carte consulaire est prête pour le retrait.",
+          "completed": "Votre inscription consulaire est terminée."
+        }
       }
     }
   },
@@ -4456,14 +4470,6 @@
       "select_agent": "Sélectionner un agent",
       "success": "La demande a été modifiée avec succès",
       "error": "Une erreur est survenue lors de la modification de la demande"
-    },
-    "notifications": {
-      "consular_registration_submitted": "Inscription consulaire soumise",
-      "consular_registration_validated": "Inscription consulaire validée",
-      "consular_registration_rejected": "Inscription consulaire rejetée",
-      "consular_card_in_production": "Carte consulaire en production",
-      "consular_card_ready": "Carte consulaire prête",
-      "consular_registration_completed": "Inscription consulaire terminée"
     },
     "validation": {
       "title": "Validation du dossier",

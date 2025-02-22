@@ -33,7 +33,6 @@ async function main() {
     await prisma.phone.deleteMany();
     await prisma.addressGabon.deleteMany();
     await prisma.address.deleteMany();
-    await prisma.profileNote.deleteMany();
     await prisma.profile.deleteMany();
     await prisma.user.deleteMany();
     await prisma.organization.deleteMany();

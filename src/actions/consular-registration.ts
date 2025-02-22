@@ -166,24 +166,3 @@ export async function startCardProduction(requestId: string) {
     throw new Error('Failed to start card production');
   }
 }
-
-/**
- * Marquer la carte comme prête pour le retrait
- */
-export async function markCardReady(requestId: string) {
-  // ... logique similaire
-}
-
-/**
- * Programmer le RDV de retrait/entretien
- */
-export async function schedulePickupAppointment(requestId: string, appointmentData: any) {
-  // ... logique similaire
-}
-
-/**
- * Finaliser l'inscription consulaire
- */
-export async function completeRegistration(requestId: string) {
-  // ... logique similaire
-}

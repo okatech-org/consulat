@@ -25,6 +25,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
+import { CardTitle } from '@/components/ui/card';
 interface RequestOverviewProps {
   request: FullServiceRequest & { profile?: FullProfile | null };
   user: PrismaUser;
@@ -148,38 +150,44 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             )}
           </CardContainer>
         </div>
-        <div className="col-span-full flex h-full flex-col gap-4 md:col-span-4">
+        <CardContainer
+          className="col-span-full md:col-span-4"
+          contentClass="flex flex-col gap-4"
+        >
           {/* Change or set assigned agent */}
           {isAdmin && (
-            <CardContainer title={t('requests.view.actions.edit_assigned_agent')}>
-              <div className="space-y-4">
-                {request.assignedTo && (
-                  <p className="text-sm text-muted-foreground">
-                    {request.assignedTo.firstName} {request.assignedTo.lastName}
-                  </p>
-                )}
-                <RequestQuickEditFormDialog request={request} agents={agents} />
-              </div>
-            </CardContainer>
+            <div className="space-y-4">
+              <h4 className="font-medium">
+                {t('requests.view.actions.edit_assigned_agent')}
+              </h4>
+              {request.assignedTo && (
+                <p className="text-sm text-muted-foreground">
+                  {request.assignedTo.firstName} {request.assignedTo.lastName}
+                </p>
+              )}
+              <RequestQuickEditFormDialog request={request} agents={agents} />
+              <Separator className="my-4" />
+            </div>
           )}
           {/* Service Info */}
-          <CardContainer title={t('requests.view.service_info')}>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium">{request.service.name}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {request.service.description}
-                </p>
-              </div>
-              <Badge variant="outline">
-                {t(`common.service_categories.${request.serviceCategory}`)}
-              </Badge>
+          <div className="space-y-4">
+            <CardTitle className="text-xl">{t('requests.view.service_info')}</CardTitle>
+            <div>
+              <h4 className="font-medium">{request.service.name}</h4>
+              <p className="text-sm text-muted-foreground">
+                {request.service.description}
+              </p>
             </div>
-          </CardContainer>
+            <Badge variant="outline">
+              {t(`common.service_categories.${request.serviceCategory}`)}
+            </Badge>
+            <Separator className="my-4" />
+          </div>
 
           {/* Appointment Info if exists */}
           {request.appointment && (
-            <CardContainer title={t('requests.view.appointment')}>
+            <div className="space-y-4">
+              <CardTitle className="text-xl">{t('requests.view.appointment')}</CardTitle>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="size-4" />
@@ -200,11 +208,13 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                   </div>
                 )}
               </div>
-            </CardContainer>
+              <Separator className="my-4" />
+            </div>
           )}
 
           {/* Action History */}
-          <CardContainer className="flex-grow" title={t('requests.view.history')}>
+          <div className="flex-grow">
+            <h4 className="font-medium">{t('requests.view.history')}</h4>
             <ScrollArea className="h-full pr-4">
               <Timeline>
                 {request.actions.map((action) => (
@@ -218,8 +228,8 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                 ))}
               </Timeline>
             </ScrollArea>
-          </CardContainer>
-        </div>
+          </div>
+        </CardContainer>
       </div>
     </div>
   );
