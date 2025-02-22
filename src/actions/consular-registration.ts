@@ -59,6 +59,56 @@ export async function validateConsularRegistration(
   }
 }
 
+export async function updateConsularRegistrationStatus(
+  requestId: string,
+  profileId: string,
+  status: RequestStatus,
+  notes?: string,
+) {
+  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  if (authResult.error || !authResult.user) {
+    throw new Error(authResult.error || 'Unauthorized');
+  }
+
+  try {
+    await db.profile.update({
+      where: { id: profileId },
+      data: {
+        status,
+      },
+    });
+
+    const updatedRequest = await db.serviceRequest.update({
+      where: { id: requestId },
+      data: {
+        status,
+        lastActionAt: new Date(),
+        lastActionBy: authResult.user.id,
+        ...(notes && {
+          notes: {
+            create: {
+              content: notes,
+            },
+          },
+        }),
+        actions: {
+          create: {
+            type: 'STATUS_CHANGE',
+            userId: authResult.user.id,
+            data: { status, notes },
+          },
+        },
+      },
+    });
+
+    revalidatePath(ROUTES.dashboard.requests);
+    return { success: true, data: updatedRequest };
+  } catch (error) {
+    console.error('Error updating consular registration status:', error);
+    throw new Error('Failed to update consular registration status');
+  }
+}
+
 /**
  * Démarrer la production de la carte consulaire
  */

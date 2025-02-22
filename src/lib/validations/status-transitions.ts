@@ -90,7 +90,6 @@ function allDocumentsValidated(profile: FullProfile): boolean {
 }
 
 export const STATUS_ORDER: RequestStatus[] = [
-  'DRAFT',
   'SUBMITTED',
   'PENDING_COMPLETION',
   'VALIDATED',

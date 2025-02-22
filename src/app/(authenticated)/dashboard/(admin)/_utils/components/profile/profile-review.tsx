@@ -32,8 +32,12 @@ import CardContainer from '@/components/layouts/card-container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { validateConsularRegistration } from '@/actions/consular-registration';
+import {
+  updateConsularRegistrationStatus,
+  validateConsularRegistration,
+} from '@/actions/consular-registration';
 import { StatusTimeline } from '@/components/consular/status-timeline';
+import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -55,13 +59,12 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   const completionRate = calculateProfileCompletion(profile);
   const fieldStatus = getProfileFieldsStatus(profile);
 
-  const statusOptions = [
-    { value: 'PENDING', label: t('common.status.pending') },
-    { value: 'DOCUMENTS_VALIDATION', label: t('common.status.documents_validation') },
-    { value: 'PENDING_COMPLETION', label: t('common.status.pending_completion') },
-    { value: 'VALIDATED', label: t('common.status.validated') },
-    { value: 'REJECTED', label: t('common.status.rejected') },
-  ];
+  const statusOptions = STATUS_ORDER.map((item) => {
+    return {
+      value: item,
+      label: t(`common.status.${item.toLowerCase()}`),
+    };
+  });
 
   const profileTabs = [
     {
@@ -91,12 +94,8 @@ export function ProfileReview({ request }: ProfileReviewProps) {
     },
   ];
 
-  function canSwitchStatus(status: RequestStatus) {
-    if (status === RequestStatus.VALIDATED) {
-      return false;
-    }
-
-    return true;
+  function isStatusCompleted(status: RequestStatus) {
+    return STATUS_ORDER.indexOf(status) <= STATUS_ORDER.indexOf(request.status);
   }
 
   return (
@@ -189,48 +188,70 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                 <SelectContent>
                   {statusOptions.map((option) => (
                     <SelectItem
-                      disabled={!canSwitchStatus(option.value as RequestStatus)}
+                      disabled={
+                        !canSwitchTo(option.value as RequestStatus, request, profile) ||
+                        option.value === selectedStatus ||
+                        isStatusCompleted(option.value as RequestStatus)
+                      }
                       defaultChecked={option.value === selectedStatus}
                       key={option.value}
                       value={option.value}
                     >
                       {option.label}{' '}
-                      {canSwitchStatus(option.value as RequestStatus)
-                        ? ''
-                        : '(non modifiable)'}
+                      {!canSwitchTo(option.value as RequestStatus, request, profile) &&
+                        `(${t('common.status.completed')})`}
+                      {isStatusCompleted(option.value as RequestStatus) &&
+                        `(${t('common.status.completed')})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            {selectedStatus === RequestStatus.VALIDATED && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t('admin.registrations.review.validation.notes')}</Label>
-                  <Textarea
-                    value={validationNotes}
-                    onChange={(e) => setValidationNotes(e.target.value)}
-                    placeholder={t(
-                      'admin.registrations.review.validation.notes_placeholder',
-                    )}
-                  />
+            {selectedStatus === RequestStatus.VALIDATED &&
+              profile.status !== 'VALIDATED' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>{t('admin.registrations.review.validation.notes')}</Label>
+                    <Textarea
+                      value={validationNotes}
+                      onChange={(e) => setValidationNotes(e.target.value)}
+                      placeholder={t(
+                        'admin.registrations.review.validation.notes_placeholder',
+                      )}
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={async () => {
+                      setIsLoading(true);
+                      await validateConsularRegistration(
+                        request.id,
+                        profile.id,
+                        'VALIDATED',
+                        validationNotes,
+                      );
+                      setIsLoading(false);
+                    }}
+                  >
+                    {t('admin.registrations.review.validation.validate')}
+                  </Button>
                 </div>
-                <Button
-                  className="w-full"
-                  onClick={async () => {
-                    setIsLoading(true);
-                    await validateConsularRegistration(
-                      request.id,
-                      profile.id,
-                      'VALIDATED',
-                      validationNotes,
-                    );
-                    setIsLoading(false);
-                  }}
-                >
-                  {t('admin.registrations.review.validation.validate')}
-                </Button>
-              </div>
+              )}
+            {selectedStatus !== RequestStatus.VALIDATED && (
+              <Button
+                className="w-full"
+                onClick={async () => {
+                  setIsLoading(true);
+                  await updateConsularRegistrationStatus(
+                    request.id,
+                    profile.id,
+                    selectedStatus,
+                  );
+                  setIsLoading(false);
+                }}
+              >
+                {t('admin.registrations.review.validation.validate')}
+              </Button>
             )}
           </CardContainer>
           <ProfileNotes profileId={profile.id} notes={profile.notes} />

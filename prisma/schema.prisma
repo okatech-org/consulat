@@ -395,6 +395,7 @@ model Message {
 model Note {
   id      String @id @default(cuid())
   content String
+  type    NoteType
 
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?

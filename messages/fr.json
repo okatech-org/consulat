@@ -1693,7 +1693,10 @@
       "complete": "Complet",
       "draft": "Brouillon",
       "submitted": "Soumis",
-      "review": "En traitement"
+      "review": "En traitement",
+      "card_in_production": "Carte en production",
+      "ready_for_pickup": "Prêt à récupérer",
+      "appointment_scheduled": "Rendez-vous planifié"
     },
     "sections": {
       "basic_info": "Informations personnelles",
