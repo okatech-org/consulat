@@ -432,3 +432,14 @@ export function useDateLocale() {
     formatDate,
   };
 }
+
+export async function safePromise<T, E = Error>(
+  promise: Promise<T>,
+): Promise<[E, null] | [null, T]> {
+  try {
+    const result = await promise;
+    return [null, result];
+  } catch (error) {
+    return [error as E, null];
+  }
+}
