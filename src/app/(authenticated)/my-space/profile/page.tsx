@@ -10,7 +10,7 @@ import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
 import { calculateProfileCompletion, getProfileFieldsStatus } from '@/lib/utils';
-import { NotesList } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/profile-notes';
+import { NotesList } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/requests/review-notes';
 import { ProfileCompletion } from './_utils/components/profile-completion';
 import { ProfileHeaderClient } from './_utils/components/profile-header-client';
 import { ProfileTabs } from './_utils/components/profile-tabs';

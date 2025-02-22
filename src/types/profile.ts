@@ -39,20 +39,6 @@ export const FullProfileInclude = {
     residencePermit: true,
     addressProof: true,
     identityPicture: true,
-    notes: {
-      include: {
-        author: {
-          select: {
-            firstName: true,
-            lastName: true,
-            image: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    },
   },
 } as const;
 

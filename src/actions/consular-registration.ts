@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import type { RequestStatus } from '@prisma/client';
+import { NoteType, type RequestStatus } from '@prisma/client';
 
 import { checkAuth } from '@/lib/auth/action';
 import { db } from '@/lib/prisma';
@@ -34,13 +34,6 @@ export async function validateConsularRegistration(
         status: 'VALIDATED',
         lastActionAt: new Date(),
         lastActionBy: authResult.user.id,
-        ...(notes && {
-          notes: {
-            create: {
-              content: notes,
-            },
-          },
-        }),
         actions: {
           create: {
             type: 'STATUS_CHANGE',
@@ -50,6 +43,21 @@ export async function validateConsularRegistration(
         },
       },
     });
+
+    if (notes) {
+      await db.note.create({
+        data: {
+          content: notes,
+          type: NoteType.INTERNAL,
+          serviceRequest: {
+            connect: { id: requestId },
+          },
+          author: {
+            connect: { id: authResult.user.id },
+          },
+        },
+      });
+    }
 
     revalidatePath(ROUTES.dashboard.requests);
     return { success: true, data: updatedRequest };
@@ -84,13 +92,6 @@ export async function updateConsularRegistrationStatus(
         status,
         lastActionAt: new Date(),
         lastActionBy: authResult.user.id,
-        ...(notes && {
-          notes: {
-            create: {
-              content: notes,
-            },
-          },
-        }),
         actions: {
           create: {
             type: 'STATUS_CHANGE',
@@ -100,6 +101,21 @@ export async function updateConsularRegistrationStatus(
         },
       },
     });
+
+    if (notes) {
+      await db.note.create({
+        data: {
+          content: notes,
+          type: NoteType.FEEDBACK,
+          serviceRequest: {
+            connect: { id: requestId },
+          },
+          author: {
+            connect: { id: authResult.user.id },
+          },
+        },
+      });
+    }
 
     revalidatePath(ROUTES.dashboard.requests);
     return { success: true, data: updatedRequest };

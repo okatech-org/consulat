@@ -19,8 +19,10 @@ import {
   UserRole,
   ServiceRequest,
   NoteType,
+  NotificationType,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
+import { createNotification } from '@/lib/notifications';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -194,18 +196,24 @@ export async function updateServiceRequestStatus(
             data: { status, notes },
           },
         },
-        ...(notes && {
-          notes: {
-            create: {
-              content: notes,
-              type: NoteType.INTERNAL,
-              authorId: authResult.user.id,
-            },
-          },
-        }),
       },
       ...FullServiceRequestInclude,
     });
+
+    if (notes) {
+      await db.note.create({
+        data: {
+          content: notes,
+          type: NoteType.FEEDBACK,
+          serviceRequest: {
+            connect: { id: requestId },
+          },
+          author: {
+            connect: { id: authResult.user.id },
+          },
+        },
+      });
+    }
 
     revalidatePath(ROUTES.dashboard.requests);
     return { success: true, data: updatedRequest };
@@ -399,17 +407,8 @@ export async function addServiceRequestNote(input: AddNoteInput) {
     }
 
     // Récupérer le profil pour avoir l'userId
-    const request = await db.serviceRequest.update({
+    const request = await db.serviceRequest.findUnique({
       where: { id: input.requestId },
-      data: {
-        notes: {
-          create: {
-            content: input.content,
-            type: input.type,
-            authorId: authResult.user.id,
-          },
-        },
-      },
     });
 
     if (!request) {
@@ -421,8 +420,8 @@ export async function addServiceRequestNote(input: AddNoteInput) {
       data: {
         content: input.content,
         type: input.type,
-        requestId: input.requestId,
-        createdBy: authResult.user.id,
+        authorId: authResult.user.id,
+        serviceRequestId: input.requestId,
       },
       include: {
         author: {
@@ -437,11 +436,10 @@ export async function addServiceRequestNote(input: AddNoteInput) {
     // Si c'est un feedback, créer une notification pour l'utilisateur
     if (input.type === 'FEEDBACK') {
       await createNotification({
-        userId: profile.userId,
-        type: 'PROFILE_FEEDBACK',
+        userId: request.submittedById,
+        type: NotificationType.FEEDBACK,
         title: t('notification.title'),
         message: input.content,
-        profileId: input.profileId,
       });
     }
 

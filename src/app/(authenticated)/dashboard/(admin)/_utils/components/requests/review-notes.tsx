@@ -7,14 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, MessageCircle, Lock } from 'lucide-react';
-import { addProfileNote } from '../../actions/profile-notes';
 import CardContainer from '@/components/layouts/card-container';
 import { useDateLocale } from '@/lib/utils';
-import { FullProfile } from '@/types/profile';
 import { FullServiceRequest } from '@/types/service-request';
+import { addServiceRequestNote } from '@/actions/service-requests';
 
 interface NoteItemProps {
-  note: FullProfile['notes'][number];
+  note: FullServiceRequest['notes'][number];
 }
 
 export const NoteItem = ({ note }: NoteItemProps) => {
@@ -66,7 +65,7 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
         )}
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        rows={4}
+        rows={2}
       />
       <Button
         onClick={handleSubmit}
@@ -85,7 +84,7 @@ interface ReviewNotesProps {
   notes: FullServiceRequest['notes'];
 }
 
-export function ReviewNotes({ requestId, notes }: ReviewNotesProps) {
+export function ReviewNotes({ requestId, notes = [] }: ReviewNotesProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const t = useTranslations('admin.registrations.review.notes');
@@ -93,7 +92,7 @@ export function ReviewNotes({ requestId, notes }: ReviewNotesProps) {
   const handleAddNote = async (content: string, type: 'INTERNAL' | 'FEEDBACK') => {
     try {
       setIsLoading(true);
-      const result = await addProfileNote({
+      const result = await addServiceRequestNote({
         requestId,
         content,
         type,
@@ -165,7 +164,7 @@ export function ReviewNotes({ requestId, notes }: ReviewNotesProps) {
   );
 }
 
-export const NotesList = ({ notes }: { notes: FullProfile['notes'] }) => {
+export const NotesList = ({ notes }: { notes: FullServiceRequest['notes'] }) => {
   const t = useTranslations('admin.registrations.review.notes');
 
   return (

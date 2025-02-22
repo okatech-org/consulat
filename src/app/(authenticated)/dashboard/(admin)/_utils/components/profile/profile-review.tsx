@@ -18,7 +18,7 @@ import {
 import { FullServiceRequest } from '@/types/service-request';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
-import { ReviewNotes } from './profile-notes';
+import { ReviewNotes } from '../requests/review-notes';
 import { FullProfile } from '@/types/profile';
 import { Label } from '@/components/ui/label';
 import {
@@ -263,7 +263,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </Button>
             )}
           </CardContainer>
-          <ReviewNotes profileId={profile.id} notes={profile.notes} />
+          <ReviewNotes requestId={request.id} notes={request.notes} />
         </div>
       </div>
     </div>

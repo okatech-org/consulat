@@ -1,6 +1,7 @@
-import { RequestStatus, ServiceRequest } from '@prisma/client';
+import { RequestStatus } from '@prisma/client';
 import { FullProfile } from '@/types/profile';
 import { calculateProfileCompletion } from '@/lib/utils';
+import { FullServiceRequest } from '@/types/service-request';
 
 type TransitionCheck = {
   can: boolean;
@@ -9,47 +10,21 @@ type TransitionCheck = {
 
 export function canSwitchTo(
   targetStatus: RequestStatus,
-  request: ServiceRequest,
+  request: FullServiceRequest,
   profile: FullProfile,
 ): TransitionCheck {
   const completionRate = calculateProfileCompletion(profile);
 
-  // Règles de transition selon l'état actuel
   switch (request.status) {
-    case 'DRAFT':
-      if (targetStatus === 'SUBMITTED') {
-        return {
-          can: completionRate === 100,
-          reason: completionRate < 100 ? 'Le profil doit être complet' : undefined,
-        };
-      }
-      break;
-
-    case 'SUBMITTED':
-      if (targetStatus === 'PENDING_COMPLETION') {
-        return { can: true };
-      }
-      if (targetStatus === 'VALIDATED') {
-        return {
-          can: completionRate === 100 && allDocumentsValidated(profile),
-          reason: 'Tous les documents doivent être validés',
-        };
-      }
-      if (targetStatus === 'REJECTED') {
-        return { can: true };
-      }
-      break;
-
-    case 'PENDING_COMPLETION':
-      if (targetStatus === 'VALIDATED') {
-        return {
-          can: completionRate === 100 && allDocumentsValidated(profile),
-          reason: 'Tous les documents doivent être validés',
-        };
-      }
-      break;
-
     case 'VALIDATED':
+      if (completionRate < 100) {
+        return { can: false, reason: 'incomplete_profile' };
+      }
+
+      if (!allDocumentsValidated(profile)) {
+        return { can: false, reason: 'incomplete_documents' };
+      }
+
       if (targetStatus === 'CARD_IN_PRODUCTION') {
         return { can: true };
       }
@@ -72,6 +47,21 @@ export function canSwitchTo(
         return { can: true };
       }
       break;
+    case 'COMPLETED':
+      if (completionRate < 100) {
+        return { can: false, reason: 'incomplete_profile' };
+      }
+
+      if (!allDocumentsValidated(profile)) {
+        return { can: false, reason: 'incomplete_documents' };
+      }
+
+      if (request.appointment?.status !== 'COMPLETED') {
+        return { can: false, reason: 'appointment_not_completed' };
+      }
+
+      return { can: true };
+      break;
   }
 
   return { can: false, reason: 'Transition non autorisée' };
@@ -92,9 +82,7 @@ function allDocumentsValidated(profile: FullProfile): boolean {
 export const STATUS_ORDER: RequestStatus[] = [
   'SUBMITTED',
   'PENDING',
-  'PENDING_COMPLETION',
   'VALIDATED',
-  'CARD_IN_PRODUCTION',
   'READY_FOR_PICKUP',
   'APPOINTMENT_SCHEDULED',
   'COMPLETED',
