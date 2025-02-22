@@ -6,6 +6,8 @@ import { NoteType, type RequestStatus } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { db } from '@/lib/prisma';
 import { ROUTES } from '@/schemas/routes';
+import { updateConsularRegistrationWithNotification } from '@/lib/notifications/consular-registration';
+
 /**
  * Valider une demande d'inscription consulaire
  */
@@ -58,6 +60,8 @@ export async function validateConsularRegistration(
         },
       });
     }
+
+    await updateConsularRegistrationWithNotification(requestId, status, notes);
 
     revalidatePath(ROUTES.dashboard.requests);
     return { success: true, data: updatedRequest };
@@ -117,6 +121,8 @@ export async function updateConsularRegistrationStatus(
       });
     }
 
+    await updateConsularRegistrationWithNotification(requestId, status, notes);
+
     revalidatePath(ROUTES.dashboard.requests);
     return { success: true, data: updatedRequest };
   } catch (error) {
@@ -150,6 +156,8 @@ export async function startCardProduction(requestId: string) {
         },
       },
     });
+
+    await updateConsularRegistrationWithNotification(requestId, 'CARD_IN_PRODUCTION');
 
     revalidatePath(ROUTES.dashboard.requests);
     return { success: true, data: updatedRequest };
