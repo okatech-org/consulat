@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { cn } from '@/lib/utils';
+import { OrganizationMetadataAddress } from '@/schemas/organization';
 
 type AlertVariant = 'default' | 'destructive' | 'secondary';
 
@@ -22,7 +23,7 @@ interface ProfileStatusAlertProps {
   status: RequestStatus;
   notes?: string;
   organizationName?: string;
-  organizationAddress?: string;
+  organizationAddress?: OrganizationMetadataAddress | undefined;
 }
 
 export function ProfileStatusAlert({
@@ -71,7 +72,9 @@ export function ProfileStatusAlert({
           title: t('ready_for_pickup.title'),
           description: t('ready_for_pickup.description', {
             organization: organizationName || t('default.organization'),
-            address: organizationAddress || t('default.address'),
+            address: organizationAddress
+              ? `${organizationAddress.firstLine}, ${organizationAddress.city} ${organizationAddress.zipCode}`
+              : t('default.address'),
           }),
           action: (
             <Link

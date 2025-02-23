@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import { Organization } from '@/types/organization';
 import { OrganizationType, OrganizationStatus } from '@prisma/client';
 import { Country } from '@/types/country';
 import { EmailSchema, PhoneSchema } from '@/schemas/inputs';
-import { Organization } from '@/types/organization';
 
 export const organizationSchema = z.object({
   name: z.string().min(1, 'messages.errors.name_required'),
@@ -228,7 +228,7 @@ export interface OrganizationMetadataContact {
 }
 
 export interface OrganizationMetadataSettings {
-  logo: string;
+  logo: string | null;
   contact: OrganizationMetadataContact;
   schedule: OrganizationMetadataSchedule;
   holidays: OrganizationMetadataHoliday[];
@@ -259,4 +259,8 @@ export interface OrganizationMetadata {
   [countryCode: string]: {
     settings: OrganizationMetadataSettings;
   };
+}
+
+export interface OrganizationCountryInfos extends Organization {
+  settings: OrganizationMetadataSettings;
 }

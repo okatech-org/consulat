@@ -194,7 +194,7 @@ export function AppSidebar({
       <SidebarContent>
         <NavMain items={userMenu} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="py-6">
         <NavUser
           user={{
             name: `${user.firstName} ${user.lastName}`,

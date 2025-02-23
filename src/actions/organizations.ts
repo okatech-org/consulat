@@ -5,11 +5,14 @@ import { checkAuth } from '@/lib/auth/action';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import {
+  CountryMetadata,
   CreateOrganizationInput,
+  OrganizationCountryInfos,
+  OrganizationMetadataSettings,
   OrganizationSettingsFormData,
   UpdateOrganizationInput,
 } from '@/schemas/organization';
-import { OrganizationStatus, ServiceCategory, UserRole } from '@prisma/client';
+import { Country, OrganizationStatus, ServiceCategory, UserRole } from '@prisma/client';
 import {
   OrganizationListingItem,
   FullOrganizationInclude,
@@ -184,7 +187,12 @@ export async function getOrganizationById(id: string): Promise<{
   data?: FullOrganization | null;
   error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  const authResult = await checkAuth([
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.AGENT,
+    UserRole.MANAGER,
+  ]);
   if (authResult.error) return { error: authResult.error };
 
   try {
@@ -220,7 +228,7 @@ export async function getOrganizationWithSpecificIncludes<
   data?: OrganizationWithIncludes<T> | null;
   error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  const authResult = await checkAuth();
   if (authResult.error) return { error: authResult.error };
 
   try {
@@ -481,4 +489,25 @@ export async function updateOrganizationSettings(
     console.error('Error updating organization settings:', error);
     return { error: 'Failed to update organization settings' };
   }
+}
+
+export async function getOrganisationCountryInfos(
+  organizationId: string,
+  countryCode: string,
+): Promise<OrganizationCountryInfos> {
+  const data = await db.organization.findUnique({
+    where: { id: organizationId },
+  });
+
+  const { metadata, ...rest } = data || {};
+
+  const formattedMetadata = JSON.parse(
+    typeof metadata === 'string' ? metadata : '{}',
+  ) as Record<Country['code'], OrganizationMetadataSettings>;
+
+  // @ts-expect-error - TODO: fix this (JsonValue is not typed)
+  return {
+    ...rest,
+    ...formattedMetadata[countryCode],
+  };
 }

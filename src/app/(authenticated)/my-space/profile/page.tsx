@@ -16,6 +16,7 @@ import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import CardContainer from '@/components/layouts/card-container';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
+import { getOrganisationCountryInfos } from '@/actions/organizations';
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -25,9 +26,18 @@ export default async function ProfilePage() {
 
   const profile = await getUserFullProfile(user.id);
   const registrationRequest = await getRegistrationRequestsFromUser(user.id);
+  const organisationInfos =
+    registrationRequest?.organizationId && user.countryCode
+      ? await getOrganisationCountryInfos(
+          registrationRequest?.organizationId,
+          user.countryCode,
+        )
+      : null;
 
   const completionRate = calculateProfileCompletion(profile);
   const fieldStatus = getProfileFieldsStatus(profile);
+
+  console.log({ organisationInfos });
 
   if (!profile) {
     return (
@@ -62,11 +72,8 @@ export default async function ProfilePage() {
         <ProfileStatusAlert
           status={profile.status}
           notes={registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content}
-          organizationName={registrationRequest?.organization?.name}
-          organizationAddress={
-            registrationRequest?.organization?.metadata?.FR?.settings?.contact?.address
-              ?.firstLine
-          }
+          organizationName={organisationInfos?.name}
+          organizationAddress={organisationInfos?.settings.contact.address}
         />
       </div>
       <div className="grid grid-cols-8 gap-4">
