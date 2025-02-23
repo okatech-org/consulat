@@ -7,6 +7,7 @@ import { checkAuth } from '@/lib/auth/action';
 import { db } from '@/lib/prisma';
 import { ROUTES } from '@/schemas/routes';
 import { updateConsularRegistrationWithNotification } from '@/lib/notifications/consular-registration';
+import { generateConsularCardNumber } from '@/actions/consular-card';
 
 /**
  * Valider une demande d'inscription consulaire
@@ -15,6 +16,7 @@ export async function validateConsularRegistration(
   requestId: string,
   profileId: string,
   status: RequestStatus,
+  validityYears: number = 1,
   notes?: string,
 ) {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
@@ -23,10 +25,26 @@ export async function validateConsularRegistration(
   }
 
   try {
+    // Si le statut est VALIDATED, générer les informations de la carte
+    const cardData =
+      status === 'VALIDATED'
+        ? {
+            cardNumber: await generateConsularCardNumber(
+              profileId,
+              authResult.user.countryCode,
+            ),
+            cardIssuedAt: new Date(),
+            cardExpiresAt: new Date(
+              Date.now() + validityYears * 365 * 24 * 60 * 60 * 1000,
+            ), // {validityYears} an(s)
+          }
+        : {};
+
     await db.profile.update({
       where: { id: profileId },
       data: {
-        status: 'VALIDATED',
+        status,
+        ...cardData,
       },
     });
 

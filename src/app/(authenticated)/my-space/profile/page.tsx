@@ -81,12 +81,9 @@ export default async function ProfilePage() {
               profile={profile}
               organizationLogo={organisationInfos?.logo || undefined}
               organizationName={organisationInfos?.name}
-              cardNumber={
-                profile.cardNumber ||
-                (await generateConsularCardNumber(profile.id, user.countryCode))
-              }
-              issuedAt={registrationRequest?.validatedAt || new Date()}
-              expiresAt={new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000)} // 5 ans
+              cardNumber={profile.cardNumber!}
+              issuedAt={profile.cardIssuedAt!}
+              expiresAt={profile.cardExpiresAt!}
             />
           </CardContainer>
         )}

@@ -23,6 +23,9 @@ function parseCardNumber(cardNumber: string): ConsularCardNumber | null {
 
 /**
  * Génère un numéro de carte consulaire unique
+ * Format: [PAYS][ANNÉE][SEQUENCE]-[CHECKSUM]
+ * Example: FR24270173-00021
+ * de 000001 à 00050 sont réservés
  */
 export async function generateConsularCardNumber(
   profileId: string,
@@ -33,9 +36,10 @@ export async function generateConsularCardNumber(
   // Trouver la dernière carte générée pour ce pays cette année
   const latestCard = await db.profile.findFirst({
     where: {
-      cardNumber: {
-        startsWith: `${countryCode}${year}`,
-      },
+      AND: [
+        { cardNumber: { not: null } },
+        { cardNumber: { startsWith: `${countryCode}${year}` } },
+      ],
     },
     orderBy: {
       cardNumber: 'desc',

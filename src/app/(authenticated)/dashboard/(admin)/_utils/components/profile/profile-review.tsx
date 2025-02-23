@@ -248,6 +248,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                         request.id,
                         profile.id,
                         'VALIDATED',
+                        1,
                         validationNotes,
                       );
                       setIsLoading(false);
