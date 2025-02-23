@@ -2,43 +2,28 @@
 
 import { db } from '@/lib/prisma';
 
-interface ConsularCardNumber {
-  countryCode: string;
-  year: string;
-  sequence: string;
-  checksum: string;
-}
-
 /**
- * Parse un numéro de carte consulaire
- */
-function parseCardNumber(cardNumber: string): ConsularCardNumber | null {
-  const match = cardNumber.match(/^([A-Z]{2})(\d{2})(\d{7})-(\d{5})$/);
-  if (!match) return null;
-
-  const [, countryCode = '', year = '', sequence = '', checksum = ''] = match;
-
-  return { countryCode, year, sequence, checksum };
-}
-
-/**
- * Génère un numéro de carte consulaire unique
- * Format: [PAYS][ANNÉE][SEQUENCE]-[CHECKSUM]
- * Example: FR24270173-00021
- * de 000001 à 00050 sont réservés
+ * Format: [PAYS][ANNÉE][TYPE][SEQUENCE]-[CHECKSUM]
+ * Example: FR24C0001234-A12B3
+ * - PAYS: Code pays sur 2 lettres (FR)
+ * - ANNÉE: Année sur 2 chiffres (24)
+ * - TYPE: Type de carte (C pour Consulaire)
+ * - SEQUENCE: Numéro séquentiel sur 7 chiffres (0001234)
+ * - CHECKSUM: Hash de vérification alphanumérique sur 5 caractères
  */
 export async function generateConsularCardNumber(
   profileId: string,
   countryCode: string | null,
 ): Promise<string> {
   const year = new Date().getFullYear().toString().slice(-2);
+  const cardType = 'C'; // C pour Consulaire
 
   // Trouver la dernière carte générée pour ce pays cette année
   const latestCard = await db.profile.findFirst({
     where: {
       AND: [
         { cardNumber: { not: null } },
-        { cardNumber: { startsWith: `${countryCode}${year}` } },
+        { cardNumber: { startsWith: `${countryCode}${year}${cardType}` } },
       ],
     },
     orderBy: {
@@ -49,40 +34,24 @@ export async function generateConsularCardNumber(
     },
   });
 
-  let sequence: number;
+  // Commencer à 1000000 pour avoir un format constant
+  let sequence = 1000000;
 
   if (latestCard?.cardNumber) {
-    const parsed = parseCardNumber(latestCard.cardNumber);
-    if (parsed) {
-      // Incrémenter la séquence du dernier numéro
-      sequence = parseInt(parsed.sequence) + 1;
-    } else {
-      sequence = 1;
+    const match = latestCard.cardNumber.match(/[A-Z](\d{7})-/);
+    if (match?.[1]) {
+      sequence = parseInt(match[1]) + 1;
     }
-  } else {
-    sequence = 1;
   }
 
-  // Formater la séquence sur 7 chiffres
-  const sequenceStr = sequence.toString().padStart(7, '0');
-
-  // Générer le checksum basé sur l'ID du profil et la séquence
-  const checksumBase = profileId + sequenceStr;
-  const checksum = checksumBase
-    .split('')
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    .toString()
-    .slice(-5)
-    .padStart(5, '0');
+  // Générer un checksum alphanumérique basé sur les données uniques
+  const checksumBase = `${countryCode}${year}${cardType}${sequence}${profileId}`;
+  const checksum = Buffer.from(checksumBase)
+    .toString('base64')
+    .replace(/[^A-Z0-9]/gi, '')
+    .slice(0, 5)
+    .toUpperCase();
 
   // Assembler le numéro final
-  const cardNumber = `${countryCode || 'XX'}${year}${sequenceStr}-${checksum}`;
-
-  // Sauvegarder le numéro dans le profil
-  await db.profile.update({
-    where: { id: profileId },
-    data: { cardNumber },
-  });
-
-  return cardNumber;
+  return `${countryCode}${year}${cardType}${sequence}-${checksum}`;
 }
