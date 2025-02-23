@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import Image from 'next/image';
@@ -73,6 +72,7 @@ export function UserDocument({
   const [isDragging, setIsDragging] = React.useState(false);
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const router = useRouter();
 
   const handleDelete = async (documentId: string) => {
@@ -319,32 +319,29 @@ export function UserDocument({
           <div className="flex h-full gap-4">
             {/* Prévisualisation */}
             {preview ? (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex aspect-document h-full max-h-[150px] w-auto overflow-hidden !p-0"
-                  >
-                    <Image
-                      src={preview}
-                      alt="Preview"
-                      width={400}
-                      height={600}
-                      className="size-full object-cover"
-                    />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-lg">
-                  <div className="relative aspect-document overflow-hidden rounded-lg">
-                    <Image src={preview} alt="Preview" fill className="object-contain" />
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex aspect-document h-full max-h-[150px] w-auto overflow-hidden !p-0"
+                onClick={() => setIsPreviewOpen(true)}
+              >
+                <Image
+                  src={preview}
+                  alt="Preview"
+                  width={400}
+                  height={600}
+                  className="size-full object-cover"
+                />
+              </Button>
             ) : (
-              <div className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted">
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted !p-0"
+                onClick={() => setIsPreviewOpen(true)}
+              >
                 <FileInput className="size-10 opacity-20" />
-              </div>
+              </Button>
             )}
 
             {/* Actions */}
@@ -364,7 +361,7 @@ export function UserDocument({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open(document.fileUrl, '_blank')}
+                onClick={() => setIsPreviewOpen(true)}
                 disabled={disabled || isLoading}
               >
                 <Eye className="size-4" />
@@ -482,6 +479,31 @@ export function UserDocument({
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      {/* Preview Dialog */}
+      {document && (
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className="max-w-screen-lg max-h-[90vh]">
+            {document.fileUrl.endsWith('.pdf') ? (
+              <iframe
+                src={document.fileUrl}
+                className="w-full h-[80vh] rounded-lg"
+                title="PDF Preview"
+              />
+            ) : (
+              <div className="relative aspect-[3/4] w-full h-full overflow-hidden rounded-lg">
+                <Image
+                  src={document.fileUrl}
+                  alt="Preview"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

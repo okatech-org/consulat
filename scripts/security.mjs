@@ -2,7 +2,7 @@ export const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://uploadthing.com https://placehold.co https://player.vimeo.com;
   child-src 'self' https://player.vimeo.com;
-  frame-src 'self' https://player.vimeo.com;
+  frame-src 'self' https://player.vimeo.com https://example.com;
   style-src 'self' 'unsafe-inline';
   font-src 'self' data:;
   img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io blob: data:;
@@ -26,39 +26,35 @@ export const ContentSecurityPolicy = `
   manifest-src 'self';
   worker-src 'self' blob:;
   upgrade-insecure-requests;
-`
+`;
 
 export const securityHeaders = [
   {
     key: 'Content-Security-Policy',
-    value: ContentSecurityPolicy.replace(/\s{2,}/g, ' ').trim()
+    value: ContentSecurityPolicy.replace(/\s{2,}/g, ' ').trim(),
   },
   {
     key: 'X-Frame-Options',
-    value: 'DENY'
+    value: 'DENY',
   },
   {
     key: 'X-Content-Type-Options',
-    value: 'nosniff'
+    value: 'nosniff',
   },
   {
     key: 'Referrer-Policy',
-    value: 'strict-origin-when-cross-origin'
+    value: 'strict-origin-when-cross-origin',
   },
   {
     key: 'X-XSS-Protection',
-    value: '1; mode=block'
+    value: '1; mode=block',
   },
   {
     key: 'Permissions-Policy',
-    value: [
-      'camera=()',
-      'microphone=()',
-      'geolocation=()',
-    ].join(', ')
+    value: ['camera=()', 'microphone=()', 'geolocation=()'].join(', '),
   },
   {
     key: 'Cross-Origin-Opener-Policy',
-    value: 'same-origin'
-  }
-]
+    value: 'same-origin',
+  },
+];

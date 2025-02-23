@@ -37,8 +37,6 @@ export default async function ProfilePage() {
   const completionRate = calculateProfileCompletion(profile);
   const fieldStatus = getProfileFieldsStatus(profile);
 
-  console.log({ organisationInfos });
-
   if (!profile) {
     return (
       <CardContainer title={t('title')} contentClass="flex flex-col items-center gap-4">
