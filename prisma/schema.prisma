@@ -296,6 +296,7 @@ model Profile {
   cardNumber String?
   cardIssuedAt DateTime?
   cardExpiresAt DateTime?
+  cardPin String? // NIP de 6 chiffres (optionnel)
 
   // Métadonnées
   status          RequestStatus  @default(DRAFT)

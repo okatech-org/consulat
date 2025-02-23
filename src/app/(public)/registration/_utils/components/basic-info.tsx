@@ -384,6 +384,30 @@ export function BasicInfoForm({
                 </FormItem>
               )}
             />
+
+            {/* NIP (optionnel) */}
+            <FormField
+              control={form.control}
+              name="cardPin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('form.card_pin.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="text"
+                      maxLength={6}
+                      pattern="[0-9]*"
+                      inputMode="numeric"
+                      placeholder={t('form.card_pin.placeholder')}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormDescription>{t('form.card_pin.help')}</FormDescription>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
       </form>

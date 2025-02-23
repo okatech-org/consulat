@@ -144,6 +144,8 @@ export const BasicInfoSchema = z.object({
     })
     .min(2, 'messages.errors.authority_too_short')
     .max(100, 'messages.errors.authority_too_long'),
+
+  cardPin: z.string().length(6).regex(/^\d+$/).optional(),
 });
 
 export const BasicInfoPostSchema = z.object({

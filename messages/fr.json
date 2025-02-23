@@ -2664,6 +2664,11 @@
       "employer_placeholder": "Nom de votre employeur",
       "work_address": "Adresse professionnelle",
       "work_address_placeholder": "Adresse de votre lieu de travail",
+      "card_pin": {
+        "label": "NIP (optionnel)",
+        "placeholder": "Entrez un code à 6 chiffres",
+        "help": "Code personnel à 6 chiffres pour les services en ligne"
+      },
       "passport": {
         "label": "Passeport",
         "description": "Page principale de votre passeport en cours de validité",

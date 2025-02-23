@@ -234,6 +234,14 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
                 required
                 className={'col-span-2'}
               />
+
+              {/* NIP (si défini) */}
+              <InfoField
+                label={t('form.card_pin.label')}
+                value={profile.cardPin}
+                required
+                className={'col-span-2'}
+              />
             </div>
           </div>
         </div>
