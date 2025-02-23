@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
-import {securityHeaders} from "./scripts/security";
+import { securityHeaders } from './scripts/security';
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -34,6 +34,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'example.com',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'qld7pfnhxe.ufs.sh',
+        pathname: '/f/**',
       },
     ],
   },
