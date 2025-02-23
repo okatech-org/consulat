@@ -17,6 +17,8 @@ import CardContainer from '@/components/layouts/card-container';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { getOrganisationCountryInfos } from '@/actions/organizations';
+import { ConsularCard } from '@/components/consular/consular-card';
+import { generateConsularCardNumber } from '@/actions/consular-card';
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -73,6 +75,21 @@ export default async function ProfilePage() {
           organizationName={organisationInfos?.name}
           organizationAddress={organisationInfos?.settings.contact.address}
         />
+        {['VALIDATED', 'READY_FOR_PICKUP', 'COMPLETED'].includes(profile.status) && (
+          <CardContainer>
+            <ConsularCard
+              profile={profile}
+              organizationLogo={organisationInfos?.logo || undefined}
+              organizationName={organisationInfos?.name}
+              cardNumber={
+                profile.cardNumber ||
+                (await generateConsularCardNumber(profile.id, user.countryCode))
+              }
+              issuedAt={registrationRequest?.validatedAt || new Date()}
+              expiresAt={new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000)} // 5 ans
+            />
+          </CardContainer>
+        )}
       </div>
       <div className="grid grid-cols-8 gap-4">
         {profile && <ProfileTabs profile={profile} />}

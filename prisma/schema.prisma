@@ -292,6 +292,11 @@ model Profile {
   employer        String?
   employerAddress String?
 
+  // Consular card
+  cardNumber String?
+  cardIssuedAt DateTime?
+  cardExpiresAt DateTime?
+
   // Métadonnées
   status          RequestStatus  @default(DRAFT)
   validationNotes String?

@@ -2283,6 +2283,16 @@
         "organization": "notre organisme",
         "address": "notre adresse"
       }
+    },
+    "consular_card": {
+      "title": "Carte Consulaire",
+      "full_name": "Nom complet",
+      "card_number": "N° d'identification",
+      "issued_at": "Date d'émission",
+      "expires_at": "Date d'expiration",
+      "verify": "Vérifier l'authenticité",
+      "provisional": "Provisoire",
+      "permanent": "Définitive"
     }
   },
   "documents": {
