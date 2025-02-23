@@ -143,6 +143,7 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
       onCancel={handleCancel}
       onSave={handleSave}
       isLoading={isLoading}
+      profileStatus={profile.status}
     >
       {isEditing ? (
         <FamilyInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />

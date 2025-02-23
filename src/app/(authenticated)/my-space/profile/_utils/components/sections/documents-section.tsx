@@ -1,7 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { UserDocument as PrismaUserDocument, DocumentType } from '@prisma/client';
+import {
+  UserDocument as PrismaUserDocument,
+  DocumentType,
+  RequestStatus,
+} from '@prisma/client';
 import { EditableSection } from '../editable-section';
 import { AppUserDocument } from '@/types';
 import { UserDocument } from '@/components/user-document';
@@ -16,12 +20,14 @@ interface DocumentsSectionProps {
   };
   profileId: string;
   className?: string;
+  profileStatus: RequestStatus;
 }
 
 export function DocumentsSection({
   documents,
   className,
   profileId,
+  profileStatus,
 }: DocumentsSectionProps) {
   const t = useTranslations('profile');
   const t_common = useTranslations('common');
@@ -43,6 +49,7 @@ export function DocumentsSection({
       title={t('sections.documents')}
       isEditing={false}
       className={className}
+      profileStatus={profileStatus}
     >
       <div className="mb-4 grid gap-6 lg:grid-cols-2">
         <UserDocument
@@ -51,6 +58,7 @@ export function DocumentsSection({
           document={convertDocument(documents.passport)}
           expectedType={DocumentType.PASSPORT}
           profileId={profileId}
+          allowEdit={profileStatus === 'DRAFT'}
           required
         />
 
@@ -60,6 +68,7 @@ export function DocumentsSection({
           document={convertDocument(documents.birthCertificate)}
           expectedType={DocumentType.BIRTH_CERTIFICATE}
           profileId={profileId}
+          allowEdit={profileStatus === 'DRAFT'}
           required
         />
 
@@ -69,6 +78,8 @@ export function DocumentsSection({
           document={convertDocument(documents.residencePermit)}
           expectedType={DocumentType.RESIDENCE_PERMIT}
           profileId={profileId}
+          allowEdit={profileStatus === 'DRAFT'}
+          required
         />
 
         <UserDocument
@@ -77,6 +88,7 @@ export function DocumentsSection({
           document={convertDocument(documents.addressProof)}
           expectedType={DocumentType.PROOF_OF_ADDRESS}
           profileId={profileId}
+          allowEdit={profileStatus === 'DRAFT'}
           required
         />
 
@@ -86,6 +98,7 @@ export function DocumentsSection({
           document={convertDocument(documents.identityPhoto)}
           expectedType={DocumentType.IDENTITY_PHOTO}
           profileId={profileId}
+          allowEdit={profileStatus === 'DRAFT'}
           required
         />
       </div>

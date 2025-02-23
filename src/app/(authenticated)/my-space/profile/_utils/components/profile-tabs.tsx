@@ -50,6 +50,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
             identityPhoto: profile.identityPicture,
           }}
           profileId={profile.id}
+          profileStatus={profile.status}
           className="md:col-span-2"
         />
       ),

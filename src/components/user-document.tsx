@@ -44,6 +44,7 @@ interface UserDocumentProps {
   description?: string;
   required?: boolean;
   disabled?: boolean;
+  allowEdit?: boolean;
 }
 
 const updateDocumentSchema = z.object({
@@ -62,6 +63,7 @@ export function UserDocument({
   expectedType = DocumentType.IDENTITY_PHOTO,
   required = false,
   disabled = false,
+  allowEdit = true,
 }: UserDocumentProps) {
   const t = useTranslations('common.documents');
   const t_messages = useTranslations('messages.profile');
@@ -347,15 +349,17 @@ export function UserDocument({
 
             {/* Actions */}
             <div className="absolute right-1 top-1 flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsUpdating(true)}
-                disabled={disabled || isLoading}
-              >
-                <PenIcon className="size-4" />
-              </Button>
+              {allowEdit && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsUpdating(true)}
+                  disabled={disabled || isLoading}
+                >
+                  <PenIcon className="size-4" />
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="ghost"

@@ -179,6 +179,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
       onCancel={handleCancel}
       onSave={handleSave}
       isLoading={isLoading}
+      profileStatus={profile.status}
     >
       {isEditing ? (
         <ContactInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />

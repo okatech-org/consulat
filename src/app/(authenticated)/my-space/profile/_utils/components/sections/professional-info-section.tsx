@@ -140,6 +140,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
       onCancel={handleCancel}
       onSave={handleSave}
       isLoading={isLoading}
+      profileStatus={profile.status}
     >
       {isEditing ? (
         <ProfessionalInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
