@@ -12,7 +12,7 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Charger les notifications
+  // Load notifications
   const fetchNotifications = useCallback(async () => {
     try {
       const data = await getNotifications();
@@ -24,44 +24,44 @@ export function useNotifications() {
     }
   }, []);
 
+  // Initial load and refresh every 30 seconds
   useEffect(() => {
     fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  // Calculer le nombre de notifications non lues
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  // Marquer une notification comme lue
+  // Mark a notification as read
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       await markNotificationAsRead(notificationId);
-      // Mise à jour optimiste
+      // Optimistic update
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
       );
     } catch (error) {
       console.error('Error marking notification as read:', error);
-      // En cas d'erreur, recharger les notifications
+      // Reload notifications on error
       fetchNotifications();
     }
   };
 
-  // Marquer toutes les notifications comme lues
+  // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      // Mise à jour optimiste
+      // Optimistic update
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
-      // En cas d'erreur, recharger les notifications
+      // Reload notifications on error
       fetchNotifications();
     }
   };
 
   return {
     notifications,
-    unreadCount,
+    unreadCount: notifications.filter((n) => !n.read).length,
     isLoading,
     markAsRead: handleMarkAsRead,
     markAllAsRead: handleMarkAllAsRead,

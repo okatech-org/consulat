@@ -50,7 +50,9 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                     <SidebarMenuButton tooltip={item.title}>
                       {item.icon && <item.icon />}
                       {item.iconComponent && item.iconComponent}
-                      <span>{item.title}</span>
+                      <span className={item.iconComponent ? '-ml-2' : ''}>
+                        {item.title}
+                      </span>
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -75,7 +77,9 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                   <a href={item.url}>
                     {item.icon && <item.icon />}
                     {item.iconComponent && item.iconComponent}
-                    <span>{item.title}</span>
+                    <span className={item.iconComponent ? '-ml-2' : ''}>
+                      {item.title}
+                    </span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
