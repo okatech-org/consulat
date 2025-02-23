@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getUserDocumentsList } from '@/actions/documents';
 import { DocumentsList } from '@/components/documents-list';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { PageContainer } from '@/components/layouts/page-container';
 import { getTranslations } from 'next-intl/server';
 
 export default async function DocumentsPage() {
@@ -9,15 +10,10 @@ export default async function DocumentsPage() {
   const documents = await getUserDocumentsList();
 
   return (
-    <div className="container py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground">{t('description')}</p>
-      </div>
-
+    <PageContainer title={t('title')} description={t('description')}>
       <Suspense fallback={<LoadingSkeleton />}>
         <DocumentsList documents={documents} />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }

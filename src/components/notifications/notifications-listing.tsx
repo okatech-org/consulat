@@ -12,15 +12,6 @@ export function NotificationsListing() {
 
   return (
     <div className="space-y-2">
-      {unreadCount > 0 && (
-        <div className="flex justify-end px-4">
-          <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-            <Check className="size-4 mr-2" />
-            {t('mark_all_read')}
-          </Button>
-        </div>
-      )}
-
       <div className="divide-y">
         {notifications.map((notification) => (
           <NotificationItem key={notification.id} notification={notification} />
@@ -32,6 +23,15 @@ export function NotificationsListing() {
           </div>
         )}
       </div>
+
+      {unreadCount > 0 && (
+        <div className="flex justify-end px-4">
+          <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+            <Check className="size-4 mr-2" />
+            {t('mark_all_read')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

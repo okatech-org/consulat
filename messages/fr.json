@@ -1174,6 +1174,19 @@
     }
   },
   "navigation": {
+    "breadcrumb": {
+      "dashboard": "Tableau de bord",
+      "countries": "Pays",
+      "organizations": "Organismes",
+      "services": "Services",
+      "users": "Utilisateurs",
+      "requests": "Demandes",
+      "appointments": "Rendez-vous",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "settings": "Paramètres",
+      "my-space": "Mon espace"
+    },
     "dashboard": {
       "title": "Tableau de bord",
       "welcome": "Bienvenue sur le tableau de bord, {name}"
@@ -2256,11 +2269,17 @@
         "title": "Demande rejetée",
         "description": "Votre demande d'inscription consulaire a été rejetée. Veuillez consulter les motifs ci-dessous et soumettre une nouvelle demande."
       },
-      "default": {
-        "title": "Statut inconnu",
-        "description": "Une erreur est survenue lors de la récupération du statut de votre demande."
+      "draft": {
+        "title": "Brouillon",
+        "description": "Votre demande d'inscription consulaire est en cours de remplissage. Vous pouvez la modifier à tout moment."
+      },
+      "edited": {
+        "title": "Demande modifiée",
+        "description": "Votre demande d'inscription consulaire a été modifiée. Veuillez la soumettre à nouveau pour validation."
       },
       "default": {
+        "title": "Statut inconnu",
+        "description": "Une erreur est survenue lors de la récupération du statut de votre demande.",
         "organization": "notre organisme",
         "address": "notre adresse"
       }
@@ -4296,6 +4315,7 @@
     }
   },
   "appointments": {
+    "description": "Gérez vos rendez-vous consulaires",
     "new": {
       "title": "Prendre un rendez-vous",
       "description": "Sélectionnez un service et un créneau disponible pour votre rendez-vous",

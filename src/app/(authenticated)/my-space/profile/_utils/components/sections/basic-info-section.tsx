@@ -143,6 +143,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
       onCancel={handleCancel}
       onSave={handleSave}
       isLoading={isLoading}
+      profileStatus={profile.status}
     >
       {isEditing ? (
         <BasicInfoForm

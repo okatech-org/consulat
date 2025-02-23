@@ -31,7 +31,6 @@ import { FullUser } from '@/types';
 import { UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import { useNotifications } from '@/hooks/use-notifications';
 import { NotificationBell } from '../notifications/notification-bell';
 
 export function AppSidebar({
@@ -42,7 +41,6 @@ export function AppSidebar({
 }) {
   const t = useTranslations('navigation');
   const t_nav = useTranslations('user.nav');
-  const { unreadCount } = useNotifications();
 
   const AdminNavigation: NavMainItem[] = [
     {
@@ -133,7 +131,7 @@ export function AppSidebar({
   const UserNavigation: NavMainItem[] = [
     {
       title: t_nav('dashboard'),
-      url: ROUTES.base,
+      url: ROUTES.user.dashboard,
       icon: LayoutDashboard,
     },
     {

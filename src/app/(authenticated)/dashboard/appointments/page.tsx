@@ -3,33 +3,25 @@ import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/actions/user';
 import { getUserAppointments } from '@/actions/appointments';
 import { ErrorCard } from '@/components/ui/error-card';
+import { PageContainer } from '@/components/layouts/page-container';
 
 export default async function AgentAppointmentsPage() {
   const t = await getTranslations('appointments');
   const user = await getCurrentUser();
 
   if (!user) {
-    return (
-      <ErrorCard
-        title={'Une erreur est survenue'}
-        description={'Vous devez être connecté pour accéder à cette page'}
-      />
-    );
+    return <ErrorCard />;
   }
 
   // Récupérer les rendez-vous de l'agent
   const { data, error } = await getUserAppointments({ agentId: user?.id });
 
   if (error) {
-    return <ErrorCard title={'Une erreur est survenue'} description={error} />;
+    return <ErrorCard description={error} />;
   }
 
   return (
-    <>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-      </div>
-
+    <PageContainer title={t('title')} description={t('description')}>
       {data && (
         <AgentAppointmentsTabs
           upcoming={data.upcoming}
@@ -37,6 +29,6 @@ export default async function AgentAppointmentsPage() {
           cancelled={data.cancelled}
         />
       )}
-    </>
+    </PageContainer>
   );
 }

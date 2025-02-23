@@ -616,7 +616,7 @@ async function main() {
                   secondLine: 'Appartement 4B',
                   city: 'Paris',
                   zipCode: '75008',
-                  country: 'France',
+                  country: 'france',
                 },
               },
               addressInGabon: {

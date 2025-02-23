@@ -79,12 +79,20 @@ export default async function ProfilePage() {
           )}
           <ProfileCompletion completionRate={completionRate} fieldStatus={fieldStatus} />
 
-          <div className="flex flex-col items-center">
-            <SubmitProfileButton
-              canSubmit={completionRate === 100 && profile.status !== 'SUBMITTED'}
-              profileId={profile.id}
-            />
-          </div>
+          {![
+            'SUBMITTED',
+            'PENDING',
+            'VALIDATED',
+            'READY_FOR_PICKUP',
+            'COMPLETED',
+          ].includes(profile.status) && (
+            <div className="flex flex-col items-center">
+              <SubmitProfileButton
+                canSubmit={completionRate === 100}
+                profileId={profile.id}
+              />
+            </div>
+          )}
         </div>
       </div>
     </Suspense>

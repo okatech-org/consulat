@@ -58,7 +58,7 @@ export function ProfileStatusAlert({
           action: (
             <Link
               className={buttonVariants({ variant: 'link' })}
-              href={ROUTES.user.procedures}
+              href={ROUTES.user.services}
             >
               {t('validated.action')}
             </Link>
@@ -95,6 +95,20 @@ export function ProfileStatusAlert({
           icon: XCircle,
           title: t('rejected.title'),
           description: notes || t('rejected.description'),
+        };
+      case 'DRAFT':
+        return {
+          variant: 'default' as const,
+          icon: AlertCircle,
+          title: t('draft.title'),
+          description: t('draft.description'),
+        };
+      case 'EDITED':
+        return {
+          variant: 'default' as const,
+          icon: AlertCircle,
+          title: t('edited.title'),
+          description: t('edited.description'),
         };
       default:
         return {

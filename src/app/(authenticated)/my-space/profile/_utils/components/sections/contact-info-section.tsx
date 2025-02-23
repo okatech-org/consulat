@@ -88,6 +88,7 @@ function AddressDisplay({
         {'zipCode' in address && address.zipCode && <>, {address.zipCode}</>}
       </div>
       {'country' in address && address.country && (
+        // @ts-expect-error - country is a string
         <div className="text-sm">{t_countries(address.country)}</div>
       )}
     </div>

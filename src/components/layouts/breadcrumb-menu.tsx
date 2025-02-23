@@ -10,10 +10,13 @@ import {
   BreadcrumbPage,
 } from '../ui/breadcrumb';
 import { Fragment } from 'react';
+import { ROUTES } from '@/schemas/routes';
+import { useTranslations } from 'next-intl';
 
 export function BreadcrumbMenu() {
   const pathname = usePathname();
-  const pathnameParts = pathname.split('/').filter(Boolean);
+  const pathnameParts = pathname.split('/').filter(Boolean) as Array<keyof typeof ROUTES>;
+  const t = useTranslations('navigation.breadcrumb');
 
   return (
     <Breadcrumb className="w-full overflow-hidden">
@@ -23,7 +26,8 @@ export function BreadcrumbMenu() {
             <BreadcrumbItem key={index} className="">
               {index !== pathnameParts.length - 1 ? (
                 <BreadcrumbLink href={`/${pathnameParts.slice(0, index + 1).join('/')}`}>
-                  {part}
+                  {/* @ts-expect-error - part is not a valid key */}
+                  {index <= 1 ? t(part) : part}
                 </BreadcrumbLink>
               ) : (
                 <BreadcrumbPage>{part}</BreadcrumbPage>

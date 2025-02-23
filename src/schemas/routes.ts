@@ -49,7 +49,7 @@ export const ROUTES = {
     appointments: '/my-space/appointments' as Route<string>,
     new_appointment: '/my-space/appointments/new' as Route<string>,
     documents: '/my-space/documents' as Route<string>,
-    procedures: '/my-space/procedures' as Route<string>,
+    services: '/my-space/services' as Route<string>,
     settings: '/my-space/settings' as Route<string>,
     notifications: '/my-space/notifications' as Route<string>,
   },
