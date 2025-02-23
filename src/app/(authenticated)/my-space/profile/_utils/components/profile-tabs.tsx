@@ -8,7 +8,6 @@ import { DocumentsSection } from './sections/documents-section';
 import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
-import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '@/components/layouts/card-container';
 
 type ProfileTabsProps = {
@@ -17,8 +16,6 @@ type ProfileTabsProps = {
 
 export function ProfileTabs({ profile }: ProfileTabsProps) {
   const t = useTranslations('profile');
-  const { handleTabChange, currentTab } = useTabs('tab', 'basic-info');
-
   const profileTabs = [
     {
       id: 'basic-info',
@@ -60,27 +57,23 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
   ];
 
   return (
-    <CardContainer className="col-span-full lg:col-span-6">
-      <Tabs
-        className={'col-span-full lg:col-span-6'}
-        value={currentTab}
-        onValueChange={handleTabChange}
-      >
-        <TabsList className="mb-2 w-full">
-          <div className="carousel-zone flex items-center gap-2">
-            {profileTabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id}>
-                {tab.title}
-              </TabsTrigger>
-            ))}
-          </div>
-        </TabsList>
-        {profileTabs.map((tab) => (
-          <TabsContent key={tab.id} value={tab.id}>
+    <Tabs className={'col-span-full lg:col-span-6'} defaultValue="basic-info">
+      <TabsList className="mb-2 w-full">
+        <div className="carousel-zone flex items-center gap-2">
+          {profileTabs.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.id}>
+              {tab.title}
+            </TabsTrigger>
+          ))}
+        </div>
+      </TabsList>
+      {profileTabs.map((tab) => (
+        <TabsContent key={tab.id} value={tab.id}>
+          <CardContainer className="col-span-full lg:col-span-6">
             {tab.content}
-          </TabsContent>
-        ))}
-      </Tabs>
-    </CardContainer>
+          </CardContainer>
+        </TabsContent>
+      ))}
+    </Tabs>
   );
 }
