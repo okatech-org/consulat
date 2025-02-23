@@ -58,4 +58,5 @@ export const STATUS_ORDER: RequestStatus[] = [
   'VALIDATED',
   'READY_FOR_PICKUP',
   'COMPLETED',
+  'REJECTED',
 ];

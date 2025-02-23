@@ -15,6 +15,7 @@ import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import CardContainer from '@/components/layouts/card-container';
 import { ProfileHeader } from './_utils/components/profile-header';
+import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -58,6 +59,15 @@ export default async function ProfilePage() {
     <Suspense fallback={<LoadingSkeleton />}>
       <div className="flex flex-col gap-4">
         <ProfileHeader profile={profile} />
+        <ProfileStatusAlert
+          status={profile.status}
+          notes={registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content}
+          organizationName={registrationRequest?.organization?.name}
+          organizationAddress={
+            registrationRequest?.organization?.metadata?.FR?.settings?.contact?.address
+              ?.firstLine
+          }
+        />
       </div>
       <div className="grid grid-cols-8 gap-4">
         {profile && <ProfileTabs profile={profile} />}

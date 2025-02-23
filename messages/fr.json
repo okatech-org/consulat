@@ -837,7 +837,7 @@
         "consular_registration_submitted": "Inscription consulaire soumise",
         "consular_registration_validated": "Votre dossier d'inscription consulaire a été validé.",
         "consular_registration_rejected": "Votre dossier d'inscription consulaire a été rejeté.",
-        "consular_card_ready": "Votre carte consulaire est prête pour le retrait. Rendez-vous sur l'onglet Rendez-vous pour planifier votre rendez-vous de retrait.",
+        "consular_card_ready": "Votre carte consulaire est prête pour le retrait. Prenez rendez-vous pour la récupérer.",
         "consular_registration_completed": "Votre inscription consulaire est terminée.",
         "messages": {
           "submitted": "Votre demande d'inscription consulaire a été soumise avec succès.",
@@ -2228,6 +2228,42 @@
     "notes": {
       "title": "Retours administratifs",
       "empty": "Aucun retour pour le moment"
+    },
+    "status_messages": {
+      "submitted": {
+        "title": "Demande soumise",
+        "description": "Votre demande d'inscription consulaire est en cours d'examen. Nous vous notifierons dès qu'elle sera traitée."
+      },
+      "pending": {
+        "title": "En cours de traitement",
+        "description": "Votre dossier est en cours d'examen par nos services. Nous vous contacterons si des informations complémentaires sont nécessaires."
+      },
+      "validated": {
+        "title": "Profil validé",
+        "description": "Votre inscription consulaire a été validée. Vous pouvez maintenant accéder à tous les services consulaires en ligne.",
+        "action": "Accéder aux services"
+      },
+      "ready_for_pickup": {
+        "title": "Carte consulaire prête",
+        "description": "Votre carte consulaire est disponible au {organization}, situé au {address}.",
+        "action": "Prendre rendez-vous"
+      },
+      "completed": {
+        "title": "Inscription finalisée",
+        "description": "Votre inscription consulaire est complète. Votre carte consulaire a été délivrée."
+      },
+      "rejected": {
+        "title": "Demande rejetée",
+        "description": "Votre demande d'inscription consulaire a été rejetée. Veuillez consulter les motifs ci-dessous et soumettre une nouvelle demande."
+      },
+      "default": {
+        "title": "Statut inconnu",
+        "description": "Une erreur est survenue lors de la récupération du statut de votre demande."
+      },
+      "default": {
+        "organization": "notre organisme",
+        "address": "notre adresse"
+      }
     }
   },
   "documents": {
