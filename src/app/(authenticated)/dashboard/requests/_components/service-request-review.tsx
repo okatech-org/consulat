@@ -118,7 +118,7 @@ export function ServiceRequestReview({
               </Button>
             </>
           )}
-          {request.status === 'REVIEW' && (
+          {request.status === 'PENDING' && (
             <Button
               variant="default"
               onClick={() => handleStatusUpdate('COMPLETED')}
@@ -206,7 +206,7 @@ export function ServiceRequestReview({
             </Sheet>
 
             {/* Autres actions */}
-            {request.status === 'REVIEW' && (
+            {request.status === 'PENDING' && (
               <>
                 <Button variant="outline" className="gap-2">
                   <MessageSquare className="size-4" />
@@ -285,7 +285,6 @@ export function ServiceRequestReview({
               type="single"
               options={[
                 { value: 'SUBMITTED', label: t_common('status.submitted') },
-                { value: 'REVIEW', label: t_common('status.review') },
                 { value: 'PENDING', label: t_common('status.pending') },
                 {
                   value: 'ADDITIONAL_INFO_NEEDED',
@@ -329,7 +328,7 @@ export function ServiceRequestReview({
 
       {/* Documents fournis */}
       <CardContainer title={t('service_request.documents')}>
-        <DocumentsList documents={request.documents} />
+        <DocumentsList documents={request.requiredDocuments} />
       </CardContainer>
 
       {/* Données du formulaire si présentes */}

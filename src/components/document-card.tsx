@@ -61,6 +61,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">
+            {/* @ts-expect-error - Document type is not in the list of expected types */}
             {t(`types.${document.type.toLowerCase()}`)}
           </CardTitle>
           <Badge
@@ -74,6 +75,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
             className="flex gap-1"
           >
             {getStatusIcon()}
+            {/* @ts-expect-error - Document status is not in the list of expected statuses */}
             {t(`status.${document.status.toLowerCase()}`)}
           </Badge>
         </div>

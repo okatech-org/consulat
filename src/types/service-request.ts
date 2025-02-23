@@ -149,7 +149,6 @@ export type FullServiceRequest = Prisma.ServiceRequestGetPayload<
   submittedBy: User;
   requiredDocuments: UserDocument[];
   formData?: Record<string, unknown>;
-  // ... autres relations nécessaires
 };
 
 // Fonction helper pour créer un include personnalisé

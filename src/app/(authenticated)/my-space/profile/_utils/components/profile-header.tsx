@@ -12,9 +12,13 @@ import { generateVCardString } from '@/lib/utils';
 
 interface ProfileHeaderProps {
   profile: FullProfile;
+  organisationInfos?: {
+    logo?: string;
+    name?: string;
+  };
 }
 
-export function ProfileHeader({ profile }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, organisationInfos }: ProfileHeaderProps) {
   const t = useTranslations('profile');
 
   const onShare = async () => {
@@ -107,7 +111,14 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             <Download className="size-4" />
             {t('actions.download')}
           </Button>
-          <ConsularCardPreview profile={profile} />
+          <ConsularCardPreview
+            profile={profile}
+            organizationLogo={organisationInfos?.logo}
+            organizationName={organisationInfos?.name}
+            cardNumber={profile.cardNumber}
+            issuedAt={profile.cardIssuedAt}
+            expiresAt={profile.cardExpiresAt}
+          />
         </div>
       </div>
     </CardContainer>

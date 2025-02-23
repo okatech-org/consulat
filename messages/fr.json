@@ -4493,7 +4493,12 @@
       "priority": "Priorité",
       "select_priority": "Sélectionner une priorité",
       "admin_notes": "Notes administratives",
-      "notes_placeholder": "Ajouter une note administrative"
+      "notes_placeholder": "Ajouter une note administrative",
+      "status": "Statut",
+      "select_status": "Sélectionner un statut",
+      "assign_to": "Assigner à",
+      "select_agent": "Sélectionner un agent",
+      "deadline": "Date limite"
     },
     "status": {
       "submitted": "Soumise",
@@ -4540,7 +4545,11 @@
       "start_processing": "Commencer à traiter",
       "continue_processing": "Continuer à traiter",
       "complete": "Terminer",
-      "reject": "Rejeter"
+      "reject": "Rejeter",
+      "send_message": "Envoyer un message",
+      "request_documents": "Demander des documents",
+      "report_issue": "Signaler un problème",
+      "start_processing": "Commencer le traitement"
     },
     "assign": {
       "title": "Assigner la demande",

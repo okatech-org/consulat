@@ -75,18 +75,6 @@ export default async function ProfilePage() {
           organizationName={organisationInfos?.name}
           organizationAddress={organisationInfos?.settings.contact.address}
         />
-        {['VALIDATED', 'READY_FOR_PICKUP', 'COMPLETED'].includes(profile.status) && (
-          <CardContainer>
-            <ConsularCard
-              profile={profile}
-              organizationLogo={organisationInfos?.logo || undefined}
-              organizationName={organisationInfos?.name}
-              cardNumber={profile.cardNumber!}
-              issuedAt={profile.cardIssuedAt!}
-              expiresAt={profile.cardExpiresAt!}
-            />
-          </CardContainer>
-        )}
       </div>
       <div className="grid grid-cols-8 gap-4">
         {profile && <ProfileTabs profile={profile} />}

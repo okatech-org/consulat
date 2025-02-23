@@ -384,7 +384,13 @@ export async function getServiceRequest(id: string) {
       return null;
     }
 
-    return request;
+    return {
+      ...request,
+      requiredDocuments: request.requiredDocuments.map((document) => ({
+        ...document,
+        metadata: JSON.parse(document.metadata as string) as Record<string, unknown>,
+      })),
+    };
   } catch (error) {
     console.error('Error fetching service request:', error);
     throw new Error('Failed to fetch service request');
