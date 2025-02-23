@@ -3,6 +3,7 @@
 import { db } from '@/lib/prisma';
 import { NotificationType, RequestStatus, Notification } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
+import { ROUTES } from '@/schemas/routes';
 
 interface NotificationData {
   userId: string;
@@ -14,7 +15,12 @@ interface NotificationData {
 /**
  * Crée une notification pour l'inscription consulaire
  */
-async function createConsularNotification({ userId, status, notes }: NotificationData) {
+async function createConsularNotification({
+  userId,
+  status,
+  notes,
+  requestId,
+}: NotificationData) {
   const t = await getTranslations('messages.requests.notifications');
   let notificationData: Pick<Notification, 'type' | 'title' | 'message'> | null = null;
 
@@ -45,7 +51,10 @@ async function createConsularNotification({ userId, status, notes }: Notificatio
       notificationData = {
         type: NotificationType.CONSULAR_CARD_READY,
         title: t('consular_card_ready'),
-        message: t('messages.ready_for_pickup'),
+        message: t('messages.ready_for_pickup', {
+          link: `${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=DOCUMENT_COLLECTION`,
+          action: t('actions.schedule_pickup'),
+        }),
       };
       break;
     case 'COMPLETED':
@@ -60,9 +69,13 @@ async function createConsularNotification({ userId, status, notes }: Notificatio
   }
 
   try {
+    if (!notificationData) return null;
+
     const notification = await db.notification.create({
       data: {
-        ...notificationData,
+        type: notificationData.type,
+        title: notificationData.title,
+        message: notificationData.message,
         userId,
         status: 'PENDING',
       },

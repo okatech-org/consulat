@@ -17,8 +17,6 @@ import CardContainer from '@/components/layouts/card-container';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { getOrganisationCountryInfos } from '@/actions/organizations';
-import { ConsularCard } from '@/components/consular/consular-card';
-import { generateConsularCardNumber } from '@/actions/consular-card';
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -74,6 +72,7 @@ export default async function ProfilePage() {
           notes={registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content}
           organizationName={organisationInfos?.name}
           organizationAddress={organisationInfos?.settings.contact.address}
+          requestId={registrationRequest?.id}
         />
       </div>
       <div className="grid grid-cols-8 gap-4">

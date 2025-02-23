@@ -24,6 +24,7 @@ interface ProfileStatusAlertProps {
   notes?: string;
   organizationName?: string;
   organizationAddress?: OrganizationMetadataAddress | undefined;
+  requestId?: string;
 }
 
 export function ProfileStatusAlert({
@@ -31,6 +32,7 @@ export function ProfileStatusAlert({
   notes,
   organizationName,
   organizationAddress,
+  requestId,
 }: ProfileStatusAlertProps) {
   const t = useTranslations('profile.status_messages');
 
@@ -79,7 +81,7 @@ export function ProfileStatusAlert({
           action: (
             <Link
               className={buttonVariants({ variant: 'link' })}
-              href={ROUTES.user.appointments}
+              href={`${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=WITHDRAW`}
             >
               {t('ready_for_pickup.action')}
             </Link>

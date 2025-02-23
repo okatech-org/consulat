@@ -42,6 +42,11 @@ interface NewAppointmentFormProps {
   countryCode: string;
   organizationId: string;
   attendeeId: string;
+  preselectedData?: {
+    serviceId?: string;
+    type?: string;
+    requestId?: string;
+  };
 }
 
 type Step = 'service' | 'slot' | 'confirmation';
@@ -59,16 +64,23 @@ export function NewAppointmentForm({
   countryCode,
   organizationId,
   attendeeId,
+  preselectedData,
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
   const router = useRouter();
-  const [step, setStep] = useState<Step>('service');
+  const [step, setStep] = useState<Step>(preselectedData ? 'slot' : 'service');
   const [isLoading, setIsLoading] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent | null>(
     null,
   );
   const { formatDate } = useDateLocale();
+
+  const [selectedService, setSelectedService] = useState<ConsularService | null>(
+    preselectedData?.serviceId
+      ? (services.find((s) => s.id === preselectedData.serviceId) ?? null)
+      : null,
+  );
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
@@ -77,12 +89,12 @@ export function NewAppointmentForm({
       organizationId,
       date: new Date(),
       attendeeId,
+      serviceId: preselectedData?.serviceId ?? '',
+      type: preselectedData?.type ?? '',
+      requestId: preselectedData?.requestId ?? '',
     },
   });
 
-  const selectedService = services.find(
-    (service) => service.id === form.watch('serviceId'),
-  );
   const selectedDate = form.watch('date');
 
   const onSubmit = async (data: AppointmentInput) => {
@@ -374,6 +386,9 @@ export function NewAppointmentForm({
                           selected={field.value ? [field.value] : []}
                           onChange={(values) => {
                             field.onChange(values[0]);
+                            setSelectedService(
+                              services.find((s) => s.id === values[0]) ?? null,
+                            );
                             form.setValue(
                               'duration',
                               selectedService?.appointmentDuration ?? 15,

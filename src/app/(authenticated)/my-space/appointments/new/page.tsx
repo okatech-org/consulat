@@ -1,12 +1,21 @@
 import { getCurrentUser } from '@/actions/user';
-import { getAvailableServices } from '@/actions/appointments';
+import { getAvailableServices, getServiceById } from '@/actions/appointments';
 import { getOrganizationByCountry } from '@/actions/organizations';
+import { getRegistrationRequestById } from '@/actions/consular-registration';
 import { ROUTES } from '@/schemas/routes';
 import { redirect } from 'next/navigation';
 import { NewAppointmentForm } from '@/components/appointments/new-appointment-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+
+interface NewAppointmentPageProps {
+  searchParams: {
+    serviceRequestId?: string;
+    type?: string;
+    serviceId?: string;
+  };
+}
 
 function NewAppointmentHeader() {
   const t = useTranslations('appointments');
@@ -31,11 +40,30 @@ function NewAppointmentHeader() {
   );
 }
 
-export default async function NewAppointmentPage() {
+export default async function NewAppointmentPage({
+  searchParams,
+}: NewAppointmentPageProps) {
   const user = await getCurrentUser();
-
   if (!user) {
     redirect(ROUTES.auth.login);
+  }
+
+  // Récupérer les informations pré-remplies si disponibles
+  let preselectedData;
+  if (searchParams.serviceRequestId) {
+    const request = await getRegistrationRequestById(searchParams.serviceRequestId);
+    if (request) {
+      preselectedData = {
+        serviceId: request.serviceId,
+        type: searchParams.type || 'WITHDRAW',
+        requestId: request.id,
+      };
+    }
+  } else if (searchParams.serviceId) {
+    preselectedData = {
+      serviceId: searchParams.serviceId,
+      type: searchParams.type,
+    };
   }
 
   const [services, organization] = await Promise.all([
@@ -44,20 +72,19 @@ export default async function NewAppointmentPage() {
   ]);
 
   if (!organization) {
-    // TODO: Handle no organization found for country
     return <div>No organization found for country</div>;
   }
 
   return (
     <div className="container space-y-8 py-6">
       <NewAppointmentHeader />
-
       <div className="mx-auto max-w-2xl">
         <NewAppointmentForm
           services={services}
           countryCode={user.countryCode ?? ''}
           organizationId={organization.id}
           attendeeId={user.id}
+          preselectedData={preselectedData}
         />
       </div>
     </div>

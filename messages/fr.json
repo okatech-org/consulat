@@ -837,14 +837,17 @@
         "consular_registration_submitted": "Inscription consulaire soumise",
         "consular_registration_validated": "Votre dossier d'inscription consulaire a été validé.",
         "consular_registration_rejected": "Votre dossier d'inscription consulaire a été rejeté.",
-        "consular_card_ready": "Votre carte consulaire est prête pour le retrait. Prenez rendez-vous pour la récupérer.",
+        "consular_card_ready": "Votre carte consulaire est prête pour le retrait. <p>Votre carte consulaire est prête à être récupérée. Veuillez vous rendre à l'adresse suivante : <a href=\"{link}\">{action}</a></p>",
         "consular_registration_completed": "Votre inscription consulaire est terminée.",
         "messages": {
           "submitted": "Votre demande d'inscription consulaire a été soumise avec succès.",
           "validated": "Votre dossier d'inscription consulaire a été validé.",
           "rejected": "Votre dossier d'inscription consulaire a été rejeté.",
-          "ready_for_pickup": "Votre carte consulaire est prête pour le retrait.",
+          "ready_for_pickup": "<p>Votre carte consulaire est prête à être récupérée. Veuillez vous rendre à l'adresse suivante : <a class=\"link text-blue-500\" href=\"{link}\">{action}</a></p>",
           "completed": "Votre inscription consulaire est terminée."
+        },
+        "actions": {
+          "schedule_pickup": "Prendre rendez-vous pour le retrait"
         }
       }
     }
@@ -3329,7 +3332,7 @@
       "validated": "Votre dossier d'inscription consulaire a été validé.",
       "rejected": "Votre dossier d'inscription consulaire a été rejeté.",
       "card_in_production": "Votre carte consulaire est en cours de production.",
-      "card_ready": "Votre carte consulaire est prête pour le retrait.",
+      "card_ready": "Votre carte consulaire est prête pour le retrait. <p>Votre carte consulaire est prête à être récupérée. Veuillez vous rendre à l'adresse suivante : <a href=\"{link}\">{action}</a></p>",
       "completed": "Votre inscription consulaire est terminée."
     },
     "groups": {
