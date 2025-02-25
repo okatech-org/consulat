@@ -581,6 +581,73 @@ export function OrganizationSettings({
                         ))}
                     </div>
                   </div>
+                  <Separator />
+
+                  {/* Section Modèles de Carte Consulaire */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">
+                      {t('settings.consularCard.title')}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t('settings.consularCard.description')}
+                    </p>
+
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name={`metadata.${country.code}.settings.consularCard.rectoModel`}
+                        render={({ field }) => (
+                          <DocumentUploadField<OrganizationSettingsFormData>
+                            id={`${country.code}-recto-model`}
+                            field={field}
+                            form={form}
+                            label={t('settings.consularCard.rectoModel')}
+                            description={t('settings.consularCard.rectoModelDescription')}
+                            accept="image/*"
+                            aspectRatio="square"
+                            existingFile={
+                              form.getValues(
+                                `metadata.${country.code}.settings.consularCard.rectoModelUrl`,
+                              )
+                                ? {
+                                    fileUrl: form.getValues(
+                                      `metadata.${country.code}.settings.consularCard.rectoModelUrl`,
+                                    ),
+                                  }
+                                : undefined
+                            }
+                          />
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`metadata.${country.code}.settings.consularCard.versoModel`}
+                        render={({ field }) => (
+                          <DocumentUploadField<OrganizationSettingsFormData>
+                            id={`${country.code}-verso-model`}
+                            field={field}
+                            form={form}
+                            label={t('settings.consularCard.versoModel')}
+                            description={t('settings.consularCard.versoModelDescription')}
+                            accept="image/*"
+                            aspectRatio="square"
+                            existingFile={
+                              form.getValues(
+                                `metadata.${country.code}.settings.consularCard.versoModelUrl`,
+                              )
+                                ? {
+                                    fileUrl: form.getValues(
+                                      `metadata.${country.code}.settings.consularCard.versoModelUrl`,
+                                    ),
+                                  }
+                                : undefined
+                            }
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
               </CardContainer>
             </TabsContent>

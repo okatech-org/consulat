@@ -8,14 +8,8 @@ import { Keania_One } from 'next/font/google';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { cn, useDateLocale } from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { QRCode } from '@/components/ui/qr-code';
 
@@ -34,14 +28,14 @@ const APP_URL = process.env.NEXT_PUBLIC_URL;
 
 export function ConsularCardPreview({
   profile,
-  modelVersoUrl = 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvz9KZ9t6D5KCScYI7RP80oHkOuQq4ig2UhaEZN',
-  modelRectoUrl = 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvz4EhQuDOvVPrj3h6w7bt98a0lc2YAfogIxOWR',
+  modelVersoUrl = 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvz157ZiF2PUcesEKuO84jky2RwHnASFvoDIzp5',
+  modelRectoUrl = 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzq2gxxyGuFrfiyH42kIZxa1G9KejbM8cpnDvB',
 }: ConsularCardPreviewProps) {
   const t = useTranslations('profile.card');
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const handleFlip = () => setIsFlipped(!isFlipped);
-
+  const { formatDate } = useDateLocale();
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       {['VALIDATED', 'READY_FOR_PICKUP', 'APPOINTMENT_SCHEDULED', 'COMPLETED'].includes(
@@ -55,12 +49,8 @@ export function ConsularCardPreview({
       )}
       <SheetContent
         side="bottom"
-        className="w-full md:max-w-[600px] md:rounded-t-lg md:mx-auto h-full max-h-[400px]"
+        className="w-full min-w-[380px] sm:max-w-[600px] bg-[#B7B7B8] sm:rounded-t-lg sm:mx-auto h-full max-h-[400px]"
       >
-        <SheetHeader>
-          <SheetTitle>{t('title')}</SheetTitle>
-        </SheetHeader>
-
         <div className="mt-4 flex flex-col items-center gap-6">
           {/* Carte consulaire */}
           <div className="perspective relative w-full max-w-[430px]">
@@ -81,7 +71,7 @@ export function ConsularCardPreview({
                     className="absolute inset-0"
                   >
                     <div
-                      className={`card-recto shadow-lg border aspect-[1.60/1] relative rounded-[15px] overflow-hidden`}
+                      className={`card-recto shadow-lg aspect-[1.60/1] relative rounded-[15px] overflow-hidden`}
                     >
                       <div className="absolute inset-0">
                         <Image
@@ -92,9 +82,9 @@ export function ConsularCardPreview({
                         />
                       </div>
 
-                      <div className="photo-numbers p-2 absolute left-0 top-0 h-full w-[53%] flex flex-col justify-end items-center">
+                      <div className="photo-numbers pb-[3%] gap-y-[4%] sm:gap-y-[5.6%] absolute left-0 top-0 h-full w-[53%] flex flex-col justify-end items-center">
                         {profile.identityPicture?.fileUrl && (
-                          <div className="relative overflow-hidden mb-[3%] md:mb-[8%] w-[56%] h-auto rounded-full height-auto aspect-square z-[1]">
+                          <div className="relative overflow-hidden w-[53%] sm:w-[52%] h-auto rounded-full height-auto aspect-square z-[1]">
                             <Image
                               src={profile.identityPicture?.fileUrl}
                               alt="Consular card background"
@@ -104,32 +94,58 @@ export function ConsularCardPreview({
                           </div>
                         )}
 
-                        {profile.cardNumber && (
-                          <p
-                            className={
-                              `text-[0.8em] text-[#AB7E07] ` + keaniaOne.className
-                            }
-                          >
-                            {profile.cardNumber}
-                          </p>
-                        )}
-                        {profile.cardPin && (
-                          <p className={`text-[0.8em] font-medium text-[#E94F69]`}>
-                            NIP: {profile.cardPin}
-                          </p>
-                        )}
+                        <div className="flex flex-col text-center">
+                          {profile.cardNumber && (
+                            <p
+                              className={
+                                `text-[0.7em] sm:text-[0.8em] text-[#AB7E07] ` +
+                                keaniaOne.className
+                              }
+                            >
+                              {profile.cardNumber}
+                            </p>
+                          )}
+                          {profile.cardPin && (
+                            <p
+                              className={`text-[0.7em] sm:text-[0.8em] font-medium text-[#E94F69]`}
+                            >
+                              NIP: {profile.cardPin}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="details absolute right-0 top-0 px-1 h-full w-[57%]  flex flex-col justify-center items-start">
-                        <p className="text-lg/5 text-[#383838] font-extrabold -translate-y-[70%]">
+                      <div className="details absolute right-0 top-0 px-1 h-full w-[56.5%]  flex flex-col justify-center items-start">
+                        <p className="text-[0.8em]/4 sm:text-[1em]/5 text-[#383838] font-extrabold -translate-y-[70%]">
                           <span className="uppercase">{profile.lastName}</span>
                           <br />
                           <span className="text-[0.9em]">{profile.firstName}</span>
                         </p>
                       </div>
 
-                      <div className="absolute bottom-4 right-4 size-24">
+                      <div className="details absolute right-0 top-0 px-1 h-full w-[37%] pt-[3%] flex flex-col justify-center items-start">
+                        <p className="text-[0.5em]/3 sm:text-[0.8em]/4 text-[#383838] font-bold -translate-x-[10%]">
+                          {profile.cardIssuedAt
+                            ? formatDate(profile.cardIssuedAt, 'dd/MM/yyyy')
+                            : '-'}
+                        </p>
+                        <p className="text-[0.5em]/3 sm:text-[0.8em]/4 text-[#383838] font-bold">
+                          {profile.birthDate
+                            ? formatDate(profile.birthDate, 'dd/MM/yyyy')
+                            : '-'}
+                        </p>
+                      </div>
+
+                      <div className="absolute right-0 bottom-0 w-[21%] aspect-square h-auto -translate-x-[20%] -translate-y-[10%]">
                         <QRCode value={`${APP_URL}/view/profile/${profile.id}`} />
+                      </div>
+
+                      <div className="absolute right-[4%] w-max translate-x-[50%] text-center top-1/2 rotate-[270deg]">
+                        {profile.cardNumber && (
+                          <p className="text-[7px] sm:text-[0.5em] min-w-max text-[#383838]">
+                            {profile.cardNumber}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -145,7 +161,7 @@ export function ConsularCardPreview({
                     exit={{ opacity: 0 }}
                     className="rotate-y-180 backface-hidden absolute inset-0"
                   >
-                    <Card className="aspect-[1.60/1] shadow-lg border rounded-[15px] overflow-hidden">
+                    <Card className="aspect-[1.60/1] shadow-lg rounded-[15px] overflow-hidden">
                       <CardContent className="relative h-full p-4">
                         {/* Fond de la carte (Verso)*/}
                         <Image

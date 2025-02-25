@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Organization } from '@/types/organization';
 import { OrganizationType, OrganizationStatus } from '@prisma/client';
 import { Country } from '@/types/country';
-import { EmailSchema, PhoneSchema } from '@/schemas/inputs';
+import { EmailSchema, PhoneSchema, PictureFileSchema } from '@/schemas/inputs';
 
 export const organizationSchema = z.object({
   name: z.string().min(1, 'messages.errors.name_required'),
@@ -95,6 +95,14 @@ const CountrySettingsSchema = z.object({
       schedule: ScheduleSchema,
       holidays: z.array(HolidaySchema).optional().default([]),
       closures: z.array(ClosureSchema).optional().default([]),
+      consularCard: z
+        .object({
+          rectoModelUrl: z.string().optional(),
+          versoModelUrl: z.string().optional(),
+          rectoModel: PictureFileSchema.optional(),
+          versoModel: PictureFileSchema.optional(),
+        })
+        .optional(),
     })
     .optional(),
 });
@@ -166,6 +174,7 @@ export function getDefaultValues(
           },
           holidays: existingCountryData?.holidays || [],
           closures: existingCountryData?.closures || [],
+          consularCard: existingCountryData?.consularCard ?? undefined,
         },
       };
       return acc;
@@ -232,6 +241,12 @@ export interface OrganizationMetadataSettings {
   contact: OrganizationMetadataContact;
   schedule: OrganizationMetadataSchedule;
   holidays: OrganizationMetadataHoliday[];
+  consularCard: {
+    rectoModelUrl?: string;
+    versoModelUrl?: string;
+    rectoModel?: any;
+    versoModel?: any;
+  } | null;
 }
 
 export interface CountryMetadataCurrency {

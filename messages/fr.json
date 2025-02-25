@@ -4118,6 +4118,14 @@
         "agents": "Agents",
         "slots": "Créneaux horaires"
       },
+      "consularCard": {
+        "title": "Modèles de carte consulaire",
+        "description": "Téléchargez les modèles de carte consulaire qui seront utilisés pour générer les cartes des utilisateurs.",
+        "rectoModel": "Modèle recto",
+        "rectoModelDescription": "Image de fond pour le recto de la carte consulaire",
+        "versoModel": "Modèle verso",
+        "versoModelDescription": "Image de fond pour le verso de la carte consulaire"
+      },
       "configForCountry": "Configuration - {country}",
       "general": {
         "title": "Paramètres généraux",
