@@ -184,6 +184,7 @@ export default {
   RW: 'Rwanda',
   BL: 'Saint-Barthélemy',
   SH: 'Sainte-Hélène',
+  SS: 'Soudan du Sud',
   KN: 'Saint-Kitts-et-Nevis',
   LC: 'Sainte-Lucie',
   MF: 'Saint-Martin',

@@ -20,7 +20,8 @@ import {
 import { useTranslations } from 'next-intl';
 import { Route } from 'next';
 import { Fragment } from 'react';
-
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 export type NavMainItem = {
   title: string;
   url: Route<string>;
@@ -31,7 +32,12 @@ export type NavMainItem = {
 };
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
+  const pathname = usePathname();
+  const isSubPath = (url: string) => {
+    return url.split('/').length > 2;
+  };
   const t = useTranslations('navigation');
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('menu')}</SidebarGroupLabel>
@@ -47,7 +53,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
+                    <SidebarMenuButton tooltip={item.title} isActive={item.isActive}>
                       {item.icon && <item.icon />}
                       {item.iconComponent && item.iconComponent}
                       <span className={item.iconComponent ? '-ml-2' : ''}>
@@ -73,14 +79,22 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               </Collapsible>
             ) : (
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip={item.title} asChild>
-                  <a href={item.url}>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  asChild
+                  isActive={
+                    isSubPath(item.url)
+                      ? pathname.startsWith(item.url)
+                      : pathname === item.url
+                  }
+                >
+                  <Link href={item.url}>
                     {item.icon && <item.icon />}
                     {item.iconComponent && item.iconComponent}
                     <span className={item.iconComponent ? '-ml-2' : ''}>
                       {item.title}
                     </span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}

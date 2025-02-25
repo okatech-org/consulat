@@ -95,23 +95,19 @@ export function ConsularCardPreview({
                         )}
 
                         <div className="flex flex-col text-center">
-                          {profile.cardNumber && (
-                            <p
-                              className={
-                                `text-[0.7em] sm:text-[0.8em] text-[#AB7E07] ` +
-                                keaniaOne.className
-                              }
-                            >
-                              {profile.cardNumber}
-                            </p>
-                          )}
-                          {profile.cardPin && (
-                            <p
-                              className={`text-[0.7em] sm:text-[0.8em] font-medium text-[#E94F69]`}
-                            >
-                              NIP: {profile.cardPin}
-                            </p>
-                          )}
+                          <p
+                            className={
+                              `text-[0.7em] sm:text-[0.8em] text-[#AB7E07] ` +
+                              keaniaOne.className
+                            }
+                          >
+                            {profile.cardNumber || '-'}
+                          </p>
+                          <p
+                            className={`text-[0.7em] sm:text-[0.8em] font-medium text-[#E94F69]`}
+                          >
+                            NIP: {profile.cardPin || '-'}
+                          </p>
                         </div>
                       </div>
 
@@ -141,11 +137,9 @@ export function ConsularCardPreview({
                       </div>
 
                       <div className="absolute right-[4%] w-max translate-x-[50%] text-center top-1/2 rotate-[270deg]">
-                        {profile.cardNumber && (
-                          <p className="text-[7px] sm:text-[0.5em] min-w-max text-[#383838]">
-                            {profile.cardNumber}
-                          </p>
-                        )}
+                        <p className="text-[7px] sm:text-[0.5em] min-w-max text-[#383838]">
+                          {profile.cardNumber || '-'}
+                        </p>
                       </div>
                     </div>
                   </motion.div>

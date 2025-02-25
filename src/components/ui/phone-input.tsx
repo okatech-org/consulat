@@ -15,11 +15,12 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { CountryCode, phoneCountries } from '@/lib/autocomplete-datas';
+import { CountryCode, CountryIndicator, phoneCountries } from '@/lib/autocomplete-datas';
+import { FlagIcon } from './flag-icon';
 
 export interface PhoneValue {
   number: string;
-  countryCode: CountryCode;
+  countryCode: CountryIndicator;
 }
 
 interface PhoneInputProps
@@ -66,8 +67,8 @@ export function PhoneInput({
     const searchTermLower = searchValue.toLowerCase();
     return (
       country.value.includes(searchTermLower) ||
-      t_countries(country.label).toLowerCase().includes(searchTermLower) ||
-      country.label.toLowerCase().includes(searchTermLower)
+      t_countries(country.countryCode).toLowerCase().includes(searchTermLower) ||
+      country.countryCode.toLowerCase().includes(searchTermLower)
     );
   });
 
@@ -82,7 +83,7 @@ export function PhoneInput({
             className={cn('w-[120px] justify-between', error && 'border-destructive')}
           >
             {phoneValue?.countryCode || '+33'}{' '}
-            {phoneCountries.find((c) => c.value === (value?.countryCode || '+33'))?.flag}
+            <FlagIcon countryCode={phoneValue?.countryCode} />
             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>

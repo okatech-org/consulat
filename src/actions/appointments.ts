@@ -28,7 +28,7 @@ export interface TimeSlotWithAgent extends BaseTimeSlot {
 
 interface AgentWithAppointments {
   id: string;
-  managedAppointments: Array<{
+  assignedAppointments: Array<{
     date: Date;
     duration: number;
   }>;
@@ -52,14 +52,16 @@ export async function getAvailableTimeSlots(
   const [agents, countryData, organizationData] = await Promise.all([
     db.user.findMany({
       where: {
-        role: UserRole.AGENT,
-        agentOrganizationId: organizationId,
-        serviceCategories: {
+        roles: {
+          has: UserRole.AGENT,
+        },
+        assignedOrganizationId: organizationId,
+        specializations: {
           has: serviceCategory,
         },
       },
       include: {
-        managedAppointments: {
+        assignedAppointments: {
           where: {
             date: { gte: startDate, lte: endDate },
           },
@@ -192,7 +194,7 @@ function checkAgentAvailability(
     const availableAgents = agents
       .filter(
         (agent) =>
-          !agent.managedAppointments.some((appointment) =>
+          !agent.assignedAppointments.some((appointment) =>
             isOverlapping(slot, appointment),
           ),
       )
