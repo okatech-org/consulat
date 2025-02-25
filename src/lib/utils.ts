@@ -444,6 +444,17 @@ export async function safePromise<T, E = Error>(
   }
 }
 
+export async function tryCatch<T, E = Error>(
+  promise: Promise<T>,
+): Promise<{ error: E | null; data: T | null }> {
+  try {
+    const result = await promise;
+    return { error: null, data: result };
+  } catch (error) {
+    return { error: error as E, data: null };
+  }
+}
+
 export function currentFnsLocale(localeString: string): Locale {
   switch (localeString) {
     case 'fr':

@@ -52,6 +52,7 @@ export function getTranslatedOptions<T extends Record<string, string>>(
 }
 
 export type CountryCode = keyof typeof countries;
+export const countryKeys = Object.keys(countries) as CountryCode[];
 
 export const phoneCountries = [
   { value: '+213', countryCode: 'DZ' },

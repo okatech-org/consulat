@@ -9,6 +9,7 @@ import {
   getAvailableServiceCategories,
   getOrganizationWithSpecificIncludes,
 } from '@/actions/organizations';
+import { PageContainer } from '@/components/layouts/page-container';
 interface Props {
   searchParams: Record<keyof GetRequestsOptions, string | undefined>;
 }
@@ -70,9 +71,7 @@ export default async function RequestsPage({ searchParams }: Props) {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">{t('title')}</h1>
-
+    <PageContainer title={t('title')}>
       {session?.user && hasPermission(session.user, 'serviceRequests', 'list') && (
         <>
           <CardContainer>
@@ -85,6 +84,6 @@ export default async function RequestsPage({ searchParams }: Props) {
           </CardContainer>
         </>
       )}
-    </div>
+    </PageContainer>
   );
 }

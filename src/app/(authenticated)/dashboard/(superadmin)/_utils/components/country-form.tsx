@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Country } from '@/types/country';
@@ -22,24 +22,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
-import { cn, CountryItem, getWorldCountries } from '@/lib/utils';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import * as React from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
-import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { updateCountry } from '@/actions/countries';
-import { useToast } from '@/hooks/use-toast';
+import { CountryCode } from '@/lib/autocomplete-datas';
+import { toast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { CountrySelect } from '@/components/ui/country-select';
+import { tryCatch } from '@/lib/utils';
 
 interface CountryFormProps {
   initialData?: Country;
@@ -50,12 +40,7 @@ interface CountryFormProps {
 export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormProps) {
   const t = useTranslations('sa.countries');
   const t_inputs = useTranslations('inputs');
-  const [countries, setCountries] = useState<CountryItem[]>([]);
-  const [searchValue, setSearchValue] = React.useState('');
-  const [open, setOpen] = React.useState(false);
-  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
-  const locale = useLocale();
-  const { toast } = useToast();
+  const t_countries = useTranslations('countries');
 
   const form = useForm<CountrySchemaInput>({
     resolver: zodResolver(countrySchema),
@@ -69,31 +54,16 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
     },
   });
 
-  useEffect(() => {
-    getWorldCountries(locale).then((data) => {
-      setCountries(data);
-      setIsLoadingCountries(false);
-    });
-  }, [locale]);
-
-  function getSelectedCountry(code: string) {
-    return countries.find((country) => country.code === code);
-  }
-
-  const handleCountrySelect = (code: string) => {
-    const country = getSelectedCountry(code);
-    if (country) {
-      form.setValue('code', country.code);
-      form.setValue('name', country.name);
-      form.setValue('flag', country.flag);
-    }
-    setOpen(false);
+  const handleCountrySelect = (code: CountryCode) => {
+    form.setValue('code', code);
+    form.setValue('name', t_countries(code));
+    form.setValue('flag', `https://flagcdn.com/${code.toLowerCase()}.svg`);
   };
 
   const handleSubmit = async (data: CountrySchemaInput) => {
     if (!data.id) return;
 
-    const result = await updateCountry(data);
+    const result = await tryCatch(updateCountry(data));
 
     if (result.error) {
       toast({
@@ -121,78 +91,17 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('form.label')}</FormLabel>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={open}
-                        className={cn(
-                          'w-full justify-between',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                        disabled={isLoading || isLoadingCountries}
-                        type="button"
-                      >
-                        {isLoadingCountries ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            {field.value && getSelectedCountry(field.value) ? (
-                              <>
-                                <Image
-                                  src={`https://flagcdn.com/${field.value.toLowerCase()}.svg`}
-                                  alt={getSelectedCountry(field.value)?.name || ''}
-                                  width={20}
-                                  height={15}
-                                  className="rounded object-contain"
-                                />
-                                <span>{getSelectedCountry(field.value)?.name}</span>
-                              </>
-                            ) : (
-                              <span>{t('form.placeholder')}</span>
-                            )}
-                          </div>
-                        )}
-                        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput
-                        placeholder={t('form.search')}
-                        value={searchValue}
-                        onValueChange={setSearchValue}
-                      />
-                      <CommandEmpty>{t('form.empty')}</CommandEmpty>
-                      <CommandList>
-                        <CommandGroup className="max-h-64 overflow-auto">
-                          {countries.map((country) => (
-                            <CommandItem
-                              key={country.code}
-                              value={country.name}
-                              onSelect={() => handleCountrySelect(country.code)}
-                            >
-                              <div className="flex items-center gap-2">
-                                <span>{country.name}</span>
-                                <Check
-                                  className={cn(
-                                    'ml-auto h-4 w-4',
-                                    field.value === country.name
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <FormControl>
+                  <CountrySelect
+                    type="single"
+                    selected={field.value as CountryCode}
+                    onChange={handleCountrySelect}
+                    placeholder={t('form.placeholder')}
+                    searchPlaceholder={t('form.search')}
+                    emptyText={t('form.empty')}
+                    disabled={isLoading}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -426,7 +335,7 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
           </div>
         )}
 
-        <Button type="submit" disabled={isLoading || isLoadingCountries}>
+        <Button type="submit" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
           {initialData ? t('actions.update') : t('actions.create')}
         </Button>

@@ -16,6 +16,7 @@ import * as React from 'react';
 import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useState } from 'react';
+import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 
 export function OrganizationsTable({
   organizations,
@@ -34,17 +35,23 @@ export function OrganizationsTable({
   const columns: ColumnDef<OrganizationListingItem>[] = [
     {
       accessorKey: 'name',
-      header: t('table.name'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.name')} />
+      ),
       enableSorting: true,
     },
     {
       accessorKey: 'type',
-      header: t('table.type'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.type')} />
+      ),
       cell: ({ row }) => t(`types.${row.original.type}`),
     },
     {
       accessorKey: 'countries',
-      header: t('table.country'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.country')} />
+      ),
       cell: ({ row }) =>
         row.original.countries.map((country) => (
           <Badge className={'mr-1'} key={country.code} variant="info">
@@ -54,7 +61,9 @@ export function OrganizationsTable({
     },
     {
       accessorKey: 'status',
-      header: t('table.status'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.status')} />
+      ),
       cell: ({ row }) => (
         <Badge
           variant={
@@ -71,7 +80,9 @@ export function OrganizationsTable({
     },
     {
       accessorKey: 'services',
-      header: t('table.services'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.services')} />
+      ),
       cell: ({ row }) => row.original._count?.services || 0,
     },
     {
@@ -138,7 +149,7 @@ export function OrganizationsTable({
       label: t('table.name'),
     },
     {
-      type: 'radio',
+      type: 'checkbox',
       property: 'status',
       label: t('table.status'),
       options: [
@@ -147,7 +158,7 @@ export function OrganizationsTable({
       ],
     },
     {
-      type: 'radio',
+      type: 'checkbox',
       property: 'type',
       label: t('table.type'),
       options: Object.values(OrganizationType).map((type) => ({
@@ -156,7 +167,7 @@ export function OrganizationsTable({
       })),
     },
     {
-      type: 'radio',
+      type: 'checkbox',
       property: 'countries',
       label: t('table.country'),
       options: countries.map((country) => ({

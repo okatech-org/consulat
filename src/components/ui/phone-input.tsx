@@ -53,7 +53,7 @@ export function PhoneInput({
     onChange?.(newValue);
   };
 
-  const handleCountrySelect = (code: CountryCode) => {
+  const handleCountrySelect = (code: CountryIndicator) => {
     const newValue = {
       number: phoneValue.number,
       countryCode: code,
@@ -61,6 +61,12 @@ export function PhoneInput({
     setOpen(false);
     setPhoneValue(newValue);
     onChange?.(newValue);
+  };
+
+  // Helper function to get country code (e.g., "FR") from country indicator (e.g., "+33")
+  const getCountryCodeFromIndicator = (indicator: CountryIndicator): CountryCode => {
+    const country = phoneCountries.find((country) => country.value === indicator);
+    return country ? country.countryCode : 'FR';
   };
 
   const filteredCountries = phoneCountries.filter((country) => {
@@ -80,11 +86,20 @@ export function PhoneInput({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className={cn('w-[120px] justify-between', error && 'border-destructive')}
+            className={cn(
+              'min-w-max !px-2 justify-between',
+              error && 'border-destructive',
+            )}
           >
-            {phoneValue?.countryCode || '+33'}{' '}
-            <FlagIcon countryCode={phoneValue?.countryCode} />
-            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+            <span className="flex items-center gap-1">
+              <FlagIcon
+                countryCode={getCountryCodeFromIndicator(
+                  phoneValue?.countryCode || '+33',
+                )}
+              />
+              {phoneValue?.countryCode || '+33'}{' '}
+            </span>
+            <ChevronsUpDown className="ml-1 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[250px] p-0">
@@ -100,16 +115,23 @@ export function PhoneInput({
                 {filteredCountries.map((country, index) => (
                   <CommandItem
                     key={country.value + index}
-                    value={`${country.value} ${t_countries(country.label)}`}
+                    value={`${country.value} ${t_countries(country.countryCode)}`}
                     onSelect={() => handleCountrySelect(country.value)}
                   >
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
-                        value?.number === country.value ? 'opacity-100' : 'opacity-0',
+                        phoneValue.countryCode === country.value
+                          ? 'opacity-100'
+                          : 'opacity-0',
                       )}
                     />
-                    {country.flag} {t_countries(country.label)} ({country.value})
+                    <div className="flex items-center gap-1">
+                      <FlagIcon countryCode={country.countryCode} />
+                      <span>
+                        {t_countries(country.countryCode)} ({country.value})
+                      </span>
+                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>

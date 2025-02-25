@@ -16,7 +16,8 @@ import { CountryForm } from './country-form';
 import { createCountry } from '@/actions/countries';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { CreateCountryInput } from '@/types/country';
+import { tryCatch } from '@/lib/utils';
+import { CountrySchemaInput } from '@/schemas/country';
 
 export function CreateCountryButton() {
   const t = useTranslations('sa.countries');
@@ -26,30 +27,20 @@ export function CreateCountryButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (data: CreateCountryInput) => {
+  const handleSubmit = async (data: CountrySchemaInput) => {
     setIsLoading(true);
-    try {
-      const result = await createCountry(data);
-      if (result.error) {
-        throw new Error(result.error);
-      }
+    const result = await tryCatch(createCountry(data));
 
-      toast({
-        title: t_messages('success.create'),
-        variant: 'success',
-      });
-
-      setIsOpen(false);
-      router.refresh();
-    } catch (error) {
+    if (result.error) {
       toast({
         title: t_messages('errors.create'),
         variant: 'destructive',
-        description: `${error}`,
+        description: `${result.error}`,
       });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsOpen(false);
+    router.refresh();
   };
 
   return (

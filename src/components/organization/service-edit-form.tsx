@@ -13,7 +13,7 @@ import {
   DeliveryMode,
   ServiceStepType,
 } from '@prisma/client';
-import { Organization } from '@/types/organization';
+import { OrganizationListingItem } from '@/types/organization';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, ArrowUp, Trash } from 'lucide-react';
 import { ConsularServiceItem, ServiceStep } from '@/types/consular-service';
@@ -47,7 +47,7 @@ import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
 import { filterUneditedKeys } from '@/lib/utils';
 
 interface ServiceFormProps {
-  organizations: Organization[];
+  organizations: OrganizationListingItem[];
   service: ConsularServiceItem;
 }
 

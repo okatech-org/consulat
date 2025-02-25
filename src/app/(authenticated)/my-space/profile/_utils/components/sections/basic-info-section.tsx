@@ -14,6 +14,7 @@ import { fr } from 'date-fns/locale';
 import { BasicInfoForm } from '@/app/(public)/registration/_utils/components/basic-info';
 import { filterUneditedKeys } from '@/lib/utils';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface BasicInfoSectionProps {
   profile: Profile;
@@ -170,13 +171,14 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             />
             <InfoField
               label={t('form.gender')}
+              // @ts-expect-error - gender is a string
               value={t(`assets.gender.${profile.gender.toLowerCase()}`)}
               required
             />
 
             <InfoField
               label={t('form.birth_country')}
-              value={t_countries(profile.birthCountry)}
+              value={t_countries(profile.birthCountry as CountryCode)}
               required
             />
 
@@ -192,12 +194,13 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             />
             <InfoField
               label={t('form.nationality')}
-              value={t_countries(profile.nationality)}
+              value={t_countries(profile.nationality as CountryCode)}
               required
             />
             <InfoField
               label={t('nationality_acquisition.label')}
               value={t(
+                // @ts-expect-error - acquisitionMode is a string
                 `nationality_acquisition.modes.${profile.acquisitionMode?.toLowerCase()}`,
               )}
               required

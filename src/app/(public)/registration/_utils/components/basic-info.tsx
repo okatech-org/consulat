@@ -11,28 +11,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
-import { countryKeys } from '@/lib/autocomplete-datas';
+import { CountryCode } from '@/lib/autocomplete-datas';
 import { NationalityAcquisition } from '@prisma/client';
 import { BasicInfoFormData } from '@/schemas/registration';
 import { DocumentUploadField } from '@/components/ui/document-upload';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
+import { CountrySelect } from '@/components/ui/country-select';
 
 type BasicInfoFormProps = {
-  form: UseFormReturn<BasicInfoFormData>; // Ajouter cette prop
+  form: UseFormReturn<BasicInfoFormData>;
   onSubmit: () => void;
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
@@ -40,7 +29,7 @@ type BasicInfoFormProps = {
 };
 
 export function BasicInfoForm({
-  form, // Utiliser le form passé en prop
+  form,
   onSubmit,
   formRef,
   isLoading = false,
@@ -48,15 +37,11 @@ export function BasicInfoForm({
 }: Readonly<BasicInfoFormProps>) {
   const t = useTranslations('registration');
   const t_assets = useTranslations('assets');
-  const t_countries = useTranslations('countries');
-  const [openNationalitySelect, setOpenNationalitySelect] = React.useState(false);
 
   const formatDateForInput = (date: Date | string | undefined) => {
     if (!date) return '';
     if (typeof date === 'string') {
-      // Si c'est déjà une date ISO
       if (date.includes('T')) return date.split('T')[0];
-      // Si c'est une date au format DD/MM/YYYY
       const [day, month, year] = date.split('/');
       if (day && month && year) {
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -66,6 +51,10 @@ export function BasicInfoForm({
     return date.toISOString().split('T')[0];
   };
 
+  React.useEffect(() => {
+    console.log(form.formState.errors);
+    console.log(form.getValues());
+  }, [form.formState, form]);
   return (
     <Form {...form}>
       <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -207,55 +196,14 @@ export function BasicInfoForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('form.birth_country')}</FormLabel>
-                  <Popover
-                    open={openNationalitySelect}
-                    onOpenChange={setOpenNationalitySelect}
-                  >
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={openNationalitySelect}
-                        className="w-full justify-between"
-                      >
-                        {field.value
-                          ? t_countries(field.value)
-                          : t('form.select_nationality')}
-                        <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder={t('form.search_nationality')}
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>{t('form.no_nationality_found')}</CommandEmpty>
-                          <CommandGroup>
-                            {countryKeys.map((country) => (
-                              <CommandItem
-                                key={country}
-                                value={country}
-                                onSelect={() => {
-                                  form.setValue('birthCountry', country);
-                                  setOpenNationalitySelect(false);
-                                }}
-                              >
-                                {t_countries(country)}
-                                <CheckIcon
-                                  className={cn(
-                                    'ml-auto h-4 w-4',
-                                    field.value === country ? 'opacity-100' : 'opacity-0',
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <CountrySelect
+                      type="single"
+                      selected={field.value as CountryCode}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+
                   <TradFormMessage />
                 </FormItem>
               )}
@@ -283,6 +231,7 @@ export function BasicInfoForm({
                           </FormControl>
                           <FormLabel className="!mt-0 font-normal">
                             {t(
+                              // @ts-expect-error - acquisition is a string
                               `nationality_acquisition.modes.${acquisition.toLowerCase()}`,
                             )}
                           </FormLabel>

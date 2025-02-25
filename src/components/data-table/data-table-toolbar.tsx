@@ -39,7 +39,7 @@ export function DataTableToolbar<TData>({
   isLoading = false,
 }: DataTableToolbarProps<TData>) {
   const t = useTranslations('common.data_table');
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = false;
 
   return (
     <div className="flex items-center justify-between">

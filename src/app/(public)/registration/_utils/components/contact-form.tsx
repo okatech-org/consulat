@@ -9,24 +9,13 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import { useTranslations } from 'next-intl';
-import { countryKeys } from '@/lib/autocomplete-datas';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { cn } from '@/lib/utils';
+import { CountryCode } from '@/lib/autocomplete-datas';
 import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
 import { Separator } from '@/components/ui/separator';
 import { ContactInfoFormData } from '@/schemas/registration';
 import { Card, CardContent } from '@/components/ui/card';
+import { CountrySelect } from '@/components/ui/country-select';
 
 interface ContactInfoFormProps {
   form: UseFormReturn<ContactInfoFormData>;
@@ -42,8 +31,6 @@ export function ContactInfoForm({
   isLoading = false,
 }: Readonly<ContactInfoFormProps>) {
   const t = useTranslations('registration');
-  const t_countries = useTranslations('countries');
-  const [openCountrySelect, setOpenCountrySelect] = React.useState(false);
 
   const country = form.watch('address.country');
   const showGabonAddress = country && country !== 'gabon';
@@ -186,54 +173,13 @@ export function ContactInfoForm({
                 render={({ field }) => (
                   <FormItem className={'col-span-full'}>
                     <FormLabel>{t('form.country')}</FormLabel>
-                    <Popover open={openCountrySelect} onOpenChange={setOpenCountrySelect}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={openCountrySelect}
-                          className="w-full justify-between"
-                        >
-                          {field.value
-                            ? t_countries(field.value)
-                            : t('form.select_country')}
-                          <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder={t('form.search_country')}
-                            className="h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>{t('form.no_country_found')}</CommandEmpty>
-                            <CommandGroup>
-                              {countryKeys.map((countryKey) => (
-                                <CommandItem
-                                  key={countryKey}
-                                  value={countryKey}
-                                  onSelect={() => {
-                                    form.setValue('address.country', countryKey);
-                                    setOpenCountrySelect(false);
-                                  }}
-                                >
-                                  {t_countries(countryKey)}
-                                  <CheckIcon
-                                    className={cn(
-                                      'ml-auto h-4 w-4',
-                                      field.value === countryKey
-                                        ? 'opacity-100'
-                                        : 'opacity-0',
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <CountrySelect
+                        type="single"
+                        selected={field.value as CountryCode}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
                     <TradFormMessage />
                   </FormItem>
                 )}

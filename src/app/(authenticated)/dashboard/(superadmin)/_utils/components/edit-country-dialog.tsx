@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Country } from '@/types/country';
 import { updateCountry } from '@/actions/countries';
 import { CountrySchemaInput } from '@/schemas/country';
+import { tryCatch } from '@/lib/utils';
 
 interface EditCountryDialogProps {
   country: Country;
@@ -25,7 +26,7 @@ export function EditCountryDialog({
   const handleSubmit = async (data: CountrySchemaInput) => {
     if (!data.id) return;
 
-    const result = await updateCountry(data);
+    const result = await tryCatch(updateCountry(data));
 
     if (result.error) {
       toast({

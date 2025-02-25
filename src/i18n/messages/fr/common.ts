@@ -89,6 +89,11 @@ export default {
     restoration: 'Par réintégration',
     reacquisition: 'Par réacquisition',
   },
+  country: {
+    placeholder: 'Sélectionner un pays',
+    search: 'Rechercher un pays',
+    empty: 'Aucun pays trouvé',
+  },
   upload: {
     title: 'Télécharger un fichier',
     description: 'Glissez-déposez un fichier ou cliquez pour télécharger',

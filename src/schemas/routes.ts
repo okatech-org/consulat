@@ -32,6 +32,7 @@ export const ROUTES = {
       `/dashboard/requests/${id}?review=true` as Route<string>,
     registrations: '/dashboard/registrations' as Route<string>,
     edit_organization: (id: string) => `/dashboard/organizations/${id}` as Route<string>,
+    countries: '/dashboard/countries' as Route<string>,
   },
 
   // Pages administratives

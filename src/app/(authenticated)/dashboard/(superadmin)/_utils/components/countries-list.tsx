@@ -18,6 +18,7 @@ import { EditCountryDialog } from '@/app/(authenticated)/dashboard/(superadmin)/
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { tryCatch } from '@/lib/utils';
 
 interface CountriesListProps {
   countries: Country[];
@@ -33,7 +34,7 @@ export function CountriesList({ countries }: CountriesListProps) {
   const [country, setCountry] = useState<Country | null>(null);
 
   const handleDelete = async (country: Country) => {
-    const result = await deleteCountry(country.id);
+    const result = await tryCatch(deleteCountry(country.id));
 
     if (result.error) {
       toast({
@@ -176,12 +177,12 @@ export function CountriesList({ countries }: CountriesListProps) {
         filters={[
           {
             type: 'search',
-            value: 'name',
+            property: 'name',
             label: t('table.name'),
           },
           {
-            type: 'radio',
-            value: 'status',
+            type: 'checkbox',
+            property: 'status',
             label: t('table.status'),
             options: [
               { value: 'ACTIVE', label: t('form.status.options.active') },

@@ -5,7 +5,6 @@ import { checkAuth } from '@/lib/auth/action';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import {
-  CountryMetadata,
   CreateOrganizationInput,
   OrganizationCountryInfos,
   OrganizationMetadataSettings,
@@ -28,33 +27,22 @@ import {
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
 
-export async function getOrganizations(): Promise<{
-  data?: OrganizationListingItem[];
-  error?: string;
-}> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+export async function getOrganizations(): Promise<OrganizationListingItem[]> {
+  await checkAuth([UserRole.SUPER_ADMIN]);
 
-  try {
-    const organizations = await db.organization.findMany({
-      include: {
-        countries: true,
-        _count: {
-          select: {
-            services: true,
-          },
+  return db.organization.findMany({
+    include: {
+      countries: true,
+      _count: {
+        select: {
+          services: true,
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    return { data: organizations };
-  } catch (error) {
-    console.error('Error fetching organizations:', error);
-    return { error: 'messages.error.fetch' };
-  }
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
 }
 
 export async function createOrganization(data: CreateOrganizationInput) {

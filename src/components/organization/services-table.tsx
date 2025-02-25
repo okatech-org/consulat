@@ -26,6 +26,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getOrganizationFromId } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/services';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { RoleGuard } from '@/lib/permissions/utils';
+import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 
 export function ServicesTable({
   services,
@@ -140,18 +141,24 @@ export function ServicesTable({
   const localColumns: ColumnDef<ConsularServiceListingItem>[] = [
     {
       accessorKey: 'name',
-      header: t('table.name'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.name')} />
+      ),
       enableSorting: true,
     },
     {
       accessorKey: 'category',
-      header: t('table.category'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.category')} />
+      ),
       cell: ({ row }) => t_common(`service_categories.${row.original.category}`),
       filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'organization',
-      header: t('table.organization'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.organization')} />
+      ),
       cell: ({ row }) =>
         getOrganizationFromId(organizations, row.original.organizationId)?.name || (
           <Badge variant="default">{t_common('status.not_assigned')}</Badge>
@@ -159,7 +166,9 @@ export function ServicesTable({
     },
     {
       accessorKey: 'isActive',
-      header: t('table.status'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('table.status')} />
+      ),
       cell: ({ row }) => (
         <Badge variant={row.original.isActive ? 'success' : 'outline'}>
           {t_common(`status.${row.original.isActive ? 'active' : 'inactive'}`)}

@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface ProfileBasicInfoProps {
   profile: FullProfile;
@@ -31,7 +32,7 @@ export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
     },
     {
       label: t('fields.nationality'),
-      value: t_countries(profile.nationality),
+      value: t_countries(profile.nationality as CountryCode),
       isValid: !!profile.nationality,
     },
   ];

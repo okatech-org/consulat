@@ -14,33 +14,20 @@ import type {
 /**
  * Récupérer tous les services
  */
-export async function getServices(): Promise<{
-  data?: ConsularServiceListingItem[];
-  error?: string;
-}> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
-
-  try {
-    const services = await db.consularService.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        category: true,
-        isActive: true,
-        organizationId: true,
-      },
-    });
-
-    return { data: services };
-  } catch (error) {
-    console.error('Error fetching services:', error);
-    return { error: 'Failed to fetch services' };
-  }
+export async function getServices(): Promise<ConsularServiceListingItem[]> {
+  return db.consularService.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      category: true,
+      isActive: true,
+      organizationId: true,
+    },
+  });
 }
 
 /**
@@ -258,40 +245,31 @@ export async function unassignServiceFromOrganization(
 /**
  * Récupérer un service par son ID
  */
-export async function getFullService(id: string): Promise<{
-  data?: ConsularServiceItem;
-  error?: string;
-}> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+export async function getFullService(id: string): Promise<ConsularServiceItem> {
+  await checkAuth([UserRole.SUPER_ADMIN]);
 
-  try {
-    const service = await db.consularService.findUnique({
-      where: { id },
-      include: {
-        steps: true,
-        organization: true,
-      },
-    });
+  const service = await db.consularService.findUnique({
+    where: { id },
+    include: {
+      steps: true,
+      organization: true,
+    },
+  });
 
-    if (!service) {
-      return { error: 'Service not found' };
-    }
-
-    const transformedService = {
-      ...service,
-      steps: service.steps.map((step) => ({
-        ...step,
-        fields: step.fields ? JSON.parse(`${step.fields}`) : [],
-        validations: step.validations ? JSON.parse(`${step.validations}`) : {},
-      })),
-    };
-
-    return { data: transformedService };
-  } catch (error) {
-    console.error('Error fetching service:', error);
-    return { error: 'Failed to fetch service' };
+  if (!service) {
+    throw new Error('Service not found', { cause: 'SERVICE_NOT_FOUND' });
   }
+
+  const transformedService = {
+    ...service,
+    steps: service.steps.map((step) => ({
+      ...step,
+      fields: step.fields ? JSON.parse(`${step.fields}`) : [],
+      validations: step.validations ? JSON.parse(`${step.validations}`) : {},
+    })),
+  };
+
+  return transformedService;
 }
 
 export async function duplicateService(

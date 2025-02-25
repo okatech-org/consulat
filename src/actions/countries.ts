@@ -1,128 +1,100 @@
 'use server';
 
 import { db } from '@/lib/prisma';
-import { ActionResult, checkAuth } from '@/lib/auth/action';
+import { checkAuth } from '@/lib/auth/action';
 import { UserRole } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import { Country, CountryMetadata } from '@/types/country';
+import { Country as PrismaCountry } from '@prisma/client';
 import { CountrySchemaInput } from '@/schemas/country';
 
-export async function getCountries() {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+export type CountryWithCount = Country & {
+  _count: {
+    organizations: number;
+    users: number;
+  };
+};
 
-  try {
-    const countries = await db.country.findMany({
-      include: {
-        _count: {
-          select: {
-            organizations: true,
-            users: true,
-          },
+export async function getCountries(): Promise<CountryWithCount[]> {
+  await checkAuth([UserRole.SUPER_ADMIN]);
+
+  const countries = await db.country.findMany({
+    include: {
+      _count: {
+        select: {
+          organizations: true,
+          users: true,
         },
       },
-    });
+    },
+  });
 
-    return {
-      data: countries.map((item) => ({
-        ...item,
-        metadata: item.metadata
-          ? JSON.parse(item.metadata as string)
-          : ({} as CountryMetadata),
-      })),
-    };
-  } catch (error) {
-    console.error('Error fetching countries:', error);
-    return { error: 'Failed to fetch countries' };
-  }
+  return countries.map((item) => ({
+    ...item,
+    metadata: item.metadata
+      ? JSON.parse(item.metadata as string)
+      : ({} as CountryMetadata),
+  }));
 }
 
-export async function createCountry(data: CountrySchemaInput) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+export async function createCountry(data: CountrySchemaInput): Promise<PrismaCountry> {
+  await checkAuth([UserRole.SUPER_ADMIN]);
 
-  try {
-    const country = await db.country.create({
-      data: {
-        name: data.name,
-        code: data.code.toUpperCase(),
-        status: data.status || 'ACTIVE',
-      },
-    });
+  const country = await db.country.create({
+    data: {
+      name: data.name,
+      code: data.code.toUpperCase(),
+      status: data.status || 'ACTIVE',
+    },
+  });
 
-    revalidatePath(ROUTES.dashboard.countries);
-    return { data: country };
-  } catch (error) {
-    console.error('Error creating country:', error);
-    return { error: 'Failed to create country' };
-  }
+  revalidatePath(ROUTES.dashboard.countries);
+  return country;
 }
 
-export async function updateCountry(data: CountrySchemaInput) {
+export async function updateCountry(data: CountrySchemaInput): Promise<PrismaCountry> {
   const { id, metadata, ...rest } = data;
 
-  if (!id) return { error: 'Country ID is required' };
+  if (!id) throw new Error('Country ID is required', { cause: 'COUNTRY_ID_REQUIRED' });
 
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN]);
 
-  try {
-    const country = await db.country.update({
-      where: { id },
-      data: {
-        ...rest,
-        ...(metadata && { metadata: JSON.stringify(metadata) }),
-      },
-    });
+  const country = await db.country.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(metadata && { metadata: JSON.stringify(metadata) }),
+    },
+  });
 
-    revalidatePath(ROUTES.dashboard.countries);
-    return { data: country };
-  } catch (error) {
-    console.error('Error updating country:', error);
-    return { error: 'Failed to update country' };
-  }
+  revalidatePath(ROUTES.dashboard.countries);
+  return country;
 }
 
 export async function deleteCountry(id: string) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN]);
 
-  try {
-    await db.country.delete({
-      where: { id },
-    });
+  await db.country.delete({
+    where: { id },
+  });
 
-    revalidatePath(ROUTES.dashboard.countries);
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting country:', error);
-    return { error: 'Failed to delete country' };
-  }
+  revalidatePath(ROUTES.dashboard.countries);
+  return true;
 }
 
-export async function getCountryById(id: string): Promise<ActionResult<Country>> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+export async function getCountryById(id: string): Promise<Country> {
+  const country = await db.country.findUnique({
+    where: { id },
+    include: { _count: { select: { organizations: true, users: true } } },
+  });
 
-  try {
-    const country = await db.country.findUnique({
-      where: { id },
-      include: { _count: { select: { organizations: true, users: true } } },
-    });
-
-    if (!country) {
-      return { error: 'Country not found' };
-    }
-
-    return {
-      data: {
-        ...country,
-        metadata: country.metadata ? JSON.parse(country.metadata as string) : {},
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching country:', error);
-    return { error: 'Failed to fetch country' };
+  if (!country) {
+    throw new Error('Country not found', { cause: 'COUNTRY_NOT_FOUND' });
   }
+
+  return {
+    ...country,
+    metadata: country.metadata ? JSON.parse(country.metadata as string) : {},
+  };
 }
