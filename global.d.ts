@@ -1,7 +1,4 @@
-import fr from './messages/fr.json';
+type Messages = (typeof import('./src/i18n/messages/fr'))['default'];
 
-type Locales = typeof fr;
-
-declare global {
-  interface IntlMessages extends Locales {}
-}
+// eslint-disable-next-line
+declare interface IntlMessages extends Messages {}
