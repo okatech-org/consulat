@@ -23,5 +23,5 @@ yarn-error.log*
 /src/assets
 /src/components/ui
 /specs/base
-/locales/en.json
-/locales/es.json
+/src/i18n/messages/en
+/src/i18n/messages/es

@@ -118,7 +118,7 @@ export async function getRegistrations(
 export async function getRegistrationRequestDetailsById(
   id: string,
 ): Promise<RegistrationRequestDetails | null> {
-  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
 
   try {
     return db.serviceRequest.findUnique({

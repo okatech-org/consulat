@@ -1,0 +1,78 @@
+export default {
+  title: 'Profil utilisateur',
+  dashboard: {
+    title: 'Tableau de bord',
+    overview: {
+      title: "Vue d'ensemble",
+      pending_requests: 'Demandes en attente',
+      processing_requests: 'Demandes en cours',
+      completed_requests: 'Demandes traitées',
+    },
+    appointments: {
+      title: 'Mes rendez-vous',
+      new_appointment: 'Nouveau rendez-vous',
+      tabs: {
+        upcoming: 'À venir',
+        past: 'Passés',
+        cancelled: 'Annulés',
+      },
+      upcoming: {
+        title: 'Prochains rendez-vous',
+        empty: 'Aucun rendez-vous à venir',
+      },
+      past: {
+        title: 'Rendez-vous passés',
+        empty: 'Aucun rendez-vous passé',
+      },
+      cancelled: {
+        title: 'Rendez-vous annulés',
+        empty: 'Aucun rendez-vous annulé',
+      },
+      new_appointment_dialog: {
+        title: 'Prendre un rendez-vous',
+        steps: {
+          service: 'Service',
+          date: 'Date',
+          confirm: 'Confirmation',
+        },
+        service_select: 'Sélectionnez un service',
+        select_service: 'Choisir un service',
+        service_details: 'Détails du service',
+        duration: 'Durée du rendez-vous',
+        duration_value: '{duration} minutes',
+        instructions: 'Instructions',
+        next: 'Suivant',
+        back: 'Retour',
+        price: 'Prix',
+        price_value: '{price} €',
+        submit: 'Confirmer le rendez-vous',
+        confirmation: {
+          service: 'Service sélectionné',
+          date: 'Date',
+          time: 'Heure',
+          duration: 'Durée',
+          price: 'Prix',
+          instructions: 'Instructions',
+          important: 'Informations importantes',
+          bring_documents: "N'oubliez pas d'apporter tous les documents requis",
+          arrive_early: "Merci d'arriver 10 minutes avant votre rendez-vous",
+          cancel_notice: "En cas d'empêchement, merci d'annuler au moins 24h à l'avance",
+        },
+      },
+      date_picker: {
+        select_date: 'Sélectionnez une date',
+        no_slots: 'Aucun créneau disponible pour cette date',
+      },
+    },
+  },
+  nav: {
+    dashboard: 'Mon espace',
+    requests: 'Mes demandes',
+    profile: 'Mon profil',
+    documents: 'Mes documents',
+    appointments: 'Mes rendez-vous',
+    procedures: 'Démarches',
+    services: 'Nouvelle démarche',
+    my_requests: 'Mes démarches',
+  },
+} as const;

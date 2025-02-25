@@ -16,6 +16,18 @@ export default {
       rejection: 'Rejet',
     },
   },
+  add_to_home_screen: {
+    loading: 'Chargement...',
+  },
+  add_to_browser: {
+    best_experience:
+      "Pour la meilleure expérience, nous recommandons d'installer l'application Valley Trader sur votre écran d'accueil !",
+    click_the: 'Cliquez sur le',
+    icon: 'icône',
+    scroll_and_click: 'Faites défiler et cliquez sur :',
+    add_to_home_screen: "Ajouter à l'écran d'accueil",
+    dont_show_again: 'Ne plus afficher',
+  },
   priority: {
     low: 'Faible',
     medium: 'Moyen',
@@ -477,5 +489,12 @@ export default {
     send: 'Envoyer',
     please_login: 'Veuillez vous connecter pour continuer de discuter avec Ray',
     login: 'Se connecter',
+  },
+  organization_types: {
+    EMBASSY: 'Ambassade',
+    CONSULATE: 'Consulat',
+    GENERAL_CONSULATE: 'Consulat général',
+    HONORARY_CONSULATE: 'Consulat honoraire',
+    OTHER: 'Autre',
   },
 } as const;

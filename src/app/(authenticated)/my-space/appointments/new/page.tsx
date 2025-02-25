@@ -1,13 +1,13 @@
 import { getCurrentUser } from '@/actions/user';
-import { getAvailableServices, getServiceById } from '@/actions/appointments';
+import { getAvailableServices } from '@/actions/appointments';
 import { getOrganizationByCountry } from '@/actions/organizations';
-import { getRegistrationRequestById } from '@/actions/consular-registration';
 import { ROUTES } from '@/schemas/routes';
 import { redirect } from 'next/navigation';
 import { NewAppointmentForm } from '@/components/appointments/new-appointment-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { getRegistrationRequestDetailsById } from '@/actions/registrations';
 
 interface NewAppointmentPageProps {
   searchParams: {
@@ -51,7 +51,9 @@ export default async function NewAppointmentPage({
   // Récupérer les informations pré-remplies si disponibles
   let preselectedData;
   if (searchParams.serviceRequestId) {
-    const request = await getRegistrationRequestById(searchParams.serviceRequestId);
+    const request = await getRegistrationRequestDetailsById(
+      searchParams.serviceRequestId,
+    );
     if (request) {
       preselectedData = {
         serviceId: request.serviceId,

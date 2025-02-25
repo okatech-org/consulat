@@ -31,6 +31,7 @@ export const ROUTES = {
     service_request_review: (id: string) =>
       `/dashboard/requests/${id}?review=true` as Route<string>,
     registrations: '/dashboard/registrations' as Route<string>,
+    edit_organization: (id: string) => `/dashboard/organizations/${id}` as Route<string>,
   },
 
   // Pages administratives
