@@ -406,27 +406,20 @@ interface ValidateDocumentInput {
 }
 
 export async function validateDocument(input: ValidateDocumentInput) {
-  try {
-    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
 
-    const document = await db.userDocument.update({
-      where: { id: input.documentId },
-      data: {
-        status: input.status,
-        metadata: {
-          ...(input.notes && { validationNotes: input.notes }),
-          validatedBy: authResult.user.id,
-          validatedAt: new Date().toISOString(),
-        },
+  return db.userDocument.update({
+    where: { id: input.documentId },
+    data: {
+      status: input.status,
+      metadata: {
+        ...(input.notes && { validationNotes: input.notes }),
+        validatedBy: authResult.user.id,
+        validatedAt: new Date().toISOString(),
       },
-      include: {
-        user: true,
-      },
-    });
-
-    return { success: true, data: document };
-  } catch (error) {
-    console.error('Error validating document:', error);
-    return { error: 'Failed to validate document' };
-  }
+    },
+    include: {
+      user: true,
+    },
+  });
 }

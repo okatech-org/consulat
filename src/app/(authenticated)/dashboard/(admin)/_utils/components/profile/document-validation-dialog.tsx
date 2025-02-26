@@ -15,6 +15,7 @@ import { DocumentStatus } from '@prisma/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { validateDocument } from '@/actions/documents';
+import { tryCatch } from '@/lib/utils';
 
 interface DocumentValidationDialogProps {
   documentId: string;
@@ -38,17 +39,23 @@ export function DocumentValidationDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (status: DocumentStatus) => {
-    try {
-      setIsSubmitting(true);
-      setStatus(status);
-
-      const result = await validateDocument({
+    const result = await tryCatch(
+      validateDocument({
         documentId,
         status,
         notes: notes.trim() || undefined,
-      });
+      }),
+    );
 
-      if (result.error) throw new Error(result.error);
+    if (result.error) {
+      toast({
+        title: t('validation.error.title'),
+        description: t('validation.error.description'),
+        variant: 'destructive',
+      });
+    } else {
+      setIsSubmitting(true);
+      setStatus(status);
 
       toast({
         title: t('validation.success.title'),
@@ -58,15 +65,6 @@ export function DocumentValidationDialog({
 
       onValidated();
       onClose();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: t('validation.error.title'),
-        description: t('validation.error.description'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

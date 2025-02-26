@@ -21,22 +21,24 @@ async function main() {
     console.log('🌱 Starting seed...');
 
     // Nettoyer la base de données dans le bon ordre
-    await prisma.notification.deleteMany();
-    await prisma.appointment.deleteMany();
-    await prisma.note.deleteMany();
-    await prisma.message.deleteMany();
-    await prisma.userDocument.deleteMany();
-    await prisma.requestAction.deleteMany();
-    await prisma.serviceRequest.deleteMany();
-    await prisma.consularService.deleteMany();
-    await prisma.emergencyContact.deleteMany();
-    await prisma.phone.deleteMany();
-    await prisma.addressGabon.deleteMany();
-    await prisma.address.deleteMany();
-    await prisma.profile.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.organization.deleteMany();
-    await prisma.country.deleteMany();
+    await prisma.$transaction([
+      prisma.notification.deleteMany(),
+      prisma.appointment.deleteMany(),
+      prisma.note.deleteMany(),
+      prisma.message.deleteMany(),
+      prisma.userDocument.deleteMany(),
+      prisma.requestAction.deleteMany(),
+      prisma.serviceRequest.deleteMany(),
+      prisma.consularService.deleteMany(),
+      prisma.emergencyContact.deleteMany(),
+      prisma.phone.deleteMany(),
+      prisma.addressGabon.deleteMany(),
+      prisma.address.deleteMany(),
+      prisma.profile.deleteMany(),
+      prisma.user.deleteMany(),
+      prisma.organization.deleteMany(),
+      prisma.country.deleteMany(),
+    ]);
 
     // Créer les pays
     console.log('Creating countries...');
@@ -594,7 +596,7 @@ async function main() {
               gender: 'MALE',
               birthDate: '1990-01-01',
               birthPlace: 'Paris',
-              birthCountry: 'france',
+              birthCountry: 'FR',
               nationality: 'GA',
               passportNumber: 'GA123456',
               email: 'itoutouberny@gmail.com',
@@ -610,13 +612,14 @@ async function main() {
               fatherFullName: 'Jean Itoutou',
               motherFullName: 'Marie Itoutou',
               activityInGabon: 'Consultant IT',
+              cardPin: 'GA123456',
               address: {
                 create: {
                   firstLine: '123 Rue de la Paix',
                   secondLine: 'Appartement 4B',
                   city: 'Paris',
                   zipCode: '75008',
-                  country: 'france',
+                  country: 'FR',
                 },
               },
               addressInGabon: {
@@ -708,7 +711,7 @@ async function main() {
               gender: 'FEMALE',
               birthDate: '1988-05-15',
               birthPlace: 'New York',
-              birthCountry: 'usa',
+              birthCountry: 'US',
               nationality: 'GA',
               passportNumber: 'GA789012',
               email: 'sarah.smith@example.com',
@@ -724,6 +727,7 @@ async function main() {
               fatherFullName: 'John Smith',
               motherFullName: 'Mary Smith',
               activityInGabon: 'Missions humanitaires',
+              cardPin: 'GA789012',
               address: {
                 create: {
                   firstLine: '350 5th Avenue',
@@ -778,7 +782,7 @@ async function main() {
               gender: 'MALE',
               birthDate: '1995-09-20',
               birthPlace: 'Montreal',
-              birthCountry: 'canada',
+              birthCountry: 'CA',
               nationality: 'GA',
               passportNumber: 'GA456789',
               email: 'jean.dupont@example.com',
@@ -800,7 +804,7 @@ async function main() {
                   secondLine: 'App 567',
                   city: 'Montréal',
                   zipCode: 'H3H 2R9',
-                  country: 'Canada',
+                  country: 'CA',
                 },
               },
               addressInGabon: {
