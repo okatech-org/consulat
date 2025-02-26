@@ -399,7 +399,8 @@ export function UserDocument({
                 <div className="text-sm text-muted-foreground">
                   {Object.entries(document.metadata).map(([key, value]) => (
                     <p key={key}>
-                      {t(`metadata.${key}`)}: {value}
+                      {/** @ts-expect-error - key is a string */}
+                      {t(`metadata.${key}`)}: {`${value}`}
                     </p>
                   ))}
                 </div>

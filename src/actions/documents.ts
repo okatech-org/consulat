@@ -7,7 +7,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { pdfToImages } from '@/actions/convert';
 import { getCurrentUser } from '@/actions/user';
 import { db } from '@/lib/prisma';
-import { DocumentStatus, UserDocument } from '@prisma/client';
+import { DocumentStatus, NotificationStatus, UserDocument } from '@prisma/client';
 import { AppUserDocument } from '@/types';
 import { checkAuth } from '@/lib/auth/action';
 import { getTranslations } from 'next-intl/server';
@@ -435,7 +435,7 @@ export async function validateDocument(input: ValidateDocumentInput) {
           ? t('notifications.rejected.message_with_notes', { notes: input.notes })
           : t('notifications.rejected.message_default'),
         userId: updatedDocument.user.id,
-        status: 'PENDING',
+        status: NotificationStatus.SENT,
       },
     });
   }
