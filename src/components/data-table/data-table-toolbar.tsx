@@ -55,14 +55,16 @@ export function DataTableToolbar<TData>({
                   placeholder={filter.label}
                   defaultValue={filter.defaultValue}
                   value={
-                    table.getColumn(filter.property ?? '')?.getFilterValue() as string
+                    filter.property
+                      ? (table.getColumn(filter.property)?.getFilterValue() as string)
+                      : ''
                   }
                   onChange={(event) => {
                     const value = (event.target as HTMLInputElement).value;
                     if (filter.onChange) {
                       filter.onChange(value);
-                    } else {
-                      table.getColumn(filter.property ?? '')?.setFilterValue(value);
+                    } else if (filter.property) {
+                      table.getColumn(filter.property)?.setFilterValue(value);
                     }
                   }}
                   className="h-8 w-[150px] lg:w-[250px]"
