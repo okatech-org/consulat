@@ -69,64 +69,59 @@ export function UserDocument({
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const router = useRouter();
+  const { formatDate } = useDateLocale();
 
   const handleDelete = async (documentId: string) => {
-    try {
-      setIsLoading(true);
-      const result = await tryCatch(deleteUserDocument(documentId));
+    setIsLoading(true);
+    const result = await tryCatch(deleteUserDocument(documentId));
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
+    if (result.error) {
+      console.error('Delete error:', result.error);
+      toast({
+        title: t_messages('errors.update_failed'),
+        description: result.error.message,
+        variant: 'destructive',
+      });
+    }
 
+    if (result.data) {
       toast({
         title: t_messages('success.update'),
         variant: 'success',
       });
 
       router.refresh();
-    } catch (error) {
-      console.error('Delete error:', error);
-      toast({
-        title: t_messages('errors.update_failed'),
-        description:
-          error instanceof Error ? error.message : t_messages('errors.unknown'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   const handleUpload = useCallback(
     async (type: DocumentType, file: FormData) => {
-      try {
-        setIsLoading(true);
-        const result = await createUserDocument(type, file, profileId);
+      setIsLoading(true);
+      const result = await tryCatch(createUserDocument(type, file, profileId));
 
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
+      if (result.data) {
         toast({
           title: t_messages('success.update'),
           variant: 'success',
         });
 
         router.refresh();
-      } catch (error) {
-        console.error('Upload error:', error);
+      }
+
+      if (result.error) {
+        console.error('Upload error:', result.error);
         toast({
           title: t_messages('errors.update_failed'),
-          description:
-            error instanceof Error ? error.message : t_messages('errors.unknown'),
+          description: result.error.message,
           variant: 'destructive',
         });
-      } finally {
-        setIsLoading(false);
       }
+
+      setIsLoading(false);
     },
-    [profileId, toast, t_messages, router],
+    [profileId, t_messages, router],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -242,6 +237,7 @@ export function UserDocument({
       EXPIRING: 'warning',
     };
     return (
+      // @ts-expect-error - status is a string
       <Badge variant={variants[status]}>{t(`status.${status.toLowerCase()}`)}</Badge>
     );
   };
@@ -380,6 +376,7 @@ export function UserDocument({
                 <div className="text-sm text-muted-foreground">
                   {Object.entries(document.metadata).map(([key, value]) => (
                     <p key={key}>
+                      {/** @ts-expect-error - key is a string */}
                       {t(`metadata.${key}`)}: {value}
                     </p>
                   ))}

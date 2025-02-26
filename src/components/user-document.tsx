@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
-import { cn, tryCatch } from '@/lib/utils';
+import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -74,8 +74,7 @@ export function UserDocument({
   const [isLoading, setIsLoading] = React.useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const router = useRouter();
-
-  console.log({ document });
+  const { formatDate } = useDateLocale();
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
@@ -381,16 +380,8 @@ export function UserDocument({
                 {(document.issuedAt || document.expiresAt) && (
                   <>
                     {t('validity', {
-                      start: document.issuedAt
-                        ? format(new Date(document.issuedAt), 'dd-MM-yyyy', {
-                            locale: fr,
-                          })
-                        : 'N/A',
-                      end: document.expiresAt
-                        ? format(new Date(document.expiresAt), 'dd-MM-yyyy', {
-                            locale: fr,
-                          })
-                        : 'N/A',
+                      start: document.issuedAt ? formatDate(document.issuedAt) : 'N/A',
+                      end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
                     })}
                   </>
                 )}
