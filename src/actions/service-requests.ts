@@ -39,9 +39,6 @@ export async function getServiceRequests(
   options?: GetRequestsOptions,
 ): Promise<PaginatedServiceRequests> {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   const {
     search,
@@ -117,9 +114,6 @@ export async function getServiceRequests(
  */
 export async function assignServiceRequest(requestId: string, agentId: string) {
   const authResult = await checkAuth();
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   try {
     const [request, agent] = await Promise.all([
@@ -177,9 +171,6 @@ export async function updateServiceRequestStatus(
   notes?: string,
 ) {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   try {
     const updatedRequest = await db.serviceRequest.update({
@@ -234,7 +225,6 @@ export async function updateServiceRequest(
   },
 ) {
   const authResult = await checkAuth(['ADMIN', 'MANAGER', 'SUPER_ADMIN']);
-  if (authResult.error) return { error: authResult.error };
 
   if (!data.id) {
     return { error: 'Service request ID is required' };
@@ -260,7 +250,7 @@ export async function updateServiceRequest(
             assignedAt: new Date(),
           }),
           lastActionAt: new Date(),
-          lastActionBy: authResult.user?.id,
+          lastActionBy: authResult.user.id,
         },
         ...FullServiceRequestInclude,
       });
@@ -292,10 +282,7 @@ export async function updateServiceRequest(
  * Obtenir les statistiques des demandes
  */
 export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error) {
-    throw new Error(authResult.error);
-  }
+  await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
 
   try {
     const [

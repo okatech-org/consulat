@@ -48,9 +48,6 @@ export async function markNotificationAsRead(notificationId: string) {
 
 export async function markAllNotificationsAsRead() {
   const authResult = await checkAuth();
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   try {
     await db.notification.updateMany({
