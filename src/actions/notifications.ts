@@ -28,9 +28,6 @@ export async function getUnreadNotificationsCount() {
 
 export async function markNotificationAsRead(notificationId: string) {
   const authResult = await checkAuth();
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   try {
     await db.notification.update({

@@ -20,9 +20,6 @@ export async function validateConsularRegistration(
   notes?: string,
 ) {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   try {
     // Si le statut est VALIDATED, générer les informations de la carte
@@ -96,9 +93,6 @@ export async function updateConsularRegistrationStatus(
   notes?: string,
 ) {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   try {
     await db.profile.update({
@@ -154,9 +148,6 @@ export async function updateConsularRegistrationStatus(
  */
 export async function startCardProduction(requestId: string) {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
-  }
 
   try {
     const updatedRequest = await db.serviceRequest.update({

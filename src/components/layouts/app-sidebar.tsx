@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import {
-  Badge,
-  Bell,
   Building2,
   Calendar,
   FileSliders,
@@ -110,11 +108,6 @@ export function AppSidebar({
       title: t('super_admin.organizations'),
       url: ROUTES.sa.organizations,
       icon: Building2,
-    },
-    {
-      title: t('super_admin.services'),
-      url: ROUTES.dashboard.services,
-      icon: Settings,
     },
     {
       title: t('super_admin.users'),

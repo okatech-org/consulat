@@ -10,6 +10,7 @@ import {
   getOrganizationWithSpecificIncludes,
 } from '@/actions/organizations';
 import { PageContainer } from '@/components/layouts/page-container';
+import { tryCatch } from '@/lib/utils';
 interface Props {
   searchParams: Record<keyof GetRequestsOptions, string | undefined>;
 }
@@ -25,16 +26,18 @@ export default async function RequestsPage({ searchParams }: Props) {
   const isAgent = session?.user ? hasAnyRole(session.user, ['AGENT']) : false;
 
   const organization = isAdmin
-    ? await getOrganizationWithSpecificIncludes(session?.user.organizationId as string, [
-        'agents',
-      ])
+    ? await tryCatch(
+        getOrganizationWithSpecificIncludes(session?.user.organizationId as string, [
+          'agents',
+        ]),
+      )
     : undefined;
 
   let serviceCategories: ServiceCategory[] = [];
 
   if (isAdmin) {
-    const serviceCategoriesResult = await getAvailableServiceCategories(
-      session?.user.organizationId as string,
+    const serviceCategoriesResult = await tryCatch(
+      getAvailableServiceCategories(session?.user.organizationId as string),
     );
     if (serviceCategoriesResult.data) {
       serviceCategories = serviceCategoriesResult.data;
@@ -42,8 +45,8 @@ export default async function RequestsPage({ searchParams }: Props) {
   }
 
   if (isAgent) {
-    const serviceCategoriesResult = await getAvailableServiceCategories(
-      session?.user.assignedOrganizationId as string,
+    const serviceCategoriesResult = await tryCatch(
+      getAvailableServiceCategories(session?.user.assignedOrganizationId as string),
     );
     if (serviceCategoriesResult.data) {
       serviceCategories = serviceCategoriesResult.data;

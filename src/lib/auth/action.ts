@@ -51,15 +51,11 @@ export async function checkAuth(roles?: UserRole[]) {
   const session = await auth();
 
   if (!session?.user) {
-    return {
-      error: t('auth.unauthorized'),
-    };
+    throw new Error(t('auth.unauthorized'), { cause: 'UNAUTHORIZED' });
   }
 
   if (roles && !hasAnyRole(session.user, roles)) {
-    return {
-      error: t('auth.forbidden'),
-    };
+    throw new Error(t('auth.forbidden'), { cause: 'FORBIDDEN' });
   }
 
   return { user: session.user };

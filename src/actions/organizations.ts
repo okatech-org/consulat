@@ -209,76 +209,51 @@ export async function getOrganizationById(id: string): Promise<{
 
 export async function getOrganizationWithSpecificIncludes<
   T extends keyof typeof FullOrganizationInclude.include,
->(
-  id: string,
-  includes: T[],
-): Promise<{
-  data?: OrganizationWithIncludes<T> | null;
-  error?: string;
-}> {
-  const authResult = await checkAuth();
-  if (authResult.error) return { error: authResult.error };
+>(id: string, includes: T[]): Promise<OrganizationWithIncludes<T>> {
+  await checkAuth();
+  const organization = await db.organization.findUnique({
+    where: { id },
+    ...createOrganizationInclude(includes),
+  });
 
-  try {
-    const organization = await db.organization.findUnique({
-      where: { id },
-      ...createOrganizationInclude(includes),
-    });
-
-    if (!organization) {
-      return { error: 'messages.error.not_found' };
-    }
-
-    return {
-      data: {
-        ...organization,
-        metadata: JSON.parse(
-          typeof organization.metadata === 'string' ? organization.metadata : '{}',
-        ),
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching organization:', error);
-    return { error: 'messages.error.fetch' };
+  if (!organization) {
+    throw new Error('messages.error.not_found', { cause: 'ORGANIZATION_NOT_FOUND' });
   }
+
+  return {
+    ...organization,
+    metadata: JSON.parse(
+      typeof organization.metadata === 'string' ? organization.metadata : '{}',
+    ),
+  };
 }
 
-export async function getAvailableServiceCategories(id: string): Promise<{
-  data?: ServiceCategory[];
-  error?: string;
-}> {
-  try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-    if (authResult.error) return { error: authResult.error };
+export async function getAvailableServiceCategories(
+  id: string,
+): Promise<ServiceCategory[]> {
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT]);
 
-    const categories = await db.consularService.groupBy({
-      by: ['category'],
-      where: {
-        organizationId: id,
-        isActive: true,
-      },
-      orderBy: {
-        category: 'asc',
-      },
-      having: {
-        category: {
-          _count: {
-            gt: 0,
-          },
+  const categories = await db.consularService.groupBy({
+    by: ['category'],
+    where: {
+      organizationId: id,
+      isActive: true,
+    },
+    orderBy: {
+      category: 'asc',
+    },
+    having: {
+      category: {
+        _count: {
+          gt: 0,
         },
       },
-    });
+    },
+  });
 
-    console.log({ categories });
+  const availableCategories = categories.map(({ category }) => category);
 
-    const availableCategories = categories.map(({ category }) => category);
-
-    return { data: availableCategories };
-    return { data: availableCategories };
-  } catch (error) {
-    console.error('Error fetching service categories:', error);
-    return { error: 'messages.error.fetch' };
-  }
+  return availableCategories;
 }
 
 export async function createNewAgent(data: AgentFormData) {

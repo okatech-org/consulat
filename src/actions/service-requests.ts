@@ -368,33 +368,25 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
 /**
  * Récupérer une demande de service par son ID
  */
-export async function getServiceRequest(id: string) {
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
-  if (authResult.error || !authResult.user) {
-    throw new Error(authResult.error || 'Unauthorized');
+export async function getServiceRequest(id: string): Promise<FullServiceRequest> {
+  await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+
+  const request = await db.serviceRequest.findUnique({
+    where: { id },
+    ...FullServiceRequestInclude,
+  });
+
+  if (!request) {
+    throw new Error('messages.error.not_found', { cause: 'SERVICE_REQUEST_NOT_FOUND' });
   }
 
-  try {
-    const request = await db.serviceRequest.findUnique({
-      where: { id },
-      ...FullServiceRequestInclude,
-    });
-
-    if (!request) {
-      return null;
-    }
-
-    return {
-      ...request,
-      requiredDocuments: request.requiredDocuments.map((document) => ({
-        ...document,
-        metadata: JSON.parse(document.metadata as string) as Record<string, unknown>,
-      })),
-    };
-  } catch (error) {
-    console.error('Error fetching service request:', error);
-    throw new Error('Failed to fetch service request');
-  }
+  return {
+    ...request,
+    requiredDocuments: request.requiredDocuments.map((document) => ({
+      ...document,
+      metadata: JSON.parse(document.metadata as string) as Record<string, unknown>,
+    })),
+  };
 }
 
 interface AddNoteInput {
@@ -408,9 +400,6 @@ export async function addServiceRequestNote(input: AddNoteInput) {
 
   try {
     const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
-    if (authResult.error || !authResult.user) {
-      return { error: authResult.error };
-    }
 
     // Récupérer le profil pour avoir l'userId
     const request = await db.serviceRequest.findUnique({

@@ -6,6 +6,7 @@ import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
 import { getOrganizationAgents } from '@/actions/organizations';
 import { getUserFullProfile } from '@/lib/user/getters';
+import { tryCatch } from '@/lib/utils';
 
 interface Props {
   params: { id: string };
@@ -21,7 +22,7 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
-  const request = await getServiceRequest(awaitedParams.id);
+  const { data: request } = await tryCatch(getServiceRequest(awaitedParams.id));
 
   if (!request) {
     return notFound();

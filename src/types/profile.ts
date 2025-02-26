@@ -81,8 +81,7 @@ export type FullUser = Prisma.UserGetPayload<typeof FullUserInclude>;
 export type ProfileKey = keyof FullProfile;
 
 export type AppUserDocument = Omit<UserDocument, 'metadata'> & {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
 };
 
 // Types pour les champs du profil
