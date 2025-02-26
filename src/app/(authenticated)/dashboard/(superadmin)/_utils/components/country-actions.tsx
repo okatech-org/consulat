@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { EditCountryDialog } from './edit-country-dialog';
 import { Country } from '@/types/country';
 import { deleteCountry } from '@/actions/countries';
+import { tryCatch } from '@/lib/utils';
 
 export function CountryActions({ country }: { country: Country }) {
   const t = useTranslations('sa.countries');
@@ -34,7 +35,7 @@ export function CountryActions({ country }: { country: Country }) {
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    const result = await deleteCountry(country.id);
+    const result = await tryCatch(deleteCountry(country.id));
 
     if (result.error) {
       toast({

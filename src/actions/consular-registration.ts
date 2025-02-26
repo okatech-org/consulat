@@ -21,69 +21,62 @@ export async function validateConsularRegistration(
 ) {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
 
-  try {
-    // Si le statut est VALIDATED, générer les informations de la carte
-    const cardData =
-      status === 'VALIDATED'
-        ? {
-            cardNumber: await generateConsularCardNumber(
-              profileId,
-              authResult.user.countryCode,
-            ),
-            cardIssuedAt: new Date(),
-            cardExpiresAt: new Date(
-              Date.now() + validityYears * 365 * 24 * 60 * 60 * 1000,
-            ), // {validityYears} an(s)
-          }
-        : {};
+  // Si le statut est VALIDATED, générer les informations de la carte
+  const cardData =
+    status === 'VALIDATED'
+      ? {
+          cardNumber: await generateConsularCardNumber(
+            profileId,
+            authResult.user.countryCode,
+          ),
+          cardIssuedAt: new Date(),
+          cardExpiresAt: new Date(Date.now() + validityYears * 365 * 24 * 60 * 60 * 1000), // {validityYears} an(s)
+        }
+      : {};
 
-    await db.profile.update({
-      where: { id: profileId },
-      data: {
-        status,
-        ...cardData,
+  await db.profile.update({
+    where: { id: profileId },
+    data: {
+      status,
+      ...cardData,
+    },
+  });
+
+  const updatedRequest = await db.serviceRequest.update({
+    where: { id: requestId },
+    data: {
+      status: 'VALIDATED',
+      lastActionAt: new Date(),
+      lastActionBy: authResult.user.id,
+      actions: {
+        create: {
+          type: 'STATUS_CHANGE',
+          userId: authResult.user.id,
+          data: { status: 'VALIDATED', notes },
+        },
       },
-    });
+    },
+  });
 
-    const updatedRequest = await db.serviceRequest.update({
-      where: { id: requestId },
+  if (notes) {
+    await db.note.create({
       data: {
-        status: 'VALIDATED',
-        lastActionAt: new Date(),
-        lastActionBy: authResult.user.id,
-        actions: {
-          create: {
-            type: 'STATUS_CHANGE',
-            userId: authResult.user.id,
-            data: { status: 'VALIDATED', notes },
-          },
+        content: notes,
+        type: NoteType.INTERNAL,
+        serviceRequest: {
+          connect: { id: requestId },
+        },
+        author: {
+          connect: { id: authResult.user.id },
         },
       },
     });
-
-    if (notes) {
-      await db.note.create({
-        data: {
-          content: notes,
-          type: NoteType.INTERNAL,
-          serviceRequest: {
-            connect: { id: requestId },
-          },
-          author: {
-            connect: { id: authResult.user.id },
-          },
-        },
-      });
-    }
-
-    await updateConsularRegistrationWithNotification(requestId, status, notes);
-
-    revalidatePath(ROUTES.dashboard.requests);
-    return { success: true, data: updatedRequest };
-  } catch (error) {
-    console.error('Error validating consular registration:', error);
-    throw new Error('Failed to validate consular registration');
   }
+
+  await updateConsularRegistrationWithNotification(requestId, status, notes);
+
+  revalidatePath(ROUTES.dashboard.requests);
+  return updatedRequest;
 }
 
 export async function updateConsularRegistrationStatus(

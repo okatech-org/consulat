@@ -5,42 +5,36 @@ import { checkAuth } from '@/lib/auth/action';
 import { RequestStatus } from '@prisma/client';
 
 export async function getAdminStats() {
-  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
-  if (authResult.error) return null;
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
 
-  try {
-    const completedRequests = await db.serviceRequest.count({
-      where: { status: RequestStatus.COMPLETED },
-    });
+  const completedRequests = await db.serviceRequest.count({
+    where: { status: RequestStatus.COMPLETED },
+  });
 
-    const processingRequests = await db.serviceRequest.count({
-      where: {
-        status: {
-          in: [RequestStatus.REVIEW, RequestStatus.ADDITIONAL_INFO_NEEDED],
-        },
+  const processingRequests = await db.serviceRequest.count({
+    where: {
+      status: {
+        in: [RequestStatus.SUBMITTED, RequestStatus.PENDING],
       },
-    });
+    },
+  });
 
-    const validatedProfiles = await db.profile.count({
-      where: { status: RequestStatus.VALIDATED },
-    });
+  const validatedProfiles = await db.profile.count({
+    where: { status: RequestStatus.VALIDATED },
+  });
 
-    const pendingProfiles = await db.profile.count({
-      where: {
-        status: {
-          in: [RequestStatus.SUBMITTED, RequestStatus.REVIEW],
-        },
+  const pendingProfiles = await db.profile.count({
+    where: {
+      status: {
+        in: [RequestStatus.SUBMITTED, RequestStatus.PENDING],
       },
-    });
+    },
+  });
 
-    return {
-      completedRequests,
-      processingRequests,
-      validatedProfiles,
-      pendingProfiles,
-    };
-  } catch (error) {
-    console.error('Error fetching data for admin dashboard:', error);
-    return null;
-  }
+  return {
+    completedRequests,
+    processingRequests,
+    validatedProfiles,
+    pendingProfiles,
+  };
 }

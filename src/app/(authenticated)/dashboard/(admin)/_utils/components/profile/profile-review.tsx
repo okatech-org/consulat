@@ -14,6 +14,7 @@ import {
   calculateProfileCompletion,
   useDateLocale,
   getProfileFieldsStatus,
+  tryCatch,
 } from '@/lib/utils';
 import { FullServiceRequest } from '@/types/service-request';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
@@ -244,12 +245,14 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                     className="w-full"
                     onClick={async () => {
                       setIsLoading(true);
-                      await validateConsularRegistration(
-                        request.id,
-                        profile.id,
-                        'VALIDATED',
-                        1,
-                        validationNotes,
+                      await tryCatch(
+                        validateConsularRegistration(
+                          request.id,
+                          profile.id,
+                          'VALIDATED',
+                          1,
+                          validationNotes,
+                        ),
                       );
                       setIsLoading(false);
                     }}

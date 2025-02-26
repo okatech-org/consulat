@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import { createCountry } from '@/actions/countries';
 import { CountrySchemaInput } from '@/schemas/country';
+import { tryCatch } from '@/lib/utils';
 
 export function CreateCountryDialog() {
   const t = useTranslations('sa.countries');
@@ -22,7 +23,7 @@ export function CreateCountryDialog() {
   const [open, setOpen] = useState(false);
 
   const handleSubmit = async (data: CountrySchemaInput) => {
-    const result = await createCountry(data);
+    const result = await tryCatch(createCountry(data));
 
     if (result.error) {
       toast({
