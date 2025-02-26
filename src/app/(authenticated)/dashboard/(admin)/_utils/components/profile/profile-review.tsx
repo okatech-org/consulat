@@ -219,6 +219,8 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                         {option.label}{' '}
                         {!isCompleted &&
                           reason &&
+                          // TODO: fix this , create a new translation key for the reason
+                          // @ts-expect-error - reason is a string
                           `(${t(`admin.registrations.review.transitions.${reason}`)})`}
                         {isCompleted && `(${t('common.status.completed')})`}
                       </SelectItem>

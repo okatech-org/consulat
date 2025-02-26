@@ -122,6 +122,7 @@ export default {
         issued_at: 'Délivré le',
         expires_at: 'Expire le',
         valid: 'Valide',
+        identity_photo: "Photo d'identité",
         validation: {
           title: 'Validation du document - {type}',
           notes_placeholder:

@@ -61,6 +61,11 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
       label: t_review('documents.address_proof'),
       document: profile.addressProof,
     },
+    {
+      type: DocumentType.IDENTITY_PHOTO,
+      label: t_review('documents.identity_photo'),
+      document: profile.identityPicture,
+    },
   ];
 
   const [selectedDocument, setSelectedDocument] = useState<{
@@ -115,6 +120,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
               {document && (
                 <>
                   <Badge variant={document.status.toLowerCase() as BadgeVariant}>
+                    {/** @ts-expect-error - document.status is a string */}
                     {t(`status.${document.status.toLowerCase()}`)}
                   </Badge>
                   <DocumentPreview
