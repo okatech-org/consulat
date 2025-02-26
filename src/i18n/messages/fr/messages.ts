@@ -147,4 +147,13 @@ export default {
       },
     },
   },
+  documents: {
+    notifications: {
+      rejected: {
+        title: 'Document rejected',
+        message_with_notes: 'Your document has been rejected. Reason: {notes}',
+        message_default: 'Your document has been rejected. Please submit a new document.',
+      },
+    },
+  },
 } as const;

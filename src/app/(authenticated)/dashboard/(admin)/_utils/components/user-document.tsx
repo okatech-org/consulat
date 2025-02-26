@@ -75,7 +75,7 @@ export function UserDocument({
   const handleDelete = async (documentId: string) => {
     try {
       setIsLoading(true);
-      const result = await deleteUserDocument(documentId);
+      const result = await tryCatch(deleteUserDocument(documentId));
 
       if (result.error) {
         throw new Error(result.error);

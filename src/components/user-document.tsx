@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, tryCatch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -75,15 +75,13 @@ export function UserDocument({
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const router = useRouter();
 
+  console.log({ document });
+
   const handleDelete = async (documentId: string) => {
-    try {
-      setIsLoading(true);
-      const result = await deleteUserDocument(documentId);
+    setIsLoading(true);
+    const result = await tryCatch(deleteUserDocument(documentId));
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
+    if (result.data) {
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
@@ -91,29 +89,36 @@ export function UserDocument({
       });
 
       router.refresh();
-    } catch (error) {
-      console.error('Delete error:', error);
+    }
+
+    if (result.error) {
+      console.error('Delete error:', result.error);
       toast({
         title: t_messages('errors.update_failed'),
-        description:
-          error instanceof Error ? error.message : t_messages('errors.unknown'),
+        description: result.error.message,
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   const handleUpload = useCallback(
     async (type: DocumentType, file: FormData) => {
-      try {
-        setIsLoading(true);
-        const result = await createUserDocument(type, file, profileId);
+      setIsLoading(true);
 
-        if (result.error) {
-          throw new Error(result.error);
-        }
+      const result = await tryCatch(createUserDocument(type, file, profileId));
 
+      if (result.error) {
+        console.error('Upload error:', result.error);
+        toast({
+          title: t_messages('errors.update_failed'),
+          description: result.error.message,
+          variant: 'destructive',
+        });
+      }
+
+      if (result.data) {
         toast({
           title: t_messages('success.update_title'),
           description: t_messages('success.update_description'),
@@ -121,17 +126,9 @@ export function UserDocument({
         });
 
         router.refresh();
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast({
-          title: t_messages('errors.update_failed'),
-          description:
-            error instanceof Error ? error.message : t_messages('errors.unknown'),
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
       }
+
+      setIsLoading(false);
     },
     [profileId, toast, t_messages, router],
   );
@@ -255,6 +252,7 @@ export function UserDocument({
     };
     return (
       <Badge className={'min-w-max'} variant={variants[status]}>
+        {/* @ts-expect-error - status is a DocumentStatus */}
         {t(`status.${status.toLowerCase()}`)}
       </Badge>
     );

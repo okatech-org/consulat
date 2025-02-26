@@ -10,6 +10,7 @@ import { db } from '@/lib/prisma';
 import { DocumentStatus, UserDocument } from '@prisma/client';
 import { AppUserDocument } from '@/types';
 import { checkAuth } from '@/lib/auth/action';
+import { getTranslations } from 'next-intl/server';
 
 // Types
 interface DocumentAnalysisResult {
@@ -407,8 +408,9 @@ interface ValidateDocumentInput {
 
 export async function validateDocument(input: ValidateDocumentInput) {
   const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
+  const t = await getTranslations('messages.documents');
 
-  return db.userDocument.update({
+  const updatedDocument = await db.userDocument.update({
     where: { id: input.documentId },
     data: {
       status: input.status,
@@ -422,4 +424,21 @@ export async function validateDocument(input: ValidateDocumentInput) {
       user: true,
     },
   });
+
+  // Send notification if document is rejected
+  if (input.status === 'REJECTED' && updatedDocument.user) {
+    await db.notification.create({
+      data: {
+        type: 'DOCUMENT_REJECTED',
+        title: t('notifications.rejected.title'),
+        message: input.notes
+          ? t('notifications.rejected.message_with_notes', { notes: input.notes })
+          : t('notifications.rejected.message_default'),
+        userId: updatedDocument.user.id,
+        status: 'PENDING',
+      },
+    });
+  }
+
+  return updatedDocument;
 }

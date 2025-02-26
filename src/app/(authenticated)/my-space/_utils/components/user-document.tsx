@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
-import { cn, useDateLocale } from '@/lib/utils';
+import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -73,7 +73,7 @@ export function UserDocument({
   const handleDelete = async (documentId: string) => {
     try {
       setIsLoading(true);
-      const result = await deleteUserDocument(documentId);
+      const result = await tryCatch(deleteUserDocument(documentId));
 
       if (result.error) {
         throw new Error(result.error);
