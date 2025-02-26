@@ -37,6 +37,7 @@ import { useTabs } from '@/hooks/use-tabs';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { DaySchedule } from './day-schedule';
 import { updateOrganizationSettings } from '@/actions/organizations';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface OrganizationSettingsProps {
   organization: Organization;
@@ -234,7 +235,7 @@ export function OrganizationSettings({
             <TabsContent key={country.id} value={country.code} className={'space-y-4'}>
               <CardContainer
                 title={t('settings.configForCountry', {
-                  country: t_countries(country.code.toLowerCase()),
+                  country: t_countries(country.code as CountryCode),
                 })}
               >
                 <div className={'space-y-6'}>
