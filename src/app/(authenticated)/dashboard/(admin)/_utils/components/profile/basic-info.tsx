@@ -1,16 +1,15 @@
 import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { CountryCode } from '@/lib/autocomplete-datas';
-
+import { useDateLocale } from '@/lib/utils';
 interface ProfileBasicInfoProps {
   profile: FullProfile;
 }
 
 export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
+  const { formatDate } = useDateLocale();
   const t = useTranslations('admin.registrations.review');
   const t_countries = useTranslations('countries');
 
@@ -22,7 +21,7 @@ export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
     },
     {
       label: t('fields.birth_date'),
-      value: format(new Date(profile.birthDate), 'PPP', { locale: fr }),
+      value: formatDate(profile.birthDate),
       isValid: !!profile.birthDate,
     },
     {

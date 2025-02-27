@@ -242,7 +242,6 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
               <InfoField
                 label={t('form.card_pin.label')}
                 value={profile.cardPin}
-                required
                 className={'col-span-2'}
               />
             </div>
