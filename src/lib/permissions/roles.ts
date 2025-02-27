@@ -279,7 +279,7 @@ export const ROLES: RolesConfig = {
     },
     parentalAuthorities: {
       view: (user, authority) =>
-        authority.parentProfile.organizationId === user.organizationId,
+        authority.parentProfile?.organizationId === user.organizationId,
     },
   },
 };

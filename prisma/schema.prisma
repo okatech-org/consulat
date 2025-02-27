@@ -96,6 +96,9 @@ model User {
   completedRequests Int @default(0)
   averageProcessingTime Float?
 
+  // parent authority fields
+  childAuthorities ParentalAuthority[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([roles])
@@ -250,15 +253,13 @@ enum ParentalRole {
 
 model Profile {
   id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Nouvelle propriété pour la catégorie du profil
   category ProfileCategory @default(ADULT)
 
-  // Relations parentales
-  parentAuthorities ParentalAuthority[] @relation("ParentProfiles")
-  childAuthorities  ParentalAuthority[] @relation("ChildProfiles")
+  parentAuthorities ParentalAuthority[]
   
   // Relation pour les demandes effectuées pour ce profil
   requestsFor ServiceRequest[] @relation("RequestedFor")
@@ -836,12 +837,11 @@ model RequestAction {
 // Nouveau modèle pour gérer l'autorité parentale
 model ParentalAuthority {
   id             String       @id @default(cuid())
-  parentProfile  Profile      @relation("ParentProfiles", fields: [parentProfileId], references: [id])
-  parentProfileId String
-  childProfile   Profile      @relation("ChildProfiles", fields: [childProfileId], references: [id])
-  childProfileId  String
+  profile        Profile      @relation(fields: [profileId], references: [id])
+  profileId      String
   role           ParentalRole
   isActive       Boolean      @default(true)
+  parentUsers     User[]
   
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -849,7 +849,6 @@ model ParentalAuthority {
   // Partage des demandes de service avec l'autre parent
   sharedRequests ServiceRequest[] @relation("SharedWithParents")
   
-  @@unique([parentProfileId, childProfileId, role])
-  @@index([parentProfileId])
-  @@index([childProfileId])
+  @@unique([profileId, role])
+  @@index([profileId])
 }
