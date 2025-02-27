@@ -237,10 +237,31 @@ enum NoteType {
   FEEDBACK
 }
 
+enum ProfileCategory {
+  ADULT    // Parent ou tuteur légal
+  MINOR    // Enfant de moins de 18 ans
+}
+
+enum ParentalRole {
+  FATHER
+  MOTHER
+  LEGAL_GUARDIAN
+}
+
 model Profile {
   id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Nouvelle propriété pour la catégorie du profil
+  category ProfileCategory @default(ADULT)
+
+  // Relations parentales
+  parentAuthorities ParentalAuthority[] @relation("ParentProfiles")
+  childAuthorities  ParentalAuthority[] @relation("ChildProfiles")
+  
+  // Relation pour les demandes effectuées pour ce profil
+  requestsFor ServiceRequest[] @relation("RequestedFor")
 
   // Informations personnelles
   firstName              String
@@ -502,6 +523,13 @@ model ServiceRequest {
   submittedById String
   serviceCategory ServiceCategory
 
+  // Nouveau champ pour identifier pour qui la demande est faite
+  requestedFor   Profile?  @relation("RequestedFor", fields: [requestedForId], references: [id])
+  requestedForId String?
+  
+  // Relation pour partager avec d'autres parents
+  sharedWith     ParentalAuthority[] @relation("SharedWithParents")
+
   // Add organization relation
   organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
@@ -559,6 +587,7 @@ model ServiceRequest {
   @@index([status])
   @@index([lastActionAt])
   @@index([deadline])
+  @@index([requestedForId])
 }
 
 // Modèle pour les rendez-vous
@@ -802,4 +831,25 @@ model RequestAction {
   @@index([requestId])
   @@index([userId])
   @@index([createdAt])
+}
+
+// Nouveau modèle pour gérer l'autorité parentale
+model ParentalAuthority {
+  id             String       @id @default(cuid())
+  parentProfile  Profile      @relation("ParentProfiles", fields: [parentProfileId], references: [id])
+  parentProfileId String
+  childProfile   Profile      @relation("ChildProfiles", fields: [childProfileId], references: [id])
+  childProfileId  String
+  role           ParentalRole
+  isActive       Boolean      @default(true)
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  // Partage des demandes de service avec l'autre parent
+  sharedRequests ServiceRequest[] @relation("SharedWithParents")
+  
+  @@unique([parentProfileId, childProfileId, role])
+  @@index([parentProfileId])
+  @@index([childProfileId])
 }

@@ -131,6 +131,11 @@ export const profileFields: ProfileField[] = [
     category: 'basic',
     required: true,
   },
+  {
+    key: 'cardPin',
+    type: 'text',
+    category: 'basic',
+  },
 
   // Contact
   {
