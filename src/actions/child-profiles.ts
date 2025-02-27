@@ -1,6 +1,7 @@
 import { PrismaClient, ProfileCategory, ParentalRole } from '@prisma/client';
 import { FullProfileInclude } from '@/types/profile';
 import { createParentalAuthority } from './parental-authority';
+import { hasPermission } from '@/lib/permissions/utils';
 
 // Instance de Prisma
 const prisma = new PrismaClient();
@@ -146,14 +147,51 @@ export async function getChildProfilesByParent(parentProfileId: string) {
 export async function canAccessChildProfile(
   parentProfileId: string,
   childProfileId: string,
+  userId?: string,
 ) {
-  const authority = await prisma.parentalAuthority.findFirst({
-    where: {
-      parentProfileId,
-      childProfileId,
-      isActive: true,
+  if (!userId) {
+    // Si l'userId n'est pas fourni, utilise l'ancienne méthode de vérification
+    const authority = await prisma.parentalAuthority.findFirst({
+      where: {
+        parentProfileId,
+        childProfileId,
+        isActive: true,
+      },
+    });
+
+    return !!authority;
+  }
+
+  // Utiliser le système de permissions si l'userId est fourni
+  // Récupérer l'utilisateur avec ses rôles
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { profile: true },
+  });
+
+  if (!user) {
+    return false;
+  }
+
+  // Récupérer le profil de l'enfant avec ses relations parentales
+  const childProfile = await prisma.profile.findUnique({
+    where: { id: childProfileId },
+    include: {
+      parentAuthorities: {
+        where: {
+          isActive: true,
+        },
+        include: {
+          parentProfile: true,
+        },
+      },
     },
   });
 
-  return !!authority;
+  if (!childProfile) {
+    return false;
+  }
+
+  // Vérifier les autorisations
+  return hasPermission(user, 'profiles', 'viewChild', childProfile);
 }

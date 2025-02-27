@@ -7,12 +7,22 @@ import {
   ConsularService,
   UserDocument,
   UserRole,
+  ParentalAuthority,
 } from '@prisma/client';
 
 export type ResourceType = {
   profiles: {
     dataType: Profile;
-    action: 'view' | 'create' | 'update' | 'delete' | 'validate';
+    action:
+      | 'view'
+      | 'create'
+      | 'update'
+      | 'delete'
+      | 'validate'
+      | 'viewChild'
+      | 'createChild'
+      | 'updateChild'
+      | 'deleteChild';
   };
   appointments: {
     dataType: Appointment;
@@ -44,6 +54,13 @@ export type ResourceType = {
   };
   users: {
     dataType: User;
+    action: 'view' | 'create' | 'update' | 'delete' | 'manage';
+  };
+  parentalAuthorities: {
+    dataType: ParentalAuthority & {
+      parentProfile?: Profile;
+      childProfile?: Profile;
+    };
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
   };
 };

@@ -6,6 +6,7 @@ import {
   UpdateParentalAuthorityParams,
 } from '@/types/parental-authority';
 import { ProfileCategory } from '@prisma/client';
+import { hasPermission } from '@/lib/permissions/utils';
 
 // Instance de Prisma
 const prisma = new PrismaClient();
@@ -148,14 +149,38 @@ export async function getParentalAuthoritiesByChild(childProfileId: string) {
 export async function hasParentalAuthority(
   parentProfileId: string,
   childProfileId: string,
+  userId: string,
 ) {
-  const authority = await prisma.parentalAuthority.findFirst({
-    where: {
-      parentProfileId,
-      childProfileId,
-      isActive: true,
+  // On récupère l'utilisateur avec son profil
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { profile: true },
+  });
+
+  if (!user || !user.profile) {
+    return false;
+  }
+
+  // Récupérer le profil de l'enfant
+  const childProfile = await prisma.profile.findUnique({
+    where: { id: childProfileId },
+    include: {
+      parentAuthorities: {
+        where: {
+          parentProfileId,
+          isActive: true,
+        },
+        include: {
+          parentProfile: true,
+        },
+      },
     },
   });
 
-  return !!authority;
+  if (!childProfile) {
+    return false;
+  }
+
+  // Vérifier l'autorisation à l'aide du système de permissions
+  return hasPermission(user, 'profiles', 'viewChild', childProfile);
 }
