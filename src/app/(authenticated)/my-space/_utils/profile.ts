@@ -1,7 +1,7 @@
 'use server';
 
 import { getTranslations } from 'next-intl/server';
-import { ActionResult } from '@/lib/auth/action';
+import { ActionResult, checkAuth } from '@/lib/auth/action';
 import {
   DocumentStatus,
   DocumentType,
@@ -25,18 +25,12 @@ import { deleteFiles } from '@/actions/uploads';
 import { calculateProfileCompletion, extractNumber } from '@/lib/utils';
 import { getRegistrationServiceForUser } from './actions/actions';
 
-export async function postProfile(
-  formData: FormData,
-): Promise<ActionResult<{ id: string }>> {
+export async function postProfile(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
 
   try {
     const t = await getTranslations('messages.profile');
-    const user = await getCurrentUser();
-
-    if (!user) {
-      return { error: t('errors.unauthorized') };
-    }
+    const currentUser = await checkAuth();
 
     // Récupérer et parser les données du formulaire
     const basicInfo = JSON.parse(formData.get('basicInfo') as string);
@@ -126,7 +120,7 @@ export async function postProfile(
 
       const profile = await tx.profile.create({
         data: {
-          userId: user.id,
+          userId: currentUser.user.id,
           // Informations de base
           firstName: basicInfo.firstName,
           lastName: basicInfo.lastName,
@@ -194,7 +188,7 @@ export async function postProfile(
           data: {
             type: DocumentType.PASSPORT,
             fileUrl: passport.url,
-            userId: user.id,
+            userId: currentUser.user.id,
             issuedAt: new Date(basicInfo.passportIssueDate),
             expiresAt: new Date(basicInfo.passportExpiryDate ?? inFiveYears),
             metadata: {
@@ -229,7 +223,7 @@ export async function postProfile(
               create: {
                 type: DocumentType.BIRTH_CERTIFICATE,
                 fileUrl: birthCertificate.url,
-                userId: user.id,
+                userId: currentUser.user.id,
               },
             },
           },
@@ -245,7 +239,7 @@ export async function postProfile(
               create: {
                 type: DocumentType.IDENTITY_PHOTO,
                 fileUrl: identityPicture.url,
-                userId: user.id,
+                userId: currentUser.user.id,
               },
             },
           },
@@ -263,7 +257,7 @@ export async function postProfile(
                 fileUrl: residencePermit.url,
                 issuedAt: now,
                 expiresAt: inOneYear,
-                userId: user.id,
+                userId: currentUser.user.id,
               },
             },
           },
@@ -281,7 +275,7 @@ export async function postProfile(
                 fileUrl: addressProof.url,
                 issuedAt: now,
                 expiresAt: inThreeMonths,
-                userId: user.id,
+                userId: currentUser.user.id,
               },
             },
           },
@@ -293,13 +287,15 @@ export async function postProfile(
 
     const profileCompletion = await calculateProfileCompletion(profile);
 
-    if (profileCompletion === 100 && user.countryCode) {
-      const registrationService = await getRegistrationServiceForUser(user.countryCode);
+    if (profileCompletion === 100 && currentUser.user.countryCode) {
+      const registrationService = await getRegistrationServiceForUser(
+        currentUser.user.countryCode,
+      );
 
       if (registrationService) {
         await db.serviceRequest.create({
           data: {
-            submittedById: user.id,
+            submittedById: currentUser.user.id,
             serviceId: registrationService.id,
           },
         });
@@ -317,7 +313,7 @@ export async function postProfile(
     // Revalider les pages
     revalidatePath(ROUTES.user.base);
 
-    return { data: { id: profile.id } };
+    return profile.id;
   } catch (error) {
     if (uploadedFiles.length > 0) {
       try {
@@ -327,10 +323,7 @@ export async function postProfile(
       }
     }
 
-    console.error('Profile creation error:', error);
-    return {
-      error: error instanceof Error ? error.message : 'messages.errors.unknown_error',
-    };
+    throw error;
   }
 }
 

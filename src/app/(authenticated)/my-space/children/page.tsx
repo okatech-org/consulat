@@ -27,7 +27,7 @@ export default async function ChildrenPage() {
         action={
           <Button asChild size="sm">
             <Link href="/my-space/children/new">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="size-icon" />
               {t('add_child')}
             </Link>
           </Button>

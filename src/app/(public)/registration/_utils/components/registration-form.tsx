@@ -19,8 +19,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
+import { tryCatch } from '@/lib/utils';
 
-export function RegistrationForm() {
+export function RegistrationForm({
+  handleSubmitProfile,
+}: {
+  handleSubmitProfile: (data: FormData) => Promise<{
+    error?: string;
+    data?: string;
+  }>;
+}) {
   const router = useRouter();
   const t = useTranslations('registration');
   const { toast } = useToast();
@@ -176,7 +184,7 @@ export function RegistrationForm() {
         JSON.stringify(forms.professionalInfo.getValues()),
       );
 
-      const result = await postProfile(formDataToSend);
+      const result = await handleSubmitProfile(formDataToSend);
 
       if (result.error) {
         throw new FormError(result.error);
@@ -301,4 +309,14 @@ export function RegistrationForm() {
       />
     </div>
   );
+}
+
+export function RegistrationFormWrapper() {
+  const handleSubmitProfile = async (formDataToSend: FormData) => {
+    const result = await tryCatch(postProfile(formDataToSend));
+
+    return result;
+  };
+
+  return <RegistrationForm handleSubmitProfile={handleSubmitProfile} />;
 }

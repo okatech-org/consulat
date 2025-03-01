@@ -438,3 +438,68 @@ html {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+
+.notification-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.notification-item.unread {
+  border-left: 4px solid #3b82f6;
+  background-color: #f0f9ff;
+}
+
+.notification-item.read {
+  opacity: 0.7;
+}
+
+.notification-badge {
+  background-color: #ef4444;
+  color: white;
+  border-radius: 9999px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Dans votre fichier CSS global ou un fichier de style pour le composant Sidebar */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #f3f4f6;
+}
+
+.sidebar-link .notification-badge {
+  margin-left: 0.5rem;
+}
+
+@keyframes bell-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-bell-ring {
+  animation: bell-ring 0.5s ease-in-out;
+}

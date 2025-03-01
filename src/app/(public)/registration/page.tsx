@@ -1,4 +1,4 @@
-import { RegistrationForm } from '@/app/(public)/registration/_utils/components/form';
+import { RegistrationForm } from '@/app/(public)/registration/_utils/components/registration-form';
 import { auth } from '@/auth';
 import { SessionProvider } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
@@ -16,7 +16,7 @@ export default async function RegistrationPage() {
       <RouteAuthGuard
         fallbackUrl={fallbackUrl}
         roles={[UserRole.USER]}
-        currentUserRole={session?.user?.role}
+        currentUserRole={session?.user?.roles[0]}
       >
         <main
           className={
