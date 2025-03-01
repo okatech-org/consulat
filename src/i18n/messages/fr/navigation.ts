@@ -11,6 +11,7 @@ export default {
     notifications: 'Notifications',
     settings: 'Paramètres',
     'my-space': 'Mon espace',
+    children: 'Mes enfants',
   },
   dashboard: {
     title: 'Tableau de bord',
