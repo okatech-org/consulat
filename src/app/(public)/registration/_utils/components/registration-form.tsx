@@ -25,7 +25,8 @@ export function RegistrationForm({
   handleSubmitProfile,
 }: {
   handleSubmitProfile: (data: FormData) => Promise<{
-    error?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error?: any;
     data?: string;
   }>;
 }) {
