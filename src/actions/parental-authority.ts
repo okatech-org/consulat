@@ -1,11 +1,9 @@
-import { PrismaClient, ParentalRole, ProfileCategory } from '@prisma/client';
+import { PrismaClient, ProfileCategory } from '@prisma/client';
 import {
-  BaseParentalAuthorityInclude,
   FullParentalAuthorityInclude,
   type CreateParentalAuthorityParams,
   type UpdateParentalAuthorityParams,
 } from '@/types/parental-authority';
-import { hasPermission } from '@/lib/permissions/utils';
 
 // Instance Prisma
 const prisma = new PrismaClient();
@@ -53,43 +51,36 @@ export async function createParentalAuthority(data: CreateParentalAuthorityParam
   });
 
   if (existingAuthority) {
-    // Vérifier si l'utilisateur parent est déjà associé à cette autorité
-    const parentUserInAuthority = await prisma.$queryRaw`
-      SELECT * FROM "_ParentalAuthorityToUser" 
-      WHERE "A" = ${existingAuthority.id} AND "B" = ${parentUserId}
-    `;
-
-    if (Array.isArray(parentUserInAuthority) && parentUserInAuthority.length > 0) {
-      throw new Error('Cette relation parent-enfant existe déjà');
-    }
-
     // Si l'autorité existe mais que cet utilisateur n'y est pas associé, l'ajouter
-    await prisma.$executeRaw`
-      INSERT INTO "_ParentalAuthorityToUser" ("A", "B") 
-      VALUES (${existingAuthority.id}, ${parentUserId})
-    `;
-
-    // Récupérer l'autorité parentale mise à jour
-    return prisma.parentalAuthority.findUnique({
+    return prisma.parentalAuthority.update({
       where: { id: existingAuthority.id },
-      include: FullParentalAuthorityInclude.include,
+      data: {
+        parentUsers: {
+          connect: { id: parentUserId },
+        },
+      },
+      include: {
+        ...FullParentalAuthorityInclude,
+      },
     });
   }
 
   // 4. Créer une nouvelle autorité parentale
-  const newAuthority = await prisma.parentalAuthority.create({
+  return prisma.parentalAuthority.create({
     data: {
-      profileId,
+      profile: {
+        connect: { id: profileId },
+      },
       role,
       isActive,
       parentUsers: {
         connect: { id: parentUserId },
       },
     },
-    include: FullParentalAuthorityInclude.include,
+    include: {
+      ...FullParentalAuthorityInclude,
+    },
   });
-
-  return newAuthority;
 }
 
 /**
@@ -111,11 +102,10 @@ export async function updateParentalAuthority(
   // Mettre à jour l'autorité parentale
   return prisma.parentalAuthority.update({
     where: { id },
-    data: {
-      role: data.role,
-      isActive: data.isActive,
+    data,
+    include: {
+      ...FullParentalAuthorityInclude,
     },
-    include: FullParentalAuthorityInclude.include,
   });
 }
 
@@ -176,7 +166,9 @@ export async function addParentUserToAuthority(
         connect: { id: parentUserId },
       },
     },
-    include: FullParentalAuthorityInclude.include,
+    include: {
+      ...FullParentalAuthorityInclude,
+    },
   });
 }
 
@@ -215,7 +207,9 @@ export async function removeParentUserFromAuthority(
         disconnect: { id: parentUserId },
       },
     },
-    include: FullParentalAuthorityInclude.include,
+    include: {
+      ...FullParentalAuthorityInclude,
+    },
   });
 }
 
@@ -225,7 +219,9 @@ export async function removeParentUserFromAuthority(
 export async function getParentalAuthorityById(id: string) {
   return prisma.parentalAuthority.findUnique({
     where: { id },
-    include: FullParentalAuthorityInclude.include,
+    include: {
+      ...FullParentalAuthorityInclude,
+    },
   });
 }
 
@@ -252,7 +248,9 @@ export async function getParentalAuthoritiesByParentUser(parentUserId: string) {
       },
       isActive: true,
     },
-    include: FullParentalAuthorityInclude.include,
+    include: {
+      ...FullParentalAuthorityInclude,
+    },
   });
 }
 
@@ -265,7 +263,9 @@ export async function getParentalAuthoritiesByChild(profileId: string) {
       profileId,
       isActive: true,
     },
-    include: FullParentalAuthorityInclude.include,
+    include: {
+      ...FullParentalAuthorityInclude,
+    },
   });
 }
 
