@@ -1,21 +1,22 @@
-import { PrismaClient, ServiceCategory, ServicePriority } from '@prisma/client';
-import { getParentalAuthoritiesByChild } from './parental-authority';
-import { hasPermission } from '@/lib/permissions/utils';
+import {
+  PrismaClient,
+  ServiceCategory,
+  ServicePriority,
+  NotificationType,
+} from '@prisma/client';
+import { canAccessChildProfile } from './child-profiles';
 
 // Instance de Prisma
 const prisma = new PrismaClient();
 
 interface CreateChildServiceRequestParams {
-  // Informations sur la demande
   serviceId: string;
-  submittedById: string; // ID de l'utilisateur (parent) qui fait la demande
-  childProfileId: string; // ID du profil de l'enfant concerné
+  submittedById: string; // ID de l'utilisateur parent qui fait la demande
+  childProfileId: string; // ID du profil enfant pour lequel la demande est faite
   serviceCategory: ServiceCategory;
-  priority?: ServicePriority;
+  priority: ServicePriority;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formData?: any; // Nécessaire pour la compatibilité avec le type Json de Prisma
-
-  // Informations sur l'organisation
+  formData: any; // Données du formulaire (compatible avec Prisma JSON)
   organizationId?: string;
 }
 
@@ -23,117 +24,99 @@ interface CreateChildServiceRequestParams {
  * Crée une demande de service pour un enfant et la partage avec les autres parents
  */
 export async function createChildServiceRequest(data: CreateChildServiceRequestParams) {
-  // 1. Récupérer le profil du parent qui fait la demande
-  const parentUser = await prisma.user.findUnique({
-    where: { id: data.submittedById },
-    include: { profile: true },
-  });
+  // 1. Vérifier que l'utilisateur parent a l'autorité sur l'enfant
+  const hasAuthority = await canAccessChildProfile(
+    data.submittedById,
+    data.childProfileId,
+  );
 
-  if (!parentUser || !parentUser.profile) {
-    throw new Error('Utilisateur ou profil introuvable');
+  if (!hasAuthority) {
+    throw new Error("Vous n'avez pas l'autorité parentale sur cet enfant");
   }
 
-  // 2. Vérifier que le parent a l'autorité parentale sur l'enfant
-  // Utiliser le système de permissions
+  // 2. Récupérer le profil de l'enfant pour vérifier qu'il existe
   const childProfile = await prisma.profile.findUnique({
     where: { id: data.childProfileId },
-    include: {
-      parentAuthorities: {
-        where: {
-          isActive: true,
-        },
-        include: {
-          parentProfile: true,
-        },
-      },
-    },
   });
 
   if (!childProfile) {
     throw new Error('Profil enfant introuvable');
   }
 
-  // Vérifier l'autorisation avec le système de permissions
-  const hasAuthority = hasPermission(parentUser, 'profiles', 'viewChild', childProfile);
-
-  if (!hasAuthority) {
-    throw new Error("Vous n'avez pas l'autorité parentale sur cet enfant");
-  }
-
-  // 4. Créer la demande de service
+  // 3. Créer la demande de service
   const serviceRequest = await prisma.serviceRequest.create({
     data: {
       serviceId: data.serviceId,
       submittedById: data.submittedById,
       requestedForId: data.childProfileId,
       serviceCategory: data.serviceCategory,
-      priority: data.priority || 'STANDARD',
-      formData: data.formData || {},
+      priority: data.priority,
+      formData: data.formData,
       organizationId: data.organizationId,
-      submittedAt: new Date(),
     },
     include: {
       service: true,
-      submittedBy: {
+      submittedBy: true,
+      requestedFor: true,
+    },
+  });
+
+  // 4. Récupérer tous les autres parents de l'enfant pour partager la demande
+  const parentalAuthorities = await prisma.parentalAuthority.findMany({
+    where: {
+      profileId: data.childProfileId,
+      isActive: true,
+    },
+    include: {
+      parentUsers: {
         select: {
           id: true,
           name: true,
           email: true,
         },
       },
-      requestedFor: true,
     },
   });
 
-  // 5. Récupérer tous les autres parents de l'enfant pour partager la demande
-  const parentalAuthorities = await getParentalAuthoritiesByChild(data.childProfileId);
+  // 5. Partager la demande avec les autres parents et envoyer des notifications
+  for (const authority of parentalAuthorities) {
+    for (const parentUser of authority.parentUsers) {
+      // Ne pas partager avec l'utilisateur qui fait la demande
+      if (parentUser.id === data.submittedById) {
+        continue;
+      }
 
-  // 6. Partager la demande avec tous les parents (sauf celui qui a fait la demande)
-  const otherParentAuthorities = parentalAuthorities.filter(
-    (authority) => authority.parentProfileId !== parentUser.profile?.id,
-  );
-
-  if (otherParentAuthorities.length > 0) {
-    // Créer les relations de partage entre la demande et les autres parents
-    await Promise.all(
-      otherParentAuthorities.map((authority) =>
-        prisma.serviceRequest.update({
-          where: { id: serviceRequest.id },
-          data: {
-            sharedWith: {
-              connect: { id: authority.id },
-            },
+      // Partager la demande
+      await prisma.parentalAuthority.update({
+        where: { id: authority.id },
+        data: {
+          sharedRequests: {
+            connect: { id: serviceRequest.id },
           },
-        }),
-      ),
-    );
+        },
+      });
 
-    // 7. Créer des notifications pour les autres parents
-    await Promise.all(
-      otherParentAuthorities.map(async (authority) => {
-        const parentUser = await prisma.profile.findUnique({
-          where: { id: authority.parentProfileId },
-          include: { user: true },
-        });
+      // Envoyer une notification
+      // Récupérer le nom du parent qui a fait la demande
+      const submittingParent = await prisma.user.findUnique({
+        where: { id: data.submittedById },
+        select: { name: true },
+      });
 
-        if (parentUser?.user) {
-          const service = await prisma.consularService.findUnique({
-            where: { id: serviceRequest.serviceId },
-            select: { name: true },
-          });
+      // Récupérer le nom du service
+      const serviceName = serviceRequest.service?.name || 'service consulaire';
 
-          return prisma.notification.create({
-            data: {
-              type: 'REQUEST_SUBMITTED',
-              title: 'Nouvelle demande pour votre enfant',
-              message: `Une demande de ${service?.name || 'service consulaire'} a été soumise pour ${childProfile.firstName} ${childProfile.lastName}`,
-              userId: parentUser.user.id,
-              profileId: authority.parentProfileId,
-            },
-          });
-        }
-      }),
-    );
+      // Créer la notification
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.REQUEST_SUBMITTED,
+          title: 'Nouvelle demande pour votre enfant',
+          message: `${submittingParent?.name || 'Un parent'} a soumis une demande de ${serviceName} pour votre enfant ${childProfile.firstName} ${childProfile.lastName}.`,
+          userId: parentUser.id,
+          profileId: data.childProfileId,
+        },
+      });
+    }
   }
 
   return serviceRequest;
@@ -142,22 +125,30 @@ export async function createChildServiceRequest(data: CreateChildServiceRequestP
 /**
  * Récupère toutes les demandes de service pour les enfants d'un parent
  */
-export async function getChildServiceRequestsByParent(parentProfileId: string) {
-  // 1. Récupérer tous les enfants du parent
-  const childProfiles = await prisma.parentalAuthority.findMany({
+export async function getChildServiceRequestsByParent(parentUserId: string) {
+  // 1. Récupérer tous les profils enfants du parent
+  const parentalAuthorities = await prisma.parentalAuthority.findMany({
     where: {
-      parentProfileId,
+      parentUsers: {
+        some: {
+          id: parentUserId,
+        },
+      },
       isActive: true,
     },
     select: {
-      childProfileId: true,
+      profileId: true,
     },
   });
 
-  const childProfileIds = childProfiles.map((cp) => cp.childProfileId);
+  const childProfileIds = parentalAuthorities.map((authority) => authority.profileId);
 
   // 2. Récupérer toutes les demandes pour ces enfants
-  return prisma.serviceRequest.findMany({
+  if (childProfileIds.length === 0) {
+    return [];
+  }
+
+  const serviceRequests = await prisma.serviceRequest.findMany({
     where: {
       requestedForId: {
         in: childProfileIds,
@@ -172,69 +163,32 @@ export async function getChildServiceRequestsByParent(parentProfileId: string) {
           email: true,
         },
       },
-      requestedFor: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
+      requestedFor: true,
     },
     orderBy: {
       createdAt: 'desc',
     },
   });
+
+  return serviceRequests;
 }
 
 /**
- * Récupère toutes les demandes pour un enfant spécifique
+ * Récupère toutes les demandes de service pour un enfant spécifique
  */
 export async function getServiceRequestsForChild(
-  parentProfileId: string,
+  parentUserId: string,
   childProfileId: string,
-  userId: string,
 ) {
-  // 1. Récupérer l'utilisateur
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { profile: true },
-  });
-
-  if (!user || !user.profile) {
-    throw new Error('Utilisateur ou profil introuvable');
-  }
-
-  // 2. Récupérer le profil de l'enfant
-  const childProfile = await prisma.profile.findUnique({
-    where: { id: childProfileId },
-    include: {
-      parentAuthorities: {
-        where: {
-          isActive: true,
-        },
-        include: {
-          parentProfile: true,
-        },
-      },
-    },
-  });
-
-  if (!childProfile) {
-    throw new Error('Profil enfant introuvable');
-  }
-
-  // 3. Vérifier l'autorisation avec le système de permissions
-  const hasAuthority = hasPermission(user, 'profiles', 'viewChild', childProfile);
+  // Vérifier l'autorité parentale
+  const hasAuthority = await canAccessChildProfile(parentUserId, childProfileId);
 
   if (!hasAuthority) {
     throw new Error("Vous n'avez pas l'autorité parentale sur cet enfant");
   }
 
-  // 4. Récupérer les demandes pour cet enfant
-  return prisma.serviceRequest.findMany({
+  // Récupérer les demandes
+  const serviceRequests = await prisma.serviceRequest.findMany({
     where: {
       requestedForId: childProfileId,
     },
@@ -247,98 +201,65 @@ export async function getServiceRequestsForChild(
           email: true,
         },
       },
-      requestedFor: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      sharedWith: {
-        include: {
-          parentProfile: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
-      },
+      requestedFor: true,
     },
     orderBy: {
       createdAt: 'desc',
     },
   });
+
+  return serviceRequests;
 }
 
 /**
- * Notifie tous les parents lors d'une mise à jour d'une demande
+ * Envoie des notifications à tous les parents lorsqu'une demande de service pour un enfant est mise à jour
  */
 export async function notifyParentsOnRequestUpdate(
   requestId: string,
-  title: string,
+  updateType: NotificationType,
   message: string,
-  notificationType: string,
 ) {
-  // 1. Récupérer la demande avec l'enfant concerné
+  // Récupérer la demande avec le profil de l'enfant
   const request = await prisma.serviceRequest.findUnique({
     where: { id: requestId },
     include: {
       requestedFor: true,
-      sharedWith: {
-        include: {
-          parentProfile: {
-            include: {
-              user: true,
-            },
-          },
+    },
+  });
+
+  if (!request || !request.requestedFor) {
+    throw new Error('Demande introuvable ou non associée à un profil enfant');
+  }
+
+  // Récupérer tous les parents de l'enfant
+  const parentalAuthorities = await prisma.parentalAuthority.findMany({
+    where: {
+      profileId: request.requestedFor.id,
+      isActive: true,
+    },
+    include: {
+      parentUsers: {
+        select: {
+          id: true,
         },
       },
     },
   });
 
-  if (!request || !request.requestedFor) {
-    throw new Error('Demande ou profil enfant introuvable');
+  // Envoyer des notifications à tous les parents
+  for (const authority of parentalAuthorities) {
+    for (const parentUser of authority.parentUsers) {
+      await prisma.notification.create({
+        data: {
+          type: updateType,
+          title: "Mise à jour d'une demande pour votre enfant",
+          message,
+          userId: parentUser.id,
+          profileId: request.requestedFor.id,
+        },
+      });
+    }
   }
 
-  // 2. Récupérer tous les parents de l'enfant
-  const parentalAuthorities = await getParentalAuthoritiesByChild(
-    request.requestedFor.id,
-  );
-
-  // 3. Créer des notifications pour tous les parents
-  const notifications = await Promise.all(
-    parentalAuthorities.map(async (authority) => {
-      const parentUser = await prisma.profile.findUnique({
-        where: { id: authority.parentProfileId },
-        include: { user: true },
-      });
-
-      if (parentUser?.user) {
-        return prisma.notification.create({
-          data: {
-            // @ts-expect-error: Les types de notification sont plus nombreux que ceux définis dans l'enum
-            type: notificationType,
-            title,
-            message,
-            userId: parentUser.user.id,
-            profileId: authority.parentProfileId,
-          },
-        });
-      }
-    }),
-  );
-
-  return notifications.filter(Boolean);
+  return true;
 }

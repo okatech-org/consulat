@@ -1,7 +1,6 @@
 import { PrismaClient, ProfileCategory, ParentalRole } from '@prisma/client';
 import { FullProfileInclude } from '@/types/profile';
 import { createParentalAuthority } from './parental-authority';
-import { hasPermission } from '@/lib/permissions/utils';
 
 // Instance de Prisma
 const prisma = new PrismaClient();
@@ -21,7 +20,7 @@ interface CreateChildProfileParams {
   passportIssueAuthority: string;
 
   // Informations du parent qui crée le profil
-  parentProfileId: string;
+  parentUserId: string; // ID de l'utilisateur parent
   parentRole: ParentalRole;
 
   // Informations sur l'autre parent (optionnel)
@@ -29,7 +28,7 @@ interface CreateChildProfileParams {
     firstName: string;
     lastName: string;
     email?: string;
-    profileId?: string; // Si l'autre parent a déjà un profil
+    userId?: string; // ID de l'utilisateur de l'autre parent
   };
 }
 
@@ -37,18 +36,18 @@ interface CreateChildProfileParams {
  * Crée un profil enfant et établit les relations parentales appropriées
  */
 export async function createChildProfile(data: CreateChildProfileParams) {
-  // 1. Vérifier que le parent existe et est un adulte
-  const parentProfile = await prisma.profile.findUnique({
-    where: { id: data.parentProfileId },
-    include: { user: true },
+  // 1. Vérifier que le parent existe
+  const parentUser = await prisma.user.findUnique({
+    where: { id: data.parentUserId },
+    include: { profile: true },
   });
 
-  if (!parentProfile) {
-    throw new Error('Profil parent introuvable');
+  if (!parentUser) {
+    throw new Error('Utilisateur parent introuvable');
   }
 
-  if (parentProfile.category !== ProfileCategory.ADULT) {
-    throw new Error('Le profil parent doit être un adulte');
+  if (!parentUser.profile || parentUser.profile.category !== ProfileCategory.ADULT) {
+    throw new Error('Le parent doit avoir un profil adulte');
   }
 
   // 2. Créer un utilisateur pour l'enfant (nécessaire pour la structure de l'application)
@@ -79,13 +78,13 @@ export async function createChildProfile(data: CreateChildProfileParams) {
       // Informations familiales - renseignées automatiquement
       fatherFullName:
         data.parentRole === 'FATHER'
-          ? `${parentProfile.firstName} ${parentProfile.lastName}`
+          ? `${parentUser.firstName || ''} ${parentUser.lastName || ''}`
           : data.otherParentInfo
             ? `${data.otherParentInfo.firstName} ${data.otherParentInfo.lastName}`
             : null,
       motherFullName:
         data.parentRole === 'MOTHER'
-          ? `${parentProfile.firstName} ${parentProfile.lastName}`
+          ? `${parentUser.firstName || ''} ${parentUser.lastName || ''}`
           : data.otherParentInfo
             ? `${data.otherParentInfo.firstName} ${data.otherParentInfo.lastName}`
             : null,
@@ -93,27 +92,32 @@ export async function createChildProfile(data: CreateChildProfileParams) {
     include: FullProfileInclude.include,
   });
 
-  // 4. Créer la relation parentale pour le parent qui crée le profil
+  // 4. Créer la relation d'autorité parentale pour le parent qui crée le profil
   await createParentalAuthority({
-    parentProfileId: data.parentProfileId,
-    childProfileId: childProfile.id,
+    profileId: childProfile.id,
+    parentUserId: data.parentUserId,
     role: data.parentRole,
   });
 
-  // 5. Si des informations sur l'autre parent sont fournies et qu'il a un profil, créer la relation
-  if (data.otherParentInfo?.profileId) {
-    // Vérifier que l'autre parent existe et est un adulte
-    const otherParentProfile = await prisma.profile.findUnique({
-      where: { id: data.otherParentInfo.profileId },
+  // 5. Si des informations sur l'autre parent sont fournies et qu'il a un compte, créer la relation
+  if (data.otherParentInfo?.userId) {
+    // Vérifier que l'autre parent existe
+    const otherParentUser = await prisma.user.findUnique({
+      where: { id: data.otherParentInfo.userId },
+      include: { profile: true },
     });
 
-    if (otherParentProfile && otherParentProfile.category === ProfileCategory.ADULT) {
+    if (
+      otherParentUser &&
+      otherParentUser.profile &&
+      otherParentUser.profile.category === ProfileCategory.ADULT
+    ) {
       // Déterminer le rôle de l'autre parent (opposé au rôle du parent actuel)
       const otherParentRole = data.parentRole === 'FATHER' ? 'MOTHER' : 'FATHER';
 
       await createParentalAuthority({
-        parentProfileId: data.otherParentInfo.profileId,
-        childProfileId: childProfile.id,
+        profileId: childProfile.id,
+        parentUserId: data.otherParentInfo.userId,
         role: otherParentRole as ParentalRole,
       });
     }
@@ -125,73 +129,49 @@ export async function createChildProfile(data: CreateChildProfileParams) {
 /**
  * Récupère tous les profils enfants associés à un parent
  */
-export async function getChildProfilesByParent(parentProfileId: string) {
+export async function getChildProfilesByParent(parentUserId: string) {
+  // Récupérer les autorités parentales où l'utilisateur est parent
   const parentalAuthorities = await prisma.parentalAuthority.findMany({
     where: {
-      parentProfileId,
+      parentUsers: {
+        some: {
+          id: parentUserId,
+        },
+      },
       isActive: true,
     },
     include: {
-      childProfile: {
+      profile: {
         include: FullProfileInclude.include,
       },
     },
   });
 
-  return parentalAuthorities.map((authority) => authority.childProfile);
+  // Extraire les profils enfants des autorités parentales
+  const childProfiles = parentalAuthorities.map((authority) => authority.profile);
+
+  return childProfiles;
 }
 
 /**
  * Vérifie si un utilisateur a les droits pour accéder aux informations d'un enfant
  */
 export async function canAccessChildProfile(
-  parentProfileId: string,
+  parentUserId: string,
   childProfileId: string,
-  userId?: string,
 ) {
-  if (!userId) {
-    // Si l'userId n'est pas fourni, utilise l'ancienne méthode de vérification
-    const authority = await prisma.parentalAuthority.findFirst({
-      where: {
-        parentProfileId,
-        childProfileId,
-        isActive: true,
-      },
-    });
-
-    return !!authority;
-  }
-
-  // Utiliser le système de permissions si l'userId est fourni
-  // Récupérer l'utilisateur avec ses rôles
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { profile: true },
-  });
-
-  if (!user) {
-    return false;
-  }
-
-  // Récupérer le profil de l'enfant avec ses relations parentales
-  const childProfile = await prisma.profile.findUnique({
-    where: { id: childProfileId },
-    include: {
-      parentAuthorities: {
-        where: {
-          isActive: true,
-        },
-        include: {
-          parentProfile: true,
+  // Vérifier si l'utilisateur a une autorité parentale sur ce profil
+  const authority = await prisma.parentalAuthority.findFirst({
+    where: {
+      profileId: childProfileId,
+      parentUsers: {
+        some: {
+          id: parentUserId,
         },
       },
+      isActive: true,
     },
   });
 
-  if (!childProfile) {
-    return false;
-  }
-
-  // Vérifier les autorisations
-  return hasPermission(user, 'profiles', 'viewChild', childProfile);
+  return !!authority;
 }

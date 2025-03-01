@@ -1,99 +1,129 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ParentalRole, ProfileCategory } from '@prisma/client';
 import {
   BaseParentalAuthorityInclude,
-  CreateParentalAuthorityParams,
   FullParentalAuthorityInclude,
-  UpdateParentalAuthorityParams,
+  type CreateParentalAuthorityParams,
+  type UpdateParentalAuthorityParams,
 } from '@/types/parental-authority';
-import { ProfileCategory } from '@prisma/client';
 import { hasPermission } from '@/lib/permissions/utils';
 
-// Instance de Prisma
+// Instance Prisma
 const prisma = new PrismaClient();
 
 /**
- * Crée une nouvelle autorité parentale
+ * Crée une relation d'autorité parentale entre un utilisateur parent et un profil enfant
  */
 export async function createParentalAuthority(data: CreateParentalAuthorityParams) {
-  // Vérifier si les profils existent et si les catégories sont correctes
-  const [parentProfile, childProfile] = await Promise.all([
-    prisma.profile.findUnique({
-      where: { id: data.parentProfileId },
-    }),
-    prisma.profile.findUnique({
-      where: { id: data.childProfileId },
-    }),
-  ]);
+  const { profileId, parentUserId, role, isActive = true } = data;
 
-  if (!parentProfile) {
-    throw new Error('Profil parent introuvable');
-  }
+  // 1. Vérifier que le profil enfant existe et est bien un mineur
+  const childProfile = await prisma.profile.findUnique({
+    where: { id: profileId },
+  });
 
   if (!childProfile) {
     throw new Error('Profil enfant introuvable');
   }
 
-  // Vérifier que le parent est bien un adulte
-  if (parentProfile.category !== ProfileCategory.ADULT) {
-    throw new Error('Le profil parent doit être un adulte');
-  }
-
-  // Vérifier que l'enfant est bien un mineur
   if (childProfile.category !== ProfileCategory.MINOR) {
-    throw new Error('Le profil enfant doit être un mineur');
+    throw new Error('Le profil doit être un mineur');
   }
 
-  // Vérifier qu'il n'y a pas déjà une relation avec le même rôle
-  const existingRelation = await prisma.parentalAuthority.findFirst({
+  // 2. Vérifier que l'utilisateur parent existe
+  const parentUser = await prisma.user.findUnique({
+    where: { id: parentUserId },
+    include: { profile: true },
+  });
+
+  if (!parentUser) {
+    throw new Error('Utilisateur parent introuvable');
+  }
+
+  // Vérifier que l'utilisateur parent a un profil adulte
+  if (parentUser.profile && parentUser.profile.category !== ProfileCategory.ADULT) {
+    throw new Error("L'utilisateur parent doit avoir un profil adulte");
+  }
+
+  // 3. Vérifier qu'il n'y a pas déjà une autorité parentale avec le même rôle pour ce profil
+  const existingAuthority = await prisma.parentalAuthority.findFirst({
     where: {
-      parentProfileId: data.parentProfileId,
-      childProfileId: data.childProfileId,
-      role: data.role,
+      profileId,
+      role,
     },
   });
 
-  if (existingRelation) {
-    throw new Error('Cette relation parent-enfant existe déjà');
+  if (existingAuthority) {
+    // Vérifier si l'utilisateur parent est déjà associé à cette autorité
+    const parentUserInAuthority = await prisma.$queryRaw`
+      SELECT * FROM "_ParentalAuthorityToUser" 
+      WHERE "A" = ${existingAuthority.id} AND "B" = ${parentUserId}
+    `;
+
+    if (Array.isArray(parentUserInAuthority) && parentUserInAuthority.length > 0) {
+      throw new Error('Cette relation parent-enfant existe déjà');
+    }
+
+    // Si l'autorité existe mais que cet utilisateur n'y est pas associé, l'ajouter
+    await prisma.$executeRaw`
+      INSERT INTO "_ParentalAuthorityToUser" ("A", "B") 
+      VALUES (${existingAuthority.id}, ${parentUserId})
+    `;
+
+    // Récupérer l'autorité parentale mise à jour
+    return prisma.parentalAuthority.findUnique({
+      where: { id: existingAuthority.id },
+      include: FullParentalAuthorityInclude.include,
+    });
   }
 
-  // Créer la relation
-  return prisma.parentalAuthority.create({
+  // 4. Créer une nouvelle autorité parentale
+  const newAuthority = await prisma.parentalAuthority.create({
     data: {
-      parentProfileId: data.parentProfileId,
-      childProfileId: data.childProfileId,
-      role: data.role,
-      isActive: true,
+      profileId,
+      role,
+      isActive,
+      parentUsers: {
+        connect: { id: parentUserId },
+      },
     },
-    include: BaseParentalAuthorityInclude.include,
+    include: FullParentalAuthorityInclude.include,
   });
+
+  return newAuthority;
 }
 
 /**
- * Met à jour une autorité parentale
+ * Met à jour une relation d'autorité parentale
  */
-export async function updateParentalAuthority(data: UpdateParentalAuthorityParams) {
+export async function updateParentalAuthority(
+  id: string,
+  data: UpdateParentalAuthorityParams,
+) {
+  // Vérifier que l'autorité parentale existe
   const authority = await prisma.parentalAuthority.findUnique({
-    where: { id: data.id },
+    where: { id },
   });
 
   if (!authority) {
     throw new Error('Autorité parentale introuvable');
   }
 
+  // Mettre à jour l'autorité parentale
   return prisma.parentalAuthority.update({
-    where: { id: data.id },
+    where: { id },
     data: {
-      isActive: data.isActive,
       role: data.role,
+      isActive: data.isActive,
     },
-    include: BaseParentalAuthorityInclude.include,
+    include: FullParentalAuthorityInclude.include,
   });
 }
 
 /**
- * Supprime une autorité parentale
+ * Supprime une relation d'autorité parentale
  */
 export async function deleteParentalAuthority(id: string) {
+  // Vérifier que l'autorité parentale existe
   const authority = await prisma.parentalAuthority.findUnique({
     where: { id },
   });
@@ -108,7 +138,89 @@ export async function deleteParentalAuthority(id: string) {
 }
 
 /**
- * Récupère une autorité parentale par son ID
+ * Ajoute un utilisateur parent à une autorité parentale existante
+ */
+export async function addParentUserToAuthority(
+  authorityId: string,
+  parentUserId: string,
+) {
+  // Vérifier que l'autorité parentale existe
+  const authority = await prisma.parentalAuthority.findUnique({
+    where: { id: authorityId },
+    include: { parentUsers: true },
+  });
+
+  if (!authority) {
+    throw new Error('Autorité parentale introuvable');
+  }
+
+  // Vérifier que l'utilisateur parent existe
+  const parentUser = await prisma.user.findUnique({
+    where: { id: parentUserId },
+  });
+
+  if (!parentUser) {
+    throw new Error('Utilisateur parent introuvable');
+  }
+
+  // Vérifier si l'utilisateur est déjà associé à cette autorité
+  if (authority.parentUsers.some((user) => user.id === parentUserId)) {
+    throw new Error('Cet utilisateur est déjà associé à cette autorité parentale');
+  }
+
+  // Ajouter l'utilisateur parent à l'autorité parentale
+  return prisma.parentalAuthority.update({
+    where: { id: authorityId },
+    data: {
+      parentUsers: {
+        connect: { id: parentUserId },
+      },
+    },
+    include: FullParentalAuthorityInclude.include,
+  });
+}
+
+/**
+ * Supprime un utilisateur parent d'une autorité parentale
+ */
+export async function removeParentUserFromAuthority(
+  authorityId: string,
+  parentUserId: string,
+) {
+  // Vérifier que l'autorité parentale existe
+  const authority = await prisma.parentalAuthority.findUnique({
+    where: { id: authorityId },
+    include: { parentUsers: true },
+  });
+
+  if (!authority) {
+    throw new Error('Autorité parentale introuvable');
+  }
+
+  // Vérifier que l'utilisateur est bien associé à cette autorité
+  if (!authority.parentUsers.some((user) => user.id === parentUserId)) {
+    throw new Error("Cet utilisateur n'est pas associé à cette autorité parentale");
+  }
+
+  // Vérifier qu'il y a au moins un autre parent associé avant de supprimer
+  if (authority.parentUsers.length < 2) {
+    throw new Error('Impossible de supprimer le seul parent associé à cette autorité');
+  }
+
+  // Supprimer l'utilisateur parent de l'autorité parentale
+  return prisma.parentalAuthority.update({
+    where: { id: authorityId },
+    data: {
+      parentUsers: {
+        disconnect: { id: parentUserId },
+      },
+    },
+    include: FullParentalAuthorityInclude.include,
+  });
+}
+
+/**
+ * Récupère une relation d'autorité parentale par ID
  */
 export async function getParentalAuthorityById(id: string) {
   return prisma.parentalAuthority.findUnique({
@@ -118,69 +230,70 @@ export async function getParentalAuthorityById(id: string) {
 }
 
 /**
- * Récupère toutes les autorités parentales pour un parent donné
+ * Récupère toutes les relations d'autorité parentale d'un utilisateur parent
  */
-export async function getParentalAuthoritiesByParent(parentProfileId: string) {
-  return prisma.parentalAuthority.findMany({
-    where: {
-      parentProfileId,
-      isActive: true,
-    },
-    include: BaseParentalAuthorityInclude.include,
-  });
-}
-
-/**
- * Récupère toutes les autorités parentales pour un enfant donné
- */
-export async function getParentalAuthoritiesByChild(childProfileId: string) {
-  return prisma.parentalAuthority.findMany({
-    where: {
-      childProfileId,
-      isActive: true,
-    },
-    include: BaseParentalAuthorityInclude.include,
-  });
-}
-
-/**
- * Vérifie si un utilisateur a l'autorité parentale sur un enfant
- */
-export async function hasParentalAuthority(
-  parentProfileId: string,
-  childProfileId: string,
-  userId: string,
-) {
-  // On récupère l'utilisateur avec son profil
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { profile: true },
+export async function getParentalAuthoritiesByParentUser(parentUserId: string) {
+  // Vérifier que l'utilisateur parent existe
+  const parentUser = await prisma.user.findUnique({
+    where: { id: parentUserId },
   });
 
-  if (!user || !user.profile) {
-    return false;
+  if (!parentUser) {
+    throw new Error('Utilisateur parent introuvable');
   }
 
-  // Récupérer le profil de l'enfant
-  const childProfile = await prisma.profile.findUnique({
-    where: { id: childProfileId },
-    include: {
-      parentAuthorities: {
-        where: {
-          parentProfileId,
-          isActive: true,
-        },
-        include: {
-          parentProfile: true,
+  // Récupérer les relations où cet utilisateur est un parent
+  return prisma.parentalAuthority.findMany({
+    where: {
+      parentUsers: {
+        some: {
+          id: parentUserId,
         },
       },
+      isActive: true,
     },
+    include: FullParentalAuthorityInclude.include,
+  });
+}
+
+/**
+ * Récupère toutes les relations d'autorité parentale pour un profil enfant
+ */
+export async function getParentalAuthoritiesByChild(profileId: string) {
+  return prisma.parentalAuthority.findMany({
+    where: {
+      profileId,
+      isActive: true,
+    },
+    include: FullParentalAuthorityInclude.include,
+  });
+}
+
+/**
+ * Vérifie si un utilisateur a l'autorité parentale sur un profil enfant
+ */
+export async function hasParentalAuthority(parentUserId: string, profileId: string) {
+  // Vérifier si l'utilisateur parent existe
+  const parentUser = await prisma.user.findUnique({
+    where: { id: parentUserId },
   });
 
-  if (!childProfile) {
+  if (!parentUser) {
     return false;
   }
 
-  // Vérifier l'autorisation à l'aide du système de permissions
-  return hasPermission(user, 'profiles', 'viewChild', childProfile);
+  // Récupérer les autorités parentales du profil enfant où cet utilisateur est parent
+  const authorities = await prisma.parentalAuthority.findMany({
+    where: {
+      profileId,
+      parentUsers: {
+        some: {
+          id: parentUserId,
+        },
+      },
+      isActive: true,
+    },
+  });
+
+  return authorities.length > 0;
 }
