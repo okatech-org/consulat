@@ -54,6 +54,7 @@ export const ROUTES = {
     services: '/my-space/services' as Route<string>,
     settings: '/my-space/settings' as Route<string>,
     notifications: '/my-space/notifications' as Route<string>,
+    children: '/my-space/children' as Route<string>,
   },
 
   help: '/help' as Route<string>,

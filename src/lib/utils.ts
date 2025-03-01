@@ -459,11 +459,34 @@ export function currentFnsLocale(localeString: string): Locale {
   switch (localeString) {
     case 'fr':
       return fr;
-    case 'en':
-      return enUS;
     case 'es':
       return es;
     default:
-      return fr;
+      return enUS;
   }
+}
+
+/**
+ * Calcule l'âge à partir d'une date de naissance
+ * @param birthDate Date de naissance au format string
+ * @returns L'âge en années
+ */
+export function calculateAge(birthDate: string): number {
+  if (!birthDate) return 0;
+
+  const today = new Date();
+  const birthDateObj = new Date(birthDate);
+
+  // Vérifier si la date est valide
+  if (isNaN(birthDateObj.getTime())) return 0;
+
+  let age = today.getFullYear() - birthDateObj.getFullYear();
+  const monthDiff = today.getMonth() - birthDateObj.getMonth();
+
+  // Si le mois de naissance n'est pas encore passé ou si c'est le même mois mais que le jour n'est pas encore passé
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+    age--;
+  }
+
+  return age;
 }

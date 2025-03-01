@@ -74,5 +74,29 @@ export default {
     procedures: 'Démarches',
     services: 'Nouvelle démarche',
     my_requests: 'Mes démarches',
+    children: 'Mes enfants',
+  },
+  children: {
+    title: 'Profils de mes enfants',
+    subtitle: 'Gérez les profils de vos enfants et effectuez des démarches en leur nom',
+    no_children: "Vous n'avez pas encore ajouté de profil d'enfant",
+    add_child: 'Ajouter un enfant',
+    child_card: {
+      age: '{age} ans',
+      view_profile: 'Voir le profil',
+      make_request: 'Faire une demande',
+    },
+    actions: {
+      create: 'Créer un profil enfant',
+      edit: 'Modifier le profil',
+      delete: 'Supprimer le profil',
+      share: "Partager avec l'autre parent",
+    },
+    create_form: {
+      title: 'Créer un profil enfant',
+      subtitle: 'Remplissez les informations de votre enfant',
+      success: 'Profil enfant créé avec succès',
+      error: 'Une erreur est survenue lors de la création du profil',
+    },
   },
 } as const;

@@ -1,8 +1,9 @@
 ---
 description: Best practices for implementing server actions in Next.js applications
-globs: 
+globs: "**/actions/*.{ts,tsx}"
 alwaysApply: true
 ---
+
 # Server Actions Best Practices
 
 ## Core Principles
@@ -104,7 +105,13 @@ async function databaseServerAction(input: InputType) {
 ## Best Practices
 
 1. **Response Structure**
-   - All server actions should return a consistent typed structure
+   - All server actions should return a consistent structure:
+   ```typescript
+   {
+     error: Error | null;
+     data: T | null;
+   }
+   ```
 
 2. **Error Handling**
    - Log errors with appropriate context
@@ -167,4 +174,4 @@ async function databaseServerAction(input: InputType) {
 
 3. ❌ **Don't Mix Error Handling Patterns**
    - Stick to tryCatch consistently
-   - Avoid mixing with traditional try/catch blocks
+   - Avoid mixing with traditional try/catch blocks 

@@ -1,9 +1,1 @@
----
-description: Best practices for Next.js applications and routing
-globs: 
-alwaysApply: true
----
-- Utilize Next.js 15's new features like Server Actions for improved performance.
-- Implement proper error handling with `error.tsx` and `not-found.tsx` pages.
-- Use the `use client` directive for client components to optimize server-side rendering.
-- Leverage Next.js's built-in image optimization with the `next/image` component.
+ ms

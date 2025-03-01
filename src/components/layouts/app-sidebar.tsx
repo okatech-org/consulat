@@ -13,6 +13,7 @@ import {
   Settings,
   User,
   Users,
+  Baby,
 } from 'lucide-react';
 
 import { NavMain, NavMainItem } from '@/components/layouts/nav-main';
@@ -131,6 +132,11 @@ export function AppSidebar({
       title: t_nav('profile'),
       url: ROUTES.user.profile,
       icon: User,
+    },
+    {
+      title: t_nav('children'),
+      url: ROUTES.user.children,
+      icon: Baby,
     },
     {
       title: t_nav('requests'),
