@@ -5,10 +5,11 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import CardContainer from '@/components/layouts/card-container';
+import { PageContainer } from '@/components/layouts/page-container';
 import { getParentalAuthoritiesByParentUser } from '@/actions/parental-authority';
 import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
+import CardContainer from '@/components/layouts/card-container';
 
 export default async function ChildrenPage() {
   const user = await getCurrentUser();
@@ -20,9 +21,9 @@ export default async function ChildrenPage() {
 
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <CardContainer
+      <PageContainer
         title={t('title')}
-        subtitle={t('subtitle')}
+        description={t('subtitle')}
         action={
           <Button asChild size="sm">
             <Link href="/my-space/children/new">
@@ -32,12 +33,14 @@ export default async function ChildrenPage() {
           </Button>
         }
       >
-        {parentalAuthorities.length > 0 ? (
-          <ChildrenList parentalAuthorities={parentalAuthorities} />
-        ) : (
-          <NoChildrenMessage />
-        )}
-      </CardContainer>
+        <CardContainer>
+          {parentalAuthorities.length > 0 ? (
+            <ChildrenList parentalAuthorities={parentalAuthorities} />
+          ) : (
+            <NoChildrenMessage />
+          )}
+        </CardContainer>
+      </PageContainer>
     </Suspense>
   );
 }
