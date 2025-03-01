@@ -58,8 +58,8 @@ export type ResourceType = {
   };
   parentalAuthorities: {
     dataType: ParentalAuthority & {
-      parentProfile?: Profile;
-      childProfile?: Profile;
+      profile?: Profile;
+      parentUsers?: User[];
     };
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
   };
