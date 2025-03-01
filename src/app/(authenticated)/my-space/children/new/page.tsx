@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
+import { ChildProfileClient } from '../_components/child-profile-client';
 
 export default async function NewChildProfilePage() {
   const user = await getCurrentUser();
@@ -26,11 +27,7 @@ export default async function NewChildProfilePage() {
         </Button>
       }
     >
-      <div className="py-8 text-center">
-        <p className="text-muted-foreground">
-          Formulaire de création de profil enfant à implémenter
-        </p>
-      </div>
+      <ChildProfileClient />
     </CardContainer>
   );
 }
