@@ -9,3 +9,7 @@ alwaysApply: true
 - **Hooks `useTranslations`**: Every UI component and all server actions must have translation strings. Utilize the useTranslation hooks to ensure maintainability and consistency.
 - **Type Safe**: `messages/index.ts` files are well typed for every locale. Use defined Typescript to ensure translation labels are well typed. Use Inline type like `@next-intl/eslint-plugin-next` prefers when using translation files
 -   **Dynamic Translations**: Where interpolating values, use the 'curly braces' syntax provided by `next-intl`, ensuring placeholder names are clear and meaningful.
+-    **Directory-based routing**: Use a default export and only export once in  page files
+-  **Route Segments are locale-agnostic:** Route Segments (i.e. the folder names inside `app`) don't need translated names.
+- **Route Parameters**: The project have route parameters must translated in the `dictionaries` files to allow change route names
+- Only Client useTranslation page with `'use client'` can use hook and must be on a UI

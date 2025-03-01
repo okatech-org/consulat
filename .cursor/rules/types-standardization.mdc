@@ -1,0 +1,9 @@
+---
+description: Ensure standardized and clear type definitions within the Consulat.ga project.
+globs: 
+alwaysApply: true
+---
+- **Single Directory**: Place all custom type definitions within the `/src/types/` directory for better maintainability and discoverability.
+- **Modular Files:** Break type definitions into smaller, focused files (e.g., `profile.ts`, `documents.ts`, `organization.ts`), improving readability and maintainability.
+- **Descriptive Types:** Name the types clearly; keep types organized
+-   **Utilize Prisma Types to the fulles**: Use Prisma type generation (`Prisma.ModelGetPayload<...>`) to ensure seamless integration with the database and prevent data type mismatches
