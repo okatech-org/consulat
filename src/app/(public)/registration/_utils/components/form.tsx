@@ -17,8 +17,8 @@ import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
 import { FormError, handleFormError } from '@/lib/form/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { postProfile } from '@/app/(authenticated)/user/_utils/profile';
 import { useState } from 'react';
+import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 
 export function RegistrationForm() {
   const router = useRouter();

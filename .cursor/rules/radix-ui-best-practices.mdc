@@ -3,7 +3,7 @@ description: Best practices for using Radix UI components
 globs: 
 alwaysApply: true
 ---
-- Use Radix UI primitives as building blocks for custom components.
-- Implement proper accessibility features using Radix UI's built-in props.
-- Customize Radix UI components with CSS or styled-components for your design system.
-- Utilize Radix UI's state management hooks for controlled components.
+- **Primitive Building Blocks:** Use Radix UI primitives as fundamental components for constructing custom UI elements.
+- **Accessibility:** Implement proper accessibility features; leverage Radix UI's built-in accessibility props (`aria-*`).
+- **Customization:** Customize Radix UI components with Tailwind CSS classes, adhering to the defined design system.
+-   **Composition:** Compose Radix UI components together (or with your custom primitives!) to build higher-level components.

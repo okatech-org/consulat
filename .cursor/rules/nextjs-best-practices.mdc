@@ -1,1 +1,22 @@
- ms
+---
+description: Best practices for Next.js applications within the Consulat.ga project.
+globs: 
+alwaysApply: true
+---
+- **Utilize 'use server' directive:** For server-side logic, especially with Server Actions, always include the `'use server'` directive at the top of the file.
+- **Embrace Server Actions:** Server actions are used for any interaction with the server. They **must** be wrapped with tryCatch statement in /lib/utils.ts
+- **App Router**: Utilize the `/app` directory structure. Each page need to have the tag `'use client'` if it's a UI with interaction to perform.
+- **Static Generation Default**: If no state is used and no interaction/mutation is used, pages and components within should be static by default, skip the "'use client'" tag
+  -   **Layouts and Error Handling:**
+        -   Implement custom layouts using `layout.tsx` in route groups to create persistent UI elements.
+        -   Include `error.tsx` pages to gracefully handle runtime errors.
+        -   Use `loading.tsx` pages to provide immediate feedback during data fetching.
+        -   Include `not-found.tsx` pages for 404
+- **Optimize Image Loading:** Use the `next/image` component for image optimization, specifying `width`, `height`, and `alt` attributes. Remote hostname need to configure in `/next.config.ts`
+- **Components directory**: Favor using ui component from the `/src` directory. Every UI component must have good documentation to explain the different `props` and `possibles variation.`
+- **Metadata**: All pages and `layout.tsx` page need to have well document META proprety
+- **Middlewares**: A middleware page must be in the `/src` and as many tests for validating headers
+- **API Routes:** All routes must be in the `/src/api` directory if you want to call an external API
+- **Server Actions**: All server actions must be in the `/src/actions` directory
+- **Translations**: Each new strings displayed, must be in the '/src/i18n/messages/fr/index.ts' and be referenced using `useTranslation` hook
+- **Security**: Ensure that the function exposed and URL/parameters is well managed and secured

@@ -3,7 +3,12 @@ description: Best practices for styling with Tailwind CSS
 globs: 
 alwaysApply: true
 ---
-- Use utility classes directly in your JSX for rapid development.
-- Create custom components with predefined Tailwind classes for reusability.
-- Utilize the `@apply` directive in your CSS to create custom utility classes.
-- Ensure responsive design by using Tailwind's responsive modifiers.
+- **Utility Classes:** Use Tailwind utility classes directly in JSX for styling.
+- **Custom Components:** Create custom React components with predefined Tailwind classes for reusability.
+-   **DRY Principle:** To follow DRY (Don't repeat yourself) principle, add tailwind classes directly in `/@/components/ui`, and reuse them in features implementation
+    **Avoid Tailwind Plugin:** You should add the `darkMode` configurations but avoid to create a plugin which create un-necessary abstraction and code
+- **Prefix**: Respect the configuration of prefix `""` in your files
+- **Responsive Design:** Use Tailwind's responsive modifiers (`sm:`, `md:`, `lg:`, `xl:`) for adaptive layouts.
+- **`theme.extend`**: To extend the current configuration you need to check the `./tailwind.config.ts` theme configurations
+- **No Raw Css properties**: You must only use values defined in the tailwind config file.
+- **`@layer`**: You must apply rules base on each layer, and define comment where it's comming from.

@@ -1,0 +1,11 @@
+---
+description: Best practices for i18n and translation management within the Consulat.ga project using `next-intl`
+globs: 
+alwaysApply: true
+---
+- **Use `next-intl` consistently**: All user-facing text should be managed using `next-intl` for internationalization.
+- **Translations Files Organized**: Maintain translation texts in `/src/i18n/messages/{locale}/index.ts` per configured language tag defined in `src/i18n/config.ts`.
+- **Descriptive Translation Keys:** Translation keys should be descriptive and consistent. Use a dot notation for structure i.e.  `(feature).(component).(element)`
+- **Hooks `useTranslations`**: Every UI component and all server actions must have translation strings. Utilize the useTranslation hooks to ensure maintainability and consistency.
+- **Type Safe**: `messages/index.ts` files are well typed for every locale. Use defined Typescript to ensure translation labels are well typed. Use Inline type like `@next-intl/eslint-plugin-next` prefers when using translation files
+-   **Dynamic Translations**: Where interpolating values, use the 'curly braces' syntax provided by `next-intl`, ensuring placeholder names are clear and meaningful.
