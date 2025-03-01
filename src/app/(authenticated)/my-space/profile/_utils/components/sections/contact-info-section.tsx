@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Mail, Phone } from 'lucide-react';
-import { ContactInfoForm } from '@/app/(public)/registration/_utils/components/contact-form';
+import { ContactInfoForm } from '@/app/(public)/registration/_utils/registration/contact-form';
 import { FullProfile } from '@/types';
 import { Address, AddressGabon } from '@prisma/client';
 import { filterUneditedKeys } from '@/lib/utils';

@@ -1,37 +1,33 @@
 import React from 'react';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/actions/user';
-import { PageContainer } from '@/components/layouts/page-container';
+import CardContainer from '@/components/layouts/card-container';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import { ChildProfileClient } from '../_components/child-profile-client';
-import CardContainer from '@/components/layouts/card-container';
 
 export default async function NewChildProfilePage() {
   const user = await getCurrentUser();
   const t = await getTranslations('user.children');
-  const t_actions = await getTranslations('common.actions');
 
   if (!user) return null;
 
   return (
-    <PageContainer
+    <CardContainer
       title={t('create_form.title')}
-      description={t('create_form.subtitle')}
+      subtitle={t('create_form.subtitle')}
       action={
         <Button asChild variant="outline" size="sm">
           <Link href={ROUTES.user.children}>
-            <ArrowLeft className="h-4 w-4" />
-            {t_actions('back')}
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
           </Link>
         </Button>
       }
     >
-      <CardContainer>
-        <ChildProfileClient />
-      </CardContainer>
-    </PageContainer>
+      <ChildProfileClient />
+    </CardContainer>
   );
 }

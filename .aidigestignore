@@ -10,6 +10,7 @@
 *.pem
 *.lock
 .idea
+*.lock
 /prisma/dev.db
 npm-debug.log*
 yarn-debug.log*

@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { Badge } from '@/components/ui/badge';
 import { Users, User2, Phone } from 'lucide-react';
-import { FamilyInfoForm } from '@/app/(public)/registration/_utils/components/family-info';
+import { FamilyInfoForm } from '@/app/(public)/registration/_utils/registration/family-info';
 import { Separator } from '@/components/ui/separator';
 import { FullProfile } from '@/types';
 import { filterUneditedKeys } from '@/lib/utils';

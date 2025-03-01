@@ -6,7 +6,7 @@ import { ConsularFormData } from '@/schemas/registration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ReviewFields } from '@/app/(public)/registration/_utils/components/review-fields';
+import { ReviewFields } from '@/app/(public)/registration/_utils/registration/review-fields';
 
 interface ReviewProps {
   data: ConsularFormData;

@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Building2, MapPin } from 'lucide-react';
-import { ProfessionalInfoForm } from '@/app/(public)/registration/_utils/components/professional-info';
+import { ProfessionalInfoForm } from '@/app/(public)/registration/_utils/registration/professional-info';
 import { filterUneditedKeys } from '@/lib/utils';
 
 interface ProfessionalInfoSectionProps {

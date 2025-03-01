@@ -1,10 +1,10 @@
-import { RegistrationForm } from '@/app/(public)/registration/_utils/components/registration-form';
 import { auth } from '@/auth';
 import { SessionProvider } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { ROUTES } from '@/schemas/routes';
 import { headers } from 'next/headers';
+import { RegistrationFormWrapper } from '@/components/registration/registration-form';
 export default async function RegistrationPage() {
   const session = await auth();
   const headersList = await headers();
@@ -24,7 +24,7 @@ export default async function RegistrationPage() {
           }
         >
           <div className="container flex flex-col py-6">
-            <RegistrationForm />
+            <RegistrationFormWrapper />
           </div>
         </main>
       </RouteAuthGuard>

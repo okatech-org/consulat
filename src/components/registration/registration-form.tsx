@@ -14,7 +14,7 @@ import { ReviewForm } from './review';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
 import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
-import { FormError, handleFormError } from '@/lib/form/errors';
+import { handleFormError } from '@/lib/form/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -25,8 +25,8 @@ export function RegistrationForm({
   handleSubmitProfile,
 }: {
   handleSubmitProfile: (data: FormData) => Promise<{
-    error?: string;
-    data?: string;
+    error: Error | null;
+    data: string | null;
   }>;
 }) {
   const router = useRouter();
@@ -162,34 +162,37 @@ export function RegistrationForm({
 
   // Soumission finale
   const handleFinalSubmit = async () => {
-    try {
-      setIsLoading(true);
-      const formDataToSend = new FormData();
+    setIsLoading(true);
+    const formDataToSend = new FormData();
 
-      // Ajouter les fichiers
-      const documents = {
-        ...forms.documents.getValues(),
-        identityPictureFile: forms.basicInfo.getValues().identityPictureFile,
-      };
-      Object.entries(documents).forEach(([key, file]) => {
-        if (file) formDataToSend.append(key, file as File);
-      });
+    // Ajouter les fichiers
+    const documents = {
+      ...forms.documents.getValues(),
+      identityPictureFile: forms.basicInfo.getValues().identityPictureFile,
+    };
+    Object.entries(documents).forEach(([key, file]) => {
+      if (file) formDataToSend.append(key, file as File);
+    });
 
-      // Ajouter les données JSON des formulaires
-      formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()));
-      formDataToSend.append('contactInfo', JSON.stringify(forms.contactInfo.getValues()));
-      formDataToSend.append('familyInfo', JSON.stringify(forms.familyInfo.getValues()));
-      formDataToSend.append(
-        'professionalInfo',
-        JSON.stringify(forms.professionalInfo.getValues()),
-      );
+    // Ajouter les données JSON des formulaires
+    formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()));
+    formDataToSend.append('contactInfo', JSON.stringify(forms.contactInfo.getValues()));
+    formDataToSend.append('familyInfo', JSON.stringify(forms.familyInfo.getValues()));
+    formDataToSend.append(
+      'professionalInfo',
+      JSON.stringify(forms.professionalInfo.getValues()),
+    );
 
-      const result = await handleSubmitProfile(formDataToSend);
+    const result = await handleSubmitProfile(formDataToSend);
 
-      if (result.error) {
-        throw new FormError(result.error);
-      }
+    setIsLoading(false);
 
+    if (result.error) {
+      const { title, description } = handleFormError(result.error, t);
+      toast({ title, description, variant: 'destructive' });
+    }
+
+    if (result.data) {
       // Nettoyer les données du formulaire
       clearData();
 
@@ -199,11 +202,6 @@ export function RegistrationForm({
       });
 
       router.push(ROUTES.user.profile);
-    } catch (error) {
-      const { title, description } = handleFormError(error, t);
-      toast({ title, description, variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
     }
   };
 

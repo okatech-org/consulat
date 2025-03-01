@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getParentalAuthoritiesByParentUser } from '@/actions/parental-authority';
-import CardContainer from '@/components/layouts/card-container';
 import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
+import CardContainer from '@/components/layouts/card-container';
 
 export default async function ChildrenPage() {
   const user = await getCurrentUser();
@@ -27,7 +27,7 @@ export default async function ChildrenPage() {
         action={
           <Button asChild size="sm">
             <Link href="/my-space/children/new">
-              <Plus className="size-icon" />
+              <Plus className="mr-2 h-4 w-4" />
               {t('add_child')}
             </Link>
           </Button>

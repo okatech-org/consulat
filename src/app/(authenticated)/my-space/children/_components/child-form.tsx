@@ -24,6 +24,7 @@ import { Gender, ParentalRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Card, CardContent } from '@/components/ui/card';
+import { LoadingButton } from '@/components/ui/loading-button';
 
 // Schéma de validation pour le formulaire enfant
 const childProfileSchema = z.object({
@@ -225,9 +226,9 @@ export function ChildForm({ onSubmit, isLoading = false }: ChildFormProps) {
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
+          <LoadingButton type="submit" isLoading={isLoading}>
             {t('form.submit')}
-          </Button>
+          </LoadingButton>
         </div>
       </form>
     </Form>

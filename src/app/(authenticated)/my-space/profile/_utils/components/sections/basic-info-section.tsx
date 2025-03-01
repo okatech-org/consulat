@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { BasicInfoForm } from '@/app/(public)/registration/_utils/components/basic-info';
+import { BasicInfoForm } from '@/app/(public)/registration/_utils/registration/basic-info';
 import { filterUneditedKeys } from '@/lib/utils';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { CountryCode } from '@/lib/autocomplete-datas';
