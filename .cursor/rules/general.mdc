@@ -1,6 +1,7 @@
 ---
 description: General JavaScript/TypeScript best practices
-globs: **/*.{ts,tsx}
+globs: 
+alwaysApply: true
 ---
 - Prefer const over let and var.
 - Use early returns in functions to improve readability.

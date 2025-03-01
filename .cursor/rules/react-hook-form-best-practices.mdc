@@ -1,6 +1,7 @@
 ---
 description: Best practices for form handling with React Hook Form
-globs: **/*.{ts,tsx}
+globs: 
+alwaysApply: true
 ---
 - Use the `useForm` hook to manage form state and validation.
 - Implement custom validation rules using the `validate` option.

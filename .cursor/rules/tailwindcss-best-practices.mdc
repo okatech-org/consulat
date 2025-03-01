@@ -1,6 +1,7 @@
 ---
 description: Best practices for styling with Tailwind CSS
-globs: **/*.{ts,tsx,css}
+globs: 
+alwaysApply: true
 ---
 - Use utility classes directly in your JSX for rapid development.
 - Create custom components with predefined Tailwind classes for reusability.

@@ -1,6 +1,7 @@
 ---
 description: Best practices for using Prisma ORM
-globs: **/*.{ts,tsx}
+globs: 
+alwaysApply: true
 ---
 - Use Prisma Client in a centralized way to avoid multiple instances.
 - Implement proper error handling and logging for database operations.

@@ -1,6 +1,7 @@
 ---
 description: Best practices for using Radix UI components
-globs: **/*.{ts,tsx}
+globs: 
+alwaysApply: true
 ---
 - Use Radix UI primitives as building blocks for custom components.
 - Implement proper accessibility features using Radix UI's built-in props.

@@ -1,6 +1,7 @@
 ---
 description: Best practices for Next.js applications and routing
-globs: **/*.{ts,tsx}
+globs: 
+alwaysApply: true
 ---
 - Utilize Next.js 15's new features like Server Actions for improved performance.
 - Implement proper error handling with `error.tsx` and `not-found.tsx` pages.

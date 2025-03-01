@@ -1,1 +1,170 @@
- 
+---
+description: Best practices for implementing server actions in Next.js applications
+globs: 
+alwaysApply: true
+---
+# Server Actions Best Practices
+
+## Core Principles
+
+1. **Always Use tryCatch Wrapper**
+   - Every server action must be wrapped with the `tryCatch` utility function
+   - Ensures consistent error handling and type safety
+   - Provides predictable response structure
+
+2. **Type Safety**
+   - Use TypeScript types for all inputs and outputs
+   - Leverage Zod schemas for runtime validation
+   - Define explicit return types for server actions
+
+3. **Error Handling**
+   - Handle both success and error cases explicitly
+   - Log errors appropriately
+   - Return typed error responses to the client
+
+## Implementation Pattern
+
+### Basic Structure
+
+```typescript
+import { tryCatch } from '@/lib/utils';
+
+async function serverAction(input: InputType): Promise<OutputType> {
+  const { error, data } = await tryCatch(async () => {
+    // Your logic here
+    return result;
+  });
+
+  if (error) {
+    console.error('Action failed:', error);
+    throw error;
+  }
+
+  return data;
+}
+```
+
+### With Input Validation
+
+```typescript
+import { tryCatch } from '@/lib/utils';
+import { z } from 'zod';
+
+const inputSchema = z.object({
+  // Define your schema
+});
+
+async function serverActionWithValidation(input: z.infer<typeof inputSchema>) {
+  const { error, data } = await tryCatch(async () => {
+    // Validate input
+    const validated = inputSchema.parse(input);
+    
+    // Process validated data
+    const result = await processData(validated);
+    
+    return result;
+  });
+
+  if (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error('Invalid input');
+    }
+    throw error;
+  }
+
+  return data;
+}
+```
+
+### With Database Operations
+
+```typescript
+import { tryCatch } from '@/lib/utils';
+import { prisma } from '@/lib/prisma';
+
+async function databaseServerAction(input: InputType) {
+  const { error, data } = await tryCatch(async () => {
+    // Database operation
+    const result = await prisma.model.create({
+      data: input,
+    });
+    
+    return result;
+  });
+
+  if (error) {
+    console.error('Database operation failed:', error);
+    throw error;
+  }
+
+  return data;
+}
+```
+
+## Best Practices
+
+1. **Response Structure**
+   - All server actions should return a consistent typed structure
+
+2. **Error Handling**
+   - Log errors with appropriate context
+   - Use custom error types for different scenarios
+   - Handle expected errors gracefully
+
+3. **Validation**
+   - Always validate inputs using Zod schemas
+   - Perform validation before any database operations
+   - Return clear validation error messages
+
+4. **Performance**
+   - Keep server actions focused and minimal
+   - Avoid unnecessary database queries
+   - Use transactions for multiple database operations
+
+5. **Security**
+   - Validate user permissions before operations
+   - Sanitize inputs to prevent injection attacks
+   - Use proper authentication checks
+
+## Common Pitfalls
+
+1. ❌ **Don't Skip tryCatch**
+   ```typescript
+   // Wrong
+   async function badAction() {
+     try {
+       return await doSomething();
+     } catch (error) {
+       throw error;
+     }
+   }
+
+   // Correct
+   async function goodAction() {
+     const { error, data } = await tryCatch(async () => {
+       return await doSomething();
+     });
+     if (error) throw error;
+     return data;
+   }
+   ```
+
+2. ❌ **Don't Ignore Error Types**
+   ```typescript
+   // Wrong
+   if (error) throw error;
+
+   // Correct
+   if (error) {
+     if (error instanceof PrismaError) {
+       // Handle database errors
+     } else if (error instanceof ValidationError) {
+       // Handle validation errors
+     }
+     throw error;
+   }
+   ```
+
+3. ❌ **Don't Mix Error Handling Patterns**
+   - Stick to tryCatch consistently
+   - Avoid mixing with traditional try/catch blocks
