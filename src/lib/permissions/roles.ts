@@ -68,11 +68,12 @@ export const ROLES: RolesConfig = {
   },
   ADMIN: {
     profiles: {
-      view: (user, profile) => profile.organizationId === user.organizationId,
-      create: (user, profile) => profile.organizationId === user.organizationId,
-      update: (user, profile) => profile.organizationId === user.organizationId,
-      validate: (user, profile) => profile.organizationId === user.organizationId,
-      viewChild: (user, profile) => profile.organizationId === user.organizationId,
+      view: (user, profile) => profile.assignedOrganizationId === user.organizationId,
+      create: () => true,
+      update: (user, profile) => profile.assignedOrganizationId === user.organizationId,
+      validate: (user, profile) => profile.assignedOrganizationId === user.organizationId,
+      viewChild: (user, profile) =>
+        profile.assignedOrganizationId === user.organizationId,
     },
     appointments: {
       view: (user, appointment) => appointment.organizationId === user.organizationId,
@@ -99,8 +100,8 @@ export const ROLES: RolesConfig = {
       configure: (user, service) => service.organizationId === user.organizationId,
     },
     documents: {
-      view: (user, doc) => doc.organizationId === user.organizationId,
-      validate: (user, doc) => doc.organizationId === user.organizationId,
+      view: true,
+      validate: true,
     },
     users: {
       view: (user, targetUser) => targetUser.organizationId === user.organizationId,
@@ -109,26 +110,14 @@ export const ROLES: RolesConfig = {
       manage: (user, targetUser) => targetUser.organizationId === user.organizationId,
     },
     parentalAuthorities: {
-      view: (user, authority) =>
-        authority.parentProfile.organizationId === user.organizationId,
-      manage: (user, authority) =>
-        authority.parentProfile.organizationId === user.organizationId,
+      view: true,
+      manage: true,
     },
   },
   AGENT: {
     profiles: {
-      view: (user, profile) => {
-        return (
-          profile.organizationId === user.organizationId &&
-          user.linkedCountries.some((country) => country.code === profile.countryCode)
-        );
-      },
-      validate: (user, profile) => {
-        return (
-          profile.organizationId === user.organizationId &&
-          user.linkedCountries.some((country) => country.code === profile.countryCode)
-        );
-      },
+      view: () => true,
+      validate: () => true,
     },
     appointments: {
       view: (user, appointment) => {
@@ -145,30 +134,35 @@ export const ROLES: RolesConfig = {
       view: (user, request) => {
         return (
           request.organizationId === user.assignedOrganizationId &&
+          user.specializations &&
           user.specializations.includes(request.serviceCategory)
         );
       },
       process: (user, request) => {
         return (
           request.organizationId === user.assignedOrganizationId &&
+          user.specializations &&
           user.specializations.includes(request.serviceCategory)
         );
       },
       update: (user, request) => {
         return (
           request.organizationId === user.assignedOrganizationId &&
+          user.specializations &&
           user.specializations.includes(request.serviceCategory)
         );
       },
       validate: (user, request) => {
         return (
           request.organizationId === user.assignedOrganizationId &&
+          user.specializations &&
           user.specializations.includes(request.serviceCategory)
         );
       },
       complete: (user, request) => {
         return (
           request.organizationId === user.assignedOrganizationId &&
+          user.specializations &&
           user.specializations.includes(request.serviceCategory)
         );
       },
@@ -178,14 +172,7 @@ export const ROLES: RolesConfig = {
       validate: true,
     },
     parentalAuthorities: {
-      view: (user, authority) => {
-        return (
-          authority.parentProfile.organizationId === user.organizationId &&
-          user.linkedCountries.some(
-            (country) => country.code === authority.parentProfile.countryCode,
-          )
-        );
-      },
+      view: true,
     },
   },
   USER: {
@@ -193,19 +180,11 @@ export const ROLES: RolesConfig = {
       view: (user, profile) => profile.userId === user.id,
       create: (user, profile) => profile.userId === user.id,
       update: (user, profile) => profile.userId === user.id,
-      viewChild: (user, profile) => {
-        return profile.parentalAuthorityChildren?.some(
-          (authority) => authority.parentProfile.userId === user.id && authority.isActive,
-        );
-      },
+      viewChild: () => true,
       createChild: (user, profile) => {
         return profile.userId === user.id && profile.category === 'ADULT';
       },
-      updateChild: (user, profile) => {
-        return profile.parentalAuthorityChildren?.some(
-          (authority) => authority.parentProfile.userId === user.id && authority.isActive,
-        );
-      },
+      updateChild: () => true,
     },
     appointments: {
       view: (user, appointment) => appointment.attendeeId === user.id,
@@ -215,23 +194,11 @@ export const ROLES: RolesConfig = {
     },
     serviceRequests: {
       view: (user, request) => {
-        return (
-          request.submittedById === user.id ||
-          request.requestedFor?.parentalAuthorityChildren?.some(
-            (authority) =>
-              authority.parentProfile.userId === user.id && authority.isActive,
-          )
-        );
+        return request.submittedById === user.id;
       },
       create: true,
       update: (user, request) => {
-        return (
-          request.submittedById === user.id ||
-          request.requestedFor?.parentalAuthorityChildren?.some(
-            (authority) =>
-              authority.parentProfile.userId === user.id && authority.isActive,
-          )
-        );
+        return request.submittedById === user.id;
       },
     },
     documents: {
@@ -246,16 +213,25 @@ export const ROLES: RolesConfig = {
       view: true,
     },
     parentalAuthorities: {
-      view: (user, authority) => authority.parentProfile.userId === user.id,
-      create: (user, authority) => authority.parentProfile.userId === user.id,
-      update: (user, authority) => authority.parentProfile.userId === user.id,
-      delete: (user, authority) => authority.parentProfile.userId === user.id,
+      view: (user, authority) => {
+        const parentUserIds = (authority.parentUsers || []).map((user) => user.id);
+        return parentUserIds.includes(user.id);
+      },
+      create: true,
+      update: (user, authority) => {
+        const parentUserIds = (authority.parentUsers || []).map((user) => user.id);
+        return parentUserIds.includes(user.id);
+      },
+      delete: (user, authority) => {
+        const parentUserIds = (authority.parentUsers || []).map((user) => user.id);
+        return parentUserIds.includes(user.id);
+      },
     },
   },
   MANAGER: {
     profiles: {
-      view: (user, profile) => profile.organizationId === user.organizationId,
-      validate: (user, profile) => profile.organizationId === user.organizationId,
+      view: true,
+      validate: true,
     },
     appointments: {
       view: (user, appointment) => appointment.organizationId === user.organizationId,
@@ -271,15 +247,14 @@ export const ROLES: RolesConfig = {
       validate: (user, request) => request.organizationId === user.organizationId,
     },
     documents: {
-      view: (user, doc) => doc.organizationId === user.organizationId,
-      validate: (user, doc) => doc.organizationId === user.organizationId,
+      view: true,
+      validate: true,
     },
     users: {
       view: (user, targetUser) => targetUser.organizationId === user.organizationId,
     },
     parentalAuthorities: {
-      view: (user, authority) =>
-        authority.parentProfile?.organizationId === user.organizationId,
+      view: true,
     },
   },
 };

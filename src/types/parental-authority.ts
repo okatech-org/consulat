@@ -1,24 +1,9 @@
-import {
-  ParentalAuthority as PrismaParentalAuthority,
-  ParentalRole,
-  Prisma,
-} from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
-// Params pour la création d'une autorité parentale
-export interface CreateParentalAuthorityParams {
-  profileId: string; // ID du profil enfant
-  parentUserId: string; // ID de l'utilisateur parent
-  role: ParentalRole;
-  isActive?: boolean;
-}
-
-// Type de base pour une autorité parentale
-export type BaseParentalAuthority = PrismaParentalAuthority;
-
-// Include pour récupérer les informations de base
+// Base includes pour l'autorité parentale
 export const BaseParentalAuthorityInclude = {
   include: {
-    profile: {
+    parentProfile: {
       select: {
         id: true,
         firstName: true,
@@ -33,52 +18,53 @@ export const BaseParentalAuthorityInclude = {
         },
       },
     },
-    parentUsers: {
+    childProfile: {
       select: {
         id: true,
-        email: true,
-        name: true,
-        image: true,
-      },
-    },
-  },
-} as const;
-
-// Type avec les relations de base
-export type ParentalAuthorityWithBasicRelations = Prisma.ParentalAuthorityGetPayload<
-  typeof BaseParentalAuthorityInclude
->;
-
-// Include pour récupérer toutes les informations
-export const FullParentalAuthorityInclude = {
-  include: {
-    profile: {
-      include: {
+        firstName: true,
+        lastName: true,
+        category: true,
         user: {
           select: {
             id: true,
             email: true,
             image: true,
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+// Includes complet pour l'autorité parentale
+export const FullParentalAuthorityInclude = {
+  include: {
+    parentProfile: {
+      include: {
+        user: {
+          select: {
+            id: true,
             name: true,
+            email: true,
+            image: true,
           },
         },
         phone: true,
         address: true,
       },
     },
-    parentUsers: {
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        image: true,
-        profile: {
+    childProfile: {
+      include: {
+        user: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            name: true,
+            email: true,
+            image: true,
           },
         },
+        phone: true,
+        address: true,
       },
     },
     sharedRequests: {
@@ -96,8 +82,13 @@ export const FullParentalAuthorityInclude = {
   },
 } as const;
 
-// Type avec toutes les relations
-export type ParentalAuthorityWithFullRelations = Prisma.ParentalAuthorityGetPayload<
+// Type pour une autorité parentale de base
+export type BaseParentalAuthority = Prisma.ParentalAuthorityGetPayload<
+  typeof BaseParentalAuthorityInclude
+>;
+
+// Type pour une autorité parentale complète
+export type FullParentalAuthority = Prisma.ParentalAuthorityGetPayload<
   typeof FullParentalAuthorityInclude
 >;
 
@@ -119,9 +110,15 @@ export type ParentalAuthorityWithIncludes<
   ReturnType<typeof createParentalAuthorityInclude<T>>
 >;
 
-// Type pour la mise à jour
+// Types pour les créations et mises à jour
+export interface CreateParentalAuthorityParams {
+  parentProfileId: string;
+  childProfileId: string;
+  role: 'FATHER' | 'MOTHER' | 'LEGAL_GUARDIAN';
+}
+
 export interface UpdateParentalAuthorityParams {
   id: string;
   isActive?: boolean;
-  role?: ParentalRole;
+  role?: 'FATHER' | 'MOTHER' | 'LEGAL_GUARDIAN';
 }
