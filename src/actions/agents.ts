@@ -19,6 +19,7 @@ export async function assignAgentToRequest(
   requestId: string,
   organizationId: string,
   countryCode: CountryCode,
+  dbTx: PrismaClient,
 ) {
   const t = await getTranslations();
   const request = await db.serviceRequest.findUnique({
@@ -55,7 +56,7 @@ export async function assignAgentToRequest(
   const assignedAgent = await selectBestAgent(agents, request.priority);
 
   // Assigner la requête à l'agent
-  const updatedRequest = await db.serviceRequest.update({
+  const updatedRequest = await dbTx.serviceRequest.update({
     where: { id: requestId },
     data: {
       assignedToId: assignedAgent.id,
@@ -67,7 +68,7 @@ export async function assignAgentToRequest(
   });
 
   // Créer une action pour tracer l'assignation
-  await db.requestAction.create({
+  await dbTx.requestAction.create({
     data: {
       type: RequestActionType.ASSIGNMENT,
       requestId: requestId,
@@ -115,6 +116,8 @@ async function selectBestAgent(agents: Agent[], requestPriority: string): Promis
 
   // Trier par score et sélectionner le meilleur
   const sortedAgents = agentScores.sort((a, b) => b.score - a.score);
+
+  console.log('sortedAgents', sortedAgents);
 
   if (sortedAgents.length === 0) {
     throw new Error('No qualified agents available');

@@ -638,6 +638,15 @@ export async function submitProfileForValidation(
       },
     });
 
+    if (registrationService.organizationId) {
+      await assignAgentToRequest(
+        serviceRequest.id,
+        registrationService.organizationId,
+        currentUser.countryCode as CountryCode,
+        db,
+      );
+    }
+
     // Mettre à jour le statut du profil
     const updatedProfile = await db.profile.update({
       where: { id: profileId },
@@ -646,14 +655,6 @@ export async function submitProfileForValidation(
         submittedAt: new Date(),
       },
     });
-
-    if (registrationService.organizationId) {
-      await assignAgentToRequest(
-        serviceRequest.id,
-        registrationService.organizationId,
-        currentUser.countryCode as CountryCode,
-      );
-    }
 
     return { data: updatedProfile };
   } catch (error) {

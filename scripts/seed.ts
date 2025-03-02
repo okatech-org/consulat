@@ -471,6 +471,7 @@ async function main() {
           emailVerified: new Date(),
           country: { connect: { code: 'FR' } },
           assignedOrganization: { connect: { id: 'organization-ambassade-france' } },
+          linkedCountries: { connect: [{ code: 'FR' }] },
           specializations: [
             ServiceCategory.IDENTITY,
             ServiceCategory.CIVIL_STATUS,
@@ -493,6 +494,7 @@ async function main() {
           assignedOrganization: {
             connect: { id: 'organization-consulat-general-marseille' },
           },
+          linkedCountries: { connect: [{ code: 'FR' }] },
           specializations: [
             ServiceCategory.IDENTITY,
             ServiceCategory.CIVIL_STATUS,
@@ -513,6 +515,7 @@ async function main() {
           emailVerified: new Date(),
           country: { connect: { code: 'US' } },
           assignedOrganization: { connect: { id: 'organization-ambassade-usa' } },
+          linkedCountries: { connect: [{ code: 'US' }] },
           specializations: [
             ServiceCategory.IDENTITY,
             ServiceCategory.CIVIL_STATUS,

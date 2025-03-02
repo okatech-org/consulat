@@ -14,7 +14,7 @@ export default {
   notifications: {
     REQUEST_NEW: {
       title: 'Vous avez été assigné à une nouvelle demande',
-      message: 'Une demande de type {{requestType}} vous a été assignée',
+      message: 'Une demande de type {requestType} vous a été assignée',
       see_request: 'Voir la demande',
     },
   },
