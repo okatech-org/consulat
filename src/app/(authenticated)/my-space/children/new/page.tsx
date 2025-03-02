@@ -1,12 +1,12 @@
 import React from 'react';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/actions/user';
-import CardContainer from '@/components/layouts/card-container';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import { ChildRegistrationForm } from '@/components/registration/child-registration-form';
+import { PageContainer } from '@/components/layouts/page-container';
 
 export default async function NewChildProfilePage() {
   const user = await getCurrentUser();
@@ -16,9 +16,9 @@ export default async function NewChildProfilePage() {
   if (!user) return null;
 
   return (
-    <CardContainer
+    <PageContainer
       title={t('create_form.title')}
-      subtitle={t('create_form.subtitle')}
+      description={t('create_form.subtitle')}
       action={
         <Button asChild variant="outline" size="sm">
           <Link href={ROUTES.user.children}>
@@ -29,6 +29,6 @@ export default async function NewChildProfilePage() {
       }
     >
       <ChildRegistrationForm />
-    </CardContainer>
+    </PageContainer>
   );
 }

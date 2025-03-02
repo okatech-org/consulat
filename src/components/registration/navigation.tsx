@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Loader } from 'lucide-react';
-import { validateStep } from '@/lib/form/validation';
+import { validateStep as validateStepFn } from '@/lib/form/validation';
 import { ConsularFormData } from '@/schemas/registration';
 import { UseFormReturn } from 'react-hook-form';
 
@@ -14,6 +14,8 @@ interface NavigationProps<T extends keyof ConsularFormData> {
   onNext: (data: ConsularFormData[T]) => void;
   onPrevious: () => void;
   forms: Record<T, UseFormReturn<ConsularFormData[T]>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  validateStep?: (step: number, forms: any) => Promise<{ isValid: boolean; data?: any }>;
 }
 
 export function FormNavigation({
@@ -23,6 +25,7 @@ export function FormNavigation({
   onNext,
   onPrevious,
   forms,
+  validateStep = validateStepFn,
 }: NavigationProps<keyof ConsularFormData>) {
   const t = useTranslations('registration');
 
@@ -35,7 +38,7 @@ export function FormNavigation({
   };
 
   return (
-    <div className="mt-8 flex justify-between gap-4">
+    <div className="mt-6 flex justify-between gap-4">
       {currentStep > 0 && (
         <Button
           onClick={onPrevious}

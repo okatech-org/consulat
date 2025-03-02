@@ -27,14 +27,21 @@ export function useChildRegistrationForm() {
   const forms = {
     link: useForm<LinkFormData>({
       resolver: zodResolver(LinkInfoSchema),
-      defaultValues: initialData?.link,
+      defaultValues: { ...initialData?.link, hasOtherParent: false },
     }),
     documents: useForm<ChildDocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
       defaultValues: initialData?.documents,
     }),
     basicInfo: useForm<BasicInfoFormData>({
-      resolver: zodResolver(BasicInfoSchema),
+      resolver: zodResolver(
+        BasicInfoSchema.omit({
+          passportNumber: true,
+          passportIssueDate: true,
+          passportExpiryDate: true,
+          passportIssueAuthority: true,
+        }),
+      ),
       defaultValues: {
         ...initialData?.basicInfo,
         acquisitionMode:
@@ -50,6 +57,13 @@ export function useChildRegistrationForm() {
   const handleDataChange = useCallback(
     (newData: Partial<ChildCompleteFormData>) => {
       saveData(newData);
+    },
+    [saveData],
+  );
+
+  const updateDataFromAnalysis = useCallback(
+    (data: Partial<ChildCompleteFormData>) => {
+      saveData(data);
     },
     [saveData],
   );

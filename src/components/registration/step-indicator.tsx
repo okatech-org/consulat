@@ -22,7 +22,7 @@ export function StepIndicator({ steps, currentStep, onChange }: StepIndicatorPro
   const t = useTranslations('registration');
 
   return (
-    <div className="relative">
+    <div className="relative ">
       {/* Barre de progression */}
       <div className="absolute left-0 top-[15px] h-[2px] w-full bg-muted">
         <motion.div

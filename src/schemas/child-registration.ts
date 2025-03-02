@@ -1,7 +1,6 @@
 import * as z from 'zod';
 import { ParentalRole } from '@prisma/client';
 import { BasicInfoSchema, DocumentsSchema } from './registration';
-import { PhoneSchema } from './inputs';
 
 export const LinkInfoSchema = z
   .object({
@@ -10,34 +9,53 @@ export const LinkInfoSchema = z
     otherParentFirstName: z.string().optional(),
     otherParentLastName: z.string().optional(),
     otherParentEmail: z.string().email().optional(),
-    otherParentPhone: PhoneSchema.optional(),
+    otherParentPhone: z
+      .object({
+        countryCode: z.string(),
+        number: z.string(),
+      })
+      .optional(),
     otherParentRole: z.nativeEnum(ParentalRole).optional(),
   })
-  .refine(
-    (data) => {
-      // Si hasOtherParent est true, tous les champs otherParent sont requis
-      if (data.hasOtherParent) {
-        return !!(
-          data.otherParentFirstName &&
-          data.otherParentLastName &&
-          data.otherParentEmail &&
-          data.otherParentPhone &&
-          data.otherParentRole
-        );
+  .superRefine((data, ctx) => {
+    if (data.hasOtherParent) {
+      if (!data.otherParentFirstName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'messages.errors.required',
+          path: ['otherParentFirstName'],
+        });
       }
-      return true;
-    },
-    {
-      message: 'messages.errors.other_parent_fields_required',
-      path: [
-        'otherParentFirstName',
-        'otherParentLastName',
-        'otherParentEmail',
-        'otherParentPhone',
-        'otherParentRole',
-      ],
-    },
-  );
+      if (!data.otherParentLastName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'messages.errors.required',
+          path: ['otherParentLastName'],
+        });
+      }
+      if (!data.otherParentEmail) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'messages.errors.required',
+          path: ['otherParentEmail'],
+        });
+      }
+      if (!data.otherParentPhone) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'messages.errors.required',
+          path: ['otherParentPhone'],
+        });
+      }
+      if (!data.otherParentRole) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'messages.errors.required',
+          path: ['otherParentRole'],
+        });
+      }
+    }
+  });
 
 export const ChildCompleteFormSchema = z.object({
   linkInfo: LinkInfoSchema,

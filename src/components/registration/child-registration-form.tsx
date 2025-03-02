@@ -18,6 +18,8 @@ import { tryCatch } from '@/lib/utils';
 import { useChildRegistrationForm } from '@/hooks/use-child-registration-form';
 import { LinkForm } from './link-form';
 import { ChildReviewForm } from './child-review-form';
+import { UseFormReturn } from 'react-hook-form';
+import { ChildCompleteFormData } from '@/schemas/child-registration';
 
 export function ChildRegistrationForm() {
   const router = useRouter();
@@ -61,50 +63,6 @@ export function ChildRegistrationForm() {
     },
   ]);
 
-  // Gestionnaire d'analyse des components
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDocumentsAnalysis = async (data: any) => {
-    setIsLoading(true);
-    setError(undefined);
-
-    try {
-      const updateResult = updateFormsFromAnalysis(data, {
-        basicInfo: forms.basicInfo,
-      });
-
-      // Mettre à jour le stockage local
-      handleDataChange({
-        linkInfo: forms.link.getValues(),
-        basicInfo: forms.basicInfo.getValues(),
-        documents: forms.documents.getValues(),
-      });
-
-      // Afficher le toast avec les sections mises à jour
-      const updatedSections = Object.entries(updateResult)
-        .filter(([, hasUpdates]) => hasUpdates)
-        .map(([key]) => t(`sections.${key.replace('has', '').toLowerCase()}`));
-
-      toast({
-        title: t('profile.analysis.success.title'),
-        description: t('profile.analysis.success.description_with_sections', {
-          sections: updatedSections.join(', '),
-        }),
-        variant: 'success',
-        action:
-          updatedSections.length > 0 ? (
-            <Button onClick={() => setCurrentStep((prev) => prev + 1)} size="sm">
-              {t('profile.analysis.success.action')}
-            </Button>
-          ) : undefined,
-      });
-    } catch (error) {
-      const { title, description } = handleFormError(error, t);
-      toast({ title, description, variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Gestionnaire de navigation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNext = async (stepData: any) => {
@@ -135,6 +93,7 @@ export function ChildRegistrationForm() {
 
   // Soumission finale
   const handleFinalSubmit = async () => {
+    console.log('handleFinalSubmit');
     setIsLoading(true);
     const formDataToSend = new FormData();
 
@@ -170,7 +129,7 @@ export function ChildRegistrationForm() {
         description: t('submission.success.description'),
       });
 
-      router.push(ROUTES.user.profile);
+      router.push(ROUTES.user.children);
     }
   };
 
@@ -189,7 +148,6 @@ export function ChildRegistrationForm() {
         return (
           <DocumentUploadSection
             form={forms.documents}
-            onAnalysisComplete={handleDocumentsAnalysis}
             handleSubmit={() => handleNext(forms.documents.getValues())}
             isLoading={isLoading}
           />
@@ -200,6 +158,7 @@ export function ChildRegistrationForm() {
             form={forms.basicInfo}
             onSubmit={() => handleNext(forms.basicInfo.getValues())}
             isLoading={isLoading}
+            isChild={true}
           />
         );
       case 3:
@@ -235,7 +194,7 @@ export function ChildRegistrationForm() {
       </div>
 
       {/* Contenu principal */}
-      <div>
+      <div className="pb-16">
         {renderCurrentStep()}
 
         <FormNavigation
@@ -246,6 +205,7 @@ export function ChildRegistrationForm() {
           onPrevious={handlePrevious}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           forms={forms as any}
+          validateStep={validateStep}
         />
       </div>
 
@@ -258,4 +218,51 @@ export function ChildRegistrationForm() {
       />
     </div>
   );
+}
+
+async function validateStep(
+  step: number,
+  forms: {
+    link: UseFormReturn<ChildCompleteFormData['linkInfo']>;
+    documents: UseFormReturn<ChildCompleteFormData['documents']>;
+    basicInfo: UseFormReturn<ChildCompleteFormData['basicInfo']>;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ isValid: boolean; data?: any }> {
+  try {
+    switch (step) {
+      case 0: // Link
+        const isLinkValid = await forms.link.trigger();
+        if (!isLinkValid) return { isValid: false };
+        return {
+          isValid: true,
+          data: forms.link.getValues(),
+        };
+
+      case 1: // Documents
+        const isDocumentsValid = await forms.documents.trigger();
+        if (!isDocumentsValid) return { isValid: false };
+        return {
+          isValid: true,
+          data: forms.documents.getValues(),
+        };
+
+      case 2: // Basic Info
+        const isBasicInfoValid = await forms.basicInfo.trigger();
+        if (!isBasicInfoValid) return { isValid: false };
+        return {
+          isValid: true,
+          data: forms.basicInfo.getValues(),
+        };
+
+      case 3: // Review
+        return { isValid: true, data: {} };
+
+      default:
+        return { isValid: false };
+    }
+  } catch (error) {
+    console.error('Validation error:', error);
+    return { isValid: false };
+  }
 }

@@ -162,37 +162,38 @@ export function DocumentUploadSection({
           <CardFooter>
             <div className={'w-full space-y-4'}>
               {/* Section d'analyse */}
-              <Card className="overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center gap-4 text-center">
-                    <Button
-                      type="button"
-                      onClick={handleAnalysis}
-                      disabled={isAnalyzing || isLoading}
-                      className="w-full gap-2 md:w-auto"
-                    >
-                      {isAnalyzing ? (
-                        <>
-                          <LottieAnimation
-                            src="https://lottie.host/3dcbeb73-3c3f-4dbe-93de-a973430b6c4c/aX6F1INJXN.json"
-                            className="size-5"
-                          />
-                          {t('documents.analysis.analyzing')}
-                        </>
-                      ) : (
-                        <>
-                          <ScanBarcode className="size-5" />
-                          {t('documents.analysis.start')}
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-sm text-muted-foreground">
-                      {t('documents.analysis.help')}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
+              {onAnalysisComplete && (
+                <Card className="overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center gap-4 text-center">
+                      <Button
+                        type="button"
+                        onClick={handleAnalysis}
+                        disabled={isAnalyzing || isLoading}
+                        className="w-full gap-2 md:w-auto"
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <LottieAnimation
+                              src="https://lottie.host/3dcbeb73-3c3f-4dbe-93de-a973430b6c4c/aX6F1INJXN.json"
+                              className="size-5"
+                            />
+                            {t('documents.analysis.analyzing')}
+                          </>
+                        ) : (
+                          <>
+                            <ScanBarcode className="size-5" />
+                            {t('documents.analysis.start')}
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        {t('documents.analysis.help')}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
               {/* Guide d'aide */}
               <DocumentUploadGuide />
             </div>
