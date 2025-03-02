@@ -66,6 +66,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               <SubmitProfileButton
                 canSubmit={completionRate === 100}
                 profileId={profile.id}
+                isChild={true}
               />
             </div>
           )}

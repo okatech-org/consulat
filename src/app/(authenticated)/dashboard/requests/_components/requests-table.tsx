@@ -51,15 +51,27 @@ export function RequestsTable({
     value: RequestStatus;
     label: string;
   }[] = [
-    { value: RequestStatus.SUBMITTED, label: t('common.status.submitted') },
-    { value: RequestStatus.PENDING, label: t('common.status.pending') },
+    {
+      value: RequestStatus.SUBMITTED,
+      label: t(`common.status.${RequestStatus.SUBMITTED}`),
+    },
+    { value: RequestStatus.PENDING, label: t(`common.status.${RequestStatus.PENDING}`) },
     {
       value: RequestStatus.PENDING_COMPLETION,
-      label: t('common.status.pending_completion'),
+      label: t(`common.status.${RequestStatus.PENDING_COMPLETION}`),
     },
-    { value: RequestStatus.VALIDATED, label: t('common.status.validated') },
-    { value: RequestStatus.REJECTED, label: t('common.status.rejected') },
-    { value: RequestStatus.COMPLETED, label: t('common.status.completed') },
+    {
+      value: RequestStatus.VALIDATED,
+      label: t(`common.status.${RequestStatus.VALIDATED}`),
+    },
+    {
+      value: RequestStatus.REJECTED,
+      label: t(`common.status.${RequestStatus.REJECTED}`),
+    },
+    {
+      value: RequestStatus.COMPLETED,
+      label: t(`common.status.${RequestStatus.COMPLETED}`),
+    },
   ];
 
   React.useEffect(() => {
@@ -331,7 +343,7 @@ export function RequestsTable({
           handleFilterChange('serviceCategory', value.join('_'));
         }
       },
-      isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER']),
+      isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT']),
     },
   ];
 

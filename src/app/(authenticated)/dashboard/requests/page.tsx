@@ -35,21 +35,18 @@ export default async function RequestsPage({ searchParams }: Props) {
 
   let serviceCategories: ServiceCategory[] = [];
 
-  if (isAdmin) {
+  if (isAgent || isAdmin) {
     const serviceCategoriesResult = await tryCatch(
-      getAvailableServiceCategories(session?.user.organizationId as string),
+      getAvailableServiceCategories(
+        isAgent
+          ? (session?.user.assignedOrganizationId as string)
+          : (session?.user.organizationId as string),
+      ),
     );
-    if (serviceCategoriesResult.data) {
-      serviceCategories = serviceCategoriesResult.data;
-    }
-  }
 
-  if (isAgent) {
-    const serviceCategoriesResult = await tryCatch(
-      getAvailableServiceCategories(session?.user.assignedOrganizationId as string),
-    );
     if (serviceCategoriesResult.data) {
       serviceCategories = serviceCategoriesResult.data;
+      console.log('serviceCategories', serviceCategories);
     }
   }
 

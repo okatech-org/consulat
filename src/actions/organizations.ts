@@ -47,10 +47,7 @@ export async function getOrganizations(): Promise<OrganizationListingItem[]> {
 
 export async function createOrganization(data: CreateOrganizationInput) {
   try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
+    await checkAuth([UserRole.SUPER_ADMIN]);
 
     // Créer l'organisation
     const organization = await db.organization.create({
@@ -87,10 +84,7 @@ export async function createOrganization(data: CreateOrganizationInput) {
 
 export async function updateOrganization(id: string, data: UpdateOrganizationInput) {
   try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
+    await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
     const organization = await db.organization.update({
       where: { id },
@@ -114,10 +108,7 @@ export async function updateOrganization(id: string, data: UpdateOrganizationInp
 
 export async function updateOrganizationStatus(id: string, status: OrganizationStatus) {
   try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
+    await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
     const organization = await db.organization.update({
       where: { id },
@@ -133,8 +124,7 @@ export async function updateOrganizationStatus(id: string, status: OrganizationS
 }
 
 export async function deleteOrganization(id: string) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN]);
 
   try {
     // Vérifier si l'organisme a des utilisateurs ou services
@@ -175,13 +165,12 @@ export async function getOrganizationById(id: string): Promise<{
   data?: FullOrganization | null;
   error?: string;
 }> {
-  const authResult = await checkAuth([
+  await checkAuth([
     UserRole.SUPER_ADMIN,
     UserRole.ADMIN,
     UserRole.AGENT,
     UserRole.MANAGER,
   ]);
-  if (authResult.error) return { error: authResult.error };
 
   try {
     const organization = await db.organization.findUnique({
@@ -231,7 +220,12 @@ export async function getOrganizationWithSpecificIncludes<
 export async function getAvailableServiceCategories(
   id: string,
 ): Promise<ServiceCategory[]> {
-  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT]);
+  await checkAuth([
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.AGENT,
+    UserRole.MANAGER,
+  ]);
 
   const categories = await db.consularService.groupBy({
     by: ['category'],
@@ -251,15 +245,12 @@ export async function getAvailableServiceCategories(
     },
   });
 
-  const availableCategories = categories.map(({ category }) => category);
-
-  return availableCategories;
+  return categories.map(({ category }) => category);
 }
 
 export async function createNewAgent(data: AgentFormData) {
   try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-    if (authResult.error) return { error: authResult.error };
+    await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
     const { countryIds, phone, serviceCategories, ...rest } = data;
 
@@ -298,14 +289,10 @@ export async function createNewAgent(data: AgentFormData) {
 
 export async function updateAgent(id: string, data: Partial<AgentFormData>) {
   try {
-    const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-    if (authResult.error) {
-      return { error: authResult.error };
-    }
+    await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
     const { countryIds, phone, ...rest } = data;
 
-    // Créer le téléphone d'abord si nécessaire
     let phoneId: string | undefined;
 
     if (phone) {
@@ -373,8 +360,7 @@ export async function getOrganizationAgentsWithIncludes<
   data?: AgentWithIncludes<T>[];
   error?: string;
 }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   try {
     const agents = await db.user.findMany({
@@ -414,12 +400,7 @@ export async function updateOrganizationSettings(
   data: OrganizationSettingsFormData,
   logoFile?: FormData,
 ) {
-  const authResult = await checkAuth([
-    UserRole.MANAGER,
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-  ]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]);
 
   try {
     let logoUrl = data.logo;

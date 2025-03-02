@@ -35,8 +35,7 @@ export async function getServices(): Promise<ConsularServiceListingItem[]> {
  */
 
 export async function createService(data: NewServiceSchemaInput) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   try {
     // Créer le service avec ses étapes
@@ -65,8 +64,7 @@ export async function createService(data: NewServiceSchemaInput) {
  * Mettre à jour un service
  */
 export async function updateService(data: Partial<ConsularServiceItem>) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   if (!data.id) {
     return { error: 'Service ID is required' };
@@ -127,8 +125,7 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
 }
 
 export async function updateServiceStatus(id: string, isActive: boolean) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   try {
     const service = await db.consularService.update({
@@ -150,8 +147,7 @@ export async function updateServiceStatus(id: string, isActive: boolean) {
  * Supprimer un service
  */
 export async function deleteService(id: string) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   try {
     // Vérifier si le service a des demandes en cours
@@ -193,8 +189,7 @@ export async function assignServiceToOrganization(
   serviceId: string,
   organizationId: string,
 ) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   try {
     await db.organization.update({
@@ -221,8 +216,7 @@ export async function unassignServiceFromOrganization(
   serviceId: string,
   organizationId: string,
 ) {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   try {
     await db.organization.update({
@@ -275,8 +269,7 @@ export async function getFullService(id: string): Promise<ConsularServiceItem> {
 export async function duplicateService(
   serviceId: string,
 ): Promise<{ data?: string; error?: string }> {
-  const authResult = await checkAuth([UserRole.SUPER_ADMIN]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   try {
     const existingService = await db.consularService.findUnique({

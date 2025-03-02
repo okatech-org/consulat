@@ -16,6 +16,7 @@ export default async function RequestReview({
   const fullProfile = await getUserFullProfile(request.submittedById);
   switch (request.serviceCategory) {
     case 'REGISTRATION':
+    case 'CHILD_REGISTRATION':
       return (
         <ProfileReview
           request={{

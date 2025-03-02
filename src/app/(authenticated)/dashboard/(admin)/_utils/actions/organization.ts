@@ -13,12 +13,7 @@ export async function updateOrganizationSettings(
   data: OrganizationSettingsFormData,
   logoFile?: FormData,
 ) {
-  const authResult = await checkAuth([
-    UserRole.MANAGER,
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-  ]);
-  if (authResult.error) return { error: authResult.error };
+  await checkAuth([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]);
 
   try {
     let logoUrl = data.logo;
@@ -35,7 +30,7 @@ export async function updateOrganizationSettings(
       data: {
         name: data.name,
         logo: logoUrl,
-        metadata: data.metadata,
+        metadata: JSON.stringify(data.metadata),
         updatedAt: new Date(),
       },
     });

@@ -20,11 +20,10 @@ export const ContentSecurityPolicy = `
     ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''}
     wss://*.uploadthing.com;
   frame-ancestors 'none';
-  object-src 'self data:';
   base-uri 'self';
   form-action 'self';
   manifest-src 'self';
-  worker-src 'self blob:;
+  worker-src blob:;
   upgrade-insecure-requests;
 `;
 

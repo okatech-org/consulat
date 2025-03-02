@@ -3,8 +3,7 @@ import { checkAuth } from '@/lib/auth/action';
 import { RequestStatus } from '@prisma/client';
 
 export async function getManagerStats() {
-  const authResult = await checkAuth(['MANAGER']);
-  if (authResult.error) return null;
+  await checkAuth(['MANAGER']);
 
   const [pendingRequests, activeUsers, completedRequests] = await Promise.all([
     db.serviceRequest.count({ where: { status: RequestStatus.SUBMITTED } }),

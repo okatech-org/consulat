@@ -534,6 +534,7 @@ export async function updateProfile(
 
 export async function submitProfileForValidation(
   profileId: string,
+  isChild: boolean = false,
 ): Promise<ActionResult<Profile>> {
   const t = await getTranslations('messages.profile');
   const currentUser = await getCurrentUser();
@@ -570,28 +571,35 @@ export async function submitProfileForValidation(
     }
 
     // Vérifier que tous les components requis sont présents
-    const requiredDocuments = [
-      profile.passport,
-      profile.birthCertificate,
-      profile.addressProof,
-    ];
+    const requiredDocuments = [profile.birthCertificate];
+
+    if (!isChild) {
+      requiredDocuments.push(profile.passport);
+      requiredDocuments.push(profile.addressProof);
+    }
 
     if (requiredDocuments.some((doc) => !doc)) {
       return { error: t('errors.missing_documents') };
     }
 
     // Vérifier que toutes les informations requises sont présentes
-    const requiredFields = [
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requiredFields: any[] = [
       profile.firstName,
       profile.lastName,
       profile.birthDate,
       profile.birthPlace,
       profile.nationality,
-      profile.address,
-      profile.phone,
-      profile.email,
-      profile.emergencyContact,
     ];
+
+    if (!isChild) {
+      requiredFields.push(
+        profile.address,
+        profile.phone,
+        profile.email,
+        profile.emergencyContact,
+      );
+    }
 
     if (requiredFields.some((field) => !field)) {
       return { error: t('errors.incomplete_profile') };
@@ -599,7 +607,9 @@ export async function submitProfileForValidation(
 
     await db.serviceRequest.create({
       data: {
-        serviceCategory: ServiceCategory.REGISTRATION,
+        serviceCategory: isChild
+          ? ServiceCategory.CHILD_REGISTRATION
+          : ServiceCategory.REGISTRATION,
         submittedBy: {
           connect: {
             id: currentUser.id,
@@ -608,6 +618,11 @@ export async function submitProfileForValidation(
         service: {
           connect: {
             id: registrationService.id,
+          },
+        },
+        requestedFor: {
+          connect: {
+            id: profileId,
           },
         },
       },

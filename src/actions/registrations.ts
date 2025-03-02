@@ -30,11 +30,7 @@ export interface RegistrationsResult {
 export async function getRegistrations(
   options?: GetRegistrationsOptions,
 ): Promise<RegistrationsResult> {
-  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
-
-  if (authResult.error) {
-    throw new Error(authResult.error);
-  }
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
 
   const {
     status,
@@ -153,9 +149,6 @@ interface ValidateRequestInput {
 
 export async function validateRegistrationRequest(input: ValidateRequestInput) {
   const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN']);
-  if (authResult.error || !authResult.user) {
-    return { error: authResult.error };
-  }
 
   try {
     const updatedProfile = await db.profile.update({

@@ -3,7 +3,7 @@
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { Prisma, Profile, RequestStatus } from '@prisma/client';
-import { FullProfile } from '@/types';
+import { FullProfile, FullProfileInclude } from '@/types';
 
 interface GetProfilesOptions {
   status?: RequestStatus;
@@ -24,10 +24,7 @@ export interface ProfilesResult {
 }
 
 export async function getProfiles(options?: GetProfilesOptions): Promise<ProfilesResult> {
-  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
-  if (authResult.error) {
-    throw new Error(authResult.error);
-  }
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
 
   // Construire la requête where
   const where: Prisma.ProfileWhereInput = {
@@ -71,46 +68,11 @@ export async function getProfiles(options?: GetProfilesOptions): Promise<Profile
 }
 
 export async function getProfileById(id: string): Promise<FullProfile | null> {
-  const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN']);
-  if (authResult.error) {
-    throw new Error(authResult.error);
-  }
+  await checkAuth(['ADMIN', 'SUPER_ADMIN']);
 
   return db.profile.findUnique({
     where: { id },
-    include: {
-      passport: true,
-      birthCertificate: true,
-      residencePermit: true,
-      addressProof: true,
-      address: true,
-      addressInGabon: true,
-      identityPicture: true,
-      emergencyContact: {
-        include: {
-          phone: {
-            select: {
-              number: true,
-              countryCode: true,
-            },
-          },
-        },
-      },
-      phone: true,
-      notes: {
-        include: {
-          author: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      },
-    },
+    ...FullProfileInclude,
   });
 }
 
@@ -122,10 +84,7 @@ interface ValidateProfileInput {
 
 export async function validateProfile(input: ValidateProfileInput) {
   try {
-    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN']);
-    if (authResult.error || !authResult.user) {
-      return { error: authResult.error };
-    }
+    await checkAuth(['ADMIN', 'SUPER_ADMIN']);
 
     // Vérifier que le profil existe
     const profile = await db.profile.findUnique({

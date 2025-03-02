@@ -298,29 +298,6 @@ export async function createChildProfile(formData: FormData): Promise<string> {
         });
       }
 
-      if (currentUser.user.countryCode) {
-        const registrationService = await getRegistrationServiceForUser(
-          currentUser.user.countryCode,
-        );
-
-        if (registrationService) {
-          await tx.serviceRequest.create({
-            data: {
-              submittedById: currentUser.user.id,
-              serviceId: registrationService.id,
-              serviceCategory: ServiceCategory.CHILD_REGISTRATION,
-            },
-          });
-          await tx.profile.update({
-            where: { id: profile.id },
-            data: {
-              status: RequestStatus.SUBMITTED,
-              submittedAt: new Date(),
-            },
-          });
-        }
-      }
-
       return profile;
     });
 

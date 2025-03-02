@@ -7,8 +7,7 @@ export async function getRequests(options?: {
   page?: number;
   limit?: number;
 }) {
-  const authResult = await checkAuth(['MANAGER']);
-  if (authResult.error) return null;
+  await checkAuth(['MANAGER']);
 
   // Récupérer les demandes avec pagination et filtres
   return await db.serviceRequest.findMany({
@@ -29,8 +28,7 @@ export async function validateRequest(
   requestId: string,
   status: 'APPROVED' | 'REJECTED',
 ) {
-  const authResult = await checkAuth(['MANAGER']);
-  if (authResult.error) return null;
+  await checkAuth(['MANAGER']);
 
   // Mettre à jour le statut de la demande
   return await db.serviceRequest.update({

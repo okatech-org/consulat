@@ -1,7 +1,6 @@
 export const env = {
   NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
   POSTGRES_URL: process.env.POSTGRES_URL,
-  // ... autres variables d'environnement
 } as const;
 
 // Validation des variables d'environnement

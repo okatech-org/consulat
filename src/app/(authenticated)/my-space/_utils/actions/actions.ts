@@ -8,8 +8,7 @@ import { db } from '@/lib/prisma';
 export async function getRegistrationServiceForUser(
   countryCode: string,
 ): Promise<ConsularService | null> {
-  const authResult = await checkAuth();
-  if (authResult.error) return null;
+  await checkAuth();
 
   const service = await db.consularService.findFirst({
     where: {

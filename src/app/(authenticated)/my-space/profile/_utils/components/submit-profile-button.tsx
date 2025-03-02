@@ -27,9 +27,14 @@ const CHECKLIST_ITEMS = [
 interface SubmitProfileButtonProps {
   profileId: string;
   canSubmit: boolean;
+  isChild?: boolean;
 }
 
-export function SubmitProfileButton({ profileId, canSubmit }: SubmitProfileButtonProps) {
+export function SubmitProfileButton({
+  profileId,
+  canSubmit,
+  isChild = false,
+}: SubmitProfileButtonProps) {
   const t = useTranslations('profile.submission');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,15 +44,14 @@ export function SubmitProfileButton({ profileId, canSubmit }: SubmitProfileButto
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      console.log('Submitting profile for validation...');
-      const result = await submitProfileForValidation(profileId);
+      const result = await submitProfileForValidation(profileId, isChild);
 
       if (result.error) {
         toast({
           title: t('error.title'),
-          description: result.error,
           variant: 'destructive',
         });
+        console.error(result.error);
         return;
       }
 
