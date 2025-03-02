@@ -1,6 +1,12 @@
 'use server';
 
-import { RequestStatus, ServiceCategory, DocumentType, Prisma } from '@prisma/client';
+import {
+  RequestStatus,
+  ServiceCategory,
+  DocumentType,
+  Prisma,
+  ParentalAuthority,
+} from '@prisma/client';
 import { LinkFormData } from '@/schemas/child-registration';
 import { checkAuth } from '@/lib/auth/action';
 import { processFileData } from './utils';
@@ -8,7 +14,10 @@ import { deleteFiles } from './uploads';
 import { getRegistrationServiceForUser } from '@/app/(authenticated)/my-space/_utils/actions/actions';
 import { db } from '@/lib/prisma';
 import { BasicInfoFormData } from '@/schemas/registration';
-import { FullParentalAuthorityInclude } from '@/types/parental-authority';
+import {
+  FullParentalAuthority,
+  FullParentalAuthorityInclude,
+} from '@/types/parental-authority';
 
 export async function createChildProfile(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
@@ -86,6 +95,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
 
       const profile = await tx.profile.create({
         data: {
+          category: 'MINOR',
           // Informations de base
           firstName: basicInfo.firstName,
           lastName: basicInfo.lastName,
@@ -328,11 +338,9 @@ export async function createChildProfile(formData: FormData): Promise<string> {
   }
 }
 
-type UserWithChildren = Prisma.UserGetPayload<{
-  include: {
-    childAuthorities: true;
-  };
-}>;
+type UserWithChildren = ParentalAuthority & {
+  childAuthorities: FullParentalAuthority[];
+};
 
 export async function getUserWithChildren(userId: string): Promise<UserWithChildren> {
   const user = await db.user.findUnique({
@@ -348,5 +356,5 @@ export async function getUserWithChildren(userId: string): Promise<UserWithChild
     throw new Error('User not found');
   }
 
-  return user;
+  return user as unknown as UserWithChildren;
 }

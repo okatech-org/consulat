@@ -92,7 +92,7 @@ export default async function RootLayout({
             <SessionProvider session={session}>
               {children}
               <Toaster />
-              <div className="hidden sm:block fixed flex flex-col p-2 items-center bottom-10 right-4 rounded-full p-0 md:bottom-4 md:right-6">
+              <div className="hidden sm:flex fixed flex-col p-2 items-center bottom-10 right-4 rounded-full md:bottom-4 md:right-6">
                 <ChatToggle />
               </div>
             </SessionProvider>

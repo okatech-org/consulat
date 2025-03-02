@@ -592,6 +592,7 @@ async function main() {
           country: { connect: { code: 'FR' } },
           profile: {
             create: {
+              id: 'profile-berny-itoutou',
               firstName: 'Berny',
               lastName: 'Itoutou',
               gender: 'MALE',
@@ -694,6 +695,64 @@ async function main() {
               },
             },
           },
+          childAuthorities: {
+            create: {
+              role: 'FATHER',
+              isActive: true,
+              profile: {
+                create: {
+                  id: 'profile-berny-child',
+                  firstName: 'Emma',
+                  lastName: 'Itoutou',
+                  gender: 'FEMALE',
+                  birthDate: '2020-05-15',
+                  birthPlace: 'Paris',
+                  birthCountry: 'FR',
+                  nationality: 'GA',
+                  category: 'MINOR',
+                  status: 'SUBMITTED',
+                  identityPicture: {
+                    create: {
+                      type: DocumentType.IDENTITY_PHOTO,
+                      status: DocumentStatus.VALIDATED,
+                      fileUrl: '/images/avatar-placeholder.png',
+                      issuedAt: new Date('2024-01-01'),
+                      expiresAt: new Date('2029-01-01'),
+                    },
+                  },
+                  birthCertificate: {
+                    create: {
+                      type: DocumentType.BIRTH_CERTIFICATE,
+                      status: DocumentStatus.VALIDATED,
+                      fileUrl: 'https://example.com/emma-birth-certificate.pdf',
+                      issuedAt: new Date('2020-05-15'),
+                    },
+                  },
+                  address: {
+                    create: {
+                      firstLine: '123 Rue de la Paix',
+                      secondLine: 'Appartement 4B',
+                      city: 'Paris',
+                      zipCode: '75008',
+                      country: 'FR',
+                    },
+                  },
+                  emergencyContact: {
+                    create: {
+                      fullName: 'Berny Itoutou',
+                      relationship: 'FATHER',
+                      phone: {
+                        create: {
+                          number: '0612245678',
+                          countryCode: '+33',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       }),
       prisma.user.create({
@@ -707,6 +766,7 @@ async function main() {
           country: { connect: { code: 'US' } },
           profile: {
             create: {
+              id: 'profile-sarah-smith',
               firstName: 'Sarah',
               lastName: 'Smith',
               gender: 'FEMALE',
@@ -778,6 +838,7 @@ async function main() {
           country: { connect: { code: 'CA' } },
           profile: {
             create: {
+              id: 'profile-jean-dupont',
               firstName: 'Jean',
               lastName: 'Dupont',
               gender: 'MALE',
@@ -971,6 +1032,7 @@ async function main() {
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
           submittedAt: new Date(),
           firstPassValidation: true,
+          requestedFor: { connect: { id: 'profile-berny-itoutou' } },
           processingTime: 0,
           requiredDocuments: {
             create: [
@@ -1010,6 +1072,7 @@ async function main() {
           organization: { connect: { id: 'organization-consulat-new-york' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
+          requestedFor: { connect: { id: 'profile-sarah-smith' } },
           submittedAt: new Date(),
           requiredDocuments: {
             create: [
@@ -1042,6 +1105,7 @@ async function main() {
           assignedTo: { connect: { id: 'user-agent-2' } },
           submittedBy: { connect: { id: 'user-jean-dupont' } },
           organization: { connect: { id: 'organization-ambassade-canada' } },
+          requestedFor: { connect: { id: 'profile-jean-dupont' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
           submittedAt: new Date(),

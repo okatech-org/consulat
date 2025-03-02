@@ -6,7 +6,6 @@ import {
   ServiceCategory,
   ConsularService,
   User,
-  UserDocument,
 } from '@prisma/client';
 import { AppUserDocument } from './profile';
 

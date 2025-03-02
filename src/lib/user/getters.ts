@@ -2,8 +2,6 @@
 
 import { db } from '@/lib/prisma';
 import { FullProfile, FullProfileInclude, FullUser, FullUserInclude } from '@/types';
-import { FullServiceRequestInclude } from '@/types/service-request';
-import { ServiceCategory } from '@prisma/client';
 
 export async function getUserById(
   id: string | undefined | null,
@@ -36,14 +34,9 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
   }
 }
 
-export async function getRegistrationRequestsFromUser(id: string) {
-  try {
-    return db.serviceRequest.findFirst({
-      where: { submittedById: id, serviceCategory: ServiceCategory.REGISTRATION },
-      ...FullServiceRequestInclude,
-    });
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
+export async function getUserFullProfileById(id: string): Promise<FullProfile | null> {
+  return db.profile.findFirst({
+    where: { id: id },
+    ...FullProfileInclude,
+  });
 }

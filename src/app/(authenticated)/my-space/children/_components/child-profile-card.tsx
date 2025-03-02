@@ -43,7 +43,7 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
             <h3 className="font-medium text-lg">
               {`${profile?.firstName || ''} ${profile?.lastName || ''}`}{' '}
               <span className="text-xs text-muted-foreground">
-                {tBase(`common.status.${profile.status}`)}
+                - {tBase(`common.status.${profile.status}`)}
               </span>
             </h3>
             <p className="text-sm text-muted-foreground">

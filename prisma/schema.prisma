@@ -265,7 +265,8 @@ model Profile {
   parentAuthorities ParentalAuthority[]
   
   // Relation pour les demandes effectuées pour ce profil
-  requestsFor ServiceRequest[] @relation("RequestedFor")
+  requestsFor ServiceRequest? @relation("RequestedFor")
+  requestedForId String? @unique
 
   // Informations personnelles
   firstName              String
@@ -531,8 +532,8 @@ model ServiceRequest {
   serviceCategory ServiceCategory
 
   // Nouveau champ pour identifier pour qui la demande est faite
-  requestedFor   Profile?  @relation("RequestedFor", fields: [requestedForId], references: [id])
-  requestedForId String?
+  requestedFor   Profile? @relation("RequestedFor", fields: [requestedForId], references: [id])
+  requestedForId String? @unique
   
   // Relation pour partager avec d'autres parents
   sharedWith     ParentalAuthority[] @relation("SharedWithParents")
@@ -594,7 +595,6 @@ model ServiceRequest {
   @@index([status])
   @@index([lastActionAt])
   @@index([deadline])
-  @@index([requestedForId])
 }
 
 // Modèle pour les rendez-vous
