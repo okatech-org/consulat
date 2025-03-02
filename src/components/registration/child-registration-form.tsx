@@ -8,10 +8,8 @@ import { DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
-import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
 import { handleFormError } from '@/lib/form/errors';
 import { toast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { tryCatch } from '@/lib/utils';
@@ -30,7 +28,6 @@ export function ChildRegistrationForm() {
     setCurrentStep,
     isLoading,
     setIsLoading,
-    setError,
     forms,
     handleDataChange,
     clearData,
@@ -94,7 +91,6 @@ export function ChildRegistrationForm() {
   // Soumission finale
   const handleFinalSubmit = async () => {
     console.log('handleFinalSubmit');
-    setIsLoading(true);
     const formDataToSend = new FormData();
 
     // Ajouter les fichiers

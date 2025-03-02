@@ -171,6 +171,11 @@ export default {
           description: "Impossible d'ajouter la note",
           unknown: 'Une erreur inconnue est survenue',
         },
+        type: {
+          internal: 'Note interne',
+          feedback: 'Retour utilisateur',
+        },
+        empty: 'Aucune note pour le moment',
       },
       no_address: 'Aucune adresse renseignée',
       no_gabon_address: 'Aucune adresse au Gabon renseignée',

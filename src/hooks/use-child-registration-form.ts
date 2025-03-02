@@ -61,13 +61,6 @@ export function useChildRegistrationForm() {
     [saveData],
   );
 
-  const updateDataFromAnalysis = useCallback(
-    (data: Partial<ChildCompleteFormData>) => {
-      saveData(data);
-    },
-    [saveData],
-  );
-
   return {
     currentStep,
     setCurrentStep,

@@ -150,7 +150,7 @@ export default {
     valid: 'Valide',
     draft: 'Brouillon',
     submitted: 'Soumis',
-    in_review: 'En traitement',
+    in_review: 'En révision',
     additional_info_needed: 'À compléter',
     completed: 'Terminé',
     cancelled: 'Annulé',
@@ -168,6 +168,7 @@ export default {
     card_in_production: 'Carte en production',
     ready_for_pickup: 'Prêt à récupérer',
     appointment_scheduled: 'Rendez-vous planifié',
+    rejected_by_user: "Rejeté par l'utilisateur",
   },
   confirm: {
     title: 'Confirmation',

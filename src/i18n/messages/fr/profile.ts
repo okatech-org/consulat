@@ -646,4 +646,15 @@ export default {
     provisional: 'Provisoire',
     permanent: 'Définitive',
   },
+  review: {
+    required: 'Requis',
+    not_provided: 'Non fourni',
+    document_uploaded: 'Document téléchargé',
+    document_missing: 'Document manquant',
+    validation_notes: 'Notes de validation',
+    submit_validation: 'Soumettre la validation',
+    reject_validation: 'Rejeter la validation',
+    status_change_success: 'Statut mis à jour avec succès',
+    status_change_error: 'Erreur lors du changement de statut',
+  },
 } as const;
