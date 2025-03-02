@@ -625,9 +625,9 @@ model Appointment {
   // Métadonnées
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  cancelledAt      DateTime?      // Pour tracker les annulations
-  cancelReason     String?        // Raison de l'annulation
-  rescheduledFrom  DateTime?      // Pour tracker les reports
+  cancelledAt      DateTime?      
+  cancelReason     String?        
+  rescheduledFrom  DateTime?      
   
   notifications Notification[] @relation(name: "AppointmentNotifications")
 
@@ -639,24 +639,24 @@ model Appointment {
   @@index([requestId])
 }
 
-// Mise à jour des types de rendez-vous selon les specs
+
 enum AppointmentType {
-  DOCUMENT_SUBMISSION    // Dépôt de documents (30min)
-  DOCUMENT_COLLECTION   // Retrait de documents (15min)
-  INTERVIEW            // Entretien (45min)
-  MARRIAGE_CEREMONY    // Cérémonie de mariage (60min)
-  EMERGENCY           // Urgence (60min)
-  OTHER              // Autre
+  DOCUMENT_SUBMISSION    
+  DOCUMENT_COLLECTION   
+  INTERVIEW            
+  MARRIAGE_CEREMONY    
+  EMERGENCY           
+  OTHER              
 }
 
-// Mise à jour des statuts
+
 enum AppointmentStatus {
-  PENDING    // En attente de confirmation
-  CONFIRMED  // Confirmé
-  CANCELLED  // Annulé
-  COMPLETED  // Terminé
-  MISSED     // Manqué
-  RESCHEDULED // Reporté
+  PENDING    
+  CONFIRMED  
+  CANCELLED  
+  COMPLETED  
+  MISSED     
+  RESCHEDULED 
 }
 
 model Notification {
@@ -805,7 +805,7 @@ model Organization {
   updatedAt DateTime @updatedAt
   adminUser      User?
   appointments Appointment[]
-  appointmentSettings Json? // Pour stocker les quotas par type de service
+  appointmentSettings Json?
 
   agents    User[]          @relation("OrganizationAgents")
 
@@ -814,7 +814,6 @@ model Organization {
   @@map("organizations")
 }
 
-// Ajout d'un enum pour le type d'action
 enum RequestActionType {
   ASSIGNMENT
   STATUS_CHANGE
@@ -826,7 +825,6 @@ enum RequestActionType {
   COMPLETED
 }
 
-// Nouveau modèle pour l'historique des actions
 model RequestAction {
   id        String           @id @default(cuid())
   type      RequestActionType
@@ -834,7 +832,7 @@ model RequestAction {
   request   ServiceRequest   @relation(fields: [requestId], references: [id])
   userId    String
   user      User            @relation(fields: [userId], references: [id])
-  data      Json? // Données spécifiques à l'action
+  data      Json?
   createdAt DateTime        @default(now())
 
   @@index([requestId])
@@ -842,7 +840,6 @@ model RequestAction {
   @@index([createdAt])
 }
 
-// Nouveau modèle pour gérer l'autorité parentale
 model ParentalAuthority {
   id             String       @id @default(cuid())
   profile        Profile      @relation(fields: [profileId], references: [id])
@@ -855,7 +852,6 @@ model ParentalAuthority {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   
-  // Partage des demandes de service avec l'autre parent
   sharedRequests ServiceRequest[] @relation("SharedWithParents")
   
   @@unique([profileId, role])

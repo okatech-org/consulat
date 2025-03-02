@@ -53,12 +53,12 @@ export function DocumentsSection({
     >
       <div className="mb-4 grid gap-6 lg:grid-cols-2">
         <UserDocument
-          label={t_common('documents.types.passport')}
-          description={t_common('documents.descriptions.passport')}
-          document={convertDocument(documents.passport)}
-          expectedType={DocumentType.PASSPORT}
+          label={t_common('documents.types.identity_photo')}
+          description={t_common('documents.descriptions.identity_photo')}
+          document={convertDocument(documents.identityPhoto)}
+          expectedType={DocumentType.IDENTITY_PHOTO}
           profileId={profileId}
-          allowEdit={profileStatus === 'DRAFT'}
+          allowEdit={true}
           required
         />
 
@@ -68,7 +68,17 @@ export function DocumentsSection({
           document={convertDocument(documents.birthCertificate)}
           expectedType={DocumentType.BIRTH_CERTIFICATE}
           profileId={profileId}
-          allowEdit={profileStatus === 'DRAFT'}
+          allowEdit={true}
+          required
+        />
+
+        <UserDocument
+          label={t_common('documents.types.passport')}
+          description={t_common('documents.descriptions.passport')}
+          document={convertDocument(documents.passport)}
+          expectedType={DocumentType.PASSPORT}
+          profileId={profileId}
+          allowEdit={true}
           required
         />
 
@@ -78,7 +88,7 @@ export function DocumentsSection({
           document={convertDocument(documents.residencePermit)}
           expectedType={DocumentType.RESIDENCE_PERMIT}
           profileId={profileId}
-          allowEdit={profileStatus === 'DRAFT'}
+          allowEdit={true}
           required
         />
 
@@ -88,17 +98,7 @@ export function DocumentsSection({
           document={convertDocument(documents.addressProof)}
           expectedType={DocumentType.PROOF_OF_ADDRESS}
           profileId={profileId}
-          allowEdit={profileStatus === 'DRAFT'}
-          required
-        />
-
-        <UserDocument
-          label={t_common('documents.types.identity_photo')}
-          description={t_common('documents.descriptions.identity_photo')}
-          document={convertDocument(documents.identityPhoto)}
-          expectedType={DocumentType.IDENTITY_PHOTO}
-          profileId={profileId}
-          allowEdit={profileStatus === 'DRAFT'}
+          allowEdit={true}
           required
         />
       </div>

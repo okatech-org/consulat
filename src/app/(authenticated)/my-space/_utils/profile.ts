@@ -8,6 +8,7 @@ import {
   Prisma,
   Profile,
   RequestStatus,
+  ServiceCategory,
 } from '@prisma/client';
 import { db } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
@@ -598,6 +599,7 @@ export async function submitProfileForValidation(
 
     await db.serviceRequest.create({
       data: {
+        serviceCategory: ServiceCategory.REGISTRATION,
         submittedBy: {
           connect: {
             id: currentUser.id,

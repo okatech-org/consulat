@@ -11,54 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { Badge } from '@/components/ui/badge';
 import { Users, User2, Phone } from 'lucide-react';
-import { FamilyInfoForm } from '@/app/(public)/registration/_utils/registration/family-info';
 import { Separator } from '@/components/ui/separator';
 import { FullProfile } from '@/types';
 import { filterUneditedKeys } from '@/lib/utils';
+import { InfoField } from '@/components/ui/info-field';
+import { FamilyInfoForm } from '@/components/registration/family-info';
 
 interface FamilyInfoSectionProps {
   profile: FullProfile;
-}
-
-interface InfoFieldProps {
-  label: string;
-  value?: string | null;
-  required?: boolean;
-  isCompleted?: boolean;
-  icon?: React.ReactNode;
-}
-
-function InfoField({
-  label,
-  value,
-  required,
-  isCompleted = !!value,
-  icon,
-}: InfoFieldProps) {
-  const t = useTranslations('registration');
-
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {icon}
-          {label}
-        </div>
-        {!isCompleted && (
-          <Badge variant={required ? 'destructive' : 'secondary'} className="text-xs">
-            {t(required ? 'form.required' : 'form.optional')}
-          </Badge>
-        )}
-      </div>
-      <div className="mt-1">
-        {value || (
-          <span className="text-sm italic text-muted-foreground">
-            {t('form.not_provided')}
-          </span>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {

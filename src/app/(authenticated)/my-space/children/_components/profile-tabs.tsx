@@ -2,40 +2,28 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FullProfile } from '@/types';
-import { BasicInfoSection } from './sections/basic-info-section';
-import { ContactInfoSection } from './sections/contact-info-section';
-import { DocumentsSection } from './sections/documents-section';
-import { FamilyInfoSection } from './sections/family-info-section';
-import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
+import { BasicInfoSection } from '../../profile/_utils/components/sections/basic-info-section';
+import { DocumentsSection } from '../../profile/_utils/components/sections/documents-section';
+import { LinkInfoSection } from './sections/link-info-section';
 
 type ProfileTabsProps = {
   profile: FullProfile;
 };
 
-export function ProfileTabs({ profile }: ProfileTabsProps) {
+export function ChildProfileTabs({ profile }: ProfileTabsProps) {
   const t = useTranslations('profile');
   const profileTabs = [
+    {
+      id: 'link-info',
+      title: t('sections.link_info'),
+      content: <LinkInfoSection profile={profile} />,
+    },
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
       content: <BasicInfoSection profile={profile} />,
-    },
-    {
-      id: 'contact-info',
-      title: t('sections.contact_info'),
-      content: <ContactInfoSection profile={profile} />,
-    },
-    {
-      id: 'family-info',
-      title: t('sections.family_info'),
-      content: <FamilyInfoSection profile={profile} />,
-    },
-    {
-      id: 'professional-info',
-      title: t('sections.professional_info'),
-      content: <ProfessionalInfoSection profile={profile} />,
     },
     {
       id: 'documents',
@@ -43,11 +31,11 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
       content: (
         <DocumentsSection
           documents={{
-            passport: profile.passport,
+            identityPhoto: profile.identityPicture,
             birthCertificate: profile.birthCertificate,
+            passport: profile.passport,
             residencePermit: profile.residencePermit,
             addressProof: profile.addressProof,
-            identityPhoto: profile.identityPicture,
           }}
           profileId={profile.id}
           profileStatus={profile.status}
@@ -58,9 +46,9 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
   ];
 
   return (
-    <Tabs className={'col-span-full lg:col-span-6'} defaultValue="basic-info">
-      <TabsList className="mb-2 w-full">
-        <div className="carousel-zone flex items-center gap-2">
+    <Tabs className={'col-span-full lg:col-span-6'} defaultValue="link-info">
+      <TabsList className="mb-2 w-max">
+        <div className="carousel-zone flex  gap-2">
           {profileTabs.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id}>
               {tab.title}

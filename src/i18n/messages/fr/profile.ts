@@ -77,6 +77,7 @@ export default {
     appointment_scheduled: 'Rendez-vous planifié',
   },
   sections: {
+    link_info: 'Liens familiaux',
     basic_info: 'Informations personnelles',
     personal_info: 'Informations personnelles',
     contact_info: 'Coordonnées',

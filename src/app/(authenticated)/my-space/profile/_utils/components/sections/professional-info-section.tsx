@@ -12,54 +12,13 @@ import {
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
-import { Badge } from '@/components/ui/badge';
 import { Briefcase, Building2, MapPin } from 'lucide-react';
-import { ProfessionalInfoForm } from '@/app/(public)/registration/_utils/registration/professional-info';
 import { filterUneditedKeys } from '@/lib/utils';
+import { ProfessionalInfoForm } from '@/components/registration/professional-info';
+import { InfoField } from '@/components/ui/info-field';
 
 interface ProfessionalInfoSectionProps {
   profile: Profile;
-}
-
-interface InfoFieldProps {
-  label: string;
-  value?: string | null;
-  required?: boolean;
-  isCompleted?: boolean;
-  icon?: React.ReactNode;
-}
-
-function InfoField({
-  label,
-  value,
-  required,
-  isCompleted = !!value,
-  icon,
-}: InfoFieldProps) {
-  const t = useTranslations('registration');
-
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {icon}
-          {label}
-        </div>
-        {!isCompleted && (
-          <Badge variant={required ? 'destructive' : 'secondary'} className="text-xs">
-            {t(required ? 'form.required' : 'form.optional')}
-          </Badge>
-        )}
-      </div>
-      <div className="mt-1">
-        {value || (
-          <span className="text-sm italic text-muted-foreground">
-            {t('form.not_provided')}
-          </span>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProps) {
@@ -152,7 +111,6 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
               label={t('form.work_status')}
               value={t_assets(`work_status.${profile.workStatus?.toLowerCase()}`)}
               icon={<Briefcase className="size-4" />}
-              required
             />
 
             {showProfessionField && (
@@ -160,7 +118,6 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
                 label={t('form.profession')}
                 value={profile.profession}
                 icon={<Briefcase className="size-4" />}
-                required={showEmployerFields}
               />
             )}
           </div>
@@ -172,13 +129,11 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
                 label={t('form.employer')}
                 value={profile.employer}
                 icon={<Building2 className="size-4" />}
-                required
               />
               <InfoField
                 label={t('form.work_address')}
                 value={profile.employerAddress}
                 icon={<MapPin className="size-4" />}
-                required
               />
             </div>
           )}

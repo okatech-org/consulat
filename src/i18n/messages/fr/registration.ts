@@ -266,6 +266,7 @@ export default {
     resume_description: 'Voulez-vous reprendre où vous en étiez ou recommencer?',
     start_new: 'Nouveau formulaire',
     resume: 'Reprendre',
+    parent_role: 'Lien de parenté',
     roles: {
       FATHER: 'Père',
       MOTHER: 'Mère',
@@ -395,6 +396,7 @@ export default {
     yes: 'Oui',
     no: 'Non',
     other_parent_info: "Informations sur l'autre parent",
+    parent_authority: 'Autorités parentales',
   },
   child_review: {
     link_info: "Lien avec l'enfant",

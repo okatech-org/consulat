@@ -10,54 +10,14 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Mail, Phone } from 'lucide-react';
-import { ContactInfoForm } from '@/app/(public)/registration/_utils/registration/contact-form';
 import { FullProfile } from '@/types';
 import { Address, AddressGabon } from '@prisma/client';
 import { filterUneditedKeys } from '@/lib/utils';
+import { ContactInfoForm } from '@/components/registration/contact-form';
+import { InfoField } from '@/components/ui/info-field';
 
 interface ContactInfoSectionProps {
   profile: FullProfile;
-}
-
-interface InfoFieldProps {
-  label: string;
-  value?: string | null;
-  required?: boolean;
-  isCompleted?: boolean;
-  icon?: React.ReactNode;
-}
-
-function InfoField({
-  label,
-  value,
-  required,
-  isCompleted = !!value,
-  icon,
-}: InfoFieldProps) {
-  const t = useTranslations('registration');
-
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {icon}
-          {label}
-        </div>
-        {!isCompleted && (
-          <Badge variant={required ? 'destructive' : 'secondary'} className="text-xs">
-            {t(required ? 'form.required' : 'form.optional')}
-          </Badge>
-        )}
-      </div>
-      <div className="mt-1">
-        {value || (
-          <span className="text-sm italic text-muted-foreground">
-            {t('form.not_provided')}
-          </span>
-        )}
-      </div>
-    </div>
-  );
 }
 
 function AddressDisplay({
@@ -191,13 +151,11 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
               label={t('form.email')}
               value={profile?.email}
               icon={<Mail className="size-4" />}
-              required
             />
             <InfoField
               label={t('form.phone')}
               value={`${profile?.phone?.countryCode}${profile?.phone?.number}`}
               icon={<Phone className="size-4" />}
-              required
             />
           </div>
 

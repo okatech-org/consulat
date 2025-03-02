@@ -265,7 +265,17 @@ const profileFields: {
   { key: 'workStatus', name: 'work_status' },
   { key: 'fatherFullName', name: 'father_name' },
   { key: 'motherFullName', name: 'mother_name' },
-];
+] as const;
+
+const childProfileFields = [
+  { key: 'firstName', name: 'first_name' },
+  { key: 'lastName', name: 'last_name' },
+  { key: 'birthDate', name: 'birth_date' },
+  { key: 'nationality', name: 'nationality' },
+  { key: 'gender', name: 'gender' },
+  { key: 'identityPicture', name: 'identity_photo' },
+  { key: 'birthCertificate', name: 'birth_certificate' },
+] as const;
 
 export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldStatus {
   if (!profile) {
@@ -286,6 +296,37 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
   if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
     requiredFields.push({ key: 'spouseFullName', name: 'spouse_name' });
   }
+
+  const requiredStatus = requiredFields.map((field) => ({
+    ...field,
+    completed: !!profile[field.key as keyof Profile],
+  }));
+
+  return {
+    required: {
+      total: requiredFields.length,
+      completed: requiredStatus.filter((f) => f.completed).length,
+      fields: requiredStatus.sort((a, b) =>
+        a.completed === b.completed ? 0 : a.completed ? 1 : -1,
+      ),
+    },
+    optional: {
+      total: 0,
+      completed: 0,
+      fields: [],
+    },
+  };
+}
+
+export function getChildProfileFieldsStatus(profile: Profile | null): ProfileFieldStatus {
+  if (!profile) {
+    return {
+      required: { total: 0, completed: 0, fields: [] },
+      optional: { total: 0, completed: 0, fields: [] },
+    };
+  }
+
+  const requiredFields = [...childProfileFields];
 
   const requiredStatus = requiredFields.map((field) => ({
     ...field,
@@ -361,6 +402,23 @@ export function calculateProfileCompletion(profile: Profile | null): number {
   if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
     requiredFields.push({ key: 'spouseFullName', name: 'spouse_name' });
   }
+
+  const completedRequired = requiredFields
+    .map((item) => item.key)
+    .filter(
+      (field) =>
+        profile[field as keyof Profile] !== null &&
+        profile[field as keyof Profile] !== '',
+    ).length;
+
+  const totalWeight = requiredFields.length;
+  return Math.round((completedRequired / totalWeight) * 100);
+}
+
+export function calculateChildProfileCompletion(profile: Profile | null): number {
+  if (!profile) return 0;
+
+  const requiredFields = [...childProfileFields];
 
   const completedRequired = requiredFields
     .map((item) => item.key)

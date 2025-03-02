@@ -43,6 +43,20 @@ export const FullProfileInclude = {
     requestsFor: {
       ...FullServiceRequestInclude,
     },
+    parentAuthorities: {
+      include: {
+        parentUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            roles: true,
+          },
+        },
+      },
+    },
   },
 } as const;
 

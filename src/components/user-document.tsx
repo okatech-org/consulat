@@ -251,8 +251,7 @@ export function UserDocument({
     };
     return (
       <Badge className={'min-w-max'} variant={variants[status]}>
-        {/* @ts-expect-error - status is a DocumentStatus */}
-        {t(`status.${status.toLowerCase()}`)}
+        {t(`status.${status}`)}
       </Badge>
     );
   };

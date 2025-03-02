@@ -11,10 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { BasicInfoForm } from '@/app/(public)/registration/_utils/registration/basic-info';
-import { filterUneditedKeys } from '@/lib/utils';
+import { filterUneditedKeys, useDateLocale } from '@/lib/utils';
 import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { CountryCode } from '@/lib/autocomplete-datas';
+import { BasicInfoForm } from '@/components/registration/basic-info';
 
 interface BasicInfoSectionProps {
   profile: Profile;
@@ -41,11 +41,6 @@ function InfoField({
     <div className={className}>
       <div className="flex items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground">{label}</div>
-        {!isCompleted && (
-          <Badge variant={required ? 'destructive' : 'secondary'} className="text-xs">
-            {t(required ? 'form.required' : 'form.optional')}
-          </Badge>
-        )}
       </div>
       <div className="mt-1">
         {value || (
@@ -64,6 +59,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
   const t_messages = useTranslations('messages.profile');
   const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
+  const { formatDate } = useDateLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -78,10 +74,10 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
       birthCountry: profile.birthCountry,
       nationality: profile.nationality,
       acquisitionMode: profile.acquisitionMode ?? NationalityAcquisition.BIRTH,
-      passportNumber: profile.passportNumber,
-      passportIssueDate: profile.passportIssueDate.toISOString().split('T')[0],
-      passportExpiryDate: profile.passportExpiryDate.toISOString().split('T')[0],
-      passportIssueAuthority: profile.passportIssueAuthority,
+      passportNumber: profile.passportNumber ?? '',
+      passportIssueDate: profile.passportIssueDate?.toISOString().split('T')[0] ?? '',
+      passportExpiryDate: profile.passportExpiryDate?.toISOString().split('T')[0] ?? '',
+      passportIssueAuthority: profile.passportIssueAuthority ?? '',
       identityPictureFile: null,
     },
   });
@@ -160,42 +156,32 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             <InfoField
               label={t('form.first_name')}
               value={profile.firstName}
-              required
               className={'col-span-1'}
             />
             <InfoField
               label={t('form.last_name')}
               value={profile.lastName}
-              required
               className={'col-span-1'}
             />
             <InfoField
               label={t('form.gender')}
               // @ts-expect-error - gender is a string
               value={t(`assets.gender.${profile.gender.toLowerCase()}`)}
-              required
             />
 
             <InfoField
               label={t('form.birth_country')}
               value={t_countries(profile.birthCountry as CountryCode)}
-              required
             />
 
             <InfoField
               label={t('form.birth_date')}
               value={format(new Date(profile.birthDate), 'PPP', { locale: fr })}
-              required
             />
-            <InfoField
-              label={t('form.birth_place')}
-              value={profile.birthPlace}
-              required
-            />
+            <InfoField label={t('form.birth_place')} value={profile.birthPlace} />
             <InfoField
               label={t('form.nationality')}
               value={t_countries(profile.nationality as CountryCode)}
-              required
             />
             <InfoField
               label={t('nationality_acquisition.label')}
@@ -203,7 +189,6 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
                 // @ts-expect-error - acquisitionMode is a string
                 `nationality_acquisition.modes.${profile.acquisitionMode?.toLowerCase()}`,
               )}
-              required
             />
           </div>
 
@@ -214,27 +199,29 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
               <InfoField
                 label={t('form.passport.number.label')}
                 value={profile.passportNumber}
-                required
                 className={'col-span-2'}
               />
               <InfoField
                 label={t('form.passport.authority.label')}
                 value={profile.passportIssueAuthority}
-                required
                 className={'col-span-2'}
               />
               <InfoField
                 label={t('form.passport.issue_date.label')}
-                value={format(new Date(profile.passportIssueDate), 'PPP', { locale: fr })}
-                required
+                value={
+                  profile.passportIssueDate
+                    ? formatDate(new Date(profile.passportIssueDate), 'PPP')
+                    : t('form.not_provided')
+                }
                 className={'col-span-2'}
               />
               <InfoField
                 label={t('form.passport.expiry_date.label')}
-                value={format(new Date(profile.passportExpiryDate), 'PPP', {
-                  locale: fr,
-                })}
-                required
+                value={
+                  profile.passportExpiryDate
+                    ? formatDate(new Date(profile.passportExpiryDate), 'PPP')
+                    : t('form.not_provided')
+                }
                 className={'col-span-2'}
               />
 
