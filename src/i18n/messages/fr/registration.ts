@@ -388,12 +388,10 @@ export default {
     has_other_parent_description:
       "Indiquez si l'enfant a un autre parent (biologique ou adoptif).",
     select_has_other_parent: 'Sélectionnez une option',
-
     other_parent_present: "L'autre parent est-il présent dans la vie de l'enfant ?",
     other_parent_present_description:
       "Indiquez si l'autre parent est présent et impliqué dans l'éducation de l'enfant.",
     select_other_parent_present: 'Sélectionnez une option',
-
     yes: 'Oui',
     no: 'Non',
     other_parent_info: "Informations sur l'autre parent",
@@ -406,7 +404,33 @@ export default {
     other_parent_present: 'Autre parent présent',
     has_parental_authority: "A l'autorité parentale",
     other_parent: "Informations sur l'autre parent",
+    other_parent_full_name: "Nom complet de l'autre parent",
+    other_parent_email: "Email de l'autre parent",
+    other_parent_phone: "Téléphone de l'autre parent",
     family_situation: 'Situation familiale',
     other_information: 'Informations complémentaires',
+    documents: 'Documents',
+    basic_info: 'Informations de base',
+  },
+  children: {
+    form: {
+      family_info: {
+        other_parent_first_name: "Prénom de l'autre parent",
+        other_parent_last_name: "Nom de l'autre parent",
+        other_parent_email: "Email de l'autre parent",
+        other_parent_phone: "Téléphone de l'autre parent",
+      },
+    },
+  },
+  profile: {
+    birth_certificate: {
+      label: 'Acte de naissance',
+    },
+    passport: {
+      label: 'Passeport',
+    },
+    identity_picture: {
+      label: "Photo d'identité",
+    },
   },
 } as const;

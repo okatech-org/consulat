@@ -1,6 +1,9 @@
 import { PrismaClient, ProfileCategory, ParentalRole } from '@prisma/client';
 import { FullProfileInclude } from '@/types/profile';
 import { createParentalAuthority } from './parental-authority';
+import { ChildCompleteFormData } from '@/schemas/child-registration';
+import auth from '@/i18n/messages/fr/auth';
+import { checkAuth } from '@/lib/auth/action';
 
 // Instance de Prisma
 const prisma = new PrismaClient();
@@ -35,29 +38,13 @@ interface CreateChildProfileParams {
 /**
  * Crée un profil enfant et établit les relations parentales appropriées
  */
-export async function createChildProfile(data: CreateChildProfileParams) {
+export async function createChildProfile(data: ChildCompleteFormData) {
   // 1. Vérifier que le parent existe
-  const parentUser = await prisma.user.findUnique({
-    where: { id: data.parentUserId },
-    include: { profile: true },
-  });
+  const { user: parentUser } = await checkAuth();
 
   if (!parentUser) {
     throw new Error('Utilisateur parent introuvable');
   }
-
-  if (!parentUser.profile || parentUser.profile.category !== ProfileCategory.ADULT) {
-    throw new Error('Le parent doit avoir un profil adulte');
-  }
-
-  // 2. Créer un utilisateur pour l'enfant (nécessaire pour la structure de l'application)
-  // L'enfant mineur n'aura pas accès à son compte, mais aura un profil géré par ses parents
-  const childUser = await prisma.user.create({
-    data: {
-      name: `${data.firstName} ${data.lastName}`,
-      // Aucun email ou téléphone n'est défini pour un enfant mineur
-    },
-  });
 
   // 3. Créer le profil enfant
   const childProfile = await prisma.profile.create({

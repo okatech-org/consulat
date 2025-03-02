@@ -26,7 +26,6 @@ type BasicInfoFormProps = {
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
   displayIdentityPicture?: boolean;
-  isChild?: boolean;
 };
 
 export function BasicInfoForm({
@@ -35,7 +34,6 @@ export function BasicInfoForm({
   formRef,
   isLoading = false,
   displayIdentityPicture = true,
-  isChild = false,
 }: Readonly<BasicInfoFormProps>) {
   const t = useTranslations('registration');
   const t_assets = useTranslations('assets');
@@ -244,126 +242,122 @@ export function BasicInfoForm({
               )}
             />
 
-            {!isChild && (
-              <>
-                <Separator className="w-full" />
+            <>
+              <Separator className="w-full" />
 
+              <FormField
+                control={form.control}
+                name="passportNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.passport.number.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={t('form.passport.number.placeholder')}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription>{t('form.passport.number.help')}</FormDescription>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Dates d'émission et d'expiration */}
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="passportNumber"
+                  name="passportIssueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('form.passport.number.label')}</FormLabel>
+                      <FormLabel>{t('form.passport.issue_date.label')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder={t('form.passport.number.placeholder')}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormDescription>{t('form.passport.number.help')}</FormDescription>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Dates d'émission et d'expiration */}
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="passportIssueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('form.passport.issue_date.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="date"
-                            value={formatDateForInput(field.value)}
-                            max={new Date().toISOString().split('T')[0]}
-                            placeholder={t('form.passport.issue_date.placeholder')}
-                            disabled={isLoading}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t('form.passport.issue_date.help')}
-                        </FormDescription>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="passportExpiryDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('form.passport.expiry_date.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            value={formatDateForInput(field.value)}
-                            type="date"
-                            placeholder={t('form.passport.expiry_date.placeholder')}
-                            disabled={isLoading}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t('form.passport.expiry_date.help')}
-                        </FormDescription>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Autorité émettrice */}
-                <FormField
-                  control={form.control}
-                  name="passportIssueAuthority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('form.passport.authority.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder={t('form.passport.authority.placeholder')}
+                          type="date"
+                          value={formatDateForInput(field.value)}
+                          max={new Date().toISOString().split('T')[0]}
+                          placeholder={t('form.passport.issue_date.placeholder')}
                           disabled={isLoading}
                         />
                       </FormControl>
                       <FormDescription>
-                        {t('form.passport.authority.help')}
+                        {t('form.passport.issue_date.help')}
                       </FormDescription>
                       <TradFormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* NIP (optionnel) */}
                 <FormField
                   control={form.control}
-                  name="cardPin"
+                  name="passportExpiryDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('form.card_pin.label')}</FormLabel>
+                      <FormLabel>{t('form.passport.expiry_date.label')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          type="text"
-                          maxLength={6}
-                          pattern="[0-9]*"
-                          inputMode="numeric"
-                          placeholder={t('form.card_pin.placeholder')}
+                          value={formatDateForInput(field.value)}
+                          type="date"
+                          placeholder={t('form.passport.expiry_date.placeholder')}
                           disabled={isLoading}
                         />
                       </FormControl>
-                      <FormDescription>{t('form.card_pin.help')}</FormDescription>
+                      <FormDescription>
+                        {t('form.passport.expiry_date.help')}
+                      </FormDescription>
                       <TradFormMessage />
                     </FormItem>
                   )}
                 />
-              </>
-            )}
+              </div>
+
+              {/* Autorité émettrice */}
+              <FormField
+                control={form.control}
+                name="passportIssueAuthority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.passport.authority.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={t('form.passport.authority.placeholder')}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription>{t('form.passport.authority.help')}</FormDescription>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* NIP (optionnel) */}
+              <FormField
+                control={form.control}
+                name="cardPin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.card_pin.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        maxLength={6}
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        placeholder={t('form.card_pin.placeholder')}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormDescription>{t('form.card_pin.help')}</FormDescription>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           </CardContent>
         </Card>
       </form>

@@ -154,7 +154,6 @@ export function ChildRegistrationForm() {
             form={forms.basicInfo}
             onSubmit={() => handleNext(forms.basicInfo.getValues())}
             isLoading={isLoading}
-            isChild={true}
           />
         );
       case 3:

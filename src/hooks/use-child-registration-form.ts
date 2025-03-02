@@ -30,7 +30,13 @@ export function useChildRegistrationForm() {
       defaultValues: { ...initialData?.link, hasOtherParent: false },
     }),
     documents: useForm<ChildDocumentsFormData>({
-      resolver: zodResolver(DocumentsSchema),
+      resolver: zodResolver(
+        DocumentsSchema.omit({
+          residencePermitFile: true,
+          passportFile: true,
+          addressProofFile: true,
+        }),
+      ),
       defaultValues: initialData?.documents,
     }),
     basicInfo: useForm<BasicInfoFormData>({
