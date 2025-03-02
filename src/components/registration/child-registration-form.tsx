@@ -11,7 +11,6 @@ import { MobileProgress } from './mobile-progress';
 import { handleFormError } from '@/lib/form/errors';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { tryCatch } from '@/lib/utils';
 import { useChildRegistrationForm } from '@/hooks/use-child-registration-form';
 import { LinkForm } from './link-form';
@@ -178,7 +177,7 @@ export function ChildRegistrationForm() {
       {/* En-tête avec progression */}
       <div className="mb-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h1>
+          <h2 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h2>
           <p className="mt-2 text-muted-foreground">{t('header.subtitle')}</p>
         </div>
 
@@ -209,8 +208,8 @@ export function ChildRegistrationForm() {
       <MobileProgress
         currentStep={currentStep}
         totalSteps={steps.length}
-        stepTitle={steps[currentStep].title}
-        isOptional={steps[currentStep].isOptional}
+        stepTitle={steps[currentStep]?.title || ''}
+        isOptional={steps[currentStep]?.isComplete || false}
       />
     </div>
   );
