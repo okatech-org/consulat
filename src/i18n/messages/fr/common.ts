@@ -378,6 +378,7 @@ export default {
     mark_all_read: 'Tout marquer comme lu',
     review: 'Traiter',
     consult: 'Consulter',
+    next: 'Suivant',
   },
   no_country_found: 'Aucun pays trouvé',
   request_types: {

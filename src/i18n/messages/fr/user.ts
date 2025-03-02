@@ -100,5 +100,26 @@ export default {
       success: 'Profil enfant créé avec succès',
       error: 'Une erreur est survenue lors de la création du profil',
     },
+    form: {
+      family_info: {
+        title: 'Informations familiales',
+        has_parental_authority: "J'ai l'autorité parentale sur cet enfant",
+        has_parental_authority_description:
+          "En cochant cette case, je confirme que je dispose de l'autorité parentale légale sur cet enfant.",
+
+        other_parent_first_name: "Prénom de l'autre parent",
+        other_parent_last_name: "Nom de l'autre parent",
+        other_parent_email: "Email de l'autre parent",
+        other_parent_phone: "Téléphone de l'autre parent",
+
+        family_situation: 'Situation familiale',
+        family_situation_description:
+          'Décrivez brièvement la situation familiale actuelle (garde partagée, exclusivité, etc.)',
+
+        other_information: 'Autres informations',
+        other_information_description:
+          "Ajoutez toute information complémentaire concernant la situation familiale de l'enfant.",
+      },
+    },
   },
 } as const;

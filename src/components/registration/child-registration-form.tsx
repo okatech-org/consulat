@@ -1,15 +1,12 @@
 'use client';
 
-import { useRegistrationForm } from '@/hooks/use-registration-form';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
 import { FormNavigation } from './navigation';
 import { DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
-import { FamilyInfoForm } from './family-info';
 import { ContactInfoForm } from './contact-form';
-import { ProfessionalInfoForm } from './professional-info';
 import { ReviewForm } from './review';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
@@ -21,6 +18,9 @@ import { useState } from 'react';
 import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { tryCatch } from '@/lib/utils';
 import { useChildRegistrationForm } from '@/hooks/use-child-registration-form';
+import { LinkForm } from './link-form';
+import { ChildFamilyInfoForm } from './child-family-info-form';
+import { ChildReviewForm } from './child-review-form';
 
 export function ChildRegistrationForm() {
   const router = useRouter();
@@ -228,8 +228,8 @@ export function ChildRegistrationForm() {
       case 3:
         return (
           <ChildFamilyInfoForm
-            form={forms.familyInfo}
-            onSubmit={() => handleNext(forms.familyInfo.getValues())}
+            form={forms.childFamilyInfo}
+            onSubmit={() => handleNext(forms.childFamilyInfo.getValues())}
             isLoading={isLoading}
           />
         );
@@ -243,7 +243,7 @@ export function ChildRegistrationForm() {
         );
       case 5:
         return (
-          <ReviewForm
+          <ChildReviewForm
             data={{
               link: forms.link.getValues(),
               documents: forms.documents.getValues(),

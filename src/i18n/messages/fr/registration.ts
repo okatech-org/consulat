@@ -361,4 +361,37 @@ export default {
       unknown: "Une erreur est survenue lors de l'envoi",
     },
   },
+  link: {
+    title: "Lien avec l'enfant",
+    parent_role: "Quel est votre lien avec l'enfant ?",
+    parent_role_description: "Veuillez sélectionner votre relation avec l'enfant.",
+    select_role: 'Sélectionnez votre lien',
+    father: 'Père',
+    mother: 'Mère',
+    legal_guardian: 'Tuteur légal',
+
+    has_other_parent: "L'enfant a-t-il un autre parent ?",
+    has_other_parent_description:
+      "Indiquez si l'enfant a un autre parent (biologique ou adoptif).",
+    select_has_other_parent: 'Sélectionnez une option',
+
+    other_parent_present: "L'autre parent est-il présent dans la vie de l'enfant ?",
+    other_parent_present_description:
+      "Indiquez si l'autre parent est présent et impliqué dans l'éducation de l'enfant.",
+    select_other_parent_present: 'Sélectionnez une option',
+
+    yes: 'Oui',
+    no: 'Non',
+  },
+  child_review: {
+    link_info: "Lien avec l'enfant",
+    family_info: 'Informations familiales',
+    parental_role: 'Votre rôle parental',
+    has_other_parent: 'A un autre parent',
+    other_parent_present: 'Autre parent présent',
+    has_parental_authority: "A l'autorité parentale",
+    other_parent: "Informations sur l'autre parent",
+    family_situation: 'Situation familiale',
+    other_information: 'Informations complémentaires',
+  },
 } as const;
