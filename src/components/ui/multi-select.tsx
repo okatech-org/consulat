@@ -20,46 +20,71 @@ interface Option<T> {
   label: string;
 }
 
-interface MultiSelectProps<T> {
+interface MultiSelectMultipleProps<T> {
   options: Option<T>[];
   selected?: T[];
   onChange: (values: T[]) => void;
   placeholder?: string;
   searchPlaceholder?: string;
   emptyText?: string;
-  type?: 'single' | 'multiple';
+  type?: 'multiple';
+  disabled?: boolean;
+}
+
+interface MultiSelectSingleProps<T> {
+  options: Option<T>[];
+  selected?: T;
+  onChange: (value: T) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  type?: 'single';
   disabled?: boolean;
 }
 
 export function MultiSelect<T extends string | number>({
   options,
-  selected = [],
+  selected,
   onChange,
   placeholder = 'Sélectionner...',
   searchPlaceholder = 'Rechercher...',
   emptyText = 'Aucun résultat trouvé.',
   type = 'multiple',
   disabled = false,
-}: MultiSelectProps<T>) {
+}: MultiSelectMultipleProps<T> | MultiSelectSingleProps<T>) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
 
-  const selectedOptions = options.filter((option) => selected.includes(option.value));
+  // Create a safe array of selected values regardless of type
+  const selectedValues = React.useMemo(() => {
+    if (type === 'multiple') {
+      return (selected as T[] | undefined) || [];
+    }
+    return selected !== undefined ? [selected as T] : [];
+  }, [selected, type]);
+
+  const selectedOptions = options.filter((option) =>
+    selectedValues.includes(option.value),
+  );
 
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchValue.toLowerCase()),
   );
 
   const toggleOption = (value: T) => {
-    let updatedValues: T[];
     if (type === 'single') {
-      updatedValues = selected.includes(value) ? [] : [value];
+      // Handle single selection
+      const singleOnChange = onChange as (value: T) => void;
+      const newValue = selectedValues.includes(value) ? undefined : value;
+      singleOnChange(newValue as T);
     } else {
-      updatedValues = selected.includes(value)
-        ? selected.filter((v) => v !== value)
-        : [...selected, value];
+      // Handle multiple selection
+      const multipleOnChange = onChange as (values: T[]) => void;
+      const newValues = selectedValues.includes(value)
+        ? selectedValues.filter((v) => v !== value)
+        : [...selectedValues, value];
+      multipleOnChange(newValues);
     }
-    onChange(updatedValues);
   };
 
   return (
@@ -112,7 +137,9 @@ export function MultiSelect<T extends string | number>({
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
-                        selected.includes(option.value) ? 'opacity-100' : 'opacity-0',
+                        selectedValues.includes(option.value)
+                          ? 'opacity-100'
+                          : 'opacity-0',
                       )}
                     />
                     {option.label}

@@ -18,6 +18,12 @@ export default {
     review_description: 'Vérification finale',
     optional: 'Optionnel',
     progress: 'Étape {current}/{total}',
+    child_review: 'Révision enfant',
+    child_review_description: 'Vérification finale enfant',
+    child_link: "Lien avec l'enfant",
+    child_link_description: "Lien avec l'enfant",
+    child_family_info: 'Informations enfant',
+    child_family_info_description: 'Situation familiale enfant',
   },
   navigation: {
     previous: 'Précédent',
@@ -246,6 +252,10 @@ export default {
         help: "L'organisme qui a délivré votre passeport",
       },
     },
+    child_link: {
+      title: "Lien avec l'enfant",
+      description: "Lien avec l'enfant",
+    },
     identity_picture: "Photo d'identité",
     birth_certificate: 'Acte de naissance',
     residence_permit: 'Titre de séjour',
@@ -256,6 +266,11 @@ export default {
     resume_description: 'Voulez-vous reprendre où vous en étiez ou recommencer?',
     start_new: 'Nouveau formulaire',
     resume: 'Reprendre',
+    roles: {
+      FATHER: 'Père',
+      MOTHER: 'Mère',
+      LEGAL_GUARDIAN: 'Tuteur légal',
+    },
   },
   request_type: {
     type: {
@@ -369,7 +384,6 @@ export default {
     father: 'Père',
     mother: 'Mère',
     legal_guardian: 'Tuteur légal',
-
     has_other_parent: "L'enfant a-t-il un autre parent ?",
     has_other_parent_description:
       "Indiquez si l'enfant a un autre parent (biologique ou adoptif).",

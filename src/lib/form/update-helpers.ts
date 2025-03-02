@@ -5,7 +5,6 @@ import {
   FamilyInfoFormData,
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
-import { AnalysisData } from '@/types';
 
 /**
  * Type utilitaire pour vérifier si une valeur est non nulle et non vide
@@ -64,7 +63,8 @@ function updateNestedField<T>(
 
 // Fonction principale pour mettre à jour les formulaires
 export function updateFormsFromAnalysis(
-  data: AnalysisData,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any,
   forms: {
     basicInfo: UseFormReturn<BasicInfoFormData>;
     contactInfo: UseFormReturn<ContactInfoFormData>;

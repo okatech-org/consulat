@@ -6,8 +6,6 @@ import { ROUTES } from '@/schemas/routes';
 import { FormNavigation } from './navigation';
 import { DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
-import { ContactInfoForm } from './contact-form';
-import { ReviewForm } from './review';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
 import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
@@ -19,7 +17,6 @@ import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { tryCatch } from '@/lib/utils';
 import { useChildRegistrationForm } from '@/hooks/use-child-registration-form';
 import { LinkForm } from './link-form';
-import { ChildFamilyInfoForm } from './child-family-info-form';
 import { ChildReviewForm } from './child-review-form';
 
 export function ChildRegistrationForm() {
@@ -40,8 +37,8 @@ export function ChildRegistrationForm() {
   const [steps, setSteps] = useState([
     {
       key: 'link',
-      title: t('steps.link'),
-      description: t('steps.link_description'),
+      title: t('steps.child_link'),
+      description: t('steps.child_link_description'),
       isComplete: forms.link.formState.isValid,
     },
     {
@@ -57,21 +54,9 @@ export function ChildRegistrationForm() {
       isComplete: forms.basicInfo.formState.isValid,
     },
     {
-      key: 'childFamilyInfo',
-      title: t('steps.childFamilyInfo'),
-      description: t('steps.childFamilyInfo_description'),
-      isComplete: forms.childFamilyInfo.formState.isValid,
-    },
-    {
-      key: 'contact',
-      title: t('steps.contact'),
-      description: t('steps.contact_description'),
-      isComplete: false,
-    },
-    {
       key: 'review',
-      title: t('steps.review'),
-      description: t('steps.review_description'),
+      title: t('steps.child_review'),
+      description: t('steps.child_review_description'),
       isComplete: false,
     },
   ]);
@@ -85,17 +70,13 @@ export function ChildRegistrationForm() {
     try {
       const updateResult = updateFormsFromAnalysis(data, {
         basicInfo: forms.basicInfo,
-        contactInfo: forms.contactInfo,
-        familyInfo: forms.familyInfo,
-        professionalInfo: forms.professionalInfo,
       });
 
       // Mettre à jour le stockage local
       handleDataChange({
+        linkInfo: forms.link.getValues(),
         basicInfo: forms.basicInfo.getValues(),
-        contactInfo: forms.contactInfo.getValues(),
-        familyInfo: forms.familyInfo.getValues(),
-        professionalInfo: forms.professionalInfo.getValues(),
+        documents: forms.documents.getValues(),
       });
 
       // Afficher le toast avec les sections mises à jour
@@ -169,11 +150,7 @@ export function ChildRegistrationForm() {
     // Ajouter les données JSON des formulaires
     formDataToSend.append('link', JSON.stringify(forms.link.getValues()));
     formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()));
-    formDataToSend.append('contactInfo', JSON.stringify(forms.contactInfo.getValues()));
-    formDataToSend.append(
-      'childFamilyInfo',
-      JSON.stringify(forms.childFamilyInfo.getValues()),
-    );
+    formDataToSend.append('documents', JSON.stringify(forms.documents.getValues()));
 
     const result = await tryCatch(postProfile(formDataToSend));
 
@@ -227,29 +204,11 @@ export function ChildRegistrationForm() {
         );
       case 3:
         return (
-          <ChildFamilyInfoForm
-            form={forms.childFamilyInfo}
-            onSubmit={() => handleNext(forms.childFamilyInfo.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 4:
-        return (
-          <ContactInfoForm
-            form={forms.contactInfo}
-            onSubmit={() => handleNext(forms.contactInfo.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 5:
-        return (
           <ChildReviewForm
             data={{
-              link: forms.link.getValues(),
-              documents: forms.documents.getValues(),
+              linkInfo: forms.link.getValues(),
               basicInfo: forms.basicInfo.getValues(),
-              childFamilyInfo: forms.childFamilyInfo.getValues(),
-              contactInfo: forms.contactInfo.getValues(),
+              documents: forms.documents.getValues(),
             }}
             onEdit={setCurrentStep}
           />

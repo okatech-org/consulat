@@ -3,24 +3,19 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   BasicInfoSchema,
-  ContactInfoSchema,
-  FamilyInfoSchema,
-  ProfessionalInfoSchema,
   DocumentsSchema,
-  ConsularFormData,
-  DocumentsFormData,
   BasicInfoFormData,
-  FamilyInfoFormData,
-  ContactInfoFormData,
-  ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
 import { Gender, NationalityAcquisition } from '@prisma/client';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import {
+  ChildCompleteFormData,
+  ChildDocumentsFormData,
+  LinkFormData,
+  LinkInfoSchema,
+} from '@/schemas/child-registration';
 
 export function useChildRegistrationForm() {
-  const currentUser = useCurrentUser();
-
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -29,22 +24,12 @@ export function useChildRegistrationForm() {
   // Initialisation des formulaires avec les données sauvegardées
   const initialData = loadSavedData();
 
-  function getDefaultPhone() {
-    if (currentUser?.phone) {
-      return {
-        number: currentUser.phone.number,
-        countryCode: currentUser.phone.countryCode,
-      };
-    }
-    return initialData?.contactInfo?.phone ?? { number: '', countryCode: '+33' };
-  }
-
   const forms = {
     link: useForm<LinkFormData>({
-      resolver: zodResolver(LinkSchema),
+      resolver: zodResolver(LinkInfoSchema),
       defaultValues: initialData?.link,
     }),
-    documents: useForm<DocumentsFormData>({
+    documents: useForm<ChildDocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
       defaultValues: initialData?.documents,
     }),
@@ -55,30 +40,15 @@ export function useChildRegistrationForm() {
         acquisitionMode:
           initialData?.basicInfo?.acquisitionMode ?? NationalityAcquisition.BIRTH,
         gender: initialData?.basicInfo?.gender ?? Gender.MALE,
-        nationality: initialData?.basicInfo?.nationality ?? 'gabon',
-        birthCountry: initialData?.basicInfo?.birthCountry ?? 'gabon',
-      },
-    }),
-    childFamilyInfo: useForm<ChildFamilyInfoFormData>({
-      resolver: zodResolver(ChildFamilyInfoSchema),
-      defaultValues: {
-        ...initialData?.childFamilyInfo,
-        maritalStatus: initialData?.childFamilyInfo?.maritalStatus ?? 'SINGLE',
-      },
-    }),
-    contactInfo: useForm<ContactInfoFormData>({
-      resolver: zodResolver(ContactInfoSchema),
-      defaultValues: {
-        ...initialData?.contactInfo,
-        phone: getDefaultPhone(),
-        email: currentUser?.email ?? initialData?.contactInfo?.email ?? '',
+        nationality: initialData?.basicInfo?.nationality ?? 'GA',
+        birthCountry: initialData?.basicInfo?.birthCountry ?? 'GA',
       },
     }),
   };
 
   // Sauvegarde automatique des données
   const handleDataChange = useCallback(
-    (newData: Partial<ConsularFormData>) => {
+    (newData: Partial<ChildCompleteFormData>) => {
       saveData(newData);
     },
     [saveData],
