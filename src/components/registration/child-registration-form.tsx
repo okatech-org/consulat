@@ -164,7 +164,7 @@ export function ChildRegistrationForm() {
               basicInfo: forms.basicInfo.getValues(),
               documents: forms.documents.getValues(),
             }}
-            onEdit={setCurrentStep}
+            onEditAction={setCurrentStep}
           />
         );
       default:

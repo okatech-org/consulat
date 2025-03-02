@@ -9,10 +9,10 @@ import { ChildReviewFields } from './child-review-fields';
 
 interface ChildReviewFormProps {
   data: ChildCompleteFormData;
-  onEdit: (step: number) => void;
+  onEditAction: (step: number) => void;
 }
 
-export function ChildReviewForm({ data, onEdit }: ChildReviewFormProps) {
+export function ChildReviewForm({ data, onEditAction }: ChildReviewFormProps) {
   const t = useTranslations('registration');
 
   const sections = [
@@ -44,7 +44,7 @@ export function ChildReviewForm({ data, onEdit }: ChildReviewFormProps) {
           id={section.key}
           title={section.title}
           data={section.data}
-          onEdit={() => onEdit(section.step)}
+          onEdit={() => onEditAction(section.step)}
         />
       ))}
     </div>
