@@ -1,6 +1,6 @@
 'use server';
 
-import { RequestStatus, ServiceCategory, DocumentType } from '@prisma/client';
+import { RequestStatus, ServiceCategory, DocumentType, Prisma } from '@prisma/client';
 import { LinkFormData } from '@/schemas/child-registration';
 import { checkAuth } from '@/lib/auth/action';
 import { processFileData } from './utils';
@@ -8,6 +8,7 @@ import { deleteFiles } from './uploads';
 import { getRegistrationServiceForUser } from '@/app/(authenticated)/my-space/_utils/actions/actions';
 import { db } from '@/lib/prisma';
 import { BasicInfoFormData } from '@/schemas/registration';
+import { FullParentalAuthorityInclude } from '@/types/parental-authority';
 
 export async function createChildProfile(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
@@ -325,4 +326,27 @@ export async function createChildProfile(formData: FormData): Promise<string> {
 
     throw error;
   }
+}
+
+type UserWithChildren = Prisma.UserGetPayload<{
+  include: {
+    childAuthorities: true;
+  };
+}>;
+
+export async function getUserWithChildren(userId: string): Promise<UserWithChildren> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: {
+      childAuthorities: {
+        include: FullParentalAuthorityInclude,
+      },
+    },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return user;
 }

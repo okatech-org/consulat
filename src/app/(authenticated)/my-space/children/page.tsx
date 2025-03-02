@@ -6,19 +6,19 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { PageContainer } from '@/components/layouts/page-container';
-import { getParentalAuthoritiesByParentUser } from '@/actions/parental-authority';
 import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
 import { ROUTES } from '@/schemas/routes';
-
+import { getUserWithChildren } from '@/actions/child-profiles';
+import { tryCatch } from '@/lib/utils';
 export default async function ChildrenPage() {
-  const user = await getCurrentUser();
   const t = await getTranslations('user.children');
+  const user = await getCurrentUser();
 
   if (!user) return null;
 
-  const parentalAuthorities = await getParentalAuthoritiesByParentUser(user.id);
+  const userWithChildren = await tryCatch(getUserWithChildren(user.id));
 
   return (
     <Suspense fallback={<LoadingSkeleton />}>
@@ -35,8 +35,8 @@ export default async function ChildrenPage() {
         }
       >
         <CardContainer>
-          {parentalAuthorities.length > 0 ? (
-            <ChildrenList parentalAuthorities={parentalAuthorities} />
+          {userWithChildren.data && userWithChildren.data.childAuthorities?.length > 0 ? (
+            <ChildrenList parentalAuthorities={userWithChildren.data.childAuthorities} />
           ) : (
             <NoChildrenMessage />
           )}
