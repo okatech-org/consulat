@@ -20,7 +20,7 @@
     "preview": "next build && next start",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "ai-sum": "pnpx ai-digest -o ai-sum/.code_base.md --whitespace-removal --show-output-files",
+    "ai-sum": "yarn ai-digest -o ai-sum/.code_base.md --whitespace-removal --show-output-files",
     "postai-sum": "node ./scripts/minifyMarkdown.js",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
@@ -108,6 +108,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@schemastore/package": "^0.0.10",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/eslint": "^8.56.10",

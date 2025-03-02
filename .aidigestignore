@@ -8,6 +8,7 @@
 /build
 .DS_Store
 *.pem
+*.lock
 .idea
 /prisma/dev.db
 npm-debug.log*
@@ -21,7 +22,15 @@ yarn-error.log*
 /public
 /ai-sum/*
 /src/assets
-/src/components/ui
-/specs/base
-/src/i18n/messages/en
-/src/i18n/messages/es
+/src/components
+/src/i18n
+/src/hooks
+/src/lib
+/src/types
+/src/schemas
+/src/types
+/src/actions
+/src/app/(authenticated)/dashboard/(superadmin)
+/src/app/(authenticated)/dashboard/(admin)
+/src/app/(authenticated)/dashboard/notifications
+/src/app/(authenticated)/dashboard/_utils
