@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '8mb',
+    },
+  },
   trailingSlash: false,
   reactStrictMode: true,
   images: {

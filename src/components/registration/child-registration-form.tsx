@@ -18,6 +18,7 @@ import { LinkForm } from './link-form';
 import { ChildReviewForm } from './child-review-form';
 import { UseFormReturn } from 'react-hook-form';
 import { ChildCompleteFormData } from '@/schemas/child-registration';
+import { createChildProfile } from '@/actions/child-profiles';
 
 export function ChildRegistrationForm() {
   const router = useRouter();
@@ -90,7 +91,7 @@ export function ChildRegistrationForm() {
 
   // Soumission finale
   const handleFinalSubmit = async () => {
-    console.log('handleFinalSubmit');
+    setIsLoading(true);
     const formDataToSend = new FormData();
 
     // Ajouter les fichiers
@@ -103,11 +104,11 @@ export function ChildRegistrationForm() {
     });
 
     // Ajouter les données JSON des formulaires
-    formDataToSend.append('link', JSON.stringify(forms.link.getValues()));
+    formDataToSend.append('linkInfo', JSON.stringify(forms.link.getValues()));
     formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()));
     formDataToSend.append('documents', JSON.stringify(forms.documents.getValues()));
 
-    const result = await tryCatch(postProfile(formDataToSend));
+    const result = await tryCatch(createChildProfile(formDataToSend));
 
     setIsLoading(false);
 

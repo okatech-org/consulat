@@ -29,7 +29,6 @@ export async function postProfile(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
 
   try {
-    const t = await getTranslations('messages.profile');
     const currentUser = await checkAuth();
 
     // Récupérer et parser les données du formulaire

@@ -119,6 +119,7 @@ enum ServiceCategory {
   VISA
   CERTIFICATION
   REGISTRATION
+  CHILD_REGISTRATION
   OTHER
 }
 
@@ -163,6 +164,7 @@ enum FamilyLink {
   FATHER
   MOTHER
   SPOUSE
+  LEGAL_GUARDIAN
   CHILD
   OTHER
 }
@@ -229,7 +231,8 @@ model Phone {
   countryCode      String
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
-  User             User[]
+  User             User?
+  userId           String?
   Profile          Profile[]
   EmergencyContact EmergencyContact[]
 }
@@ -275,10 +278,10 @@ model Profile {
   maritalStatus          MaritalStatus?          @default(SINGLE)
   workStatus             WorkStatus?             @default(UNEMPLOYED)
   acquisitionMode        NationalityAcquisition? @default(BIRTH)
-  passportNumber         String
-  passportIssueDate      DateTime
-  passportExpiryDate     DateTime
-  passportIssueAuthority String
+  passportNumber         String?
+  passportIssueDate      DateTime?
+  passportExpiryDate     DateTime?
+  passportIssueAuthority String?
 
   // Documents
   identityPicture    UserDocument? @relation("identityPicture", fields: [identityPictureId], references: [id])

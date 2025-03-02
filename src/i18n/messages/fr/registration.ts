@@ -432,5 +432,11 @@ export default {
     identity_picture: {
       label: "Photo d'identité",
     },
+    residence_permit: {
+      label: 'Titre de séjour',
+    },
+    address_proof: {
+      label: 'Justificatif de domicile',
+    },
   },
 } as const;

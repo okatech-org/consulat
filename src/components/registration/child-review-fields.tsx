@@ -118,6 +118,16 @@ export function ChildReviewFields<T extends keyof ChildCompleteFormData>({
               isUploaded={!!documents.passportFile}
               required={false}
             />
+            <DocumentStatus
+              type={t('profile.residence_permit.label')}
+              isUploaded={!!documents.residencePermitFile}
+              required={false}
+            />
+            <DocumentStatus
+              type={t('profile.address_proof.label')}
+              isUploaded={!!documents.addressProofFile}
+              required={false}
+            />
           </div>
         </div>
       )}
