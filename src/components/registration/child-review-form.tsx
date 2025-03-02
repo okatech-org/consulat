@@ -23,15 +23,15 @@ export function ChildReviewForm({ data, onEdit }: ChildReviewFormProps) {
       step: 0,
     },
     {
-      key: 'basicInfo',
-      title: t('review.basic_info'),
-      data: data.basicInfo,
-      step: 1,
-    },
-    {
       key: 'documents',
       title: t('review.documents'),
       data: data.documents,
+      step: 1,
+    },
+    {
+      key: 'basicInfo',
+      title: t('review.basic_info'),
+      data: data.basicInfo,
       step: 2,
     },
   ] as const;
