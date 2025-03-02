@@ -1,12 +1,6 @@
 'use server';
 
-import {
-  PrismaClient,
-  RequestStatus,
-  ServiceCategory,
-  DocumentType,
-} from '@prisma/client';
-import { FullProfileInclude } from '@/types/profile';
+import { RequestStatus, ServiceCategory, DocumentType } from '@prisma/client';
 import { LinkFormData } from '@/schemas/child-registration';
 import { checkAuth } from '@/lib/auth/action';
 import { processFileData } from './utils';
@@ -14,9 +8,6 @@ import { deleteFiles } from './uploads';
 import { getRegistrationServiceForUser } from '@/app/(authenticated)/my-space/_utils/actions/actions';
 import { db } from '@/lib/prisma';
 import { BasicInfoFormData } from '@/schemas/registration';
-
-// Instance de Prisma
-const prisma = new PrismaClient();
 
 export async function createChildProfile(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
@@ -248,11 +239,11 @@ export async function createChildProfile(formData: FormData): Promise<string> {
         const parentUsers = [
           {
             id: currentUser.user.id,
+            role: linkInfo.parentRole,
           },
         ];
 
         if (linkInfo?.hasOtherParent) {
-          console.log('hasOtherParent', linkInfo.hasOtherParent);
           const otherParentReq = [];
 
           if (linkInfo.otherParentEmail) {
@@ -270,8 +261,6 @@ export async function createChildProfile(formData: FormData): Promise<string> {
             });
           }
 
-          console.log('otherParentReq', otherParentReq);
-
           const otherParentUser = await db.user.findFirst({
             where: {
               OR: otherParentReq,
@@ -281,29 +270,20 @@ export async function createChildProfile(formData: FormData): Promise<string> {
             },
           });
 
-          console.log('otherParentUser', otherParentUser);
-
-          if (otherParentUser) {
+          if (otherParentUser && linkInfo.otherParentRole) {
             parentUsers.push({
               id: otherParentUser.id,
+              role: linkInfo.otherParentRole,
             });
           }
-
-          console.log('parentUsers', parentUsers);
         }
 
-        await tx.parentalAuthority.create({
-          data: {
-            profile: {
-              connect: {
-                id: profile.id,
-              },
-            },
-            parentUsers: {
-              connect: parentUsers,
-            },
-            role: linkInfo.parentRole,
-          },
+        await tx.parentalAuthority.createMany({
+          data: parentUsers.map((user) => ({
+            profileId: profile.id,
+            parentUserId: user.id,
+            role: user.role,
+          })),
         });
       }
 
@@ -345,54 +325,4 @@ export async function createChildProfile(formData: FormData): Promise<string> {
 
     throw error;
   }
-}
-
-/**
- * Récupère tous les profils enfants associés à un parent
- */
-export async function getChildProfilesByParent(parentUserId: string) {
-  // Récupérer les autorités parentales où l'utilisateur est parent
-  const parentalAuthorities = await prisma.parentalAuthority.findMany({
-    where: {
-      parentUsers: {
-        some: {
-          id: parentUserId,
-        },
-      },
-      isActive: true,
-    },
-    include: {
-      profile: {
-        include: FullProfileInclude.include,
-      },
-    },
-  });
-
-  // Extraire les profils enfants des autorités parentales
-  const childProfiles = parentalAuthorities.map((authority) => authority.profile);
-
-  return childProfiles;
-}
-
-/**
- * Vérifie si un utilisateur a les droits pour accéder aux informations d'un enfant
- */
-export async function canAccessChildProfile(
-  parentUserId: string,
-  childProfileId: string,
-) {
-  // Vérifier si l'utilisateur a une autorité parentale sur ce profil
-  const authority = await prisma.parentalAuthority.findFirst({
-    where: {
-      profileId: childProfileId,
-      parentUsers: {
-        some: {
-          id: parentUserId,
-        },
-      },
-      isActive: true,
-    },
-  });
-
-  return !!authority;
 }

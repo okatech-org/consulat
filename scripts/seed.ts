@@ -34,6 +34,7 @@ async function main() {
       prisma.phone.deleteMany(),
       prisma.addressGabon.deleteMany(),
       prisma.address.deleteMany(),
+      prisma.parentalAuthority.deleteMany(),
       prisma.profile.deleteMany(),
       prisma.user.deleteMany(),
       prisma.organization.deleteMany(),

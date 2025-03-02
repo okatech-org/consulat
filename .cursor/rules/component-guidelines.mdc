@@ -1,0 +1,9 @@
+---
+description: Guidelines for selecting and using existing UI components effectively throughout the Consulat.ga project. Prioritize existing components when possible.
+globs: 
+alwaysApply: true
+---
+-   **Prioritize UI Components**: Try to favor component from '/src/components/ui' before creating new. Use a chat bot before if needed.
+-   **Existing Component Checklist**: Before implementing new you must refer to previous implementation and existing documentation to understand the need and use component.
+-   **Shadcn UI focus**: Favour the choice of Shadcn component and if it's not possible use a similar component from radix
+-   **Compond pattern**: use component composition instead of create redundant components
