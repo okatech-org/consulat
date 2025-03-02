@@ -4,6 +4,7 @@ interface CardContainerProps {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
   action?: React.ReactNode;
+  footerContent?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   contentClass?: string;
@@ -16,6 +17,7 @@ export default function CardContainer({
   children,
   className,
   contentClass,
+  footerContent,
 }: Readonly<CardContainerProps>) {
   return (
     <Card.Card className={'flex flex-col ' + className}>
@@ -35,6 +37,7 @@ export default function CardContainer({
       <Card.CardContent className={`${title || subtitle ? '' : 'pt-6'} ${contentClass}`}>
         {children}
       </Card.CardContent>
+      {footerContent && <Card.CardFooter>{footerContent}</Card.CardFooter>}
     </Card.Card>
   );
 }

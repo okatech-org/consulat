@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FileText, ExternalLink } from 'lucide-react';
 import { calculateAge } from '@/lib/utils';
+import { ROUTES } from '@/schemas/routes';
 
 interface ChildProfileCardProps {
   parentalAuthority: FullParentalAuthority;
@@ -14,6 +15,7 @@ interface ChildProfileCardProps {
 
 export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
   const t = useTranslations('user.children');
+  const tInputs = useTranslations('inputs');
   const profile = parentalAuthority.profile;
 
   // Calculer l'âge à partir de la date de naissance
@@ -31,8 +33,8 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
               className="object-cover"
             />
             {parentalAuthority.role && (
-              <div className="absolute bottom-0 right-0 bg-primary text-xs text-white px-1 rounded-sm">
-                {parentalAuthority.role}
+              <div className="absolute bottom-0 w-full text-center right-0 bg-primary text-[0.5em] text-white px-1 rounded-sm">
+                {tInputs(`parentRole.options.${parentalAuthority.role}`)}
               </div>
             )}
           </div>
@@ -47,27 +49,25 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
       <CardContent className="pt-4">
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div>
-            <p className="text-muted-foreground">Date de naissance</p>
+            <p className="text-muted-foreground">{tInputs('profile.birthDate')}</p>
             <p>{profile?.birthDate || '-'}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Nationalité</p>
+            <p className="text-muted-foreground">{tInputs('profile.nationality')}</p>
             <p>{profile?.nationality || '-'}</p>
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between gap-2 border-t pt-4">
         <Button variant="outline" asChild size="sm" className="flex-1">
-          <Link href={`/my-space/children/${profile?.id}`}>
-            <ExternalLink className="mr-2 h-4 w-4" />
+          <Link href={ROUTES.user.child_profile(profile?.id)}>
+            <ExternalLink className="size-icon" />
             {t('child_card.view_profile')}
           </Link>
         </Button>
-        <Button variant="default" asChild size="sm" className="flex-1">
-          <Link href={`/my-space/services?for=${profile?.id}`}>
-            <FileText className="mr-2 h-4 w-4" />
-            {t('child_card.make_request')}
-          </Link>
+        <Button disabled variant="default" size="sm" className="flex-1">
+          <FileText className="size-icon" />
+          {t('child_card.make_request')}
         </Button>
       </CardFooter>
     </Card>

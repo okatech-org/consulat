@@ -221,4 +221,13 @@ export default {
     placeholder: 'Sélectionner un agent',
     assigned_to: 'Assigné à',
   },
+  parentRole: {
+    label: 'Rôle parental',
+    placeholder: 'Sélectionner un rôle',
+    options: {
+      FATHER: 'Père',
+      MOTHER: 'Mère',
+      LEGAL_GUARDIAN: 'Tuteur légal',
+    },
+  },
 } as const;

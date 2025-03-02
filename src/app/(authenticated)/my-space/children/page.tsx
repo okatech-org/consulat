@@ -10,6 +10,7 @@ import { getParentalAuthoritiesByParentUser } from '@/actions/parental-authority
 import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
+import { ROUTES } from '@/schemas/routes';
 
 export default async function ChildrenPage() {
   const user = await getCurrentUser();
@@ -26,8 +27,8 @@ export default async function ChildrenPage() {
         description={t('subtitle')}
         action={
           <Button asChild size="sm">
-            <Link href="/my-space/children/new">
-              <Plus className="mr-2 h-4 w-4" />
+            <Link href={ROUTES.user.new_child}>
+              <Plus className="size-icon" />
               {t('add_child')}
             </Link>
           </Button>

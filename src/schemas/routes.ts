@@ -56,6 +56,7 @@ export const ROUTES = {
     notifications: '/my-space/notifications' as Route<string>,
     children: '/my-space/children' as Route<string>,
     new_child: '/my-space/children/new' as Route<string>,
+    child_profile: (id: string) => `/my-space/children/${id}` as Route<string>,
   },
 
   help: '/help' as Route<string>,
