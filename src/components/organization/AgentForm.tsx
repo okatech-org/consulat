@@ -174,7 +174,7 @@ export function AgentForm({ initialData, countries }: AgentFormProps) {
             <FormItem>
               <FormLabel>{t('service_categories')}</FormLabel>
               <FormControl>
-                <MultiSelect
+                <MultiSelect<ServiceCategory>
                   placeholder="Sélectionner les catégories"
                   options={Object.values(ServiceCategory).map((cat) => ({
                     label: t_common(`service_categories.${cat}`),

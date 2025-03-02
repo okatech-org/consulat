@@ -145,16 +145,16 @@ export function DynamicFieldsEditor({
                   <FormItem>
                     <FormLabel>{t('form.steps.step.fields.profile_mapping')}</FormLabel>
                     <FormControl>
-                      <MultiSelect
+                      <MultiSelect<string>
                         options={profileFields.map((f) => ({
                           value: f.key,
                           label: t_inputs(f.key),
                         }))}
-                        selected={field.value ? [field.value] : []}
-                        onChange={(values) => {
-                          const pField = profileFields.find((f) => f.key === values[0]);
+                        selected={field.value}
+                        onChange={(value) => {
+                          const pField = profileFields.find((f) => f.key === value);
 
-                          field.onChange(values[0]);
+                          field.onChange(value);
 
                           if (pField) {
                             fieldForm.setValue('name', pField.key);
@@ -212,15 +212,15 @@ export function DynamicFieldsEditor({
                     <FormLabel>{t('form.steps.step.fields.type')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <MultiSelect
+                        <MultiSelect<ServiceFieldType>
                           disabled={fieldForm.watch('profileField') !== undefined}
                           options={fieldTypes.map((type) => ({
                             value: type,
                             label: t_common(`field_types.${type}`),
                           }))}
-                          selected={field.value ? [field.value] : []}
-                          onChange={(values) => {
-                            field.onChange(values[0]);
+                          selected={field.value}
+                          onChange={(value) => {
+                            field.onChange(value);
                           }}
                           type={'single'}
                         />

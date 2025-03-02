@@ -127,8 +127,8 @@ export function RequestQuickEditFormDialog({
                       label: `${agent.firstName} ${agent.lastName}`,
                       value: agent.id,
                     }))}
-                    onChange={(value) => field.onChange(value[0])}
-                    selected={[field.value]}
+                    onChange={field.onChange}
+                    selected={field.value}
                     type="single"
                   />
                   <TradFormMessage />
@@ -141,13 +141,13 @@ export function RequestQuickEditFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inputs.priority.label')}</FormLabel>
-                  <MultiSelect
+                  <MultiSelect<ServicePriority>
                     options={[
                       { value: 'STANDARD', label: t('common.priority.standard') },
                       { value: 'URGENT', label: t('common.priority.urgent') },
                     ]}
-                    onChange={(value) => field.onChange(value[0])}
-                    selected={[field.value]}
+                    onChange={field.onChange}
+                    selected={field.value}
                     type="single"
                   />
                   <TradFormMessage />
@@ -160,31 +160,28 @@ export function RequestQuickEditFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inputs.status.label')}</FormLabel>
-                  <MultiSelect
+                  <MultiSelect<RequestStatus>
                     options={[
                       { value: 'SUBMITTED', label: t('common.status.submitted') },
-                      { value: 'REVIEW', label: t('common.status.review') },
                       { value: 'PENDING', label: t('common.status.pending') },
                       {
-                        value: 'ADDITIONAL_INFO_NEEDED',
-                        label: t('common.status.additional_info_needed'),
+                        value: 'PENDING_COMPLETION',
+                        label: t('common.status.pending_completion'),
                       },
                       {
-                        value: 'PENDING_APPOINTMENT',
-                        label: t('common.status.pending_appointment'),
+                        value: 'APPOINTMENT_SCHEDULED',
+                        label: t('common.status.appointment_scheduled'),
                       },
                       {
-                        value: 'PENDING_PAYMENT',
-                        label: t('common.status.pending_payment'),
+                        value: 'READY_FOR_PICKUP',
+                        label: t('common.status.ready_for_pickup'),
                       },
-                      { value: 'APPROVED', label: t('common.status.approved') },
+                      { value: 'VALIDATED', label: t('common.status.validated') },
                       { value: 'REJECTED', label: t('common.status.rejected') },
                       { value: 'COMPLETED', label: t('common.status.completed') },
-                      { value: 'CANCELLED', label: t('common.status.cancelled') },
-                      { value: 'ASSIGNED', label: t('common.status.assigned') },
                     ]}
-                    onChange={(value) => field.onChange(value[0])}
-                    selected={[field.value]}
+                    onChange={field.onChange}
+                    selected={field.value}
                     type="single"
                   />
                   <TradFormMessage />

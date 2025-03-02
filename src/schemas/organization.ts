@@ -3,12 +3,15 @@ import { Organization } from '@/types/organization';
 import { OrganizationType, OrganizationStatus } from '@prisma/client';
 import { Country } from '@/types/country';
 import { EmailSchema, PhoneSchema, PictureFileSchema } from '@/schemas/inputs';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 export const organizationSchema = z.object({
   name: z.string().min(1, 'messages.errors.name_required'),
   type: z.nativeEnum(OrganizationType),
   status: z.nativeEnum(OrganizationStatus),
-  countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),
+  countryIds: z
+    .array(z.nativeEnum(CountryCode))
+    .min(1, 'messages.errors.countries_required'),
   adminEmail: z.string().email('messages.errors.invalid_email'),
 });
 
@@ -108,10 +111,13 @@ const CountrySettingsSchema = z.object({
 });
 
 export function generateOrganizationSettingsSchema(countries: Country[]) {
-  const metadataShape: Record<string, z.ZodTypeAny> = {};
+  const metadataShape: Record<CountryCode, typeof CountrySettingsSchema> = {} as Record<
+    CountryCode,
+    typeof CountrySettingsSchema
+  >;
 
   countries.forEach((country) => {
-    metadataShape[country.code] = CountrySettingsSchema;
+    metadataShape[country.code as CountryCode] = CountrySettingsSchema;
   });
 
   return z.object({
@@ -120,7 +126,9 @@ export function generateOrganizationSettingsSchema(countries: Country[]) {
     logoFile: z.any().optional(),
     type: z.nativeEnum(OrganizationType).optional(),
     status: z.nativeEnum(OrganizationStatus).optional(),
-    countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),
+    countryIds: z
+      .array(z.nativeEnum(CountryCode))
+      .min(1, 'messages.errors.countries_required'),
     metadata: z.object(metadataShape).optional(),
   });
 }

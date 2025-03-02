@@ -28,6 +28,7 @@ interface PhoneInputProps
   value?: PhoneValue;
   onChange?: (value: PhoneValue) => void;
   error?: boolean;
+  disabled?: boolean;
 }
 
 export function PhoneInput({
@@ -35,6 +36,7 @@ export function PhoneInput({
   value = { number: '', countryCode: '+33' },
   onChange,
   error,
+  disabled = false,
   ...props
 }: PhoneInputProps) {
   const t = useTranslations('common');
@@ -90,6 +92,7 @@ export function PhoneInput({
               'min-w-max !px-2 justify-between',
               error && 'border-destructive',
             )}
+            disabled={disabled}
           >
             <span className="flex items-center gap-1">
               <FlagIcon
@@ -145,6 +148,7 @@ export function PhoneInput({
         value={phoneValue.number}
         onChange={handlePhoneChange}
         {...props}
+        disabled={disabled}
       />
     </div>
   );

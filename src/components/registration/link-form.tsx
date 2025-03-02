@@ -14,12 +14,13 @@ import {
 } from '@/components/ui/form';
 import { ParentalRole } from '@prisma/client';
 import CardContainer from '../layouts/card-container';
-import { Button } from '../ui/button';
 import { MultiSelect } from '../ui/multi-select';
 import { Input } from '../ui/input';
-import { PhoneInput } from '../ui/phone-input';
+import { PhoneInput, PhoneValue } from '../ui/phone-input';
 import { Switch } from '../ui/switch';
 import { LinkFormData } from '@/schemas/child-registration';
+import { Separator } from '../ui/separator';
+import { CardTitle } from '../ui/card';
 
 interface LinkFormProps {
   form: UseFormReturn<LinkFormData>;
@@ -29,6 +30,7 @@ interface LinkFormProps {
 
 export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
   const t = useTranslations('registration');
+  const tBase = useTranslations();
 
   return (
     <Form {...form}>
@@ -44,12 +46,13 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 <FormControl>
                   <MultiSelect<ParentalRole>
                     type="single"
-                    selected={[field.value]}
+                    selected={field.value}
                     options={Object.values(ParentalRole).map((role) => ({
                       label: t(`form.roles.${role}`),
                       value: role,
                     }))}
-                    onChange={(value) => field.onChange(value[0])}
+                    onChange={field.onChange}
+                    disabled={isLoading}
                   />
                 </FormControl>
                 <TradFormMessage />
@@ -67,7 +70,11 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                   {t('link.has_other_parent_description')}
                 </FormDescription>
                 <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  <Switch
+                    disabled={isLoading}
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
                 <TradFormMessage />
               </FormItem>
@@ -76,14 +83,18 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
 
           {form.watch('hasOtherParent') && (
             <>
+              <CardTitle className="text-lg font-bold">
+                {t('link.other_parent_info')}
+              </CardTitle>
+              <Separator className="my-4" />
               <FormField
                 control={form.control}
                 name="otherParentFirstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('link.other_parent_first_name')}</FormLabel>
+                    <FormLabel>{tBase('inputs.firstName.label')}</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} disabled={isLoading} />
                     </FormControl>
                     <TradFormMessage />
                   </FormItem>
@@ -95,9 +106,9 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 name="otherParentLastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('link.other_parent_last_name')}</FormLabel>
+                    <FormLabel>{tBase('inputs.lastName.label')}</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} disabled={isLoading} />
                     </FormControl>
                     <TradFormMessage />
                   </FormItem>
@@ -109,9 +120,9 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 name="otherParentEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('link.other_parent_email')}</FormLabel>
+                    <FormLabel>{tBase('inputs.email.label')}</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input type="email" {...field} disabled={isLoading} />
                     </FormControl>
                     <TradFormMessage />
                   </FormItem>
@@ -123,9 +134,13 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 name="otherParentPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('link.other_parent_phone')}</FormLabel>
+                    <FormLabel>{tBase('inputs.phone.label')}</FormLabel>
                     <FormControl>
-                      <PhoneInput {...field} />
+                      <PhoneInput
+                        value={field.value as unknown as PhoneValue}
+                        onChange={field.onChange}
+                        disabled={isLoading}
+                      />
                     </FormControl>
                     <TradFormMessage />
                   </FormItem>
@@ -137,16 +152,18 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 name="otherParentRole"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('link.other_parent_role')}</FormLabel>
+                    <FormLabel>{tBase('inputs.parentalRole.label')}</FormLabel>
                     <FormControl>
                       <MultiSelect<ParentalRole>
                         type="single"
-                        selected={[field.value]}
+                        selected={field.value}
                         options={Object.values(ParentalRole).map((role) => ({
-                          label: t(`form.roles.${role}`),
+                          label: tBase(`inputs.parentalRole.options.${role}`),
                           value: role,
+                          disabled: form.watch('parentRole') === role,
                         }))}
-                        onChange={(value) => field.onChange(value)}
+                        onChange={field.onChange}
+                        disabled={isLoading}
                       />
                     </FormControl>
                     <TradFormMessage />

@@ -200,12 +200,8 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                       label: org.name,
                       value: org.id,
                     }))}
-                    selected={field.value ? [field.value] : []}
-                    onChange={(values) => {
-                      if (values.length > 0) {
-                        field.onChange(values[0]);
-                      }
-                    }}
+                    selected={field.value}
+                    onChange={field.onChange}
                     type={'single'}
                   />
                   <TradFormMessage />
@@ -223,6 +219,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                 <FormItem>
                   <FormLabel>{t('form.required_documents.label')}</FormLabel>
                   <MultiSelect<DocumentType>
+                    type={'multiple'}
                     options={Object.values(DocumentType).map((type) => ({
                       label: t(`documents.${type.toLowerCase()}`),
                       value: type,
@@ -244,7 +241,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('form.optional_documents.label')}</FormLabel>
-                  <MultiSelect
+                  <MultiSelect<DocumentType>
                     options={Object.values(DocumentType).map((type) => ({
                       label: t(`documents.${type.toLowerCase()}`),
                       value: type,
@@ -345,11 +342,13 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('form.delivery.modes.label')}</FormLabel>
-                    <MultiSelect
+                    <MultiSelect<DeliveryMode>
+                      type={'multiple'}
                       options={Object.values(DeliveryMode).map((mode) => ({
                         label: t(`form.delivery.modes.options.${mode.toLowerCase()}`),
                         value: mode,
                       }))}
+                      xzxz
                       selected={field.value}
                       onChange={(value) => {
                         field.onChange(value);
@@ -452,20 +451,17 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('form.pricing.currency.label')}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={t('form.pricing.currency.placeholder')}
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="EUR">EUR</SelectItem>
-                            <SelectItem value="XAF">XAF</SelectItem>
-                            <SelectItem value="USD">USD</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <MultiSelect<string>
+                          options={[
+                            { value: 'EUR', label: 'EUR' },
+                            { value: 'XAF', label: 'XAF' },
+                            { value: 'USD', label: 'USD' },
+                          ]}
+                          selected={field.value}
+                          onChange={field.onChange}
+                          type={'single'}
+                          placeholder={t('form.pricing.currency.placeholder')}
+                        />
                         <TradFormMessage />
                       </FormItem>
                     )}

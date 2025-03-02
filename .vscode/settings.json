@@ -1,11 +1,5 @@
 {
   "editor.fontSize": 14,
   "i18n-ally.localesPaths": ["src/i18n", "src/i18n/messages"],
-  "json.schemas": [
-    {
-      "fileMatch": ["package.json"],
-      "url": "./node_modules/@schemastore/package/schema.json"
-    }
-  ],
-  "json.schemaDownload.enable": false
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

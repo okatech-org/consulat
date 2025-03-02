@@ -381,13 +381,13 @@ export function NewAppointmentForm({
                     <FormItem>
                       <FormLabel>{t('service.label')}</FormLabel>
                       <FormControl>
-                        <MultiSelect
+                        <MultiSelect<string>
                           options={serviceOptions}
-                          selected={field.value ? [field.value] : []}
-                          onChange={(values) => {
-                            field.onChange(values[0]);
+                          selected={field.value}
+                          onChange={(value) => {
+                            field.onChange(value);
                             setSelectedService(
-                              services.find((s) => s.id === values[0]) ?? null,
+                              services.find((s) => s.id === value) ?? null,
                             );
                             form.setValue(
                               'duration',
@@ -418,10 +418,10 @@ export function NewAppointmentForm({
                   <FormItem>
                     <FormLabel>{t('type.label')}</FormLabel>
                     <FormControl>
-                      <MultiSelect
+                      <MultiSelect<AppointmentType>
                         options={appointmentTypeOptions}
-                        selected={field.value ? [field.value] : []}
-                        onChange={(values) => field.onChange(values[0])}
+                        selected={field.value}
+                        onChange={field.onChange}
                         placeholder={t('type.placeholder')}
                         type="single"
                       />

@@ -161,8 +161,8 @@ export function OrganizationSettings({
                           label: t(`types.${type}`),
                           value: type,
                         }))}
-                        selected={field.value ? [field.value] : []}
-                        onChange={(values) => field.onChange(values[0])}
+                        selected={field.value}
+                        onChange={field.onChange}
                         type={'single'}
                         disabled={isLoading}
                       />
@@ -185,8 +185,8 @@ export function OrganizationSettings({
                           label: t(`status.${status}`),
                           value: status,
                         }))}
-                        selected={field.value ? [field.value] : []}
-                        onChange={(values) => field.onChange(values[0])}
+                        selected={field.value}
+                        onChange={field.onChange}
                         type={'single'}
                         disabled={isLoading}
                       />
@@ -204,9 +204,10 @@ export function OrganizationSettings({
                   <FormItem>
                     <FormLabel>{t('form.countries.label')}</FormLabel>
                     <FormControl>
-                      <MultiSelect<string>
+                      <MultiSelect<CountryCode>
+                        type={'multiple'}
                         options={countries.map((country) => ({
-                          value: country.id,
+                          value: country.code as CountryCode,
                           label: country.name,
                         }))}
                         selected={field.value}

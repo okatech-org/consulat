@@ -18,31 +18,32 @@ import { cn } from '@/lib/utils';
 interface Option<T> {
   value: T;
   label: string;
+  disabled?: boolean;
 }
 
 interface MultiSelectMultipleProps<T> {
-  options: Option<T>[];
+  options: Array<Option<T>>;
   selected?: T[];
   onChange: (values: T[]) => void;
   placeholder?: string;
   searchPlaceholder?: string;
   emptyText?: string;
-  type?: 'multiple';
+  type: 'multiple';
   disabled?: boolean;
 }
 
 interface MultiSelectSingleProps<T> {
-  options: Option<T>[];
+  options: Array<Option<T>>;
   selected?: T;
   onChange: (value: T) => void;
   placeholder?: string;
   searchPlaceholder?: string;
   emptyText?: string;
-  type?: 'single';
+  type: 'single';
   disabled?: boolean;
 }
 
-export function MultiSelect<T extends string | number>({
+export function MultiSelect<T>({
   options,
   selected,
   onChange,
@@ -133,6 +134,7 @@ export function MultiSelect<T extends string | number>({
                         setOpen(false);
                       }
                     }}
+                    disabled={option.disabled}
                   >
                     <Check
                       className={cn(

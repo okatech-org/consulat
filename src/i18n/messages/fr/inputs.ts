@@ -39,6 +39,15 @@ export default {
     label: 'Adresse email',
     placeholder: 'email@example.com',
   },
+  parentalRole: {
+    label: 'Rôle parental',
+    placeholder: 'Sélectionner un rôle',
+    options: {
+      FATHER: 'Père',
+      MOTHER: 'Mère',
+      LEGAL_GUARDIAN: 'Tuteur légal',
+    },
+  },
   appointment: {
     date: {
       label: 'Date du rendez-vous',

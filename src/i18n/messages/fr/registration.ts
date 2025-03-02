@@ -396,6 +396,7 @@ export default {
 
     yes: 'Oui',
     no: 'Non',
+    other_parent_info: "Informations sur l'autre parent",
   },
   child_review: {
     link_info: "Lien avec l'enfant",

@@ -238,18 +238,18 @@ export function ServiceRequestReview({
           {/* Priorité */}
           <div className="space-y-2">
             <h3 className="font-medium">{t('service_request.priority')}</h3>
-            <MultiSelect
+            <MultiSelect<ServicePriority>
               type="single"
               options={[
                 { value: 'STANDARD', label: t_common('priority.standard') },
                 { value: 'URGENT', label: t_common('priority.urgent') },
               ]}
-              selected={[request.priority]}
-              onChange={async (values) => {
-                if (values[0]) {
+              selected={request.priority}
+              onChange={async (value) => {
+                if (value) {
                   await updateServiceRequest({
                     id: request.id,
-                    priority: values[0] as ServicePriority,
+                    priority: value,
                   });
                 }
               }}
@@ -261,16 +261,16 @@ export function ServiceRequestReview({
           <RoleGuard roles={['ADMIN', 'MANAGER', 'SUPER_ADMIN']}>
             <div className="space-y-2">
               <h3 className="font-medium">{t('service_request.assign_to')}</h3>
-              <MultiSelect
+              <MultiSelect<string>
                 type="single"
                 options={agents.map((agent) => ({
                   value: agent.id,
                   label: `${agent.firstName} ${agent.lastName}`,
                 }))}
-                selected={request.assignedToId ? [request.assignedToId] : []}
-                onChange={async (values) => {
-                  if (values[0]) {
-                    await assignServiceRequest(request.id, values[0]);
+                selected={request.assignedToId ?? undefined}
+                onChange={async (value) => {
+                  if (value) {
+                    await assignServiceRequest(request.id, value);
                   }
                 }}
                 placeholder={t('service_request.select_agent')}
@@ -281,38 +281,28 @@ export function ServiceRequestReview({
           {/* Request status */}
           <div className="space-y-2">
             <h3 className="font-medium">{t('service_request.status')}</h3>
-            <MultiSelect
+            <MultiSelect<RequestStatus>
               type="single"
               options={[
                 { value: 'SUBMITTED', label: t_common('status.submitted') },
                 { value: 'PENDING', label: t_common('status.pending') },
                 {
-                  value: 'ADDITIONAL_INFO_NEEDED',
-                  label: t_common('status.additional_info_needed'),
+                  value: 'PENDING_COMPLETION',
+                  label: t_common('status.pending_completion'),
                 },
                 {
-                  value: 'PENDING_APPOINTMENT',
-                  label: t_common('status.pending_appointment'),
+                  value: 'APPOINTMENT_SCHEDULED',
+                  label: t_common('status.appointment_scheduled'),
                 },
-                { value: 'PENDING_PAYMENT', label: t_common('status.pending_payment') },
-                { value: 'APPROVED', label: t_common('status.approved') },
+                { value: 'READY_FOR_PICKUP', label: t_common('status.ready_for_pickup') },
+                { value: 'VALIDATED', label: t_common('status.validated') },
                 { value: 'REJECTED', label: t_common('status.rejected') },
                 { value: 'COMPLETED', label: t_common('status.completed') },
-                { value: 'CANCELLED', label: t_common('status.cancelled') },
-              ].filter((option) => {
-                // Filter out ASSIGNED status
-                if (option.value === 'ASSIGNED') return false;
-                // Only show COMPLETED status for admins if already completed
-                if (option.value === 'COMPLETED' && request.status === 'COMPLETED') {
-                  return user && hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN']);
-                }
-                // Show all other statuses if not completed
-                return request.status !== 'COMPLETED';
-              })}
-              selected={[request.status]}
-              onChange={async (values) => {
-                if (values[0]) {
-                  await handleStatusUpdate(values[0] as RequestStatus);
+              ]}
+              selected={request.status}
+              onChange={async (value) => {
+                if (value) {
+                  await handleStatusUpdate(value);
                 }
               }}
               placeholder={t('service_request.select_status')}
