@@ -86,7 +86,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge variant={request.status === 'SUBMITTED' ? 'outline' : 'default'}>
-                  {t('common.status.' + request.status.toLowerCase())}
+                  {t('common.status.' + request.status)}
                 </Badge>
                 <Badge
                   variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}

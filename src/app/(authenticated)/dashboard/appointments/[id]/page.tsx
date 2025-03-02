@@ -71,7 +71,7 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
             variant="secondary"
             className={cn('text-base', getStatusColor(appointment.status))}
           >
-            {commonT(`status.${appointment.status.toLowerCase()}`)}
+            {commonT(`status.${appointment.status}`)}
           </Badge>
         </div>
       </div>

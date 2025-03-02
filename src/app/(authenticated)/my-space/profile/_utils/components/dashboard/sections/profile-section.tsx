@@ -9,6 +9,7 @@ import { Badge, BadgeVariant } from '@/components/ui/badge';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Key } from 'react';
+import { RequestStatus } from '@prisma/client';
 
 interface ProfileSectionProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,7 +19,7 @@ interface ProfileSectionProps {
 
 export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
   const t = useTranslations('dashboard.sections.profile');
-
+  const t_common = useTranslations('common');
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -28,7 +29,7 @@ export function ProfileSection({ stats, onAction }: ProfileSectionProps) {
             {t('title')}
           </CardTitle>
           <Badge variant={stats?.status as BadgeVariant}>
-            {t(`status.${stats?.status.toLowerCase()}`)}
+            {t_common(`status.${stats?.status as RequestStatus}`)}
           </Badge>
         </div>
       </CardHeader>

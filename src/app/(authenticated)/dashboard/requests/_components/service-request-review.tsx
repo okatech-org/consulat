@@ -90,9 +90,7 @@ export function ServiceRequestReview({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CardTitle>{t('service_request.title')}</CardTitle>
-          <Badge variant="secondary">
-            {t_common(`status.${request.status.toLowerCase()}`)}
-          </Badge>
+          <Badge variant="secondary">{t_common(`status.${request.status}`)}</Badge>
           <Badge variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}>
             {t_common(`priority.${request.priority.toLowerCase()}`)}
           </Badge>
@@ -102,7 +100,7 @@ export function ServiceRequestReview({
             <>
               <Button
                 variant="outline"
-                onClick={() => handleStatusUpdate('REVIEW')}
+                onClick={() => handleStatusUpdate('PENDING')}
                 disabled={isUpdating}
               >
                 <Clock className="mr-2 size-4" />
@@ -284,20 +282,20 @@ export function ServiceRequestReview({
             <MultiSelect<RequestStatus>
               type="single"
               options={[
-                { value: 'SUBMITTED', label: t_common('status.submitted') },
-                { value: 'PENDING', label: t_common('status.pending') },
+                { value: 'SUBMITTED', label: t_common('status.SUBMITTED') },
+                { value: 'PENDING', label: t_common('status.PENDING') },
                 {
                   value: 'PENDING_COMPLETION',
-                  label: t_common('status.pending_completion'),
+                  label: t_common('status.PENDING_COMPLETION'),
                 },
                 {
                   value: 'APPOINTMENT_SCHEDULED',
-                  label: t_common('status.appointment_scheduled'),
+                  label: t_common('status.APPOINTMENT_SCHEDULED'),
                 },
-                { value: 'READY_FOR_PICKUP', label: t_common('status.ready_for_pickup') },
-                { value: 'VALIDATED', label: t_common('status.validated') },
-                { value: 'REJECTED', label: t_common('status.rejected') },
-                { value: 'COMPLETED', label: t_common('status.completed') },
+                { value: 'READY_FOR_PICKUP', label: t_common('status.READY_FOR_PICKUP') },
+                { value: 'VALIDATED', label: t_common('status.VALIDATED') },
+                { value: 'REJECTED', label: t_common('status.REJECTED') },
+                { value: 'COMPLETED', label: t_common('status.COMPLETED') },
               ]}
               selected={request.status}
               onChange={async (value) => {

@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { debounce } from 'lodash';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
+
 interface RegistrationsTableProps {
   requests?: RegistrationListingItem[];
   filters: GetRegistrationsOptions;
@@ -101,9 +102,7 @@ export function RegistrationsTable({
     {
       accessorKey: 'status',
       header: () => t('table.status'),
-      cell: ({ row }) => (
-        <Badge>{t('status.' + row.original.status.toLowerCase())}</Badge>
-      ),
+      cell: ({ row }) => <Badge>{t_common('status.' + row.original.status)}</Badge>,
     },
     {
       accessorKey: 'submittedBy.profile.status',

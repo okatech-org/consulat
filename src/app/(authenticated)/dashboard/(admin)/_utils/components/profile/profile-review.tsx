@@ -120,11 +120,10 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               {profile.firstName} {profile.lastName}{' '}
               <ProfileStatusBadge
                 status={request.status}
-                // @ts-expect-error - translations are in lowercase
-                label={t(`common.status.${request.status.toLocaleLowerCase()}`)}
+                label={t(`common.status.${request.status}`)}
               />
             </h2>
-            {profile.user.email && (
+            {profile.user?.email && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                 <Mail className="size-4" />
                 {profile.user.email}

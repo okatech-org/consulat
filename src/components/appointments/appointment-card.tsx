@@ -83,7 +83,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
             </p>
           </div>
           <Badge variant={getStatusColor(appointment.status)}>
-            {t_common(`status.${appointment.status.toLowerCase()}`)}
+            {t_common(`status.${appointment.status}`)}
           </Badge>
         </div>
       </CardHeader>

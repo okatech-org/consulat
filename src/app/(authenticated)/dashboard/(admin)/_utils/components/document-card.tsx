@@ -74,7 +74,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
             className="flex gap-1"
           >
             {getStatusIcon()}
-            {t(`status.${document.status.toLowerCase()}`)}
+            {t(`status.${document.status}`)}
           </Badge>
         </div>
       </CardHeader>

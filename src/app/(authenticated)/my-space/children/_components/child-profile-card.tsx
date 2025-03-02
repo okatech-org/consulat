@@ -16,6 +16,7 @@ interface ChildProfileCardProps {
 export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
   const t = useTranslations('user.children');
   const tInputs = useTranslations('inputs');
+  const tBase = useTranslations();
   const profile = parentalAuthority.profile;
 
   // Calculer l'âge à partir de la date de naissance
@@ -39,7 +40,12 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
             )}
           </div>
           <div>
-            <h3 className="font-medium text-lg">{`${profile?.firstName || ''} ${profile?.lastName || ''}`}</h3>
+            <h3 className="font-medium text-lg">
+              {`${profile?.firstName || ''} ${profile?.lastName || ''}`}{' '}
+              <span className="text-xs text-muted-foreground">
+                {tBase(`common.status.${profile.status}`)}
+              </span>
+            </h3>
             <p className="text-sm text-muted-foreground">
               {t('child_card.age', { age })}
             </p>

@@ -120,8 +120,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
               {document && (
                 <>
                   <Badge variant={document.status.toLowerCase() as BadgeVariant}>
-                    {/** @ts-expect-error - document.status is a string */}
-                    {t(`status.${document.status.toLowerCase()}`)}
+                    {t(`status.${document.status}`)}
                   </Badge>
                   <DocumentPreview
                     url={document.fileUrl}

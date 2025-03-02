@@ -16,6 +16,7 @@ interface AppointmentsSectionProps {
 
 export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProps) {
   const t = useTranslations('profile.dashboard.sections.appointments');
+  const t_common = useTranslations('common');
 
   if (!stats) return null;
 
@@ -44,8 +45,8 @@ export function AppointmentsSection({ stats, onAction }: AppointmentsSectionProp
           <div className="rounded-lg border p-3">
             <div className="flex items-center justify-between">
               <h4 className="font-medium">{t('next_appointment')}</h4>
-              <Badge variant={stats.upcoming.status.toLowerCase() as BadgeVariant}>
-                {t(`status.${stats.upcoming.status.toLowerCase()}`)}
+              <Badge variant={stats.upcoming.status as BadgeVariant}>
+                {t_common(`status.${stats.upcoming.status}`)}
               </Badge>
             </div>
             <div className="mt-3 space-y-2">

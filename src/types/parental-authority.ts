@@ -30,19 +30,19 @@ export const FullParentalAuthorityInclude = {
       user: true,
       phone: true,
       address: true,
-    },
-  },
-  parentUsers: true,
-  sharedRequests: {
-    include: {
-      service: true,
-      submittedBy: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+      requestsFor: {
+        include: {
+          service: true,
+          submittedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
       },
+      parentAuthorities: true,
     },
   },
 } as const;
