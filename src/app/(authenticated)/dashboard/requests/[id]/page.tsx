@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/actions/user';
 import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
 import { getOrganizationAgents } from '@/actions/organizations';
-import { getUserFullProfile } from '@/lib/user/getters';
+import { getUserFullProfile, getUserFullProfileById } from '@/lib/user/getters';
 import { tryCatch } from '@/lib/utils';
 
 interface Props {
@@ -28,7 +28,9 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
-  const profile = await getUserFullProfile(request.submittedById);
+  const profile = request.requestedForId
+    ? await getUserFullProfileById(request.requestedForId)
+    : await getUserFullProfile(user.id);
 
   if (!hasPermission(user, 'serviceRequests', 'view', request)) {
     return notFound();

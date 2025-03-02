@@ -710,7 +710,7 @@ async function main() {
                   birthCountry: 'FR',
                   nationality: 'GA',
                   category: 'MINOR',
-                  status: 'SUBMITTED',
+                  status: 'DRAFT',
                   identityPicture: {
                     create: {
                       type: DocumentType.IDENTITY_PHOTO,

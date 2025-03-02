@@ -2,11 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProfileBasicInfo } from './basic-info';
 import { ProfileDocuments } from './documents';
-import { ProfileContact } from './contact';
-import { ProfileFamily } from './family';
-import { ProfileProfessional } from './professional';
 import React, { useState } from 'react';
 import { RequestStatus } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,13 +28,15 @@ import {
 } from '@/actions/consular-registration';
 import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
+import { LinkInfoSection } from '@/app/(authenticated)/my-space/children/_components/sections/link-info-section';
+import { BasicInfoSection } from '@/app/(authenticated)/my-space/profile/_utils/components/sections/basic-info-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 
-interface ProfileReviewProps {
+interface ChildProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
 }
 
-export function ProfileReview({ request }: ProfileReviewProps) {
+export function ChildProfileReview({ request }: ChildProfileReviewProps) {
   const t = useTranslations();
   const profile = request?.profile;
   const user = request.submittedBy;
@@ -63,29 +61,19 @@ export function ProfileReview({ request }: ProfileReviewProps) {
 
   const profileTabs = [
     {
-      value: 'basic',
-      label: t('admin.registrations.review.tabs.basic'),
-      component: <ProfileBasicInfo profile={profile} />,
+      value: 'link',
+      label: t('registration.steps.child_link'),
+      component: <LinkInfoSection profile={profile} />,
     },
     {
       value: 'documents',
-      label: t('admin.registrations.review.tabs.documents'),
+      label: t('registration.steps.documents'),
       component: <ProfileDocuments profile={profile} />,
     },
     {
-      value: 'contact',
-      label: t('admin.registrations.review.tabs.contact'),
-      component: <ProfileContact profile={profile} />,
-    },
-    {
-      value: 'family',
-      label: t('admin.registrations.review.tabs.family'),
-      component: <ProfileFamily profile={profile} />,
-    },
-    {
-      value: 'professional',
-      label: t('admin.registrations.review.tabs.professional'),
-      component: <ProfileProfessional profile={profile} />,
+      value: 'identity',
+      label: t('registration.steps.identity'),
+      component: <BasicInfoSection profile={profile} />,
     },
   ];
 

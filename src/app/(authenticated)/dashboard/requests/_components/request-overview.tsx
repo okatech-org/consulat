@@ -86,7 +86,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge variant={request.status === 'SUBMITTED' ? 'outline' : 'default'}>
-                  {t('common.status.' + request.status)}
+                  {t(`common.status.${request.status}`)}
                 </Badge>
                 <Badge
                   variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}
@@ -214,7 +214,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
 
           {/* Action History */}
           <div className="flex-grow">
-            <h4 className="font-medium">{t('requests.view.history')}</h4>
+            <h4 className="font-medium mb-3">{t('requests.view.history')}</h4>
             <ScrollArea className="h-full pr-4">
               <Timeline>
                 {request.actions.map((action) => (

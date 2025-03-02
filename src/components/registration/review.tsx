@@ -1,4 +1,3 @@
-// src/components/components/review.tsx
 'use client';
 
 import { useTranslations } from 'next-intl';

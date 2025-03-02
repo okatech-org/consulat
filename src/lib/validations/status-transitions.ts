@@ -31,9 +31,7 @@ export function canSwitchTo(
       if (!allDocumentsValidated(profile)) {
         return { can: false, reason: 'incomplete_documents' };
       }
-      if (request.appointment?.status !== 'COMPLETED') {
-        return { can: false, reason: 'incomplete_appointment' };
-      }
+
       return { can: true };
     default:
       return { can: true };

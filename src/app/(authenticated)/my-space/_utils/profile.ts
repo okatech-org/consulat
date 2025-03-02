@@ -25,6 +25,8 @@ import {
 import { deleteFiles } from '@/actions/uploads';
 import { calculateProfileCompletion, extractNumber } from '@/lib/utils';
 import { getRegistrationServiceForUser } from './actions/actions';
+import { assignAgentToRequest } from '@/actions/agents';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 export async function postProfile(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
@@ -605,11 +607,19 @@ export async function submitProfileForValidation(
       return { error: t('errors.incomplete_profile') };
     }
 
-    await db.serviceRequest.create({
+    const serviceRequest = await db.serviceRequest.create({
       data: {
-        serviceCategory: isChild
-          ? ServiceCategory.CHILD_REGISTRATION
-          : ServiceCategory.REGISTRATION,
+        serviceCategory: ServiceCategory.REGISTRATION,
+        organization: {
+          connect: {
+            id: registrationService.organizationId ?? '',
+          },
+        },
+        country: {
+          connect: {
+            code: currentUser.countryCode,
+          },
+        },
         submittedBy: {
           connect: {
             id: currentUser.id,
@@ -636,6 +646,14 @@ export async function submitProfileForValidation(
         submittedAt: new Date(),
       },
     });
+
+    if (registrationService.organizationId) {
+      await assignAgentToRequest(
+        serviceRequest.id,
+        registrationService.organizationId,
+        currentUser.countryCode as CountryCode,
+      );
+    }
 
     return { data: updatedProfile };
   } catch (error) {

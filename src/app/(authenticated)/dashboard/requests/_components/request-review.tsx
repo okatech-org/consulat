@@ -3,6 +3,7 @@ import { ProfileReview } from '../../(admin)/_utils/components/profile/profile-r
 import { ServiceRequestReview } from './service-request-review';
 import { getUserFullProfile } from '@/lib/user/getters';
 import { BaseAgent } from '@/types/organization';
+import { ChildProfileReview } from '../../(admin)/_utils/components/profile/child-profile-review';
 
 interface RequestReviewProps {
   request: FullServiceRequest;
@@ -16,7 +17,16 @@ export default async function RequestReview({
   const fullProfile = await getUserFullProfile(request.submittedById);
   switch (request.serviceCategory) {
     case 'REGISTRATION':
-    case 'CHILD_REGISTRATION':
+      if (fullProfile?.category === 'MINOR') {
+        return (
+          <ChildProfileReview
+            request={{
+              ...request,
+              profile: fullProfile,
+            }}
+          />
+        );
+      }
       return (
         <ProfileReview
           request={{

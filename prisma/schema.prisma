@@ -119,7 +119,6 @@ enum ServiceCategory {
   VISA
   CERTIFICATION
   REGISTRATION
-  CHILD_REGISTRATION
   OTHER
 }
 
@@ -539,8 +538,11 @@ model ServiceRequest {
   sharedWith     ParentalAuthority[] @relation("SharedWithParents")
 
   // Add organization relation
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  organizationId String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  country   Country @relation(fields: [countryCode], references: [code])
+  countryCode String
 
   chosenProcessingMode ProcessingMode @default(ONLINE_ONLY)
   chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
@@ -699,6 +701,7 @@ enum NotificationType {
   REQUEST_ADDITIONAL_INFO_NEEDED
   REQUEST_PENDING_APPOINTMENT
   REQUEST_PENDING_PAYMENT
+  REQUEST_NEW
   CONSULAR_REGISTRATION_SUBMITTED
   CONSULAR_REGISTRATION_VALIDATED
   CONSULAR_REGISTRATION_REJECTED
@@ -763,6 +766,7 @@ model Country {
   metadata          Json?
   organizations     Organization[]
   availableServices ConsularService[]
+  serviceRequests   ServiceRequest[]
   users             User[]
   
   @@index([code])
