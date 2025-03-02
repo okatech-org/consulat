@@ -408,6 +408,10 @@ html {
     transform 300ms;
 }
 
+.link-button {
+  @apply text-blue-500 hover:text-blue-600 underline;
+}
+
 .card-flip-exit {
   opacity: 1;
   transform: rotateY(0);
