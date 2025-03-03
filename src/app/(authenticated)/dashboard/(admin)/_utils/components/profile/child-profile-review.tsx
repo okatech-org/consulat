@@ -11,6 +11,8 @@ import {
   useDateLocale,
   getProfileFieldsStatus,
   tryCatch,
+  calculateChildProfileCompletion,
+  getChildProfileFieldsStatus,
 } from '@/lib/utils';
 import { FullServiceRequest } from '@/types/service-request';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
@@ -49,8 +51,8 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
     return null;
   }
 
-  const completionRate = calculateProfileCompletion(profile);
-  const fieldStatus = getProfileFieldsStatus(profile);
+  const completionRate = calculateChildProfileCompletion(profile);
+  const fieldStatus = getChildProfileFieldsStatus(profile);
 
   const statusOptions = STATUS_ORDER.map((item) => {
     return {
@@ -144,7 +146,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
               </div>
             </CardContainer>
           )}
-          <Tabs defaultValue="basic" className="space-y-4">
+          <Tabs defaultValue="link" className="space-y-4">
             <TabsList>
               {profileTabs.map((tab) => (
                 <TabsTrigger key={tab.value} value={tab.value}>
@@ -155,7 +157,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
 
             {profileTabs.map((tab) => (
               <TabsContent key={tab.value} value={tab.value} className="space-y-4">
-                {tab.component}
+                <CardContainer>{tab.component}</CardContainer>
               </TabsContent>
             ))}
           </Tabs>

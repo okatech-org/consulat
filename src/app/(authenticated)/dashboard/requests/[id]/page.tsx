@@ -40,8 +40,12 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     ? await getOrganizationAgents(request.organizationId)
     : { data: [] };
 
+  if (!profile) {
+    return notFound();
+  }
+
   if (review) {
-    return <RequestReview request={request} agents={agents} />;
+    return <RequestReview request={{ ...request, profile }} agents={agents} />;
   }
 
   return (
