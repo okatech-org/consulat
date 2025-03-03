@@ -8,6 +8,7 @@ import {
   RequestActionType,
   ServiceRequest,
   NotificationType,
+  PrismaClient,
 } from '@prisma/client';
 import { createNotification } from './notifications';
 import { getTranslations } from 'next-intl/server';
