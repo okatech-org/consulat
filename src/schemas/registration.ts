@@ -18,7 +18,7 @@ const FileListSchema = z.any().refine((files) => {
   if (files instanceof File) return true;
   // Sinon invalide
   return false;
-}, 'messages.errors.doc_invalid');
+}, 'messages.errors.doc_required');
 
 const DocumentFileSchema = z
   .union([
@@ -59,30 +59,6 @@ const PhoneSchema = z.object({
   number: z.string().min(1, 'messages.errors.phone_required'),
   countryCode: z.string().min(1, 'messages.errors.country_code_required'),
 });
-
-const DocumentFileSchemaOptional = z.union([
-  z.null(),
-  FileListSchema.refine(
-    (files) => {
-      if (typeof window === 'undefined') return true;
-      if (!files) return true; // Optionnel donc null/undefined est valide
-      const file = files instanceof FileList ? files[0] : files;
-      if (!file) return true;
-      return file.size <= 10 * 1024 * 1024;
-    },
-    { message: 'messages.errors.doc_size_10' },
-  ).refine(
-    (files) => {
-      if (typeof window === 'undefined') return true;
-      if (!files) return true;
-      const file = files instanceof FileList ? files[0] : files;
-      if (!file) return true;
-      const acceptedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-      return acceptedTypes.includes(file.type);
-    },
-    { message: 'messages.errors.doc_type_image_pdf' },
-  ),
-]);
 
 export const BasicInfoSchema = z.object({
   gender: z.nativeEnum(Gender, {
@@ -319,7 +295,7 @@ export const ProfessionalInfoSchema = z
 export const DocumentsSchema = z.object({
   passportFile: DocumentFileSchema,
   birthCertificateFile: DocumentFileSchema,
-  residencePermitFile: DocumentFileSchemaOptional,
+  residencePermitFile: DocumentFileSchema.optional(),
   addressProofFile: DocumentFileSchema,
 });
 

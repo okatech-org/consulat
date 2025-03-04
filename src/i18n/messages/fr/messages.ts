@@ -30,7 +30,7 @@ export default {
     relationship_required: 'Le lien de parenté est requis',
     invalid_relationship: "Le lien de parenté sélectionné n'est pas valide",
     invalid_phone: 'Format invalide, veuillez utiliser le format 06XXXXXXXX',
-    doc_required: 'Ce document est requis',
+    doc_required: 'Ce document est obligatoire',
     doc_one_max: 'Un seul document est autorisé',
     doc_invalid: 'Document invalide',
     doc_size_3: 'La taille du fichier doit être inférieure à 3 Mo',

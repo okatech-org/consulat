@@ -207,7 +207,7 @@ export function RegistrationForm() {
           <DocumentUploadSection
             form={forms.documents}
             onAnalysisComplete={handleDocumentsAnalysis}
-            handleSubmit={() => handleNext(forms.documents.getValues())}
+            handleSubmitAction={() => handleNext(forms.documents.getValues())}
             isLoading={isLoading}
           />
         );

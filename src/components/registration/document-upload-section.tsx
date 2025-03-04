@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
-  handleSubmit: (data: DocumentsFormData) => void;
+  handleSubmitAction: (data: DocumentsFormData) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onAnalysisComplete?: (data: any) => void;
   isLoading?: boolean;
@@ -27,7 +27,7 @@ interface DocumentUploadSectionProps {
 
 export function DocumentUploadSection({
   form,
-  handleSubmit,
+  handleSubmitAction,
   isLoading,
   onAnalysisComplete,
   formRef,
@@ -124,7 +124,7 @@ export function DocumentUploadSection({
     <Form {...form}>
       <form
         ref={formRef}
-        onSubmit={form.handleSubmit(handleSubmit)}
+        onSubmit={form.handleSubmit(handleSubmitAction)}
         className="space-y-8"
       >
         {/* Section des documents */}

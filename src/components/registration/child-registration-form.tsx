@@ -144,7 +144,7 @@ export function ChildRegistrationForm() {
         return (
           <DocumentUploadSection
             form={forms.documents}
-            handleSubmit={() => handleNext(forms.documents.getValues())}
+            handleSubmitAction={() => handleNext(forms.documents.getValues())}
             isLoading={isLoading}
           />
         );

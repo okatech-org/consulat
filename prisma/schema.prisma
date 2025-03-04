@@ -304,7 +304,6 @@ model Profile {
   emergencyContact EmergencyContact?
 
   // Gabonese specific
-  addressInGabon  AddressGabon?
   activityInGabon String?
 
   // Informations familiales
@@ -346,15 +345,6 @@ model EmergencyContact {
   phoneId      String
   profile      Profile    @relation(fields: [profileId], references: [id])
   profileId    String     @unique
-}
-
-model AddressGabon {
-  id        String  @id @default(cuid())
-  address   String
-  district  String
-  city      String
-  profile   Profile @relation(fields: [profileId], references: [id])
-  profileId String  @unique
 }
 
 model Address {

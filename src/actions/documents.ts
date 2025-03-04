@@ -102,9 +102,9 @@ ${fields
 Return ONLY a valid JSON object with exact field names. Follow these format rules:
 - Use UPPERCASE for gender (MALE/FEMALE)
 - Use YYYY-MM-DD format for dates
-- For addresses use the structure: { firstLine, secondLine?, city, zipCode, country }
-- Use snail case for countries (e.g., gabon, france)
-- Use snail case for nationality (e.g., gabonese)
+- For addresses use the structure: { firstLine, secondLine?, city, zipCode, country code }
+- Use country code for countries (e.g., GA, FR)
+- Use country code for nationality (e.g., GA)
 - Only include fields that are found in the document
 - Only include the fields to extract mentioned above
 - Omit fields that are not found

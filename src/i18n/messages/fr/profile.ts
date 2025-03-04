@@ -97,6 +97,7 @@ export default {
       spouse: 'Conjoint(e)',
       child: 'Enfant',
       other: 'Autre',
+      legal_guardian: 'Tuteur légal',
     },
     address: 'Adresse',
     address_proof: 'Justificatif de domicile',
