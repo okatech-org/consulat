@@ -4,7 +4,7 @@ import { UserRole } from '@prisma/client';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { ROUTES } from '@/schemas/routes';
 import { headers } from 'next/headers';
-import { RegistrationFormWrapper } from '@/components/registration/registration-form';
+import { RegistrationForm } from '@/components/registration/registration-form';
 export default async function RegistrationPage() {
   const session = await auth();
   const headersList = await headers();
@@ -24,7 +24,7 @@ export default async function RegistrationPage() {
           }
         >
           <div className="container flex flex-col py-6">
-            <RegistrationFormWrapper />
+            <RegistrationForm />
           </div>
         </main>
       </RouteAuthGuard>

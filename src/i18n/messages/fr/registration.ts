@@ -440,5 +440,14 @@ export default {
     address_proof: {
       label: 'Justificatif de domicile',
     },
+    analysis: {
+      success: {
+        title: 'Analyse terminée avec succès',
+        description: 'Les informations ont été extraites avec succès',
+        description_with_sections:
+          'Les sections suivantes ont été mises à jour : {sections}',
+        action: "Passer à l'étape suivante",
+      },
+    },
   },
 } as const;

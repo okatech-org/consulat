@@ -345,7 +345,6 @@ export function BasicInfoForm({
                       <Input
                         {...field}
                         type="text"
-                        maxLength={6}
                         pattern="[0-9]*"
                         inputMode="numeric"
                         placeholder={t('form.card_pin.placeholder')}

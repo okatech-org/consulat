@@ -50,11 +50,8 @@ async function createConsularNotification({
     case 'READY_FOR_PICKUP':
       notificationData = {
         type: NotificationType.CONSULAR_CARD_READY,
-        title: t('consular_card_ready'),
-        message: t('messages.ready_for_pickup', {
-          link: `${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=DOCUMENT_COLLECTION`,
-          action: t('actions.schedule_pickup'),
-        }),
+        title: 'Votre carte consulaire est prête pour le retrait.',
+        message: `<p>Votre carte consulaire est prête à être récupérée. Veuillez vous rendre à l\'adresse suivante : <a class="link text-blue-500" href="{${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=DOCUMENT_COLLECTION}">Prendre rendez-vous pour le retrait</a></p>`,
       };
       break;
     case 'COMPLETED':

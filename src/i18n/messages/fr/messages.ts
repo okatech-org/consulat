@@ -131,8 +131,7 @@ export default {
         "Votre dossier d'inscription consulaire a été validé.",
       consular_registration_rejected:
         "Votre dossier d'inscription consulaire a été rejeté.",
-      consular_card_ready:
-        'Votre carte consulaire est prête pour le retrait. <p>Votre carte consulaire est prête à être récupérée. Veuillez vous rendre à l\'adresse suivante : <a href="{link}">{action}</a></p>',
+      consular_card_ready: 'Votre carte consulaire est prête pour le retrait.',
       consular_registration_completed: 'Votre inscription consulaire est terminée.',
       messages: {
         submitted: "Votre demande d'inscription consulaire a été soumise avec succès.",

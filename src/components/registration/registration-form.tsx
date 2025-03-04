@@ -21,14 +21,7 @@ import { useState } from 'react';
 import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
 import { tryCatch } from '@/lib/utils';
 
-export function RegistrationForm({
-  handleSubmitProfile,
-}: {
-  handleSubmitProfile: (data: FormData) => Promise<{
-    error: Error | null;
-    data: string | null;
-  }>;
-}) {
+export function RegistrationForm() {
   const router = useRouter();
   const t = useTranslations('registration');
   const { toast } = useToast();
@@ -109,6 +102,7 @@ export function RegistrationForm({
       // Afficher le toast avec les sections mises à jour
       const updatedSections = Object.entries(updateResult)
         .filter(([, hasUpdates]) => hasUpdates)
+        // @ts-expect-error - Les sections sont dynamiques
         .map(([key]) => t(`sections.${key.replace('has', '').toLowerCase()}`));
 
       toast({
@@ -183,7 +177,7 @@ export function RegistrationForm({
       JSON.stringify(forms.professionalInfo.getValues()),
     );
 
-    const result = await handleSubmitProfile(formDataToSend);
+    const result = await tryCatch(postProfile(formDataToSend));
 
     setIsLoading(false);
 
@@ -302,19 +296,9 @@ export function RegistrationForm({
       <MobileProgress
         currentStep={currentStep}
         totalSteps={steps.length}
-        stepTitle={steps[currentStep].title}
-        isOptional={steps[currentStep].isOptional}
+        stepTitle={steps[currentStep]?.title ?? ''}
+        isOptional={steps[currentStep]?.isOptional}
       />
     </div>
   );
-}
-
-export function RegistrationFormWrapper() {
-  const handleSubmitProfile = async (formDataToSend: FormData) => {
-    const result = await tryCatch(postProfile(formDataToSend));
-
-    return result;
-  };
-
-  return <RegistrationForm handleSubmitProfile={handleSubmitProfile} />;
 }
