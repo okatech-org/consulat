@@ -231,7 +231,7 @@ export function RegistrationForm() {
         return (
           <ContactInfoForm
             form={forms.contactInfo}
-            onSubmit={() => handleNext(forms.contactInfo.getValues())}
+            onSubmitAction={() => handleNext(forms.contactInfo.getValues())}
             isLoading={isLoading}
           />
         );

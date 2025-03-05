@@ -142,7 +142,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
       profileStatus={profile.status}
     >
       {isEditing ? (
-        <ContactInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
+        <ContactInfoForm form={form} onSubmitAction={handleSave} isLoading={isLoading} />
       ) : (
         <div className="space-y-4">
           {/* Coordonnées principales */}

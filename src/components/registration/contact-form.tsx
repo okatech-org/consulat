@@ -21,27 +21,27 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface ContactInfoFormProps {
   form: UseFormReturn<ContactInfoFormData>;
-  onSubmit: (data: ContactInfoFormData) => void;
+  onSubmitAction: (data: ContactInfoFormData) => Promise<void>;
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
 }
 
-const residenceCountryCode = process.env.NEXT_PUBLIC_RESIDENCE_COUNTRY_CODE;
-const homeLandCountryCode = process.env.NEXT_PUBLIC_HOME_LAND_COUNTRY_CODE;
+const residenceCountryCode = process.env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE;
+const homeLandCountryCode = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE;
 
 export function ContactInfoForm({
   form,
-  onSubmit,
+  onSubmitAction,
   formRef,
   isLoading = false,
 }: Readonly<ContactInfoFormProps>) {
-  const t = useTranslations('registration');
   const t_countries = useTranslations('countries');
+  const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
+      <form ref={formRef} onSubmit={form.handleSubmit(onSubmitAction)}>
         <Card>
           <CardContent className="grid grid-cols-2 gap-4 pt-4">
             {/* Email */}
@@ -97,6 +97,7 @@ export function ContactInfoForm({
                 value={form.getValues('address')}
                 onChange={(value) => form.setValue('address', value)}
                 disabled={isLoading}
+                countryCode={residenceCountryCode as CountryCode}
               />
             </div>
 
@@ -196,6 +197,7 @@ export function ContactInfoForm({
                   value={form.getValues('residentContact.address')}
                   onChange={(value) => form.setValue('residentContact.address', value)}
                   disabled={isLoading}
+                  countryCode={residenceCountryCode as CountryCode}
                 />
               </div>
             </div>

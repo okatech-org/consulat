@@ -17,9 +17,16 @@ interface AddressInputProps {
   onChange?: (value: AddressInputType) => void;
   error?: boolean;
   disabled?: boolean;
+  countryCode?: CountryCode;
 }
 
-export function AddressInput({ label, value, onChange, disabled }: AddressInputProps) {
+export function AddressInput({
+  label,
+  value,
+  onChange,
+  disabled,
+  countryCode,
+}: AddressInputProps) {
   const t = useTranslations('inputs');
   const form = useForm<AddressInputType>({
     resolver: zodResolver(AddressSchema),
@@ -126,6 +133,7 @@ export function AddressInput({ label, value, onChange, disabled }: AddressInputP
                 type="single"
                 selected={field.value as CountryCode}
                 onChange={field.onChange}
+                {...(countryCode && { options: [countryCode] })}
               />
             </FormControl>
             <TradFormMessage />
