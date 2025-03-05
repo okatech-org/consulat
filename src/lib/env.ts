@@ -2,6 +2,7 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']),
   NEXT_PUBLIC_URL: z.string().url(),
   POSTGRES_URL: z.string().url(),
   RESEND_API_KEY: z.string().min(1),
@@ -11,6 +12,10 @@ const envSchema = z.object({
   TWILIO_ACCOUNT_SID: z.string().min(1),
   TWILIO_AUTH_TOKEN: z.string().min(1),
   TWILIO_PHONE_NUMBER: z.string().min(1),
+  BASE_COUNTRY_CODE: z.string().min(1),
+  NEXT_PUBLIC_BASE_COUNTRY_CODE: z.string().min(1),
+  RESIDENT_COUNTRY_CODE: z.string().min(1),
+  NEXT_PUBLIC_RESIDENT_COUNTRY_CODE: z.string().min(1),
 });
 
 // Type d'environnement validé

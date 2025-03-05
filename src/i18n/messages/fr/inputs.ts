@@ -25,6 +25,18 @@ export default {
     label: 'Nom',
     placeholder: 'Nom',
   },
+  birthDate: {
+    label: 'Date de naissance',
+    placeholder: 'Date de naissance',
+  },
+  birthPlace: {
+    label: 'Lieu de naissance',
+    placeholder: 'Lieu de naissance',
+  },
+  birthCountry: {
+    label: 'Pays de naissance',
+    placeholder: 'Pays de naissance',
+  },
   status: {
     label: 'Statut',
     placeholder: 'Statut',
@@ -47,6 +59,45 @@ export default {
       MOTHER: 'Mère',
       LEGAL_GUARDIAN: 'Tuteur légal',
     },
+  },
+  nationality_acquisition: {
+    label: "Mode d'acquisition de la nationalité",
+    options: {
+      BIRTH: 'Naissance',
+      NATURALIZATION: 'Naturalisation',
+      MARRIAGE: 'Mariage',
+      OTHER: 'Autre',
+    },
+  },
+  gender: {
+    label: 'Genre',
+    options: {
+      MALE: 'Masculin',
+      FEMALE: 'Féminin',
+    },
+  },
+  passport: {
+    number: {
+      label: 'Numéro de passeport',
+      placeholder: 'Numéro de passeport',
+    },
+    issueDate: {
+      label: "Date d'émission",
+      placeholder: "Date d'émission",
+    },
+    expiryDate: {
+      label: "Date d'expiration",
+      placeholder: "Date d'expiration",
+    },
+    issueAuthority: {
+      label: "Autorité d'émission",
+      placeholder: "Autorité d'émission",
+      help: "L'autorité qui a émis le passeport (ex: Ministère des affaires étrangères)",
+    },
+  },
+  nipNumber: {
+    label: 'Code NIP',
+    placeholder: 'Code NIP',
   },
   appointment: {
     date: {
@@ -230,5 +281,9 @@ export default {
       MOTHER: 'Mère',
       LEGAL_GUARDIAN: 'Tuteur légal',
     },
+  },
+  identity_picture: {
+    label: "Photo d'identité",
+    help: "Une photo d'identité valide, prise récemment",
   },
 } as const;

@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { CountryCode, countryKeys } from '@/lib/autocomplete-datas';
 import { useTranslations } from 'next-intl';
 import { FlagIcon } from './flag-icon';
+import { MultiSelect } from './multi-select';
 
 // Define a base interface for common properties
 interface BaseCountrySelect {

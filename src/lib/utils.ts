@@ -432,22 +432,6 @@ export function calculateChildProfileCompletion(profile: Profile | null): number
   return Math.round((completedRequired / totalWeight) * 100);
 }
 
-const __getWorldCountries = async (locale: string): Promise<CountryItem[]> => {
-  console.log(`Fetching countries for locale: ${locale}`); // Pour déboguer quand la fonction est appelée
-  const items = await fetch(`https://flagcdn.com/${locale}/codes.json`);
-  const jsonItems: Record<string, string> = await items.json();
-
-  return Object.entries(jsonItems).map(([key, value]) => ({
-    name: value,
-    code: key,
-    flag: `https://flagcdn.com/${key.toLowerCase()}.svg`,
-  }));
-};
-
-export const getWorldCountries = cache(async (locale: string): Promise<CountryItem[]> => {
-  return __getWorldCountries(locale);
-});
-
 export function filterUneditedKeys<T extends Record<string, unknown>>(
   data: T,
   dirtyFields: UseFormReturn<T>['formState']['dirtyFields'],

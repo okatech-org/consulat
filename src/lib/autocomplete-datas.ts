@@ -199,3 +199,8 @@ export type CountryIndicator = (typeof phoneCountries)[number]['value'];
 export const countryIndicators = phoneCountries.map(
   ({ value }) => value,
 ) as CountryIndicator[];
+
+export const getCountryCode = (countryCode: CountryCode): string | null => {
+  const country = phoneCountries.find((c) => c.countryCode === countryCode);
+  return country ? country.value : null;
+};

@@ -17,6 +17,8 @@ import {
 import { createFormStorage } from '@/lib/form-storage';
 import { Gender, NationalityAcquisition } from '@prisma/client';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { env } from '@/lib/env';
+import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
 
 export function useRegistrationForm() {
   const currentUser = useCurrentUser();
@@ -36,7 +38,12 @@ export function useRegistrationForm() {
         countryCode: currentUser.phone.countryCode,
       };
     }
-    return initialData?.contactInfo?.phone ?? { number: '', countryCode: '+33' };
+    return (
+      initialData?.contactInfo?.phone ?? {
+        ...initialData?.contactInfo?.phone,
+        countryCode: getCountryCode(env.RESIDENT_COUNTRY_CODE as CountryCode),
+      }
+    );
   }
 
   const forms = {
@@ -51,8 +58,8 @@ export function useRegistrationForm() {
         acquisitionMode:
           initialData?.basicInfo?.acquisitionMode ?? NationalityAcquisition.BIRTH,
         gender: initialData?.basicInfo?.gender ?? Gender.MALE,
-        nationality: initialData?.basicInfo?.nationality ?? 'gabon',
-        birthCountry: initialData?.basicInfo?.birthCountry ?? 'gabon',
+        nationality: initialData?.basicInfo?.nationality ?? env.RESIDENT_COUNTRY_CODE,
+        birthCountry: initialData?.basicInfo?.birthCountry ?? env.RESIDENT_COUNTRY_CODE,
       },
     }),
     familyInfo: useForm<FamilyInfoFormData>({
@@ -68,6 +75,18 @@ export function useRegistrationForm() {
         ...initialData?.contactInfo,
         phone: getDefaultPhone(),
         email: currentUser?.email ?? initialData?.contactInfo?.email ?? '',
+        address: initialData?.contactInfo?.address ?? {
+          ...initialData?.contactInfo?.address,
+          country: env.RESIDENT_COUNTRY_CODE,
+        },
+        homeLandContact: initialData?.contactInfo?.homeLandContact ?? {
+          ...initialData?.contactInfo?.homeLandContact,
+          country: env.BASE_COUNTRY_CODE,
+        },
+        residentContact: initialData?.contactInfo?.residentContact ?? {
+          ...initialData?.contactInfo?.residentContact,
+          country: env.RESIDENT_COUNTRY_CODE,
+        },
       },
     }),
     professionalInfo: useForm<ProfessionalInfoFormData>({
