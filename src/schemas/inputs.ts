@@ -1,5 +1,6 @@
 import * as z from 'zod';
-import { Gender } from '@prisma/client';
+import { FamilyLink, Gender } from '@prisma/client';
+import { CountryCode, CountryCodeEnum } from '@/lib/autocomplete-datas';
 
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,
@@ -20,7 +21,7 @@ const FileListSchema = z.any().refine((files) => {
   if (files instanceof File) return true;
   // Sinon invalide
   return false;
-}, 'messages.errors.doc_invalid');
+}, 'messages.errors.doc_required');
 
 export const DocumentFileSchema = z
   .union([
@@ -58,7 +59,7 @@ export const DocumentFileSchema = z
   );
 
 export const GenderSchema = z.nativeEnum(Gender, {
-  required_error: 'messages.errors.gender_required',
+  required_error: 'messages.errors.field_required',
 });
 
 export const PictureFileSchema = DocumentFileSchema;
@@ -66,7 +67,7 @@ export const PictureFileSchema = DocumentFileSchema;
 export const EmailSchema = z
   .string({
     invalid_type_error: 'messages.errors.invalid_email',
-    required_error: 'messages.errors.email_required',
+    required_error: 'messages.errors.field_required',
   })
   .email('messages.errors.invalid_email')
   .max(VALIDATION_RULES.EMAIL_MAX_LENGTH, 'messages.errors.email_too_long');
@@ -74,20 +75,20 @@ export const EmailSchema = z
 export const AddressSchema = z.object({
   firstLine: z
     .string()
-    .min(1, 'messages.errors.street_required')
+    .min(1, 'messages.errors.field_required')
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH),
 
   secondLine: z.string().max(VALIDATION_RULES.ADDRESS_MAX_LENGTH).optional(),
 
-  city: z.string().min(1, 'messages.errors.city_required'),
+  city: z.string().min(1, 'messages.errors.field_required'),
 
-  zipCode: z.string().min(1, 'messages.errors.zipcode_required'),
+  zipCode: z.string().min(1, 'messages.errors.field_required'),
 
-  country: z.string().min(1, 'messages.errors.country_required'),
+  country: z.string().min(1, 'messages.errors.field_required'),
 });
 
 export const PhoneSchema = z
-  .string({ required_error: 'messages.errors.phone_required' })
+  .string({ required_error: 'messages.errors.field_required' })
   .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone');
 
 export const PhoneValueSchema = z.object({
@@ -97,10 +98,10 @@ export const PhoneValueSchema = z.object({
 
 export const NameSchema = z
   .string({
-    required_error: 'messages.errors.first_name_required',
+    required_error: 'messages.errors.field_required',
   })
-  .min(2, 'messages.errors.first_name_too_short')
-  .max(50, 'messages.errors.first_name_too_long');
+  .min(2, 'messages.errors.field_too_short')
+  .max(50, 'messages.errors.field_too_long');
 
 export const DateSchema = z
   .string()
@@ -111,11 +112,28 @@ export const NumberSchema = z.number();
 
 export const TextareaSchema = z
   .string()
-  .min(1, 'messages.errors.required')
-  .max(1000, 'messages.errors.text_too_long');
+  .min(1, 'messages.errors.field_required')
+  .max(1000, 'messages.errors.field_too_long');
 
 export const SelectSchema = z
   .string()
-  .min(1, 'messages.errors.required')
-  .refine((val) => val !== 'default', 'messages.errors.required')
-  .refine((val) => val !== 'default', 'messages.errors.required');
+  .min(1, 'messages.errors.field_required')
+  .refine((val) => val !== 'default', 'messages.errors.field_required');
+
+export const EmergencyContactSchema = z.object({
+  firstName: NameSchema,
+  lastName: NameSchema,
+  relationship: z.nativeEnum(FamilyLink, {
+    required_error: 'messages.errors.field_required',
+  }),
+  email: EmailSchema.optional(),
+  phone: PhoneSchema,
+  address: AddressSchema,
+});
+
+export const CountryCodeSchema = z.enum(
+  Object.values(CountryCodeEnum) as [CountryCode, ...CountryCode[]],
+  {
+    required_error: 'messages.errors.field_required',
+  },
+);
