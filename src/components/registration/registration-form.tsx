@@ -266,7 +266,7 @@ export function RegistrationForm() {
       {/* En-tête avec progression */}
       <div className="mb-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h1>
+          <h3 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h3>
           <p className="mt-2 text-muted-foreground">{t('header.subtitle')}</p>
         </div>
 
