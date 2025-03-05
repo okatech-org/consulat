@@ -330,6 +330,35 @@ export default {
       COHABITING: 'Pacsé(e)',
     },
   },
+  professionalStatus: {
+    label: 'Statut professionnel',
+    help: 'Le statut professionnel du demandeur',
+    select: 'Choisir un statut',
+    options: {
+      EMPLOYEE: 'Salarié',
+      ENTREPRENEUR: 'Entrepreneur',
+      UNEMPLOYED: 'Sans emploi',
+      RETIRED: 'Retraité',
+      STUDENT: 'Étudiant',
+      OTHER: 'Autre',
+    },
+  },
+  employer: {
+    label: 'Employeur',
+    placeholder: 'Ex: Google, Apple, etc.',
+  },
+  employerAddress: {
+    label: "Adresse de l'employeur",
+    placeholder: 'Ex: 123 Rue de la Paix',
+  },
+  profession: {
+    label: 'Profession',
+    placeholder: 'Ex: Développeur, Designer, etc.',
+  },
+  activityInGabon: {
+    label: 'Dernière activité au Gabon',
+    placeholder: 'Ex: Développeur, Designer, etc.',
+  },
   spouseName: {
     label: 'Nom du conjoint',
     placeholder: 'Nom du conjoint',

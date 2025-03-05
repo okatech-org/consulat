@@ -76,7 +76,9 @@ export const CountryCodeSchema = z
   });
 
 export const CountryIndicatorSchema = z
-  .string()
+  .string({
+    required_error: 'messages.errors.field_required',
+  })
   .refine((val) => countryIndicators.includes(val as CountryIndicator), {
     message: 'messages.errors.invalid_country',
   });

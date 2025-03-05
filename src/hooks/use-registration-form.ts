@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,9 +19,10 @@ import {
 import { createFormStorage } from '@/lib/form-storage';
 import { Gender, NationalityAcquisition } from '@prisma/client';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
+import { useSearchParams } from 'next/navigation';
 
-const residenceCountry = process.env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE as
+const residenceCountryCode = process.env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE as
   | CountryCode
   | undefined;
 const homeLandCountryCode = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as
@@ -28,6 +31,8 @@ const homeLandCountryCode = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as
 
 export function useRegistrationForm() {
   const currentUser = useCurrentUser();
+  const params = useSearchParams();
+  const residenceCountry = (params.get('country') as CountryCode) ?? residenceCountryCode;
 
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +53,9 @@ export function useRegistrationForm() {
       initialData?.contactInfo?.phone ?? {
         ...initialData?.contactInfo?.phone,
         ...(residenceCountry && {
-          countryCode: initialData?.contactInfo?.phone?.countryCode ?? residenceCountry,
+          countryCode:
+            initialData?.contactInfo?.phone?.countryCode ??
+            getCountryCode(residenceCountry),
         }),
       }
     );
@@ -91,21 +98,34 @@ export function useRegistrationForm() {
             country: residenceCountry,
           }),
         },
-        homeLandContact: {
-          ...initialData?.contactInfo?.homeLandContact,
-          address: {
-            ...initialData?.contactInfo?.homeLandContact?.address,
-            ...(homeLandCountryCode && {
-              country: homeLandCountryCode,
-            }),
-          },
-        },
         residentContact: {
           ...initialData?.contactInfo?.residentContact,
           address: {
             ...initialData?.contactInfo?.residentContact?.address,
-            country:
-              initialData?.contactInfo?.residentContact?.address ?? residenceCountry,
+            country: residenceCountry,
+          },
+          phone: {
+            ...initialData?.contactInfo?.residentContact?.phone,
+            ...(residenceCountry && {
+              countryCode:
+                initialData?.contactInfo?.residentContact?.phone?.countryCode ??
+                getCountryCode(residenceCountry),
+            }),
+          },
+        },
+        homeLandContact: {
+          ...initialData?.contactInfo?.homeLandContact,
+          address: {
+            ...initialData?.contactInfo?.homeLandContact?.address,
+            country: homeLandCountryCode,
+          },
+          phone: {
+            ...initialData?.contactInfo?.homeLandContact?.phone,
+            ...(homeLandCountryCode && {
+              countryCode:
+                initialData?.contactInfo?.homeLandContact?.phone?.countryCode ??
+                getCountryCode(homeLandCountryCode),
+            }),
           },
         },
       },

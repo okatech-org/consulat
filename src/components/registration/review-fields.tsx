@@ -315,7 +315,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
             )}
             <InfoField
               label={t('form.gabon_activity')}
-              value={professionalInfo.lastActivityGabon}
+              value={professionalInfo.activityInGabon}
               icon={<Briefcase className="size-4" />}
             />
           </div>

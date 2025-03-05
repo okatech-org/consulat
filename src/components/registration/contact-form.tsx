@@ -15,7 +15,6 @@ import { useTranslations } from 'next-intl';
 import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
 import { Separator } from '@/components/ui/separator';
 import { ContactInfoFormData } from '@/schemas/registration';
-import { AddressInput } from '@/components/ui/address-input';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { useSearchParams } from 'next/navigation';
 import CardContainer from '../layouts/card-container';
@@ -44,16 +43,10 @@ export function ContactInfoForm({
   isLoading = false,
 }: Readonly<ContactInfoFormProps>) {
   const params = useSearchParams();
+  const residenceCountryCode = (params.get('country') as CountryCode) ?? residenceCountry;
   const t_countries = useTranslations('countries');
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
-
-  const residenceCountryCode = (params.get('country') as CountryCode) ?? residenceCountry;
-
-  React.useEffect(() => {
-    console.log(form.formState.errors);
-    console.log(form.getValues());
-  }, [form, form.formState, form.getValues]);
 
   return (
     <Form {...form}>
@@ -91,7 +84,7 @@ export function ContactInfoForm({
                   <PhoneInput
                     {...field}
                     value={field.value as unknown as PhoneValue}
-                    placeholder={t('form.phone_placeholder')}
+                    placeholder={t_inputs('phone.placeholder')}
                     disabled={isLoading}
                     error={!!form.formState.errors.phone}
                     options={residenceCountryCode ? [residenceCountryCode] : undefined}
@@ -105,17 +98,105 @@ export function ContactInfoForm({
           <Separator className="col-span-full" />
 
           {/* Current Address */}
-          <div className="col-span-full">
-            <AddressInput
-              label={t_inputs('address.labelIn', {
-                country: `${t_countries(residenceCountryCode as CountryCode)}`,
-              })}
-              value={form.getValues('address')}
-              onChange={(value) => form.setValue('address', value)}
-              disabled={isLoading}
-              countryCode={residenceCountryCode as CountryCode}
+          <fieldset className="sm:col-span-full grid grid-cols-2 gap-4">
+            {/* Address Line 1 */}
+            <FormField
+              control={form.control}
+              name="address.firstLine"
+              render={({ field }) => (
+                <FormItem className={'col-span-full sm:col-span-1'}>
+                  <FormLabel>{t_inputs('address.firstLine.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={t_inputs('address.firstLine.placeholder')}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
             />
-          </div>
+
+            {/* Address Line 2 */}
+            <FormField
+              control={form.control}
+              name="address.secondLine"
+              render={({ field }) => (
+                <FormItem className={'col-span-full sm:col-span-1'}>
+                  <FormLabel>{t_inputs('address.secondLine.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      placeholder={t_inputs('address.secondLine.placeholder')}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* City and Zip Code */}
+            <div className="col-span-full grid grid-cols-3 gap-2">
+              <FormField
+                control={form.control}
+                name="address.city"
+                render={({ field }) => (
+                  <FormItem className={'col-span-2'}>
+                    <FormLabel>{t_inputs('address.city.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={t_inputs('address.city.placeholder')}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="address.zipCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t_inputs('address.zipCode.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={t_inputs('address.zipCode.placeholder')}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Country */}
+            <FormField
+              control={form.control}
+              name="address.country"
+              render={({ field }) => (
+                <FormItem className={'col-span-full'}>
+                  <FormLabel>{t_inputs('address.country.label')}</FormLabel>
+                  <FormControl>
+                    <CountrySelect
+                      type="single"
+                      selected={field.value as CountryCode}
+                      onChange={field.onChange}
+                      {...(residenceCountryCode && { options: [residenceCountryCode] })}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+          </fieldset>
 
           <Separator className="col-span-full" />
 

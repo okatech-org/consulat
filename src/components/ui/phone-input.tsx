@@ -47,45 +47,13 @@ export function PhoneInput({
   const t = useTranslations('common');
   const t_countries = useTranslations('countries');
 
-  React.useEffect(() => {
-    if (!value && availableCountries.length > 0) {
-      onChange?.({
-        number: '',
-        countryCode: availableCountries[0].value,
-      });
-    }
-  }, [value, availableCountries, onChange]);
-
-  const phoneValue = value ?? {
-    number: '',
-    countryCode: availableCountries[0]?.value ?? '+33',
-  };
-
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newNumber = e.target.value.replace(/[^\d]/g, '');
-    const newValue = {
-      number: newNumber,
-      countryCode: value?.countryCode || availableCountries[0].value,
-    };
-    onChange?.(newValue);
-  };
-
-  const handleCountrySelect = (code: CountryIndicator) => {
-    const newValue = {
-      number: phoneValue.number,
-      countryCode: code,
-    };
-    setOpen(false);
-    onChange?.(newValue);
-  };
 
   // Helper function to get country code (e.g., "FR") from country indicator (e.g., "+33")
   const getCountryCodeFromIndicator = (indicator: CountryIndicator): CountryCode => {
     const country = phoneCountries.find((country) => country.value === indicator);
-    return country ? country.countryCode : 'FR';
+    return country?.countryCode ?? 'FR';
   };
 
   const filteredCountries = availableCountries.filter((country) => {
@@ -113,11 +81,9 @@ export function PhoneInput({
           >
             <span className="flex items-center gap-1">
               <FlagIcon
-                countryCode={getCountryCodeFromIndicator(
-                  phoneValue?.countryCode || '+33',
-                )}
+                countryCode={getCountryCodeFromIndicator(value?.countryCode ?? '+33')}
               />
-              {phoneValue?.countryCode || '+33'}{' '}
+              {value?.countryCode || '+33'}{' '}
             </span>
             <ChevronsUpDown className="ml-1 size-4 shrink-0 opacity-50" />
           </Button>
@@ -136,12 +102,17 @@ export function PhoneInput({
                   <CommandItem
                     key={country.value + index}
                     value={`${country.value} ${t_countries(country.countryCode)}`}
-                    onSelect={() => handleCountrySelect(country.value)}
+                    onSelect={() =>
+                      onChange?.({
+                        number: value?.number ?? '',
+                        countryCode: country.value,
+                      })
+                    }
                   >
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
-                        phoneValue.countryCode === country.value
+                        value?.countryCode === country.value
                           ? 'opacity-100'
                           : 'opacity-0',
                       )}
@@ -162,8 +133,13 @@ export function PhoneInput({
       <Input
         type="tel"
         className={cn(className, error && 'border-destructive')}
-        value={phoneValue.number}
-        onChange={handlePhoneChange}
+        value={value?.number}
+        onChange={(e) =>
+          onChange?.({
+            number: e.target.value,
+            countryCode: value?.countryCode || '+33',
+          })
+        }
         {...props}
         disabled={disabled}
       />

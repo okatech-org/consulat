@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import {
@@ -6,8 +8,8 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
   FormDescription,
+  TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,13 +37,18 @@ export function ProfessionalInfoForm({
   formRef,
   isLoading = false,
 }: Readonly<ProfessionalInfoFormProps>) {
+  const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
-  const t_assets = useTranslations('assets');
 
   const workStatus = form.watch('workStatus');
   const showEmployerFields = workStatus === WorkStatus.EMPLOYEE;
   const showProfessionField =
     workStatus === WorkStatus.EMPLOYEE || workStatus === WorkStatus.ENTREPRENEUR;
+
+  React.useEffect(() => {
+    console.log(form.formState.errors);
+    console.log(form.getValues());
+  }, [form, form.formState, form.getValues]);
 
   return (
     <Form {...form}>
@@ -49,8 +56,8 @@ export function ProfessionalInfoForm({
         {/* Statut professionnel */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('form.professional_status')}</CardTitle>
-            <FormDescription>{t('form.professional_status_description')}</FormDescription>
+            <CardTitle>{t_inputs('professionalStatus.label')}</CardTitle>
+            <FormDescription>{t_inputs('professionalStatus.help')}</FormDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <FormField
@@ -71,18 +78,20 @@ export function ProfessionalInfoForm({
                   >
                     <FormControl>
                       <SelectTrigger disabled={isLoading}>
-                        <SelectValue placeholder={t('form.select_work_status')} />
+                        <SelectValue
+                          placeholder={t_inputs('professionalStatus.select')}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {Object.values(WorkStatus).map((status) => (
                         <SelectItem key={status} value={status}>
-                          {t_assets(`work_status.${status.toLowerCase()}`)}
+                          {t_inputs(`professionalStatus.options.${status}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <TradFormMessage />
                 </FormItem>
               )}
             />
@@ -102,15 +111,15 @@ export function ProfessionalInfoForm({
                   name="profession"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('form.profession')}</FormLabel>
+                      <FormLabel>{t_inputs('profession.label')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           value={field.value ?? ''}
-                          placeholder={t('form.profession_placeholder')}
+                          placeholder={t_inputs('profession.placeholder')}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <TradFormMessage />
                     </FormItem>
                   )}
                 />
@@ -123,15 +132,15 @@ export function ProfessionalInfoForm({
                     name="employer"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('form.employer')}</FormLabel>
+                        <FormLabel>{t_inputs('employer.label')}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             value={field.value ?? ''}
-                            placeholder={t('form.employer_placeholder')}
+                            placeholder={t_inputs('employer.placeholder')}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <TradFormMessage />
                       </FormItem>
                     )}
                   />
@@ -141,15 +150,15 @@ export function ProfessionalInfoForm({
                     name="employerAddress"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('form.work_address')}</FormLabel>
+                        <FormLabel>{t_inputs('employerAddress.label')}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             value={field.value ?? ''}
-                            placeholder={t('form.work_address_placeholder')}
+                            placeholder={t_inputs('employerAddress.placeholder')}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <TradFormMessage />
                       </FormItem>
                     )}
                   />
@@ -168,17 +177,17 @@ export function ProfessionalInfoForm({
           <CardContent>
             <FormField
               control={form.control}
-              name="lastActivityGabon"
+              name="activityInGabon"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <Input
                       {...field}
                       value={field.value ?? ''}
-                      placeholder={t('form.gabon_activity_placeholder')}
+                      placeholder={t_inputs('activityInGabon.placeholder')}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TradFormMessage />
                 </FormItem>
               )}
             />

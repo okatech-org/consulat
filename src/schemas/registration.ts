@@ -150,27 +150,23 @@ export const ProfessionalInfoSchema = z
   .object({
     workStatus: z.nativeEnum(WorkStatus),
 
-    profession: NameSchema,
+    profession: NameSchema.optional(),
 
     employer: NameSchema.optional(),
 
-    employerAddress: AddressSchema.optional(),
+    employerAddress: z.string().optional(),
 
     activityInGabon: z.string().max(200, 'messages.errors.activity_too_long').optional(),
   })
-  .refine(
-    (data) => {
-      // Si employé, l'employeur est requis
-      if (data.workStatus === WorkStatus.EMPLOYEE) {
-        return !!data.employer;
-      }
-      return true;
-    },
-    {
-      message: 'messages.errors.employer_required_if_employee',
-      path: ['employer'],
-    },
-  );
+  .superRefine((data, ctx) => {
+    if (data.workStatus === WorkStatus.EMPLOYEE && !data.employer) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.employer_required_if_employee',
+        path: ['employer', 'employerAddress', 'profession'],
+      });
+    }
+  });
 
 export const DocumentsSchema = z.object({
   passportFile: DocumentFileSchema,
