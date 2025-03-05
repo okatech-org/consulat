@@ -64,6 +64,13 @@ export const GenderSchema = z.nativeEnum(Gender, {
 
 export const PictureFileSchema = DocumentFileSchema;
 
+export const CountryCodeSchema = z.enum(
+  Object.values(CountryCodeEnum) as [CountryCode, ...CountryCode[]],
+  {
+    required_error: 'messages.errors.field_required',
+  },
+);
+
 export const EmailSchema = z
   .string({
     invalid_type_error: 'messages.errors.invalid_email',
@@ -84,7 +91,7 @@ export const AddressSchema = z.object({
 
   zipCode: z.string().min(1, 'messages.errors.field_required'),
 
-  country: z.string().min(1, 'messages.errors.field_required'),
+  country: CountryCodeSchema,
 });
 
 export const PhoneSchema = z
@@ -131,9 +138,4 @@ export const EmergencyContactSchema = z.object({
   address: AddressSchema,
 });
 
-export const CountryCodeSchema = z.enum(
-  Object.values(CountryCodeEnum) as [CountryCode, ...CountryCode[]],
-  {
-    required_error: 'messages.errors.field_required',
-  },
-);
+export type AddressInput = z.infer<typeof AddressSchema>;

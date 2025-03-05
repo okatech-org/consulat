@@ -61,7 +61,7 @@ export function BasicInfoForm({
                 name={'identityPictureFile'}
                 render={({ field }) => (
                   <DocumentUploadField<BasicInfoFormData>
-                    label={t_inputs('identity_picture.label')}
+                    label={t_inputs('identityPicture.label')}
                     id={field.name}
                     field={field}
                     form={form}

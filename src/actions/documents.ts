@@ -217,10 +217,7 @@ export async function analyzeDocuments(
                 throw new Error(`No content in response for ${key}`);
               }
 
-              console.log(`Raw response for ${key}:`, content);
-
               const extractedData = extractJsonFromResponse(content);
-              console.log(`Cleaned data for ${key}:`, extractedData);
 
               return extractedData;
             }),

@@ -300,4 +300,56 @@ export default {
     label: 'Justificatif de domicile',
     help: 'Un justificatif de domicile valide',
   },
+  maritalStatus: {
+    label: 'Situation matrimoniale',
+    help: 'Le statut matrimonial du demandeur',
+    select: 'Choisir une option',
+    options: {
+      SINGLE: 'Célibataire',
+      MARRIED: 'Marié(e)',
+      DIVORCED: 'Divorcé(e)',
+      WIDOWED: 'Veuf(ve)',
+      CIVIL_UNION: 'Union civile',
+      COHABITING: 'Pacsé(e)',
+    },
+  },
+  spouseName: {
+    label: 'Nom du conjoint',
+    placeholder: 'Nom du conjoint',
+  },
+  fatherName: {
+    label: 'Nom du père',
+    placeholder: 'Nom du père',
+  },
+  motherName: {
+    label: 'Nom de la mère',
+    placeholder: 'Nom de la mère',
+  },
+  address: {
+    label: 'Adresse',
+    firstLine: {
+      label: 'Adresse ligne 1',
+      placeholder: 'Adresse ligne 1',
+    },
+    secondLine: {
+      label: 'Adresse ligne 2',
+      placeholder: 'Adresse ligne 2',
+    },
+    city: {
+      label: 'Ville',
+      placeholder: 'Ville',
+    },
+    zipCode: {
+      label: 'Code postal',
+      placeholder: 'Code postal',
+    },
+    country: {
+      label: 'Pays',
+      placeholder: 'Pays',
+    },
+    labelIn: 'Votre adresse en/au {country}',
+  },
+  emergencyContact: {
+    labelIn: "Votre contact d'urgnece en/au {country}",
+  },
 } as const;

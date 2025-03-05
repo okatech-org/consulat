@@ -19,8 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTranslations } from 'next-intl';
-import { FamilyLink, MaritalStatus } from '@prisma/client';
-import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
+import { MaritalStatus } from '@prisma/client';
 import { FamilyInfoFormData } from '@/schemas/registration';
 import { Separator } from '@/components/ui/separator';
 
@@ -37,19 +36,13 @@ export function FamilyInfoForm({
   formRef,
   isLoading = false,
 }: Readonly<FamilyInfoFormProps>) {
-  const t = useTranslations('registration');
-  const t_profile = useTranslations('profile');
-  const tAssets = useTranslations('assets');
+  const t_inputs = useTranslations('inputs');
 
   const maritalStatus = form.watch('maritalStatus');
   const showSpouseFields =
     maritalStatus === MaritalStatus.MARRIED ||
     maritalStatus === MaritalStatus.COHABITING ||
     maritalStatus === MaritalStatus.CIVIL_UNION;
-
-  const handlePhoneChange = (phone: PhoneValue) => {
-    form.setValue('emergencyContact.phone', phone);
-  };
 
   return (
     <Form {...form}>
@@ -64,7 +57,7 @@ export function FamilyInfoForm({
                 name="maritalStatus"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.marital_status')}</FormLabel>
+                    <FormLabel>{t_inputs('maritalStatus.label')}</FormLabel>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
@@ -80,13 +73,13 @@ export function FamilyInfoForm({
                     >
                       <FormControl>
                         <SelectTrigger disabled={isLoading}>
-                          <SelectValue placeholder={t('form.select_marital_status')} />
+                          <SelectValue placeholder={t_inputs('maritalStatus.select')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {Object.values(MaritalStatus).map((status) => (
                           <SelectItem key={status} value={status}>
-                            {tAssets(`marital_status.${status.toLowerCase()}`)}
+                            {t_inputs(`maritalStatus.options.${status}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -104,12 +97,12 @@ export function FamilyInfoForm({
                     name="spouseFullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('form.spouse_name')}</FormLabel>
+                        <FormLabel>{t_inputs('spouseName.label')}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             disabled={isLoading}
-                            placeholder={t('form.spouse_name_placeholder')}
+                            placeholder={t_inputs('spouseName.placeholder')}
                           />
                         </FormControl>
                         <TradFormMessage />
@@ -128,12 +121,12 @@ export function FamilyInfoForm({
                 name="fatherFullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.father_name')}</FormLabel>
+                    <FormLabel>{t_inputs('fatherName.label')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         disabled={isLoading}
-                        placeholder={t('form.father_name_placeholder')}
+                        placeholder={t_inputs('fatherName.placeholder')}
                       />
                     </FormControl>
                     <TradFormMessage />
@@ -146,86 +139,12 @@ export function FamilyInfoForm({
                 name="motherFullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.mother_name')}</FormLabel>
+                    <FormLabel>{t_inputs('motherName.label')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         disabled={isLoading}
-                        placeholder={t('form.mother_name_placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <Separator />
-
-            <div className="grid gap-4">
-              <h3 className="text-lg font-semibold">{t('form.emergency_contact')}</h3>
-              <FormDescription>{t('form.emergency_contact_description')}</FormDescription>
-
-              <FormField
-                control={form.control}
-                name="emergencyContact.fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.emergency_contact_name')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isLoading}
-                        placeholder={t('form.emergency_contact_name_placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="emergencyContact.relationship"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.emergency_contact_relationship')}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={isLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('form.select_relationship')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(FamilyLink).map((link) => (
-                          <SelectItem key={link} value={link}>
-                            {t_profile(`fields.family_link.${link.toLowerCase()}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                name="emergencyContact.phone"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.emergency_contact_phone')}</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        {...field}
-                        value={field.value as unknown as PhoneValue}
-                        onChange={handlePhoneChange}
-                        placeholder={t('form.emergency_contact_phone_placeholder')}
-                        disabled={isLoading}
+                        placeholder={t_inputs('motherName.placeholder')}
                       />
                     </FormControl>
                     <TradFormMessage />
