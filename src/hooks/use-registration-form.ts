@@ -17,8 +17,9 @@ import {
 import { createFormStorage } from '@/lib/form-storage';
 import { Gender, NationalityAcquisition } from '@prisma/client';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { env } from '@/lib/env';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
+
+const { NEXT_PUBLIC_RESIDENT_COUNTRY_CODE, NEXT_PUBLIC_BASE_COUNTRY_CODE } = process.env;
 
 export function useRegistrationForm() {
   const currentUser = useCurrentUser();
@@ -41,7 +42,7 @@ export function useRegistrationForm() {
     return (
       initialData?.contactInfo?.phone ?? {
         ...initialData?.contactInfo?.phone,
-        countryCode: getCountryCode(env.RESIDENT_COUNTRY_CODE as CountryCode),
+        countryCode: getCountryCode(NEXT_PUBLIC_RESIDENT_COUNTRY_CODE as CountryCode),
       }
     );
   }
@@ -58,8 +59,9 @@ export function useRegistrationForm() {
         acquisitionMode:
           initialData?.basicInfo?.acquisitionMode ?? NationalityAcquisition.BIRTH,
         gender: initialData?.basicInfo?.gender ?? Gender.MALE,
-        nationality: initialData?.basicInfo?.nationality ?? env.RESIDENT_COUNTRY_CODE,
-        birthCountry: initialData?.basicInfo?.birthCountry ?? env.RESIDENT_COUNTRY_CODE,
+        nationality: initialData?.basicInfo?.nationality ?? NEXT_PUBLIC_BASE_COUNTRY_CODE,
+        birthCountry:
+          initialData?.basicInfo?.birthCountry ?? NEXT_PUBLIC_RESIDENT_COUNTRY_CODE,
       },
     }),
     familyInfo: useForm<FamilyInfoFormData>({
@@ -77,15 +79,15 @@ export function useRegistrationForm() {
         email: currentUser?.email ?? initialData?.contactInfo?.email ?? '',
         address: initialData?.contactInfo?.address ?? {
           ...initialData?.contactInfo?.address,
-          country: env.RESIDENT_COUNTRY_CODE,
+          country: NEXT_PUBLIC_RESIDENT_COUNTRY_CODE,
         },
         homeLandContact: initialData?.contactInfo?.homeLandContact ?? {
           ...initialData?.contactInfo?.homeLandContact,
-          country: env.BASE_COUNTRY_CODE,
+          country: NEXT_PUBLIC_BASE_COUNTRY_CODE,
         },
         residentContact: initialData?.contactInfo?.residentContact ?? {
           ...initialData?.contactInfo?.residentContact,
-          country: env.RESIDENT_COUNTRY_CODE,
+          country: NEXT_PUBLIC_RESIDENT_COUNTRY_CODE,
         },
       },
     }),

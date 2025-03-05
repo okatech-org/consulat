@@ -77,6 +77,8 @@ export default {
     },
   },
   passport: {
+    label: 'Passeport',
+    help: 'Un passeport valide',
     number: {
       label: 'Numéro de passeport',
       placeholder: 'Numéro de passeport',
@@ -282,8 +284,20 @@ export default {
       LEGAL_GUARDIAN: 'Tuteur légal',
     },
   },
-  identity_picture: {
+  identityPicture: {
     label: "Photo d'identité",
     help: "Une photo d'identité valide, prise récemment",
+  },
+  birthCertificate: {
+    label: 'Acte de naissance',
+    help: 'Un acte de naissance valide',
+  },
+  residencePermit: {
+    label: 'Titre de séjour',
+    help: 'Un titre de séjour valide',
+  },
+  addressProof: {
+    label: 'Justificatif de domicile',
+    help: 'Un justificatif de domicile valide',
   },
 } as const;

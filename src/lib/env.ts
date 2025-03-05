@@ -34,6 +34,11 @@ export function validateEnv(): Env {
 
 // Créer un objet d'environnement validé
 export const env = validateEnv();
+export const publicEnv = {
+  BASE_COUNTRY_CODE: env.BASE_COUNTRY_CODE,
+  NEXT_PUBLIC_BASE_COUNTRY_CODE: env.NEXT_PUBLIC_BASE_COUNTRY_CODE,
+  NEXT_PUBLIC_RESIDENT_COUNTRY_CODE: env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE,
+};
 
 // Pour le typage, créer un fichier de déclaration séparé
 // src/types/env.d.ts

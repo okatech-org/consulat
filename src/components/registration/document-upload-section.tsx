@@ -5,8 +5,7 @@ import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ScanBarcode } from 'lucide-react';
-import LottieAnimation from '@/components/ui/lottie-animation';
+import { LoaderIcon, ScanBarcode } from 'lucide-react';
 import { DocumentsFormData } from '@/schemas/registration';
 import { DocumentUploadField } from '@/components/ui/document-upload';
 import { Form, FormField } from '@/components/ui/form';
@@ -33,14 +32,15 @@ export function DocumentUploadSection({
   formRef,
 }: DocumentUploadSectionProps) {
   const t = useTranslations('registration');
+  const t_inputs = useTranslations('inputs');
   const { toast } = useToast();
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
   const requiredDocuments = [
     {
       id: 'passportFile' as const,
-      label: t('documents.passport.label'),
-      description: t('documents.passport.description'),
+      label: t_inputs('passport.label'),
+      description: t_inputs('passport.help'),
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
@@ -48,8 +48,8 @@ export function DocumentUploadSection({
     },
     {
       id: 'birthCertificateFile' as const,
-      label: t('documents.birth_certificate.label'),
-      description: t('documents.birth_certificate.description'),
+      label: t_inputs('birthCertificate.label'),
+      description: t_inputs('birthCertificate.help'),
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
@@ -57,8 +57,8 @@ export function DocumentUploadSection({
     },
     {
       id: 'residencePermitFile' as const,
-      label: t('documents.residence_permit.label'),
-      description: t('documents.residence_permit.description'),
+      label: t_inputs('residencePermit.label'),
+      description: t_inputs('residencePermit.help'),
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
@@ -66,8 +66,8 @@ export function DocumentUploadSection({
     },
     {
       id: 'addressProofFile' as const,
-      label: t('documents.address_proof.label'),
-      description: t('documents.address_proof.description'),
+      label: t_inputs('addressProof.label'),
+      description: t_inputs('addressProof.help'),
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
@@ -174,10 +174,7 @@ export function DocumentUploadSection({
                       >
                         {isAnalyzing ? (
                           <>
-                            <LottieAnimation
-                              src="https://lottie.host/3dcbeb73-3c3f-4dbe-93de-a973430b6c4c/aX6F1INJXN.json"
-                              className="size-5"
-                            />
+                            <LoaderIcon className="size-5 animate-spin" />
                             {t('documents.analysis.analyzing')}
                           </>
                         ) : (
