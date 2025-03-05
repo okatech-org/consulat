@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import {
@@ -28,9 +30,6 @@ type BasicInfoFormProps = {
   displayIdentityPicture?: boolean;
 };
 
-const birthCountryCode =
-  (process.env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE as CountryCode) ?? 'GA';
-
 export function BasicInfoForm({
   form,
   onSubmit,
@@ -52,8 +51,6 @@ export function BasicInfoForm({
     }
     return date.toISOString().split('T')[0];
   };
-
-  console.log(birthCountryCode);
 
   return (
     <Form {...form}>
@@ -203,7 +200,6 @@ export function BasicInfoForm({
                       type="single"
                       selected={field.value as CountryCode}
                       onChange={field.onChange}
-                      options={[birthCountryCode as CountryCode]}
                     />
                   </FormControl>
 

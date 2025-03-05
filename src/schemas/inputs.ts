@@ -1,6 +1,11 @@
 import * as z from 'zod';
 import { FamilyLink, Gender } from '@prisma/client';
-import { CountryCode, CountryCodeEnum } from '@/lib/autocomplete-datas';
+import {
+  CountryCode,
+  CountryIndicator,
+  countryIndicators,
+  countryKeys,
+} from '@/lib/autocomplete-datas';
 
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,
@@ -64,12 +69,17 @@ export const GenderSchema = z.nativeEnum(Gender, {
 
 export const PictureFileSchema = DocumentFileSchema;
 
-export const CountryCodeSchema = z.enum(
-  Object.values(CountryCodeEnum) as [CountryCode, ...CountryCode[]],
-  {
-    required_error: 'messages.errors.field_required',
-  },
-);
+export const CountryCodeSchema = z
+  .string()
+  .refine((val) => countryKeys.includes(val as CountryCode), {
+    message: 'messages.errors.invalid_country',
+  });
+
+export const CountryIndicatorSchema = z
+  .string()
+  .refine((val) => countryIndicators.includes(val as CountryIndicator), {
+    message: 'messages.errors.invalid_country',
+  });
 
 export const EmailSchema = z
   .string({
@@ -100,7 +110,7 @@ export const PhoneSchema = z
 
 export const PhoneValueSchema = z.object({
   number: z.string(),
-  countryCode: z.string(),
+  countryCode: CountryIndicatorSchema,
 });
 
 export const NameSchema = z
@@ -134,7 +144,7 @@ export const EmergencyContactSchema = z.object({
     required_error: 'messages.errors.field_required',
   }),
   email: EmailSchema.optional(),
-  phone: PhoneSchema,
+  phone: PhoneValueSchema,
   address: AddressSchema,
 });
 

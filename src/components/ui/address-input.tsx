@@ -7,26 +7,20 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import { CountrySelect } from './country-select';
 import { FormField, FormItem, FormLabel, FormControl, TradFormMessage } from './form';
 import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import { Input } from './input';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-interface AddressInputProps {
-  value: AddressInputType;
+interface AddressInputProps<T> {
+  form: UseFormReturn<{
+    [key: T]: AddressInputType;
+  }>;
   label?: string;
-  onChange?: (value: AddressInputType) => void;
-  error?: boolean;
   disabled?: boolean;
   countryCode?: CountryCode;
 }
 
-export function AddressInput({
-  label,
-  value,
-  onChange,
-  disabled,
-  countryCode,
-}: AddressInputProps) {
+export function AddressInput({ label, form, disabled, countryCode }: AddressInputProps) {
   const t = useTranslations('inputs');
   const form = useForm<AddressInputType>({
     resolver: zodResolver(AddressSchema),
@@ -48,7 +42,7 @@ export function AddressInput({
         control={form.control}
         name="firstLine"
         render={({ field }) => (
-          <FormItem className={'col-span-full md:col-span-1'}>
+          <FormItem className={'col-span-full sm:col-span-1'}>
             <FormLabel>{t('address.firstLine.label')}</FormLabel>
             <FormControl>
               <Input
@@ -67,7 +61,7 @@ export function AddressInput({
         control={form.control}
         name="secondLine"
         render={({ field }) => (
-          <FormItem className={'col-span-full md:col-span-1'}>
+          <FormItem className={'col-span-full sm:col-span-1'}>
             <FormLabel>{t('address.secondLine.label')}</FormLabel>
             <FormControl>
               <Input

@@ -8,6 +8,7 @@ interface CardContainerProps {
   children: React.ReactNode;
   className?: string;
   contentClass?: string;
+  headerClass?: string;
 }
 
 export default function CardContainer({
@@ -18,14 +19,15 @@ export default function CardContainer({
   className,
   contentClass,
   footerContent,
+  headerClass,
 }: Readonly<CardContainerProps>) {
   return (
     <Card.Card className={'flex flex-col ' + className}>
       {(title || subtitle || action) && (
-        <Card.CardHeader className={'flex-row pb-2 space-y-0'}>
+        <Card.CardHeader className={`flex-row pb-2 space-y-0 ${headerClass}`}>
           <div>
             {title && (
-              <Card.CardTitle className={'text-2xl font-bold tracking-tight'}>
+              <Card.CardTitle className={'text-xl font-bold tracking-tight'}>
                 {title}
               </Card.CardTitle>
             )}

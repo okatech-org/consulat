@@ -13,7 +13,7 @@ import {
   EmailSchema,
   EmergencyContactSchema,
   NameSchema,
-  PhoneSchema,
+  PhoneValueSchema,
 } from './inputs';
 
 export const BasicInfoSchema = z.object({
@@ -102,13 +102,23 @@ export const VALIDATION_RULES = {
 } as const;
 
 // Validation pour la section Contact
-export const ContactInfoSchema = z.object({
-  email: EmailSchema.optional(),
-  phone: PhoneSchema.optional(),
-  address: AddressSchema,
-  residentContact: EmergencyContactSchema,
-  homeLandContact: EmergencyContactSchema,
-});
+export const ContactInfoSchema = z
+  .object({
+    email: EmailSchema.optional(),
+    phone: PhoneValueSchema.optional(),
+    address: AddressSchema,
+    residentContact: EmergencyContactSchema,
+    homeLandContact: EmergencyContactSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (!data.email && !data.phone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.email_or_phone_required',
+        path: ['email', 'phone'],
+      });
+    }
+  });
 
 // Validation pour la section Famille
 export const FamilyInfoSchema = z

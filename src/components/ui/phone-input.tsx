@@ -29,19 +29,38 @@ interface PhoneInputProps
   onChange?: (value: PhoneValue) => void;
   error?: boolean;
   disabled?: boolean;
+  options?: CountryCode[];
 }
 
 export function PhoneInput({
   className,
-  value = { number: '', countryCode: '+33' },
+  value,
   onChange,
   error,
   disabled = false,
+  options,
   ...props
 }: PhoneInputProps) {
+  const availableCountries = options
+    ? phoneCountries.filter((country) => options.includes(country.countryCode))
+    : phoneCountries;
   const t = useTranslations('common');
   const t_countries = useTranslations('countries');
-  const [phoneValue, setPhoneValue] = React.useState<PhoneValue>(value);
+
+  React.useEffect(() => {
+    if (!value && availableCountries.length > 0) {
+      onChange?.({
+        number: '',
+        countryCode: availableCountries[0].value,
+      });
+    }
+  }, [value, availableCountries, onChange]);
+
+  const phoneValue = value ?? {
+    number: '',
+    countryCode: availableCountries[0]?.value ?? '+33',
+  };
+
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
 
@@ -49,9 +68,8 @@ export function PhoneInput({
     const newNumber = e.target.value.replace(/[^\d]/g, '');
     const newValue = {
       number: newNumber,
-      countryCode: value?.countryCode || '+33',
+      countryCode: value?.countryCode || availableCountries[0].value,
     };
-    setPhoneValue(newValue);
     onChange?.(newValue);
   };
 
@@ -61,7 +79,6 @@ export function PhoneInput({
       countryCode: code,
     };
     setOpen(false);
-    setPhoneValue(newValue);
     onChange?.(newValue);
   };
 
@@ -71,7 +88,7 @@ export function PhoneInput({
     return country ? country.countryCode : 'FR';
   };
 
-  const filteredCountries = phoneCountries.filter((country) => {
+  const filteredCountries = availableCountries.filter((country) => {
     const searchTermLower = searchValue.toLowerCase();
     return (
       country.value.includes(searchTermLower) ||

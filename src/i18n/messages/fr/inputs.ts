@@ -134,6 +134,19 @@ export default {
         'Instructions qui seront affichées aux utilisateurs lors de la prise de rendez-vous',
     },
   },
+  familyLink: {
+    label: 'Lien de parenté',
+    placeholder: 'Sélectionner un lien de parenté',
+    options: {
+      FATHER: 'Père',
+      MOTHER: 'Mère',
+      SPOUSE: 'Conjoint(e)',
+      CHILD: 'Enfant',
+      OTHER: 'Autre',
+      BROTHER_SISTER: 'Frère/Soeur',
+      LEGAL_GUARDIAN: 'Tuteur légal',
+    },
+  },
   profile: {
     id: 'ID',
     userId: 'User ID',
@@ -202,13 +215,17 @@ export default {
       male: 'Masculin',
       female: 'Féminin',
     },
-    family_link: {
-      father: 'Père',
-      mother: 'Mère',
-      spouse: 'Conjoint(e)',
-      child: 'Enfant',
-      other: 'Autre',
-      legal_guardian: 'Tuteur légal',
+    familyLink: {
+      label: 'Lien de parenté',
+      options: {
+        FATHER: 'Père',
+        MOTHER: 'Mère',
+        SPOUSE: 'Conjoint(e)',
+        CHILD: 'Enfant',
+        OTHER: 'Autre',
+        BROTHER_SISTER: 'Frère/Soeur',
+        LEGAL_GUARDIAN: 'Tuteur légal',
+      },
     },
     address_proof: 'Justificatif de domicile',
     birth_date: 'Date de naissance',
@@ -328,12 +345,12 @@ export default {
   address: {
     label: 'Adresse',
     firstLine: {
-      label: 'Adresse ligne 1',
-      placeholder: 'Adresse ligne 1',
+      label: 'Adresse',
+      placeholder: 'Ex: 123 Rue de la Paix',
     },
     secondLine: {
-      label: 'Adresse ligne 2',
-      placeholder: 'Adresse ligne 2',
+      label: "Complément d'adresse",
+      placeholder: 'Ex: Appartement, Bâtiment, etc.',
     },
     city: {
       label: 'Ville',
@@ -350,6 +367,6 @@ export default {
     labelIn: 'Votre adresse en/au {country}',
   },
   emergencyContact: {
-    labelIn: "Votre contact d'urgnece en/au {country}",
+    labelIn: "Votre contact d'urgence en/au {country}",
   },
 } as const;
