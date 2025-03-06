@@ -123,9 +123,10 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="space-y-6">
               {profile.address ? (
-                <DisplayAddress
-                  address={profile.address}
-                  title={t_inputs('address.label')}
+                <InfoField
+                  label={t_inputs('address.label')}
+                  value={<DisplayAddress address={profile.address as Address} />}
+                  icon={<Flag className="size-4" />}
                 />
               ) : (
                 <Badge variant="destructive">{t('form.required')}</Badge>

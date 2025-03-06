@@ -28,6 +28,7 @@ type BasicInfoFormProps = {
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
   displayIdentityPicture?: boolean;
+  banner?: React.ReactNode;
 };
 
 export function BasicInfoForm({
@@ -36,6 +37,7 @@ export function BasicInfoForm({
   formRef,
   isLoading = false,
   displayIdentityPicture = true,
+  banner,
 }: Readonly<BasicInfoFormProps>) {
   const t_inputs = useTranslations('inputs');
 
@@ -55,6 +57,7 @@ export function BasicInfoForm({
   return (
     <Form {...form}>
       <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {banner}
         <Card>
           <CardContent className={'grid gap-6 pt-4'}>
             {displayIdentityPicture && (

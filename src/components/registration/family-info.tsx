@@ -7,7 +7,6 @@ import {
   FormItem,
   FormLabel,
   TradFormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,6 +27,7 @@ interface FamilyInfoFormProps {
   onSubmit: (data: FamilyInfoFormData) => void;
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
+  banner?: React.ReactNode;
 }
 
 export function FamilyInfoForm({
@@ -35,6 +35,7 @@ export function FamilyInfoForm({
   onSubmit,
   formRef,
   isLoading = false,
+  banner,
 }: Readonly<FamilyInfoFormProps>) {
   const t_inputs = useTranslations('inputs');
 
@@ -46,7 +47,8 @@ export function FamilyInfoForm({
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
+      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {banner}
         {/* État civil */}
 
         <Card>

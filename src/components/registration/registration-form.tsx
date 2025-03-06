@@ -20,11 +20,14 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { postProfile } from '@/actions/profile';
 import { tryCatch } from '@/lib/utils';
+import CardContainer from '../layouts/card-container';
+import { Info } from 'lucide-react';
 
 export function RegistrationForm() {
   const router = useRouter();
   const t = useTranslations('registration');
   const { toast } = useToast();
+  const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
 
   const {
     currentStep,
@@ -108,7 +111,7 @@ export function RegistrationForm() {
       toast({
         title: t('profile.analysis.success.title'),
         description: (
-          <div>
+          <div className="space-y-2">
             <p>{t('profile.analysis.success.description')}</p>
             <ul>
               {updatedSections.map((section) => (
@@ -122,6 +125,10 @@ export function RegistrationForm() {
         ),
         variant: 'success',
       });
+
+      if (!displayAnalysisWarning) {
+        setDisplayAnalysisWarning(true);
+      }
     } catch (error) {
       const { title, description } = handleFormError(error, t);
       toast({ title, description, variant: 'destructive' });
@@ -221,6 +228,7 @@ export function RegistrationForm() {
             form={forms.basicInfo}
             onSubmit={() => handleNext(forms.basicInfo.getValues())}
             isLoading={isLoading}
+            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
       case 2:
@@ -229,6 +237,7 @@ export function RegistrationForm() {
             form={forms.familyInfo}
             onSubmit={() => handleNext(forms.familyInfo.getValues())}
             isLoading={isLoading}
+            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
       case 3:
@@ -237,6 +246,7 @@ export function RegistrationForm() {
             form={forms.contactInfo}
             onSubmitAction={() => handleNext(forms.contactInfo.getValues())}
             isLoading={isLoading}
+            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
       case 4:
@@ -245,6 +255,7 @@ export function RegistrationForm() {
             form={forms.professionalInfo}
             onSubmit={() => handleNext(forms.professionalInfo.getValues())}
             isLoading={isLoading}
+            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
       case 5:
@@ -304,5 +315,20 @@ export function RegistrationForm() {
         isOptional={steps[currentStep]?.isOptional}
       />
     </div>
+  );
+}
+
+function AnalysisWarningBanner() {
+  const t = useTranslations('registration');
+  return (
+    <CardContainer
+      className="overflow-hidden"
+      contentClass="p-4 bg-blue-500/10 flex items-center gap-2"
+    >
+      <Info className="size-10 sm:size-5 text-blue-500" />
+      <p className="text-md font-medium text-blue-500">
+        {t('documents.analysis.warning')}
+      </p>
+    </CardContainer>
   );
 }

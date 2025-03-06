@@ -130,6 +130,8 @@ export default {
         no_document: 'Aucun document à analyser',
         unknown: "Une erreur est survenue lors de l'analyse",
       },
+      warning:
+        'Pensez à re vérifier les informations pré-remplies, des erreurs sont possibles',
     },
     tips: {
       title: 'Conseils pour vos documents',

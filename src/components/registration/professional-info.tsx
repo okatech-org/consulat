@@ -29,6 +29,7 @@ interface ProfessionalInfoFormProps {
   onSubmit: (data: ProfessionalInfoFormData) => void;
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
+  banner?: React.ReactNode;
 }
 
 export function ProfessionalInfoForm({
@@ -36,6 +37,7 @@ export function ProfessionalInfoForm({
   onSubmit,
   formRef,
   isLoading = false,
+  banner,
 }: Readonly<ProfessionalInfoFormProps>) {
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
@@ -48,6 +50,7 @@ export function ProfessionalInfoForm({
   return (
     <Form {...form}>
       <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {banner}
         {/* Statut professionnel */}
         <Card>
           <CardHeader>

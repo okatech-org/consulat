@@ -27,6 +27,7 @@ interface ContactInfoFormProps {
   onSubmitAction: (data: ContactInfoFormData) => Promise<void>;
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
+  banner?: React.ReactNode;
 }
 
 const residenceCountry = process.env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE as
@@ -41,6 +42,7 @@ export function ContactInfoForm({
   onSubmitAction,
   formRef,
   isLoading = false,
+  banner,
 }: Readonly<ContactInfoFormProps>) {
   const params = useSearchParams();
   const residenceCountryCode = (params.get('country') as CountryCode) ?? residenceCountry;
@@ -50,7 +52,12 @@ export function ContactInfoForm({
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(onSubmitAction)}>
+      <form
+        ref={formRef}
+        onSubmit={form.handleSubmit(onSubmitAction)}
+        className="space-y-6"
+      >
+        {banner}
         <CardContainer contentClass="grid grid-cols-2 gap-6 pt-4">
           {/* Email */}
           <FormField
@@ -167,6 +174,7 @@ export function ContactInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value ?? undefined}
                         placeholder={t_inputs('address.zipCode.placeholder')}
                         disabled={isLoading}
                       />
@@ -204,7 +212,7 @@ export function ContactInfoForm({
           <CardContainer
             className="col-span-full"
             headerClass="p-4"
-            contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4"
+            contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4 pt-0"
             title={
               t_inputs('emergencyContact.label') +
               ' - ' +
@@ -279,6 +287,7 @@ export function ContactInfoForm({
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value ?? undefined}
                       type="email"
                       placeholder={t_inputs('email.placeholder')}
                       autoComplete="email"
@@ -386,6 +395,7 @@ export function ContactInfoForm({
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value ?? undefined}
                           placeholder={t_inputs('address.zipCode.placeholder')}
                           disabled={isLoading}
                         />
@@ -422,7 +432,7 @@ export function ContactInfoForm({
           <CardContainer
             className="col-span-full"
             headerClass="p-4"
-            contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4"
+            contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4 pt-0"
             title={
               t_inputs('emergencyContact.label') +
               ' - ' +
@@ -497,6 +507,7 @@ export function ContactInfoForm({
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value ?? undefined}
                       type="email"
                       placeholder={t_inputs('email.placeholder')}
                       autoComplete="email"
@@ -604,6 +615,7 @@ export function ContactInfoForm({
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value ?? undefined}
                           placeholder={t_inputs('address.zipCode.placeholder')}
                           disabled={isLoading}
                         />
