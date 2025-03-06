@@ -106,6 +106,7 @@ const FieldsList = ({
                 )}
               />
             )}
+            {/** @ts-expect-error -- We are sure that the key is valid */}
             {t_inputs(`${field.key}.label`)}
           </div>
           {!field.completed && (
