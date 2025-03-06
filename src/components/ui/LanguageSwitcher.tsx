@@ -21,7 +21,7 @@ export default function LanguageSwitcher() {
   const currentLanguage = useLocale();
 
   function onChange(value: string) {
-    const locale = value as Locale;
+    const locale = value.toLowerCase() as Locale;
     startTransition(() => setUserLocale(locale));
   }
 

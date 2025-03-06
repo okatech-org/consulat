@@ -5,8 +5,10 @@ import { useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { subscribeToWaitlist } from '@/actions/email-list';
+import { useTranslations } from 'next-intl';
 
 export function CTASection() {
+  const t = useTranslations('home.waitlist_section');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,8 +20,8 @@ export function CTASection() {
       await subscribeToWaitlist(email);
 
       toast({
-        title: 'Inscription réussie !',
-        description: 'Nous vous préviendrons dès que le site sera disponible.',
+        title: t('success_toast.title'),
+        description: t('success_toast.description'),
         variant: 'success',
       });
 
@@ -27,9 +29,8 @@ export function CTASection() {
     } catch (error) {
       console.error(error);
       toast({
-        title: 'Une erreur est survenue',
-        description:
-          'Impossible de vous inscrire pour le moment. Veuillez réessayer plus tard.',
+        title: t('error_toast.title'),
+        description: t('error_toast.description'),
         variant: 'destructive',
       });
     } finally {
@@ -40,13 +41,8 @@ export function CTASection() {
   return (
     <section className="bg-primary py-20 text-primary-foreground">
       <div className="container max-w-2xl text-center">
-        <h2 className="mb-6 text-3xl font-bold md:text-4xl">
-          Soyez les premiers informés
-        </h2>
-        <p className="mb-8 text-lg opacity-90">
-          Laissez-nous votre email pour être notifié dès que la plateforme sera
-          disponible.
-        </p>
+        <h2 className="mb-6 text-3xl font-bold md:text-4xl">{t('title')}</h2>
+        <p className="mb-8 text-lg opacity-90">{t('description')}</p>
 
         <form
           onSubmit={handleSubmit}
@@ -54,7 +50,7 @@ export function CTASection() {
         >
           <Input
             type="email"
-            placeholder="Votre adresse email"
+            placeholder={t('email_placeholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/60"
@@ -71,17 +67,15 @@ export function CTASection() {
             {isLoading ? (
               <>
                 <span className="mr-2 size-4 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-                Inscription...
+                {t('submitting')}
               </>
             ) : (
-              'Me prévenir'
+              t('submit_button')
             )}
           </button>
         </form>
 
-        <p className="mt-4 text-sm opacity-75">
-          Nous respectons votre vie privée. Vous pourrez vous désinscrire à tout moment.
-        </p>
+        <p className="mt-4 text-sm opacity-75">{t('privacy_notice')}</p>
       </div>
     </section>
   );

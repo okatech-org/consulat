@@ -63,4 +63,23 @@ export default {
   footer: {
     designed_by: 'Conçu et développé par',
   },
+  waitlist_section: {
+    title: 'Soyez les premiers informés',
+    description:
+      'Laissez-nous votre email pour être notifié dès que la plateforme sera disponible.',
+    email_placeholder: 'Votre adresse email',
+    submit_button: 'Me prévenir',
+    submitting: 'Inscription...',
+    privacy_notice:
+      'Nous respectons votre vie privée. Vous pourrez vous désinscrire à tout moment.',
+    success_toast: {
+      title: 'Inscription réussie !',
+      description: 'Nous vous préviendrons dès que le site sera disponible.',
+    },
+    error_toast: {
+      title: 'Une erreur est survenue',
+      description:
+        'Impossible de vous inscrire pour le moment. Veuillez réessayer plus tard.',
+    },
+  },
 } as const;

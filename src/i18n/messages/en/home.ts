@@ -62,4 +62,20 @@ export default {
   footer: {
     designed_by: 'Designed and developed by',
   },
+  waitlist_section: {
+    title: 'Be the first to know',
+    description: 'Leave your email to be notified as soon as the platform is available.',
+    email_placeholder: 'Your email address',
+    submit_button: 'Notify me',
+    submitting: 'Registering...',
+    privacy_notice: 'We respect your privacy. You can unsubscribe at any time.',
+    success_toast: {
+      title: 'Registration successful!',
+      description: 'We will notify you as soon as the site is available.',
+    },
+    error_toast: {
+      title: 'An error occurred',
+      description: 'Unable to register at this time. Please try again later.',
+    },
+  },
 } as const;
