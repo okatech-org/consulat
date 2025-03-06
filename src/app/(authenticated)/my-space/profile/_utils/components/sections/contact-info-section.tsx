@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { ContactInfoSchema, type ContactInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
+import { updateProfile } from '@/actions/profile';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Mail, Phone } from 'lucide-react';
 import { FullProfile } from '@/types';

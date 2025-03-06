@@ -1,17 +1,10 @@
 'use server';
 
-import {
-  RequestStatus,
-  ServiceCategory,
-  DocumentType,
-  Prisma,
-  ParentalAuthority,
-} from '@prisma/client';
+import { DocumentType, ParentalAuthority } from '@prisma/client';
 import { LinkFormData } from '@/schemas/child-registration';
 import { checkAuth } from '@/lib/auth/action';
 import { processFileData } from './utils';
 import { deleteFiles } from './uploads';
-import { getRegistrationServiceForUser } from '@/app/(authenticated)/my-space/_utils/actions/actions';
 import { db } from '@/lib/prisma';
 import { BasicInfoFormData } from '@/schemas/registration';
 import {

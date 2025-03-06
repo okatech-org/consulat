@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { submitProfileForValidation } from '@/app/(authenticated)/my-space/_utils/profile';
+import { submitProfileForValidation } from '@/actions/profile';
 import { useRouter } from 'next/navigation';
 
 // Définir les items de la checklist de manière statique

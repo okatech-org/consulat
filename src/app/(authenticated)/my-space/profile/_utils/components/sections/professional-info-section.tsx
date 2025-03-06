@@ -11,7 +11,7 @@ import {
 } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
+import { updateProfile } from '@/actions/profile';
 import { Briefcase, Building2, MapPin } from 'lucide-react';
 import { filterUneditedKeys } from '@/lib/utils';
 import { ProfessionalInfoForm } from '@/components/registration/professional-info';

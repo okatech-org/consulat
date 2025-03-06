@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { filterUneditedKeys, useDateLocale } from '@/lib/utils';
-import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
+import { updateProfile } from '@/actions/profile';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { BasicInfoForm } from '@/components/registration/basic-info';
 

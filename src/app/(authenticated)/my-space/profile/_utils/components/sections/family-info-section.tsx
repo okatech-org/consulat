@@ -8,7 +8,7 @@ import { FamilyLink, MaritalStatus } from '@prisma/client';
 import { FamilyInfoSchema, type FamilyInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfile } from '@/app/(authenticated)/my-space/_utils/profile';
+import { updateProfile } from '@/actions/profile';
 import { Badge } from '@/components/ui/badge';
 import { Users, User2, Phone } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';

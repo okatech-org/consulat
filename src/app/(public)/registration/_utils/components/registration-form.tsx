@@ -18,7 +18,7 @@ import { FormError, handleFormError } from '@/lib/form/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { postProfile } from '@/app/(authenticated)/my-space/_utils/profile';
+import { postProfile } from '@/actions/profile';
 import { tryCatch } from '@/lib/utils';
 
 export function RegistrationForm({

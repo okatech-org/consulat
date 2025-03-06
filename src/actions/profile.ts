@@ -3,6 +3,7 @@
 import { getTranslations } from 'next-intl/server';
 import { ActionResult, checkAuth } from '@/lib/auth/action';
 import {
+  ConsularService,
   DocumentStatus,
   DocumentType,
   Prisma,
@@ -24,7 +25,6 @@ import {
 } from '@/schemas/registration';
 import { deleteFiles } from '@/actions/uploads';
 import { calculateProfileCompletion, extractNumber } from '@/lib/utils';
-import { getRegistrationServiceForUser } from './actions/actions';
 import { assignAgentToRequest } from '@/actions/agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
 
@@ -663,4 +663,39 @@ export async function submitProfileForValidation(
       error: error instanceof Error ? error.message : 'messages.errors.unknown_error',
     };
   }
+}
+
+export async function getRegistrationServiceForUser(
+  countryCode: string,
+): Promise<ConsularService | null> {
+  await checkAuth();
+
+  const service = await db.consularService.findFirst({
+    where: {
+      countryCode,
+      category: 'REGISTRATION',
+    },
+  });
+
+  return service;
+}
+
+export async function getAvailableServices(countryCode: string) {
+  const countryData = await db.country.findUnique({
+    where: {
+      code: countryCode,
+    },
+    include: {
+      availableServices: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      },
+    },
+  });
+
+  return countryData?.availableServices ?? [];
 }

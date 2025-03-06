@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
-import { Prisma, ServiceCategory, RequestStatus } from '@prisma/client';
+import { RequestStatus } from '@prisma/client';
 import {
   RegistrationListingItem,
   RegistrationRequestDetails,
@@ -25,90 +25,6 @@ export interface RegistrationsResult {
   requests: RegistrationListingItem[];
   total: number;
   filters: GetRegistrationsOptions;
-}
-
-export async function getRegistrations(
-  options?: GetRegistrationsOptions,
-): Promise<RegistrationsResult> {
-  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
-
-  const {
-    status,
-    profileStatus,
-    search,
-    page = 1,
-    limit = 10,
-    sortBy,
-    sortOrder,
-  } = options || {};
-
-  const where: Prisma.ServiceRequestWhereInput = {
-    service: {
-      category: ServiceCategory.REGISTRATION,
-    },
-    submittedBy: {
-      ...(search && {
-        OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { phone: { number: { contains: search, mode: 'insensitive' } } },
-        ],
-      }),
-      ...(profileStatus && {
-        profile: {
-          status: { in: profileStatus },
-        },
-      }),
-    },
-    ...(status && { status: { in: status } }),
-  };
-
-  try {
-    const [requests, total] = await Promise.all([
-      db.serviceRequest.findMany({
-        where,
-        include: {
-          submittedBy: {
-            select: {
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true,
-              profile: {
-                select: {
-                  status: true,
-                },
-              },
-            },
-          },
-          service: true,
-        },
-        ...(sortBy && {
-          orderBy: {
-            [sortBy]: sortOrder || 'desc',
-          },
-        }),
-        ...(page &&
-          limit && {
-            skip: (page - 1) * limit,
-            take: limit,
-          }),
-      }),
-      db.serviceRequest.count({ where }),
-    ]);
-
-    return {
-      requests: requests as unknown as RegistrationListingItem[],
-      total,
-      filters: {
-        ...options,
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching registrations:', error);
-    throw new Error('Failed to fetch registrations');
-  }
 }
 
 export async function getRegistrationRequestDetailsById(
