@@ -4,7 +4,7 @@ import { FileText } from 'lucide-react';
 
 interface InfoFieldProps {
   label: string;
-  value?: string | null;
+  value?: React.ReactNode | null;
   required?: boolean;
   icon?: React.ReactNode;
   className?: string;
@@ -42,6 +42,7 @@ interface DocumentStatusProps {
   isUploaded: boolean;
   required?: boolean;
   customText?: string;
+  className?: string;
 }
 
 export function DocumentStatus({
@@ -49,11 +50,12 @@ export function DocumentStatus({
   isUploaded,
   customText,
   required = true,
+  className = '',
 }: DocumentStatusProps) {
   const t = useTranslations('profile.review');
 
   return (
-    <div className="flex items-center justify-between">
+    <div className={`flex items-center justify-between ${className}`}>
       <div className="flex items-center gap-2">
         <FileText className="size-4 text-muted-foreground" />
         <span>{type}</span>

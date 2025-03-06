@@ -16,6 +16,9 @@ import {
 import { ConsularFormData } from '@/schemas/registration';
 import { DocumentStatus, InfoField } from '@/components/ui/info-field';
 import { useDateLocale } from '@/lib/utils';
+import { CountryCode } from '@/lib/autocomplete-datas';
+import CardContainer from '../layouts/card-container';
+import { FlagIcon } from '../ui/flag-icon';
 
 interface ReviewFieldsProps<T extends keyof ConsularFormData> {
   id: T;
@@ -28,6 +31,8 @@ export function ReviewFields<T extends keyof ConsularFormData>({
 }: ReviewFieldsProps<T>) {
   const t = useTranslations('registration');
   const t_assets = useTranslations('assets');
+  const t_inputs = useTranslations('inputs');
+  const t_countries = useTranslations('countries');
   const { formatDate } = useDateLocale();
 
   const documents: ConsularFormData['documents'] | undefined =
@@ -46,279 +51,382 @@ export function ReviewFields<T extends keyof ConsularFormData>({
   return (
     <>
       {documents && (
-        <div className="space-y-4">
-          <h3 className="font-medium">{t('review.documents')}</h3>
-          <div className="grid gap-3">
-            <DocumentStatus
-              type={t('profile.passport.label')}
-              isUploaded={!documents.passportFile?.length}
-            />
-            <DocumentStatus
-              type={t('profile.birth_certificate.label')}
-              isUploaded={!documents.birthCertificateFile?.length}
-            />
-            <DocumentStatus
-              type={t('profile.residence_permit.label')}
-              isUploaded={!documents.residencePermitFile?.length}
-              required={false}
-            />
-            <DocumentStatus
-              type={t('profile.address_proof.label')}
-              isUploaded={!documents.addressProofFile?.length}
-            />
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <DocumentStatus
+            type={t('documents.passport.label')}
+            isUploaded={!documents.passportFile?.length}
+          />
+          <DocumentStatus
+            type={t('documents.birth_certificate.label')}
+            isUploaded={!documents.birthCertificateFile?.length}
+          />
+          <DocumentStatus
+            type={t('documents.residence_permit.label')}
+            isUploaded={!documents.residencePermitFile?.length}
+            required={false}
+          />
+          <DocumentStatus
+            type={t('documents.address_proof.label')}
+            isUploaded={!documents.addressProofFile?.length}
+          />
         </div>
       )}
 
       {/* Informations de base */}
       {basicInfo && (
         <div className="space-y-4">
-          <h3 className="font-medium">{t('review.basic_info')}</h3>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 grid-cols-2">
             <DocumentStatus
-              type={t('profile.identity_picture.label')}
+              type={t('documents.identity_picture.label')}
               isUploaded={!basicInfo.identityPictureFile?.length}
+              required={true}
+              className="col-span-2"
             />
             <InfoField
-              label={t('form.first_name')}
+              label={t_inputs('firstName.label')}
               value={basicInfo.firstName}
               icon={<User className="size-4" />}
               required
+              className="col-span-2"
             />
             <InfoField
-              label={t('form.last_name')}
+              label={t_inputs('lastName.label')}
               value={basicInfo.lastName}
               icon={<User className="size-4" />}
               required
+              className="col-span-2"
             />
             <InfoField
-              label={t('form.gender')}
+              label={t_inputs('gender.label')}
               value={
-                basicInfo.gender && t_assets(`gender.${basicInfo.gender.toLowerCase()}`)
+                basicInfo.gender &&
+                (basicInfo.gender === 'MALE'
+                  ? t_assets.raw('gender.male_type')
+                  : t_assets.raw('gender.female_type'))
               }
               icon={<User className="size-4" />}
               required
             />
             <InfoField
-              label={t('form.birth_date')}
+              label={t_inputs('birthDate.label')}
               value={basicInfo.birthDate && formatDate(basicInfo.birthDate)}
               icon={<Calendar className="size-4" />}
               required
             />
             <InfoField
-              label={t('form.birth_place')}
+              label={t_inputs('birthPlace.label')}
               value={basicInfo.birthPlace}
               icon={<MapPin className="size-4" />}
               required
             />
             <InfoField
-              label={t('form.birth_country')}
-              value={basicInfo.birthCountry}
+              label={t_inputs('birthCountry.label')}
+              value={
+                basicInfo.birthCountry && (
+                  <p className="flex items-center gap-2">
+                    <FlagIcon countryCode={basicInfo.birthCountry as CountryCode} />
+                    {t_countries(basicInfo.birthCountry as CountryCode)}
+                  </p>
+                )
+              }
               icon={<Globe className="size-4" />}
               required
             />
             <InfoField
               label={t('form.nationality')}
-              value={basicInfo.nationality}
+              value={
+                basicInfo.nationality && (
+                  <p className="flex items-center gap-2">
+                    <FlagIcon countryCode={basicInfo.nationality as CountryCode} />
+                    {t_countries(basicInfo.nationality as CountryCode)}
+                  </p>
+                )
+              }
               icon={<Flag className="size-4" />}
               required
+            />
+            <InfoField
+              label={t_inputs('nationality_acquisition.label')}
+              value={
+                basicInfo.acquisitionMode &&
+                t_inputs.raw(
+                  `nationality_acquisition.options.${basicInfo.acquisitionMode}`,
+                )
+              }
+              icon={<Flag className="size-4" />}
+              required
+              className="col-span-2"
             />
           </div>
 
           {/* Informations du passeport */}
-          <div className="mt-4 space-y-4">
-            <h4 className="text-sm font-medium">{t('form.passport.section_title')}</h4>
-            <div className="grid gap-4 md:grid-cols-2">
+          <CardContainer contentClass="space-y-4 p-4">
+            <h4 className="text-sm font-medium">{t_inputs('passport.label')}</h4>
+            <div className="grid gap-4 grid-cols-2">
               <InfoField
-                label={t('form.passport.number.label')}
+                label={t_inputs('passport.number.label')}
                 value={basicInfo.passportNumber}
                 required
+                className="col-span-2"
               />
               <InfoField
-                label={t('form.passport.authority.label')}
+                label={t_inputs('passport.issueAuthority.label')}
                 value={basicInfo.passportIssueAuthority}
                 required
+                className="col-span-2"
               />
               <InfoField
-                label={t('form.passport.issue_date.label')}
+                label={t_inputs('passport.issueDate.label')}
                 value={
                   basicInfo.passportIssueDate && formatDate(basicInfo.passportIssueDate)
                 }
                 required
+                className="col-span-1"
               />
               <InfoField
-                label={t('form.passport.expiry_date.label')}
+                label={t_inputs('passport.expiryDate.label')}
                 value={
                   basicInfo.passportExpiryDate && formatDate(basicInfo.passportExpiryDate)
                 }
                 required
+                className="col-span-1"
               />
             </div>
-          </div>
+          </CardContainer>
         </div>
       )}
 
       {/* Contact */}
       {contactInfo && (
-        <div className="space-y-4">
-          <h3 className="font-medium">{t('review.contact_info')}</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            <InfoField
-              label={t('form.email')}
-              value={contactInfo.email}
-              icon={<Mail className="size-4" />}
-              required
-            />
-            <InfoField
-              label={t('form.phone')}
-              value={
-                contactInfo.phone
-                  ? `${contactInfo.phone.countryCode} ${contactInfo.phone.number}`
-                  : undefined
-              }
-              icon={<Phone className="size-4" />}
-              required
-            />
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoField
+            label={t_inputs('email.label')}
+            value={contactInfo.email}
+            icon={<Mail className="size-4" />}
+            required
+          />
+          <InfoField
+            label={t_inputs('phone.label')}
+            value={
+              contactInfo.phone
+                ? `${contactInfo.phone.countryCode} ${contactInfo.phone.number}`
+                : undefined
+            }
+            icon={<Phone className="size-4" />}
+            required
+          />
 
-          {/* Adresse principale */}
-          {contactInfo.address && (
-            <div className="mt-4 space-y-2">
-              <h4 className="text-sm font-medium">{t('form.address')}</h4>
-              <div className="rounded-lg border p-3">
-                <p>{contactInfo.address.firstLine}</p>
-                {contactInfo.address.secondLine && (
-                  <p>{contactInfo.address.secondLine}</p>
-                )}
-                <p>
-                  {contactInfo.address.zipCode} {contactInfo.address.city}
-                </p>
-                <p>{contactInfo.address.country}</p>
-              </div>
-            </div>
+          <InfoField
+            label={
+              t_inputs('address.label') +
+              ' - ' +
+              t_countries(contactInfo.address.country as CountryCode)
+            }
+            value={`${contactInfo.address.firstLine}, ${contactInfo.address.zipCode} ${contactInfo.address.city} ${contactInfo.address.secondLine || ''}`}
+            icon={<MapPin className="size-4" />}
+            className="sm:col-span-2"
+          />
+
+          {/* Contact résident */}
+          {contactInfo.residentContact && (
+            <CardContainer
+              contentClass="p-4 pt-0 space-y-2"
+              headerClass="p-4"
+              title={
+                <h4 className="text-sm font-medium">
+                  {t_inputs('emergencyContact.label')}
+                  {' - '}
+                  {t_countries(
+                    contactInfo.residentContact.address.country as CountryCode,
+                  )}
+                </h4>
+              }
+            >
+              <InfoField
+                label={t_inputs('fullName.label')}
+                value={`${contactInfo.residentContact.firstName} ${contactInfo.residentContact.lastName}`}
+                icon={<User className="size-4" />}
+              />
+              <InfoField
+                label={t_inputs('familyLink.label')}
+                value={
+                  contactInfo.residentContact.relationship &&
+                  t_inputs.raw(
+                    `familyLink.options.${contactInfo.residentContact.relationship}`,
+                  )
+                }
+                icon={<Users className="size-4" />}
+              />
+              <InfoField
+                label={t_inputs('phone.label')}
+                value={
+                  contactInfo.residentContact.phone
+                    ? `${contactInfo.residentContact.phone.countryCode} ${contactInfo.residentContact.phone.number}`
+                    : undefined
+                }
+                icon={<Phone className="size-4" />}
+              />
+              {contactInfo.residentContact.email && (
+                <InfoField
+                  label={t_inputs('email.label')}
+                  value={contactInfo.residentContact.email}
+                  icon={<Mail className="size-4" />}
+                />
+              )}
+              {contactInfo.residentContact.address && (
+                <InfoField
+                  label={
+                    t_inputs('address.label') +
+                    ' - ' +
+                    t_countries(
+                      contactInfo.residentContact.address.country as CountryCode,
+                    )
+                  }
+                  value={`${contactInfo.residentContact.address.firstLine}, ${contactInfo.residentContact.address.zipCode} ${contactInfo.residentContact.address.city ?? ''} ${contactInfo.residentContact.address.secondLine ? ', ' + contactInfo.residentContact.address.secondLine : ''}`}
+                  icon={<MapPin className="size-4" />}
+                />
+              )}
+            </CardContainer>
           )}
 
-          {/* Adresse au Gabon */}
-          {contactInfo.addressInGabon && (
-            <div className="mt-4 space-y-2">
-              <h4 className="text-sm font-medium">{t('form.address_gabon')}</h4>
-              <div className="rounded-lg border p-3">
-                <p>{contactInfo.addressInGabon.address}</p>
-                <p>
-                  {contactInfo.addressInGabon.district}, {contactInfo.addressInGabon.city}
-                </p>
-              </div>
-            </div>
+          {/* Contact pays d'origine */}
+          {contactInfo.homeLandContact && (
+            <CardContainer
+              contentClass="space-y-2 p-4 pt-0"
+              headerClass="p-4"
+              title={
+                <h4 className="text-sm font-medium">
+                  {t_inputs('emergencyContact.label')}
+                  {' - '}
+                  {t_countries(
+                    contactInfo.homeLandContact.address.country as CountryCode,
+                  )}
+                </h4>
+              }
+            >
+              <InfoField
+                label={t_inputs('fullName.label')}
+                value={`${contactInfo.homeLandContact.firstName} ${contactInfo.homeLandContact.lastName}`}
+                icon={<User className="size-4" />}
+              />
+              <InfoField
+                label={t_inputs('familyLink.label')}
+                value={
+                  contactInfo.homeLandContact.relationship &&
+                  t_inputs.raw(
+                    `familyLink.options.${contactInfo.homeLandContact.relationship}`,
+                  )
+                }
+                icon={<Users className="size-4" />}
+              />
+              <InfoField
+                label={t_inputs('phone.label')}
+                value={
+                  contactInfo.homeLandContact.phone
+                    ? `${contactInfo.homeLandContact.phone.countryCode} ${contactInfo.homeLandContact.phone.number}`
+                    : undefined
+                }
+                icon={<Phone className="size-4" />}
+              />
+              {contactInfo.homeLandContact.email && (
+                <InfoField
+                  label={t_inputs('email.label')}
+                  value={contactInfo.homeLandContact.email}
+                  icon={<Mail className="size-4" />}
+                />
+              )}
+              {contactInfo.homeLandContact.address && (
+                <InfoField
+                  label={
+                    t_inputs('address.label') +
+                    ' - ' +
+                    t_countries(
+                      contactInfo.homeLandContact.address.country as CountryCode,
+                    )
+                  }
+                  value={`${contactInfo.homeLandContact.address.firstLine}, ${contactInfo.homeLandContact.address.zipCode} ${contactInfo.homeLandContact.address.city ?? ''} ${contactInfo.homeLandContact.address.secondLine ? ', ' + contactInfo.homeLandContact.address.secondLine : ''}`}
+                  icon={<MapPin className="size-4" />}
+                />
+              )}
+            </CardContainer>
           )}
         </div>
       )}
 
       {/* Famille */}
       {familyInfo && (
-        <div className="space-y-4">
-          <h3 className="font-medium">{t('review.family_info')}</h3>
-          <div className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoField
+            label={t_inputs('maritalStatus.label')}
+            value={
+              familyInfo.maritalStatus &&
+              t_inputs(`maritalStatus.options.${familyInfo.maritalStatus}`)
+            }
+            icon={<Users className="size-4" />}
+            required
+            className="sm:col-span-2"
+          />
+          {familyInfo.spouseFullName && (
             <InfoField
-              label={t('form.marital_status')}
-              value={
-                familyInfo.maritalStatus &&
-                t_assets(`marital_status.${familyInfo.maritalStatus.toLowerCase()}`)
-              }
-              icon={<Users className="size-4" />}
-              required
-            />
-            {familyInfo.spouseFullName && (
-              <InfoField
-                label={t('form.spouse_name')}
-                value={familyInfo.spouseFullName}
-                icon={<User className="size-4" />}
-              />
-            )}
-            <InfoField
-              label={t('form.father_name')}
-              value={familyInfo.fatherFullName}
+              label={t_inputs('spouseName.label')}
+              value={familyInfo.spouseFullName}
               icon={<User className="size-4" />}
-              required
+              className="sm:col-span-2"
             />
-            <InfoField
-              label={t('form.mother_name')}
-              value={familyInfo.motherFullName}
-              icon={<User className="size-4" />}
-              required
-            />
-          </div>
-
-          {/* Contact d'urgence */}
-          {familyInfo.emergencyContact && (
-            <div className="mt-4 space-y-2">
-              <h4 className="text-sm font-medium">{t('form.emergency_contact')}</h4>
-              <div className="space-y-2 rounded-lg border p-3">
-                <InfoField
-                  label={t('form.emergency_contact_name')}
-                  value={familyInfo.emergencyContact.fullName}
-                  icon={<User className="size-4" />}
-                />
-                <InfoField
-                  label={t('form.emergency_contact_relationship')}
-                  value={familyInfo.emergencyContact.relationship}
-                  icon={<Users className="size-4" />}
-                />
-                <InfoField
-                  label={t('form.emergency_contact_phone')}
-                  value={
-                    familyInfo.emergencyContact.phone
-                      ? `${familyInfo.emergencyContact.phone.countryCode}${familyInfo.emergencyContact.phone.number}`
-                      : undefined
-                  }
-                  icon={<Phone className="size-4" />}
-                />
-              </div>
-            </div>
           )}
+          <InfoField
+            label={t_inputs('fatherName.label')}
+            value={familyInfo.fatherFullName}
+            icon={<User className="size-4" />}
+            required
+          />
+          <InfoField
+            label={t_inputs('motherName.label')}
+            value={familyInfo.motherFullName}
+            icon={<User className="size-4" />}
+            required
+          />
         </div>
       )}
 
       {/* Professionnel */}
       {professionalInfo && (
-        <div className="space-y-4">
-          <h3 className="font-medium">{t('review.professional_info')}</h3>
-          <div className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoField
+            label={t_inputs('workStatus.label')}
+            value={
+              professionalInfo.workStatus &&
+              t_inputs(`workStatus.options.${professionalInfo.workStatus}`)
+            }
+            icon={<Briefcase className="size-4" />}
+            required
+          />
+          {professionalInfo.profession && (
             <InfoField
-              label={t('form.work_status')}
-              value={
-                professionalInfo.workStatus &&
-                t_assets(`work_status.${professionalInfo.workStatus.toLowerCase()}`)
-              }
+              label={t_inputs('profession.label')}
+              value={professionalInfo.profession}
               icon={<Briefcase className="size-4" />}
-              required
             />
-            {professionalInfo.profession && (
+          )}
+          {professionalInfo.employer && (
+            <>
               <InfoField
-                label={t('form.profession')}
-                value={professionalInfo.profession}
-                icon={<Briefcase className="size-4" />}
+                label={t_inputs('employer.label')}
+                value={professionalInfo.employer}
+                icon={<Building className="size-4" />}
               />
-            )}
-            {professionalInfo.employer && (
-              <>
-                <InfoField
-                  label={t('form.employer')}
-                  value={professionalInfo.employer}
-                  icon={<Building className="size-4" />}
-                />
-                <InfoField
-                  label={t('form.work_address')}
-                  value={professionalInfo.employerAddress}
-                  icon={<MapPin className="size-4" />}
-                />
-              </>
-            )}
-            <InfoField
-              label={t('form.gabon_activity')}
-              value={professionalInfo.activityInGabon}
-              icon={<Briefcase className="size-4" />}
-            />
-          </div>
+              <InfoField
+                label={t_inputs('employerAddress.label')}
+                value={professionalInfo.employerAddress}
+                icon={<MapPin className="size-4" />}
+              />
+            </>
+          )}
+          <InfoField
+            label={t_inputs('activityInGabon.label')}
+            value={professionalInfo.activityInGabon}
+            icon={<Briefcase className="size-4" />}
+          />
         </div>
       )}
     </>

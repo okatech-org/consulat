@@ -651,8 +651,8 @@ export default {
   review: {
     required: 'Requis',
     not_provided: 'Non fourni',
-    document_uploaded: 'Document téléchargé',
-    document_missing: 'Document manquant',
+    document_uploaded: 'Téléchargé',
+    document_missing: 'Manquant',
     validation_notes: 'Notes de validation',
     submit_validation: 'Soumettre la validation',
     reject_validation: 'Rejeter la validation',

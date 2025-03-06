@@ -45,11 +45,6 @@ export function ProfessionalInfoForm({
   const showProfessionField =
     workStatus === WorkStatus.EMPLOYEE || workStatus === WorkStatus.ENTREPRENEUR;
 
-  React.useEffect(() => {
-    console.log(form.formState.errors);
-    console.log(form.getValues());
-  }, [form, form.formState, form.getValues]);
-
   return (
     <Form {...form}>
       <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

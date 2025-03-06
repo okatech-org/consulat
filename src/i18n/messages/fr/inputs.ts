@@ -367,6 +367,17 @@ export default {
     label: 'Nom du père',
     placeholder: 'Nom du père',
   },
+  workStatus: {
+    label: 'Statut professionnel',
+    options: {
+      EMPLOYEE: 'Salarié',
+      ENTREPRENEUR: 'Entrepreneur',
+      OTHER: 'Autre',
+      UNEMPLOYED: 'Sans emploi',
+      RETIRED: 'Retraité',
+      STUDENT: 'Étudiant',
+    },
+  },
   motherName: {
     label: 'Nom de la mère',
     placeholder: 'Nom de la mère',
@@ -396,6 +407,7 @@ export default {
     labelIn: 'Votre adresse en/au {country}',
   },
   emergencyContact: {
+    label: "Contact d'urgence",
     labelIn: "Votre contact d'urgence en/au {country}",
   },
 } as const;
