@@ -17,7 +17,8 @@ export interface Organization {
   type: OrganizationType;
   status: OrganizationStatus;
   countries: Country[];
-  metadata: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata: Record<string, any> | null;
   services: ConsularServiceListingItem[] | null;
   adminUser: User | null;
   agents: User[] | null;
