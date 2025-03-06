@@ -107,16 +107,20 @@ export function RegistrationForm() {
 
       toast({
         title: t('profile.analysis.success.title'),
-        description: t('profile.analysis.success.description_with_sections', {
-          sections: updatedSections.join(', '),
-        }),
-        variant: 'success',
-        action:
-          updatedSections.length > 0 ? (
+        description: (
+          <div>
+            <p>{t('profile.analysis.success.description')}</p>
+            <ul>
+              {updatedSections.map((section) => (
+                <li key={section}>{section}</li>
+              ))}
+            </ul>
             <Button onClick={() => setCurrentStep((prev) => prev + 1)} size="sm">
               {t('profile.analysis.success.action')}
             </Button>
-          ) : undefined,
+          </div>
+        ),
+        variant: 'success',
       });
     } catch (error) {
       const { title, description } = handleFormError(error, t);

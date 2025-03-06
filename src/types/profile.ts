@@ -28,9 +28,16 @@ export const FullProfileInclude = {
       },
     },
     phone: true,
-    emergencyContact: {
+    residentContact: {
       include: {
         phone: true,
+        address: true,
+      },
+    },
+    homeLandContact: {
+      include: {
+        phone: true,
+        address: true,
       },
     },
     address: true,

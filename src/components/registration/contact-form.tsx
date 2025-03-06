@@ -98,7 +98,7 @@ export function ContactInfoForm({
           <Separator className="col-span-full" />
 
           {/* Current Address */}
-          <fieldset className="sm:col-span-full grid grid-cols-2 gap-4">
+          <fieldset className="col-span-full grid grid-cols-2 gap-4">
             {/* Address Line 1 */}
             <FormField
               control={form.control}
@@ -205,9 +205,11 @@ export function ContactInfoForm({
             className="col-span-full"
             headerClass="p-4"
             contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4"
-            title={t_inputs('emergencyContact.labelIn', {
-              country: `${t_countries(residenceCountryCode as CountryCode)}`,
-            })}
+            title={
+              t_inputs('emergencyContact.label') +
+              ' - ' +
+              t_countries(residenceCountryCode as CountryCode)
+            }
           >
             <FormField
               control={form.control}
@@ -421,9 +423,11 @@ export function ContactInfoForm({
             className="col-span-full"
             headerClass="p-4"
             contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4"
-            title={t_inputs('emergencyContact.labelIn', {
-              country: `${t_countries(homeLandCountryCode as CountryCode)}`,
-            })}
+            title={
+              t_inputs('emergencyContact.label') +
+              ' - ' +
+              t_countries(homeLandCountryCode as CountryCode)
+            }
           >
             <FormField
               control={form.control}

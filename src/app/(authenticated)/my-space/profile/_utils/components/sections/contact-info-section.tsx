@@ -9,53 +9,20 @@ import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Mail, Phone } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { Address, AddressGabon } from '@prisma/client';
-import { filterUneditedKeys } from '@/lib/utils';
+import { filterUneditedKeys, extractFieldsFromObject } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
 import { InfoField } from '@/components/ui/info-field';
+import { DisplayAddress } from '@/components/ui/display-address';
+import { Address } from '@prisma/client';
 
 interface ContactInfoSectionProps {
   profile: FullProfile;
 }
 
-function AddressDisplay({
-  address,
-  title,
-}: {
-  address: Address | AddressGabon;
-  title: string;
-}) {
-  const t_countries = useTranslations('countries');
-
-  if (!address) return null;
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <MapPin className="size-4" />
-        <span>{title}</span>
-      </div>
-      <div className="text-sm">
-        {'address' in address && address.address && <>{address.address}</>}
-        {'firstLine' in address && address.firstLine && <>{address.firstLine}</>}
-        {'secondLine' in address && address.secondLine && <>, {address.secondLine}</>}
-        {'district' in address && address.district && <>, {address.district}</>}
-      </div>
-      <div className="text-sm">
-        {address?.city}
-        {'zipCode' in address && address.zipCode && <>, {address.zipCode}</>}
-      </div>
-      {'country' in address && address.country && (
-        // @ts-expect-error - country is a string
-        <div className="text-sm">{t_countries(address.country)}</div>
-      )}
-    </div>
-  );
-}
-
 export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
+  const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
   const t_messages = useTranslations('messages.profile');
   const t_sections = useTranslations('profile.sections');
@@ -63,26 +30,35 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const profileAddrress = profile?.address ?? undefined;
+  const contactInfo = extractFieldsFromObject(profile, [
+    'email',
+    'phone',
+    'address',
+    'residentContact',
+    'homeLandContact',
+  ]);
 
   const form = useForm<ContactInfoFormData>({
     resolver: zodResolver(ContactInfoSchema),
     defaultValues: {
-      email: profile?.email ?? undefined,
-      phone: profile.phone
+      email: contactInfo.email ?? undefined,
+      phone: contactInfo.phone
         ? {
-            countryCode: profile.phone.countryCode,
-            number: profile.phone.number,
+            number: contactInfo.phone.number,
+            countryCode: contactInfo.phone.countryCode,
           }
         : undefined,
-      address: {
-        firstLine: profileAddrress?.firstLine ?? undefined,
-        secondLine: profileAddrress?.secondLine ?? undefined,
-        city: profileAddrress?.city ?? undefined,
-        zipCode: profileAddrress?.zipCode ?? undefined,
-        country: profileAddrress?.country ?? undefined,
-      },
-      addressInGabon: profile.addressInGabon || undefined,
+      address: contactInfo.address
+        ? {
+            city: contactInfo.address.city ?? undefined,
+            country: contactInfo.address.country ?? undefined,
+            firstLine: contactInfo.address.firstLine ?? undefined,
+            zipCode: contactInfo.address.zipCode ?? undefined,
+            secondLine: contactInfo.address?.secondLine ?? undefined,
+          }
+        : undefined,
+      residentContact: contactInfo.residentContact ?? undefined,
+      homeLandContact: contactInfo.homeLandContact ?? undefined,
     },
   });
 
@@ -148,12 +124,12 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
           {/* Coordonnées principales */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <InfoField
-              label={t('form.email')}
+              label={t_inputs('email.label')}
               value={profile?.email}
               icon={<Mail className="size-4" />}
             />
             <InfoField
-              label={t('form.phone')}
+              label={t_inputs('phone.label')}
               value={`${profile?.phone?.countryCode}${profile?.phone?.number}`}
               icon={<Phone className="size-4" />}
             />
@@ -163,9 +139,9 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="space-y-6">
               {profile.address ? (
-                <AddressDisplay
+                <DisplayAddress
                   address={profile.address}
-                  title={t('form.current_address')}
+                  title={t_inputs('address.label')}
                 />
               ) : (
                 <Badge variant="destructive">{t('form.required')}</Badge>
@@ -173,10 +149,23 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
             </div>
 
             <div className="space-y-6">
-              {profile.addressInGabon ? (
-                <AddressDisplay
-                  address={profile.addressInGabon}
-                  title={t('form.gabon_address')}
+              {profile.residentContact ? (
+                <DisplayAddress
+                  address={profile.residentContact.address as Address}
+                  title={t_inputs('emergencyContact.label')}
+                />
+              ) : (
+                <Badge variant="outline">{t('form.optional')}</Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="space-y-6">
+              {profile.homeLandContact ? (
+                <DisplayAddress
+                  address={profile.homeLandContact.address as Address}
+                  title={t_inputs('emergencyContact.label')}
                 />
               ) : (
                 <Badge variant="outline">{t('form.optional')}</Badge>

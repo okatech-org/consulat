@@ -19,6 +19,8 @@ import { useDateLocale } from '@/lib/utils';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import CardContainer from '../layouts/card-container';
 import { FlagIcon } from '../ui/flag-icon';
+import { DisplayAddress } from '../ui/display-address';
+import { Address } from '@prisma/client';
 
 interface ReviewFieldsProps<T extends keyof ConsularFormData> {
   id: T;
@@ -222,7 +224,7 @@ export function ReviewFields<T extends keyof ConsularFormData>({
               ' - ' +
               t_countries(contactInfo.address.country as CountryCode)
             }
-            value={`${contactInfo.address.firstLine}, ${contactInfo.address.zipCode} ${contactInfo.address.city} ${contactInfo.address.secondLine || ''}`}
+            value={<DisplayAddress address={contactInfo.address as Address} />}
             icon={<MapPin className="size-4" />}
             className="sm:col-span-2"
           />
@@ -282,7 +284,11 @@ export function ReviewFields<T extends keyof ConsularFormData>({
                       contactInfo.residentContact.address.country as CountryCode,
                     )
                   }
-                  value={`${contactInfo.residentContact.address.firstLine}, ${contactInfo.residentContact.address.zipCode} ${contactInfo.residentContact.address.city ?? ''} ${contactInfo.residentContact.address.secondLine ? ', ' + contactInfo.residentContact.address.secondLine : ''}`}
+                  value={
+                    <DisplayAddress
+                      address={contactInfo.residentContact.address as Address}
+                    />
+                  }
                   icon={<MapPin className="size-4" />}
                 />
               )}
@@ -344,7 +350,11 @@ export function ReviewFields<T extends keyof ConsularFormData>({
                       contactInfo.homeLandContact.address.country as CountryCode,
                     )
                   }
-                  value={`${contactInfo.homeLandContact.address.firstLine}, ${contactInfo.homeLandContact.address.zipCode} ${contactInfo.homeLandContact.address.city ?? ''} ${contactInfo.homeLandContact.address.secondLine ? ', ' + contactInfo.homeLandContact.address.secondLine : ''}`}
+                  value={
+                    <DisplayAddress
+                      address={contactInfo.homeLandContact.address as Address}
+                    />
+                  }
                   icon={<MapPin className="size-4" />}
                 />
               )}

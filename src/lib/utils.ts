@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { cache } from 'react';
 import { Profile } from '@prisma/client';
 import { phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile } from '@/types';
@@ -531,4 +530,31 @@ export function calculateAge(birthDate: string): number {
   }
 
   return age;
+}
+
+/**
+ * Extrait les champs spécifiés d'un objet
+ * @param object Objet source
+ * @param fields Liste des champs à extraire
+ * @returns Objet contenant uniquement les champs spécifiés
+ */
+export function extractFieldsFromObject<T extends Record<string, unknown>>(
+  object: T,
+  fields: (keyof T)[],
+): Partial<T> {
+  return fields.reduce((acc, field) => {
+    acc[field] = object[field];
+    return acc;
+  }, {} as Partial<T>);
+}
+
+export function nullifyUndefined<T extends Record<string, unknown>>(
+  object: T,
+): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(object).map(([key, value]) => [
+      key,
+      value === undefined ? null : value,
+    ]),
+  ) as Partial<T>;
 }

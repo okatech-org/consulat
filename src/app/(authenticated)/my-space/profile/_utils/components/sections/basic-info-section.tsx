@@ -4,53 +4,26 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { NationalityAcquisition, Profile } from '@prisma/client';
+import { NationalityAcquisition } from '@prisma/client';
 import { BasicInfoSchema, type BasicInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { filterUneditedKeys, useDateLocale } from '@/lib/utils';
+import {
+  extractFieldsFromObject,
+  filterUneditedKeys,
+  nullifyUndefined,
+  useDateLocale,
+} from '@/lib/utils';
 import { updateProfile } from '@/actions/profile';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { BasicInfoForm } from '@/components/registration/basic-info';
+import { InfoField } from '@/components/ui/info-field';
+import { FullProfile } from '@/types';
 
 interface BasicInfoSectionProps {
-  profile: Profile;
-}
-
-interface InfoFieldProps {
-  label: string;
-  value?: string | null;
-  required?: boolean;
-  isCompleted?: boolean;
-  className?: string;
-}
-
-function InfoField({
-  label,
-  value,
-  className = '',
-  required,
-  isCompleted = !!value,
-}: InfoFieldProps) {
-  const t = useTranslations('registration');
-
-  return (
-    <div className={className}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm text-muted-foreground">{label}</div>
-      </div>
-      <div className="mt-1">
-        {value || (
-          <span className="text-sm italic text-muted-foreground">
-            {t('form.not_provided')}
-          </span>
-        )}
-      </div>
-    </div>
-  );
+  profile: FullProfile;
 }
 
 export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
@@ -63,22 +36,28 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const basicInfo = extractFieldsFromObject(profile, [
+    'firstName',
+    'lastName',
+    'gender',
+    'birthDate',
+    'birthPlace',
+    'birthCountry',
+    'nationality',
+    'acquisitionMode',
+    'passportNumber',
+    'passportIssueDate',
+    'passportExpiryDate',
+    'cardPin',
+  ]);
+
+  const nonNullBasicInfo = nullifyUndefined(basicInfo);
+
   const form = useForm<BasicInfoFormData>({
     resolver: zodResolver(BasicInfoSchema),
+    // @ts-expect-error - we rely on the nullifyUndefined function to handle null values
     defaultValues: {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      gender: profile.gender,
-      birthDate: profile.birthDate,
-      birthPlace: profile.birthPlace,
-      birthCountry: profile.birthCountry,
-      nationality: profile.nationality,
-      acquisitionMode: profile.acquisitionMode ?? NationalityAcquisition.BIRTH,
-      passportNumber: profile.passportNumber ?? '',
-      passportIssueDate: profile.passportIssueDate?.toISOString().split('T')[0] ?? '',
-      passportExpiryDate: profile.passportExpiryDate?.toISOString().split('T')[0] ?? '',
-      passportIssueAuthority: profile.passportIssueAuthority ?? '',
-      identityPictureFile: null,
+      ...nonNullBasicInfo,
     },
   });
 
@@ -225,7 +204,6 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
                 className={'col-span-2'}
               />
 
-              {/* NIP (si défini) */}
               <InfoField
                 label={t('form.card_pin.label')}
                 value={profile.cardPin}
