@@ -1,4 +1,10 @@
 export default {
+  languages: {
+    label: 'Langue',
+    FR: 'Français',
+    EN: 'Anglais',
+    ES: 'Espagnol',
+  },
   request: {
     actions: {
       status_change: 'Changement de statut',

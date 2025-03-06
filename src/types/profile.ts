@@ -72,6 +72,7 @@ export const FullUserInclude = {
     phone: true,
     country: true,
     notifications: true,
+    linkedCountries: true,
   },
 } as const;
 

@@ -30,14 +30,14 @@ interface BaseCountrySelect {
 // Extend the base interface for single select
 interface SingleSelectCountry extends BaseCountrySelect {
   type: 'single';
-  selected: CountryCode;
+  selected?: CountryCode;
   onChange: (value: CountryCode) => void;
 }
 
 // Extend the base interface for multi select
 interface MultiSelectCountry extends BaseCountrySelect {
   type: 'multiple';
-  selected: CountryCode[];
+  selected?: CountryCode[];
   onChange: (values: CountryCode[]) => void;
 }
 
@@ -83,7 +83,7 @@ export function CountrySelect(props: CountrySelectProps) {
                   <span>{t_countries(selected)}</span>
                 </div>
               )}
-              {type === 'multiple' && selected?.length > 0 && (
+              {type === 'multiple' && selected && selected.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {selected.map((country) => (
                     <Badge key={country}>{t_countries(country)}</Badge>

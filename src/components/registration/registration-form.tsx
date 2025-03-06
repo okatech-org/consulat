@@ -1,7 +1,7 @@
 'use client';
 
 import { useRegistrationForm } from '@/hooks/use-registration-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
 import { FormNavigation } from './navigation';
@@ -22,8 +22,14 @@ import { postProfile } from '@/actions/profile';
 import { tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { Info } from 'lucide-react';
+import { CountrySelect } from '../ui/country-select';
+import { CountryCode } from '@/lib/autocomplete-datas';
+import { Dialog, DialogContent } from '../ui/dialog';
+import Link from 'next/link';
 
 export function RegistrationForm() {
+  const searchParams = useSearchParams();
+  const country = searchParams.get('country') as CountryCode;
   const router = useRouter();
   const t = useTranslations('registration');
   const { toast } = useToast();
@@ -277,44 +283,51 @@ export function RegistrationForm() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
-      {/* En-tête avec progression */}
-      <div className="mb-8 space-y-6">
-        <div className="text-center">
-          <h3 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h3>
-          <p className="mt-2 text-muted-foreground">{t('header.subtitle')}</p>
+    <>
+      <div className="mx-auto w-full max-w-3xl">
+        {/* En-tête avec progression */}
+        <div className="mb-8 space-y-6">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h3>
+            <p className="mt-2 text-muted-foreground">{t('header.subtitle')}</p>
+          </div>
+
+          <StepIndicator
+            steps={steps}
+            currentStep={currentStep}
+            onChange={setCurrentStep}
+          />
         </div>
 
-        <StepIndicator
-          steps={steps}
-          currentStep={currentStep}
-          onChange={setCurrentStep}
-        />
-      </div>
+        {/* Contenu principal */}
+        <div>
+          {renderCurrentStep()}
 
-      {/* Contenu principal */}
-      <div>
-        {renderCurrentStep()}
+          <FormNavigation
+            currentStep={currentStep}
+            totalSteps={steps.length}
+            isLoading={isLoading}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            forms={forms as any}
+          />
+        </div>
 
-        <FormNavigation
+        {/* Progression mobile */}
+        <MobileProgress
           currentStep={currentStep}
           totalSteps={steps.length}
-          isLoading={isLoading}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          forms={forms as any}
+          stepTitle={steps[currentStep]?.title ?? ''}
+          isOptional={steps[currentStep]?.isOptional}
         />
       </div>
-
-      {/* Progression mobile */}
-      <MobileProgress
-        currentStep={currentStep}
-        totalSteps={steps.length}
-        stepTitle={steps[currentStep]?.title ?? ''}
-        isOptional={steps[currentStep]?.isOptional}
-      />
-    </div>
+      <Dialog open={!country}>
+        <DialogContent>
+          <SelectRegistrationCountryForm />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -330,5 +343,35 @@ function AnalysisWarningBanner() {
         {t('documents.analysis.warning')}
       </p>
     </CardContainer>
+  );
+}
+
+export function SelectRegistrationCountryForm() {
+  const t = useTranslations('registration');
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode | undefined>(
+    undefined,
+  );
+  const availableCountries = (process.env.NEXT_PUBLIC_AVAILABLE_COUNTRIES?.split(',') ??
+    []) as CountryCode[];
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">{t('modal.title')}</h3>
+      <p className="text-sm text-muted-foreground">{t('modal.subtitle')}</p>
+
+      <div>
+        <CountrySelect
+          type="single"
+          selected={selectedCountry}
+          onChange={(value) => setSelectedCountry(value)}
+          options={availableCountries}
+        />
+      </div>
+      <Button asChild>
+        <Link href={`${ROUTES.registration}?country=${selectedCountry}`}>
+          {t('modal.continue')}
+        </Link>
+      </Button>
+    </div>
   );
 }

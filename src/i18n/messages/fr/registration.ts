@@ -452,4 +452,11 @@ export default {
       },
     },
   },
+  modal: {
+    title: 'Inscription Consulaire',
+    subtitle:
+      'Sélectionnez votre pays de résidence pour commencer votre inscription consulaire',
+    country_label: 'Pays de résidence',
+    continue: "Continuer l'inscription",
+  },
 } as const;

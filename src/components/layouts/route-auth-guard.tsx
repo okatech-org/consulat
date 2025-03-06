@@ -1,21 +1,17 @@
-import { UserRole } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
+import { hasAnyRole } from '@/lib/permissions/utils';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
-  roles: UserRole[];
+  roles?: UserRole[];
   fallbackUrl?: string;
-  currentUserRole?: UserRole;
+  user?: User;
 }
 
-export function RouteAuthGuard({
-  children,
-  roles,
-  currentUserRole,
-  fallbackUrl,
-}: BaseLayoutProps) {
-  if (!currentUserRole) {
+export function RouteAuthGuard({ children, roles, user, fallbackUrl }: BaseLayoutProps) {
+  if (!user) {
     if (fallbackUrl) {
       redirect(fallbackUrl);
     } else {
@@ -23,7 +19,7 @@ export function RouteAuthGuard({
     }
   }
 
-  if (!roles.includes(currentUserRole)) {
+  if (roles && !hasAnyRole(user, roles)) {
     if (fallbackUrl) {
       redirect(fallbackUrl);
     } else {

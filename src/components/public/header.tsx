@@ -1,10 +1,13 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
-//import LangSwitcher from "@/components/ui/LangSwitcher"
+import { buttonVariants } from "../ui/button"
+import LanguageSwitcher from "../ui/LanguageSwitcher"
+import { Session } from "next-auth"
 
-export async function PublicHeader() {
-  const t = await getTranslations('home')
+export async function PublicHeader({ session }: { session: Session | null }) {
+  const t = await getTranslations('home');
+  const isAuth = !!session;
 
   return (
     <header className="fixed top-4 z-40 w-full md:top-6">
@@ -16,18 +19,17 @@ export async function PublicHeader() {
         </span>
 
         <div className="flex w-max gap-3">
-
-          {/**<LangSwitcher />
-           <Link
-            href={ROUTES.documents}
-            className={buttonVariants({ variant: 'default' }) + ' !rounded-full max-[480px]:!px-2'}
+          <LanguageSwitcher />
+          <Link
+            href={ROUTES.auth.login}
+            className={buttonVariants({ variant: 'default' })}
           >
             {isAuth ? (
-              <span>{t('nav.documents')}</span>
+              <span>{t('nav.profile')}</span>
             ) : (
               <span>{t('nav.login')}</span>
             )}
-          </Link>*/}
+          </Link>
         </div>
       </div>
     </header>

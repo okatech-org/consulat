@@ -1,23 +1,20 @@
-import { auth } from '@/auth';
 import { SessionProvider } from 'next-auth/react';
-import { UserRole } from '@prisma/client';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { ROUTES } from '@/schemas/routes';
 import { headers } from 'next/headers';
 import { RegistrationForm } from '@/components/registration/registration-form';
+import { auth } from '@/auth';
+
 export default async function RegistrationPage() {
   const session = await auth();
+  const currentUser = session?.user;
   const headersList = await headers();
   const pathname = headersList.get('x-current-path') || '/';
   const fallbackUrl = `${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`;
 
   return (
     <SessionProvider session={session}>
-      <RouteAuthGuard
-        fallbackUrl={fallbackUrl}
-        roles={[UserRole.USER]}
-        currentUserRole={session?.user?.roles[0]}
-      >
+      <RouteAuthGuard fallbackUrl={fallbackUrl} user={currentUser}>
         <main
           className={
             'min-h-screen w-screen overflow-auto overflow-x-hidden bg-muted py-6 pt-14'

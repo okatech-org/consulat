@@ -24,6 +24,7 @@ import { PhoneInput, type PhoneValue } from '@/components/ui/phone-input';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ErrorCard } from '@/components/ui/error-card';
 
 export function LoginForm() {
   const t = useTranslations('auth.login');
@@ -32,7 +33,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [showOTP, setShowOTP] = React.useState(false);
   const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('EMAIL');
-
+  const [error, setError] = React.useState<string | null>(null);
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -50,7 +51,8 @@ export function LoginForm() {
         // Envoyer l'OTP
         const result = await sendOTP(data.identifier, data.type);
         if (result.error) {
-          throw new Error(result.error);
+          setError(result.error);
+          return;
         }
         setShowOTP(true);
         toast({
@@ -69,7 +71,8 @@ export function LoginForm() {
       });
 
       if (signInResult?.error) {
-        throw new Error(signInResult.error);
+        setError(signInResult.error);
+        return;
       }
 
       // Redirection après connexion réussie
@@ -205,6 +208,7 @@ export function LoginForm() {
                     {showOTP ? t('buttons.verify') : t('buttons.get_code')}
                   </Button>
                 </div>
+                {error && <ErrorCard description={error} />}
               </div>
               <div className="relative hidden bg-muted md:block">
                 <Image

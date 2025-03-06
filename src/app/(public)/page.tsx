@@ -4,22 +4,30 @@ import { CalendarIcon, CheckCircle, ScrollText, Shield, Users } from 'lucide-rea
 import React from 'react';
 import { IdCardIcon } from '@radix-ui/react-icons';
 import { CTASection } from '@/app/(public)/cta-section';
+import { SelectRegistrationCountryForm } from '@/components/registration/registration-form';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { getTranslations } from 'next-intl/server';
 
 export default async function LandingPage() {
+  const t = await getTranslations('home');
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       {/* Hero Section */}
       <section className="relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-gradient-to-b from-primary/10 to-background px-4 py-20">
         <div className="container relative z-10 mx-auto flex flex-col items-center text-center">
           <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl">
-            Votre Consulat
+            {t('hero.title')}
             <br />
-            <span className="text-primary">100% Digital</span>
+            <span className="text-primary">{t('hero.title_highlight')}</span>
           </h1>
           <p className="mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
-            {
-              "Simplifiez vos démarches consulaires et gérez tous vos components en ligne, en toute sécurité et depuis n'importe où."
-            }
+            {t('hero.description')}
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Link
@@ -30,8 +38,27 @@ export default async function LandingPage() {
                 className: 'rounded-full',
               })}
             >
-              Découvrir les fonctionnalités
+              {t('hero.discover_features')}
             </Link>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  className={buttonVariants({
+                    variant: 'outline',
+                    size: 'lg',
+                    className: 'rounded-full',
+                  })}
+                >
+                  {t('hero.start_registration')}
+                </button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogTitle className="sr-only">
+                  {t('hero.start_registration')}
+                </DialogTitle>
+                <SelectRegistrationCountryForm />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </section>
@@ -40,23 +67,23 @@ export default async function LandingPage() {
       <section id="features" className="py-20">
         <div className="container">
           <h2 className="mb-12 text-center text-3xl font-bold md:text-4xl">
-            Tout votre consulat dans votre poche
+            {t('features.title')}
           </h2>
           <div className="grid gap-8 md:grid-cols-3">
             <FeatureCard
               icon={<Shield className="size-10 text-primary" />}
-              title="Sécurisé et Officiel"
-              description="Vos documents et démarches sont traités de manière 100% sécurisée et conforme aux normes consulaires."
+              title={t('features.cards.security.title')}
+              description={t('features.cards.security.description')}
             />
             <FeatureCard
               icon={<Users className="size-10 text-primary" />}
-              title="Communauté Active"
-              description="Rejoignez la communauté des ressortissants et restez connecté avec votre consulat."
+              title={t('features.cards.community.title')}
+              description={t('features.cards.community.description')}
             />
             <FeatureCard
               icon={<CheckCircle className="size-10 text-primary" />}
-              title="Simple et Rapide"
-              description="Effectuez vos démarches en quelques clics et suivez leur avancement en temps réel."
+              title={t('features.cards.simplicity.title')}
+              description={t('features.cards.simplicity.description')}
             />
           </div>
         </div>
@@ -66,22 +93,22 @@ export default async function LandingPage() {
       <section className="bg-muted py-20">
         <div className="container">
           <h2 className="mb-12 text-center text-3xl font-bold md:text-4xl">
-            Nos Services
+            {t('services.title')}
           </h2>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <ServiceCard
-              title="Carte Consulaire"
-              description="Obtenez votre carte consulaire numérique et gérez vos informations facilement."
+              title={t('services.cards.card.title')}
+              description={t('services.cards.card.description')}
               icon={<IdCardIcon className={'size-8'} />}
             />
             <ServiceCard
-              title="Documents Officiels"
-              description="Demandez et renouvelez vos documents officiels en ligne."
+              title={t('services.cards.documents.title')}
+              description={t('services.cards.documents.description')}
               icon={<ScrollText className={'size-8'} />}
             />
             <ServiceCard
-              title="Rendez-vous"
-              description="Prenez rendez-vous en ligne et évitez les files d'attente."
+              title={t('services.cards.appointments.title')}
+              description={t('services.cards.appointments.description')}
               icon={<CalendarIcon className={'size-8'} />}
             />
           </div>
