@@ -41,7 +41,6 @@ export const FullProfileInclude = {
       },
     },
     address: true,
-    addressInGabon: true,
     passport: true,
     birthCertificate: true,
     residencePermit: true,

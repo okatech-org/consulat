@@ -7,29 +7,8 @@ import { AlertCircle, CheckCircle, ChevronDown, ChevronRight } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, ProfileFieldStatus } from '@/lib/utils';
 import { motion } from 'framer-motion';
-
-interface ProfileFieldStatus {
-  required: {
-    total: number;
-    completed: number;
-    fields: Array<{
-      key: string;
-      name: string;
-      completed: boolean;
-    }>;
-  };
-  optional: {
-    total: number;
-    completed: number;
-    fields: Array<{
-      key: string;
-      name: string;
-      completed: boolean;
-    }>;
-  };
-}
 
 interface ProfileCompletionProps {
   completionRate: number;
@@ -97,11 +76,12 @@ const FieldsList = ({
   type,
   toShowCount = 2,
 }: {
-  fields: Array<{ key: string; name: string; completed: boolean }>;
+  fields: ProfileFieldStatus['required']['fields'];
   isExpanded: boolean;
   toShowCount?: number;
   type: 'required' | 'optional';
 }) => {
+  const t_inputs = useTranslations('inputs');
   const t = useTranslations('profile');
   const visibleFields = isExpanded ? fields : fields.slice(0, toShowCount);
 
@@ -126,7 +106,7 @@ const FieldsList = ({
                 )}
               />
             )}
-            {t(`fields.${field.name}`)}
+            {t_inputs(`${field.key}.label`)}
           </div>
           {!field.completed && (
             <Badge
@@ -150,7 +130,7 @@ const FieldsSection = ({
   type,
 }: {
   title: string;
-  fields: Array<{ key: string; name: string; completed: boolean }>;
+  fields: ProfileFieldStatus['required']['fields'];
   completed: number;
   total: number;
   type: 'required' | 'optional';

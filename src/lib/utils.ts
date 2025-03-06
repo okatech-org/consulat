@@ -220,13 +220,12 @@ export function useFormStorage() {
   };
 }
 
-interface ProfileFieldStatus {
+export interface ProfileFieldStatus {
   required: {
     total: number;
     completed: number;
     fields: Array<{
-      key: string;
-      name: string;
+      key: keyof FullProfile;
       completed: boolean;
     }>;
   };
@@ -234,36 +233,31 @@ interface ProfileFieldStatus {
     total: number;
     completed: number;
     fields: Array<{
-      key: string;
-      name: string;
+      key: keyof FullProfile;
       completed: boolean;
     }>;
   };
 }
 
-const profileFields: {
-  key: keyof FullProfile;
-  name: string;
-}[] = [
-  { key: 'firstName', name: 'first_name' },
-  { key: 'lastName', name: 'last_name' },
-  { key: 'birthDate', name: 'birth_date' },
-  { key: 'nationality', name: 'nationality' },
-  { key: 'gender', name: 'gender' },
-  { key: 'identityPicture', name: 'identity_photo' },
-  { key: 'passport', name: 'passport' },
-  { key: 'birthCertificate', name: 'birth_certificate' },
-  { key: 'phone', name: 'phone' },
-  { key: 'address', name: 'address' },
-  { key: 'addressProof', name: 'address_proof' },
-  { key: 'addressInGabon', name: 'gabon_address' },
-  { key: 'maritalStatus', name: 'marital_status' },
-  { key: 'addressInGabon', name: 'gabon_address' },
-  { key: 'activityInGabon', name: 'gabon_activity' },
-  { key: 'maritalStatus', name: 'marital_status' },
-  { key: 'workStatus', name: 'work_status' },
-  { key: 'fatherFullName', name: 'father_name' },
-  { key: 'motherFullName', name: 'mother_name' },
+const profileFields: Array<keyof FullProfile> = [
+  'firstName',
+  'lastName',
+  'birthDate',
+  'nationality',
+  'gender',
+  'identityPicture',
+  'passport',
+  'birthCertificate',
+  'phone',
+  'address',
+  'addressProof',
+  'residentContact',
+  'homeLandContact',
+  'maritalStatus',
+  'activityInGabon',
+  'workStatus',
+  'fatherFullName',
+  'motherFullName',
 ] as const;
 
 const childProfileFields = [
@@ -276,7 +270,7 @@ const childProfileFields = [
   { key: 'birthCertificate', name: 'birth_certificate' },
 ] as const;
 
-export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldStatus {
+export function getProfileFieldsStatus(profile: FullProfile | null): ProfileFieldStatus {
   if (!profile) {
     return {
       required: { total: 0, completed: 0, fields: [] },
@@ -287,18 +281,18 @@ export function getProfileFieldsStatus(profile: Profile | null): ProfileFieldSta
   const requiredFields = [...profileFields];
 
   if (profile.workStatus === 'EMPLOYEE') {
-    requiredFields.push({ key: 'employer', name: 'employer' });
-    requiredFields.push({ key: 'profession', name: 'profession' });
-    requiredFields.push({ key: 'employerAddress', name: 'work_address' });
+    requiredFields.push('employer');
+    requiredFields.push('profession');
+    requiredFields.push('employerAddress');
   }
 
   if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
-    requiredFields.push({ key: 'spouseFullName', name: 'spouse_name' });
+    requiredFields.push('spouseFullName');
   }
 
   const requiredStatus = requiredFields.map((field) => ({
-    ...field,
-    completed: !!profile[field.key as keyof Profile],
+    key: field,
+    completed: !!profile[field],
   }));
 
   return {
@@ -387,28 +381,24 @@ export const extractNumber = (
   };
 };
 
-export function calculateProfileCompletion(profile: Profile | null): number {
+export function calculateProfileCompletion(profile: FullProfile | null): number {
   if (!profile) return 0;
 
   const requiredFields = [...profileFields];
 
   if (profile.workStatus === 'EMPLOYEE') {
-    requiredFields.push({ key: 'employer', name: 'employer' });
-    requiredFields.push({ key: 'profession', name: 'profession' });
-    requiredFields.push({ key: 'employerAddress', name: 'work_address' });
+    requiredFields.push('employer');
+    requiredFields.push('profession');
+    requiredFields.push('employerAddress');
   }
 
   if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
-    requiredFields.push({ key: 'spouseFullName', name: 'spouse_name' });
+    requiredFields.push('spouseFullName');
   }
 
-  const completedRequired = requiredFields
-    .map((item) => item.key)
-    .filter(
-      (field) =>
-        profile[field as keyof Profile] !== null &&
-        profile[field as keyof Profile] !== '',
-    ).length;
+  const completedRequired = requiredFields.filter(
+    (field) => profile[field] !== null && profile[field] !== '',
+  ).length;
 
   const totalWeight = requiredFields.length;
   return Math.round((completedRequired / totalWeight) * 100);

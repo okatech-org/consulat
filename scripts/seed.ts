@@ -32,7 +32,6 @@ async function main() {
       prisma.consularService.deleteMany(),
       prisma.emergencyContact.deleteMany(),
       prisma.phone.deleteMany(),
-      prisma.addressGabon.deleteMany(),
       prisma.address.deleteMany(),
       prisma.parentalAuthority.deleteMany(),
       prisma.profile.deleteMany(),
@@ -627,20 +626,13 @@ async function main() {
                   country: 'FR',
                 },
               },
-              addressInGabon: {
-                create: {
-                  address: "42 Boulevard de l'Indépendance",
-                  district: 'Batterie IV',
-                  city: 'Libreville',
-                },
-              },
               phone: {
                 create: {
                   number: '0612345678',
                   countryCode: '+33',
                 },
               },
-              emergencyContact: {
+              residentContact: {
                 create: {
                   fullName: 'Pierre Itoutou',
                   relationship: 'FATHER',
@@ -648,6 +640,34 @@ async function main() {
                     create: {
                       number: '0687654321',
                       countryCode: '+33',
+                    },
+                  },
+                  address: {
+                    create: {
+                      firstLine: '42 Boulevard de la Liberté',
+                      city: 'Paris',
+                      zipCode: '75010',
+                      country: 'FR',
+                    },
+                  },
+                },
+              },
+              homeLandContact: {
+                create: {
+                  fullName: 'Marie Itoutou',
+                  relationship: 'MOTHER',
+                  phone: {
+                    create: {
+                      number: '074123456',
+                      countryCode: '+241',
+                    },
+                  },
+                  address: {
+                    create: {
+                      firstLine: "42 Boulevard de l'Indépendance",
+                      city: 'Libreville',
+                      zipCode: null,
+                      country: 'GA',
                     },
                   },
                 },
@@ -740,18 +760,6 @@ async function main() {
                       country: 'FR',
                     },
                   },
-                  emergencyContact: {
-                    create: {
-                      fullName: 'Berny Itoutou',
-                      relationship: 'FATHER',
-                      phone: {
-                        create: {
-                          number: '0612245678',
-                          countryCode: '+33',
-                        },
-                      },
-                    },
-                  },
                 },
               },
             },
@@ -798,14 +806,7 @@ async function main() {
                   secondLine: 'Apt 789',
                   city: 'New York',
                   zipCode: '10118',
-                  country: 'États-Unis',
-                },
-              },
-              addressInGabon: {
-                create: {
-                  address: '123 Boulevard Triomphal',
-                  district: 'Quartier Louis',
-                  city: 'Libreville',
+                  country: 'US',
                 },
               },
               phone: {
@@ -814,7 +815,7 @@ async function main() {
                   countryCode: '+1',
                 },
               },
-              emergencyContact: {
+              residentContact: {
                 create: {
                   fullName: 'Michael Smith',
                   relationship: 'SPOUSE',
@@ -822,6 +823,35 @@ async function main() {
                     create: {
                       number: '2125550198',
                       countryCode: '+1',
+                    },
+                  },
+                  address: {
+                    create: {
+                      firstLine: '350 5th Avenue',
+                      secondLine: 'Apt 789',
+                      city: 'New York',
+                      zipCode: '10118',
+                      country: 'US',
+                    },
+                  },
+                },
+              },
+              homeLandContact: {
+                create: {
+                  fullName: 'John Smith',
+                  relationship: 'FATHER',
+                  phone: {
+                    create: {
+                      number: '074987654',
+                      countryCode: '+241',
+                    },
+                  },
+                  address: {
+                    create: {
+                      firstLine: '123 Boulevard Triomphal',
+                      city: 'Libreville',
+                      zipCode: null,
+                      country: 'GA',
                     },
                   },
                 },
@@ -872,20 +902,13 @@ async function main() {
                   country: 'CA',
                 },
               },
-              addressInGabon: {
-                create: {
-                  address: "45 Boulevard de l'Indépendance",
-                  district: 'Lalala',
-                  city: 'Libreville',
-                },
-              },
               phone: {
                 create: {
                   number: '5145550123',
                   countryCode: '+1',
                 },
               },
-              emergencyContact: {
+              residentContact: {
                 create: {
                   fullName: 'Pierre Dupont',
                   relationship: 'FATHER',
@@ -893,6 +916,35 @@ async function main() {
                     create: {
                       number: '5145550124',
                       countryCode: '+1',
+                    },
+                  },
+                  address: {
+                    create: {
+                      firstLine: '1234 Rue Sainte-Catherine',
+                      secondLine: 'App 567',
+                      city: 'Montréal',
+                      zipCode: 'H3H 2R9',
+                      country: 'CA',
+                    },
+                  },
+                },
+              },
+              homeLandContact: {
+                create: {
+                  fullName: 'Marie Dupont',
+                  relationship: 'MOTHER',
+                  phone: {
+                    create: {
+                      number: '074555012',
+                      countryCode: '+241',
+                    },
+                  },
+                  address: {
+                    create: {
+                      firstLine: "45 Boulevard de l'Indépendance",
+                      city: 'Libreville',
+                      zipCode: null,
+                      country: 'GA',
                     },
                   },
                 },

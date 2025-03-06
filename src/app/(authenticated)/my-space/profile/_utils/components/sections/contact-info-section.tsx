@@ -9,12 +9,13 @@ import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone } from 'lucide-react';
+import { Flag, Mail, Phone } from 'lucide-react';
 import { FullProfile } from '@/types';
 import { filterUneditedKeys, extractFieldsFromObject } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
 import { InfoField } from '@/components/ui/info-field';
 import { DisplayAddress } from '@/components/ui/display-address';
+import { CountryCode } from '@/lib/autocomplete-datas';
 import { Address } from '@prisma/client';
 
 interface ContactInfoSectionProps {
@@ -23,6 +24,7 @@ interface ContactInfoSectionProps {
 
 export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
+  const t_countries = useTranslations('countries');
   const t = useTranslations('registration');
   const t_messages = useTranslations('messages.profile');
   const t_sections = useTranslations('profile.sections');
@@ -40,26 +42,8 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
 
   const form = useForm<ContactInfoFormData>({
     resolver: zodResolver(ContactInfoSchema),
-    defaultValues: {
-      email: contactInfo.email ?? undefined,
-      phone: contactInfo.phone
-        ? {
-            number: contactInfo.phone.number,
-            countryCode: contactInfo.phone.countryCode,
-          }
-        : undefined,
-      address: contactInfo.address
-        ? {
-            city: contactInfo.address.city ?? undefined,
-            country: contactInfo.address.country ?? undefined,
-            firstLine: contactInfo.address.firstLine ?? undefined,
-            zipCode: contactInfo.address.zipCode ?? undefined,
-            secondLine: contactInfo.address?.secondLine ?? undefined,
-          }
-        : undefined,
-      residentContact: contactInfo.residentContact ?? undefined,
-      homeLandContact: contactInfo.homeLandContact ?? undefined,
-    },
+    // @ts-expect-error -- TODO: fic the don't accept null values
+    defaultValues: contactInfo,
   });
 
   const handleSave = async () => {
@@ -150,13 +134,20 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
 
             <div className="space-y-6">
               {profile.residentContact ? (
-                <DisplayAddress
-                  // @ts-expect-error - we know that the address is an Address
-                  address={profile.residentContact.address as Address}
-                  title={t_inputs('emergencyContact.label')}
+                <InfoField
+                  label={
+                    t_inputs('emergencyContact.label') +
+                    `${profile.residentContact?.address?.country ? ` - ${t_countries(profile.residentContact?.address?.country as CountryCode)}` : ''}`
+                  }
+                  value={
+                    <DisplayAddress
+                      address={profile.residentContact.address as Address}
+                    />
+                  }
+                  icon={<Flag className="size-4" />}
                 />
               ) : (
-                <Badge variant="outline">{t('form.optional')}</Badge>
+                <Badge variant="outline">{t('form.required')}</Badge>
               )}
             </div>
           </div>
@@ -164,13 +155,20 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="space-y-6">
               {profile.homeLandContact ? (
-                <DisplayAddress
-                  // @ts-expect-error - we know that the address is an Address
-                  address={profile.homeLandContact.address as Address}
-                  title={t_inputs('emergencyContact.label')}
+                <InfoField
+                  label={
+                    t_inputs('emergencyContact.label') +
+                    `${profile.homeLandContact?.address?.country ? ` - ${t_countries(profile.homeLandContact?.address?.country as CountryCode)}` : ''}`
+                  }
+                  value={
+                    <DisplayAddress
+                      address={profile.homeLandContact.address as Address}
+                    />
+                  }
+                  icon={<Flag className="size-4" />}
                 />
               ) : (
-                <Badge variant="outline">{t('form.optional')}</Badge>
+                <Badge variant="outline">{t('form.required')}</Badge>
               )}
             </div>
           </div>

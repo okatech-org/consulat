@@ -1,0 +1,10 @@
+---
+description: Enforce the inclusion of the project's file tree in every PR or commit to ensure a clear overview of file locations.
+globs: 
+alwaysApply: true
+---
+- **File Tree Existence**: Verify the presence of a file named `.tree.md` in the root directory.
+- **Up-to-date Tree**:
+  - Compare the contents of `.tree.md` with the current project file structure to ensure the tree is up-to-date.
+  - If the file tree is outdated, generate a new one.
+- **Git Addition**: Confirm `.tree.md` is added to the commit.

@@ -105,7 +105,7 @@ export const VALIDATION_RULES = {
 export const ContactInfoSchema = z
   .object({
     email: EmailSchema.optional(),
-    phone: PhoneValueSchema.optional(),
+    phone: PhoneValueSchema.nullable(),
     address: AddressSchema,
     residentContact: EmergencyContactSchema,
     homeLandContact: EmergencyContactSchema,

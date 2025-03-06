@@ -97,11 +97,11 @@ export const AddressSchema = z.object({
     .min(1, 'messages.errors.field_required')
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH),
 
-  secondLine: z.string().max(VALIDATION_RULES.ADDRESS_MAX_LENGTH).optional(),
+  secondLine: z.string().max(VALIDATION_RULES.ADDRESS_MAX_LENGTH).nullable(),
 
   city: z.string().min(1, 'messages.errors.field_required'),
 
-  zipCode: z.string().min(1, 'messages.errors.field_required'),
+  zipCode: z.string().min(1, 'messages.errors.field_required').nullable(),
 
   country: CountryCodeSchema,
 });
@@ -145,8 +145,8 @@ export const EmergencyContactSchema = z.object({
   relationship: z.nativeEnum(FamilyLink, {
     required_error: 'messages.errors.field_required',
   }),
-  email: EmailSchema.optional(),
-  phone: PhoneValueSchema,
+  email: EmailSchema.nullable(),
+  phone: PhoneValueSchema.nullable(),
   address: AddressSchema,
 });
 

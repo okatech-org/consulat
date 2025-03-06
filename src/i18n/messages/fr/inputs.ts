@@ -432,4 +432,19 @@ export default {
     label: "Contact d'urgence",
     labelIn: "Votre contact d'urgence en/au {country}",
   },
+  residentContact: {
+    label: "Contact d'urgence dans le pays de résidence",
+  },
+  homeLandContact: {
+    label: "Contact d'urgence dans le pays d'origine",
+  },
+  nationality: {
+    label: 'Nationalité',
+  },
+  fatherFullName: {
+    label: 'Nom complet du père',
+  },
+  motherFullName: {
+    label: 'Nom complet de la mère',
+  },
 } as const;
