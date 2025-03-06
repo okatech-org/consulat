@@ -99,13 +99,13 @@ export const phoneRegex = new RegExp(
 );
 
 export function checkFileSize(files: FileList | File[] | undefined, size: number) {
-  if (!files || files.length === 0) return true;
+  if (!files?.[0]) return true;
   return files[0].size <= size;
 }
 
 export function checkFileType(files: FileList | File[] | undefined, types: string[]) {
-  if (!files || files.length === 0) return true;
-  return types.includes(files?.[0].type);
+  if (!files?.[0]) return true;
+  return types.includes(files[0].type);
 }
 
 export const APP_NAME = 'Consulat';
