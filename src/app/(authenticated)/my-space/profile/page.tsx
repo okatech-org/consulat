@@ -78,7 +78,7 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-8 gap-4">
         {profile && <ProfileTabs profile={profile} />}
         <div className={'col-span-full flex flex-col gap-4 lg:col-span-2'}>
-          {registrationRequest?.notes && (
+          {registrationRequest?.notes && registrationRequest?.notes.length > 0 && (
             <NotesList
               notes={registrationRequest.notes.filter((note) => note.type === 'FEEDBACK')}
             />
