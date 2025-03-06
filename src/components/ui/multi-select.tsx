@@ -56,6 +56,8 @@ export function MultiSelect<T>({
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
 
+  console.log({ options, selected });
+
   // Create a safe array of selected values regardless of type
   const selectedValues = React.useMemo(() => {
     if (type === 'multiple') {
@@ -96,7 +98,7 @@ export function MultiSelect<T>({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between"
+            className="w-full justify-between px-2"
             disabled={disabled}
           >
             <div className="flex flex-wrap gap-1">
@@ -111,7 +113,7 @@ export function MultiSelect<T>({
                 </>
               )}
             </div>
-            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+            <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0 z-[99999]">
