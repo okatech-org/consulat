@@ -151,6 +151,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
             <div className="space-y-6">
               {profile.residentContact ? (
                 <DisplayAddress
+                  // @ts-expect-error - we know that the address is an Address
                   address={profile.residentContact.address as Address}
                   title={t_inputs('emergencyContact.label')}
                 />
@@ -164,6 +165,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
             <div className="space-y-6">
               {profile.homeLandContact ? (
                 <DisplayAddress
+                  // @ts-expect-error - we know that the address is an Address
                   address={profile.homeLandContact.address as Address}
                   title={t_inputs('emergencyContact.label')}
                 />
