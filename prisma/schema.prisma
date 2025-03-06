@@ -343,7 +343,8 @@ model Profile {
 
 model EmergencyContact {
   id                    String    @id @default(cuid())
-  fullName             String
+  firstName             String
+  lastName              String
   relationship         FamilyLink
   phone               Phone?    @relation(fields: [phoneId], references: [id])
   phoneId             String?

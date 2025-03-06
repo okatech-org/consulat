@@ -24,9 +24,10 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { deleteFiles } from '@/actions/uploads';
-import { calculateProfileCompletion, extractNumber } from '@/lib/utils';
+import { calculateProfileCompletion } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
+import { FullProfileInclude } from '@/types';
 
 export async function postProfile(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
@@ -35,10 +36,18 @@ export async function postProfile(formData: FormData): Promise<string> {
     const currentUser = await checkAuth();
 
     // Récupérer et parser les données du formulaire
-    const basicInfo = JSON.parse(formData.get('basicInfo') as string);
-    const contactInfo = JSON.parse(formData.get('contactInfo') as string);
-    const familyInfo = JSON.parse(formData.get('familyInfo') as string);
-    const professionalInfo = JSON.parse(formData.get('professionalInfo') as string);
+    const basicInfo = JSON.parse(
+      formData.get('basicInfo') as string,
+    ) as BasicInfoFormData;
+    const contactInfo = JSON.parse(
+      formData.get('contactInfo') as string,
+    ) as ContactInfoFormData;
+    const familyInfo = JSON.parse(
+      formData.get('familyInfo') as string,
+    ) as FamilyInfoFormData;
+    const professionalInfo = JSON.parse(
+      formData.get('professionalInfo') as string,
+    ) as ProfessionalInfoFormData;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filesPromises: Array<Promise<any>> = [];
@@ -109,7 +118,7 @@ export async function postProfile(formData: FormData): Promise<string> {
         }),
         await tx.phone.findFirst({
           where: {
-            number: contactInfo.phone.number,
+            number: contactInfo.phone?.number,
           },
         }),
       ]);
@@ -117,68 +126,55 @@ export async function postProfile(formData: FormData): Promise<string> {
       const phone = existingPhone
         ? existingPhone
         : await tx.phone.create({
+            // @ts-expect-error - phone is not defined in the schema
             data: contactInfo.phone,
           });
 
       const profile = await tx.profile.create({
         data: {
           userId: currentUser.user.id,
-          // Informations de base
-          firstName: basicInfo.firstName,
-          lastName: basicInfo.lastName,
-          gender: basicInfo.gender,
-          birthDate: basicInfo.birthDate,
-          birthPlace: basicInfo.birthPlace,
-          birthCountry: basicInfo.birthCountry,
-          nationality: basicInfo.nationality,
-          acquisitionMode: basicInfo.acquisitionMode,
-
-          // Informations passeport
-          passportNumber: basicInfo.passportNumber,
-          passportIssueDate: new Date(basicInfo.passportIssueDate),
-          passportExpiryDate: new Date(basicInfo.passportExpiryDate),
-          passportIssueAuthority: basicInfo.passportIssueAuthority,
-
-          // Informations familiales
-          maritalStatus: familyInfo.maritalStatus,
-          fatherFullName: familyInfo.fatherFullName,
-          motherFullName: familyInfo.motherFullName,
-          spouseFullName: familyInfo.spouseFullName || null,
-
-          // Contact
+          ...basicInfo,
+          ...familyInfo,
+          ...professionalInfo,
           phoneId: phone.id,
           email: contactInfo.email || null,
-
-          // Informations professionnelles
-          workStatus: professionalInfo.workStatus,
-          profession: professionalInfo.profession || null,
-          employer: professionalInfo.employer || null,
-          employerAddress: professionalInfo.employerAddress || null,
-          activityInGabon: professionalInfo.lastActivityGabon,
+          residentContact: {
+            create: {
+              firstName: contactInfo.residentContact.firstName,
+              lastName: contactInfo.residentContact.lastName,
+              relationship: contactInfo.residentContact.relationship,
+              ...(contactInfo.residentContact.phone && {
+                phone: {
+                  create: contactInfo.residentContact.phone,
+                },
+              }),
+              ...(contactInfo.residentContact.address && {
+                address: {
+                  create: contactInfo.residentContact.address,
+                },
+              }),
+            },
+          },
+          homeLandContact: {
+            create: {
+              firstName: contactInfo.homeLandContact.firstName,
+              lastName: contactInfo.homeLandContact.lastName,
+              relationship: contactInfo.homeLandContact.relationship,
+              ...(contactInfo.homeLandContact.phone && {
+                phone: {
+                  create: contactInfo.homeLandContact.phone,
+                },
+              }),
+              ...(contactInfo.homeLandContact.address && {
+                address: {
+                  create: contactInfo.homeLandContact.address,
+                },
+              }),
+            },
+          },
 
           // Relations
           addressId: address.id,
-          addressInGabon: contactInfo.addressInGabon
-            ? {
-                create: contactInfo.addressInGabon,
-              }
-            : undefined,
-          emergencyContact: familyInfo.emergencyContact
-            ? {
-                create: {
-                  fullName: familyInfo.emergencyContact.fullName,
-                  relationship: familyInfo.emergencyContact.relationship,
-                  phone: {
-                    connectOrCreate: {
-                      where: {
-                        number: extractNumber(familyInfo.emergencyContact.phone).number,
-                      },
-                      create: extractNumber(familyInfo.emergencyContact.phone),
-                    },
-                  },
-                },
-              }
-            : undefined,
         },
       });
 
@@ -284,36 +280,41 @@ export async function postProfile(formData: FormData): Promise<string> {
         });
       }
 
+      const currentProfile = await db.profile.findUnique({
+        where: { id: profile.id },
+        ...FullProfileInclude,
+      });
+
+      const profileCompletion = await calculateProfileCompletion(currentProfile);
+
+      if (profileCompletion === 100 && currentUser.user.countryCode) {
+        const registrationService = await getRegistrationServiceForUser(
+          currentUser.user.countryCode,
+        );
+
+        if (registrationService && registrationService.organizationId) {
+          await tx.serviceRequest.create({
+            data: {
+              submittedById: currentUser.user.id,
+              serviceId: registrationService.id,
+              countryCode: currentUser.user.countryCode,
+              serviceCategory: ServiceCategory.REGISTRATION,
+              organizationId: registrationService.organizationId,
+            },
+          });
+
+          await tx.profile.update({
+            where: { id: profile.id },
+            data: {
+              status: RequestStatus.SUBMITTED,
+              submittedAt: new Date(),
+            },
+          });
+        }
+      }
+
       return profile;
     });
-
-    const profileCompletion = await calculateProfileCompletion(profile);
-
-    if (profileCompletion === 100 && currentUser.user.countryCode) {
-      const registrationService = await getRegistrationServiceForUser(
-        currentUser.user.countryCode,
-      );
-
-      if (registrationService) {
-        await db.serviceRequest.create({
-          data: {
-            submittedById: currentUser.user.id,
-            serviceId: registrationService.id,
-          },
-        });
-
-        await db.profile.update({
-          where: { id: profile.id },
-          data: {
-            status: RequestStatus.SUBMITTED,
-            submittedAt: new Date(),
-          },
-        });
-      }
-    }
-
-    // Revalider les pages
-    revalidatePath(ROUTES.user.base);
 
     return profile.id;
   } catch (error) {
@@ -356,8 +357,8 @@ export async function updateProfile(
       where: { userId: user.id },
       include: {
         address: true,
-        addressInGabon: true,
-        emergencyContact: true,
+        homeLandContact: true,
+        residentContact: true,
       },
     });
 
@@ -379,7 +380,8 @@ export async function updateProfile(
       phone,
       address,
       addressInGabon,
-      emergencyContact,
+      residentContact,
+      homeLandContact,
       ...remain
     } = data;
 
@@ -418,32 +420,68 @@ export async function updateProfile(
           },
         },
       }),
-      ...(emergencyContact && {
-        emergencyContact: {
+      ...(residentContact && {
+        residentContact: {
           upsert: {
             create: {
-              fullName: emergencyContact.fullName,
-              relationship: emergencyContact.relationship,
+              firstName: residentContact.firstName,
+              lastName: residentContact.lastName,
+              relationship: residentContact.relationship,
               phone: {
                 upsert: {
                   create: {
-                    number: emergencyContact.phone.number,
-                    countryCode: emergencyContact.phone.countryCode,
+                    number: residentContact.phone.number,
+                    countryCode: residentContact.phone.countryCode,
                   },
                   update: {
-                    number: emergencyContact.phone.number,
-                    countryCode: emergencyContact.phone.countryCode,
+                    number: residentContact.phone.number,
+                    countryCode: residentContact.phone.countryCode,
                   },
                 },
               },
             },
             update: {
-              fullName: emergencyContact.fullName,
-              relationship: emergencyContact.relationship,
+              firstName: residentContact.firstName,
+              lastName: residentContact.lastName,
+              relationship: residentContact.relationship,
               phone: {
                 update: {
-                  number: emergencyContact.phone.number,
-                  countryCode: emergencyContact.phone.countryCode,
+                  number: residentContact.phone.number,
+                  countryCode: residentContact.phone.countryCode,
+                },
+              },
+            },
+          },
+        },
+      }),
+      ...(homeLandContact && {
+        homeLandContact: {
+          upsert: {
+            create: {
+              firstName: homeLandContact.firstName,
+              lastName: homeLandContact.lastName,
+              relationship: homeLandContact.relationship,
+              phone: {
+                upsert: {
+                  create: {
+                    number: homeLandContact.phone.number,
+                    countryCode: homeLandContact.phone.countryCode,
+                  },
+                  update: {
+                    number: homeLandContact.phone.number,
+                    countryCode: homeLandContact.phone.countryCode,
+                  },
+                },
+              },
+            },
+            update: {
+              firstName: homeLandContact.firstName,
+              lastName: homeLandContact.lastName,
+              relationship: homeLandContact.relationship,
+              phone: {
+                update: {
+                  number: homeLandContact.phone.number,
+                  countryCode: homeLandContact.phone.countryCode,
                 },
               },
             },
@@ -518,11 +556,7 @@ export async function updateProfile(
     const updatedProfile = await db.profile.update({
       where: { id: existingProfile.id },
       data: { ...updateData, status: 'DRAFT' },
-      include: {
-        address: true,
-        addressInGabon: true,
-        emergencyContact: true,
-      },
+      ...FullProfileInclude,
     });
 
     return { data: updatedProfile };
@@ -557,15 +591,7 @@ export async function submitProfileForValidation(
     // Vérifier que le profil existe et est complet
     const profile = await db.profile.findUnique({
       where: { id: profileId },
-      include: {
-        passport: true,
-        birthCertificate: true,
-        residencePermit: true,
-        addressProof: true,
-        address: true,
-        emergencyContact: true,
-        phone: true,
-      },
+      ...FullProfileInclude,
     });
 
     if (!profile) {
@@ -599,7 +625,8 @@ export async function submitProfileForValidation(
         profile.address,
         profile.phone,
         profile.email,
-        profile.emergencyContact,
+        profile.residentContact,
+        profile.homeLandContact,
       );
     }
 
