@@ -88,6 +88,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
 
       const profile = await tx.profile.create({
         data: {
+          residenceCountyCode: currentUser.user.countryCode ?? '',
           category: 'MINOR',
           // Informations de base
           firstName: basicInfo.firstName,
@@ -111,20 +112,6 @@ export async function createChildProfile(formData: FormData): Promise<string> {
           }),
           ...(basicInfo.passportIssueAuthority && {
             passportIssueAuthority: basicInfo.passportIssueAuthority,
-          }),
-
-          ...(currentUser.user.phoneId && {
-            emergencyContact: {
-              create: {
-                fullName: `${currentUser.user.firstName} ${currentUser.user.lastName}`,
-                relationship: linkInfo.parentRole,
-                phone: {
-                  connect: {
-                    id: currentUser.user.phoneId,
-                  },
-                },
-              },
-            },
           }),
         },
       });

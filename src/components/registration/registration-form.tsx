@@ -194,7 +194,7 @@ export function RegistrationForm() {
       JSON.stringify(forms.professionalInfo.getValues()),
     );
 
-    const result = await tryCatch(postProfile(formDataToSend));
+    const result = await tryCatch(postProfile(formDataToSend, country));
 
     setIsLoading(false);
 

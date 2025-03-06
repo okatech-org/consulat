@@ -79,6 +79,8 @@ export default async function RootLayout({
   const messages = await getMessages();
   const session = await auth();
 
+  console.log('session', session);
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={GeistSans.className + ' bg-muted'}>

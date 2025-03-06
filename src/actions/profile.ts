@@ -1,7 +1,7 @@
 'use server';
 
 import { getTranslations } from 'next-intl/server';
-import { ActionResult, checkAuth } from '@/lib/auth/action';
+import { checkAuth } from '@/lib/auth/action';
 import {
   ConsularService,
   DocumentStatus,
@@ -12,8 +12,7 @@ import {
   ServiceCategory,
 } from '@prisma/client';
 import { db } from '@/lib/prisma';
-import { revalidatePath } from 'next/cache';
-import { ROUTES } from '@/schemas/routes';
+
 import { getCurrentUser } from '@/actions/user';
 import { processFileData } from '@/actions/utils';
 import {
@@ -29,7 +28,10 @@ import { assignAgentToRequest } from '@/actions/agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { FullProfileInclude } from '@/types';
 
-export async function postProfile(formData: FormData): Promise<string> {
+export async function postProfile(
+  formData: FormData,
+  countryCode: CountryCode,
+): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
 
   try {
@@ -132,6 +134,7 @@ export async function postProfile(formData: FormData): Promise<string> {
 
       const profile = await tx.profile.create({
         data: {
+          residenceCountyCode: countryCode,
           userId: currentUser.user.id,
           ...basicInfo,
           ...familyInfo,
@@ -175,6 +178,17 @@ export async function postProfile(formData: FormData): Promise<string> {
 
           // Relations
           addressId: address.id,
+        },
+      });
+
+      await tx.user.update({
+        where: { id: currentUser.user.id },
+        data: {
+          country: {
+            connect: {
+              code: countryCode,
+            },
+          },
         },
       });
 

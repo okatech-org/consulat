@@ -337,6 +337,8 @@ model Profile {
   assignedOrganization Organization? @relation(fields: [assignedOrganizationId], references: [id])
   assignedOrganizationId String?
 
+  residenceCountyCode String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

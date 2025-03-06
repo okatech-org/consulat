@@ -61,50 +61,6 @@ export function ProfileFamily({ profile }: ProfileFamilyProps) {
           </div>
         </div>
       </CardContainer>
-
-      <CardContainer title={t('sections.emergency_contact')}>
-        {profile.emergencyContact ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <User className="size-5 text-muted-foreground" />
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">{t('fields.full_name')}</p>
-                <p className="font-medium">{profile.emergencyContact.fullName}</p>
-              </div>
-              <CheckCircle2 className="text-success size-5" />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Users className="size-5 text-muted-foreground" />
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  {t('fields.relationship')}
-                </p>
-                <p className="font-medium">{profile.emergencyContact.relationship}</p>
-              </div>
-              <CheckCircle2 className="text-success size-5" />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Phone className="size-5 text-muted-foreground" />
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">{t('fields.phone')}</p>
-                <p className="font-medium">
-                  {profile.emergencyContact.phone
-                    ? `${profile.emergencyContact.phone.countryCode}${profile.emergencyContact.phone.number}`
-                    : '-'}
-                </p>
-              </div>
-              <CheckCircle2 className="text-success size-5" />
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <p className="text-muted-foreground">{t('no_emergency_contact')}</p>
-            <XCircle className="size-5 text-destructive" />
-          </div>
-        )}
-      </CardContainer>
     </div>
   );
 }

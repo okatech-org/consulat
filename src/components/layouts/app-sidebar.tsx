@@ -31,6 +31,8 @@ import { UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
 import { NotificationBell } from '../notifications/notification-bell';
+import { CountryCode } from '@/lib/autocomplete-datas';
+import { FlagIcon } from '../ui/flag-icon';
 
 export function AppSidebar({
   user,
@@ -40,6 +42,7 @@ export function AppSidebar({
 }) {
   const t = useTranslations('navigation');
   const t_nav = useTranslations('user.nav');
+  const t_countries = useTranslations('countries');
 
   const AdminNavigation: NavMainItem[] = [
     {
@@ -183,9 +186,18 @@ export function AppSidebar({
         <TeamSwitcher
           teams={[
             {
-              name: 'Consulat',
+              name: (
+                <span className="flex items-center gap-2">
+                  <span>Consulat</span>
+                  <FlagIcon countryCode={user.countryCode as CountryCode} />
+                </span>
+              ),
               logo: GalleryVerticalEnd,
-              plan: user.country?.name ?? user.countryCode ?? '',
+              plan: user.countryCode && (
+                <span className="flex items-center gap-2">
+                  {t_countries(user.countryCode as CountryCode)}
+                </span>
+              ),
             },
           ]}
         />

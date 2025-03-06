@@ -61,6 +61,7 @@ export const {
         callbackUrl: { type: 'text' },
       },
       async authorize(credentials) {
+        console.log({ credentials });
         return handleAuthorize(credentials);
       },
     }),
@@ -182,5 +183,6 @@ async function handleSession({ session, token }: { session: Session; token: JWT 
     }
     session.user.id = token.sub;
   }
+
   return session;
 }

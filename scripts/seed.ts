@@ -582,7 +582,7 @@ async function main() {
 
     // Créer des utilisateurs normaux avec leurs profils
     console.log('Creating regular users with profiles...');
-    await Promise.all([
+    const [bernyUser] = await Promise.all([
       prisma.user.create({
         data: {
           id: 'user-berny-itoutou',
@@ -617,6 +617,7 @@ async function main() {
               motherFullName: 'Marie Itoutou',
               activityInGabon: 'Consultant IT',
               cardPin: 'GA123456',
+              residenceCountyCode: '75',
               address: {
                 create: {
                   firstLine: '123 Rue de la Paix',
@@ -634,7 +635,8 @@ async function main() {
               },
               residentContact: {
                 create: {
-                  fullName: 'Pierre Itoutou',
+                  firstName: 'Pierre',
+                  lastName: 'Itoutou',
                   relationship: 'FATHER',
                   phone: {
                     create: {
@@ -654,7 +656,8 @@ async function main() {
               },
               homeLandContact: {
                 create: {
-                  fullName: 'Marie Itoutou',
+                  firstName: 'Marie',
+                  lastName: 'Itoutou',
                   relationship: 'MOTHER',
                   phone: {
                     create: {
@@ -718,52 +721,6 @@ async function main() {
               },
             },
           },
-          childAuthorities: {
-            create: {
-              role: 'FATHER',
-              isActive: true,
-              profile: {
-                create: {
-                  id: 'profile-berny-child',
-                  firstName: 'Emma',
-                  lastName: 'Itoutou',
-                  gender: 'FEMALE',
-                  birthDate: '2020-05-15',
-                  birthPlace: 'Paris',
-                  birthCountry: 'FR',
-                  nationality: 'GA',
-                  category: 'MINOR',
-                  status: 'DRAFT',
-                  identityPicture: {
-                    create: {
-                      type: DocumentType.IDENTITY_PHOTO,
-                      status: DocumentStatus.VALIDATED,
-                      fileUrl: '/images/avatar-placeholder.png',
-                      issuedAt: new Date('2024-01-01'),
-                      expiresAt: new Date('2029-01-01'),
-                    },
-                  },
-                  birthCertificate: {
-                    create: {
-                      type: DocumentType.BIRTH_CERTIFICATE,
-                      status: DocumentStatus.VALIDATED,
-                      fileUrl: 'https://example.com/emma-birth-certificate.pdf',
-                      issuedAt: new Date('2020-05-15'),
-                    },
-                  },
-                  address: {
-                    create: {
-                      firstLine: '123 Rue de la Paix',
-                      secondLine: 'Appartement 4B',
-                      city: 'Paris',
-                      zipCode: '75008',
-                      country: 'FR',
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
       }),
       prisma.user.create({
@@ -800,6 +757,7 @@ async function main() {
               motherFullName: 'Mary Smith',
               activityInGabon: 'Missions humanitaires',
               cardPin: 'GA789012',
+              residenceCountyCode: 'NY',
               address: {
                 create: {
                   firstLine: '350 5th Avenue',
@@ -817,7 +775,8 @@ async function main() {
               },
               residentContact: {
                 create: {
-                  fullName: 'Michael Smith',
+                  firstName: 'Michael',
+                  lastName: 'Smith',
                   relationship: 'SPOUSE',
                   phone: {
                     create: {
@@ -838,7 +797,8 @@ async function main() {
               },
               homeLandContact: {
                 create: {
-                  fullName: 'John Smith',
+                  firstName: 'John',
+                  lastName: 'Smith',
                   relationship: 'FATHER',
                   phone: {
                     create: {
@@ -888,6 +848,7 @@ async function main() {
               maritalStatus: 'SINGLE',
               workStatus: 'STUDENT',
               profession: 'Étudiant',
+              residenceCountyCode: 'QC',
               employer: 'Université de Montréal',
               employerAddress: '2900 Boulevard Edouard-Montpetit, Montréal, QC H3T 1J4',
               fatherFullName: 'Pierre Dupont',
@@ -910,7 +871,8 @@ async function main() {
               },
               residentContact: {
                 create: {
-                  fullName: 'Pierre Dupont',
+                  firstName: 'Pierre',
+                  lastName: 'Dupont',
                   relationship: 'FATHER',
                   phone: {
                     create: {
@@ -931,7 +893,8 @@ async function main() {
               },
               homeLandContact: {
                 create: {
-                  fullName: 'Marie Dupont',
+                  firstName: 'Marie',
+                  lastName: 'Dupont',
                   relationship: 'MOTHER',
                   phone: {
                     create: {
@@ -954,6 +917,70 @@ async function main() {
         },
       }),
     ]);
+
+    // Créer le profil de l'enfant
+    console.log('Creating child profile...');
+    const childProfile = await prisma.profile.create({
+      data: {
+        id: 'profile-berny-child',
+        firstName: 'Emma',
+        lastName: 'Itoutou',
+        gender: 'FEMALE',
+        birthDate: '2020-05-15',
+        birthPlace: 'Paris',
+        birthCountry: 'FR',
+        nationality: 'GA',
+        category: 'MINOR',
+        status: 'DRAFT',
+        residenceCountyCode: '75',
+        identityPicture: {
+          create: {
+            type: DocumentType.IDENTITY_PHOTO,
+            status: DocumentStatus.VALIDATED,
+            fileUrl: '/images/avatar-placeholder.png',
+            issuedAt: new Date('2024-01-01'),
+            expiresAt: new Date('2029-01-01'),
+          },
+        },
+        birthCertificate: {
+          create: {
+            type: DocumentType.BIRTH_CERTIFICATE,
+            status: DocumentStatus.VALIDATED,
+            fileUrl: 'https://example.com/emma-birth-certificate.pdf',
+            issuedAt: new Date('2020-05-15'),
+            expiresAt: new Date('2030-05-15'),
+          },
+        },
+        address: {
+          create: {
+            firstLine: '123 Rue de la Paix',
+            secondLine: 'Appartement 4B',
+            city: 'Paris',
+            zipCode: '75008',
+            country: 'FR',
+          },
+        },
+      },
+    });
+
+    // Créer l'autorité parentale
+    console.log('Creating parental authority...');
+    await prisma.parentalAuthority.create({
+      data: {
+        role: 'FATHER',
+        isActive: true,
+        profile: {
+          connect: {
+            id: childProfile.id,
+          },
+        },
+        parentUser: {
+          connect: {
+            id: bernyUser.id,
+          },
+        },
+      },
+    });
 
     // Créer des rendez-vous
     console.log('Creating appointments...');
