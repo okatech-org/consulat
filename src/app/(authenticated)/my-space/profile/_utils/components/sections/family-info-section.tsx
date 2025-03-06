@@ -4,16 +4,13 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { FamilyLink, MaritalStatus } from '@prisma/client';
 import { FamilyInfoSchema, type FamilyInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
-import { Badge } from '@/components/ui/badge';
-import { Users, User2, Phone } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { Users, User2 } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { filterUneditedKeys } from '@/lib/utils';
+import { extractFieldsFromObject, filterUneditedKeys } from '@/lib/utils';
 import { InfoField } from '@/components/ui/info-field';
 import { FamilyInfoForm } from '@/components/registration/family-info';
 
@@ -22,26 +19,25 @@ interface FamilyInfoSectionProps {
 }
 
 export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
-  const t = useTranslations('registration');
+  const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
-  const t_assets = useTranslations('assets');
   const t_profile = useTranslations('profile');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const familyInfo = extractFieldsFromObject(profile, [
+    'maritalStatus',
+    'spouseFullName',
+    'fatherFullName',
+    'motherFullName',
+  ]);
+
   const form = useForm<FamilyInfoFormData>({
     resolver: zodResolver(FamilyInfoSchema),
+    // @ts-expect-error - we know that the maritalStatus is a MaritalStatus
     defaultValues: {
-      maritalStatus: profile.maritalStatus ?? MaritalStatus.SINGLE,
-      fatherFullName: profile.fatherFullName || '',
-      motherFullName: profile.motherFullName || '',
-      spouseFullName: profile.spouseFullName || '',
-      emergencyContact: {
-        fullName: profile.emergencyContact?.fullName || '',
-        relationship: profile.emergencyContact?.relationship || FamilyLink.OTHER,
-        phone: profile.emergencyContact?.phone,
-      },
+      ...familyInfo,
     },
   });
 
@@ -112,15 +108,19 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
           {/* Situation matrimoniale */}
           <div className="space-y-4">
             <InfoField
-              label={t('form.marital_status')}
-              value={t_assets(`marital_status.${profile.maritalStatus?.toLowerCase()}`)}
+              label={t_inputs('maritalStatus.label')}
+              value={
+                profile.maritalStatus
+                  ? t_inputs(`maritalStatus.options.${profile.maritalStatus}`)
+                  : undefined
+              }
               icon={<Users className="size-4" />}
               required
             />
 
             {showSpouseField && (
               <InfoField
-                label={t('form.spouse_name')}
+                label={t_inputs('spouse.fullName.label')}
                 value={profile.spouseFullName}
                 icon={<User2 className="size-4" />}
                 required
@@ -131,58 +131,17 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
           {/* Parents */}
           <div className="grid gap-4">
             <InfoField
-              label={t('form.father_name')}
+              label={t_inputs('father.fullName.label')}
               value={profile.fatherFullName}
               icon={<User2 className="size-4" />}
               required
             />
             <InfoField
-              label={t('form.mother_name')}
+              label={t_inputs('mother.fullName.label')}
               value={profile.motherFullName}
               icon={<User2 className="size-4" />}
               required
             />
-          </div>
-
-          <Separator className="col-span-full" />
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium">{t('form.emergency_contact')}</h4>
-              {!profile.emergencyContact && (
-                <Badge variant="destructive">{t('form.required')}</Badge>
-              )}
-            </div>
-
-            {profile.emergencyContact ? (
-              <div className="grid gap-4 md:grid-cols-3">
-                <InfoField
-                  label={t('form.emergency_contact_name')}
-                  value={profile.emergencyContact.fullName}
-                  icon={<User2 className="size-4" />}
-                />
-                <InfoField
-                  label={t('form.emergency_contact_relationship')}
-                  value={t_profile(
-                    `fields.family_link.${profile.emergencyContact.relationship.toLowerCase()}`,
-                  )}
-                  icon={<Users className="size-4" />}
-                />
-                <InfoField
-                  label={t('form.emergency_contact_phone')}
-                  value={
-                    profile.emergencyContact?.phone
-                      ? `${profile.emergencyContact.phone?.countryCode}${profile.emergencyContact.phone?.number}`
-                      : undefined
-                  }
-                  icon={<Phone className="size-4" />}
-                />
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t('form.emergency_contact_description')}
-              </p>
-            )}
           </div>
         </div>
       )}

@@ -17,6 +17,24 @@ export default {
     label: 'Nom complet',
     placeholder: 'Nom complet',
   },
+  spouse: {
+    fullName: {
+      label: 'Nom complet du conjoint',
+      placeholder: 'Nom complet du conjoint',
+    },
+  },
+  father: {
+    fullName: {
+      label: 'Nom complet du père',
+      placeholder: 'Nom complet du père',
+    },
+  },
+  mother: {
+    fullName: {
+      label: 'Nom complet de la mère',
+      placeholder: 'Nom complet de la mère',
+    },
+  },
   serviceCategory: {
     label: 'Catégorie de service',
     placeholder: 'Catégorie de service',
@@ -346,6 +364,10 @@ export default {
   employer: {
     label: 'Employeur',
     placeholder: 'Ex: Google, Apple, etc.',
+    address: {
+      label: "Adresse de l'employeur",
+      placeholder: 'Ex: 123 Rue de la Paix',
+    },
   },
   employerAddress: {
     label: "Adresse de l'employeur",

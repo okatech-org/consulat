@@ -22,8 +22,7 @@ interface ProfessionalInfoSectionProps {
 }
 
 export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProps) {
-  const t = useTranslations('registration');
-  const t_assets = useTranslations('assets');
+  const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
   const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
@@ -37,7 +36,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
       profession: profile.profession || '',
       employer: profile.employer || '',
       employerAddress: profile.employerAddress || '',
-      lastActivityGabon: profile.activityInGabon || '',
+      activityInGabon: profile.activityInGabon || '',
     },
   });
 
@@ -108,14 +107,18 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
           {/* Statut professionnel */}
           <div className="space-y-4">
             <InfoField
-              label={t('form.work_status')}
-              value={t_assets(`work_status.${profile.workStatus?.toLowerCase()}`)}
+              label={t_inputs('workStatus.label')}
+              value={
+                profile.workStatus
+                  ? t_inputs(`workStatus.options.${profile.workStatus}`)
+                  : undefined
+              }
               icon={<Briefcase className="size-4" />}
             />
 
             {showProfessionField && (
               <InfoField
-                label={t('form.profession')}
+                label={t_inputs('profession.label')}
                 value={profile.profession}
                 icon={<Briefcase className="size-4" />}
               />
@@ -126,27 +129,23 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
           {showEmployerFields && (
             <div className="grid gap-4">
               <InfoField
-                label={t('form.employer')}
+                label={t_inputs('employer.label')}
                 value={profile.employer}
                 icon={<Building2 className="size-4" />}
               />
               <InfoField
-                label={t('form.work_address')}
+                label={t_inputs('employer.address.label')}
                 value={profile.employerAddress}
                 icon={<MapPin className="size-4" />}
               />
             </div>
           )}
 
-          {/* Activité au Gabon */}
-          <div className="space-y-2">
-            <h4 className="font-medium">{t('form.gabon_activity')}</h4>
-            <p className="text-sm text-muted-foreground">
-              {profile.activityInGabon || (
-                <span className="italic">{t('form.not_provided')}</span>
-              )}
-            </p>
-          </div>
+          <InfoField
+            label={t_inputs('employer.address.label')}
+            value={profile.activityInGabon}
+            icon={<Briefcase className="size-4" />}
+          />
         </div>
       )}
     </EditableSection>
