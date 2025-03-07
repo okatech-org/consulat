@@ -81,7 +81,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={GeistSans.className + ' bg-muted'}>
+      <body className={GeistSans.className + ' bg-muted overflow-x-hidden'}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
