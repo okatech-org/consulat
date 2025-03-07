@@ -1,7 +1,15 @@
 import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
-import { CheckCircle2, Briefcase, Building2, MapPin, GraduationCap } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  Briefcase,
+  Building2,
+  MapPin,
+  GraduationCap,
+} from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
+import { WorkStatus } from '@prisma/client';
 
 interface ProfileProfessionalProps {
   profile: FullProfile;
@@ -9,11 +17,12 @@ interface ProfileProfessionalProps {
 
 export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
   const t = useTranslations('admin.registrations.review');
+  const t_inputs = useTranslations('inputs');
 
-  const showEmployerInfo = profile.workStatus === 'EMPLOYEE';
-  const showProfessionInfo = ['EMPLOYEE', 'ENTREPRENEUR'].includes(
-    profile.workStatus || '',
-  );
+  const showEmployerInfo = profile.workStatus === WorkStatus.EMPLOYEE;
+  const showProfessionInfo =
+    profile.workStatus === WorkStatus.EMPLOYEE ||
+    profile.workStatus === WorkStatus.ENTREPRENEUR;
 
   return (
     <div className="space-y-4">
@@ -22,14 +31,22 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
         <div className="flex items-center gap-3">
           <Briefcase className="size-5 text-muted-foreground" />
           <div className="flex-1">
-            <p className="text-sm text-muted-foreground">{t('fields.work_status')}</p>
+            <p className="text-sm text-muted-foreground">
+              {t_inputs('workStatus.label')}
+            </p>
             <div className="flex items-center gap-2">
               <p className="font-medium">
-                {t(`work_status.${profile.workStatus?.toLowerCase()}`)}
+                {profile.workStatus
+                  ? t_inputs(`workStatus.options.${profile.workStatus}`)
+                  : '-'}
               </p>
             </div>
           </div>
-          <CheckCircle2 className="text-success size-5" />
+          {profile.workStatus ? (
+            <CheckCircle2 className="text-success size-5" />
+          ) : (
+            <XCircle className="size-5 text-destructive" />
+          )}
         </div>
       </CardContainer>
 
@@ -39,10 +56,16 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
           <div className="flex items-center gap-3">
             <Briefcase className="size-5 text-muted-foreground" />
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground">{t('fields.profession')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t_inputs('profession.label')}
+              </p>
               <p className="font-medium">{profile.profession || '-'}</p>
             </div>
-            <CheckCircle2 className="text-success size-5" />
+            {profile.profession ? (
+              <CheckCircle2 className="text-success size-5" />
+            ) : (
+              <XCircle className="size-5 text-destructive" />
+            )}
           </div>
 
           {showEmployerInfo && (
@@ -50,21 +73,31 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
               <div className="flex items-center gap-3">
                 <Building2 className="size-5 text-muted-foreground" />
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{t('fields.employer')}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t_inputs('employer.label')}
+                  </p>
                   <p className="font-medium">{profile.employer || '-'}</p>
                 </div>
-                <CheckCircle2 className="text-success size-5" />
+                {profile.employer ? (
+                  <CheckCircle2 className="text-success size-5" />
+                ) : (
+                  <XCircle className="size-5 text-destructive" />
+                )}
               </div>
 
               <div className="flex items-center gap-3">
                 <MapPin className="size-5 text-muted-foreground" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">
-                    {t('fields.employer_address')}
+                    {t_inputs('employerAddress.label')}
                   </p>
                   <p className="font-medium">{profile.employerAddress || '-'}</p>
                 </div>
-                <CheckCircle2 className="text-success size-5" />
+                {profile.employerAddress ? (
+                  <CheckCircle2 className="text-success size-5" />
+                ) : (
+                  <XCircle className="size-5 text-destructive" />
+                )}
               </div>
             </>
           )}
@@ -76,10 +109,16 @@ export function ProfileProfessional({ profile }: ProfileProfessionalProps) {
         <div className="flex items-center gap-3">
           <GraduationCap className="size-5 text-muted-foreground" />
           <div className="flex-1">
-            <p className="text-sm text-muted-foreground">{t('fields.last_activity')}</p>
+            <p className="text-sm text-muted-foreground">
+              {t_inputs('activityInGabon.label')}
+            </p>
             <p className="font-medium">{profile.activityInGabon || '-'}</p>
           </div>
-          {profile.activityInGabon && <CheckCircle2 className="text-success size-5" />}
+          {profile.activityInGabon ? (
+            <CheckCircle2 className="text-success size-5" />
+          ) : (
+            <XCircle className="size-5 text-destructive" />
+          )}
         </div>
       </CardContainer>
     </div>

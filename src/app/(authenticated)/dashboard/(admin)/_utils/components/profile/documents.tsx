@@ -92,9 +92,11 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                 {documentValidations?.[document?.type as DocumentType]?.required && (
                   <Badge variant="outline">{t_review('documents.required')}</Badge>
                 )}
-                <Badge variant={document.status.toLowerCase() as BadgeVariant}>
-                  {t(`status.${document.status}`)}
-                </Badge>
+                {document?.status && (
+                  <Badge variant={document.status.toLowerCase() as BadgeVariant}>
+                    {t(`status.${document.status}`)}
+                  </Badge>
+                )}
               </div>
               {document && (
                 <div className="space-y-1 text-sm text-muted-foreground">
