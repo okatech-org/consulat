@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
-import { Country } from '@/types/country';
 import { OrganizationStatus, OrganizationType } from '@prisma/client';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import Link from 'next/link';
@@ -17,13 +16,14 @@ import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useState } from 'react';
 import { DataTableColumnHeader } from '../data-table/data-table-column-header';
+import { CountryWithCount } from '@/actions/countries';
 
 export function OrganizationsTable({
   organizations,
   countries,
 }: {
   organizations: OrganizationListingItem[];
-  countries: Country[];
+  countries: CountryWithCount[];
 }) {
   const t = useTranslations('organization');
   const t_common = useTranslations('common');
@@ -153,8 +153,14 @@ export function OrganizationsTable({
       property: 'status',
       label: t('table.status'),
       options: [
-        { value: OrganizationStatus.ACTIVE, label: t_common('status.active') },
-        { value: OrganizationStatus.INACTIVE, label: t_common('status.inactive') },
+        {
+          value: OrganizationStatus.ACTIVE,
+          label: t_common(`status.${OrganizationStatus.ACTIVE}`),
+        },
+        {
+          value: OrganizationStatus.INACTIVE,
+          label: t_common(`status.${OrganizationStatus.INACTIVE}`),
+        },
       ],
     },
     {

@@ -52,11 +52,6 @@ export function AppSidebar({
       isActive: true,
     },
     {
-      title: t('admin.registrations'),
-      url: ROUTES.dashboard.appointments,
-      icon: Calendar,
-    },
-    {
       title: t('admin.requests'),
       url: ROUTES.dashboard.requests,
       icon: FileText,
@@ -142,19 +137,9 @@ export function AppSidebar({
       icon: Baby,
     },
     {
-      title: t_nav('requests'),
-      url: ROUTES.user.requests,
-      icon: FileSliders,
-    },
-    {
       title: t_nav('appointments'),
       url: ROUTES.user.appointments,
       icon: Calendar,
-    },
-    {
-      title: t_nav('documents'),
-      url: ROUTES.user.documents,
-      icon: Folder,
     },
     {
       title: t('notifications'),

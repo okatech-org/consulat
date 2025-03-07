@@ -345,4 +345,16 @@ export default {
       description: 'Configurez les créneaux de rendez-vous disponibles par pays',
     },
   },
+  emails: {
+    adminWelcome: {
+      subject: 'Bienvenue sur {appName} !',
+      greeting: 'Bonjour {adminName},',
+      intro: "Votre organisme '{organizationName}' a été créé avec succès.",
+      instructions:
+        'Vous pouvez accéder à votre tableau de bord en cliquant sur le bouton ci-dessous :',
+      buttonLabel: 'Accéder au tableau de bord',
+      outro: "Si vous avez des questions, n'hésitez pas à nous contacter.",
+      signature: "L'équipe {appName}",
+    },
+  },
 } as const;
