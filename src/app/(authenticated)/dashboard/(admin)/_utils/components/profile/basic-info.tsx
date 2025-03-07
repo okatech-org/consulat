@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { useDateLocale } from '@/lib/utils';
+
 interface ProfileBasicInfoProps {
   profile: FullProfile;
 }
@@ -12,32 +13,63 @@ export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
   const { formatDate } = useDateLocale();
   const t = useTranslations('admin.registrations.review');
   const t_countries = useTranslations('countries');
+  const t_inputs = useTranslations('inputs');
 
   const fields = [
     {
-      label: t('fields.name'),
-      value: `${profile.firstName} ${profile.lastName}`,
-      isValid: !!profile.firstName && !!profile.lastName,
+      label: t_inputs('firstName.label'),
+      value: profile.firstName,
+      isValid: !!profile.firstName,
     },
     {
-      label: t('fields.birth_date'),
+      label: t_inputs('lastName.label'),
+      value: profile.lastName,
+      isValid: !!profile.lastName,
+    },
+    {
+      label: t_inputs('gender.label'),
+      value: t_inputs(`gender.options.${profile.gender}`),
+      isValid: !!profile.gender,
+    },
+    {
+      label: t_inputs('birthDate.label'),
       value: formatDate(profile.birthDate),
       isValid: !!profile.birthDate,
     },
     {
-      label: t('fields.birth_place'),
+      label: t_inputs('birthPlace.label'),
       value: profile.birthPlace,
       isValid: !!profile.birthPlace,
     },
     {
-      label: t('fields.nationality'),
+      label: t_inputs('birthCountry.label'),
+      value: t_countries(profile.birthCountry as CountryCode),
+      isValid: !!profile.birthCountry,
+    },
+    {
+      label: t_inputs('nationality.label'),
       value: t_countries(profile.nationality as CountryCode),
       isValid: !!profile.nationality,
+    },
+    {
+      label: t_inputs('nationality_acquisition.label'),
+      value: profile.acquisitionMode
+        ? t_inputs(`nationality_acquisition.options.${profile.acquisitionMode}`)
+        : '-',
+      isValid: !!profile.acquisitionMode,
+    },
+    {
+      label: t_inputs('nipNumber.label'),
+      value: profile.cardPin || '-',
+      isValid: !!profile.cardPin,
     },
   ];
 
   return (
-    <CardContainer title={t('sections.basic_info')} contentClass="space-y-4">
+    <CardContainer
+      title={t('sections.basic_info')}
+      contentClass="grid gap-4 sm:grid-cols-2 sm:gap-6"
+    >
       {fields.map((field, index) => (
         <div
           key={index}
