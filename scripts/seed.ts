@@ -693,7 +693,7 @@ async function main() {
           type: AppointmentType.DOCUMENT_SUBMISSION,
           status: AppointmentStatus.CONFIRMED,
           organization: { connect: { id: 'organization-ambassade-france' } },
-          attendee: { connect: { id: 'user-france-1' } },
+          attendee: { connect: { id: 'user-berny-itoutou' } },
           agent: { connect: { id: 'user-agent-france-1' } },
           instructions: 'Veuillez apporter tous les documents originaux.',
         },
@@ -709,7 +709,7 @@ async function main() {
           type: AppointmentType.DOCUMENT_COLLECTION,
           status: AppointmentStatus.CONFIRMED,
           organization: { connect: { id: 'organization-ambassade-france' } },
-          attendee: { connect: { id: 'user-france-2' } },
+          attendee: { connect: { id: 'user-berny-itoutou' } },
           agent: { connect: { id: 'user-agent-france-2' } },
           instructions: 'Retrait de la carte consulaire et entretien.',
         },
@@ -725,7 +725,7 @@ async function main() {
           type: AppointmentType.DOCUMENT_SUBMISSION,
           status: AppointmentStatus.CONFIRMED,
           organization: { connect: { id: 'organization-ambassade-belgique' } },
-          attendee: { connect: { id: 'user-france-1' } },
+          attendee: { connect: { id: 'user-sarah-smith' } },
           agent: { connect: { id: 'user-agent-france-1' } },
           instructions: 'Please bring all original documents and their copies.',
         },
@@ -741,7 +741,7 @@ async function main() {
           type: AppointmentType.INTERVIEW,
           status: AppointmentStatus.PENDING,
           organization: { connect: { id: 'organization-ambassade-belgique' } },
-          attendee: { connect: { id: 'user-france-2' } },
+          attendee: { connect: { id: 'user-sarah-smith' } },
           agent: { connect: { id: 'user-agent-france-1' } },
           instructions: 'Interview for consular registration.',
         },
@@ -759,7 +759,7 @@ async function main() {
           service: { connect: { id: 'service-passport' } },
           assignedTo: { connect: { id: 'user-agent-france-1' } },
           serviceCategory: 'IDENTITY',
-          submittedBy: { connect: { id: 'user-france-1' } },
+          submittedBy: { connect: { id: 'user-berny-itoutou' } },
           organization: { connect: { id: 'organization-ambassade-france' } },
           country: { connect: { code: 'FR' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
@@ -789,14 +789,14 @@ async function main() {
           serviceCategory: 'REGISTRATION',
           assignedTo: { connect: { id: 'user-agent-france-1' } },
           service: { connect: { id: 'service-registration' } },
-          submittedBy: { connect: { id: 'user-france-2' } },
+          submittedBy: { connect: { id: 'user-sarah-smith' } },
           organization: { connect: { id: 'organization-ambassade-france' } },
           country: { connect: { code: 'FR' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
           submittedAt: new Date(),
           firstPassValidation: true,
-          requestedFor: { connect: { id: 'profile-france-2' } },
+          requestedFor: { connect: { id: 'profile-sarah-smith' } },
           processingTime: 0,
           requiredDocuments: {
             create: [
@@ -833,7 +833,7 @@ async function main() {
         // Notifications pour user-france-1
         {
           id: 'notification-1',
-          userId: 'user-france-1',
+          userId: 'user-berny-itoutou',
           type: 'CONSULAR_REGISTRATION_SUBMITTED',
           title: 'Inscription consulaire soumise',
           message: "Votre demande d'inscription consulaire a été soumise avec succès.",
@@ -842,7 +842,7 @@ async function main() {
         },
         {
           id: 'notification-2',
-          userId: 'user-france-1',
+          userId: 'user-berny-itoutou',
           type: 'CONSULAR_REGISTRATION_VALIDATED',
           title: 'Dossier validé',
           message:
@@ -852,38 +852,15 @@ async function main() {
         },
         {
           id: 'notification-3',
-          userId: 'user-france-2',
+          userId: 'user-sarah-smith',
           type: 'CONSULAR_CARD_READY',
           title: 'Carte prête pour retrait',
           message:
-            "Votre carte consulaire est prête pour le retrait. <a href='/my-space/appointments/new'>Cliquez ici pour prendre rendez-vous</a>",
+            "Votre carte consulaire est prête pour le retrait. <a href='/my-space/appointments/new?serviceRequestId=service-request-france-2&type=DOCUMENT_COLLECTION'>Cliquez ici pour prendre rendez-vous</a>",
           createdAt: new Date('2024-03-22T09:15:00Z'),
           read: false,
         },
       ],
-    });
-
-    // Optimisation des mises à jour avec updateMany
-    await prisma.serviceRequest.updateMany({
-      where: {
-        id: {
-          in: ['service-request-sarah-smith-1', 'service-request-jean-dupont-1'],
-        },
-      },
-      data: {
-        assignedToId: 'user-agent-france-1',
-      },
-    });
-
-    await prisma.appointment.updateMany({
-      where: {
-        id: {
-          in: ['appointment-sarah-smith-1', 'appointment-jean-dupont-1'],
-        },
-      },
-      data: {
-        agentId: 'user-agent-france-1',
-      },
     });
 
     console.log('✅ Seed completed successfully!');
