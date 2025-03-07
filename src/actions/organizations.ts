@@ -26,6 +26,8 @@ import {
 } from '@/types/organization';
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
+import { sendAdminWelcomeEmail } from '@/emails/actions/email';
+import { env } from '@/lib/env';
 
 export async function getOrganizations(): Promise<OrganizationListingItem[]> {
   await checkAuth([UserRole.SUPER_ADMIN]);
@@ -71,6 +73,13 @@ export async function createOrganization(data: CreateOrganizationInput) {
             connect: { id: organization.id },
           },
         },
+      });
+
+      await sendAdminWelcomeEmail({
+        adminEmail: data.adminEmail,
+        adminName: 'Admin',
+        organizationName: data.name,
+        dashboardUrl: `${env.NEXT_PUBLIC_URL}/dashboard`,
       });
     }
 

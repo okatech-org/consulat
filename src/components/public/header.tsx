@@ -22,7 +22,7 @@ export async function PublicHeader({ session }: { session: Session | null }) {
         <div className="flex w-max gap-3">
           <LanguageSwitcher />
           {!isAuth && <Link
-            href={ROUTES.user.base}
+            href={ROUTES.auth.login}
             className={buttonVariants({ variant: 'default' })}
           >
            <span>{t('nav.login')}</span>

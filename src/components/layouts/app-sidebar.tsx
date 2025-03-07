@@ -174,13 +174,15 @@ export function AppSidebar({
               name: (
                 <span className="flex items-center gap-2">
                   <span>Consulat</span>
-                  <FlagIcon countryCode={user.countryCode as CountryCode} />
+                  {user.countryCode && (
+                    <FlagIcon countryCode={user.countryCode as CountryCode} />
+                  )}
                 </span>
               ),
               logo: GalleryVerticalEnd,
               plan: user.countryCode && (
                 <span className="flex items-center gap-2">
-                  {t_countries(user.countryCode as CountryCode)}
+                  {user.countryCode && t_countries(user.countryCode as CountryCode)}
                 </span>
               ),
             },
