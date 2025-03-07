@@ -9,10 +9,10 @@ import { ReviewFields } from './review-fields';
 
 interface ReviewProps {
   data: ConsularFormData;
-  onEdit: (step: number) => void;
+  onEditAction: (step: number) => void;
 }
 
-export function ReviewForm({ data, onEdit }: ReviewProps) {
+export function ReviewForm({ data, onEditAction }: ReviewProps) {
   const t = useTranslations('registration');
 
   const sections = [
@@ -56,7 +56,7 @@ export function ReviewForm({ data, onEdit }: ReviewProps) {
           id={section.key}
           title={section.title}
           data={section.data}
-          onEdit={() => onEdit(section.step)}
+          onEdit={() => onEditAction(section.step)}
         />
       ))}
     </div>

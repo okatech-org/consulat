@@ -274,7 +274,7 @@ export function RegistrationForm() {
               contactInfo: forms.contactInfo.getValues(),
               professionalInfo: forms.professionalInfo.getValues(),
             }}
-            onEdit={setCurrentStep}
+            onEditAction={setCurrentStep}
           />
         );
       default:
