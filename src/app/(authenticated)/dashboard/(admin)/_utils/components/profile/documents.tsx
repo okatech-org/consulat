@@ -74,14 +74,17 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
   } | null>(null);
 
   return (
-    <CardContainer title={t_review('sections.documents')} contentClass="space-y-4">
+    <CardContainer
+      title={t_review('sections.documents')}
+      contentClass="grid sm:grid-cols-2 gap-4 sm:gap-6"
+    >
       {documents.map(({ type, label, document }) => {
         const validation = validateDocument(document);
 
         return (
           <div
             key={type}
-            className="flex items-center justify-between border-b py-4 last:border-0"
+            className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
           >
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -89,6 +92,9 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                 {documentValidations?.[document?.type as DocumentType]?.required && (
                   <Badge variant="outline">{t_review('documents.required')}</Badge>
                 )}
+                <Badge variant={document.status.toLowerCase() as BadgeVariant}>
+                  {t(`status.${document.status}`)}
+                </Badge>
               </div>
               {document && (
                 <div className="space-y-1 text-sm text-muted-foreground">
@@ -119,9 +125,6 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
             <div className="flex items-center gap-2">
               {document && (
                 <>
-                  <Badge variant={document.status.toLowerCase() as BadgeVariant}>
-                    {t(`status.${document.status}`)}
-                  </Badge>
                   <DocumentPreview
                     url={document.fileUrl}
                     title={label}
