@@ -12,9 +12,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { getTranslations } from 'next-intl/server';
+import { getActiveCountries } from '@/actions/countries';
 
 export default async function LandingPage() {
   const t = await getTranslations('home');
+  const countries = await getActiveCountries();
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -56,7 +58,7 @@ export default async function LandingPage() {
                 <DialogTitle className="sr-only">
                   {t('hero.start_registration')}
                 </DialogTitle>
-                <SelectRegistrationCountryForm />
+                <SelectRegistrationCountryForm countries={countries} />
               </DialogContent>
             </Dialog>
           </div>

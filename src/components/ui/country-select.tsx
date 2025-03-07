@@ -32,6 +32,7 @@ interface SingleSelectCountry extends BaseCountrySelect {
   type: 'single';
   selected?: CountryCode;
   onChange: (value: CountryCode) => void;
+  disabledOptions?: CountryCode[];
 }
 
 // Extend the base interface for multi select
@@ -39,6 +40,7 @@ interface MultiSelectCountry extends BaseCountrySelect {
   type: 'multiple';
   selected?: CountryCode[];
   onChange: (values: CountryCode[]) => void;
+  disabledOptions?: CountryCode[];
 }
 
 // Use a discriminated union for the props
@@ -56,6 +58,7 @@ export function CountrySelect(props: CountrySelectProps) {
     placeholder = t('country.placeholder'),
     searchPlaceholder = t('country.search'),
     emptyText = t('country.empty'),
+    disabledOptions = [],
   } = props;
   const onChange = (value: CountryCode | CountryCode[]) => {
     if (type === 'single') {
@@ -110,6 +113,7 @@ export function CountrySelect(props: CountrySelectProps) {
                       onChange(country);
                       setOpen(false);
                     }}
+                    disabled={disabledOptions.includes(country)}
                   >
                     <div className="flex items-center gap-2">
                       <FlagIcon countryCode={country} />

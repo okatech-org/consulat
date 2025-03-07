@@ -26,8 +26,13 @@ import { CountrySelect } from '../ui/country-select';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
+import { Country, CountryStatus } from '@prisma/client';
 
-export function RegistrationForm() {
+export function RegistrationForm({
+  availableCountries,
+}: {
+  availableCountries: Country[];
+}) {
   const searchParams = useSearchParams();
   const country = searchParams.get('country') as CountryCode;
   const router = useRouter();
@@ -324,7 +329,7 @@ export function RegistrationForm() {
       </div>
       <Dialog open={!country}>
         <DialogContent>
-          <SelectRegistrationCountryForm />
+          <SelectRegistrationCountryForm countries={availableCountries} />
         </DialogContent>
       </Dialog>
     </>
@@ -346,13 +351,11 @@ function AnalysisWarningBanner() {
   );
 }
 
-export function SelectRegistrationCountryForm() {
+export function SelectRegistrationCountryForm({ countries }: { countries: Country[] }) {
   const t = useTranslations('registration');
   const [selectedCountry, setSelectedCountry] = useState<CountryCode | undefined>(
-    undefined,
+    countries[0]?.code as CountryCode,
   );
-  const availableCountries = (process.env.NEXT_PUBLIC_AVAILABLE_COUNTRIES?.split(',') ??
-    []) as CountryCode[];
 
   return (
     <div className="space-y-4">
@@ -364,7 +367,10 @@ export function SelectRegistrationCountryForm() {
           type="single"
           selected={selectedCountry}
           onChange={(value) => setSelectedCountry(value)}
-          options={availableCountries}
+          options={countries.map((item) => item.code as CountryCode)}
+          disabledOptions={countries
+            .filter((item) => item.status !== CountryStatus.ACTIVE)
+            .map((item) => item.code as CountryCode)}
         />
       </div>
       <Button asChild>

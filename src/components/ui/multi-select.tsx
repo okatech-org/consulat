@@ -56,8 +56,6 @@ export function MultiSelect<T>({
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
 
-  console.log({ options, selected });
-
   // Create a safe array of selected values regardless of type
   const selectedValues = React.useMemo(() => {
     if (type === 'multiple') {

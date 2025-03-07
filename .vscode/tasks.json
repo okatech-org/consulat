@@ -9,6 +9,96 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "Check",
+      "type": "shell",
+      "command": "bun run check"
+    },
+    {
+      "label": "DB Generate",
+      "type": "shell",
+      "command": "bun run db:generate"
+    },
+    {
+      "label": "DB Migrate",
+      "type": "shell",
+      "command": "bun run db:migrate"
+    },
+    {
+      "label": "DB Push",
+      "type": "shell",
+      "command": "bun run db:push"
+    },
+    {
+      "label": "DB Studio",
+      "type": "shell",
+      "command": "bun run db:studio"
+    },
+    {
+      "label": "DB Server",
+      "type": "shell",
+      "command": "bun run db:server"
+    },
+    {
+      "label": "DB Seed",
+      "type": "shell",
+      "command": "npm run db:seed"
+    },
+    {
+      "label": "Tree",
+      "type": "shell",
+      "command": "bun run tree"
+    },
+    {
+      "label": "Dev",
+      "type": "shell",
+      "command": "bun run dev"
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "bun run lint"
+    },
+    {
+      "label": "Lint Fix",
+      "type": "shell",
+      "command": "bun run lint:fix"
+    },
+    {
+      "label": "Preview",
+      "type": "shell",
+      "command": "bun run preview"
+    },
+    {
+      "label": "Start",
+      "type": "shell",
+      "command": "bun run start"
+    },
+    {
+      "label": "Type Check",
+      "type": "shell",
+      "command": "bun run typecheck"
+    },
+    {
+      "label": "AI Summary",
+      "type": "shell",
+      "command": "bun run ai-sum"
+    },
+    {
+      "label": "Format Write",
+      "type": "shell",
+      "command": "bun run format:write"
+    },
+    {
+      "label": "Format Check",
+      "type": "shell",
+      "command": "bun run format:check"
+    },
+    {
+      "label": "Test",
+      "type": "shell",
+      "command": "bun run test"
     }
   ]
 }

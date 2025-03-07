@@ -4,9 +4,11 @@ import { ROUTES } from '@/schemas/routes';
 import { headers } from 'next/headers';
 import { RegistrationForm } from '@/components/registration/registration-form';
 import { auth } from '@/auth';
+import { getActiveCountries } from '@/actions/countries';
 
 export default async function RegistrationPage() {
   const session = await auth();
+  const countries = await getActiveCountries();
   const currentUser = session?.user;
   const headersList = await headers();
   const pathname = headersList.get('x-current-path') || '/';
@@ -21,7 +23,7 @@ export default async function RegistrationPage() {
           }
         >
           <div className="container flex flex-col py-6">
-            <RegistrationForm />
+            <RegistrationForm availableCountries={countries} />
           </div>
         </main>
       </RouteAuthGuard>
