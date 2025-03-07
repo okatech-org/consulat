@@ -19,7 +19,11 @@ export default auth((req) => {
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
-  response.headers.set('x-current-path', request.nextUrl.pathname);
+  const searchParams = request.nextUrl.searchParams.toString();
+  response.headers.set(
+    'x-current-path',
+    request.nextUrl.pathname + (searchParams ? `?${searchParams}` : ''),
+  );
   return response;
 }
 

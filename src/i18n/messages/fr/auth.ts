@@ -68,8 +68,6 @@ export default {
       privacy_policy: 'Politique de confidentialité',
       terms: "Conditions d'utilisation",
     },
-  },
-  otp: {
     email_subject: 'Code de vérification - Consulat.ga',
     email_title: 'Code de vérification',
     email_description:
@@ -95,6 +93,9 @@ export default {
     phone_placeholder: 'ex: 0612345678',
     login_with_email: "Se connecter avec l'email",
     login_with_phone: 'Se connecter avec le téléphone',
+    light: 'Mode clair',
+    dark: 'Mode sombre',
+    my_space: 'Mon espace',
   },
   labels: {
     otp: 'Code de vérification',

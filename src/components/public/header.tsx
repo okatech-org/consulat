@@ -4,6 +4,7 @@ import { ROUTES } from "@/schemas/routes"
 import { buttonVariants } from "../ui/button"
 import LanguageSwitcher from "../ui/LanguageSwitcher"
 import { Session } from "next-auth"
+import { UserNav } from "../layouts/user-nav"
 
 export async function PublicHeader({ session }: { session: Session | null }) {
   const t = await getTranslations('home');
@@ -20,16 +21,13 @@ export async function PublicHeader({ session }: { session: Session | null }) {
 
         <div className="flex w-max gap-3">
           <LanguageSwitcher />
-          <Link
+          {!isAuth && <Link
             href={ROUTES.user.base}
             className={buttonVariants({ variant: 'default' })}
           >
-            {isAuth ? (
-              <span>{t('nav.profile')}</span>
-            ) : (
-              <span>{t('nav.login')}</span>
-            )}
-          </Link>
+           <span>{t('nav.login')}</span>
+          </Link>}
+          {isAuth && <UserNav user={session?.user} />}
         </div>
       </div>
     </header>
