@@ -373,6 +373,22 @@ async function main() {
       }),
     ]);
 
+    // Créér les comptes super admin
+    await prisma.user.createMany({
+      data: [
+        {
+          id: 'user-super-admin',
+          email: 'superadmin@consulat.ga',
+          roles: [UserRole.SUPER_ADMIN],
+        },
+        {
+          id: 'user-super-admin-2',
+          email: 'superadmin2@consulat.ga',
+          roles: [UserRole.SUPER_ADMIN],
+        },
+      ],
+    });
+
     // Créer des utilisateurs normaux avec leurs profils
     console.log('Creating regular users with profiles...');
     const [bernyUser] = await Promise.all([

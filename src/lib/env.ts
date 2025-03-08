@@ -4,8 +4,10 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
   NEXT_PUBLIC_URL: z.string().url(),
+  AUTH_SECRET: z.string().min(1),
   POSTGRES_URL: z.string().url(),
   RESEND_API_KEY: z.string().min(1),
+  RESEND_SENDER: z.string().min(1),
   UPLOADTHING_SECRET: z.string().min(1),
   ANTHROPIC_API_KEY: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
@@ -16,6 +18,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_BASE_COUNTRY_CODE: z.string().min(1),
   RESIDENT_COUNTRY_CODE: z.string().min(1),
   NEXT_PUBLIC_RESIDENT_COUNTRY_CODE: z.string().min(1),
+  NEXT_PUBLIC_ORG_LOGO: z.string().url(),
+  NEXT_PUBLIC_APP_NAME: z.string().min(1),
 });
 
 // Type d'environnement validé
@@ -34,12 +38,6 @@ export function validateEnv(): Env {
 
 // Créer un objet d'environnement validé
 export const env = validateEnv();
-export const publicEnv = {
-  BASE_COUNTRY_CODE: env.BASE_COUNTRY_CODE,
-  NEXT_PUBLIC_BASE_COUNTRY_CODE: env.NEXT_PUBLIC_BASE_COUNTRY_CODE,
-  NEXT_PUBLIC_RESIDENT_COUNTRY_CODE: env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE,
-};
-
 // Pour le typage, créer un fichier de déclaration séparé
 // src/types/env.d.ts
 declare global {

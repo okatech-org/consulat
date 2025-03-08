@@ -4,44 +4,77 @@ import {
   Body,
   Container,
   Section,
-  Text,
-  Hr,
   Img,
+  Link,
+  Tailwind,
+  Preview,
+  Text,
 } from '@react-email/components';
 import * as React from 'react';
+import { env } from '@/lib/env';
+import { getTranslations } from 'next-intl/server';
 
 interface EmailLayoutProps {
   title: string;
   previewText: string;
   children: React.ReactNode;
+  logo?: string;
+  appName?: string;
 }
 
-export const EmailLayout = ({ title, previewText, children }: EmailLayoutProps) => (
-  <Html lang="fr">
-    <Head>
-      <title>{title}</title>
-    </Head>
-    <Body
-      style={{
-        fontFamily: 'Arial, sans-serif',
-        backgroundColor: '#ffffff',
-        color: '#222222',
-      }}
-    >
-      <Container style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-        <Section style={{ textAlign: 'center', paddingBottom: '20px' }}>
-          <Img src="https://consulat.ga/logo.png" width="120" alt="Consulat.ga" />
-        </Section>
-        <Text style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>
-          {previewText}
-        </Text>
-        <Hr style={{ borderColor: '#eaeaea', margin: '20px 0' }} />
-        {children}
-        <Hr style={{ borderColor: '#eaeaea', margin: '20px 0' }} />
-        <Text style={{ fontSize: '12px', color: '#888888', textAlign: 'center' }}>
-          © {new Date().getFullYear()} Consulat.ga. Tous droits réservés.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-);
+const organizationLogo = env.NEXT_PUBLIC_ORG_LOGO;
+const publicAppName = env.NEXT_PUBLIC_APP_NAME;
+const publicUrl = env.NEXT_PUBLIC_URL;
+
+export const EmailLayout = async ({
+  title,
+  previewText,
+  children,
+  logo = organizationLogo,
+  appName = publicAppName,
+}: EmailLayoutProps) => {
+  const t = await getTranslations('emails.common');
+  const year = new Date().getFullYear();
+
+  return (
+    <Html lang="fr">
+      <Head>
+        <title>{title}</title>
+      </Head>
+      <Preview>{previewText}</Preview>
+      <Tailwind
+        config={{
+          theme: {
+            extend: {
+              colors: {
+                primary: '#1d4ed8',
+                offwhite: '#fafbfb',
+              },
+              spacing: {
+                20: '20px',
+                40: '40px',
+              },
+            },
+          },
+        }}
+      >
+        <Body className="bg-offwhite font-sans text-gray-800">
+          <Container className="bg-white mx-auto my-20 p-40 rounded-lg shadow-md max-w-[600px]">
+            {logo && (
+              <Section className="text-center mb-20">
+                <Img src={logo} width="120" alt={appName} className="mx-auto" />
+              </Section>
+            )}
+            {children}
+            <Section className="text-center mt-20 text-xs text-gray-400">
+              <Text>{t('footer.copyright', { year, appName })}</Text>
+              <Link href={publicUrl} className="underline">
+                {t('footer.cta')}
+              </Link>
+            </Section>
+          </Container>
+        </Body>
+      </Tailwind>
+    </Html>
+  );
+};

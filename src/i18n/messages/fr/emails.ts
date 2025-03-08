@@ -3,8 +3,8 @@ export default {
     logo_alt: 'Consulat Logo',
     title: 'Consulat.ga',
     footer: {
-      copyright: '© {year} Consulat.ga - Tous droits réservés',
       cta: 'Accéder au site',
+      copyright: '© {year} {appName}. Tous droits réservés.',
     },
   },
   otp: {

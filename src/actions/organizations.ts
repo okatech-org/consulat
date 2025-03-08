@@ -63,6 +63,8 @@ export async function createOrganization(data: CreateOrganizationInput) {
       },
     });
 
+    console.log('Organization created:', organization);
+
     // Créer l'utilisateur admin si email fourni
     if (data.adminEmail) {
       await db.user.create({
@@ -77,9 +79,10 @@ export async function createOrganization(data: CreateOrganizationInput) {
 
       await sendAdminWelcomeEmail({
         adminEmail: data.adminEmail,
-        adminName: 'Admin',
+        adminName: `@${data.adminEmail.split('@')[0]}`,
         organizationName: data.name,
-        dashboardUrl: `${env.NEXT_PUBLIC_URL}/dashboard`,
+        dashboardUrl: `${env.NEXT_PUBLIC_URL}/${ROUTES.dashboard.base}`,
+        organizationLogo: `${env.NEXT_PUBLIC_ORG_LOGO}`,
       });
     }
 

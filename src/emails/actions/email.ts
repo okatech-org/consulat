@@ -2,44 +2,50 @@
 
 import { Resend } from 'resend';
 import { getTranslations } from 'next-intl/server';
-import { AdminWelcomeEmailToHtml } from '../AdminWelcomeEmail';
+import { AdminWelcomeEmailToHtml } from '@/emails/AdminWelcomeEmail';
+import { env } from '@/lib/env';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const resend_sender = process.env.RESEND_SENDER ?? 'contact@update.okacode.com';
+const resend = new Resend(env.RESEND_API_KEY);
+const resend_sender = env.RESEND_SENDER;
+const appName = env.NEXT_PUBLIC_APP_NAME;
 
 export async function sendAdminWelcomeEmail({
   adminEmail,
   adminName,
   organizationName,
   dashboardUrl,
+  organizationLogo,
+  links,
 }: {
   adminEmail: string;
   adminName: string;
   organizationName: string;
   dashboardUrl: string;
+  organizationLogo: string;
+  links?: { label: string; url: string }[];
 }) {
   const t = await getTranslations('organization.emails.adminWelcome');
 
   const emailHtml = await AdminWelcomeEmailToHtml({
-    adminName,
-    organizationName,
     dashboardUrl,
-    t: {
-      subject: t('subject', { appName: 'Consulat.ga' }),
-      greeting: t('greeting'),
-      intro: t('intro'),
-      instructions: t('instructions'),
+    organizationLogo,
+    content: {
+      subject: t('subject', { appName }),
+      greeting: t('greeting', { adminName }),
+      intro: t('intro', { organizationName }),
+      instructions: t.raw('instructions'),
       buttonLabel: t('buttonLabel'),
       outro: t('outro'),
-      signature: t('signature'),
+      signature: t('signature', { appName }),
+      links,
     },
   });
 
   try {
     await resend.emails.send({
-      from: `Consulat <${resend_sender}>`,
+      from: `${appName} <${resend_sender}>`,
       to: adminEmail,
-      subject: t('subject', { appName: 'Consulat.ga' }),
+      subject: t('subject', { appName }),
       html: emailHtml,
       tags: [{ name: 'category', value: 'admin-welcome' }],
     });

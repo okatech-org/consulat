@@ -349,12 +349,17 @@ export default {
     adminWelcome: {
       subject: 'Bienvenue sur {appName} !',
       greeting: 'Bonjour {adminName},',
-      intro: "Votre organisme '{organizationName}' a été créé avec succès.",
-      instructions:
-        'Vous pouvez accéder à votre tableau de bord en cliquant sur le bouton ci-dessous :',
+      intro: 'Votre organisme {organizationName} a été créé avec succès.',
+      instructions: [
+        'Cliquez sur le bouton ci-dessous pour accéder à votre tableau de bord',
+        'Configurez les paramètres de votre organisme',
+        'Ajoutez des agents et des services',
+        'Et bien plus encore !',
+      ],
       buttonLabel: 'Accéder au tableau de bord',
       outro: "Si vous avez des questions, n'hésitez pas à nous contacter.",
       signature: "L'équipe {appName}",
+      footer: '© {year} {appName}. Tous droits réservés.',
     },
   },
 } as const;
