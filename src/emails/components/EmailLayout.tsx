@@ -12,7 +12,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import { env } from '@/lib/env';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 interface EmailLayoutProps {
   title: string;
@@ -34,10 +34,11 @@ export const EmailLayout = async ({
   appName = publicAppName,
 }: EmailLayoutProps) => {
   const t = await getTranslations('emails.common');
+  const locale = await getLocale();
   const year = new Date().getFullYear();
 
   return (
-    <Html lang="fr">
+    <Html lang={locale}>
       <Head>
         <title>{title}</title>
       </Head>

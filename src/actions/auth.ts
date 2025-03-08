@@ -3,7 +3,8 @@
 import { signOut } from '@/auth';
 import { db } from '@/lib/prisma';
 import { generateOTP } from '@/lib/user/otp';
-import { sendOTPEmail, sendSMSOTP } from '@/actions/email';
+import { sendSMSOTP } from '@/actions/email';
+import { sendOTPEmail } from '@/emails/actions/email';
 
 export const logUserOut = async () => {
   await signOut();
@@ -15,25 +16,23 @@ export async function sendOTP(identifier: string, type: AuthType) {
   try {
     const generatedOTP = await generateOTP();
 
-    // Supprimer tout OTP existant pour cet identifiant
-    await db.verificationToken.deleteMany({
-      where: {
-        identifier,
-        type,
-      },
-    });
-    
-    // Créer nouveau token
-    await db.verificationToken.create({
-      data: {
-        identifier,
-        token: generatedOTP,
-        expires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
-        type,
-      },
-    });
+    await Promise.all([
+      db.verificationToken.deleteMany({
+        where: {
+          identifier,
+          type,
+        },
+      }),
+      db.verificationToken.create({
+        data: {
+          identifier,
+          token: generatedOTP,
+          expires: new Date(Date.now() + 10 * 60 * 1000),
+          type,
+        },
+      }),
+    ]);
 
-    // Envoyer l'OTP via le canal approprié
     if (type === 'EMAIL') {
       await sendOTPEmail(identifier, generatedOTP);
     } else {

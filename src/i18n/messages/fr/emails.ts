@@ -12,6 +12,9 @@ export default {
     description: 'Voici votre code de vérification pour vous connecter sur Consulat.ga :',
     expiry: 'Ce code est valable pendant 10 minutes. Ne le partagez avec personne.',
     warning: "Si vous n'avez pas demandé ce code, veuillez ignorer cet email.",
+    subject: 'Votre code de vérification',
+    intro: 'Voici votre code de vérification pour vous connecter sur Consulat.ga :',
+    outro: 'Ce code est valable pendant 10 minutes. Ne le partagez avec personne.',
   },
   contact: {
     logo_alt: 'Consulat Logo',

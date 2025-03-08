@@ -4,6 +4,7 @@ import { Resend } from 'resend';
 import { getTranslations } from 'next-intl/server';
 import { AdminWelcomeEmailToHtml } from '@/emails/AdminWelcomeEmail';
 import { env } from '@/lib/env';
+import { OTPEmailToHtml } from '../OTPEmail';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const resend_sender = env.RESEND_SENDER;
@@ -52,5 +53,32 @@ export async function sendAdminWelcomeEmail({
   } catch (error) {
     console.error('Failed to send admin welcome email:', error);
     throw new Error('Failed to send admin welcome email');
+  }
+}
+
+export async function sendOTPEmail(email: string, otp: string) {
+  const t = await getTranslations('emails.otp');
+
+  const emailHtml = await OTPEmailToHtml({
+    otp,
+    content: {
+      subject: t('subject'),
+      title: t('title'),
+      intro: t('intro'),
+      outro: t('outro'),
+      warning: t('warning'),
+    },
+  });
+  try {
+    await resend.emails.send({
+      from: `${env.NEXT_PUBLIC_APP_NAME} <${env.RESEND_SENDER}>`,
+      to: email,
+      subject: t('subject'),
+      html: emailHtml,
+      tags: [{ name: 'category', value: 'otp' }],
+    });
+  } catch (error) {
+    console.error('Failed to send OTP email:', error);
+    throw new Error('Failed to send OTP email');
   }
 }
