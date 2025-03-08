@@ -19,7 +19,6 @@ export async function sendSMSOTP(phone: string, otp: string) {
     });
 
     await sendSMS(phone, message);
-    console.log(t('logs.success', { phone }));
   } catch (error) {
     console.error(t('logs.error'), error);
 

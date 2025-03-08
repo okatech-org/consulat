@@ -30,17 +30,13 @@ export async function assignAgentToRequest(
     },
   });
 
-  if (!request) {
-    throw new Error('Request not found');
-  }
-
-  if (request.organizationId !== organizationId) {
-    throw new Error('Request not found');
+  if (!request || request.organizationId !== organizationId) {
+    throw new Error('request_not_found');
   }
 
   // Si déjà assigné, on ne réassigne pas
   if (request.assignedTo) {
-    throw new Error('Request already assigned');
+    throw new Error('request_already_assigned');
   }
 
   const agents = await getAvailableAgents(
@@ -50,7 +46,7 @@ export async function assignAgentToRequest(
   );
 
   if (agents.length === 0) {
-    throw new Error('No agents available');
+    throw new Error('no_agents_available');
   }
 
   // Algorithme d'assignation basé sur plusieurs facteurs
@@ -68,28 +64,39 @@ export async function assignAgentToRequest(
     },
   });
 
-  // Créer une action pour tracer l'assignation
-  await dbTx.requestAction.create({
-    data: {
-      type: RequestActionType.ASSIGNMENT,
-      requestId: requestId,
-      userId: assignedAgent.id,
+  await Promise.all([
+    // Créer une action pour tracer l'assignation
+    await dbTx.requestAction.create({
       data: {
-        previousStatus: request.status,
-        newStatus: 'PENDING',
+        type: RequestActionType.ASSIGNMENT,
+        requestId: requestId,
+        userId: assignedAgent.id,
+        data: {
+          previousStatus: request.status,
+          newStatus: 'PENDING',
+        },
       },
-    },
-  });
-
-  // créer une notification pour l'agent
-  await createNotification({
-    userId: assignedAgent.id,
-    type: NotificationType.REQUEST_NEW,
-    title: t('agent.notifications.REQUEST_NEW.title'),
-    message: t('agent.notifications.REQUEST_NEW.message', {
-      requestType: `<a href="${ROUTES.dashboard.service_requests(requestId)}" class="link-button">${t(`common.service_categories.${request.serviceCategory}`)}</a>`,
     }),
-  });
+    // créer une notification pour l'agent
+    await createNotification({
+      userId: assignedAgent.id,
+      type: NotificationType.REQUEST_NEW,
+      title: t('agent.notifications.REQUEST_NEW.title'),
+      message: t('agent.notifications.REQUEST_NEW.message', {
+        requestType: `<a href="${ROUTES.dashboard.service_requests(requestId)}" class="link-button">${t(`common.service_categories.${request.serviceCategory}`)}</a>`,
+      }),
+      ...(assignedAgent.email && {
+        sendEmail: {
+          email: assignedAgent.email,
+          actionUrl: ROUTES.dashboard.service_requests(requestId),
+          actionLabel: t('agent.notifications.REQUEST_NEW.see_request'),
+          ...(assignedAgent.firstName && {
+            name: `${assignedAgent.firstName} ${assignedAgent.lastName}`,
+          }),
+        },
+      }),
+    }),
+  ]);
 
   return updatedRequest;
 }
@@ -118,28 +125,26 @@ async function selectBestAgent(agents: Agent[], requestPriority: string): Promis
   // Trier par score et sélectionner le meilleur
   const sortedAgents = agentScores.sort((a, b) => b.score - a.score);
 
-  console.log('sortedAgents', sortedAgents);
-
   if (sortedAgents.length === 0) {
-    throw new Error('No qualified agents available');
+    throw new Error('no_qualified_agents_available');
   }
 
   // Si la requête est urgente, prendre le meilleur agent disponible
   if (requestPriority === 'URGENT') {
     const urgentAgent = sortedAgents[0];
-    if (!urgentAgent) throw new Error('No urgent agent available');
+    if (!urgentAgent) throw new Error('no_urgent_agent_available');
     return urgentAgent.agent;
   }
 
   // Pour les requêtes standard, ajouter un peu de randomisation parmi les 3 meilleurs
   const topAgents = sortedAgents.slice(0, Math.min(3, sortedAgents.length));
   if (topAgents.length === 0) {
-    throw new Error('No agents available after filtering');
+    throw new Error('no_agents_available_after_filtering');
   }
 
   const randomIndex = Math.floor(Math.random() * topAgents.length);
   const selectedAgent = topAgents[randomIndex];
-  if (!selectedAgent) throw new Error('Failed to select random agent');
+  if (!selectedAgent) throw new Error('failed_to_select_random_agent');
   return selectedAgent.agent;
 }
 

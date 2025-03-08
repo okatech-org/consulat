@@ -11,7 +11,7 @@ import { updateProfile } from '@/actions/profile';
 import { Badge } from '@/components/ui/badge';
 import { Flag, Mail, Phone } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { filterUneditedKeys, extractFieldsFromObject } from '@/lib/utils';
+import { filterUneditedKeys, extractFieldsFromObject, tryCatch } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
 import { InfoField } from '@/components/ui/info-field';
 import { DisplayAddress } from '@/components/ui/display-address';
@@ -27,6 +27,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
   const t_countries = useTranslations('countries');
   const t = useTranslations('registration');
   const t_messages = useTranslations('messages.profile');
+  const t_errors = useTranslations('messages.errors');
   const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -47,43 +48,35 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
   });
 
   const handleSave = async () => {
-    try {
-      setIsLoading(true);
-      const data = form.getValues();
+    setIsLoading(true);
+    const data = form.getValues();
 
-      filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
+    filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
 
-      const formData = new FormData();
-      formData.append('contactInfo', JSON.stringify(data));
+    const formData = new FormData();
+    formData.append('contactInfo', JSON.stringify(data));
 
-      const result = await updateProfile(formData, 'contactInfo');
+    const result = await tryCatch(updateProfile(formData, 'contactInfo'));
 
-      if (result.error) {
-        toast({
-          title: t_messages('errors.update_failed'),
-          description: result.error,
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (result.error) {
+      toast({
+        title: t_messages('errors.update_failed'),
+        description: t_errors(result.error.message),
+        variant: 'destructive',
+      });
+      return;
+    }
 
+    if (result.data) {
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
         variant: 'success',
       });
-
       setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating contact info:', error);
-      toast({
-        title: t_messages('errors.update_failed'),
-        description: t_messages('errors.unknown'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   const handleCancel = () => {

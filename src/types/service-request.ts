@@ -148,7 +148,8 @@ export type FullServiceRequest = Prisma.ServiceRequestGetPayload<
   service: ConsularService;
   submittedBy: User;
   requiredDocuments: AppUserDocument[];
-  formData?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  formData?: Record<string, any>;
 };
 
 // Fonction helper pour créer un include personnalisé

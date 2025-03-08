@@ -1,6 +1,6 @@
-import { RequestStatus } from '@prisma/client';
+import { ProfileCategory, RequestStatus } from '@prisma/client';
 import { FullProfile } from '@/types/profile';
-import { calculateProfileCompletion } from '@/lib/utils';
+import { calculateChildProfileCompletion, calculateProfileCompletion } from '@/lib/utils';
 import { FullServiceRequest } from '@/types/service-request';
 
 type TransitionCheck = {
@@ -13,14 +13,17 @@ export function canSwitchTo(
   request: FullServiceRequest,
   profile: FullProfile,
 ): TransitionCheck {
-  const completionRate = calculateProfileCompletion(profile);
+  const completionRate =
+    profile.category === ProfileCategory.MINOR
+      ? calculateChildProfileCompletion(profile)
+      : calculateProfileCompletion(profile);
 
   switch (targetStatus) {
     case RequestStatus.VALIDATED:
       if (completionRate < 100) {
         return { can: false, reason: 'incomplete_profile' };
       }
-      if (!allDocumentsValidated(profile)) {
+      if (!allDocumentsValidated(profile, profile.category)) {
         return { can: false, reason: 'incomplete_documents' };
       }
       return { can: true };
@@ -28,7 +31,7 @@ export function canSwitchTo(
       if (completionRate < 100) {
         return { can: false, reason: 'incomplete_profile' };
       }
-      if (!allDocumentsValidated(profile)) {
+      if (!allDocumentsValidated(profile, profile.category)) {
         return { can: false, reason: 'incomplete_documents' };
       }
 
@@ -38,14 +41,17 @@ export function canSwitchTo(
   }
 }
 
-function allDocumentsValidated(profile: FullProfile): boolean {
-  const requiredDocs = [
-    profile.identityPicture,
-    profile.passport,
-    profile.birthCertificate,
-    profile.residencePermit,
-    profile.addressProof,
-  ];
+function allDocumentsValidated(profile: FullProfile, category: ProfileCategory): boolean {
+  const requiredDocs =
+    category === ProfileCategory.MINOR
+      ? [profile.identityPicture, profile.birthCertificate]
+      : [
+          profile.identityPicture,
+          profile.passport,
+          profile.birthCertificate,
+          profile.residencePermit,
+          profile.addressProof,
+        ];
 
   return requiredDocs.every((doc) => doc?.status === 'VALIDATED');
 }

@@ -13,7 +13,7 @@ import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
 import { Briefcase, Building2, MapPin } from 'lucide-react';
-import { filterUneditedKeys } from '@/lib/utils';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ProfessionalInfoForm } from '@/components/registration/professional-info';
 import { InfoField } from '@/components/ui/info-field';
 
@@ -24,6 +24,7 @@ interface ProfessionalInfoSectionProps {
 export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
+  const t_errors = useTranslations('messages.errors');
   const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -41,43 +42,34 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
   });
 
   const handleSave = async () => {
-    try {
-      setIsLoading(true);
-      const data = form.getValues();
+    setIsLoading(true);
+    const data = form.getValues();
 
-      filterUneditedKeys<ProfessionalInfoFormData>(data, form.formState.dirtyFields);
+    filterUneditedKeys<ProfessionalInfoFormData>(data, form.formState.dirtyFields);
 
-      const formData = new FormData();
-      formData.append('professionalInfo', JSON.stringify(data));
+    const formData = new FormData();
+    formData.append('professionalInfo', JSON.stringify(data));
 
-      const result = await updateProfile(formData, 'professionalInfo');
+    const result = await tryCatch(updateProfile(formData, 'professionalInfo'));
 
-      if (result.error) {
-        toast({
-          title: t_messages('errors.update_failed'),
-          description: result.error,
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (result.error) {
+      toast({
+        title: t_messages('errors.update_failed'),
+        description: t_errors(result.error.message),
+        variant: 'destructive',
+      });
+    }
 
+    if (result.data) {
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
         variant: 'success',
       });
-
       setIsEditing(false);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: t_messages('errors.update_failed'),
-        description: t_messages('errors.unknown'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   const handleCancel = () => {

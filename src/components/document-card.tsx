@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Download, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { AppUserDocument } from '@/types';
+import { useDateLocale } from '@/lib/utils';
 
 interface DocumentCardProps {
   document: AppUserDocument;
@@ -21,6 +22,7 @@ interface DocumentCardProps {
 
 export function DocumentCard({ document }: DocumentCardProps) {
   const t = useTranslations('common.documents');
+  const { formatDate } = useDateLocale();
 
   const getStatusIcon = () => {
     switch (document.status) {
@@ -62,7 +64,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">
             {/* @ts-expect-error - Document type is not in the list of expected types */}
-            {t(`types.${document.type.toLowerCase()}`)}
+            {document?.type && t(`types.${document.type.toLowerCase()}`)}
           </CardTitle>
           <Badge
             variant={
@@ -85,9 +87,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
           {document.expiresAt && (
             <p className="text-sm text-muted-foreground">
               {t('expires_on', {
-                date: format(new Date(document.expiresAt), 'dd MMMM yyyy', {
-                  locale: fr,
-                }),
+                date: formatDate(document.expiresAt, 'dd MMMM yyyy'),
               })}
             </p>
           )}

@@ -46,7 +46,6 @@ export default async function RequestsPage({ searchParams }: Props) {
 
     if (serviceCategoriesResult.data) {
       serviceCategories = serviceCategoriesResult.data;
-      console.log('serviceCategories', serviceCategories);
     }
   }
 

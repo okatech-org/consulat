@@ -22,8 +22,6 @@ interface ProfilePageProps {
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { id } = await params;
 
-  console.log(id);
-
   if (!id) return undefined;
 
   const { data: profile } = await tryCatch(getUserFullProfileById(id));

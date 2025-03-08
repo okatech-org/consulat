@@ -4,9 +4,10 @@ import { Profile } from '@prisma/client';
 import { phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
-import { DateTimeFormatOptions, useLocale } from 'next-intl';
+import { DateTimeFormatOptions, MessageKeys, useLocale } from 'next-intl';
 import { es, fr, enUS, Locale } from 'date-fns/locale';
 import { format } from 'date-fns';
+import messages from '@/i18n/messages/fr/messages';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -475,14 +476,16 @@ export async function safePromise<T, E = Error>(
   }
 }
 
-export async function tryCatch<T, E = Error>(
+export type ErrorMessageKey = keyof typeof messages.errors;
+
+export async function tryCatch<T>(
   promise: Promise<T>,
-): Promise<{ error: E | null; data: T | null }> {
+): Promise<{ error: (Error & { message: ErrorMessageKey }) | null; data: T | null }> {
   try {
     const result = await promise;
     return { error: null, data: result };
   } catch (error) {
-    return { error: error as E, data: null };
+    return { error: error as Error & { message: ErrorMessageKey }, data: null };
   }
 }
 

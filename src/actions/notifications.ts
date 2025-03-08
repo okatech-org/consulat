@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/actions/user';
 import { db } from '@/lib/prisma';
 import { Notification, NotificationType } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
+import { sendNotificationEmail } from '@/emails/actions/email';
 
 export async function getUnreadNotificationsCount() {
   try {
@@ -93,6 +94,12 @@ interface CreateNotificationParams {
   title: string;
   message: string;
   profileId?: string;
+  sendEmail?: {
+    email: string;
+    actionUrl?: string;
+    actionLabel?: string;
+    name?: string;
+  };
 }
 
 export async function createNotification(params: CreateNotificationParams) {
@@ -106,6 +113,17 @@ export async function createNotification(params: CreateNotificationParams) {
         profileId: params.profileId,
       },
     });
+
+    if (params.sendEmail) {
+      await sendNotificationEmail({
+        email: params.sendEmail.email,
+        name: params.sendEmail.name,
+        notificationTitle: params.title,
+        notificationMessage: params.message,
+        actionUrl: params.sendEmail.actionUrl,
+        actionLabel: params.sendEmail.actionLabel,
+      });
+    }
   } catch (error) {
     console.error('Error creating notification:', error);
     throw error;

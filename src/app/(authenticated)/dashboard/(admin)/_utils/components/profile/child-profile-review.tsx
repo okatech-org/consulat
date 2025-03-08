@@ -7,9 +7,7 @@ import React, { useState } from 'react';
 import { RequestStatus } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  calculateProfileCompletion,
   useDateLocale,
-  getProfileFieldsStatus,
   tryCatch,
   calculateChildProfileCompletion,
   getChildProfileFieldsStatus,

@@ -35,4 +35,10 @@ export default {
     success: 'Email envoyé, vous serez recontacté prochainement',
     error: "Échec de l'envoi de l'email",
   },
+  notification: {
+    subject: 'Nouvelle notification sur {appName}',
+    greeting: 'Bonjour {name},',
+    outro: "Pour plus d'informations, veuillez cliquer sur le lien ci-dessous :",
+    signature: 'Cordialement, {appName}',
+  },
 } as const;

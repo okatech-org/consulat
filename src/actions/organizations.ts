@@ -63,8 +63,6 @@ export async function createOrganization(data: CreateOrganizationInput) {
       },
     });
 
-    console.log('Organization created:', organization);
-
     // Créer l'utilisateur admin si email fourni
     if (data.adminEmail) {
       await db.user.create({

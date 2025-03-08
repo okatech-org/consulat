@@ -22,7 +22,7 @@ import {
   NotificationType,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
-import { createNotification } from '@/lib/notifications';
+import { createNotification } from './notifications';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {

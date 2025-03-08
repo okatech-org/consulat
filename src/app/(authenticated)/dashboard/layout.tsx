@@ -1,6 +1,6 @@
 import { getCurrentUser } from '@/actions/user';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
-import { hasAnyRole } from '@/lib/permissions/utils';
+import { hasRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
 
 export default async function DashboardLayout({
@@ -10,13 +10,13 @@ export default async function DashboardLayout({
 }) {
   const user = await getCurrentUser();
 
-  const isAdmin = user && hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
+  const isUser = user && hasRole(user, 'USER');
 
   return (
     <RouteAuthGuard
       user={user}
-      roles={['USER']}
-      fallbackUrl={isAdmin ? ROUTES.dashboard.base : undefined}
+      roles={['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']}
+      fallbackUrl={isUser ? ROUTES.user.base : undefined}
     >
       <div className="flex flex-col gap-4">{children}</div>
     </RouteAuthGuard>

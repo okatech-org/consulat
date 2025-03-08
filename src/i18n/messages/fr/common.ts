@@ -41,15 +41,6 @@ export default {
     urgent: 'Urgent',
     standard: 'Standard',
   },
-  languages: {
-    label: 'Langue',
-    fr: 'Français',
-    fr_short: 'FR',
-    en: 'Anglais',
-    en_short: 'EN',
-    es: 'Espagnol',
-    es_short: 'ES',
-  },
   nav: {
     appointments: 'RDV',
     home: 'Accueil',

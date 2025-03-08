@@ -16,7 +16,6 @@ export async function sendSMS(to: string, message: string) {
       to: formatPhoneNumber(to),
     });
 
-    console.log('SMS sent successfully. SID:', response.sid);
     return response;
   } catch (error) {
     console.error('Error sending SMS:', error);

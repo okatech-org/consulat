@@ -23,7 +23,7 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { deleteFiles } from '@/actions/uploads';
-import { calculateProfileCompletion } from '@/lib/utils';
+import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { FullProfileInclude } from '@/types';
@@ -355,110 +355,94 @@ type UpdateProfileSection = {
 export async function updateProfile(
   formData: FormData,
   section: keyof UpdateProfileSection,
-): Promise<ActionResult<Profile>> {
+): Promise<Profile> {
   const t = await getTranslations('messages.profile.errors');
-  const user = await getCurrentUser();
+  const { user } = await checkAuth();
 
   if (!user || !user?.id) {
-    return { error: t('unauthorized') };
+    throw new Error(t('unauthorized'));
   }
 
-  console.log('section', section, formData);
+  const existingProfile = await db.profile.findUnique({
+    where: { userId: user.id },
+    include: {
+      address: true,
+      homeLandContact: true,
+      residentContact: true,
+    },
+  });
 
-  try {
-    // Récupérer le profil existant
-    const existingProfile = await db.profile.findUnique({
-      where: { userId: user.id },
-      include: {
-        address: true,
-        homeLandContact: true,
-        residentContact: true,
+  if (!existingProfile) {
+    throw new Error(t('profile_not_found'));
+  }
+
+  // Récupérer les données JSON de la section
+  const sectionData = formData.get(section);
+  if (!sectionData) {
+    throw new Error(t('invalid_data'));
+  }
+
+  const data = JSON.parse(sectionData as string);
+
+  const {
+    passportIssueDate,
+    passportExpiryDate,
+    phone,
+    address,
+    addressInGabon,
+    residentContact,
+    homeLandContact,
+    ...remain
+  } = data;
+
+  // Préparer les données de mise à jour en fonction de la section
+  const updateData: Prisma.ProfileUpdateInput = {
+    ...remain,
+    ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
+    ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
+    ...(phone && {
+      phone: {
+        upsert: {
+          create: {
+            number: phone.number,
+            countryCode: phone.countryCode,
+          },
+          update: {
+            number: phone.number,
+            countryCode: phone.countryCode,
+          },
+        },
       },
-    });
-
-    if (!existingProfile) {
-      return { error: t('profile_not_found') };
-    }
-
-    // Récupérer les données JSON de la section
-    const sectionData = formData.get(section);
-    if (!sectionData) {
-      return { error: t('invalid_data') };
-    }
-
-    const data = JSON.parse(sectionData as string);
-
-    const {
-      passportIssueDate,
-      passportExpiryDate,
-      phone,
-      address,
-      addressInGabon,
-      residentContact,
-      homeLandContact,
-      ...remain
-    } = data;
-
-    // Préparer les données de mise à jour en fonction de la section
-    const updateData: Prisma.ProfileUpdateInput = {
-      ...remain,
-      ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
-      ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
-      ...(phone && {
-        phone: {
-          upsert: {
-            create: {
-              number: phone.number,
-              countryCode: phone.countryCode,
-            },
-            update: {
-              number: phone.number,
-              countryCode: phone.countryCode,
-            },
-          },
+    }),
+    ...(address && {
+      address: {
+        upsert: {
+          create: address,
+          update: address,
         },
-      }),
-      ...(address && {
-        address: {
-          upsert: {
-            create: address,
-            update: address,
-          },
+      },
+    }),
+    ...(addressInGabon && {
+      addressInGabon: {
+        upsert: {
+          create: addressInGabon,
+          update: addressInGabon,
         },
-      }),
-      ...(addressInGabon && {
-        addressInGabon: {
-          upsert: {
-            create: addressInGabon,
-            update: addressInGabon,
-          },
-        },
-      }),
-      ...(residentContact && {
-        residentContact: {
-          upsert: {
-            create: {
-              firstName: residentContact.firstName,
-              lastName: residentContact.lastName,
-              relationship: residentContact.relationship,
-              phone: {
-                upsert: {
-                  create: {
-                    number: residentContact.phone.number,
-                    countryCode: residentContact.phone.countryCode,
-                  },
-                  update: {
-                    number: residentContact.phone.number,
-                    countryCode: residentContact.phone.countryCode,
-                  },
+      },
+    }),
+    ...(residentContact && {
+      residentContact: {
+        upsert: {
+          create: {
+            firstName: residentContact.firstName,
+            lastName: residentContact.lastName,
+            relationship: residentContact.relationship,
+            phone: {
+              upsert: {
+                create: {
+                  number: residentContact.phone.number,
+                  countryCode: residentContact.phone.countryCode,
                 },
-              },
-            },
-            update: {
-              firstName: residentContact.firstName,
-              lastName: residentContact.lastName,
-              relationship: residentContact.relationship,
-              phone: {
                 update: {
                   number: residentContact.phone.number,
                   countryCode: residentContact.phone.countryCode,
@@ -466,33 +450,33 @@ export async function updateProfile(
               },
             },
           },
-        },
-      }),
-      ...(homeLandContact && {
-        homeLandContact: {
-          upsert: {
-            create: {
-              firstName: homeLandContact.firstName,
-              lastName: homeLandContact.lastName,
-              relationship: homeLandContact.relationship,
-              phone: {
-                upsert: {
-                  create: {
-                    number: homeLandContact.phone.number,
-                    countryCode: homeLandContact.phone.countryCode,
-                  },
-                  update: {
-                    number: homeLandContact.phone.number,
-                    countryCode: homeLandContact.phone.countryCode,
-                  },
-                },
+          update: {
+            firstName: residentContact.firstName,
+            lastName: residentContact.lastName,
+            relationship: residentContact.relationship,
+            phone: {
+              update: {
+                number: residentContact.phone.number,
+                countryCode: residentContact.phone.countryCode,
               },
             },
-            update: {
-              firstName: homeLandContact.firstName,
-              lastName: homeLandContact.lastName,
-              relationship: homeLandContact.relationship,
-              phone: {
+          },
+        },
+      },
+    }),
+    ...(homeLandContact && {
+      homeLandContact: {
+        upsert: {
+          create: {
+            firstName: homeLandContact.firstName,
+            lastName: homeLandContact.lastName,
+            relationship: homeLandContact.relationship,
+            phone: {
+              upsert: {
+                create: {
+                  number: homeLandContact.phone.number,
+                  countryCode: homeLandContact.phone.countryCode,
+                },
                 update: {
                   number: homeLandContact.phone.number,
                   countryCode: homeLandContact.phone.countryCode,
@@ -500,210 +484,212 @@ export async function updateProfile(
               },
             },
           },
+          update: {
+            firstName: homeLandContact.firstName,
+            lastName: homeLandContact.lastName,
+            relationship: homeLandContact.relationship,
+            phone: {
+              update: {
+                number: homeLandContact.phone.number,
+                countryCode: homeLandContact.phone.countryCode,
+              },
+            },
+          },
         },
-      }),
-    };
+      },
+    }),
+  };
 
-    const documents = {
-      passportFile: formData.get('passportFile') as File,
-      birthCertificateFile: formData.get('birthCertificateFile') as File,
-      residencePermitFile: formData.get('residencePermitFile') as File,
-      addressProofFile: formData.get('addressProofFile') as File,
-    };
+  const documents = {
+    passportFile: formData.get('passportFile') as File,
+    birthCertificateFile: formData.get('birthCertificateFile') as File,
+    residencePermitFile: formData.get('residencePermitFile') as File,
+    addressProofFile: formData.get('addressProofFile') as File,
+  };
 
-    // Traiter chaque document
-    const uploadPromises = Object.entries(documents)
-      .filter(([, file]) => file)
-      .map(async ([key, file]) => {
-        const formDataForUpload = new FormData();
-        formDataForUpload.append('files', file);
-        const uploadedFile = await processFileData(formDataForUpload);
-        return { key, url: uploadedFile?.url };
-      });
+  // Traiter chaque document
+  const uploadPromises = Object.entries(documents)
+    .filter(([, file]) => file)
+    .map(async ([key, file]) => {
+      const formDataForUpload = new FormData();
+      formDataForUpload.append('files', file);
+      const uploadedFile = await processFileData(formDataForUpload);
+      return { key, url: uploadedFile?.url };
+    });
 
-    const uploadedFiles = await Promise.all(uploadPromises);
+  const uploadedFiles = await Promise.all(uploadPromises);
 
-    uploadedFiles.forEach(({ key, url }) => {
-      if (url) {
-        switch (key) {
-          case 'passportFile':
-            updateData.passport = {
-              create: {
-                type: DocumentType.PASSPORT,
-                fileUrl: url,
-                status: DocumentStatus.PENDING,
-              },
-            };
-            break;
-          case 'birthCertificateFile':
-            updateData.birthCertificate = {
-              create: {
-                type: DocumentType.BIRTH_CERTIFICATE,
-                fileUrl: url,
-                status: DocumentStatus.PENDING,
-              },
-            };
-            break;
-          case 'residencePermitFile':
-            updateData.residencePermit = {
-              create: {
-                type: DocumentType.RESIDENCE_PERMIT,
-                fileUrl: url,
-                status: DocumentStatus.PENDING,
-              },
-            };
-            break;
-          case 'addressProofFile':
-            updateData.addressProof = {
-              create: {
-                type: DocumentType.PROOF_OF_ADDRESS,
-                fileUrl: url,
-                status: DocumentStatus.PENDING,
-              },
-            };
-            break;
-        }
+  uploadedFiles.forEach(({ key, url }) => {
+    if (url) {
+      switch (key) {
+        case 'passportFile':
+          updateData.passport = {
+            create: {
+              type: DocumentType.PASSPORT,
+              fileUrl: url,
+              status: DocumentStatus.PENDING,
+            },
+          };
+          break;
+        case 'birthCertificateFile':
+          updateData.birthCertificate = {
+            create: {
+              type: DocumentType.BIRTH_CERTIFICATE,
+              fileUrl: url,
+              status: DocumentStatus.PENDING,
+            },
+          };
+          break;
+        case 'residencePermitFile':
+          updateData.residencePermit = {
+            create: {
+              type: DocumentType.RESIDENCE_PERMIT,
+              fileUrl: url,
+              status: DocumentStatus.PENDING,
+            },
+          };
+          break;
+        case 'addressProofFile':
+          updateData.addressProof = {
+            create: {
+              type: DocumentType.PROOF_OF_ADDRESS,
+              fileUrl: url,
+              status: DocumentStatus.PENDING,
+            },
+          };
+          break;
       }
-    });
+    }
+  });
 
-    // Mettre à jour le profil
-    const updatedProfile = await db.profile.update({
-      where: { id: existingProfile.id },
-      data: { ...updateData, status: 'DRAFT' },
-      ...FullProfileInclude,
-    });
+  // Mettre à jour le profil
+  const updatedProfile = await db.profile.update({
+    where: { id: existingProfile.id },
+    data: { ...updateData, status: 'DRAFT' },
+    ...FullProfileInclude,
+  });
 
-    return { data: updatedProfile };
-  } catch (error) {
-    console.error('Update components error:', error);
-    return {
-      error: error instanceof Error ? error.message : 'messages.errors.unknown_error',
-    };
-  }
+  return updatedProfile;
 }
 
 export async function submitProfileForValidation(
   profileId: string,
   isChild: boolean = false,
-): Promise<ActionResult<Profile>> {
-  const t = await getTranslations('messages.profile');
-  const currentUser = await getCurrentUser();
+): Promise<Profile> {
+  const { user: currentUser } = await checkAuth();
 
   if (!currentUser || !currentUser.countryCode) {
-    return { error: 'messages.errors.unauthorized' };
+    throw new Error('unauthorized');
   }
 
-  try {
-    const registrationService = await getRegistrationServiceForUser(
-      currentUser.countryCode,
+  const registrationService = await getRegistrationServiceForUser(
+    currentUser.countryCode,
+  );
+
+  if (!registrationService) {
+    throw new Error('service_not_found');
+  }
+
+  // Vérifier que le profil existe et est complet
+  const profile = await db.profile.findUnique({
+    where: { id: profileId },
+    ...FullProfileInclude,
+  });
+
+  if (!profile) {
+    throw new Error('profile_not_found');
+  }
+
+  // Vérifier que tous les components requis sont présents
+  const requiredDocuments = [profile.birthCertificate];
+
+  if (!isChild) {
+    requiredDocuments.push(profile.passport);
+    requiredDocuments.push(profile.addressProof);
+  }
+
+  if (requiredDocuments.some((doc) => !doc)) {
+    throw new Error('missing_documents');
+  }
+
+  // Vérifier que toutes les informations requises sont présentes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const requiredFields: any[] = [
+    profile.firstName,
+    profile.lastName,
+    profile.birthDate,
+    profile.birthPlace,
+    profile.nationality,
+  ];
+
+  if (!isChild) {
+    requiredFields.push(
+      profile.address,
+      profile.phone,
+      profile.email,
+      profile.residentContact,
+      profile.homeLandContact,
     );
+  }
 
-    if (!registrationService) {
-      return { error: 'messages.errors.service_not_found' };
-    }
+  if (requiredFields.some((field) => !field)) {
+    throw new Error('incomplete_profile');
+  }
 
-    // Vérifier que le profil existe et est complet
-    const profile = await db.profile.findUnique({
-      where: { id: profileId },
-      ...FullProfileInclude,
-    });
-
-    if (!profile) {
-      return { error: t('errors.profile_not_found') };
-    }
-
-    // Vérifier que tous les components requis sont présents
-    const requiredDocuments = [profile.birthCertificate];
-
-    if (!isChild) {
-      requiredDocuments.push(profile.passport);
-      requiredDocuments.push(profile.addressProof);
-    }
-
-    if (requiredDocuments.some((doc) => !doc)) {
-      return { error: t('errors.missing_documents') };
-    }
-
-    // Vérifier que toutes les informations requises sont présentes
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requiredFields: any[] = [
-      profile.firstName,
-      profile.lastName,
-      profile.birthDate,
-      profile.birthPlace,
-      profile.nationality,
-    ];
-
-    if (!isChild) {
-      requiredFields.push(
-        profile.address,
-        profile.phone,
-        profile.email,
-        profile.residentContact,
-        profile.homeLandContact,
-      );
-    }
-
-    if (requiredFields.some((field) => !field)) {
-      return { error: t('errors.incomplete_profile') };
-    }
-
-    const serviceRequest = await db.serviceRequest.create({
-      data: {
-        serviceCategory: ServiceCategory.REGISTRATION,
-        organization: {
-          connect: {
-            id: registrationService.organizationId ?? '',
-          },
-        },
-        country: {
-          connect: {
-            code: currentUser.countryCode,
-          },
-        },
-        submittedBy: {
-          connect: {
-            id: currentUser.id,
-          },
-        },
-        service: {
-          connect: {
-            id: registrationService.id,
-          },
-        },
-        requestedFor: {
-          connect: {
-            id: profileId,
-          },
+  const serviceRequest = await db.serviceRequest.create({
+    data: {
+      serviceCategory: ServiceCategory.REGISTRATION,
+      organization: {
+        connect: {
+          id: registrationService.organizationId ?? '',
         },
       },
-    });
+      country: {
+        connect: {
+          code: currentUser.countryCode,
+        },
+      },
+      submittedBy: {
+        connect: {
+          id: currentUser.id,
+        },
+      },
+      service: {
+        connect: {
+          id: registrationService.id,
+        },
+      },
+      requestedFor: {
+        connect: {
+          id: profileId,
+        },
+      },
+    },
+  });
 
-    if (registrationService.organizationId) {
-      await assignAgentToRequest(
+  if (registrationService.organizationId) {
+    const { error } = await tryCatch(
+      assignAgentToRequest(
         serviceRequest.id,
         registrationService.organizationId,
         currentUser.countryCode as CountryCode,
         db,
-      );
+      ),
+    );
+
+    if (error) {
+      throw error;
     }
-
-    // Mettre à jour le statut du profil
-    const updatedProfile = await db.profile.update({
-      where: { id: profileId },
-      data: {
-        status: 'SUBMITTED',
-        submittedAt: new Date(),
-      },
-    });
-
-    return { data: updatedProfile };
-  } catch (error) {
-    console.error('Submit components error:', error);
-    return {
-      error: error instanceof Error ? error.message : 'messages.errors.unknown_error',
-    };
   }
+
+  // Mettre à jour le statut du profil
+  return db.profile.update({
+    where: { id: profileId },
+    data: {
+      status: 'SUBMITTED',
+      submittedAt: new Date(),
+    },
+  });
 }
 
 export async function getRegistrationServiceForUser(

@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { AdminWelcomeEmailToHtml } from '@/emails/AdminWelcomeEmail';
 import { env } from '@/lib/env';
 import { OTPEmailToHtml } from '../OTPEmail';
+import { NotificationEmailToHtml } from '@/emails/NotificationEmail';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const resend_sender = env.RESEND_SENDER;
@@ -80,5 +81,51 @@ export async function sendOTPEmail(email: string, otp: string) {
   } catch (error) {
     console.error('Failed to send OTP email:', error);
     throw new Error('Failed to send OTP email');
+  }
+}
+
+interface SendNotificationEmailParams {
+  email: string;
+  notificationTitle: string;
+  notificationMessage: string;
+  actionUrl?: string;
+  actionLabel?: string;
+  name?: string;
+}
+
+export async function sendNotificationEmail({
+  email,
+  name,
+  notificationTitle,
+  notificationMessage,
+  actionUrl,
+  actionLabel,
+}: SendNotificationEmailParams) {
+  const t = await getTranslations('emails.notification');
+
+  const emailHtml = await NotificationEmailToHtml({
+    notificationTitle,
+    notificationMessage,
+    actionUrl,
+    actionLabel,
+    content: {
+      subject: t('subject', { appName }),
+      greeting: t('greeting', { name: name ?? `@${email.split('@')[0]}` }),
+      outro: t('outro'),
+      signature: t('signature', { appName }),
+    },
+  });
+
+  try {
+    await resend.emails.send({
+      from: `${appName} <${resend_sender}>`,
+      to: email,
+      subject: t('subject', { appName }),
+      html: emailHtml,
+      tags: [{ name: 'category', value: 'notification' }],
+    });
+  } catch (error) {
+    console.error('Failed to send notification email:', error);
+    throw new Error('Failed to send notification email');
   }
 }

@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
 import { Users, User2 } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { extractFieldsFromObject, filterUneditedKeys } from '@/lib/utils';
+import { extractFieldsFromObject, filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { InfoField } from '@/components/ui/info-field';
 import { FamilyInfoForm } from '@/components/registration/family-info';
 
@@ -21,6 +21,7 @@ interface FamilyInfoSectionProps {
 export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
+  const t_errors = useTranslations('messages.errors');
   const t_profile = useTranslations('profile');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -42,43 +43,34 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
   });
 
   const handleSave = async () => {
-    try {
-      setIsLoading(true);
-      const data = form.getValues();
+    setIsLoading(true);
+    const data = form.getValues();
 
-      filterUneditedKeys<FamilyInfoFormData>(data, form.formState.dirtyFields);
+    filterUneditedKeys<FamilyInfoFormData>(data, form.formState.dirtyFields);
 
-      const formData = new FormData();
-      formData.append('familyInfo', JSON.stringify(data));
+    const formData = new FormData();
+    formData.append('familyInfo', JSON.stringify(data));
 
-      const result = await updateProfile(formData, 'familyInfo');
+    const result = await tryCatch(updateProfile(formData, 'familyInfo'));
 
-      if (result.error) {
-        toast({
-          title: t_messages('errors.update_failed'),
-          description: result.error,
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (result.error) {
+      toast({
+        title: t_messages('errors.update_failed'),
+        description: t_errors(result.error.message),
+        variant: 'destructive',
+      });
+    }
 
+    if (result.data) {
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
         variant: 'success',
       });
-
       setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating family info:', error);
-      toast({
-        title: t_messages('errors.update_failed'),
-        description: t_messages('errors.unknown'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   const handleCancel = () => {

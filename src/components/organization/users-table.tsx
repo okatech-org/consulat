@@ -8,7 +8,7 @@ import { DataTableRowActions } from '@/components/data-table/data-table-row-acti
 import { Trash } from 'lucide-react';
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
-import { BaseAgent, FullOrganization, OrganizationAgents } from '@/types/organization';
+import { BaseAgent, FullOrganization } from '@/types/organization';
 import { Country, ServiceCategory } from '@prisma/client';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { CollapseList } from '../ui/collapse-list';
@@ -52,7 +52,7 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
       cell: ({ row }) => (
         <div>
           {row.original.linkedCountries?.map((country) => country?.name).join(', ') ||
-            t_base('common.status.not_assigned')}
+            t_base('common.status.NOT_ASSIGNED')}
         </div>
       ),
     },

@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import * as React from 'react';
 import { getCurrentUser } from '@/actions/user';
 import { SettingsTabs } from '@/components/organization/settings-tabs';
+import { PageContainer } from '@/components/layouts/page-container';
 
 export default async function OrganizationSettingsPage() {
   const user = await getCurrentUser();
@@ -20,12 +21,10 @@ export default async function OrganizationSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">{t('organization.title')}</h1>
-        <p className="text-muted-foreground">{t('organization.settings.description')}</p>
-      </div>
-
+    <PageContainer
+      title={t('organization.title')}
+      description={t('organization.settings.description')}
+    >
       <SettingsTabs
         organization={{
           ...organization,
@@ -35,6 +34,6 @@ export default async function OrganizationSettingsPage() {
           agents: organization.agents ?? [],
         }}
       />
-    </div>
+    </PageContainer>
   );
 }

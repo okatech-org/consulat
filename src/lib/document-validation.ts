@@ -1,8 +1,9 @@
 import { DocumentType, UserDocument } from '@prisma/client';
+import { ErrorMessageKey } from './utils';
 
 export interface ValidationRule {
   check: (doc: UserDocument) => boolean;
-  message: string;
+  message: ErrorMessageKey;
 }
 
 export interface DocumentValidation {
@@ -21,7 +22,7 @@ export const documentValidations: Partial<Record<DocumentType, DocumentValidatio
           const now = new Date();
           return expiryDate > now;
         },
-        message: 'Le passeport est expiré',
+        message: 'doc_expired',
       },
       {
         check: (doc) => {
@@ -31,7 +32,7 @@ export const documentValidations: Partial<Record<DocumentType, DocumentValidatio
           sixMonths.setMonth(sixMonths.getMonth() + 6);
           return expiryDate > sixMonths;
         },
-        message: 'Le passeport expire dans moins de 6 mois',
+        message: 'doc_expires_soon',
       },
     ],
   },
@@ -45,7 +46,7 @@ export const documentValidations: Partial<Record<DocumentType, DocumentValidatio
           const now = new Date();
           return now > issueDate;
         },
-        message: "L'acte de naissance est postérieur à la date d'aujourd'hui",
+        message: 'doc_issued_in_future',
       },
     ],
   },
@@ -60,7 +61,7 @@ export const documentValidations: Partial<Record<DocumentType, DocumentValidatio
           threeMonths.setMonth(threeMonths.getMonth() - 3);
           return issueDate > threeMonths;
         },
-        message: 'Le justificatif de domicile date de plus de 3 mois',
+        message: 'doc_expired',
       },
     ],
   },
@@ -74,27 +75,31 @@ export const documentValidations: Partial<Record<DocumentType, DocumentValidatio
           const now = new Date();
           return expiryDate > now;
         },
-        message: 'Le titre de séjour est expiré',
+        message: 'doc_expired',
       },
     ],
   },
 };
 
-export function validateDocument(doc: UserDocument | null): {
+export function validateDocument(
+  doc: UserDocument | null,
+  required: boolean = true,
+): {
   isValid: boolean;
-  errors: string[];
+  errors: ErrorMessageKey[];
 } {
-  if (!doc) {
+  if (!doc && required) {
     return {
       isValid: false,
-      errors: ['Document requis'],
+      errors: ['required_document'],
     };
   }
 
-  const validation = documentValidations[doc.type];
-  const errors: string[] = [];
+  const validation = documentValidations[doc?.type as DocumentType];
+  const errors: ErrorMessageKey[] = [];
 
   validation?.rules.forEach((rule) => {
+    // @ts-expect-error - rule.check is a function that returns a boolean
     if (!rule.check(doc)) {
       errors.push(rule.message);
     }

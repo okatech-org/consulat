@@ -61,7 +61,6 @@ export const {
         callbackUrl: { type: 'text' },
       },
       async authorize(credentials) {
-        console.log({ credentials });
         return handleAuthorize(credentials);
       },
     }),

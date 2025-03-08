@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { MessageKeys, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { SendHorizonal, Loader2 } from 'lucide-react';
 import {
@@ -15,6 +15,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { submitProfileForValidation } from '@/actions/profile';
 import { useRouter } from 'next/navigation';
+import { tryCatch } from '@/lib/utils';
 
 // Définir les items de la checklist de manière statique
 const CHECKLIST_ITEMS = [
@@ -36,25 +37,30 @@ export function SubmitProfileButton({
   isChild = false,
 }: SubmitProfileButtonProps) {
   const t = useTranslations('profile.submission');
+  const tError = useTranslations('messages.errors');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
   const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      const result = await submitProfileForValidation(profileId, isChild);
+    setIsSubmitting(true);
 
-      if (result.error) {
-        toast({
-          title: t('error.title'),
-          variant: 'destructive',
-        });
-        console.error(result.error);
-        return;
-      }
+    const { error, data } = await tryCatch(
+      submitProfileForValidation(profileId, isChild),
+    );
 
+    if (error) {
+      toast({
+        title: t('error.title'),
+        description: tError(error.message),
+        variant: 'destructive',
+      });
+
+      setIsDialogOpen(false);
+    }
+
+    if (data) {
       toast({
         title: t('success.title'),
         description: t('success.description'),
@@ -63,16 +69,9 @@ export function SubmitProfileButton({
 
       setIsDialogOpen(false);
       router.refresh();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: t('error.title'),
-        description: t('error.unknown'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setIsSubmitting(false);
   };
 
   return (

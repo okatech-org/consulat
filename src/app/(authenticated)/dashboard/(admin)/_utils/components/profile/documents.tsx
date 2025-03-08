@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { DocumentType } from '@prisma/client';
+import { DocumentType, ProfileCategory } from '@prisma/client';
 import { DocumentValidationDialog } from './document-validation-dialog';
 import CardContainer from '@/components/layouts/card-container';
 
@@ -19,6 +19,7 @@ interface ProfileDocumentsProps {
 
 export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
   const t = useTranslations('common');
+  const t_errors = useTranslations('messages.errors');
   const t_review = useTranslations('admin.registrations.review');
   const router = useRouter();
   const { formatDate } = useDateLocale();
@@ -45,26 +46,31 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
       type: DocumentType.PASSPORT,
       label: t_review('documents.passport'),
       document: profile.passport,
+      required: profile.category === ProfileCategory.ADULT,
     },
     {
       type: DocumentType.BIRTH_CERTIFICATE,
       label: t_review('documents.birth_certificate'),
       document: profile.birthCertificate,
+      required: true,
     },
     {
       type: DocumentType.RESIDENCE_PERMIT,
       label: t_review('documents.residence_permit'),
       document: profile.residencePermit,
+      required: false,
     },
     {
       type: DocumentType.PROOF_OF_ADDRESS,
       label: t_review('documents.address_proof'),
       document: profile.addressProof,
+      required: profile.category === ProfileCategory.ADULT,
     },
     {
       type: DocumentType.IDENTITY_PHOTO,
       label: t_review('documents.identity_photo'),
       document: profile.identityPicture,
+      required: true,
     },
   ];
 
@@ -78,8 +84,8 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
       title={t_review('sections.documents')}
       contentClass="grid sm:grid-cols-2 gap-4 sm:gap-6"
     >
-      {documents.map(({ type, label, document }) => {
-        const validation = validateDocument(document);
+      {documents.map(({ type, label, document, required }) => {
+        const validation = validateDocument(document, required);
 
         return (
           <div
@@ -118,10 +124,15 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                 <div className="mt-2">
                   {validation.errors.map((error, index) => (
                     <p key={index} className="text-sm text-destructive">
-                      {error}
+                      {t_errors(error)}
                     </p>
                   ))}
                 </div>
+              )}
+              {!document && validation.errors.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {t_errors('not_provided')}
+                </p>
               )}
             </div>
             <div className="flex items-center gap-2">
