@@ -35,7 +35,7 @@ export function EditableSection({
 
   return (
     <div className={cn('relative', className)}>
-      <div className="flex pb-4 items-center justify-between">
+      <div className="flex pb-4 mb-4 sm:mb-6 border-b border-border items-center justify-between">
         <h3 className="text-lg font-medium">{title}</h3>
         {onEdit && canEdit && (
           <>
