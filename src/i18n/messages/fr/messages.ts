@@ -198,4 +198,15 @@ export default {
       },
     },
   },
+  appointments: {
+    notifications: {
+      appointment_confirmed: 'Rendez-vous confirmé',
+      appointment_confirmed_message:
+        'Votre rendez-vous a été confirmé pour le {date} à {time}',
+      appointment_confirmed_agent: 'Vous avez un nouveau rendez-vous programmé',
+      actions: {
+        view_appointment: 'Voir le rendez-vous',
+      },
+    },
+  },
 } as const;

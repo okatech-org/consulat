@@ -8,13 +8,23 @@ import {
   OrganizationMetadataHoliday,
   WeekDay,
 } from '@/schemas/organization';
-import { ServiceCategory, UserRole, AppointmentStatus } from '@prisma/client';
+import {
+  ServiceCategory,
+  UserRole,
+  AppointmentStatus,
+  NotificationType,
+} from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 import {
   AppointmentInput,
   AppointmentSchema,
   AppointmentWithRelations,
 } from '@/schemas/appointment';
+import { notifyAppointment } from '@/services/notifications';
+import { getTranslations } from 'next-intl/server';
+import { env } from '@/lib/env';
+import { ROUTES } from '@/schemas/routes';
+import { NotificationChannel } from '@/types/notifications';
 
 export interface BaseTimeSlot {
   start: Date;
@@ -262,9 +272,25 @@ export async function getAvailableServices(countryCode: string) {
 }
 
 export async function createAppointment(data: AppointmentInput) {
+  const t = await getTranslations('messages');
   try {
     // Valider les données avec Zod
     const validatedData = AppointmentSchema.parse(data);
+
+    console.log({
+      date: validatedData.date,
+      startTime: validatedData.startTime,
+      endTime: validatedData.endTime,
+      duration: validatedData.duration,
+      type: validatedData.type,
+      status: validatedData.status,
+      organizationId: validatedData.organizationId,
+      serviceId: validatedData.serviceId,
+      attendeeId: validatedData.attendeeId,
+      agentId: validatedData.agentId,
+      countryCode: validatedData.countryCode,
+      instructions: validatedData.instructions,
+    });
 
     // Créer le rendez-vous dans la base de données
     const appointment = await db.appointment.create({
@@ -282,7 +308,46 @@ export async function createAppointment(data: AppointmentInput) {
         countryCode: validatedData.countryCode,
         instructions: validatedData.instructions,
       },
+      include: {
+        attendee: true,
+        organization: true,
+        agent: true,
+      },
     });
+
+    if (appointment.attendee) {
+      await notifyAppointment(
+        appointment.attendee.id,
+        t('appointments.notifications.appointment_confirmed'),
+        t('appointments.notifications.appointment_confirmed_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.attendee.email ?? undefined,
+        },
+      );
+    }
+
+    if (appointment.agent) {
+      await notifyAppointment(
+        appointment.agent.id,
+        t('appointments.notifications.appointment_confirmed_agent'),
+        t('appointments.notifications.appointment_confirmed_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.agent.email ?? undefined,
+        },
+      );
+    }
 
     return { success: true, data: appointment };
   } catch (error) {

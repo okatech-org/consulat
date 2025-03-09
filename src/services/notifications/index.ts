@@ -96,6 +96,7 @@ export async function notifyAppointment(
   title: string,
   message: string,
   appointmentUrl: string,
+  actionLabel: string = 'Voir le rendez-vous',
   options?: Partial<
     Omit<NotificationRequest, 'type' | 'title' | 'message' | 'recipient' | 'actions'>
   > & {
@@ -110,7 +111,7 @@ export async function notifyAppointment(
     message,
     actions: [
       {
-        label: 'Voir le rendez-vous',
+        label: actionLabel,
         url: appointmentUrl,
         primary: true,
       },
