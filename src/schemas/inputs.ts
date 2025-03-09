@@ -97,11 +97,11 @@ export const AddressSchema = z.object({
     .min(1, 'messages.errors.field_required')
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH),
 
-  secondLine: z.string().max(VALIDATION_RULES.ADDRESS_MAX_LENGTH).nullable(),
+  secondLine: z.string().max(VALIDATION_RULES.ADDRESS_MAX_LENGTH).nullable().optional(),
 
   city: z.string().min(1, 'messages.errors.field_required'),
 
-  zipCode: z.string().min(1, 'messages.errors.field_required').nullable(),
+  zipCode: z.string().min(1, 'messages.errors.field_required').nullable().optional(),
 
   country: CountryCodeSchema,
 });
