@@ -34,17 +34,6 @@ export class AppNotificationProvider implements NotificationProvider {
       expiresAt: request.expiresAt,
     };
 
-    console.log('Notification data:', { notificationData });
-
-    // Si un profileId est fourni, l'ajouter aux données
-    if (request.recipient.userId) {
-      notificationData.profile = {
-        connect: {
-          id: request.recipient.userId, // Utiliser l'ID utilisateur comme profileId si nécessaire
-        },
-      };
-    }
-
     // Créer la notification dans la base de données
     const createNotificationPromise = db.notification.create({
       data: notificationData,
