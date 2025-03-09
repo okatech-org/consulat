@@ -158,6 +158,9 @@ export default {
         notification: {
           title: 'Retour administratif',
           empty: 'Aucun retour pour le moment',
+          actions: {
+            view_request: 'Voir la demande',
+          },
         },
         internal_placeholder: 'Ajouter une note interne...',
         feedback_placeholder: "Ajouter un retour pour l'utilisateur...",

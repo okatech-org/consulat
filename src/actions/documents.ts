@@ -3,14 +3,18 @@
 import { OpenAI } from 'openai';
 import sharp from 'sharp';
 import { DocumentField } from '@/lib/utils';
-import Anthropic from '@anthropic-ai/sdk';
+import { Anthropic } from '@anthropic-ai/sdk';
 import { pdfToImages } from '@/actions/convert';
 import { getCurrentUser } from '@/actions/user';
 import { db } from '@/lib/prisma';
-import { DocumentStatus, NotificationStatus, UserDocument } from '@prisma/client';
+import { DocumentStatus, UserDocument } from '@prisma/client';
 import { AppUserDocument } from '@/types';
 import { checkAuth } from '@/lib/auth/action';
 import { getTranslations } from 'next-intl/server';
+import { notify } from '@/services/notifications';
+import { NotificationChannel } from '@/types/notifications';
+import { env } from '@/lib/env';
+import { ROUTES } from '@/schemas/routes';
 
 // Types
 interface DocumentAnalysisResult {
@@ -424,15 +428,27 @@ export async function validateDocument(input: ValidateDocumentInput) {
 
   // Send notification if document is rejected
   if (input.status === 'REJECTED' && updatedDocument.user) {
-    await db.notification.create({
-      data: {
-        type: 'DOCUMENT_REJECTED',
-        title: t('notifications.rejected.title'),
-        message: input.notes
-          ? t('notifications.rejected.message_with_notes', { notes: input.notes })
-          : t('notifications.rejected.message_default'),
-        userId: updatedDocument.user.id,
-        status: NotificationStatus.SENT,
+    await notify({
+      userId: updatedDocument.user.id,
+      type: 'DOCUMENT_REJECTED',
+      title: t('notifications.rejected.title'),
+      message: input.notes
+        ? t('notifications.rejected.message_with_notes', { notes: input.notes })
+        : t('notifications.rejected.message_default'),
+      channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+      email: updatedDocument.user.email || undefined,
+      priority: 'high',
+      actions: [
+        {
+          label: t('notifications.actions.view_documents'),
+          url: `${env.NEXT_PUBLIC_URL}${ROUTES.user.documents}`,
+          primary: true,
+        },
+      ],
+      metadata: {
+        documentId: updatedDocument.id,
+        documentType: updatedDocument.type,
+        notes: input.notes,
       },
     });
   }

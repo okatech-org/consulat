@@ -175,21 +175,26 @@ export default {
         submitted: "Votre demande d'inscription consulaire a été soumise avec succès.",
         validated: "Votre dossier d'inscription consulaire a été validé.",
         rejected: "Votre dossier d'inscription consulaire a été rejeté.",
-        ready_for_pickup:
-          '<p>Votre carte consulaire est prête à être récupérée. Veuillez vous rendre à l\'adresse suivante : <a class="link text-blue-500" href="{link}">{action}</a></p>',
+        ready_for_pickup: 'Votre carte consulaire est prête à être récupérée',
         completed: 'Votre inscription consulaire est terminée.',
       },
       actions: {
         schedule_pickup: 'Prendre rendez-vous pour le retrait',
+        view_request: 'Voir la demande',
+        view_profile: 'Voir le profil',
       },
     },
   },
   documents: {
     notifications: {
       rejected: {
-        title: 'Document rejected',
-        message_with_notes: 'Your document has been rejected. Reason: {notes}',
-        message_default: 'Your document has been rejected. Please submit a new document.',
+        title: 'Document rejeté',
+        message_with_notes: 'Votre document a été rejeté. Motif: {notes}',
+        message_default:
+          'Votre document a été rejeté. Veuillez soumettre un nouveau document.',
+      },
+      actions: {
+        view_documents: 'Voir les documents',
       },
     },
   },

@@ -1,28 +1,40 @@
 'use server';
 
 import { db } from '@/lib/prisma';
-import { NotificationType, RequestStatus, Notification } from '@prisma/client';
+import { NotificationType, RequestStatus, Notification, User } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
+import { notify } from '@/services/notifications';
+import { NotificationChannel } from '@/types/notifications';
+import { env } from '@/lib/env';
 
 interface NotificationData {
-  userId: string;
+  user: User;
   requestId: string;
   status: RequestStatus;
   notes?: string;
+}
+
+// Interface pour les données de notification avec les actions
+interface NotificationDataWithActions
+  extends Pick<Notification, 'type' | 'title' | 'message'> {
+  actions?: {
+    label: string;
+    url: string;
+  };
 }
 
 /**
  * Crée une notification pour l'inscription consulaire
  */
 async function createConsularNotification({
-  userId,
+  user,
   status,
   notes,
   requestId,
 }: NotificationData) {
   const t = await getTranslations('messages.requests.notifications');
-  let notificationData: Pick<Notification, 'type' | 'title' | 'message'> | null = null;
+  let notificationData: NotificationDataWithActions | null = null;
 
   // Déterminer le type de notification en fonction du statut
   switch (status) {
@@ -31,6 +43,10 @@ async function createConsularNotification({
         type: NotificationType.CONSULAR_REGISTRATION_SUBMITTED,
         title: t('consular_registration_submitted'),
         message: t('messages.submitted'),
+        actions: {
+          label: t('actions.view_request'),
+          url: `${ROUTES.user.requests}/${requestId}`,
+        },
       };
       break;
     case 'VALIDATED':
@@ -38,6 +54,10 @@ async function createConsularNotification({
         type: NotificationType.CONSULAR_REGISTRATION_VALIDATED,
         title: t('consular_registration_validated'),
         message: t('messages.validated'),
+        actions: {
+          label: t('actions.view_profile'),
+          url: `${ROUTES.user.profile}?userId=${user.id}`,
+        },
       };
       break;
     case 'REJECTED':
@@ -45,13 +65,21 @@ async function createConsularNotification({
         type: NotificationType.CONSULAR_REGISTRATION_REJECTED,
         title: t('consular_registration_rejected'),
         message: notes || t('messages.rejected'),
+        actions: {
+          label: t('actions.view_request'),
+          url: `${ROUTES.user.requests}/${requestId}`,
+        },
       };
       break;
     case 'READY_FOR_PICKUP':
       notificationData = {
         type: NotificationType.CONSULAR_CARD_READY,
-        title: 'Votre carte consulaire est prête pour le retrait.',
-        message: `<p>Votre carte consulaire est prête à être récupérée. Veuillez vous rendre à l\'adresse suivante : <a class="link text-blue-500" href="{${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=DOCUMENT_COLLECTION}">Prendre rendez-vous pour le retrait</a></p>`,
+        title: t('consular_card_ready'),
+        message: t('messages.ready_for_pickup'),
+        actions: {
+          label: t('actions.schedule_pickup'),
+          url: `${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=DOCUMENT_COLLECTION`,
+        },
       };
       break;
     case 'COMPLETED':
@@ -68,17 +96,31 @@ async function createConsularNotification({
   try {
     if (!notificationData) return null;
 
-    const notification = await db.notification.create({
-      data: {
-        type: notificationData.type,
-        title: notificationData.title,
-        message: notificationData.message,
-        userId,
-        status: 'PENDING',
+    // Utiliser notre service de notification
+    const result = await notify({
+      userId: user.id,
+      type: notificationData.type,
+      title: notificationData.title,
+      message: notificationData.message,
+      channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+      email: user?.email || undefined,
+      priority: 'normal',
+      actions: notificationData.actions
+        ? [
+            {
+              label: notificationData.actions.label,
+              url: `${env.NEXT_PUBLIC_URL}${notificationData.actions.url}`,
+              primary: true,
+            },
+          ]
+        : undefined,
+      metadata: {
+        requestId,
+        status,
       },
     });
 
-    return notification;
+    return result.results[0]?.id || null;
   } catch (error) {
     console.error('Error creating notification:', error);
     return null;
@@ -106,7 +148,7 @@ export async function updateConsularRegistrationWithNotification(
 
     // Créer la notification
     await createConsularNotification({
-      userId: request.submittedBy.id,
+      user: request.submittedBy,
       requestId,
       status,
       notes,

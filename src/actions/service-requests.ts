@@ -22,7 +22,9 @@ import {
   NotificationType,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
-import { createNotification } from './notifications';
+import { notify } from '@/services/notifications';
+import { NotificationChannel } from '@/types/notifications';
+import { env } from '@/lib/env';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -38,7 +40,7 @@ export interface GetRequestsOptions extends ServiceRequestFilters {
 export async function getServiceRequests(
   options?: GetRequestsOptions,
 ): Promise<PaginatedServiceRequests> {
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
   const {
     search,
@@ -356,7 +358,7 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
  * Récupérer une demande de service par son ID
  */
 export async function getServiceRequest(id: string): Promise<FullServiceRequest> {
-  await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
   const request = await db.serviceRequest.findUnique({
     where: { id },
@@ -391,6 +393,9 @@ export async function addServiceRequestNote(input: AddNoteInput) {
     // Récupérer le profil pour avoir l'userId
     const request = await db.serviceRequest.findUnique({
       where: { id: input.requestId },
+      include: {
+        submittedBy: true,
+      },
     });
 
     if (!request) {
@@ -417,11 +422,28 @@ export async function addServiceRequestNote(input: AddNoteInput) {
 
     // Si c'est un feedback, créer une notification pour l'utilisateur
     if (input.type === 'FEEDBACK') {
-      await createNotification({
+      await notify({
         userId: request.submittedById,
         type: NotificationType.FEEDBACK,
         title: t('notification.title'),
         message: input.content,
+        channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+        // Ajouter l'email si disponible
+        ...(request.submittedBy.email && { email: request.submittedBy.email }),
+        // Ajouter des actions si nécessaire
+        actions: [
+          {
+            label: t('notification.actions.view_request'),
+            url: `${env.NEXT_PUBLIC_URL}${ROUTES.user.requests}/${request.id}`,
+            primary: true,
+          },
+        ],
+        // Ajouter des métadonnées utiles
+        metadata: {
+          requestId: request.id,
+          noteId: note.id,
+          noteType: input.type,
+        },
       });
     }
 

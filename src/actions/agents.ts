@@ -10,9 +10,11 @@ import {
   NotificationType,
   PrismaClient,
 } from '@prisma/client';
-import { createNotification } from './notifications';
 import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
+import { notify } from '@/services/notifications';
+import { NotificationChannel } from '@/types/notifications';
+import { env } from '@/lib/env';
 
 type Agent = User & { assignedRequests: ServiceRequest[] };
 
@@ -78,23 +80,28 @@ export async function assignAgentToRequest(
       },
     }),
     // créer une notification pour l'agent
-    await createNotification({
+    await notify({
       userId: assignedAgent.id,
       type: NotificationType.REQUEST_NEW,
       title: t('agent.notifications.REQUEST_NEW.title'),
       message: t('agent.notifications.REQUEST_NEW.message', {
-        requestType: `<a href="${ROUTES.dashboard.service_requests(requestId)}" class="link-button">${t(`common.service_categories.${request.serviceCategory}`)}</a>`,
+        requestType: request.serviceCategory,
       }),
-      ...(assignedAgent.email && {
-        sendEmail: {
-          email: assignedAgent.email,
-          actionUrl: ROUTES.dashboard.service_requests(requestId),
-          actionLabel: t('agent.notifications.REQUEST_NEW.see_request'),
-          ...(assignedAgent.firstName && {
-            name: `${assignedAgent.firstName} ${assignedAgent.lastName}`,
-          }),
+      channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+      email: assignedAgent.email || undefined,
+      actions: [
+        {
+          label: t('agent.notifications.REQUEST_NEW.see_request'),
+          url: `${env.NEXT_PUBLIC_URL}${ROUTES.dashboard.service_requests(request.id)}`,
+          primary: true,
         },
-      }),
+      ],
+      metadata: {
+        requestId: request.id,
+        requestType: request.serviceCategory,
+        organizationId: organizationId,
+        countryCode: countryCode,
+      },
     }),
   ]);
 
