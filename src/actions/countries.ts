@@ -5,10 +5,10 @@ import { checkAuth } from '@/lib/auth/action';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import { CountryMetadata } from '@/types/country';
-import { Country as PrismaCountry, UserRole } from '@prisma/client';
+import {Country, UserRole} from '@prisma/client';
 import { CountrySchemaInput } from '@/schemas/country';
 
-export type CountryWithCount = PrismaCountry & {
+export type CountryWithCount = Country & {
   _count: {
     organizations: number;
     users: number;
@@ -38,7 +38,9 @@ export async function getCountries(): Promise<CountryWithCount[]> {
 }
 
 export async function getActiveCountries(): Promise<PrismaCountry[]> {
-  return await db.country.findMany();
+  return await db.country.findMany({
+    where: { status: 'ACTIVE' },
+  });
 }
 
 export async function createCountry(data: CountrySchemaInput): Promise<PrismaCountry> {

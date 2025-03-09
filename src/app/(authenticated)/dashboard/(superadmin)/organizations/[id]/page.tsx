@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import * as React from 'react';
 import { SettingsTabs } from '@/components/organization/settings-tabs';
+import {getActiveCountries} from "@/actions/countries";
 
 export default async function OrganizationSettingsPage({
   params,
@@ -23,6 +24,8 @@ export default async function OrganizationSettingsPage({
     notFound();
   }
 
+  const countries = await getActiveCountries();
+
   return (
     <div className="container space-y-6">
       <div>
@@ -38,6 +41,7 @@ export default async function OrganizationSettingsPage({
             services: organization.services ?? [],
             agents: organization.agents ?? [],
           }}
+          availableCountries={countries ?? []}
         />
       )}
     </div>

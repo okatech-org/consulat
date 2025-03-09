@@ -22,7 +22,6 @@ import {
 } from '@/schemas/organization';
 import { Organization } from '@/types/organization';
 import { Input } from '@/components/ui/input';
-import { Country } from '@/types/country';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Loader2, Trash } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -39,15 +38,16 @@ import { DaySchedule } from './day-schedule';
 import { updateOrganizationSettings } from '@/actions/organizations';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
+import { Country } from '@prisma/client';
 
 interface OrganizationSettingsProps {
   organization: Organization;
-  countries: Country[];
+  availableCountries: Country[];
 }
 
 export function OrganizationSettings({
   organization,
-  countries = [],
+  availableCountries = [],
 }: OrganizationSettingsProps) {
   const schema = generateOrganizationSettingsSchema(
     organization.countries as unknown as Country[],
@@ -104,6 +104,8 @@ export function OrganizationSettings({
 
     setIsLoading(false);
   };
+
+  console.log({ organization });
 
   return (
     <Form {...form}>
@@ -203,12 +205,12 @@ export function OrganizationSettings({
                     <FormLabel>{t('form.countries.label')}</FormLabel>
                     <FormControl>
                       <MultiSelect<CountryCode>
-                        type={'multiple'}
-                        options={countries.map((country) => ({
-                          value: country.code as CountryCode,
-                          label: country.name,
+                        type="multiple"
+                        options={availableCountries.map((item) => ({
+                          label: t_countries(item.code as CountryCode),
+                          value: item.code as CountryCode,
                         }))}
-                        selected={field.value}
+                        selected={field.value as CountryCode[]}
                         onChange={field.onChange}
                         disabled={isLoading}
                       />

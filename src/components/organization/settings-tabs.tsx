@@ -10,14 +10,18 @@ import { CreateAgentButton } from '@/components/organization/CreateAgentButton';
 import { UsersTable } from '@/components/organization/users-table';
 import * as React from 'react';
 import { Organization } from '@/types/organization';
-import { CountryMetadata } from '@/types/country';
+import { Country } from '@prisma/client';
 import { useTabs } from '@/hooks/use-tabs';
 
 interface SettingsTabsProps {
   organization: Organization;
+  availableCountries: Country[];
 }
 
-export function SettingsTabs({ organization }: SettingsTabsProps) {
+export function SettingsTabs({
+  organization,
+  availableCountries = [],
+}: SettingsTabsProps) {
   const t = useTranslations('organization');
   const { handleTabChange, currentTab } = useTabs<string>('tab', 'organization');
 
@@ -32,11 +36,8 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
 
       <TabsContent value="organization" className="space-y-4">
         <OrganizationSettings
-          countries={organization.countries.map((country) => ({
-            ...country,
-            metadata: JSON.parse(country.metadata as string) as CountryMetadata,
-          }))}
           organization={organization}
+          availableCountries={availableCountries}
         />
       </TabsContent>
 

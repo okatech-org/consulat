@@ -474,7 +474,7 @@ async function main() {
       prisma.user.create({
         data: {
           id: 'user-jane-doe',
-          email: 'janedoe@example.com',
+          email: 'itoutouberny+jane@gmail.com',
           firstName: 'Jane',
           lastName: 'Doe',
           roles: [UserRole.USER],
@@ -491,7 +491,7 @@ async function main() {
               birthCountry: 'FR',
               nationality: 'GA',
               passportNumber: 'GA789012',
-              email: 'janedoe@example.com',
+              email: 'itoutouberny+jane@gmail.com',
               passportIssueDate: new Date('2021-03-15'),
               passportExpiryDate: new Date('2031-03-15'),
               passportIssueAuthority: 'Consulat du Gabon à Paris',
@@ -503,6 +503,7 @@ async function main() {
               employerAddress: '1 Avenue Claude Vellefaux, 75010 Paris',
               fatherFullName: 'John Doe',
               motherFullName: 'Mary Doe',
+              spouseFullName: 'John Doe',
               activityInGabon: 'Missions humanitaires',
               cardPin: 'GA789012',
               residenceCountyCode: '75',
@@ -588,6 +589,24 @@ async function main() {
                   status: DocumentStatus.VALIDATED,
                   fileUrl: 'https://example.com/jane-birth-certificate.pdf',
                   issuedAt: new Date('1988-05-15'),
+                },
+              },
+              residencePermit: {
+                create: {
+                  type: DocumentType.RESIDENCE_PERMIT,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/jane-residence-permit.pdf',
+                  issuedAt: new Date('2021-03-15'),
+                  expiresAt: new Date('2031-03-15'),
+                },
+              },
+              addressProof: {
+                create: {
+                  type: DocumentType.PROOF_OF_ADDRESS,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/jane-address-proof.pdf',
+                  issuedAt: new Date('2021-03-15'),
+                  expiresAt: new Date('2031-03-15'),
                 },
               },
             },
@@ -800,6 +819,11 @@ async function main() {
                 type: DocumentType.IDENTITY_PHOTO,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/photo.jpg',
+              },
+              {
+                type: DocumentType.PROOF_OF_ADDRESS,
+                status: DocumentStatus.PENDING,
+                fileUrl: 'https://example.com/birth.pdf',
               },
             ],
           },

@@ -447,4 +447,7 @@ export default {
   motherFullName: {
     label: 'Nom complet de la mère',
   },
+  spouseFullName: {
+    label: 'Nom complet du conjoint',
+  },
 } as const;

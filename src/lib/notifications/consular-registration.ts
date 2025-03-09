@@ -56,7 +56,7 @@ async function createConsularNotification({
         message: t('messages.validated'),
         actions: {
           label: t('actions.view_profile'),
-          url: `${ROUTES.user.profile}?userId=${user.id}`,
+          url: `${ROUTES.user.profile}`,
         },
       };
       break;
@@ -67,7 +67,7 @@ async function createConsularNotification({
         message: notes || t('messages.rejected'),
         actions: {
           label: t('actions.view_request'),
-          url: `${ROUTES.user.requests}/${requestId}`,
+          url: `${ROUTES.user.profile}`,
         },
       };
       break;
@@ -87,6 +87,10 @@ async function createConsularNotification({
         type: NotificationType.CONSULAR_REGISTRATION_COMPLETED,
         title: t('consular_registration_completed'),
         message: t('messages.completed'),
+        actions: {
+          label: t('actions.view_profile'),
+          url: `${ROUTES.user.profile}`,
+        },
       };
       break;
     default:

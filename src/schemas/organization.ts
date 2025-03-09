@@ -190,7 +190,7 @@ export function getDefaultValues(
     name: organization.name ?? undefined,
     logo: organization.logo ?? undefined,
     logoFile: undefined,
-    countryIds: organization.countries.map((c) => c.id) ?? [],
+    countryIds: organization.countries.map((c) => c.code) ?? [],
     type: organization.type,
     status: organization.status,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
