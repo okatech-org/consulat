@@ -97,6 +97,11 @@ model User {
   completedRequests Int @default(0)
   averageProcessingTime Float?
 
+  // Nouvelles relations pour le service de notification
+  scheduledNotifications ScheduledNotification[]
+  notificationLogs NotificationLog[]
+  notificationPreferences NotificationPreference[]
+
   // parent authority fields
   childAuthorities ParentalAuthority[]
 
@@ -683,9 +688,73 @@ model Notification {
   status        NotificationStatus @default(PENDING)
   appointmentId String?
   appointment   Appointment?       @relation(fields: [appointmentId], references: [id], name: "AppointmentNotifications")
-
+  
+  // Nouveaux champs pour le service de notification multi-canal
+  priority      String             @default("normal") // low, normal, high, urgent
+  actions       String?            @db.Text // JSON string des actions
+  metadata      Json?              // Données additionnelles
+  expiresAt     DateTime?          // Date d'expiration
+  
+  // Relations avec les autres modèles de notification
+  notificationLogs NotificationLog[] @relation("NotificationLogs")
+  
   @@index([userId])
   @@index([profileId])
+  @@index([priority])
+  @@index([expiresAt])
+}
+
+// Modèle pour les notifications programmées
+model ScheduledNotification {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payload       Json      // La requête de notification complète
+  scheduledFor  DateTime
+  processed     Boolean   @default(false)
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([scheduledFor])
+  @@index([processed])
+}
+
+// Modèle pour l'historique des notifications
+model NotificationLog {
+  id            String    @id @default(cuid())
+  requestId     String
+  notificationId String?
+  notification  Notification? @relation("NotificationLogs", fields: [notificationId], references: [id], onDelete: SetNull)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel       String    // app, email, sms, push, webhook
+  success       Boolean
+  error         String?   @db.Text
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([requestId])
+  @@index([channel])
+  @@index([notificationId])
+  @@index([createdAt])
+}
+
+// Modèle pour les préférences de notification
+model NotificationPreference {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String    // Le type de notification (APPOINTMENT_CONFIRMATION, FEEDBACK, etc.)
+  channel     String    // Le canal (app, email, sms, etc.)
+  enabled     Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, type, channel])
+  @@index([userId])
+  @@index([type])
+  @@index([channel])
 }
 
 enum NotificationType {
