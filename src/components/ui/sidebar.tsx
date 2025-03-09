@@ -70,8 +70,8 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
 
-    const cookieDefaultState = document.cookie
-      .split('; ')
+    const cookieDefaultState = document?.cookie
+      ?.split('; ')
       .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
       ?.split('=')[1];
 

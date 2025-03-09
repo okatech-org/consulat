@@ -4,9 +4,6 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "files.exclude": {
     "**/.git": true,
-    "**/.DS_Store": true,
-    "**/node_modules": true,
-    "ai-sum": true,
-    ".next": true
+    "**/.DS_Store": true
   }
 }

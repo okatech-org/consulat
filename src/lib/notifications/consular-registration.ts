@@ -45,7 +45,7 @@ async function createConsularNotification({
         message: t('messages.submitted'),
         actions: {
           label: t('actions.view_request'),
-          url: `${ROUTES.user.requests}/${requestId}`,
+          url: `${ROUTES.user.profile}`,
         },
       };
       break;

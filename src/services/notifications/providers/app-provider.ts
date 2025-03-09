@@ -27,12 +27,14 @@ export class AppNotificationProvider implements NotificationProvider {
       type: request.type,
       title: request.title,
       message: request.message,
-      status: NotificationStatus.PENDING,
+      status: NotificationStatus.SENT,
       priority: request.priority,
       actions: request.actions ? JSON.stringify(request.actions) : null,
       metadata: (request.metadata as Prisma.InputJsonValue) || {},
       expiresAt: request.expiresAt,
     };
+
+    console.log('Notification data:', { notificationData });
 
     // Si un profileId est fourni, l'ajouter aux données
     if (request.recipient.userId) {

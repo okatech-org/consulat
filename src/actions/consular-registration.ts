@@ -8,6 +8,9 @@ import { db } from '@/lib/prisma';
 import { ROUTES } from '@/schemas/routes';
 import { updateConsularRegistrationWithNotification } from '@/lib/notifications/consular-registration';
 import { generateConsularCardNumber } from '@/actions/consular-card';
+import { notify } from '@/services/notifications';
+import { getTranslations } from 'next-intl/server';
+import { NotificationChannel } from '@/types/notifications';
 
 /**
  * Valider une demande d'inscription consulaire
@@ -19,6 +22,7 @@ export async function validateConsularRegistration(
   validityYears: number = 1,
   notes?: string,
 ) {
+  const t = await getTranslations('messages.requests.notifications');
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
 
   // Si le statut est VALIDATED, générer les informations de la carte
@@ -55,6 +59,9 @@ export async function validateConsularRegistration(
           data: { status: 'VALIDATED', notes },
         },
       },
+    },
+    include: {
+      submittedBy: true,
     },
   });
 

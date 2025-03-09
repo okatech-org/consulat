@@ -80,10 +80,13 @@ export async function sendNotification(
   // Générer un ID unique pour cette requête de notification
   const requestId = uuidv4();
 
-  // Valider la requête avec Zod
+  /**
+   * Valider la requête avec Zod
+   
   const { error: validationError, data: validatedRequest } = await tryCatch(
     Promise.resolve().then(() => notificationSchema.parse(request)),
   );
+ 
 
   if (validationError) {
     console.error('Notification validation error:', validationError);
@@ -94,10 +97,11 @@ export async function sendNotification(
       timestamp: new Date(),
     };
   }
+     */
 
   // Vérifier si la notification est programmée pour plus tard
-  if (validatedRequest?.scheduledFor && validatedRequest.scheduledFor > new Date()) {
-    await scheduleNotification(validatedRequest);
+  if (request?.scheduledFor && request.scheduledFor > new Date()) {
+    await scheduleNotification(request);
     return {
       requestId,
       results: [],
@@ -109,20 +113,20 @@ export async function sendNotification(
   // Envoyer la notification sur tous les canaux demandés
   const results: NotificationResult[] = [];
 
-  for (const channel of validatedRequest?.channels || []) {
+  for (const channel of request?.channels || []) {
     try {
       // Obtenir le provider approprié pour ce canal
       const provider = getNotificationProvider(channel);
 
       // Envoyer la notification via ce provider
-      const result = await provider.send(validatedRequest!);
+      const result = await provider.send(request!);
       results.push(result);
 
       // Enregistrer l'historique de notification
       await logNotification({
         requestId,
         notificationId: channel === 'app' ? result.id : undefined,
-        userId: validatedRequest!.recipient.userId,
+        userId: request!.recipient.userId,
         channel,
         success: result.success,
         error: result.error,
@@ -143,7 +147,7 @@ export async function sendNotification(
       // Enregistrer l'échec dans l'historique
       await logNotification({
         requestId,
-        userId: validatedRequest!.recipient.userId,
+        userId: request!.recipient.userId,
         channel,
         success: false,
         error: errorResult.error,
