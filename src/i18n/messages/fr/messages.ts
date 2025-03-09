@@ -204,6 +204,19 @@ export default {
       appointment_confirmed_message:
         'Votre rendez-vous a été confirmé pour le {date} à {time}',
       appointment_confirmed_agent: 'Vous avez un nouveau rendez-vous programmé',
+      appointment_cancelled: 'Rendez-vous annulé',
+      appointment_cancelled_message: 'Votre rendez-vous du {date} à {time} a été annulé.',
+      appointment_cancelled_agent: 'Rendez-vous annulé',
+      appointment_rescheduled: 'Rendez-vous reporté',
+      appointment_rescheduled_message:
+        'Votre rendez-vous a été reporté au {date} à {time}.',
+      appointment_rescheduled_agent: 'Rendez-vous reporté',
+      appointment_completed: 'Rendez-vous terminé',
+      appointment_completed_message:
+        'Votre rendez-vous du {date} à {time} a été marqué comme terminé.',
+      appointment_missed: 'Rendez-vous manqué',
+      appointment_missed_message:
+        'Votre rendez-vous du {date} à {time} a été marqué comme manqué.',
       actions: {
         view_appointment: 'Voir le rendez-vous',
       },

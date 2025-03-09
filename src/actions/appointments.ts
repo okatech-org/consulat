@@ -8,12 +8,7 @@ import {
   OrganizationMetadataHoliday,
   WeekDay,
 } from '@/schemas/organization';
-import {
-  ServiceCategory,
-  UserRole,
-  AppointmentStatus,
-  NotificationType,
-} from '@prisma/client';
+import { ServiceCategory, UserRole, AppointmentStatus } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 import {
   AppointmentInput,
@@ -426,6 +421,7 @@ export async function getUserAppointments(params: {
 }
 
 export async function cancelAppointment(appointmentId: string) {
+  const t = await getTranslations('messages');
   try {
     const appointment = await db.appointment.update({
       where: { id: appointmentId },
@@ -433,7 +429,48 @@ export async function cancelAppointment(appointmentId: string) {
         status: AppointmentStatus.CANCELLED,
         cancelledAt: new Date(),
       },
+      include: {
+        attendee: true,
+        agent: true,
+        organization: true,
+      },
     });
+
+    // Notification pour l'utilisateur
+    if (appointment.attendee) {
+      await notifyAppointment(
+        appointment.attendee.id,
+        t('appointments.notifications.appointment_cancelled'),
+        t('appointments.notifications.appointment_cancelled_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.attendee.email ?? undefined,
+        },
+      );
+    }
+
+    // Notification pour l'agent
+    if (appointment.agent) {
+      await notifyAppointment(
+        appointment.agent.id,
+        t('appointments.notifications.appointment_cancelled_agent'),
+        t('appointments.notifications.appointment_cancelled_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.agent.email ?? undefined,
+        },
+      );
+    }
 
     return { success: true, appointment };
   } catch (error) {
@@ -449,6 +486,7 @@ export async function rescheduleAppointment(
   newEndTime: Date,
   newAgentId: string,
 ) {
+  const t = await getTranslations('messages');
   try {
     const appointment = await db.appointment.update({
       where: { id: appointmentId },
@@ -460,7 +498,48 @@ export async function rescheduleAppointment(
         status: AppointmentStatus.CONFIRMED,
         rescheduledFrom: new Date(),
       },
+      include: {
+        attendee: true,
+        agent: true,
+        organization: true,
+      },
     });
+
+    // Notification pour l'utilisateur
+    if (appointment.attendee) {
+      await notifyAppointment(
+        appointment.attendee.id,
+        t('appointments.notifications.appointment_rescheduled'),
+        t('appointments.notifications.appointment_rescheduled_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.attendee.email ?? undefined,
+        },
+      );
+    }
+
+    // Notification pour l'agent
+    if (appointment.agent) {
+      await notifyAppointment(
+        appointment.agent.id,
+        t('appointments.notifications.appointment_rescheduled_agent'),
+        t('appointments.notifications.appointment_rescheduled_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.agent.email ?? undefined,
+        },
+      );
+    }
 
     return { success: true, appointment };
   } catch (error) {
@@ -493,19 +572,81 @@ export async function getAppointment(id: string) {
 }
 
 export async function completeAppointment(id: string) {
-  return db.appointment.update({
-    where: { id },
-    data: {
-      status: AppointmentStatus.COMPLETED,
-    },
-  });
+  const t = await getTranslations('messages');
+  try {
+    const appointment = await db.appointment.update({
+      where: { id },
+      data: {
+        status: AppointmentStatus.COMPLETED,
+      },
+      include: {
+        attendee: true,
+        agent: true,
+        organization: true,
+      },
+    });
+
+    // Notification pour l'utilisateur
+    if (appointment.attendee) {
+      await notifyAppointment(
+        appointment.attendee.id,
+        t('appointments.notifications.appointment_completed'),
+        t('appointments.notifications.appointment_completed_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.attendee.email ?? undefined,
+        },
+      );
+    }
+
+    return appointment;
+  } catch (error) {
+    console.error('Failed to complete appointment:', error);
+    throw error;
+  }
 }
 
 export async function missAppointment(id: string) {
-  return db.appointment.update({
-    where: { id },
-    data: {
-      status: AppointmentStatus.MISSED,
-    },
-  });
+  const t = await getTranslations('messages');
+  try {
+    const appointment = await db.appointment.update({
+      where: { id },
+      data: {
+        status: AppointmentStatus.MISSED,
+      },
+      include: {
+        attendee: true,
+        agent: true,
+        organization: true,
+      },
+    });
+
+    // Notification pour l'utilisateur
+    if (appointment.attendee) {
+      await notifyAppointment(
+        appointment.attendee.id,
+        t('appointments.notifications.appointment_missed'),
+        t('appointments.notifications.appointment_missed_message', {
+          date: format(appointment.date, 'dd/MM/yyyy'),
+          time: format(appointment.startTime, 'HH:mm'),
+        }),
+        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+        t('appointments.notifications.actions.view_appointment'),
+        {
+          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+          email: appointment.attendee.email ?? undefined,
+        },
+      );
+    }
+
+    return appointment;
+  } catch (error) {
+    console.error('Failed to mark appointment as missed:', error);
+    throw error;
+  }
 }
