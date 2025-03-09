@@ -38,6 +38,7 @@ import { RoleGuard } from '@/lib/permissions/utils';
 import { DaySchedule } from './day-schedule';
 import { updateOrganizationSettings } from '@/actions/organizations';
 import { CountryCode } from '@/lib/autocomplete-datas';
+import { tryCatch } from '@/lib/utils';
 
 interface OrganizationSettingsProps {
   organization: Organization;
@@ -70,41 +71,38 @@ export function OrganizationSettings({
 
   const onSubmit = async (data: OrganizationSettingsFormData) => {
     setIsLoading(true);
-    try {
-      let file;
-      if (data.logoFile) {
-        const formData = new FormData();
 
-        formData.append('files', data.logoFile[0]);
-        file = formData;
-      }
+    let file;
 
-      filterUneditedKeys(data, form.formState.dirtyFields);
+    if (data.logoFile) {
+      const formData = new FormData();
 
-      const result = await updateOrganizationSettings(organization.id, data, file);
+      formData.append('files', data.logoFile[0]);
+      file = formData;
+    }
 
-      if (result.error) {
-        toast({
-          title: t_messages('errors.update'),
-          description: result.error,
-          variant: 'destructive',
-        });
-        return;
-      }
+    filterUneditedKeys(data, form.formState.dirtyFields);
 
+    const { data: result, error } = await tryCatch(
+      updateOrganizationSettings(organization.id, data, file),
+    );
+
+    if (error) {
+      toast({
+        title: t_messages('errors.update'),
+        description: t_messages(`errors.${error.message}`),
+        variant: 'destructive',
+      });
+    }
+
+    if (result) {
       toast({
         title: t_messages('success.update'),
         description: t('messages.updateSuccess'),
       });
-    } catch (error) {
-      toast({
-        title: t_messages('errors.update'),
-        description: t_messages('errors.unknown') + error,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   return (

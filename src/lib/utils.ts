@@ -4,7 +4,7 @@ import { Profile } from '@prisma/client';
 import { phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
-import { DateTimeFormatOptions, MessageKeys, useLocale } from 'next-intl';
+import { DateTimeFormatOptions, useLocale } from 'next-intl';
 import { es, fr, enUS, Locale } from 'date-fns/locale';
 import { format } from 'date-fns';
 import messages from '@/i18n/messages/fr/messages';
