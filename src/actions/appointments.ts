@@ -39,7 +39,9 @@ export interface TimeSlotWithAgent extends BaseTimeSlot {
 interface AgentWithAppointments {
   id: string;
   assignedAppointments: Array<{
-    date: Date;
+    id: string;
+    startTime: Date;
+    endTime: Date;
     duration: number;
   }>;
 }
@@ -59,7 +61,7 @@ export async function getAvailableTimeSlots(
   duration: number,
 ): Promise<TimeSlotWithAgent[]> {
   // 1. Récupération des données nécessaires
-  const [agents, countryData, organizationData] = await Promise.all([
+  const [agentsData, countryData, organizationData] = await Promise.all([
     db.user.findMany({
       where: {
         roles: {
@@ -73,7 +75,14 @@ export async function getAvailableTimeSlots(
       include: {
         assignedAppointments: {
           where: {
-            date: { gte: startDate, lte: endDate },
+            startTime: { gte: startDate, lte: endDate },
+            status: { not: AppointmentStatus.CANCELLED },
+          },
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+            duration: true,
           },
         },
       },
@@ -90,9 +99,15 @@ export async function getAvailableTimeSlots(
     }),
   ]);
 
-  if (!countryData || !organizationData || agents.length === 0) {
+  if (!countryData || !organizationData || agentsData.length === 0) {
     return [];
   }
+
+  // Map the query results to the AgentWithAppointments type
+  const agents: AgentWithAppointments[] = agentsData.map((agent) => ({
+    id: agent.id,
+    assignedAppointments: agent.assignedAppointments,
+  }));
 
   const countryMetadata = JSON.parse(countryData.metadata as string) as CountryMetadata;
   const organizationMetadata = JSON.parse(
@@ -205,7 +220,11 @@ function checkAgentAvailability(
       .filter(
         (agent) =>
           !agent.assignedAppointments.some((appointment) =>
-            isOverlapping(slot, appointment),
+            isOverlapping(slot, {
+              date: appointment.startTime,
+              duration: appointment.duration,
+              endTime: appointment.endTime,
+            }),
           ),
       )
       .map((agent) => agent.id);
@@ -219,12 +238,15 @@ function checkAgentAvailability(
 
 function isOverlapping(
   slot: BaseTimeSlot,
-  appointment: { date: Date; duration: number },
+  appointment: { date: Date; duration: number; endTime?: Date },
 ): boolean {
-  const appointmentEnd = addMinutes(appointment.date, appointment.duration);
+  const appointmentEnd =
+    appointment.endTime || addMinutes(appointment.date, appointment.duration);
+
   return (
     (slot.start >= appointment.date && slot.start < appointmentEnd) ||
-    (slot.end > appointment.date && slot.end <= appointmentEnd)
+    (slot.end > appointment.date && slot.end <= appointmentEnd) ||
+    (slot.start <= appointment.date && slot.end >= appointmentEnd)
   );
 }
 
@@ -276,21 +298,6 @@ export async function createAppointment(data: AppointmentInput) {
   try {
     // Valider les données avec Zod
     const validatedData = AppointmentSchema.parse(data);
-
-    console.log({
-      date: validatedData.date,
-      startTime: validatedData.startTime,
-      endTime: validatedData.endTime,
-      duration: validatedData.duration,
-      type: validatedData.type,
-      status: validatedData.status,
-      organizationId: validatedData.organizationId,
-      serviceId: validatedData.serviceId,
-      attendeeId: validatedData.attendeeId,
-      agentId: validatedData.agentId,
-      countryCode: validatedData.countryCode,
-      instructions: validatedData.instructions,
-    });
 
     // Créer le rendez-vous dans la base de données
     const appointment = await db.appointment.create({

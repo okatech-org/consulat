@@ -635,7 +635,7 @@ model Appointment {
   agent            User?            @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
   request          ServiceRequest? @relation(fields: [requestId], references: [id])
   requestId        String?          @unique
-  serviceId        String?          @unique
+  serviceId        String?   
 
   // Métadonnées
   createdAt        DateTime       @default(now())
