@@ -19,7 +19,7 @@ export async function PublicHeader({ session }: { session: Session | null }) {
           </Link>
         </span>
 
-        <div className="flex w-max gap-3">
+        <div className="flex items-center w-max gap-3">
           <LanguageSwitcher />
           {!isAuth && <Link
             href={ROUTES.auth.login}

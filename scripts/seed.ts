@@ -87,187 +87,114 @@ async function main() {
 
     // Créer les organisations
     console.log('Creating organizations...');
-    await Promise.all([
-      prisma.organization.create({
-        data: {
-          id: 'organization-ambassade-france',
-          name: 'Ambassade du Gabon en France',
-          type: OrganizationType.EMBASSY,
-          status: OrganizationStatus.ACTIVE,
-          countries: { connect: [{ code: 'FR' }] },
-          metadata: JSON.stringify({
-            FR: {
-              settings: {
-                logo: 'https://example.com/logo-france.png',
-                contact: {
-                  address: {
-                    firstLine: '26 Rue de la Faisanderie',
-                    city: 'Paris',
-                    zipCode: '75116',
-                    country: 'FR',
-                  },
-                  phone: '+33145630787',
-                  email: 'contact@ambagabon-fr.org',
-                  website: 'https://ambagabon-fr.org',
+    await prisma.organization.create({
+      data: {
+        id: 'organization-ambassade-france',
+        name: 'Ambassade du Gabon en France',
+        type: OrganizationType.EMBASSY,
+        status: OrganizationStatus.ACTIVE,
+        countries: { connect: [{ code: 'FR' }] },
+        metadata: JSON.stringify({
+          FR: {
+            settings: {
+              logo: 'https://example.com/logo-france.png',
+              contact: {
+                address: {
+                  firstLine: '26 Rue de la Faisanderie',
+                  city: 'Paris',
+                  zipCode: '75116',
+                  country: 'FR',
                 },
-                schedule: {
-                  monday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  tuesday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  wednesday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  thursday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  friday: {
-                    isOpen: true,
-                    slots: [{ start: '09:00', end: '18:00' }],
-                  },
-                  saturday: { isOpen: false },
-                  sunday: { isOpen: false },
-                },
-                holidays: [
-                  {
-                    date: '2024-01-01',
-                    name: "Jour de l'an",
-                  },
-                ],
+                phone: '+33145630787',
+                email: 'contact@ambagabon-fr.org',
+                website: 'https://ambagabon-fr.org',
               },
-            },
-          }),
-          appointmentSettings: JSON.stringify({
-            quotas: {
-              DOCUMENT_SUBMISSION: 10,
-              DOCUMENT_COLLECTION: 15,
-              INTERVIEW: 5,
-              MARRIAGE_CEREMONY: 2,
-              EMERGENCY: 3,
-            },
-          }),
-        },
-      }),
-      prisma.organization.create({
-        data: {
-          id: 'organization-ambassade-belgique',
-          name: 'Ambassade du Gabon en Belgique',
-          type: OrganizationType.EMBASSY,
-          status: OrganizationStatus.INACTIVE,
-          countries: { connect: [{ code: 'BE' }] },
-          metadata: JSON.stringify({
-            BE: {
-              settings: {
-                logo: 'https://example.com/logo-belgique.png',
-                contact: {
-                  address: {
-                    firstLine: '2 Avenue Franklin Roosevelt',
-                    city: 'Bruxelles',
-                    zipCode: '1050',
-                    country: 'BE',
-                  },
-                  phone: '+3226406511',
-                  email: 'contact@ambagabon-be.org',
-                  website: 'https://ambagabon-be.org',
+              schedule: {
+                monday: {
+                  isOpen: true,
+                  slots: [
+                    { start: '09:00', end: '12:00' },
+                    { start: '14:00', end: '17:00' },
+                  ],
                 },
-                schedule: {
-                  monday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  tuesday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  wednesday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  thursday: {
-                    isOpen: true,
-                    slots: [
-                      { start: '09:00', end: '12:00' },
-                      { start: '14:00', end: '17:00' },
-                    ],
-                  },
-                  friday: {
-                    isOpen: true,
-                    slots: [{ start: '09:00', end: '18:00' }],
-                  },
-                  saturday: { isOpen: false },
-                  sunday: { isOpen: false },
+                tuesday: {
+                  isOpen: true,
+                  slots: [
+                    { start: '09:00', end: '12:00' },
+                    { start: '14:00', end: '17:00' },
+                  ],
                 },
-                holidays: [
-                  {
-                    date: '2024-01-01',
-                    name: "Jour de l'an",
-                  },
-                ],
+                wednesday: {
+                  isOpen: true,
+                  slots: [
+                    { start: '09:00', end: '12:00' },
+                    { start: '14:00', end: '17:00' },
+                  ],
+                },
+                thursday: {
+                  isOpen: true,
+                  slots: [
+                    { start: '09:00', end: '12:00' },
+                    { start: '14:00', end: '17:00' },
+                  ],
+                },
+                friday: {
+                  isOpen: true,
+                  slots: [{ start: '09:00', end: '18:00' }],
+                },
+                saturday: { isOpen: false },
+                sunday: { isOpen: false },
               },
+              holidays: [
+                {
+                  date: '2024-01-01',
+                  name: "Jour de l'an",
+                },
+              ],
             },
-          }),
-          appointmentSettings: JSON.stringify({
-            quotas: {
-              DOCUMENT_SUBMISSION: 10,
-              DOCUMENT_COLLECTION: 15,
-              INTERVIEW: 5,
-              MARRIAGE_CEREMONY: 2,
-              EMERGENCY: 3,
-            },
-          }),
-        },
-      }),
-    ]);
+          },
+        }),
+        appointmentSettings: JSON.stringify({
+          quotas: {
+            DOCUMENT_SUBMISSION: 10,
+            DOCUMENT_COLLECTION: 15,
+            INTERVIEW: 5,
+            MARRIAGE_CEREMONY: 2,
+            EMERGENCY: 3,
+          },
+        }),
+      },
+    });
 
     // Créer les utilisateurs
     console.log('Creating users...');
 
-    // Admin Belgique et Agents France
+    // Admin et Agents
     await Promise.all([
       prisma.user.create({
         data: {
-          id: 'user-admin-belgique',
-          email: 'admin.belgique@consulat.ga',
+          id: 'user-admin',
+          email: 'itoutouberny+admin@gmail.com',
           roles: [UserRole.ADMIN],
-          organizationId: 'organization-ambassade-belgique',
-          countryCode: 'BE',
+          organizationId: 'organization-ambassade-france',
+          countryCode: 'FR',
+          specializations: [
+            ServiceCategory.IDENTITY,
+            ServiceCategory.REGISTRATION,
+            ServiceCategory.CIVIL_STATUS,
+            ServiceCategory.VISA,
+          ],
+          linkedCountries: { connect: [{ code: 'FR' }] },
           profile: {
             create: {
               firstName: 'Admin',
-              lastName: 'Belgique',
+              lastName: 'France',
               birthDate: '1980-01-01',
-              birthPlace: 'Bruxelles',
-              birthCountry: 'BE',
-              nationality: 'BE',
+              birthPlace: 'Paris',
+              birthCountry: 'FR',
+              nationality: 'FR',
               gender: 'MALE',
-              residenceCountyCode: 'BE',
+              residenceCountyCode: 'FR',
             },
           },
         },
@@ -275,10 +202,12 @@ async function main() {
       prisma.user.create({
         data: {
           id: 'user-agent-france-1',
-          email: 'agent1@consulat.ga',
+          email: 'itoutouberny+agent1@gmail.com',
           roles: [UserRole.AGENT],
           assignedOrganizationId: 'organization-ambassade-france',
           countryCode: 'FR',
+          specializations: [ServiceCategory.IDENTITY, ServiceCategory.REGISTRATION],
+          linkedCountries: { connect: [{ code: 'FR' }] },
           profile: {
             create: {
               firstName: 'Agent',
@@ -296,10 +225,12 @@ async function main() {
       prisma.user.create({
         data: {
           id: 'user-agent-france-2',
-          email: 'agent2@consulat.ga',
+          email: 'itoutouberny+agent2@gmail.com',
           roles: [UserRole.AGENT],
           assignedOrganizationId: 'organization-ambassade-france',
           countryCode: 'FR',
+          specializations: [ServiceCategory.CIVIL_STATUS, ServiceCategory.VISA],
+          linkedCountries: { connect: [{ code: 'FR' }] },
           profile: {
             create: {
               firstName: 'Agent',
@@ -374,20 +305,24 @@ async function main() {
     ]);
 
     // Créér les comptes super admin
-    await prisma.user.createMany({
-      data: [
-        {
+    await Promise.all([
+      prisma.user.create({
+        data: {
           id: 'user-super-admin',
-          email: 'superadmin@consulat.ga',
+          email: 'itoutouberny+sa@gmail.com',
           roles: [UserRole.SUPER_ADMIN],
+          specializations: [
+            ServiceCategory.IDENTITY,
+            ServiceCategory.REGISTRATION,
+            ServiceCategory.CIVIL_STATUS,
+            ServiceCategory.VISA,
+            ServiceCategory.CERTIFICATION,
+            ServiceCategory.OTHER,
+          ],
+          linkedCountries: { connect: [{ code: 'FR' }] },
         },
-        {
-          id: 'user-super-admin-2',
-          email: 'superadmin2@consulat.ga',
-          roles: [UserRole.SUPER_ADMIN],
-        },
-      ],
-    });
+      }),
+    ]);
 
     // Créer des utilisateurs normaux avec leurs profils
     console.log('Creating regular users with profiles...');
@@ -534,71 +469,71 @@ async function main() {
       }),
       prisma.user.create({
         data: {
-          id: 'user-sarah-smith',
-          email: 'sarah.smith@example.com',
-          firstName: 'Sarah',
-          lastName: 'Smith',
+          id: 'user-jane-doe',
+          email: 'janedoe@example.com',
+          firstName: 'Jane',
+          lastName: 'Doe',
           roles: [UserRole.USER],
           emailVerified: new Date(),
           countryCode: 'FR',
           profile: {
             create: {
-              id: 'profile-sarah-smith',
-              firstName: 'Sarah',
-              lastName: 'Smith',
+              id: 'profile-jane-doe',
+              firstName: 'Jane',
+              lastName: 'Doe',
               gender: 'FEMALE',
               birthDate: '1988-05-15',
-              birthPlace: 'New York',
-              birthCountry: 'GA',
+              birthPlace: 'Paris',
+              birthCountry: 'FR',
               nationality: 'GA',
               passportNumber: 'GA789012',
-              email: 'sarah.smith@example.com',
+              email: 'janedoe@example.com',
               passportIssueDate: new Date('2021-03-15'),
               passportExpiryDate: new Date('2031-03-15'),
-              passportIssueAuthority: 'Consulat du Gabon à New York',
+              passportIssueAuthority: 'Consulat du Gabon à Paris',
               status: 'SUBMITTED',
               maritalStatus: 'MARRIED',
               workStatus: 'EMPLOYEE',
               profession: 'Médecin',
-              employer: 'Mount Sinai Hospital',
-              employerAddress: '1468 Madison Ave, New York, NY 10029',
-              fatherFullName: 'John Smith',
-              motherFullName: 'Mary Smith',
+              employer: 'Hôpital Saint-Louis',
+              employerAddress: '1 Avenue Claude Vellefaux, 75010 Paris',
+              fatherFullName: 'John Doe',
+              motherFullName: 'Mary Doe',
               activityInGabon: 'Missions humanitaires',
               cardPin: 'GA789012',
-              residenceCountyCode: 'NY',
+              residenceCountyCode: '75',
               address: {
                 create: {
-                  firstLine: '350 5th Avenue',
-                  secondLine: 'Apt 789',
-                  city: 'New York',
-                  zipCode: '10118',
+                  firstLine: '45 Rue de Rivoli',
+                  secondLine: 'Apt 12',
+                  city: 'Paris',
+                  zipCode: '75004',
                   country: 'FR',
                 },
               },
               phone: {
                 create: {
-                  number: '2125550199',
-                  countryCode: '+1',
+                  number: '0623456789',
+                  countryCode: '+33',
                 },
               },
               residentContact: {
                 create: {
                   firstName: 'Michael',
-                  lastName: 'Smith',
+                  lastName: 'Doe',
                   relationship: 'SPOUSE',
                   phone: {
                     create: {
-                      number: '2125550198',
-                      countryCode: '+1',
+                      number: '0634567890',
+                      countryCode: '+33',
                     },
                   },
                   address: {
                     create: {
-                      firstLine: '350 5th Avenue',
-                      secondLine: 'Apt 789',
-                      city: 'New York',
-                      zipCode: '10118',
+                      firstLine: '45 Rue de Rivoli',
+                      secondLine: 'Apt 12',
+                      city: 'Paris',
+                      zipCode: '75004',
                       country: 'FR',
                     },
                   },
@@ -607,7 +542,7 @@ async function main() {
               homeLandContact: {
                 create: {
                   firstName: 'John',
-                  lastName: 'Smith',
+                  lastName: 'Doe',
                   relationship: 'FATHER',
                   phone: {
                     create: {
@@ -623,6 +558,32 @@ async function main() {
                       country: 'GA',
                     },
                   },
+                },
+              },
+              identityPicture: {
+                create: {
+                  type: DocumentType.IDENTITY_PHOTO,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: '/images/avatar-placeholder.png',
+                  issuedAt: new Date('2023-05-15'),
+                  expiresAt: new Date('2028-05-15'),
+                },
+              },
+              passport: {
+                create: {
+                  type: DocumentType.PASSPORT,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/jane-passport.pdf',
+                  issuedAt: new Date('2021-03-15'),
+                  expiresAt: new Date('2031-03-15'),
+                },
+              },
+              birthCertificate: {
+                create: {
+                  type: DocumentType.BIRTH_CERTIFICATE,
+                  status: DocumentStatus.VALIDATED,
+                  fileUrl: 'https://example.com/jane-birth-certificate.pdf',
+                  issuedAt: new Date('1988-05-15'),
                 },
               },
             },
@@ -732,7 +693,7 @@ async function main() {
       }),
       prisma.appointment.create({
         data: {
-          id: 'appointment-sarah-smith-1',
+          id: 'appointment-jane-doe-1',
           countryCode: 'FR',
           date: new Date('2024-04-20'),
           startTime: new Date('2024-04-20T14:00:00Z'),
@@ -740,15 +701,15 @@ async function main() {
           duration: 30,
           type: AppointmentType.DOCUMENT_SUBMISSION,
           status: AppointmentStatus.CONFIRMED,
-          organization: { connect: { id: 'organization-ambassade-belgique' } },
-          attendee: { connect: { id: 'user-sarah-smith' } },
+          organization: { connect: { id: 'organization-ambassade-france' } },
+          attendee: { connect: { id: 'user-jane-doe' } },
           agent: { connect: { id: 'user-agent-france-1' } },
           instructions: 'Please bring all original documents and their copies.',
         },
       }),
       prisma.appointment.create({
         data: {
-          id: 'appointment-sarah-smith-2',
+          id: 'appointment-jane-doe-2',
           countryCode: 'FR',
           date: new Date('2024-04-25'),
           startTime: new Date('2024-04-25T15:00:00Z'),
@@ -756,8 +717,8 @@ async function main() {
           duration: 45,
           type: AppointmentType.INTERVIEW,
           status: AppointmentStatus.PENDING,
-          organization: { connect: { id: 'organization-ambassade-belgique' } },
-          attendee: { connect: { id: 'user-sarah-smith' } },
+          organization: { connect: { id: 'organization-ambassade-france' } },
+          attendee: { connect: { id: 'user-jane-doe' } },
           agent: { connect: { id: 'user-agent-france-1' } },
           instructions: 'Interview for consular registration.',
         },
@@ -805,14 +766,14 @@ async function main() {
           serviceCategory: 'REGISTRATION',
           assignedTo: { connect: { id: 'user-agent-france-1' } },
           service: { connect: { id: 'service-registration' } },
-          submittedBy: { connect: { id: 'user-sarah-smith' } },
+          submittedBy: { connect: { id: 'user-jane-doe' } },
           organization: { connect: { id: 'organization-ambassade-france' } },
           country: { connect: { code: 'FR' } },
           chosenProcessingMode: ProcessingMode.PRESENCE_REQUIRED,
           chosenDeliveryMode: DeliveryMode.IN_PERSON,
           submittedAt: new Date(),
           firstPassValidation: true,
-          requestedFor: { connect: { id: 'profile-sarah-smith' } },
+          requestedFor: { connect: { id: 'profile-jane-doe' } },
           processingTime: 0,
           requiredDocuments: {
             create: [
@@ -868,7 +829,7 @@ async function main() {
         },
         {
           id: 'notification-3',
-          userId: 'user-sarah-smith',
+          userId: 'user-jane-doe',
           type: 'CONSULAR_CARD_READY',
           title: 'Carte prête pour retrait',
           message:
