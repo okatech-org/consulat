@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Organization } from '@/types/organization';
+import { useRouter } from 'next/navigation';
 
 interface CreateAgentButtonProps {
   initialData?: Partial<AgentFormData>;
@@ -22,6 +23,7 @@ interface CreateAgentButtonProps {
 }
 
 export function CreateAgentButton({ initialData, countries }: CreateAgentButtonProps) {
+  const router = useRouter();
   const t = useTranslations('organization.settings.agents');
   const [open, setOpen] = useState(false);
 
@@ -41,7 +43,10 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
         <AgentForm
           initialData={initialData}
           countries={countries}
-          onSuccess={() => setOpen(false)}
+          onSuccess={() => {
+            setOpen(false);
+            router.refresh();
+          }}
         />
       </DialogContent>
     </Dialog>

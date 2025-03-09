@@ -1,4 +1,3 @@
-import { EmailLayout } from './components/EmailLayout';
 import {
   Text,
   Button,
@@ -11,6 +10,7 @@ import {
   render,
 } from '@react-email/components';
 import * as React from 'react';
+import { EmailLayout } from './components/EmailLayout';
 
 interface AdminWelcomeEmailProps {
   dashboardUrl: string;

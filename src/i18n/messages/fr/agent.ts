@@ -17,5 +17,17 @@ export default {
       message: 'Une demande de type {requestType} vous a été assignée',
       see_request: 'Voir la demande',
     },
+    welcome: {
+      title: "Bienvenue dans l'équipe consulaire",
+      message:
+        "Votre compte agent a été créé avec succès. Vous êtes maintenant membre de l'équipe consulaire de {organization}.",
+      action: 'Accéder à mon espace',
+    },
+    new_agent: {
+      title: 'Nouvel agent ajouté',
+      message:
+        'Un nouvel agent, {firstName} {lastName}, a été ajouté à votre organisation.',
+      action: 'Voir le profil',
+    },
   },
 } as const;

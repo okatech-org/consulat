@@ -1,5 +1,5 @@
-import { EmailLayout } from '@/emails/components/EmailLayout';
 import { Text, Section, Heading, render } from '@react-email/components';
+import { EmailLayout } from './components/EmailLayout';
 
 interface OTPEmailProps {
   otp: string;

@@ -1,7 +1,5 @@
 'use server';
 
-import { db } from '@/lib/prisma';
-import { checkAuth } from '@/lib/auth/action';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import {
@@ -12,22 +10,30 @@ import {
   UpdateOrganizationInput,
 } from '@/schemas/organization';
 import { Country, OrganizationStatus, ServiceCategory, UserRole } from '@prisma/client';
-import {
-  OrganizationListingItem,
-  FullOrganizationInclude,
-  createOrganizationInclude,
-  FullOrganization,
-  OrganizationWithIncludes,
-  BaseAgentInclude,
-  FullAgentInclude,
-  BaseAgent,
-  AgentWithIncludes,
-  createAgentInclude,
-} from '@/types/organization';
+
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
 import { env } from '@/lib/env';
 import { sendAdminWelcomeEmail } from '@/services/notifications/providers/emails';
+import { notify } from '@/services/notifications';
+import { NotificationChannel } from '@/types/notifications';
+import { getCurrentUser } from '@/actions/user';
+import { getTranslations } from 'next-intl/server';
+import { CountryCode } from '@/lib/autocomplete-datas';
+import { checkAuth } from '@/lib/auth/action';
+import { db } from '@/lib/prisma';
+import {
+  OrganizationListingItem,
+  FullOrganization,
+  FullOrganizationInclude,
+  OrganizationWithIncludes,
+  createOrganizationInclude,
+  BaseAgent,
+  BaseAgentInclude,
+  FullAgentInclude,
+  AgentWithIncludes,
+  createAgentInclude,
+} from '@/types/organization';
 
 export async function getOrganizations(): Promise<OrganizationListingItem[]> {
   await checkAuth([UserRole.SUPER_ADMIN]);
@@ -259,7 +265,10 @@ export async function getAvailableServiceCategories(
 }
 
 export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
-  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  const baseUrl = env.NEXT_PUBLIC_URL;
+  const t = await getTranslations('agent.notifications');
+
+  const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   const { countryIds, phone, serviceCategories, ...rest } = data;
 
@@ -289,6 +298,38 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
     include: {
       ...BaseAgentInclude.include,
       assignedOrganization: true,
+    },
+  });
+
+  const countryNames = agent.linkedCountries.map((country) => country.name).join(', ');
+
+  // Récupérer les informations de l'organisation assignée si elle existe
+  const organizationName = agent.assignedOrganization?.name ?? 'N/A';
+
+  await notify({
+    userId: agent.id,
+    type: 'FEEDBACK', // Utiliser un type existant approprié
+    title: t('welcome.title'),
+    message: t('welcome.message', {
+      organization: agent.assignedOrganization?.name ?? organizationName,
+    }),
+    channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+    email: agent.email || undefined,
+    priority: 'high',
+    actions: [
+      {
+        label: t('welcome.action'),
+        url: `${baseUrl}${ROUTES.dashboard.base}`,
+        primary: true,
+      },
+    ],
+    metadata: {
+      createdBy: currentUser?.id,
+      createdByName:
+        `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim(),
+      specializations: serviceCategories,
+      countries: countryNames,
+      organization: organizationName,
     },
   });
 
