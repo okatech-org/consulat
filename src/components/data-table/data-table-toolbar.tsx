@@ -45,7 +45,7 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <div
-          className={`flex items-center space-x-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`flex items-center flex-wrap gap-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
         >
           {filters?.map((filter) => (
             <Fragment key={filter.type + filter.property}>

@@ -18,14 +18,14 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   const t = useTranslations('common.data_table');
 
   return (
-    <div className="flex items-center justify-between px-2">
+    <div className="flex items-center justify-between gap-2 flex-wrap">
       <div className="flex-1 text-sm text-muted-foreground">
         {t('selected_rows', {
           selected: table.getFilteredSelectedRowModel().rows.length,
           total: table.getFilteredRowModel().rows.length,
         })}
       </div>
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex items-center gap-4 lg:gap-6 flex-wrap">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">{t('rows_per_page')}</p>
           <Select

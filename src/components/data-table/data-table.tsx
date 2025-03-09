@@ -110,7 +110,7 @@ export function DataTable<TData, TValue>({
       ) : null}
 
       <div className="rounded-md border">
-        <Table>
+        <Table className="min-w-max">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} onClick={() => {}}>
