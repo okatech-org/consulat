@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { cn, tryCatch } from '@/lib/utils';
 import { Check, Clock, ExternalLink, User, X } from 'lucide-react';
 import { completeAppointment, missAppointment } from '@/actions/appointments';
 import { useRouter } from 'next/navigation';
@@ -30,40 +30,39 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
 
   const handleComplete = async () => {
     setIsLoading(true);
-    try {
-      await completeAppointment(appointment.id);
-      toast({
-        title: commonT('status.completed'),
-        variant: 'success',
-      });
-      router.refresh();
-    } catch {
+    const { error } = await tryCatch(completeAppointment(appointment.id));
+    if (error) {
       toast({
         title: commonT('error.unknown'),
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
+    } else {
+      toast({
+        title: commonT('status.COMPLETED'),
+        variant: 'success',
+      });
+      router.refresh();
     }
+    setIsLoading(false);
   };
 
   const handleMiss = async () => {
     setIsLoading(true);
-    try {
-      await missAppointment(appointment.id);
-      toast({
-        title: commonT('status.missed'),
-        variant: 'success',
-      });
-      router.refresh();
-    } catch {
+
+    const { error } = await tryCatch(missAppointment(appointment.id));
+    if (error) {
       toast({
         title: commonT('error.unknown'),
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
+    } else {
+      toast({
+        title: commonT('status.MISSED'),
+        variant: 'success',
+      });
+      router.refresh();
     }
+    setIsLoading(false);
   };
 
   const getStatusColor = (status: AppointmentStatus) => {
@@ -85,25 +84,6 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
     }
   };
 
-  const getStatusText = (status: AppointmentStatus) => {
-    switch (status) {
-      case AppointmentStatus.CONFIRMED:
-        return 'confirmed';
-      case AppointmentStatus.CANCELLED:
-        return 'cancelled';
-      case AppointmentStatus.COMPLETED:
-        return 'completed';
-      case AppointmentStatus.MISSED:
-        return 'missed';
-      case AppointmentStatus.PENDING:
-        return 'pending';
-      case AppointmentStatus.RESCHEDULED:
-        return 'rescheduled';
-      default:
-        return 'pending';
-    }
-  };
-
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0">
@@ -112,7 +92,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             variant="secondary"
             className={cn('mb-2', getStatusColor(appointment.status))}
           >
-            {commonT(`status.${getStatusText(appointment.status)}`)}
+            {commonT(`status.${appointment.status}`)}
           </Badge>
           <h3 className="font-semibold">
             {t('appointmentWith', {
@@ -168,7 +148,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             disabled={isLoading}
           >
             <Check className="size-4" />
-            {commonT('status.completed')}
+            {commonT('status.COMPLETED')}
           </Button>
           <Button
             variant="outline"
@@ -178,7 +158,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             disabled={isLoading}
           >
             <X className="size-4" />
-            {commonT('status.missed')}
+            {commonT('status.MISSED')}
           </Button>
         </CardFooter>
       )}

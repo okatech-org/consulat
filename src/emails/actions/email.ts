@@ -130,24 +130,3 @@ export async function sendNotificationEmail({
     throw new Error('Failed to send notification email');
   }
 }
-
-export async function sendAgentWelcomeEmail({
-  agentEmail,
-  agentName,
-  organizationName,
-  dashboardUrl,
-  organizationLogo,
-}) {
-  const t = await getTranslations('emails.agentWelcome');
-
-  const emailHtml = await AgentWelcomeEmailToHtml({
-    loginUrl: `${env.NEXT_PUBLIC_URL}/${ROUTES.dashboard.base}`,
-    organizationLogo,
-    content: {
-      subject: t('subject', { appName }),
-      greeting: t('greeting', { agentName }),
-      intro: t('intro', { organizationName }),
-      instructions: t.raw('instructions'),
-    },
-  });
-}

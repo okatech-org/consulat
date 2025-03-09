@@ -421,8 +421,6 @@ export async function getAppointment(id: string) {
 }
 
 export async function completeAppointment(id: string) {
-  'use server';
-
   return db.appointment.update({
     where: { id },
     data: {
@@ -432,8 +430,6 @@ export async function completeAppointment(id: string) {
 }
 
 export async function missAppointment(id: string) {
-  'use server';
-
   return db.appointment.update({
     where: { id },
     data: {

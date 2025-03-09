@@ -28,7 +28,6 @@ import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
 import { sendAdminWelcomeEmail, sendAgentWelcomeEmail } from '@/emails/actions/email';
 import { env } from '@/lib/env';
-import { getTranslations } from 'next-intl/server';
 
 export async function getOrganizations(): Promise<OrganizationListingItem[]> {
   await checkAuth([UserRole.SUPER_ADMIN]);
@@ -260,7 +259,6 @@ export async function getAvailableServiceCategories(
 }
 
 export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
-  const t = await getTranslations('messages');
   await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   const { countryIds, phone, serviceCategories, ...rest } = data;
@@ -288,15 +286,10 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
       },
       ...(phoneId && { phoneId }),
     },
-    ...BaseAgentInclude,
-  });
-
-  await sendAgentWelcomeEmail({
-    agentEmail: agent.email,
-    agentName: agent.name,
-    organizationName: agent.organization.name,
-    dashboardUrl: `${env.NEXT_PUBLIC_URL}/${ROUTES.dashboard.base}`,
-    organizationLogo: `${env.NEXT_PUBLIC_ORG_LOGO}`,
+    include: {
+      ...BaseAgentInclude.include,
+      assignedOrganization: true,
+    },
   });
 
   return agent;
