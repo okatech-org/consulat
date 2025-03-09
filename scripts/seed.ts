@@ -12,6 +12,7 @@ import {
   DeliveryMode,
   ServicePriority,
   RequestStatus,
+  NotificationStatus,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -22,6 +23,9 @@ async function main() {
 
     // Nettoyer la base de données dans le bon ordre
     await prisma.$transaction([
+      prisma.notificationLog.deleteMany(),
+      prisma.scheduledNotification.deleteMany(),
+      prisma.notificationPreference.deleteMany(),
       prisma.notification.deleteMany(),
       prisma.appointment.deleteMany(),
       prisma.note.deleteMany(),
@@ -807,7 +811,7 @@ async function main() {
     console.log('Creating notifications...');
     await prisma.notification.createMany({
       data: [
-        // Notifications pour user-france-1
+        // Notifications pour user-berny-itoutou
         {
           id: 'notification-1',
           userId: 'user-berny-itoutou',
@@ -816,6 +820,8 @@ async function main() {
           message: "Votre demande d'inscription consulaire a été soumise avec succès.",
           createdAt: new Date('2024-03-20T10:00:00Z'),
           read: true,
+          status: NotificationStatus.SENT,
+          priority: 'normal',
         },
         {
           id: 'notification-2',
@@ -826,16 +832,232 @@ async function main() {
             "Votre dossier d'inscription consulaire a été validé. Vous pouvez accéder à votre carte consulaire virtuelle dès maintenant.",
           createdAt: new Date('2024-03-21T14:30:00Z'),
           read: false,
+          status: NotificationStatus.SENT,
+          priority: 'high',
+          actions: JSON.stringify([
+            {
+              label: 'Voir ma carte consulaire',
+              url: '/my-space/consular-card',
+              primary: true,
+            },
+          ]),
+          metadata: { cardId: 'CARD-123456', validUntil: '2029-03-21' },
         },
         {
           id: 'notification-3',
           userId: 'user-jane-doe',
           type: 'CONSULAR_CARD_READY',
           title: 'Carte prête pour retrait',
-          message:
-            "Votre carte consulaire est prête pour le retrait. <a href='/my-space/appointments/new?serviceRequestId=service-request-france-2&type=DOCUMENT_COLLECTION'>Cliquez ici pour prendre rendez-vous</a>",
+          message: 'Votre carte consulaire est prête pour le retrait.',
           createdAt: new Date('2024-03-22T09:15:00Z'),
           read: false,
+          status: NotificationStatus.SENT,
+          priority: 'high',
+          actions: JSON.stringify([
+            {
+              label: 'Prendre rendez-vous',
+              url: '/my-space/appointments/new?serviceRequestId=service-request-france-2&type=DOCUMENT_COLLECTION',
+              primary: true,
+            },
+          ]),
+        },
+        // Notification avec date d'expiration
+        {
+          id: 'notification-4',
+          userId: 'user-berny-itoutou',
+          type: 'APPOINTMENT_REMINDER_1_DAY',
+          title: 'Rappel de rendez-vous',
+          message: 'Votre rendez-vous est prévu pour demain à 10h00.',
+          createdAt: new Date('2024-03-25T09:00:00Z'),
+          read: false,
+          status: NotificationStatus.SENT,
+          priority: 'urgent',
+          expiresAt: new Date('2024-03-26T11:00:00Z'),
+          actions: JSON.stringify([
+            {
+              label: 'Voir le rendez-vous',
+              url: '/my-space/appointments/appointment-1',
+              primary: true,
+            },
+            {
+              label: 'Annuler',
+              url: '/my-space/appointments/appointment-1/cancel',
+              primary: false,
+            },
+          ]),
+        },
+      ],
+    });
+
+    // Créer des notifications programmées
+    console.log('Creating scheduled notifications...');
+    await prisma.scheduledNotification.createMany({
+      data: [
+        {
+          id: 'scheduled-notification-1',
+          userId: 'user-berny-itoutou',
+          scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 jour dans le futur
+          processed: false,
+          payload: {
+            type: 'APPOINTMENT_REMINDER_1_DAY',
+            title: 'Rappel de rendez-vous',
+            message: "N'oubliez pas votre rendez-vous demain à 14h30.",
+            channels: ['app', 'email'],
+            recipient: {
+              userId: 'user-berny-itoutou',
+              email: 'berny.itoutou@example.com',
+            },
+            actions: [
+              {
+                label: 'Voir le rendez-vous',
+                url: '/my-space/appointments/appointment-2',
+                primary: true,
+              },
+            ],
+            priority: 'high',
+          },
+          createdAt: new Date(),
+        },
+        {
+          id: 'scheduled-notification-2',
+          userId: 'user-jane-doe',
+          scheduledFor: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 jours dans le futur
+          processed: false,
+          payload: {
+            type: 'APPOINTMENT_REMINDER_3_DAYS',
+            title: 'Rappel de rendez-vous',
+            message: 'Votre rendez-vous est prévu dans 3 jours.',
+            channels: ['app', 'email', 'sms'],
+            recipient: {
+              userId: 'user-jane-doe',
+              email: 'jane.doe@example.com',
+              phoneNumber: '+33612345678',
+            },
+            priority: 'normal',
+          },
+          createdAt: new Date(),
+        },
+      ],
+    });
+
+    // Créer des logs de notification
+    console.log('Creating notification logs...');
+    await prisma.notificationLog.createMany({
+      data: [
+        {
+          id: 'notification-log-1',
+          requestId: 'request-1',
+          notificationId: 'notification-1',
+          userId: 'user-berny-itoutou',
+          channel: 'app',
+          success: true,
+          createdAt: new Date('2024-03-20T10:00:00Z'),
+        },
+        {
+          id: 'notification-log-2',
+          requestId: 'request-1',
+          userId: 'user-berny-itoutou',
+          channel: 'email',
+          success: true,
+          createdAt: new Date('2024-03-20T10:00:05Z'),
+        },
+        {
+          id: 'notification-log-3',
+          requestId: 'request-2',
+          notificationId: 'notification-2',
+          userId: 'user-berny-itoutou',
+          channel: 'app',
+          success: true,
+          createdAt: new Date('2024-03-21T14:30:00Z'),
+        },
+        {
+          id: 'notification-log-4',
+          requestId: 'request-2',
+          userId: 'user-berny-itoutou',
+          channel: 'email',
+          success: false,
+          error: 'Failed to send email: Invalid email address',
+          createdAt: new Date('2024-03-21T14:30:05Z'),
+        },
+        {
+          id: 'notification-log-5',
+          requestId: 'request-3',
+          notificationId: 'notification-3',
+          userId: 'user-jane-doe',
+          channel: 'app',
+          success: true,
+          createdAt: new Date('2024-03-22T09:15:00Z'),
+        },
+        {
+          id: 'notification-log-6',
+          requestId: 'request-3',
+          userId: 'user-jane-doe',
+          channel: 'sms',
+          success: true,
+          createdAt: new Date('2024-03-22T09:15:10Z'),
+        },
+      ],
+    });
+
+    // Créer des préférences de notification
+    console.log('Creating notification preferences...');
+    await prisma.notificationPreference.createMany({
+      data: [
+        // Préférences pour user-berny-itoutou
+        {
+          id: 'notification-pref-1',
+          userId: 'user-berny-itoutou',
+          type: 'APPOINTMENT_REMINDER_1_DAY',
+          channel: 'app',
+          enabled: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'notification-pref-2',
+          userId: 'user-berny-itoutou',
+          type: 'APPOINTMENT_REMINDER_1_DAY',
+          channel: 'email',
+          enabled: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'notification-pref-3',
+          userId: 'user-berny-itoutou',
+          type: 'APPOINTMENT_REMINDER_1_DAY',
+          channel: 'sms',
+          enabled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        // Préférences pour user-jane-doe
+        {
+          id: 'notification-pref-4',
+          userId: 'user-jane-doe',
+          type: 'APPOINTMENT_REMINDER_3_DAYS',
+          channel: 'app',
+          enabled: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'notification-pref-5',
+          userId: 'user-jane-doe',
+          type: 'APPOINTMENT_REMINDER_3_DAYS',
+          channel: 'email',
+          enabled: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'notification-pref-6',
+          userId: 'user-jane-doe',
+          type: 'APPOINTMENT_REMINDER_3_DAYS',
+          channel: 'sms',
+          enabled: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       ],
     });

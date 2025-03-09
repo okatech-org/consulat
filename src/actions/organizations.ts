@@ -26,7 +26,7 @@ import {
 } from '@/types/organization';
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
-import { sendAdminWelcomeEmail } from '@/emails/actions/email';
+import { sendAdminWelcomeEmail, sendAgentWelcomeEmail } from '@/emails/actions/email';
 import { env } from '@/lib/env';
 import { getTranslations } from 'next-intl/server';
 
