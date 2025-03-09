@@ -8,9 +8,7 @@ import { db } from '@/lib/prisma';
 import { ROUTES } from '@/schemas/routes';
 import { updateConsularRegistrationWithNotification } from '@/lib/notifications/consular-registration';
 import { generateConsularCardNumber } from '@/actions/consular-card';
-import { notify } from '@/services/notifications';
 import { getTranslations } from 'next-intl/server';
-import { NotificationChannel } from '@/types/notifications';
 
 /**
  * Valider une demande d'inscription consulaire
@@ -23,7 +21,7 @@ export async function validateConsularRegistration(
   notes?: string,
 ) {
   const t = await getTranslations('messages.requests.notifications');
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
   // Si le statut est VALIDATED, générer les informations de la carte
   const cardData =
@@ -92,7 +90,7 @@ export async function updateConsularRegistrationStatus(
   status: RequestStatus,
   notes?: string,
 ) {
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
   try {
     await db.profile.update({
