@@ -28,6 +28,7 @@ import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
 import { sendAdminWelcomeEmail } from '@/emails/actions/email';
 import { env } from '@/lib/env';
+import { getTranslations } from 'next-intl/server';
 
 export async function getOrganizations(): Promise<OrganizationListingItem[]> {
   await checkAuth([UserRole.SUPER_ADMIN]);
@@ -258,43 +259,47 @@ export async function getAvailableServiceCategories(
   return categories.map(({ category }) => category);
 }
 
-export async function createNewAgent(data: AgentFormData) {
-  try {
-    await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
+  const t = await getTranslations('messages');
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-    const { countryIds, phone, serviceCategories, ...rest } = data;
+  const { countryIds, phone, serviceCategories, ...rest } = data;
 
-    // Créer le téléphone d'abord si nécessaire
-    let phoneId: string | undefined;
+  // Créer le téléphone d'abord si nécessaire
+  let phoneId: string | undefined;
 
-    if (phone) {
-      const newPhone = await db.phone.create({
-        data: {
-          number: phone.number,
-          countryCode: phone.countryCode,
-        },
-      });
-      phoneId = newPhone.id;
-    }
-
-    const agent = await db.user.create({
+  if (phone) {
+    const newPhone = await db.phone.create({
       data: {
-        ...rest,
-        roles: [UserRole.AGENT],
-        specializations: serviceCategories,
-        linkedCountries: {
-          connect: countryIds.map((id) => ({ id })),
-        },
-        ...(phoneId && { phoneId }),
+        number: phone.number,
+        countryCode: phone.countryCode,
       },
-      include: BaseAgentInclude.include,
     });
-
-    return { data: agent };
-  } catch (error) {
-    console.error('Failed to create agent:', error);
-    return { error: 'Failed to create agent' };
+    phoneId = newPhone.id;
   }
+
+  const agent = await db.user.create({
+    data: {
+      ...rest,
+      roles: [UserRole.AGENT],
+      specializations: serviceCategories,
+      linkedCountries: {
+        connect: countryIds.map((id) => ({ id })),
+      },
+      ...(phoneId && { phoneId }),
+    },
+    ...BaseAgentInclude,
+  });
+
+  await sendAgentWelcomeEmail({
+    agentEmail: agent.email,
+    agentName: agent.name,
+    organizationName: agent.organization.name,
+    dashboardUrl: `${env.NEXT_PUBLIC_URL}/${ROUTES.dashboard.base}`,
+    organizationLogo: `${env.NEXT_PUBLIC_ORG_LOGO}`,
+  });
+
+  return agent;
 }
 
 export async function updateAgent(id: string, data: Partial<AgentFormData>) {

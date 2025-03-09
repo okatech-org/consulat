@@ -58,12 +58,12 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
     },
     {
       accessorKey: 'specializations',
-      header: () => <>{t('table.specializations')}</>, // Clé de traduction à ajouter
+      header: () => <>{t('table.specializations')}</>,
       cell: ({ row }) => (
         <CollapseList<ServiceCategory>
           items={row.original.specializations}
           renderItem={(cat) => (
-            <Badge className="mr-1" key={cat} variant="secondary">
+            <Badge variant="secondary" className="rounded-full !px-0.5 font-normal">
               {t_base(`services.categories.${cat}`)}
             </Badge>
           )}

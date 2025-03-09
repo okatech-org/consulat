@@ -161,7 +161,7 @@ export function ServicesTable({
       ),
       cell: ({ row }) =>
         getOrganizationFromId(organizations, row.original.organizationId)?.name || (
-          <Badge variant="default">{t_common('status.not_assigned')}</Badge>
+          <Badge variant="default">{t_common('status.NOT_ASSIGNED')}</Badge>
         ),
     },
     {
@@ -171,7 +171,7 @@ export function ServicesTable({
       ),
       cell: ({ row }) => (
         <Badge variant={row.original.isActive ? 'success' : 'outline'}>
-          {t_common(`status.${row.original.isActive ? 'active' : 'inactive'}`)}
+          {t_common(`status.${row.original.isActive ? 'ACTIVE' : 'INACTIVE'}`)}
         </Badge>
       ),
       enableSorting: true,
@@ -262,8 +262,8 @@ export function ServicesTable({
       property: 'isActive',
       label: t('table.status'),
       options: [
-        { value: 'true', label: t_common('status.active') },
-        { value: 'false', label: t_common('status.inactive') },
+        { value: true, label: t_common('status.ACTIVE') },
+        { value: false, label: t_common('status.INACTIVE') },
       ],
     },
   ];

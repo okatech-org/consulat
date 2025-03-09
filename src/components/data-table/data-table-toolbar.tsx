@@ -71,36 +71,19 @@ export function DataTableToolbar<TData>({
                 />
               )}
 
-              {filter.type === 'radio' && filter.options && (
-                <DataTableFacetedFilter
-                  isDisabled={filter.isDisabled}
-                  type={filter.type}
-                  key={filter.property}
-                  column={table.getColumn(filter.property ?? '')}
-                  title={filter.label}
-                  options={filter.options}
-                  onChange={(value) => {
-                    if (filter.onChange) {
-                      filter.onChange(value);
-                    } else {
-                      table.getColumn(filter.property ?? '')?.setFilterValue(value);
-                    }
-                  }}
-                />
-              )}
-
-              {filter.type === 'checkbox' && filter.options && (
-                <DataTableFacetedFilter
-                  isDisabled={filter.isDisabled}
-                  type={filter.type}
-                  key={filter.property}
-                  column={table.getColumn(filter.property ?? '')}
-                  title={filter.label}
-                  options={filter.options}
-                  onChange={filter.onChange}
-                  defaultValue={filter.defaultValue}
-                />
-              )}
+              {(filter.type === 'checkbox' || filter.type === 'radio') &&
+                filter.options && (
+                  <DataTableFacetedFilter
+                    isDisabled={filter.isDisabled}
+                    type={filter.type}
+                    key={filter.property}
+                    column={table.getColumn(filter.property ?? '')}
+                    title={filter.label}
+                    options={filter.options}
+                    onChange={filter.onChange}
+                    defaultValue={filter.defaultValue}
+                  />
+                )}
             </Fragment>
           ))}
         </div>

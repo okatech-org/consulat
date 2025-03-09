@@ -38,7 +38,11 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
           <DialogTitle>{t('create_agent_modal.title')}</DialogTitle>
           <DialogDescription>{t('create_agent_modal.description')}</DialogDescription>
         </DialogHeader>
-        <AgentForm initialData={initialData} countries={countries} />
+        <AgentForm
+          initialData={initialData}
+          countries={countries}
+          onSuccess={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );

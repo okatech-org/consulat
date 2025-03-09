@@ -59,7 +59,7 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
       </TabsContent>
 
       <TabsContent value="general" className="space-y-4">
-        <h2>General settings</h2>
+        <h2>{t('settings.general.title')}</h2>
       </TabsContent>
 
       <TabsContent value="agents" className="space-y-4">
@@ -68,7 +68,7 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
           action={
             <CreateAgentButton
               initialData={{
-                organizationId: organization.id,
+                assignedOrganizationId: organization.id,
               }}
               countries={organization.countries ?? []}
             />

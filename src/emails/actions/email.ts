@@ -6,6 +6,7 @@ import { AdminWelcomeEmailToHtml } from '@/emails/AdminWelcomeEmail';
 import { env } from '@/lib/env';
 import { OTPEmailToHtml } from '../OTPEmail';
 import { NotificationEmailToHtml } from '@/emails/NotificationEmail';
+import { AgentWelcomeEmailToHtml } from '../AgentWelcomeEmail';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const resend_sender = env.RESEND_SENDER;
@@ -128,4 +129,25 @@ export async function sendNotificationEmail({
     console.error('Failed to send notification email:', error);
     throw new Error('Failed to send notification email');
   }
+}
+
+export async function sendAgentWelcomeEmail({
+  agentEmail,
+  agentName,
+  organizationName,
+  dashboardUrl,
+  organizationLogo,
+}) {
+  const t = await getTranslations('emails.agentWelcome');
+
+  const emailHtml = await AgentWelcomeEmailToHtml({
+    loginUrl: `${env.NEXT_PUBLIC_URL}/${ROUTES.dashboard.base}`,
+    organizationLogo,
+    content: {
+      subject: t('subject', { appName }),
+      greeting: t('greeting', { agentName }),
+      intro: t('intro', { organizationName }),
+      instructions: t.raw('instructions'),
+    },
+  });
 }

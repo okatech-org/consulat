@@ -408,7 +408,7 @@ export default {
     out_of: 'sur',
     resetFilters: 'Réinitialiser',
     viewOptions: 'Voir les options',
-    selectedCount: '{selected} sélectionné(s)',
+    selectedCount: '{count} sélectionné(s)',
     rows: 'lignes',
     columns: 'Colonnes',
     toggleColumns: 'Afficher les colonnes',

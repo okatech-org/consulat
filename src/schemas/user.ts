@@ -44,7 +44,7 @@ export const AgentSchema = z.object({
     // Utiliser directement l'enum
     message: 'Vous devez sélectionner au moins une catégorie de service.',
   }),
-  organizationId: z.string(),
+  assignedOrganizationId: z.string(),
 });
 
 export type AgentFormData = z.infer<typeof AgentSchema>;

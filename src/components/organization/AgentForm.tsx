@@ -24,13 +24,15 @@ import { ServiceCategory } from '@prisma/client';
 import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
 import { createNewAgent } from '@/actions/organizations';
 import { Organization } from '@/types/organization';
+import { tryCatch } from '@/lib/utils';
 
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
   countries: Organization['countries'];
+  onSuccess?: () => void;
 }
 
-export function AgentForm({ initialData, countries }: AgentFormProps) {
+export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps) {
   const t = useTranslations('organization.settings.agents');
   const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
@@ -50,31 +52,26 @@ export function AgentForm({ initialData, countries }: AgentFormProps) {
 
   async function onSubmit(data: AgentFormData) {
     setIsLoading(true);
-    try {
-      const result = await createNewAgent(data);
 
-      if (result.data) {
-        toast({
-          title: t_messages('success.create'),
-          variant: 'success',
-        });
-      } else {
-        toast({
-          title: t_messages('errors.create'),
-          description: result.error,
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      console.error(error);
+    const result = await tryCatch(createNewAgent(data));
+
+    if (result.data) {
       toast({
-        title: "Une erreur s'est produite",
-        description: `${error}`,
+        title: t_messages('success.create'),
+        variant: 'success',
+      });
+      onSuccess?.();
+    }
+
+    if (result.error) {
+      toast({
+        title: t_messages('errors.create'),
+        description: `${result.error.message}`,
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   }
 
   return (
