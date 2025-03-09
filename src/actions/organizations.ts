@@ -26,8 +26,8 @@ import {
 } from '@/types/organization';
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
-import { sendAdminWelcomeEmail, sendAgentWelcomeEmail } from '@/emails/actions/email';
 import { env } from '@/lib/env';
+import { sendAdminWelcomeEmail } from '@/services/notifications/providers/emails';
 
 export async function getOrganizations(): Promise<OrganizationListingItem[]> {
   await checkAuth([UserRole.SUPER_ADMIN]);

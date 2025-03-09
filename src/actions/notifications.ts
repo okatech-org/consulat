@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/actions/user';
 import { db } from '@/lib/prisma';
 import { Notification, NotificationType } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
-import { sendNotificationEmail } from '@/emails/actions/email';
+import { sendNotificationEmail } from '@/services/notifications/providers/emails';
 
 export async function getUnreadNotificationsCount() {
   try {

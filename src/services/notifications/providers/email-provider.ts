@@ -6,7 +6,7 @@ import {
 } from '@/types/notifications';
 import { NotificationProvider } from '../provider-registry';
 import { tryCatch } from '@/lib/utils';
-import { sendNotificationEmail } from '@/emails/actions/email';
+import { sendNotificationEmail } from './emails';
 
 export class EmailNotificationProvider implements NotificationProvider {
   channel = NotificationChannel.EMAIL;
