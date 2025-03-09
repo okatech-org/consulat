@@ -43,6 +43,7 @@ function NewAppointmentHeader() {
 export default async function NewAppointmentPage({
   searchParams,
 }: NewAppointmentPageProps) {
+  const awaitedSearchParams = await searchParams;
   const user = await getCurrentUser();
   if (!user) {
     redirect(ROUTES.auth.login);
@@ -50,21 +51,21 @@ export default async function NewAppointmentPage({
 
   // Récupérer les informations pré-remplies si disponibles
   let preselectedData;
-  if (searchParams.serviceRequestId) {
+  if (awaitedSearchParams.serviceRequestId) {
     const request = await getRegistrationRequestDetailsById(
-      searchParams.serviceRequestId,
+      awaitedSearchParams.serviceRequestId,
     );
     if (request) {
       preselectedData = {
         serviceId: request.serviceId,
-        type: searchParams.type || 'WITHDRAW',
+        type: awaitedSearchParams.type || 'DOCUMENT_COLLECTION',
         requestId: request.id,
       };
     }
-  } else if (searchParams.serviceId) {
+  } else if (awaitedSearchParams.serviceId) {
     preselectedData = {
-      serviceId: searchParams.serviceId,
-      type: searchParams.type,
+      serviceId: awaitedSearchParams.serviceId,
+      type: awaitedSearchParams.type || 'DOCUMENT_COLLECTION',
     };
   }
 

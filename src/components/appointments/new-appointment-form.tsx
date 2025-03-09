@@ -90,8 +90,9 @@ export function NewAppointmentForm({
       date: new Date(),
       attendeeId,
       serviceId: preselectedData?.serviceId ?? '',
-      type: preselectedData?.type ?? '',
+      type: (preselectedData?.type as AppointmentType) ?? 'DOCUMENT_COLLECTION',
       requestId: preselectedData?.requestId ?? '',
+      duration: 15,
     },
   });
 
@@ -358,6 +359,8 @@ export function NewAppointmentForm({
     );
   }
 
+  console.log({ form: form.formState.errors });
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -494,32 +497,31 @@ export function NewAppointmentForm({
                 {t('actions.back')}
               </Button>
             )}
-            <Button
-              type="button"
-              onClick={step === 'confirmation' ? form.handleSubmit(onSubmit) : handleNext}
-              className={cn(step === 'service' && 'ml-auto')}
-              disabled={
-                isLoading ||
-                (step === 'service' && !form.watch('serviceId')) ||
-                (step === 'service' && !form.watch('type')) ||
-                (step === 'slot' && !form.watch('date')) ||
-                (step === 'slot' && !form.watch('startTime')) ||
-                (step === 'slot' && !form.watch('endTime'))
-              }
-            >
-              {step === 'confirmation' ? (
-                isLoading ? (
-                  t('actions.submitting')
-                ) : (
-                  t('actions.confirm')
-                )
-              ) : (
-                <>
-                  {t('actions.next')}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+
+            {step !== 'confirmation' && (
+              <Button
+                type="button"
+                onClick={handleNext}
+                className={cn(step === 'service' && 'ml-auto')}
+                disabled={
+                  isLoading ||
+                  (step === 'service' && !form.watch('serviceId')) ||
+                  (step === 'service' && !form.watch('type')) ||
+                  (step === 'slot' && !form.watch('date')) ||
+                  (step === 'slot' && !form.watch('startTime')) ||
+                  (step === 'slot' && !form.watch('endTime'))
+                }
+              >
+                {t('actions.next')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+
+            {step === 'confirmation' && (
+              <Button type="submit" className={'ml-auto'} disabled={isLoading}>
+                {isLoading ? t('actions.submitting') : t('actions.confirm')}
+              </Button>
+            )}
           </CardFooter>
         </Card>
       </form>
