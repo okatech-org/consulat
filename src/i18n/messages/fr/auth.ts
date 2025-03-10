@@ -56,6 +56,8 @@ export default {
       enter_credentials: 'Connectez-vous pour accéder à votre espace',
       loading: 'Chargement...',
       something_went_wrong: 'Une erreur est survenue',
+      invalid_identifier: 'Identifiant invalide',
+      code_not_sent_otp: 'Code de vérification non envoyé, veuillez réessayer',
     },
     back_home: "Retour à l'accueil",
     hero: {

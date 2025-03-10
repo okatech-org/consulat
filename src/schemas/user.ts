@@ -4,27 +4,28 @@ import { EmailSchema, NameSchema, PhoneValueSchema } from '@/schemas/inputs';
 
 export const LoginSchema = z
   .object({
-    identifier: z.string().min(1, 'messages.errors.identifier_required'),
+    email: EmailSchema.optional(),
+    phone: PhoneValueSchema.optional(),
     type: z.enum(['EMAIL', 'PHONE']),
     otp: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.type === 'EMAIL') {
-      if (!z.string().email().safeParse(data.identifier).success) {
+      if (!data.email) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'messages.errors.invalid_email',
-          path: ['identifier'],
+          message: 'messages.errors.field_required',
+          path: ['email'],
         });
       }
-    } else if (data.type === 'PHONE') {
-      // Mise à jour de la validation du téléphone pour accepter le format international
-      const phoneRegex = /^\+[1-9]\d{1,14}$/;
-      if (!phoneRegex.test(data.identifier)) {
+    }
+
+    if (data.type === 'PHONE') {
+      if (!data.phone) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'messages.errors.invalid_phone',
-          path: ['identifier'],
+          message: 'messages.errors.field_required',
+          path: ['phone'],
         });
       }
     }

@@ -80,7 +80,7 @@ export const CountryIndicatorSchema = z
     required_error: 'messages.errors.field_required',
   })
   .refine((val) => countryIndicators.includes(val as CountryIndicator), {
-    message: 'messages.errors.invalid_country',
+    message: 'messages.errors.invalid_country_indicator',
   });
 
 export const EmailSchema = z
@@ -111,7 +111,9 @@ export const PhoneSchema = z
   .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone');
 
 export const PhoneValueSchema = z.object({
-  number: z.string(),
+  number: z
+    .string({ required_error: 'messages.errors.field_required' })
+    .regex(/^[0-9]{9,10}$/, 'messages.errors.invalid_phone_number'),
   countryCode: CountryIndicatorSchema,
 });
 

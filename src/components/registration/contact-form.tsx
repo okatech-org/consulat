@@ -81,26 +81,15 @@ export function ContactInfoForm({
           />
 
           {/* Phone */}
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem className="col-span-full w-full sm:col-span-1">
-                <FormLabel>{t('form.phone')}</FormLabel>
-                <FormControl>
-                  <PhoneInput
-                    {...field}
-                    value={field.value as unknown as PhoneValue}
-                    placeholder={t_inputs('phone.placeholder')}
-                    disabled={isLoading}
-                    error={!!form.formState.errors.phone}
-                    options={residenceCountryCode ? [residenceCountryCode] : undefined}
-                  />
-                </FormControl>
-                <TradFormMessage />
-              </FormItem>
-            )}
-          />
+          <FormItem className="col-span-full w-full sm:col-span-1">
+            <FormLabel>{t('form.phone')}</FormLabel>
+            <PhoneInput
+              parentForm={form}
+              fieldName="phone"
+              disabled={isLoading}
+              options={residenceCountryCode ? [residenceCountryCode] : undefined}
+            />
+          </FormItem>
 
           <Separator className="col-span-full" />
 
@@ -300,26 +289,15 @@ export function ContactInfoForm({
             />
 
             {/* Phone */}
-            <FormField
-              control={form.control}
-              name="residentContact.phone"
-              render={({ field }) => (
-                <FormItem className="col-span-full w-full sm:col-span-1">
-                  <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      {...field}
-                      value={field.value as unknown as PhoneValue}
-                      placeholder={t_inputs('phone.placeholder')}
-                      disabled={isLoading}
-                      error={!!form.formState.errors.phone}
-                      options={residenceCountryCode ? [residenceCountryCode] : undefined}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+            <FormItem className="col-span-full w-full sm:col-span-1">
+              <FormLabel>{t('form.phone')}</FormLabel>
+              <PhoneInput
+                parentForm={form}
+                fieldName="residentContact.phone"
+                disabled={isLoading}
+                options={residenceCountryCode ? [residenceCountryCode] : undefined}
+              />
+            </FormItem>
 
             <fieldset className="sm:col-span-full grid grid-cols-2 gap-x-4 space-y-4">
               <legend className="text-sm font-medium sr-only">
@@ -520,26 +498,16 @@ export function ContactInfoForm({
             />
 
             {/* Phone */}
-            <FormField
-              control={form.control}
-              name="homeLandContact.phone"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-1">
-                  <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      {...field}
-                      value={field.value as unknown as PhoneValue}
-                      placeholder={t_inputs('phone.placeholder')}
-                      disabled={isLoading}
-                      error={!!form.formState.errors.phone}
-                      options={homeLandCountryCode ? [homeLandCountryCode] : undefined}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+
+            <FormItem className="col-span-full w-full sm:col-span-1">
+              <FormLabel>{t_inputs('phone.label')}</FormLabel>
+              <PhoneInput
+                parentForm={form}
+                fieldName="homeLandContact.phone"
+                disabled={isLoading}
+                options={homeLandCountryCode ? [homeLandCountryCode] : undefined}
+              />
+            </FormItem>
 
             <fieldset className="sm:col-span-full grid grid-cols-2 gap-x-4 space-y-4">
               <legend className="text-sm font-medium sr-only">

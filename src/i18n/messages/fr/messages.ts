@@ -1,5 +1,8 @@
 export default {
   errors: {
+    invalid_phone_number: 'Format invalide, veuillez utiliser le format (0)6XXXXXXXX',
+    Required: 'Ce champ est requis',
+    invalid_country_indicator: 'Indicatif invalide',
     not_provided: 'Non fourni',
     incomplete_profile: 'Le profil est incomplet',
     missing_documents: 'Des documents requis sont manquants ou non validés',
@@ -61,6 +64,8 @@ export default {
     field_too_short: 'Ce champ doit contenir au moins 2 caractères',
     field_too_long: 'Ce champ ne peut pas dépasser 50 caractères',
     field_required: 'Ce champ est obligatoire',
+    invalid_priority_value: 'Valeur de priorité invalide',
+    invalid_status_value: 'Valeur de statut invalide',
     last_name_required: 'Le nom est requis',
     last_name_too_short: 'Le nom doit contenir au moins 2 caractères',
     birth_date_required: 'La date de naissance est requise',

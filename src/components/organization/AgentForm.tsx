@@ -128,23 +128,10 @@ export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps)
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem className={'col-span-full'}>
-              <FormLabel>{t_inputs('phone.label')}</FormLabel>
-              <FormControl>
-                <PhoneInput
-                  {...field}
-                  value={field.value as PhoneValue}
-                  disabled={isLoading}
-                />
-              </FormControl>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+        <FormItem className={'col-span-full'}>
+          <FormLabel>{t_inputs('phone.label')}</FormLabel>
+          <PhoneInput parentForm={form} fieldName="phone" disabled={isLoading} />
+        </FormItem>
         <FormField
           control={form.control}
           name="countryIds"

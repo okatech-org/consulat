@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 interface Option<T> {
   value: T;
   label: string;
+  component?: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -104,7 +105,13 @@ export function MultiSelect<T>({
               {type === 'single' && (
                 <>
                   {selectedOptions.length > 0 ? (
-                    <Badge variant={'info'}>{selectedOptions[0]?.label}</Badge>
+                    <>
+                      {selectedOptions[0]?.component ? (
+                        selectedOptions[0]?.component
+                      ) : (
+                        <Badge variant={'info'}>{selectedOptions[0]?.label}</Badge>
+                      )}
+                    </>
                   ) : (
                     <span className="opacity-50">{placeholder}</span>
                   )}
@@ -144,7 +151,7 @@ export function MultiSelect<T>({
                           : 'opacity-0',
                       )}
                     />
-                    {option.label}
+                    {option.component ? option.component : <span>{option.label}</span>}
                   </CommandItem>
                 ))}
               </CommandGroup>

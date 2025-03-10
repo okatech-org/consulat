@@ -20,75 +20,94 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { sendOTP } from '@/actions/auth';
 import { toast } from '@/hooks/use-toast';
-import { PhoneInput, type PhoneValue } from '@/components/ui/phone-input';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ErrorCard } from '@/components/ui/error-card';
+import { tryCatch } from '@/lib/utils';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 export function LoginForm() {
   const t = useTranslations('auth.login');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
   const [isLoading, setIsLoading] = React.useState(false);
   const [showOTP, setShowOTP] = React.useState(false);
   const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('EMAIL');
-  const [error, setError] = React.useState<string | null>(null);
+
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
-      identifier: '',
+      email: undefined,
+      phone: {
+        number: undefined,
+        countryCode: '+33',
+      },
       type: 'EMAIL',
-      otp: '',
+      otp: undefined,
     },
   });
 
   const onSubmit = async (data: LoginInput) => {
-    try {
-      setIsLoading(true);
+    setIsLoading(true);
+    const identifier =
+      data.type === 'EMAIL'
+        ? data.email
+        : `${data.phone?.countryCode}${data.phone?.number}`;
 
-      if (!showOTP) {
-        // Envoyer l'OTP
-        const result = await sendOTP(data.identifier, data.type);
-        if (result.error) {
-          setError(result.error);
-          return;
-        }
+    if (!showOTP) {
+      // Envoyer l'OTP
+      const { error: sendOTPError, data: sendOTPData } = await tryCatch(
+        sendOTP(identifier ?? '', data.type),
+      );
+
+      if (sendOTPError) {
+        toast({
+          title: t('messages.code_not_sent_otp'),
+          variant: 'destructive',
+        });
+      }
+
+      if (sendOTPData) {
         setShowOTP(true);
         toast({
           title: t('messages.otp_sent'),
           variant: 'success',
         });
-        return;
       }
 
-      // Connexion avec l'OTP
-      const signInResult = await signIn('credentials', {
-        identifier: data.identifier,
+      setIsLoading(false);
+
+      return;
+    }
+
+    const { error: loginWithOTPError, data: loginWithOTPData } = await tryCatch(
+      signIn('credentials', {
+        identifier,
         type: data.type,
         otp: data.otp,
         redirect: false,
-      });
+      }),
+    );
 
-      if (signInResult?.error) {
-        setError(signInResult.error);
-        return;
-      }
-
-      // Redirection après connexion réussie
-      const callbackUrl = searchParams.get('callbackUrl');
-      // eslint-disable-next-line
-      router.push(callbackUrl || ('/dashboard' as any));
-      router.refresh();
-    } catch (error) {
-      console.error(error);
+    if (loginWithOTPError) {
       toast({
-        title: t('messages.something_went_wrong'),
+        title: t('messages.otp_invalid'),
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
+
+    if (loginWithOTPData) {
+      if (callbackUrl) {
+        // eslint-disable-next-line
+        router.push(callbackUrl);
+      } else {
+        // eslint-disable-next-line
+        router.push('/');
+      }
+    }
+
+    setIsLoading(false);
   };
 
   // Gérer le changement de méthode
@@ -96,17 +115,20 @@ export function LoginForm() {
     setMethod(value as 'EMAIL' | 'PHONE');
     setShowOTP(false);
     form.reset({
-      identifier: '',
+      email: undefined,
+      phone: {
+        number: undefined,
+        countryCode: '+33',
+      },
       type: value as 'EMAIL' | 'PHONE',
-      otp: '',
+      otp: undefined,
     });
   };
 
-  // Gérer le changement de téléphone
-  const handlePhoneChange = (phone: PhoneValue) => {
-    const fullNumber = phone.countryCode + phone.number;
-    form.setValue('identifier', fullNumber);
-  };
+  React.useEffect(() => {
+    console.log(form.getValues(), form.formState.errors);
+    console.log(form.formState.errors);
+  }, [form, form.formState.errors]);
 
   return (
     <Form {...form}>
@@ -137,7 +159,7 @@ export function LoginForm() {
                       <TabsContent value="EMAIL">
                         <FormField
                           control={form.control}
-                          name="identifier"
+                          name="email"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>{t('inputs.email.label')}</FormLabel>
@@ -157,26 +179,14 @@ export function LoginForm() {
                       </TabsContent>
 
                       <TabsContent value="PHONE">
-                        <FormField
-                          control={form.control}
-                          name="identifier"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('inputs.phone.label')}</FormLabel>
-                              <FormControl>
-                                <PhoneInput
-                                  autoFocus={true}
-                                  value={field.value as unknown as PhoneValue}
-                                  onChange={handlePhoneChange}
-                                  placeholder={t('inputs.phone.placeholder')}
-                                  disabled={isLoading}
-                                  error={!!form.formState.errors.identifier}
-                                />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <FormItem>
+                          <FormLabel>{t('inputs.phone.label')}</FormLabel>
+                          <PhoneInput
+                            parentForm={form}
+                            fieldName="phone"
+                            disabled={isLoading}
+                          />
+                        </FormItem>
                       </TabsContent>
                     </Tabs>
 
@@ -208,7 +218,6 @@ export function LoginForm() {
                     {showOTP ? t('buttons.verify') : t('buttons.get_code')}
                   </Button>
                 </div>
-                {error && <ErrorCard description={error} />}
               </div>
               <div className="relative hidden bg-muted md:block">
                 <Image

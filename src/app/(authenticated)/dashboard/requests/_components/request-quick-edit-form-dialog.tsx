@@ -33,12 +33,12 @@ import { filterUneditedKeys } from '@/lib/utils';
 const formSchema = z.object({
   assignedToId: z.string().min(1, 'Required'),
   priority: z.nativeEnum(ServicePriority, {
-    required_error: 'Priority is required',
-    invalid_type_error: 'Invalid priority value',
+    required_error: 'messages.errors.field_required',
+    invalid_type_error: 'messages.errors.invalid_priority_value',
   }),
   status: z.nativeEnum(RequestStatus, {
-    required_error: 'Status is required',
-    invalid_type_error: 'Invalid status value',
+    required_error: 'messages.errors.field_required',
+    invalid_type_error: 'messages.errors.invalid_status_value',
   }),
 });
 

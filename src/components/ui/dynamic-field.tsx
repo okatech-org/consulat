@@ -78,9 +78,9 @@ export function DynamicField({
       case 'phone':
         return (
           <PhoneInput
-            {...formField}
+            parentForm={form}
             disabled={disabled}
-            placeholder={data.placeholder}
+            fieldName={data.name}
             className={cn(isPreFilled && 'bg-muted text-muted-foreground')}
           />
         );

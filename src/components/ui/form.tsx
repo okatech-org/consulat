@@ -163,8 +163,10 @@ const FormMessage = React.forwardRef<
 
 const TradFormMessage = React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, children, ...props }, ref) => {
+  React.HTMLAttributes<HTMLParagraphElement> & {
+    customError?: string;
+  }
+>(({ className, children, customError, ...props }, ref) => {
   const t = useTranslations();
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message) : children;
@@ -180,7 +182,7 @@ const TradFormMessage = React.forwardRef<
       className={cn('text-sm font-medium text-destructive', className)}
       {...props}
     >
-      {t(body)}
+      {customError ? t(customError) : t(body)}
     </p>
   );
 });

@@ -129,23 +129,14 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="otherParentPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{tBase('inputs.phone.label')}</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        value={field.value as unknown as PhoneValue}
-                        onChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>{tBase('inputs.phone.label')}</FormLabel>
+                <PhoneInput
+                  parentForm={form}
+                  fieldName="otherParentPhone"
+                  disabled={isLoading}
+                />
+              </FormItem>
 
               <FormField
                 control={form.control}
