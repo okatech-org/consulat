@@ -346,7 +346,10 @@ export default {
     },
   },
   errors: {
-    unknown: 'Une erreur inattendue est survenue',
+    unknown: {
+      title: 'Une erreur inattendue est survenue',
+      description: 'Veuillez réessayer plus tard',
+    },
     no_documents: "Aucun document n'a été téléchargé",
   },
   nationality_acquisition: {

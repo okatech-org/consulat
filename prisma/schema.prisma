@@ -285,8 +285,8 @@ model Profile {
   workStatus             WorkStatus?             @default(UNEMPLOYED)
   acquisitionMode        NationalityAcquisition? @default(BIRTH)
   passportNumber         String?
-  passportIssueDate      DateTime?
-  passportExpiryDate     DateTime?
+  passportIssueDate      String?
+  passportExpiryDate     String?
   passportIssueAuthority String?
 
   // Documents
