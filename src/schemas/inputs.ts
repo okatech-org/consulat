@@ -149,7 +149,9 @@ export const EmergencyContactSchema = z.object({
   }),
   email: EmailSchema.nullable(),
   phone: PhoneValueSchema.nullable(),
-  address: AddressSchema,
+  address: AddressSchema.omit({
+    zipCode: true,
+  }),
 });
 
 export type AddressInput = z.infer<typeof AddressSchema>;

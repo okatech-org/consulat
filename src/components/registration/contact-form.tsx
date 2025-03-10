@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
-import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { Separator } from '@/components/ui/separator';
 import { ContactInfoFormData } from '@/schemas/registration';
 import { CountryCode } from '@/lib/autocomplete-datas';

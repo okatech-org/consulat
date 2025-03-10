@@ -106,7 +106,9 @@ export const ContactInfoSchema = z
   .object({
     email: EmailSchema.optional(),
     phone: PhoneValueSchema.nullable(),
-    address: AddressSchema,
+    address: AddressSchema.omit({
+      zipCode: true,
+    }),
     residentContact: EmergencyContactSchema,
     homeLandContact: EmergencyContactSchema,
   })
@@ -159,12 +161,22 @@ export const ProfessionalInfoSchema = z
     activityInGabon: z.string().max(200, 'messages.errors.activity_too_long').optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.workStatus === WorkStatus.EMPLOYEE && !data.employer) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'messages.errors.employer_required_if_employee',
-        path: ['employer', 'employerAddress', 'profession'],
-      });
+    if (data.workStatus === WorkStatus.EMPLOYEE) {
+      if (!data.employer) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'messages.errors.employer_required_if_employee',
+          path: ['employer'],
+        });
+      }
+
+      if (!data.employerAddress) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'messages.errors.employer_address_required_if_employee',
+          path: ['employerAddress'],
+        });
+      }
     }
   });
 

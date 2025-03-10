@@ -1,5 +1,8 @@
 export default {
   errors: {
+    employer_address_required_if_employee:
+      "L'adresse de l'employeur est requise si vous êtes salarié",
+    employer_required_if_employee: 'Employeur requis si vous êtes salarié',
     invalid_phone_number: 'Format invalide, veuillez utiliser le format (0)6XXXXXXXX',
     Required: 'Ce champ est requis',
     invalid_country_indicator: 'Indicatif invalide',
