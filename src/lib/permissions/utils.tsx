@@ -2,7 +2,6 @@ import { User, UserRole } from '@prisma/client';
 import { ROLES } from './roles';
 import { ResourceType } from './types';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { Unauthorized } from '@/components/layouts/unauthorized';
 
 export function hasPermission<Resource extends keyof ResourceType>(
   user: User,
@@ -60,6 +59,7 @@ export function hasRole(user: User, role: UserRole): boolean {
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a l'un des rôles spécifiés
 export function hasAnyRole(user: User, roles: UserRole[]): boolean {
+  if (!user?.roles || !roles) return false;
   return user.roles.some((role) => roles.includes(role));
 }
 

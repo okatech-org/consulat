@@ -2,36 +2,21 @@ import * as z from 'zod';
 import { ServiceCategory } from '@prisma/client';
 import { EmailSchema, NameSchema, PhoneValueSchema } from '@/schemas/inputs';
 
-export const LoginSchema = z
-  .object({
-    email: EmailSchema.optional(),
-    phone: PhoneValueSchema.optional(),
-    type: z.enum(['EMAIL', 'PHONE']),
-    otp: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.type === 'EMAIL') {
-      if (!data.email) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'messages.errors.field_required',
-          path: ['email'],
-        });
-      }
-    }
+export const LoginWithPhoneSchema = z.object({
+  phone: PhoneValueSchema,
+  type: z.literal('PHONE'),
+  otp: z.string().optional(),
+});
 
-    if (data.type === 'PHONE') {
-      if (!data.phone) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'messages.errors.field_required',
-          path: ['phone'],
-        });
-      }
-    }
-  });
+export const LoginWithEmailSchema = z.object({
+  email: EmailSchema,
+  type: z.literal('EMAIL'),
+  otp: z.string().optional(),
+});
 
-export type LoginInput = z.infer<typeof LoginSchema>;
+export type LoginInput =
+  | z.infer<typeof LoginWithPhoneSchema>
+  | z.infer<typeof LoginWithEmailSchema>;
 
 export const AgentSchema = z.object({
   firstName: NameSchema,

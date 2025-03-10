@@ -15,7 +15,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LoginSchema, type LoginInput } from '@/schemas/user';
+import {
+  LoginWithPhoneSchema,
+  LoginWithEmailSchema,
+  type LoginInput,
+} from '@/schemas/user';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { sendOTP } from '@/actions/auth';
@@ -25,6 +29,13 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { tryCatch } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
+
+function getLoginSchema(type: 'EMAIL' | 'PHONE') {
+  if (type === 'EMAIL') {
+    return LoginWithEmailSchema;
+  }
+  return LoginWithPhoneSchema;
+}
 
 export function LoginForm() {
   const t = useTranslations('auth.login');
@@ -36,15 +47,9 @@ export function LoginForm() {
   const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('EMAIL');
 
   const form = useForm<LoginInput>({
-    resolver: zodResolver(LoginSchema),
+    resolver: zodResolver(getLoginSchema(method)),
     defaultValues: {
-      email: undefined,
-      phone: {
-        number: undefined,
-        countryCode: '+33',
-      },
-      type: 'EMAIL',
-      otp: undefined,
+      type: method,
     },
   });
 
@@ -114,21 +119,8 @@ export function LoginForm() {
   const handleMethodChange = (value: string) => {
     setMethod(value as 'EMAIL' | 'PHONE');
     setShowOTP(false);
-    form.reset({
-      email: undefined,
-      phone: {
-        number: undefined,
-        countryCode: '+33',
-      },
-      type: value as 'EMAIL' | 'PHONE',
-      otp: undefined,
-    });
+    form.reset();
   };
-
-  React.useEffect(() => {
-    console.log(form.getValues(), form.formState.errors);
-    console.log(form.formState.errors);
-  }, [form, form.formState.errors]);
 
   return (
     <Form {...form}>

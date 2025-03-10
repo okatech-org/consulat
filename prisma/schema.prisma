@@ -274,13 +274,13 @@ model Profile {
   requestedForId String? @unique
 
   // Informations personnelles
-  firstName              String
-  lastName               String
-  gender                 Gender
-  birthDate              String
-  birthPlace             String
-  birthCountry           String
-  nationality            String                  @default("gabon")
+  firstName              String?
+  lastName               String?
+  gender                 Gender?
+  birthDate              String?
+  birthPlace             String?
+  birthCountry           String?
+  nationality            String?                @default("gabon")
   maritalStatus          MaritalStatus?          @default(SINGLE)
   workStatus             WorkStatus?             @default(UNEMPLOYED)
   acquisitionMode        NationalityAcquisition? @default(BIRTH)
