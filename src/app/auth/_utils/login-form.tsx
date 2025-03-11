@@ -120,7 +120,21 @@ export function LoginForm() {
     setMethod(value as 'EMAIL' | 'PHONE');
     setShowOTP(false);
     form.reset();
+    if (value === 'EMAIL') {
+      form.setValue('type', 'EMAIL');
+      form.setValue('email', '');
+    } else {
+      form.setValue('type', 'PHONE');
+      form.setValue('phone', {
+        countryCode: '+33',
+        number: '',
+      });
+    }
   };
+
+  React.useEffect(() => {
+    console.log(form.formState.errors);
+  }, [form.formState.errors]);
 
   return (
     <Form {...form}>
