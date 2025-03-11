@@ -15,6 +15,8 @@ import {
   FamilyInfoFormData,
   ContactInfoFormData,
   ProfessionalInfoFormData,
+  CreateProfileSchema,
+  CreateProfileInput,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
 import { Gender, NationalityAcquisition } from '@prisma/client';
@@ -62,6 +64,21 @@ export function useRegistrationForm() {
   }
 
   const forms = {
+    newProfile: useForm<CreateProfileInput>({
+      resolver: zodResolver(CreateProfileSchema),
+      defaultValues: {
+        ...initialData?.newProfile,
+        residenceCountyCode: residenceCountry,
+        phone: {
+          ...initialData?.newProfile?.phone,
+          ...(residenceCountry && {
+            countryCode:
+              initialData?.newProfile?.phone?.countryCode ??
+              getCountryCode(residenceCountry),
+          }),
+        },
+      },
+    }),
     documents: useForm<DocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
       defaultValues: initialData?.documents,

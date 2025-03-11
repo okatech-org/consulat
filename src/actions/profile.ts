@@ -78,7 +78,7 @@ const CreateProfileSchema = z
 
 type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 
-export async function createProfile(input: CreateProfileInput) {
+export async function createUserWithProfile(input: CreateProfileInput) {
   const {
     firstName,
     lastName,
@@ -89,7 +89,7 @@ export async function createProfile(input: CreateProfileInput) {
     phoneVerified,
   } = await CreateProfileSchema.parseAsync(input);
 
-  const newUser = await db.user.create({
+  return await db.user.create({
     data: {
       firstName,
       lastName,
@@ -104,28 +104,22 @@ export async function createProfile(input: CreateProfileInput) {
           code: residenceCountyCode,
         },
       },
-    },
-  });
-
-  const profile = await db.profile.create({
-    data: {
-      user: {
-        connect: {
-          id: newUser.id,
+      profile: {
+        create: {
+          firstName,
+          lastName,
+          residenceCountyCode,
+          email,
+          phone: {
+            create: phone,
+          },
         },
       },
-      userId: newUser.id,
-      firstName,
-      lastName,
-      residenceCountyCode,
-      email,
-      phone: {
-        create: phone,
-      },
+    },
+    include: {
+      profile: true,
     },
   });
-
-  return profile;
 }
 
 export async function postProfile(

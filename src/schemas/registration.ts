@@ -15,6 +15,51 @@ import {
   NameSchema,
   PhoneValueSchema,
 } from './inputs';
+import { db } from '@/lib/prisma';
+
+export const CreateProfileSchema = z
+  .object({
+    firstName: NameSchema,
+    lastName: NameSchema,
+    residenceCountyCode: CountryCodeSchema,
+    email: EmailSchema.optional(),
+    phone: PhoneValueSchema,
+    emailVerified: DateSchema.optional(),
+    phoneVerified: DateSchema.optional(),
+  })
+  .superRefine(async (data, ctx) => {
+    'use server';
+    const [existingUser, existingPhone] = await Promise.all([
+      db.user.findUnique({
+        where: {
+          email: data.email,
+        },
+      }),
+      db.phone.findUnique({
+        where: {
+          number: data.phone.number,
+        },
+      }),
+    ]);
+
+    if (existingUser) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.user_email_already_exists',
+        path: ['email'],
+      });
+    }
+
+    if (existingPhone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.user_phone_already_exists',
+        path: ['phone'],
+      });
+    }
+  });
+
+export type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 
 export const BasicInfoSchema = z.object({
   gender: z.nativeEnum(Gender, {

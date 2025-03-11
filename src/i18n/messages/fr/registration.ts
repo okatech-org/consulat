@@ -4,6 +4,8 @@ export default {
     subtitle: 'Suivez les étapes pour créer votre profil consulaire',
   },
   steps: {
+    newProfile: 'Inscription',
+    newProfile_description: 'Créez votre profil consulaire',
     documents: 'Documents',
     documents_description: "Téléchargez vos documents d'identité",
     identity: 'Identité',

@@ -27,6 +27,7 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
 import { Country, CountryStatus } from '@prisma/client';
+import { NewProfileForm } from './new-profile-form';
 
 export function RegistrationForm({
   availableCountries,
@@ -52,6 +53,12 @@ export function RegistrationForm({
   } = useRegistrationForm();
 
   const [steps, setSteps] = useState([
+    {
+      key: 'newProfile',
+      title: t('steps.newProfile'),
+      description: t('steps.newProfile_description'),
+      isComplete: false,
+    },
     {
       key: 'documents',
       title: t('steps.documents'),
@@ -226,6 +233,14 @@ export function RegistrationForm({
     switch (currentStep) {
       case 0:
         return (
+          <NewProfileForm
+            form={forms.newProfile}
+            onSubmitAction={() => handleNext(forms.newProfile.getValues())}
+            isLoading={isLoading}
+          />
+        );
+      case 1:
+        return (
           <DocumentUploadSection
             form={forms.documents}
             onAnalysisComplete={handleDocumentsAnalysis}
@@ -233,7 +248,7 @@ export function RegistrationForm({
             isLoading={isLoading}
           />
         );
-      case 1:
+      case 2:
         return (
           <BasicInfoForm
             form={forms.basicInfo}
@@ -242,7 +257,7 @@ export function RegistrationForm({
             banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
-      case 2:
+      case 3:
         return (
           <FamilyInfoForm
             form={forms.familyInfo}
@@ -251,7 +266,7 @@ export function RegistrationForm({
             banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
-      case 3:
+      case 4:
         return (
           <ContactInfoForm
             form={forms.contactInfo}
@@ -260,7 +275,7 @@ export function RegistrationForm({
             banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
-      case 4:
+      case 5:
         return (
           <ProfessionalInfoForm
             form={forms.professionalInfo}
@@ -269,7 +284,7 @@ export function RegistrationForm({
             banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
-      case 5:
+      case 6:
         return (
           <ReviewForm
             data={{
