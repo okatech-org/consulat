@@ -13,7 +13,6 @@ import {
 } from '@prisma/client';
 import { db } from '@/lib/prisma';
 
-import { getCurrentUser } from '@/actions/user';
 import { processFileData } from '@/actions/utils';
 import {
   BasicInfoFormData,
@@ -27,6 +26,107 @@ import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { FullProfileInclude } from '@/types';
+import { z } from 'zod';
+import {
+  DateSchema,
+  CountryCodeSchema,
+  EmailSchema,
+  NameSchema,
+  PhoneValueSchema,
+} from '@/schemas/inputs';
+
+const CreateProfileSchema = z
+  .object({
+    firstName: NameSchema,
+    lastName: NameSchema,
+    residenceCountyCode: CountryCodeSchema,
+    email: EmailSchema.optional(),
+    phone: PhoneValueSchema,
+    emailVerified: DateSchema.optional(),
+    phoneVerified: DateSchema.optional(),
+  })
+  .superRefine(async (data, ctx) => {
+    const [existingUser, existingPhone] = await Promise.all([
+      db.user.findUnique({
+        where: {
+          email: data.email,
+        },
+      }),
+      db.phone.findUnique({
+        where: {
+          number: data.phone.number,
+        },
+      }),
+    ]);
+
+    if (existingUser) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.user_email_already_exists',
+        path: ['email'],
+      });
+    }
+
+    if (existingPhone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.user_phone_already_exists',
+        path: ['phone'],
+      });
+    }
+  });
+
+type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
+
+export async function createProfile(input: CreateProfileInput) {
+  const {
+    firstName,
+    lastName,
+    residenceCountyCode,
+    email,
+    phone,
+    emailVerified,
+    phoneVerified,
+  } = await CreateProfileSchema.parseAsync(input);
+
+  const newUser = await db.user.create({
+    data: {
+      firstName,
+      lastName,
+      email,
+      emailVerified,
+      phoneVerified,
+      phone: {
+        create: phone,
+      },
+      country: {
+        connect: {
+          code: residenceCountyCode,
+        },
+      },
+    },
+  });
+
+  const profile = await db.profile.create({
+    data: {
+      user: {
+        connect: {
+          id: newUser.id,
+        },
+      },
+      userId: newUser.id,
+      firstName,
+      lastName,
+      residenceCountyCode,
+      email,
+      phone: {
+        create: phone,
+      },
+    },
+  });
+
+  return profile;
+}
 
 export async function postProfile(
   formData: FormData,
@@ -135,7 +235,11 @@ export async function postProfile(
       const profile = await tx.profile.create({
         data: {
           residenceCountyCode: countryCode,
-          userId: currentUser.user.id,
+          user: {
+            connect: {
+              id: currentUser.user.id,
+            },
+          },
           ...basicInfo,
           ...familyInfo,
           ...professionalInfo,
@@ -158,23 +262,25 @@ export async function postProfile(
               }),
             },
           },
-          homeLandContact: {
-            create: {
-              firstName: contactInfo.homeLandContact.firstName,
-              lastName: contactInfo.homeLandContact.lastName,
-              relationship: contactInfo.homeLandContact.relationship,
-              ...(contactInfo.homeLandContact.phone && {
-                phone: {
-                  create: contactInfo.homeLandContact.phone,
-                },
-              }),
-              ...(contactInfo.homeLandContact.address && {
-                address: {
-                  create: contactInfo.homeLandContact.address,
-                },
-              }),
+          ...(contactInfo.homeLandContact && {
+            homeLandContact: {
+              create: {
+                firstName: contactInfo.homeLandContact.firstName,
+                lastName: contactInfo.homeLandContact.lastName,
+                relationship: contactInfo.homeLandContact.relationship,
+                ...(contactInfo.homeLandContact.phone && {
+                  phone: {
+                    create: contactInfo.homeLandContact.phone,
+                  },
+                }),
+                ...(contactInfo.homeLandContact.address && {
+                  address: {
+                    create: contactInfo.homeLandContact.address,
+                  },
+                }),
+              },
             },
-          },
+          }),
 
           // Relations
           addressId: address.id,

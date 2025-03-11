@@ -1,5 +1,7 @@
 export default {
   errors: {
+    user_email_already_exists: 'Un utilisateur avec cet email existe déjà',
+    user_phone_already_exists: 'Un utilisateur avec ce numéro de téléphone existe déjà',
     employer_address_required_if_employee:
       "L'adresse de l'employeur est requise si vous êtes salarié",
     employer_required_if_employee: 'Employeur requis si vous êtes salarié',
