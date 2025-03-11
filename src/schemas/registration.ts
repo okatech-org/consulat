@@ -55,14 +55,14 @@ export const BasicInfoSchema = z.object({
     .max(9, 'messages.errors.number_too_long')
     .regex(/^[A-Z0-9]{8,9}$/, 'messages.errors.number_invalid_format'),
 
-  passportIssueDate: z.string({
-    required_error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.issue_date_invalid',
-  }),
-  passportExpiryDate: z.string({
-    required_error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.expiry_date_invalid',
-  }),
+  passportIssueDate: DateSchema.refine(
+    (date) => new Date(date) <= new Date(),
+    'messages.errors.issue_date_future',
+  ),
+  passportExpiryDate: DateSchema.refine(
+    (date) => new Date(date) > new Date(),
+    'messages.errors.expiry_date_future',
+  ),
   passportIssueAuthority: z
     .string({
       required_error: 'messages.errors.field_required',

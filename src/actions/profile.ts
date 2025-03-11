@@ -138,7 +138,8 @@ export async function postProfile(
     const currentUser = await checkAuth();
 
     // Récupérer et parser les données du formulaire
-    const basicInfo = JSON.parse(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { identityPictureFile, ...basicInfo } = JSON.parse(
       formData.get('basicInfo') as string,
     ) as BasicInfoFormData;
     const contactInfo = JSON.parse(
@@ -150,15 +151,14 @@ export async function postProfile(
     const professionalInfo = JSON.parse(
       formData.get('professionalInfo') as string,
     ) as ProfessionalInfoFormData;
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filesPromises: Array<Promise<any>> = [];
 
-    const identityPictureFile = formData.get('identityPictureFile') as File;
+    const identityPictureFileItem = formData.get('identityPictureFile') as File;
 
-    if (identityPictureFile) {
+    if (identityPictureFileItem) {
       const formData = new FormData();
-      formData.append('files', identityPictureFile);
+      formData.append('files', identityPictureFileItem);
       filesPromises.push(processFileData(formData));
     }
 
@@ -243,6 +243,9 @@ export async function postProfile(
           ...basicInfo,
           ...familyInfo,
           ...professionalInfo,
+          birthDate: new Date(basicInfo.birthDate),
+          passportIssueDate: new Date(basicInfo.passportIssueDate),
+          passportExpiryDate: new Date(basicInfo.passportExpiryDate),
           phoneId: phone.id,
           email: contactInfo.email || null,
           residentContact: {

@@ -150,7 +150,7 @@ export const EmergencyContactSchema = z.object({
   relationship: z.nativeEnum(FamilyLink, {
     required_error: 'messages.errors.field_required',
   }),
-  email: EmailSchema.nullable(),
+  email: EmailSchema.nullable().optional(),
   phone: PhoneValueSchema.nullable(),
   address: AddressSchema,
 });

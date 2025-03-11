@@ -132,10 +132,6 @@ export function LoginForm() {
     }
   };
 
-  React.useEffect(() => {
-    console.log(form.formState.errors);
-  }, [form.formState.errors]);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className={'flex flex-col gap-6'}>
