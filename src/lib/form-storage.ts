@@ -2,7 +2,7 @@ export function createFormStorage(key: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function saveFormData(data: Record<string, any>) {
     try {
-      localStorage.setItem(key, JSON.stringify(data));
+      sessionStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       console.error(`Error saving form data for ${key}:`, error);
     }
@@ -10,7 +10,7 @@ export function createFormStorage(key: string) {
 
   function loadFormData() {
     try {
-      const data = localStorage.getItem(key);
+      const data = sessionStorage.getItem(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
       console.error(`Error loading form data for ${key}:`, error);
@@ -20,7 +20,7 @@ export function createFormStorage(key: string) {
 
   function clearFormData() {
     try {
-      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
     } catch (error) {
       console.error(`Error clearing form data for ${key}:`, error);
     }

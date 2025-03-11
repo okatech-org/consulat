@@ -7,11 +7,21 @@ export interface BaseLayoutProps {
   children: React.ReactNode;
   roles?: UserRole[];
   fallbackUrl?: string;
+  fallbackComponent?: React.ReactNode;
   user?: User;
 }
 
-export function RouteAuthGuard({ children, roles, user, fallbackUrl }: BaseLayoutProps) {
+export function RouteAuthGuard({
+  children,
+  roles,
+  user,
+  fallbackUrl,
+  fallbackComponent,
+}: BaseLayoutProps) {
   if (!user) {
+    if (fallbackComponent) {
+      return fallbackComponent;
+    }
     if (fallbackUrl) {
       redirect(fallbackUrl);
     } else {

@@ -20,63 +20,59 @@ import {
   DocumentsFormData,
   FamilyInfoFormData,
   ProfessionalInfoFormData,
+  CreateProfileInput,
 } from '@/schemas/registration';
 import { deleteFiles } from '@/actions/uploads';
 import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { FullProfileInclude } from '@/types';
-import { z } from 'zod';
 import {
-  DateSchema,
+  NameSchema,
   CountryCodeSchema,
   EmailSchema,
-  NameSchema,
   PhoneValueSchema,
+  DateSchema,
 } from '@/schemas/inputs';
+import { z } from 'zod';
+import { isUserExists } from './auth';
 
-const CreateProfileSchema = z
+const CreateProfileAsyncSchema = z
   .object({
     firstName: NameSchema,
     lastName: NameSchema,
     residenceCountyCode: CountryCodeSchema,
     email: EmailSchema.optional(),
-    phone: PhoneValueSchema,
+    phone: PhoneValueSchema.refine(async (phone) => {
+      const existingPhone = await db.phone.findUnique({
+        where: {
+          number: phone.number,
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      return !existingPhone?.user;
+    }),
     emailVerified: DateSchema.optional(),
     phoneVerified: DateSchema.optional(),
+    otp: z.string().length(6, { message: 'messages.errors.otp_length' }).optional(),
   })
-  .superRefine(async (data, ctx) => {
+  .superRefine(async (data) => {
     const [existingUser, existingPhone] = await Promise.all([
-      db.user.findUnique({
-        where: {
-          email: data.email,
-        },
-      }),
-      db.phone.findUnique({
-        where: {
-          number: data.phone.number,
-        },
-      }),
+      isUserExists(undefined, data.email, data.phone),
+      isUserExists(undefined, undefined, data.phone),
     ]);
 
     if (existingUser) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'messages.errors.user_email_already_exists',
-        path: ['email'],
-      });
+      throw new Error('email-user_email_already_exists');
     }
 
     if (existingPhone) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'messages.errors.user_phone_already_exists',
-        path: ['phone'],
-      });
+      throw new Error('phone.number-user_phone_already_exists');
     }
   });
-
-type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 
 export async function createUserWithProfile(input: CreateProfileInput) {
   const {
@@ -87,38 +83,51 @@ export async function createUserWithProfile(input: CreateProfileInput) {
     phone,
     emailVerified,
     phoneVerified,
-  } = await CreateProfileSchema.parseAsync(input);
+  } = await CreateProfileAsyncSchema.parseAsync(input);
 
-  return await db.user.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      emailVerified,
-      phoneVerified,
-      phone: {
-        create: phone,
-      },
-      country: {
-        connect: {
-          code: residenceCountyCode,
+  await db.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        emailVerified,
+        phoneVerified,
+        phone: {
+          create: phone,
         },
-      },
-      profile: {
-        create: {
-          firstName,
-          lastName,
-          residenceCountyCode,
-          email,
-          phone: {
-            create: phone,
+        country: {
+          connect: {
+            code: residenceCountyCode,
           },
         },
       },
-    },
-    include: {
-      profile: true,
-    },
+    });
+
+    if (!user) {
+      throw new Error('user_creation_failed');
+    }
+
+    await tx.profile.create({
+      data: {
+        firstName,
+        lastName,
+        residenceCountyCode,
+        email,
+        ...(user.phoneId && {
+          phone: {
+            connect: {
+              id: user.phoneId,
+            },
+          },
+        }),
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
+    });
   });
 }
 

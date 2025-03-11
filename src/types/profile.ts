@@ -20,14 +20,10 @@ export const BaseProfileInclude = {
 export const FullProfileInclude = {
   include: {
     user: {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
+      include: {
+        phone: true,
       },
     },
-    phone: true,
     residentContact: {
       include: {
         phone: true,

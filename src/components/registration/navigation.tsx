@@ -30,8 +30,7 @@ export function FormNavigation({
   const t = useTranslations('registration');
 
   const handleNext = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const validation = await validateStep(currentStep, forms as any);
+    const validation = await validateStep(currentStep, forms);
     if (validation.isValid && validation.data) {
       onNext(validation.data);
     }

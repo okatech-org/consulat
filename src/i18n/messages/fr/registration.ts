@@ -4,7 +4,7 @@ export default {
     subtitle: 'Suivez les étapes pour créer votre profil consulaire',
   },
   steps: {
-    newProfile: 'Inscription',
+    newProfile: 'Créez votre profil consulaire',
     newProfile_description: 'Créez votre profil consulaire',
     documents: 'Documents',
     documents_description: "Téléchargez vos documents d'identité",
@@ -307,6 +307,7 @@ export default {
     document_missing: 'Document manquant',
     section_missing: 'Section non remplie',
     required: 'Requis',
+    new_profile: 'Compte consulaire',
   },
   assets: {
     document_type: {

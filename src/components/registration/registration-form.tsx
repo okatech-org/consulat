@@ -27,17 +27,21 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
 import { Country, CountryStatus } from '@prisma/client';
-import { NewProfileForm } from './new-profile-form';
+import { ErrorCard } from '../ui/error-card';
+import { ConsularFormData } from '@/schemas/registration';
+import { FullProfile } from '@/types';
 
 export function RegistrationForm({
   availableCountries,
+  profile,
 }: {
   availableCountries: Country[];
+  profile: FullProfile | null;
 }) {
-  const searchParams = useSearchParams();
-  const country = searchParams.get('country') as CountryCode;
+  const country = profile?.user?.countryCode;
   const router = useRouter();
   const t = useTranslations('registration');
+  const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
 
@@ -47,18 +51,13 @@ export function RegistrationForm({
     isLoading,
     setIsLoading,
     setError,
+    error,
     forms,
     handleDataChange,
     clearData,
-  } = useRegistrationForm();
+  } = useRegistrationForm({ profile });
 
   const [steps, setSteps] = useState([
-    {
-      key: 'newProfile',
-      title: t('steps.newProfile'),
-      description: t('steps.newProfile_description'),
-      isComplete: false,
-    },
     {
       key: 'documents',
       title: t('steps.documents'),
@@ -114,6 +113,7 @@ export function RegistrationForm({
 
       // Mettre à jour le stockage local
       handleDataChange({
+        newProfile: forms.newProfile.getValues(),
         basicInfo: forms.basicInfo.getValues(),
         contactInfo: forms.contactInfo.getValues(),
         familyInfo: forms.familyInfo.getValues(),
@@ -158,25 +158,35 @@ export function RegistrationForm({
   // Gestionnaire de navigation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNext = async (stepData: any) => {
-    try {
-      handleDataChange(stepData);
+    setError(undefined);
+    setIsLoading(true);
 
-      if (currentStep === steps.length - 1) {
-        await handleFinalSubmit();
-        return;
+    const stepKey = steps[currentStep]?.key as keyof ConsularFormData;
+
+    const data = {
+      [stepKey]: stepData as ConsularFormData[keyof ConsularFormData],
+    };
+
+    if (currentStep === steps.length - 1) {
+      const result = await tryCatch(handleFinalSubmit());
+      if (result.error) {
+        const { title, description } = handleFormError(result.error.message, t);
+        toast({ title, description, variant: 'destructive' });
       }
-
-      setCurrentStep((prev) => prev + 1);
-      setSteps((prev) =>
-        prev.map((step, index) => ({
-          ...step,
-          isComplete: index <= currentStep,
-        })),
-      );
-    } catch (error) {
-      const { title, description } = handleFormError(error, t);
-      toast({ title, description, variant: 'destructive' });
+      setIsLoading(false);
+      return;
     }
+
+    handleDataChange({ ...data });
+
+    setCurrentStep((prev) => prev + 1);
+    setSteps((prev) =>
+      prev.map((step, index) => ({
+        ...step,
+        isComplete: index <= currentStep,
+      })),
+    );
+    setIsLoading(false);
   };
 
   const handlePrevious = () => {
@@ -233,14 +243,6 @@ export function RegistrationForm({
     switch (currentStep) {
       case 0:
         return (
-          <NewProfileForm
-            form={forms.newProfile}
-            onSubmitAction={() => handleNext(forms.newProfile.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 1:
-        return (
           <DocumentUploadSection
             form={forms.documents}
             onAnalysisComplete={handleDocumentsAnalysis}
@@ -248,40 +250,36 @@ export function RegistrationForm({
             isLoading={isLoading}
           />
         );
-      case 2:
+      case 1:
         return (
           <BasicInfoForm
             form={forms.basicInfo}
             onSubmit={() => handleNext(forms.basicInfo.getValues())}
             isLoading={isLoading}
-            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
-      case 3:
+      case 2:
         return (
           <FamilyInfoForm
             form={forms.familyInfo}
             onSubmit={() => handleNext(forms.familyInfo.getValues())}
             isLoading={isLoading}
-            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
-      case 4:
+      case 3:
         return (
           <ContactInfoForm
             form={forms.contactInfo}
             onSubmitAction={() => handleNext(forms.contactInfo.getValues())}
             isLoading={isLoading}
-            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
-      case 5:
+      case 4:
         return (
           <ProfessionalInfoForm
             form={forms.professionalInfo}
             onSubmit={() => handleNext(forms.professionalInfo.getValues())}
             isLoading={isLoading}
-            banner={displayAnalysisWarning && <AnalysisWarningBanner />}
           />
         );
       case 6:
@@ -320,8 +318,20 @@ export function RegistrationForm({
         </div>
 
         {/* Contenu principal */}
-        <div>
+        <div className="flex flex-col gap-4 justify-center">
+          {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
           {renderCurrentStep()}
+
+          {error && (
+            <ErrorCard
+              description={
+                <p className="flex items-center gap-2">
+                  <Info className="size-icon" />
+                  {t_errors(error)}
+                </p>
+              }
+            />
+          )}
 
           <FormNavigation
             currentStep={currentStep}
@@ -358,7 +368,7 @@ function AnalysisWarningBanner() {
       className="overflow-hidden"
       contentClass="p-4 bg-blue-500/10 flex items-center gap-2"
     >
-      <Info className="size-10 sm:size-5 text-blue-500" />
+      <Info className="size-8 sm:size-5 text-blue-500" />
       <p className="text-md font-medium text-blue-500">
         {t('documents.analysis.warning')}
       </p>

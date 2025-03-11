@@ -1,5 +1,10 @@
 export default {
   errors: {
+    otp_required: 'Le code OTP est requis',
+    otp_length: 'Le code OTP doit contenir 6 chiffres',
+    been_error: 'Une erreur est survenue',
+    been_error_description: "Votre demande n'a pas été traitée. Veuillez réessayer.",
+    profile_creation_failed: 'Problème lors de la création de votre compte',
     user_email_already_exists: 'Un utilisateur avec cet email existe déjà',
     user_phone_already_exists: 'Un utilisateur avec ce numéro de téléphone existe déjà',
     employer_address_required_if_employee:
@@ -38,7 +43,6 @@ export default {
     website_invalid: "Format d'URL invalide",
     id_required: "L'identifiant est requis",
     status_invalid: 'Statut invalide',
-    employer_required_if_employee: 'Employeur requis si vous êtes salarié',
     identifier_required: 'Identifiant requis',
     invalid_email: 'Email invalide',
     relationship_required: 'Le lien de parenté est requis',

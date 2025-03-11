@@ -23,6 +23,7 @@ interface PhoneInputProps {
   disabled?: boolean;
   options?: CountryCode[];
   className?: string;
+  defaultCountry?: CountryIndicator;
 }
 
 export function PhoneInput({
@@ -31,6 +32,7 @@ export function PhoneInput({
   className,
   disabled = false,
   options,
+  defaultCountry = '+33',
   ...props
 }: PhoneInputProps) {
   const availableCountries = options
@@ -39,7 +41,7 @@ export function PhoneInput({
   const t_countries = useTranslations('countries');
 
   return (
-    <div className={cn('flex w-full gap-2', className)} {...props}>
+    <div className={cn('flex w-full relative gap-2', className)} {...props}>
       {parentForm && (
         <>
           <FormField
@@ -60,11 +62,11 @@ export function PhoneInput({
                         </div>
                       ),
                     }))}
-                    selected={(field.value as CountryCode) ?? '+33'}
+                    selected={(field.value as CountryCode) ?? defaultCountry}
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <TradFormMessage className="text-xs" />
+                <TradFormMessage className="text-xs absolute top-full" />
               </FormItem>
             )}
           />

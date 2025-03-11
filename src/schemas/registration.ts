@@ -15,49 +15,16 @@ import {
   NameSchema,
   PhoneValueSchema,
 } from './inputs';
-import { db } from '@/lib/prisma';
 
-export const CreateProfileSchema = z
-  .object({
-    firstName: NameSchema,
-    lastName: NameSchema,
-    residenceCountyCode: CountryCodeSchema,
-    email: EmailSchema.optional(),
-    phone: PhoneValueSchema,
-    emailVerified: DateSchema.optional(),
-    phoneVerified: DateSchema.optional(),
-  })
-  .superRefine(async (data, ctx) => {
-    'use server';
-    const [existingUser, existingPhone] = await Promise.all([
-      db.user.findUnique({
-        where: {
-          email: data.email,
-        },
-      }),
-      db.phone.findUnique({
-        where: {
-          number: data.phone.number,
-        },
-      }),
-    ]);
-
-    if (existingUser) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'messages.errors.user_email_already_exists',
-        path: ['email'],
-      });
-    }
-
-    if (existingPhone) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'messages.errors.user_phone_already_exists',
-        path: ['phone'],
-      });
-    }
-  });
+export const CreateProfileSchema = z.object({
+  firstName: NameSchema,
+  lastName: NameSchema,
+  residenceCountyCode: CountryCodeSchema,
+  email: EmailSchema.optional(),
+  phone: PhoneValueSchema,
+  emailVerified: DateSchema.optional(),
+  phoneVerified: DateSchema.optional(),
+});
 
 export type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 
@@ -255,7 +222,6 @@ export const CompleteFormSchema = z.object({
 
 export type ConsularFormData = z.infer<typeof CompleteFormSchema>;
 export type ProfileDataPostInput = z.infer<typeof ProfileDataPostSchema>;
-export type ProfileDataInput = z.infer<typeof ProfileDataSchema>;
 export type BasicInfoFormData = z.infer<typeof BasicInfoSchema>;
 export type ContactInfoFormData = z.infer<typeof ContactInfoSchema>;
 export type FamilyInfoFormData = z.infer<typeof FamilyInfoSchema>;

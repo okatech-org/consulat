@@ -165,6 +165,20 @@ export default {
       LEGAL_GUARDIAN: 'Tuteur légal',
     },
   },
+  otp: {
+    label: 'Code de vérification',
+    placeholder: 'Code à 6 chiffres reçu par SMS/Email',
+  },
+  newProfile: {
+    title: 'Créez votre espace consulaire',
+    description: 'Veuillez remplir les champs ci-dessous pour créer un nouveau profil.',
+    buttons: {
+      get_code: 'Obtenir le code',
+      verify: 'Vérifier',
+      use_email: "Utiliser l'adresse email",
+      already_have_account: "J'ai déjà un compte",
+    },
+  },
   profile: {
     id: 'ID',
     userId: 'User ID',

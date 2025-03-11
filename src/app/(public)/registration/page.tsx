@@ -1,18 +1,28 @@
 import { RegistrationForm } from '@/components/registration/registration-form';
 import { getActiveCountries } from '@/actions/countries';
-
+import { checkAuth } from '@/lib/auth/action';
+import { tryCatch } from '@/lib/utils';
+import { getUserFullProfile } from '@/lib/user/getters';
+import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
+import { NewProfileForm } from '@/components/registration/new-profile-form';
 export default async function RegistrationPage() {
   const countries = await getActiveCountries();
+  const { data: currentUser } = await tryCatch(checkAuth());
+
+  const { data: profile } = await tryCatch(
+    getUserFullProfile(currentUser?.user.id ?? ''),
+  );
+
+  console.log({ profile, currentUser });
 
   return (
-    <main
-      className={
-        'min-h-screen w-screen overflow-auto overflow-x-hidden bg-muted py-6 pt-14'
-      }
+    <RouteAuthGuard
+      user={currentUser?.user}
+      fallbackComponent={<NewProfileForm availableCountries={countries} />}
     >
       <div className="container flex flex-col py-6">
-        <RegistrationForm availableCountries={countries} />
+        <RegistrationForm availableCountries={countries} profile={profile} />
       </div>
-    </main>
+    </RouteAuthGuard>
   );
 }

@@ -5,9 +5,12 @@ import { db } from '@/lib/prisma';
 import { generateOTP } from '@/lib/user/otp';
 import { sendSMSOTP } from '@/actions/email';
 import { sendOTPEmail } from '@/services/notifications/providers/emails';
+import { Phone } from '@prisma/client';
 
 export const logUserOut = async () => {
-  await signOut();
+  await signOut({
+    redirectTo: '/',
+  });
 };
 
 export type AuthType = 'EMAIL' | 'PHONE';
@@ -44,4 +47,34 @@ export async function sendOTP(identifier: string, type: AuthType) {
     console.error('Error sending OTP:', error);
     return { error: 'Failed to send verification code' };
   }
+}
+
+export async function isUserExists(
+  id?: string,
+  email?: string,
+  phone?: {
+    number: string;
+    countryCode: string;
+  },
+) {
+  const user = await db.user.findFirst({
+    where: {
+      OR: [
+        ...(id ? [{ id }] : []),
+        ...(email ? [{ email }] : []),
+        ...(phone
+          ? [
+              {
+                phone: {
+                  number: phone.number,
+                  countryCode: phone.countryCode,
+                },
+              },
+            ]
+          : []),
+      ],
+    },
+  });
+
+  return Boolean(user);
 }
