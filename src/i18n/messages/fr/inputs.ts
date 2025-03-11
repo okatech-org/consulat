@@ -437,6 +437,8 @@ export default {
   },
   homeLandContact: {
     label: "Contact d'urgence dans le pays d'origine",
+    add: "Ajouter un contact d'urgence pour: {country}",
+    remove: "Retirer ce contact d'urgence",
   },
   nationality: {
     label: 'Nationalité',

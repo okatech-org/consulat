@@ -200,7 +200,9 @@ export const countryIndicators = phoneCountries.map(
   ({ value }) => value,
 ) as CountryIndicator[];
 
-export const getCountryCode = (countryCode: CountryCode): string | null => {
+export const getCountryCode = (
+  countryCode: CountryCode,
+): CountryIndicator | undefined => {
   const country = phoneCountries.find((c) => c.countryCode === countryCode);
-  return country ? country.value : null;
+  return country?.value;
 };

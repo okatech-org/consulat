@@ -71,6 +71,8 @@ export const PictureFileSchema = DocumentFileSchema;
 
 export const CountryCodeSchema = z
   .string()
+  .min(1, 'messages.errors.field_required')
+  .max(3, 'messages.errors.field_too_long')
   .refine((val) => countryKeys.includes(val as CountryCode), {
     message: 'messages.errors.invalid_country',
   });
@@ -101,7 +103,7 @@ export const AddressSchema = z.object({
 
   city: z.string().min(1, 'messages.errors.field_required'),
 
-  zipCode: z.string().min(1, 'messages.errors.field_required').nullable().optional(),
+  zipCode: z.string().nullable().optional(),
 
   country: CountryCodeSchema,
 });
@@ -126,8 +128,9 @@ export const NameSchema = z
 
 export const DateSchema = z
   .string()
-  .min(1, 'messages.errors.required')
-  .refine((val) => !isNaN(Date.parse(val)), 'messages.errors.invalid_date');
+  .min(1, 'messages.errors.field_required')
+  .transform((val) => new Date(val))
+  .refine((val) => !isNaN(val.getTime()), 'messages.errors.invalid_date');
 
 export const NumberSchema = z.number();
 
@@ -149,9 +152,7 @@ export const EmergencyContactSchema = z.object({
   }),
   email: EmailSchema.nullable(),
   phone: PhoneValueSchema.nullable(),
-  address: AddressSchema.omit({
-    zipCode: true,
-  }),
+  address: AddressSchema,
 });
 
 export type AddressInput = z.infer<typeof AddressSchema>;

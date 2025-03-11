@@ -106,11 +106,9 @@ export const ContactInfoSchema = z
   .object({
     email: EmailSchema.optional(),
     phone: PhoneValueSchema.nullable(),
-    address: AddressSchema.omit({
-      zipCode: true,
-    }),
+    address: AddressSchema,
     residentContact: EmergencyContactSchema,
-    homeLandContact: EmergencyContactSchema,
+    homeLandContact: EmergencyContactSchema.optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.email && !data.phone) {

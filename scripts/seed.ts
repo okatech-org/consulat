@@ -13,6 +13,10 @@ import {
   ServicePriority,
   RequestStatus,
   NotificationStatus,
+  Gender,
+  MaritalStatus,
+  WorkStatus,
+  FamilyLink,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -174,82 +178,83 @@ async function main() {
     console.log('Creating users...');
 
     // Admin et Agents
-    await Promise.all([
-      prisma.user.create({
-        data: {
-          id: 'user-admin',
-          email: 'itoutouberny+admin@gmail.com',
-          roles: [UserRole.ADMIN],
-          organizationId: 'organization-ambassade-france',
-          countryCode: 'FR',
-          specializations: [
-            ServiceCategory.IDENTITY,
-            ServiceCategory.REGISTRATION,
-            ServiceCategory.CIVIL_STATUS,
-            ServiceCategory.VISA,
-          ],
-          linkedCountries: { connect: [{ code: 'FR' }] },
-          profile: {
-            create: {
-              firstName: 'Admin',
-              lastName: 'France',
-              birthDate: '1980-01-01',
-              birthPlace: 'Paris',
-              birthCountry: 'FR',
-              nationality: 'FR',
-              gender: 'MALE',
-              residenceCountyCode: 'FR',
-            },
+    await prisma.profile.create({
+      data: {
+        id: 'profile-admin',
+        firstName: 'Admin',
+        lastName: 'France',
+        birthDate: new Date('1980-01-01'),
+        birthPlace: 'Paris',
+        birthCountry: 'FR',
+        nationality: 'FR',
+        gender: Gender.MALE,
+        residenceCountyCode: 'FR',
+        user: {
+          create: {
+            id: 'user-admin',
+            email: 'itoutouberny+admin@gmail.com',
+            roles: [UserRole.ADMIN],
+            organizationId: 'organization-ambassade-france',
+            countryCode: 'FR',
+            specializations: [
+              ServiceCategory.IDENTITY,
+              ServiceCategory.REGISTRATION,
+              ServiceCategory.CIVIL_STATUS,
+              ServiceCategory.VISA,
+            ],
+            linkedCountries: { connect: [{ code: 'FR' }] },
           },
         },
-      }),
-      prisma.user.create({
-        data: {
-          id: 'user-agent-france-1',
-          email: 'itoutouberny+agent1@gmail.com',
-          roles: [UserRole.AGENT],
-          assignedOrganizationId: 'organization-ambassade-france',
-          countryCode: 'FR',
-          specializations: [ServiceCategory.IDENTITY, ServiceCategory.REGISTRATION],
-          linkedCountries: { connect: [{ code: 'FR' }] },
-          profile: {
-            create: {
-              firstName: 'Agent',
-              lastName: 'France Un',
-              birthDate: '1985-01-01',
-              birthPlace: 'Paris',
-              birthCountry: 'FR',
-              nationality: 'FR',
-              gender: 'FEMALE',
-              residenceCountyCode: 'FR',
-            },
+      },
+    });
+    await prisma.profile.create({
+      data: {
+        id: 'profile-agent-1',
+        firstName: 'Agent',
+        lastName: 'France Un',
+        birthDate: new Date('1985-01-01'),
+        birthPlace: 'Paris',
+        birthCountry: 'FR',
+        nationality: 'FR',
+        gender: Gender.FEMALE,
+        residenceCountyCode: 'FR',
+        user: {
+          create: {
+            id: 'user-agent-france-1',
+            email: 'itoutouberny+agent1@gmail.com',
+            roles: [UserRole.AGENT],
+            assignedOrganizationId: 'organization-ambassade-france',
+            countryCode: 'FR',
+            specializations: [ServiceCategory.IDENTITY, ServiceCategory.REGISTRATION],
+            linkedCountries: { connect: [{ code: 'FR' }] },
           },
         },
-      }),
-      prisma.user.create({
-        data: {
-          id: 'user-agent-france-2',
-          email: 'itoutouberny+agent2@gmail.com',
-          roles: [UserRole.AGENT],
-          assignedOrganizationId: 'organization-ambassade-france',
-          countryCode: 'FR',
-          specializations: [ServiceCategory.CIVIL_STATUS, ServiceCategory.VISA],
-          linkedCountries: { connect: [{ code: 'FR' }] },
-          profile: {
-            create: {
-              firstName: 'Agent',
-              lastName: 'France Deux',
-              birthDate: '1990-01-01',
-              birthPlace: 'Lyon',
-              birthCountry: 'FR',
-              nationality: 'FR',
-              gender: 'MALE',
-              residenceCountyCode: 'FR',
-            },
+      },
+    });
+    await prisma.profile.create({
+      data: {
+        id: 'profile-agent-2',
+        firstName: 'Agent',
+        lastName: 'France Deux',
+        birthDate: new Date('1990-01-01'),
+        birthPlace: 'Lyon',
+        birthCountry: 'FR',
+        nationality: 'FR',
+        gender: Gender.MALE,
+        residenceCountyCode: 'FR',
+        user: {
+          create: {
+            id: 'user-agent-france-2',
+            email: 'itoutouberny+agent2@gmail.com',
+            roles: [UserRole.AGENT],
+            assignedOrganizationId: 'organization-ambassade-france',
+            countryCode: 'FR',
+            specializations: [ServiceCategory.CIVIL_STATUS, ServiceCategory.VISA],
+            linkedCountries: { connect: [{ code: 'FR' }] },
           },
         },
-      }),
-    ]);
+      },
+    });
 
     // Créer les services consulaires
     console.log('Creating consular services...');
@@ -330,183 +335,212 @@ async function main() {
 
     // Créer des utilisateurs normaux avec leurs profils
     console.log('Creating regular users with profiles...');
-    const [bernyUser] = await Promise.all([
-      prisma.user.create({
+    await Promise.all([
+      prisma.profile.create({
         data: {
-          id: 'user-berny-itoutou',
-          email: 'itoutouberny@gmail.com',
+          id: 'profile-berny-itoutou',
+          userId: 'user-berny-itoutou',
           firstName: 'Berny',
           lastName: 'Itoutou',
-          roles: [UserRole.USER],
-          emailVerified: new Date(),
-          countryCode: 'FR',
-          profile: {
+          gender: Gender.MALE,
+          birthDate: new Date('1990-01-01'),
+          birthPlace: 'Paris',
+          birthCountry: 'FR',
+          nationality: 'GA',
+          passportNumber: 'GA123456',
+          email: 'itoutouberny@gmail.com',
+          passportIssueDate: new Date('2020-01-01'),
+          passportExpiryDate: new Date('2030-01-01'),
+          passportIssueAuthority: 'Ambassade du Gabon',
+          status: RequestStatus.SUBMITTED,
+          maritalStatus: MaritalStatus.SINGLE,
+          workStatus: WorkStatus.EMPLOYEE,
+          profession: 'Développeur',
+          employer: 'Consulat.ga',
+          employerAddress: '123 Rue de la Tech, 75008 Paris',
+          fatherFullName: 'Jean Itoutou',
+          motherFullName: 'Marie Itoutou',
+          activityInGabon: 'Consultant IT',
+          cardPin: 'GA123456',
+          residenceCountyCode: '75',
+          user: {
             create: {
-              id: 'profile-berny-itoutou',
+              id: 'user-berny-itoutou',
+              email: 'itoutouberny@gmail.com',
               firstName: 'Berny',
               lastName: 'Itoutou',
-              gender: 'MALE',
-              birthDate: '1990-01-01',
-              birthPlace: 'Paris',
-              birthCountry: 'FR',
-              nationality: 'GA',
-              passportNumber: 'GA123456',
-              email: 'itoutouberny@gmail.com',
-              passportIssueDate: new Date('2020-01-01'),
-              passportExpiryDate: new Date('2030-01-01'),
-              passportIssueAuthority: 'Ambassade du Gabon',
-              status: 'SUBMITTED',
-              maritalStatus: 'SINGLE',
-              workStatus: 'EMPLOYEE',
-              profession: 'Développeur',
-              employer: 'Consulat.ga',
-              employerAddress: '123 Rue de la Tech, 75008 Paris',
-              fatherFullName: 'Jean Itoutou',
-              motherFullName: 'Marie Itoutou',
-              activityInGabon: 'Consultant IT',
-              cardPin: 'GA123456',
-              residenceCountyCode: '75',
-              address: {
-                create: {
-                  firstLine: '123 Rue de la Paix',
-                  secondLine: 'Appartement 4B',
-                  city: 'Paris',
-                  zipCode: '75008',
-                  country: 'FR',
-                },
-              },
+              roles: [UserRole.USER],
+              emailVerified: new Date(),
+              countryCode: 'FR',
+            },
+          },
+          address: {
+            create: {
+              firstLine: '123 Rue de la Paix',
+              secondLine: 'Appartement 4B',
+              city: 'Paris',
+              zipCode: '75008',
+              country: 'FR',
+            },
+          },
+          phone: {
+            create: {
+              number: '0612345678',
+              countryCode: '+33',
+            },
+          },
+          residentContact: {
+            create: {
+              firstName: 'Pierre',
+              lastName: 'Itoutou',
+              relationship: FamilyLink.FATHER,
               phone: {
                 create: {
-                  number: '0612345678',
+                  number: '0687654321',
                   countryCode: '+33',
                 },
               },
-              residentContact: {
+              address: {
                 create: {
-                  firstName: 'Pierre',
-                  lastName: 'Itoutou',
-                  relationship: 'FATHER',
-                  phone: {
-                    create: {
-                      number: '0687654321',
-                      countryCode: '+33',
-                    },
-                  },
-                  address: {
-                    create: {
-                      firstLine: '42 Boulevard de la Liberté',
-                      city: 'Paris',
-                      zipCode: '75010',
-                      country: 'FR',
-                    },
-                  },
-                },
-              },
-              homeLandContact: {
-                create: {
-                  firstName: 'Marie',
-                  lastName: 'Itoutou',
-                  relationship: 'MOTHER',
-                  phone: {
-                    create: {
-                      number: '074123456',
-                      countryCode: '+241',
-                    },
-                  },
-                  address: {
-                    create: {
-                      firstLine: "42 Boulevard de l'Indépendance",
-                      city: 'Libreville',
-                      zipCode: null,
-                      country: 'GA',
-                    },
-                  },
-                },
-              },
-              identityPicture: {
-                create: {
-                  type: DocumentType.IDENTITY_PHOTO,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: '/images/avatar-placeholder.png',
-                  issuedAt: new Date('2024-01-01'),
-                  expiresAt: new Date('2029-01-01'),
-                },
-              },
-              passport: {
-                create: {
-                  type: DocumentType.PASSPORT,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/passport.pdf',
-                  issuedAt: new Date('2020-01-01'),
-                  expiresAt: new Date('2030-01-01'),
-                },
-              },
-              birthCertificate: {
-                create: {
-                  type: DocumentType.BIRTH_CERTIFICATE,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/birth-certificate.pdf',
-                  issuedAt: new Date('1990-01-01'),
-                },
-              },
-              residencePermit: {
-                create: {
-                  type: DocumentType.RESIDENCE_PERMIT,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/residence-permit.pdf',
-                  issuedAt: new Date('2023-01-01'),
-                  expiresAt: new Date('2028-01-01'),
-                },
-              },
-              addressProof: {
-                create: {
-                  type: DocumentType.PROOF_OF_ADDRESS,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/proof-of-address.pdf',
-                  issuedAt: new Date('2024-01-01'),
-                  expiresAt: new Date('2025-01-01'),
+                  firstLine: '42 Boulevard de la Liberté',
+                  city: 'Paris',
+                  zipCode: '75010',
+                  country: 'FR',
                 },
               },
             },
           },
+          homeLandContact: {
+            create: {
+              firstName: 'Marie',
+              lastName: 'Itoutou',
+              relationship: FamilyLink.MOTHER,
+              phone: {
+                create: {
+                  number: '074123456',
+                  countryCode: '+241',
+                },
+              },
+              address: {
+                create: {
+                  firstLine: "42 Boulevard de l'Indépendance",
+                  city: 'Libreville',
+                  zipCode: null,
+                  country: 'GA',
+                },
+              },
+            },
+          },
+          identityPicture: {
+            create: {
+              type: DocumentType.IDENTITY_PHOTO,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: '/images/avatar-placeholder.png',
+              issuedAt: new Date('2024-01-01'),
+              expiresAt: new Date('2029-01-01'),
+            },
+          },
+          passport: {
+            create: {
+              type: DocumentType.PASSPORT,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/passport.pdf',
+              issuedAt: new Date('2020-01-01'),
+              expiresAt: new Date('2030-01-01'),
+            },
+          },
+          birthCertificate: {
+            create: {
+              type: DocumentType.BIRTH_CERTIFICATE,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/birth-certificate.pdf',
+              issuedAt: new Date('1990-01-01'),
+            },
+          },
+          residencePermit: {
+            create: {
+              type: DocumentType.RESIDENCE_PERMIT,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/residence-permit.pdf',
+              issuedAt: new Date('2023-01-01'),
+              expiresAt: new Date('2028-01-01'),
+            },
+          },
+          addressProof: {
+            create: {
+              type: DocumentType.PROOF_OF_ADDRESS,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/proof-of-address.pdf',
+              issuedAt: new Date('2024-01-01'),
+              expiresAt: new Date('2025-01-01'),
+            },
+          },
         },
       }),
-      prisma.user.create({
+      prisma.profile.create({
         data: {
-          id: 'user-jane-doe',
-          email: 'itoutouberny+jane@gmail.com',
+          id: 'profile-jane-doe',
           firstName: 'Jane',
           lastName: 'Doe',
-          roles: [UserRole.USER],
-          emailVerified: new Date(),
-          countryCode: 'FR',
-          profile: {
+          gender: Gender.FEMALE,
+          birthDate: new Date('1988-05-15'),
+          birthPlace: 'Paris',
+          birthCountry: 'FR',
+          nationality: 'GA',
+          passportNumber: 'GA789012',
+          email: 'itoutouberny+jane@gmail.com',
+          passportIssueDate: new Date('2021-03-15'),
+          passportExpiryDate: new Date('2031-03-15'),
+          passportIssueAuthority: 'Consulat du Gabon à Paris',
+          status: RequestStatus.SUBMITTED,
+          maritalStatus: MaritalStatus.MARRIED,
+          workStatus: WorkStatus.EMPLOYEE,
+          profession: 'Médecin',
+          employer: 'Hôpital Saint-Louis',
+          employerAddress: '1 Avenue Claude Vellefaux, 75010 Paris',
+          fatherFullName: 'John Doe',
+          motherFullName: 'Mary Doe',
+          spouseFullName: 'John Doe',
+          activityInGabon: 'Missions humanitaires',
+          cardPin: 'GA789012',
+          residenceCountyCode: '75',
+          user: {
             create: {
-              id: 'profile-jane-doe',
+              id: 'user-jane-doe',
+              email: 'itoutouberny+jane@gmail.com',
               firstName: 'Jane',
               lastName: 'Doe',
-              gender: 'FEMALE',
-              birthDate: '1988-05-15',
-              birthPlace: 'Paris',
-              birthCountry: 'FR',
-              nationality: 'GA',
-              passportNumber: 'GA789012',
-              email: 'itoutouberny+jane@gmail.com',
-              passportIssueDate: new Date('2021-03-15'),
-              passportExpiryDate: new Date('2031-03-15'),
-              passportIssueAuthority: 'Consulat du Gabon à Paris',
-              status: 'SUBMITTED',
-              maritalStatus: 'MARRIED',
-              workStatus: 'EMPLOYEE',
-              profession: 'Médecin',
-              employer: 'Hôpital Saint-Louis',
-              employerAddress: '1 Avenue Claude Vellefaux, 75010 Paris',
-              fatherFullName: 'John Doe',
-              motherFullName: 'Mary Doe',
-              spouseFullName: 'John Doe',
-              activityInGabon: 'Missions humanitaires',
-              cardPin: 'GA789012',
-              residenceCountyCode: '75',
+              roles: [UserRole.USER],
+              emailVerified: new Date(),
+              countryCode: 'FR',
+            },
+          },
+          address: {
+            create: {
+              firstLine: '45 Rue de Rivoli',
+              secondLine: 'Apt 12',
+              city: 'Paris',
+              zipCode: '75004',
+              country: 'FR',
+            },
+          },
+          phone: {
+            create: {
+              number: '0623456789',
+              countryCode: '+33',
+            },
+          },
+          residentContact: {
+            create: {
+              firstName: 'Michael',
+              lastName: 'Doe',
+              relationship: FamilyLink.SPOUSE,
+              phone: {
+                create: {
+                  number: '0634567890',
+                  countryCode: '+33',
+                },
+              },
               address: {
                 create: {
                   firstLine: '45 Rue de Rivoli',
@@ -516,99 +550,71 @@ async function main() {
                   country: 'FR',
                 },
               },
+            },
+          },
+          homeLandContact: {
+            create: {
+              firstName: 'John',
+              lastName: 'Doe',
+              relationship: FamilyLink.FATHER,
               phone: {
                 create: {
-                  number: '0623456789',
-                  countryCode: '+33',
+                  number: '074987654',
+                  countryCode: '+241',
                 },
               },
-              residentContact: {
+              address: {
                 create: {
-                  firstName: 'Michael',
-                  lastName: 'Doe',
-                  relationship: 'SPOUSE',
-                  phone: {
-                    create: {
-                      number: '0634567890',
-                      countryCode: '+33',
-                    },
-                  },
-                  address: {
-                    create: {
-                      firstLine: '45 Rue de Rivoli',
-                      secondLine: 'Apt 12',
-                      city: 'Paris',
-                      zipCode: '75004',
-                      country: 'FR',
-                    },
-                  },
+                  firstLine: '123 Boulevard Triomphal',
+                  city: 'Libreville',
+                  zipCode: null,
+                  country: 'GA',
                 },
               },
-              homeLandContact: {
-                create: {
-                  firstName: 'John',
-                  lastName: 'Doe',
-                  relationship: 'FATHER',
-                  phone: {
-                    create: {
-                      number: '074987654',
-                      countryCode: '+241',
-                    },
-                  },
-                  address: {
-                    create: {
-                      firstLine: '123 Boulevard Triomphal',
-                      city: 'Libreville',
-                      zipCode: null,
-                      country: 'GA',
-                    },
-                  },
-                },
-              },
-              identityPicture: {
-                create: {
-                  type: DocumentType.IDENTITY_PHOTO,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: '/images/avatar-placeholder.png',
-                  issuedAt: new Date('2023-05-15'),
-                  expiresAt: new Date('2028-05-15'),
-                },
-              },
-              passport: {
-                create: {
-                  type: DocumentType.PASSPORT,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/jane-passport.pdf',
-                  issuedAt: new Date('2021-03-15'),
-                  expiresAt: new Date('2031-03-15'),
-                },
-              },
-              birthCertificate: {
-                create: {
-                  type: DocumentType.BIRTH_CERTIFICATE,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/jane-birth-certificate.pdf',
-                  issuedAt: new Date('1988-05-15'),
-                },
-              },
-              residencePermit: {
-                create: {
-                  type: DocumentType.RESIDENCE_PERMIT,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/jane-residence-permit.pdf',
-                  issuedAt: new Date('2021-03-15'),
-                  expiresAt: new Date('2031-03-15'),
-                },
-              },
-              addressProof: {
-                create: {
-                  type: DocumentType.PROOF_OF_ADDRESS,
-                  status: DocumentStatus.VALIDATED,
-                  fileUrl: 'https://example.com/jane-address-proof.pdf',
-                  issuedAt: new Date('2021-03-15'),
-                  expiresAt: new Date('2031-03-15'),
-                },
-              },
+            },
+          },
+          identityPicture: {
+            create: {
+              type: DocumentType.IDENTITY_PHOTO,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: '/images/avatar-placeholder.png',
+              issuedAt: new Date('2023-05-15'),
+              expiresAt: new Date('2028-05-15'),
+            },
+          },
+          passport: {
+            create: {
+              type: DocumentType.PASSPORT,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/jane-passport.pdf',
+              issuedAt: new Date('2021-03-15'),
+              expiresAt: new Date('2031-03-15'),
+            },
+          },
+          birthCertificate: {
+            create: {
+              type: DocumentType.BIRTH_CERTIFICATE,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/jane-birth-certificate.pdf',
+              issuedAt: new Date('1988-05-15'),
+            },
+          },
+          residencePermit: {
+            create: {
+              type: DocumentType.RESIDENCE_PERMIT,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/jane-residence-permit.pdf',
+              issuedAt: new Date('2021-03-15'),
+              expiresAt: new Date('2031-03-15'),
+            },
+          },
+          addressProof: {
+            create: {
+              type: DocumentType.PROOF_OF_ADDRESS,
+              status: DocumentStatus.VALIDATED,
+              fileUrl: 'https://example.com/jane-address-proof.pdf',
+              issuedAt: new Date('2021-03-15'),
+              expiresAt: new Date('2031-03-15'),
             },
           },
         },
@@ -622,8 +628,8 @@ async function main() {
         id: 'profile-berny-child',
         firstName: 'Emma',
         lastName: 'Itoutou',
-        gender: 'FEMALE',
-        birthDate: '2020-05-15',
+        gender: Gender.FEMALE,
+        birthDate: new Date('2020-05-15'),
         birthPlace: 'Paris',
         birthCountry: 'FR',
         nationality: 'GA',
@@ -673,7 +679,24 @@ async function main() {
         },
         parentUser: {
           connect: {
-            id: bernyUser.id,
+            id: 'user-berny-itoutou',
+          },
+        },
+      },
+    });
+
+    await prisma.parentalAuthority.create({
+      data: {
+        role: 'MOTHER',
+        isActive: true,
+        profile: {
+          connect: {
+            id: childProfile.id,
+          },
+        },
+        parentUser: {
+          connect: {
+            id: 'user-jane-doe',
           },
         },
       },

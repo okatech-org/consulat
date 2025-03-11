@@ -65,7 +65,8 @@ model User {
   lastLogin         DateTime?
 
   // Relations
-  profile Profile?
+  profile Profile? @relation(fields: [profileId], references: [id])
+  profileId String? @unique
 
   
   linkedCountries   Country[]         @relation("managedCountries")
@@ -262,7 +263,7 @@ enum ParentalRole {
 model Profile {
   id     String @id @default(cuid())
   userId String? @unique
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?
 
   // Nouvelle propriété pour la catégorie du profil
   category ProfileCategory @default(ADULT)
@@ -277,7 +278,7 @@ model Profile {
   firstName              String?
   lastName               String?
   gender                 Gender?
-  birthDate              String?
+  birthDate              DateTime?
   birthPlace             String?
   birthCountry           String?
   nationality            String?                @default("gabon")
@@ -285,8 +286,8 @@ model Profile {
   workStatus             WorkStatus?             @default(UNEMPLOYED)
   acquisitionMode        NationalityAcquisition? @default(BIRTH)
   passportNumber         String?
-  passportIssueDate      String?
-  passportExpiryDate     String?
+  passportIssueDate      DateTime?
+  passportExpiryDate     DateTime?
   passportIssueAuthority String?
 
   // Documents

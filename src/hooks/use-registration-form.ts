@@ -113,21 +113,6 @@ export function useRegistrationForm() {
             }),
           },
         },
-        homeLandContact: {
-          ...initialData?.contactInfo?.homeLandContact,
-          address: {
-            ...initialData?.contactInfo?.homeLandContact?.address,
-            country: homeLandCountryCode,
-          },
-          phone: {
-            ...initialData?.contactInfo?.homeLandContact?.phone,
-            ...(homeLandCountryCode && {
-              countryCode:
-                initialData?.contactInfo?.homeLandContact?.phone?.countryCode ??
-                getCountryCode(homeLandCountryCode),
-            }),
-          },
-        },
       },
     }),
     professionalInfo: useForm<ProfessionalInfoFormData>({
