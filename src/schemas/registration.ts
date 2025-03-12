@@ -4,18 +4,16 @@ import {
   MaritalStatus,
   NationalityAcquisition,
   WorkStatus,
-  DocumentType,
-  DocumentStatus,
 } from '@prisma/client';
 import {
   AddressSchema,
   CountryCodeSchema,
   DateSchema,
-  DocumentFileSchema,
   EmailSchema,
   EmergencyContactSchema,
   NameSchema,
   PhoneValueSchema,
+  UserDocumentSchema,
 } from './inputs';
 
 export const CreateProfileSchema = z.object({
@@ -38,10 +36,6 @@ export const BasicInfoSchema = z.object({
     required_error: 'messages.errors.field_required',
   }),
 
-  firstName: NameSchema,
-
-  lastName: NameSchema,
-
   birthDate: DateSchema.refine(
     (date) => new Date(date) <= new Date(),
     'messages.errors.birth_date_future',
@@ -59,7 +53,7 @@ export const BasicInfoSchema = z.object({
     required_error: 'messages.errors.field_required',
   }),
 
-  identityPictureFile: DocumentFileSchema,
+  identityPicture: UserDocumentSchema,
 
   passportNumber: z
     .string({
@@ -87,92 +81,57 @@ export const BasicInfoSchema = z.object({
   cardPin: z.string().optional(),
 });
 
-export const BasicInfoPostSchema = z.object({
-  gender: z.nativeEnum(Gender, {
-    required_error: 'messages.errors.field_required',
-  }),
-  firstName: NameSchema,
-  lastName: NameSchema,
-  birthDate: DateSchema,
-  birthPlace: z.string({
-    required_error: 'messages.errors.field_required',
-  }),
-  birthCountry: CountryCodeSchema,
-  nationality: CountryCodeSchema,
-
-  passportNumber: z.string().optional(),
-  passportIssueDate: z.string().optional(),
-  passportExpiryDate: z.string().optional(),
-  passportIssueAuthority: z.string().optional(),
+// Validation pour la section Contact
+const BaseContactInfoSchema = z.object({
+  email: EmailSchema.optional(),
+  phone: PhoneValueSchema.nullable(),
+  address: AddressSchema,
+  residentContact: EmergencyContactSchema,
+  homeLandContact: EmergencyContactSchema.optional(),
 });
 
-// Constantes de validation
-export const VALIDATION_RULES = {
-  NAME_MIN_LENGTH: 2,
-  NAME_MAX_LENGTH: 50,
-  PHONE_REGEX: /^\+[1-9]\d{1,14}$/,
-  EMAIL_MAX_LENGTH: 255,
-  ADDRESS_MAX_LENGTH: 100,
-} as const;
-
-// Validation pour la section Contact
-export const ContactInfoSchema = z
-  .object({
-    email: EmailSchema.optional(),
-    phone: PhoneValueSchema.nullable(),
-    address: AddressSchema,
-    residentContact: EmergencyContactSchema,
-    homeLandContact: EmergencyContactSchema.optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.email && !data.phone) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'messages.errors.email_or_phone_required',
-        path: ['email', 'phone'],
-      });
-    }
-  });
+export const ContactInfoSchema = BaseContactInfoSchema.superRefine((data, ctx) => {
+  if (!data.email && !data.phone) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'messages.errors.email_or_phone_required',
+      path: ['email', 'phone'],
+    });
+  }
+});
 
 // Validation pour la section Famille
-export const FamilyInfoSchema = z
-  .object({
-    maritalStatus: z.nativeEnum(MaritalStatus),
+const BaseFamilyInfoSchema = z.object({
+  maritalStatus: z.nativeEnum(MaritalStatus),
+  fatherFullName: NameSchema,
+  motherFullName: NameSchema,
+  spouseFullName: NameSchema.optional(),
+});
 
-    fatherFullName: NameSchema,
-
-    motherFullName: NameSchema,
-
-    spouseFullName: NameSchema.optional(),
-  })
-  .refine(
-    (data) => {
-      // Si marié, le nom du conjoint est requis
-      if (data.maritalStatus === MaritalStatus.MARRIED) {
-        return !!data.spouseFullName;
-      }
-      return true;
-    },
-    {
-      message: 'messages.errors.spouse_name_required_if_married',
-      path: ['spouseFullName'],
-    },
-  );
+export const FamilyInfoSchema = BaseFamilyInfoSchema.refine(
+  (data) => {
+    if (data.maritalStatus === MaritalStatus.MARRIED) {
+      return !!data.spouseFullName;
+    }
+    return true;
+  },
+  {
+    message: 'messages.errors.spouse_name_required_if_married',
+    path: ['spouseFullName'],
+  },
+);
 
 // Validation pour la section Professionnelle
-export const ProfessionalInfoSchema = z
-  .object({
-    workStatus: z.nativeEnum(WorkStatus),
+const BaseProfessionalInfoSchema = z.object({
+  workStatus: z.nativeEnum(WorkStatus),
+  profession: NameSchema.optional(),
+  employer: NameSchema.optional(),
+  employerAddress: z.string().optional(),
+  activityInGabon: z.string().max(200, 'messages.errors.activity_too_long').optional(),
+});
 
-    profession: NameSchema.optional(),
-
-    employer: NameSchema.optional(),
-
-    employerAddress: z.string().optional(),
-
-    activityInGabon: z.string().max(200, 'messages.errors.activity_too_long').optional(),
-  })
-  .superRefine((data, ctx) => {
+export const ProfessionalInfoSchema = BaseProfessionalInfoSchema.superRefine(
+  (data, ctx) => {
     if (data.workStatus === WorkStatus.EMPLOYEE) {
       if (!data.employer) {
         ctx.addIssue({
@@ -190,41 +149,14 @@ export const ProfessionalInfoSchema = z
         });
       }
     }
-  });
-
-export const UserDocumentSchema = z.object({
-  id: z.string().optional(),
-  type: z.nativeEnum(DocumentType),
-  status: z.nativeEnum(DocumentStatus),
-  fileUrl: z.string(),
-  issuedAt: DateSchema,
-  expiresAt: DateSchema,
-  metadata: z.record(z.string(), z.any()).optional(),
-  userId: z.string().optional(),
-  serviceRequestId: z.string().optional(),
-  validatedById: z.string().optional(),
-});
+  },
+);
 
 export const DocumentsSchema = z.object({
   passport: UserDocumentSchema,
   birthCertificate: UserDocumentSchema,
-  residencePermit: UserDocumentSchema.optional(),
+  residencePermit: UserDocumentSchema.nullable().optional(),
   addressProof: UserDocumentSchema,
-});
-
-export const ProfileDataSchema = z.object({
-  contactInfo: ContactInfoSchema,
-  familyInfo: FamilyInfoSchema,
-  basicInfo: BasicInfoSchema,
-  professionalInfo: ProfessionalInfoSchema,
-  documents: DocumentsSchema,
-});
-
-export const ProfileDataPostSchema = z.object({
-  contactInfo: ContactInfoSchema,
-  familyInfo: FamilyInfoSchema,
-  basicInfo: BasicInfoPostSchema,
-  professionalInfo: ProfessionalInfoSchema,
 });
 
 export const CompleteFormSchema = z.object({
@@ -235,13 +167,15 @@ export const CompleteFormSchema = z.object({
   professionalInfo: ProfessionalInfoSchema,
 });
 
-export const FullProfileSchema = z.object({
-  ...ProfileDataSchema.shape,
-  ...CreateProfileSchema.shape,
+export const FullProfileUpdateSchema = z.object({
+  ...DocumentsSchema.shape,
+  ...BasicInfoSchema.shape,
+  ...BaseContactInfoSchema.shape,
+  ...BaseFamilyInfoSchema.shape,
+  ...BaseProfessionalInfoSchema.shape,
 });
 
 export type ConsularFormData = z.infer<typeof CompleteFormSchema>;
-export type ProfileDataPostInput = z.infer<typeof ProfileDataPostSchema>;
 export type BasicInfoFormData = z.infer<typeof BasicInfoSchema>;
 export type ContactInfoFormData = z.infer<typeof ContactInfoSchema>;
 export type FamilyInfoFormData = z.infer<typeof FamilyInfoSchema>;

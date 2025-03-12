@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { FamilyLink, Gender } from '@prisma/client';
+import { DocumentStatus, FamilyLink, Gender, DocumentType } from '@prisma/client';
 import {
   CountryCode,
   CountryIndicator,
@@ -156,3 +156,18 @@ export const EmergencyContactSchema = z.object({
 });
 
 export type AddressInput = z.infer<typeof AddressSchema>;
+
+export const UserDocumentSchema = z.object({
+  id: z.string().nullable().optional(),
+  type: z.nativeEnum(DocumentType),
+  status: z.nativeEnum(DocumentStatus),
+  fileUrl: z.string(),
+  issuedAt: DateSchema.nullable(),
+  expiresAt: DateSchema.nullable(),
+  metadata: z.record(z.string(), z.any()).nullable().optional(),
+  userId: z.string().nullable().optional(),
+  serviceRequestId: z.string().nullable().optional(),
+  validatedById: z.string().nullable().optional(),
+});
+
+export type UserDocumentInput = z.infer<typeof UserDocumentSchema>;
