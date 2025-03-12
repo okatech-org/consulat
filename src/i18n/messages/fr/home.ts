@@ -7,6 +7,9 @@ export default {
       "Simplifiez vos démarches consulaires et gérez tous vos documents en ligne, en toute sécurité et depuis n'importe où.",
     discover_features: 'Découvrir les fonctionnalités',
     start_registration: 'Commencer mon inscription',
+    citizen_space: 'Espace Citoyen',
+    government_space: 'Espace Gouvernement',
+    subtitle: 'Votre Lien Numérique avec le Gabon',
   },
   features: {
     title: 'Tout votre consulat dans votre poche',
@@ -80,6 +83,125 @@ export default {
       title: 'Une erreur est survenue',
       description:
         'Impossible de vous inscrire pour le moment. Veuillez réessayer plus tard.',
+    },
+  },
+  landing: {
+    hero: {
+      consulat_ga: 'CONSULAT.GA',
+      subtitle: 'Votre Lien Numérique avec le Gabon',
+      description:
+        'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France. Participez activement à la construction du Gabon de demain!',
+      citizen_space: 'Espace Citoyen',
+      government_space: 'Espace Gouvernement',
+      secure_data: 'Sécurisé et conforme aux normes de protection des données',
+    },
+    consulat_digital: {
+      title: 'Consulat Digital',
+      description:
+        'Découvrez notre plateforme consulaire moderne et sécurisée pour tous vos services administratifs.',
+    },
+    features: {
+      title: 'Avantages et Fonctionnalités',
+      subtitle:
+        'Découvrez les fonctionnalités qui font de Consulat.ga la plateforme idéale pour vos démarches consulaires.',
+      badge: 'Avantages et Fonctionnalités',
+      participation: {
+        title: 'Participation Citoyenne',
+        description: "Forums et groupes d'échange entre citoyens gabonais.",
+      },
+      digitalisation: {
+        title: 'Digitalisation Complète',
+        description: 'Services administratifs en ligne sur smartphone.',
+      },
+      tracking: {
+        title: 'Suivi en Temps Réel',
+        description: 'Suivi instantané de vos demandes consulaires.',
+      },
+    },
+    services: {
+      title: 'Services Consulaires Dématérialisés',
+      subtitle:
+        "Tous vos services consulaires accessibles en quelques clics, sans file d'attente ni déplacement.",
+      badge: 'Services',
+      identity: {
+        title: 'Identité et État Civil',
+        description: "Documents d'identité en quelques clics.",
+        passports: 'Passeports biométriques',
+        consular_cards: 'Cartes consulaires',
+        birth_certificates: 'Actes de naissance',
+        learn_more: 'En savoir plus',
+      },
+      assistance: {
+        title: 'Assistance Consulaire',
+        description: 'Assistance consulaire immédiate.',
+        legal_assistance: 'Assistance juridique',
+        emergency_help: "Aide d'urgence",
+        travel_advice: 'Conseils aux voyageurs',
+        learn_more: 'En savoir plus',
+      },
+      protection: {
+        title: 'Protection des Citoyens',
+        description: "Protection garantie à l'étranger.",
+        incident_reporting: 'Signalement des incidents',
+        consular_protection: 'Protection consulaire',
+        crisis_monitoring: 'Suivi des situations de crise',
+        learn_more: 'En savoir plus',
+      },
+    },
+    action: {
+      title: 'Prêt à simplifier vos démarches ?',
+      description:
+        "Rejoignez Consulat.ga et accédez à tous nos services en ligne dès aujourd'hui.",
+      button: 'Démarrer maintenant',
+      login: 'Se connecter',
+    },
+    footer: {
+      consulat_ga: 'Consulat.ga',
+      slogan: 'Votre lien numérique avec le Gabon',
+      description:
+        'Connectant le Gabon et sa diaspora à travers des services consulaires numériques innovants. Notre plateforme simplifie vos démarches administratives où que vous soyez.',
+      need_help: "Besoin d'aide ?",
+      support_team:
+        "Notre équipe d'experts est disponible pour répondre à toutes vos questions et vous accompagner dans vos démarches administratives.",
+      contact_us: 'Nous contacter',
+      team_available: 'Notre équipe est à votre disposition',
+      social_links: {
+        twitter: 'Suivez-nous sur Twitter',
+        linkedin: 'Suivez-nous sur LinkedIn',
+        instagram: 'Suivez-nous sur Instagram',
+      },
+      copyright: '© {year} Consulat.ga. Tous droits réservés.',
+      links: {
+        privacy: 'Politique de confidentialité',
+        terms: "Conditions d'utilisation",
+        legal: 'Mentions légales',
+      },
+      title: 'Consulat.ga',
+      contactTitle: 'Contactez-nous',
+      contactDescription:
+        'Notre équipe est disponible pour répondre à toutes vos questions.',
+      contactButton: 'Nous contacter',
+      contactNote: 'Nous respectons votre vie privée.',
+      privacyPolicy: 'Politique de confidentialité',
+      termsOfUse: "Conditions d'utilisation",
+      legalMentions: 'Mentions légales',
+    },
+    meta: {
+      digital_link: 'Votre lien numérique avec le Gabon',
+      platform_description:
+        'Découvrez notre plateforme consulaire moderne et sécurisée pour tous vos services administratifs.',
+    },
+    social_media: {
+      twitter: 'Twitter',
+      linkedin: 'LinkedIn',
+      instagram: 'Instagram',
+    },
+    contact: {
+      need_help: "Besoin d'aide ?",
+      support_description:
+        "Notre équipe d'experts est disponible pour répondre à toutes vos questions et vous accompagner dans vos démarches administratives.",
+      contact_us: 'Nous contacter',
+      team_available: 'Notre équipe est à votre disposition',
     },
   },
 } as const;

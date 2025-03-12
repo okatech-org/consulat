@@ -1,9 +1,9 @@
 export default {
   languages: {
     label: 'Langue',
-    FR: 'Français',
-    EN: 'Anglais',
-    ES: 'Espagnol',
+    fr: 'Français',
+    en: 'Anglais',
+    es: 'Espagnol',
   },
   request: {
     actions: {

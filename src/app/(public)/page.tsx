@@ -6,8 +6,8 @@ import React from 'react';
 import { getTranslations } from 'next-intl/server';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { GlobalAnimations } from '@/components/ui/global-animations';
-import { Button } from '@/components/ui/button';
 import { MobileSectionCarousel } from '@/components/ui/mobile-section-carousel';
+import { ROUTES } from '@/schemas/routes';
 
 // Fonction utilitaire pour extraire l'ID YouTube d'une URL
 function getYoutubeEmbedUrl(url: string) {
@@ -31,7 +31,6 @@ function getYoutubeEmbedUrl(url: string) {
 
 export default async function LandingPage() {
   // Utilisation de getTranslations pour les composants serveur
-  const t = await getTranslations('home');
   const l = await getTranslations('home.landing');
 
   // URL de la vidéo YouTube - à modifier ici pour changer la vidéo
@@ -66,19 +65,19 @@ export default async function LandingPage() {
             <AnimatedSection animation="fade-right" className="max-w-3xl">
               <h1 className="mb-6 font-bold tracking-tight flex flex-col">
                 <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-[#FEAA37] to-[#FEAA37] bg-clip-text text-transparent drop-shadow-sm">
-                  CONSULAT.GA
+                  {l('hero.consulat_ga')}
                 </span>
                 <span className="text-[calc(1rem*0.83*1.1)] sm:text-[calc(1.25rem*0.83*1.1)] md:text-[calc(1.5rem*0.83*1.1)] lg:text-[calc(1.875rem*0.83*1.1)] bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm dark:from-blue-400 dark:to-indigo-400 mt-2">
-                  Votre Lien Numérique avec le Gabon
+                  {l('hero.subtitle')}
                 </span>
               </h1>
               <p className="mb-8 text-lg sm:text-xl leading-relaxed text-gray-800 dark:text-gray-200 home-subtitle">
-                {l('hero.subtitle')}
+                {l('hero.description')}
               </p>
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
                 <Link
-                  href="/dashboard"
+                  href={ROUTES.user.base}
                   className={buttonVariants({
                     size: 'lg',
                     className:
@@ -89,7 +88,7 @@ export default async function LandingPage() {
                   <ArrowRight className="size-4" />
                 </Link>
                 <Link
-                  href="#features"
+                  href={ROUTES.dashboard.base}
                   className={buttonVariants({
                     size: 'lg',
                     variant: 'outline',
@@ -104,7 +103,7 @@ export default async function LandingPage() {
 
               <div className="mt-8 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
                 <Lock className="size-4" />
-                <span>Sécurisé et conforme aux normes de protection des données</span>
+                <span>{l('hero.secure_data')}</span>
               </div>
             </AnimatedSection>
 
@@ -112,7 +111,7 @@ export default async function LandingPage() {
               <div>
                 <div>
                   <h3 className="text-xl font-bold text-blue-700 dark:text-blue-500 mb-4">
-                    Consulat Digital
+                    {l('consulat_digital.title')}
                   </h3>
 
                   {/* Intégration vidéo YouTube */}
@@ -126,8 +125,7 @@ export default async function LandingPage() {
                     ></iframe>
                   </div>
                   <p className="mt-4 text-sm text-gray-800 dark:text-gray-200 text-center home-text">
-                    Découvrez notre plateforme consulaire moderne et sécurisée pour tous
-                    vos services administratifs.
+                    {l('consulat_digital.description')}
                   </p>
                 </div>
               </div>
@@ -138,9 +136,9 @@ export default async function LandingPage() {
 
       {/* Features Section with subtle gradient - Transformé en carousel sur mobile */}
       <MobileSectionCarousel
-        title="Avantages et Fonctionnalités"
-        subtitle="Découvrez les fonctionnalités qui font de Consulat.ga la plateforme idéale pour vos démarches consulaires."
-        badgeText="Avantages et Fonctionnalités"
+        title={l('features.title')}
+        subtitle={l('features.subtitle')}
+        badgeText={l('features.badge')}
         bgClassName="bg-gradient-to-b from-[#ffffff] to-[#f0f0f0] dark:from-[#242424] dark:to-[#2F2F2F] home-features"
       >
         {/* Card 1 - Participation */}
@@ -155,9 +153,11 @@ export default async function LandingPage() {
               allowFullScreen
             ></iframe>
           </div>
-          <h3 className="mb-2 text-xl font-bold home-title">Participation Citoyenne</h3>
+          <h3 className="mb-2 text-xl font-bold home-title">
+            {l('features.participation.title')}
+          </h3>
           <p className="text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            Forums et groupes d'échange entre citoyens gabonais.
+            {l('features.participation.description')}
           </p>
         </div>
 
@@ -173,9 +173,11 @@ export default async function LandingPage() {
               allowFullScreen
             ></iframe>
           </div>
-          <h3 className="mb-2 text-xl font-bold home-title">Digitalisation Complète</h3>
+          <h3 className="mb-2 text-xl font-bold home-title">
+            {l('features.digitalisation.title')}
+          </h3>
           <p className="text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            Services administratifs en ligne sur smartphone.
+            {l('features.digitalisation.description')}
           </p>
         </div>
 
@@ -191,18 +193,20 @@ export default async function LandingPage() {
               allowFullScreen
             ></iframe>
           </div>
-          <h3 className="mb-2 text-xl font-bold home-title">Suivi en Temps Réel</h3>
+          <h3 className="mb-2 text-xl font-bold home-title">
+            {l('features.tracking.title')}
+          </h3>
           <p className="text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            Suivi instantané de vos demandes consulaires.
+            {l('features.tracking.description')}
           </p>
         </div>
       </MobileSectionCarousel>
 
       {/* Main Features Section - Transformé en carousel sur mobile */}
       <MobileSectionCarousel
-        title="Services Consulaires Dématérialisés"
-        subtitle="Tous vos services consulaires accessibles en quelques clics, sans file d'attente ni déplacement."
-        badgeText="Services"
+        title={l('services.title')}
+        subtitle={l('services.subtitle')}
+        badgeText={l('services.badge')}
         bgClassName="bg-gradient-to-b from-[#f9fafc] to-[#f4f5f9] dark:from-[#242424] dark:to-[#131313] relative overflow-hidden"
       >
         {/* Service Card 1 */}
@@ -210,29 +214,31 @@ export default async function LandingPage() {
           <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
             <Users className="h-6 w-6 text-blue-500 dark:text-blue-400" />
           </div>
-          <h3 className="mb-2 text-xl font-bold home-title">Identité et État Civil</h3>
+          <h3 className="mb-2 text-xl font-bold home-title">
+            {l('services.identity.title')}
+          </h3>
           <p className="mb-4 text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            Documents d'identité en quelques clics.
+            {l('services.identity.description')}
           </p>
           <ul className="mb-6 space-y-2 flex-1">
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Passeports biométriques</span>
+              <span className="text-sm">{l('services.identity.passports')}</span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Cartes consulaires</span>
+              <span className="text-sm">{l('services.identity.consular_cards')}</span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Actes de naissance</span>
+              <span className="text-sm">{l('services.identity.birth_certificates')}</span>
             </li>
           </ul>
           <Link
             href="/dashboard/identity"
             className="mt-auto inline-flex items-center justify-center rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors"
           >
-            En savoir plus
+            {l('services.identity.learn_more')}
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
@@ -242,29 +248,31 @@ export default async function LandingPage() {
           <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
             <MessageSquare className="h-6 w-6 text-indigo-500 dark:text-indigo-400" />
           </div>
-          <h3 className="mb-2 text-xl font-bold home-title">Assistance Consulaire</h3>
+          <h3 className="mb-2 text-xl font-bold home-title">
+            {l('services.assistance.title')}
+          </h3>
           <p className="mb-4 text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            Assistance consulaire immédiate.
+            {l('services.assistance.description')}
           </p>
           <ul className="mb-6 space-y-2 flex-1">
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Assistance juridique</span>
+              <span className="text-sm">{l('services.assistance.legal_assistance')}</span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Aide d'urgence</span>
+              <span className="text-sm">{l('services.assistance.emergency_help')}</span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Conseils aux voyageurs</span>
+              <span className="text-sm">{l('services.assistance.travel_advice')}</span>
             </li>
           </ul>
           <Link
             href="/dashboard/assistance"
             className="mt-auto inline-flex items-center justify-center rounded-lg bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
           >
-            En savoir plus
+            {l('services.assistance.learn_more')}
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
@@ -274,22 +282,30 @@ export default async function LandingPage() {
           <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
             <Shield className="h-6 w-6 text-purple-500 dark:text-purple-400" />
           </div>
-          <h3 className="mb-2 text-xl font-bold home-title">Protection des Citoyens</h3>
+          <h3 className="mb-2 text-xl font-bold home-title">
+            {l('services.protection.title')}
+          </h3>
           <p className="mb-4 text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            Protection garantie à l'étranger.
+            {l('services.protection.description')}
           </p>
           <ul className="mb-6 space-y-2 flex-1">
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Signalement des incidents</span>
+              <span className="text-sm">
+                {l('services.protection.incident_reporting')}
+              </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Protection consulaire</span>
+              <span className="text-sm">
+                {l('services.protection.consular_protection')}
+              </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">Suivi des situations de crise</span>
+              <span className="text-sm">
+                {l('services.protection.crisis_monitoring')}
+              </span>
             </li>
           </ul>
           <Link
@@ -315,7 +331,7 @@ export default async function LandingPage() {
             <div className="relative">
               <AnimatedSection
                 animation="fade-up"
-                className="mx-auto max-w-4xl text-center"
+                className="mx-auto max-w-5xl text-center"
               >
                 <h2 className="mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm dark:from-blue-400 dark:to-indigo-400">
                   {l('action.title')}
@@ -324,20 +340,29 @@ export default async function LandingPage() {
                   {l('action.description')}
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button
-                    size="lg"
-                    className="group w-full sm:w-auto bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-8 text-lg font-medium rounded-xl shadow-lg shadow-blue-400/10 dark:shadow-blue-900/20 transition-all"
+                  <Link
+                    href={ROUTES.registration}
+                    className={buttonVariants({
+                      size: 'lg',
+                      className:
+                        'gap-2 group w-full sm:w-auto bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-lg font-medium text-white home-button-primary shadow-lg shadow-blue-400/10 dark:shadow-blue-900/20 transition-all',
+                    })}
                   >
                     {l('action.button')}
                     <ArrowRight className="ml-2 size-5 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 py-3 px-8 text-lg font-medium rounded-xl text-gray-700 dark:text-gray-200 transition-all"
+                  </Link>
+                  <Link
+                    href={ROUTES.user.base}
+                    className={buttonVariants({
+                      size: 'lg',
+                      variant: 'outline',
+                      className:
+                        'w-full sm:w-auto border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 py-3 px-8 text-lg font-medium rounded-md text-gray-700 dark:text-gray-200 transition-all',
+                    })}
                   >
                     {l('action.login')}
-                  </Button>
+                    <ArrowRight className="ml-2 size-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
                 </div>
               </AnimatedSection>
             </div>
@@ -356,31 +381,31 @@ export default async function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
             {/* Logo, slogan et réseaux sociaux */}
             <div className="max-w-lg mx-auto md:mx-0 text-center md:text-left">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-4">
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                   <Image
-                    src="/images/logo.svg"
+                    src={
+                      'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzZXUumO53Mwh7AfKbz94HxeYg2DZaTlQykuvc'
+                    }
                     width={60}
                     height={60}
                     alt="Consulat.ga"
-                    className="relative h-14 w-14 transition-transform duration-500 group-hover:scale-105"
+                    className="relative h-10 w-10 rounded-md transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    Consulat.ga
+                    {l('footer.title')}
                   </h2>
                   <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 font-medium">
-                    Votre lien numérique avec le Gabon
+                    {l('footer.slogan')}
                   </p>
                 </div>
               </div>
 
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">
-                Connectant le Gabon et sa diaspora à travers des services consulaires
-                numériques innovants. Notre plateforme simplifie vos démarches
-                administratives où que vous soyez.
+                {l('footer.description')}
               </p>
 
               <div className="flex items-center justify-center md:justify-start gap-4 mb-5">
@@ -448,26 +473,25 @@ export default async function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-3 tracking-tight">
-                  Besoin d'aide ?
+                  {l('footer.contactTitle')}
                 </h3>
 
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                  Notre équipe d'experts est disponible pour répondre à toutes vos
-                  questions et vous accompagner dans vos démarches administratives.
+                  {l('footer.contactDescription')}
                 </p>
 
                 <Link
-                  href="/contact"
+                  href="#"
                   className="relative group block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg text-base font-medium text-center shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10 transition-all duration-300 overflow-hidden"
                 >
-                  <span className="relative z-10">Nous contacter</span>
+                  <span className="relative z-10">{l('footer.contactButton')}</span>
                   <div className="absolute inset-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="h-full aspect-square bg-white/10 -skew-x-12 translate-x-full group-hover:translate-x-1/2 transition-transform duration-500"></div>
                   </div>
                 </Link>
 
                 <p className="mt-3 text-xs text-center text-gray-500 dark:text-gray-400">
-                  Notre équipe est à votre disposition
+                  {l('footer.contactNote')}
                 </p>
               </AnimatedSection>
             </div>
@@ -490,28 +514,28 @@ export default async function LandingPage() {
             className="mt-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0"
           >
             <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 tracking-wide">
-              &copy; {new Date().getFullYear()} Consulat.ga. Tous droits réservés.
+              {l('footer.copyright', { year: new Date().getFullYear() })}
             </p>
             <div className="flex flex-wrap justify-center md:justify-end gap-6">
               <Link
                 href="/legal/privacy"
                 className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
               >
-                <span>Politique de confidentialité</span>
+                <span>{l('footer.privacyPolicy')}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
               </Link>
               <Link
                 href="/legal/terms"
                 className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
               >
-                <span>Conditions d'utilisation</span>
+                <span>{l('footer.termsOfUse')}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
               </Link>
               <Link
                 href="/legal/mentions"
                 className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
               >
-                <span>Mentions légales</span>
+                <span>{l('footer.legalMentions')}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
               </Link>
             </div>

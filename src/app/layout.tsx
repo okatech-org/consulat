@@ -1,4 +1,5 @@
 import './globals.css';
+import './animation.css';
 import { ThemeProvider } from '@/components/layouts/theme-provider';
 import React from 'react';
 import { GeistSans } from 'geist/font/sans';
@@ -15,6 +16,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ChatToggle } from '@/components/chat/chat-toggle';
 import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
+import { ClientInit } from '@/components/ui/client-init';
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -81,7 +83,8 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={GeistSans.className + ' bg-muted overflow-x-hidden'}>
+      <body className={GeistSans.className + ' bg-muted'}>
+        <ClientInit />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"

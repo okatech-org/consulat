@@ -10,12 +10,12 @@ export async function PublicFooter() {
         <p className="text-balance text-center text-sm leading-loose text-muted-foreground">
           {t('footer.designed_by')}{' '}
           <Link
-            href="https://presteo.com"
+            href="#"
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
           >
-            Presteo
+            Okatech
           </Link>
           .
         </p>
