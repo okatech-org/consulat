@@ -1,12 +1,12 @@
 export const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://uploadthing.com https://placehold.co https://player.vimeo.com;
-  child-src 'self' https://player.vimeo.com;
-  frame-src 'self' https://player.vimeo.com;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://uploadthing.com https://placehold.co https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
+  child-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
+  frame-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
   style-src 'self' 'unsafe-inline';
   font-src 'self' data:;
-  img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io blob: data:;
-  media-src 'self' https://player.vimeo.com;
+  img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io https://i.ytimg.com blob: data:;
+  media-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
   connect-src 'self'
     https://api.openai.com
     https://api.anthropic.com
@@ -16,6 +16,8 @@ export const ContentSecurityPolicy = `
     https://api.twilio.com
     https://lottie.host
     https://player.vimeo.com
+    https://www.youtube.com
+    https://www.youtube-nocookie.com
     https://flagcdn.com
     ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''}
     wss://*.uploadthing.com;

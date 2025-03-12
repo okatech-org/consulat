@@ -45,6 +45,11 @@ const nextConfig: NextConfig = {
         hostname: 'qld7pfnhxe.ufs.sh',
         pathname: '/f/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.youtube.com',
+        pathname: '/embed/**',
+      },
     ],
   },
   async headers() {
