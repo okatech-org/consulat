@@ -7,6 +7,8 @@ import { processFileData } from '@/actions/utils';
 import { deleteFiles } from '@/actions/uploads';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
+import { tryCatch } from '@/lib/utils';
+import { AppUserDocument } from '@/types';
 
 interface UpdateDocumentData {
   issuedAt?: string;
@@ -15,24 +17,14 @@ interface UpdateDocumentData {
   metadata?: Record<string, any>;
 }
 
-export async function updateUserDocument(documentId: string, data: UpdateDocumentData) {
-  try {
-    const authResult = await checkAuth();
+export async function updateUserDocument(
+  documentId: string,
+  data: UpdateDocumentData,
+): Promise<AppUserDocument | null> {
+  await checkAuth();
 
-    // Vérifier que le document appartient à l'utilisateur
-    const document = await db.userDocument.findFirst({
-      where: {
-        id: documentId,
-        userId: authResult.user.id,
-      },
-    });
-
-    if (!document) {
-      return { error: 'Document not found' };
-    }
-
-    // Mettre à jour le document
-    const updatedDocument = await db.userDocument.update({
+  const { data: updatedDocument, error } = await tryCatch(
+    db.userDocument.update({
       where: { id: documentId },
       data: {
         issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
@@ -41,16 +33,18 @@ export async function updateUserDocument(documentId: string, data: UpdateDocumen
         // Remettre le statut en attente si les dates sont modifiées
         status: data.issuedAt || data.expiresAt ? DocumentStatus.PENDING : undefined,
       },
-    });
+    }),
+  );
 
-    revalidatePath(ROUTES.user.profile);
-    revalidatePath(ROUTES.user.documents);
-
-    return { success: true, data: updatedDocument };
-  } catch (error) {
-    console.error('Error updating document:', error);
-    return { error: 'Failed to update document' };
+  if (error || !updatedDocument) {
+    throw new Error('update_document_failed');
   }
+
+  return {
+    ...updatedDocument,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata: updatedDocument?.metadata as Record<string, any>,
+  };
 }
 
 export async function reuploadUserDocument(documentId: string, file: File) {
@@ -134,41 +128,45 @@ export async function createUserDocument(
   type: DocumentType,
   file: FormData,
   profileId?: string,
-) {
+): Promise<AppUserDocument | null> {
   const uploaded = [];
-  try {
-    const authResult = await checkAuth();
+  const authResult = await checkAuth();
 
-    const uploadedFile = await processFileData(file);
+  const { data: uploadedFile, error: uploadError } = await tryCatch(
+    processFileData(file),
+  );
 
-    if (!uploadedFile?.url) {
-      throw new Error('Failed to upload file');
-    }
+  if (uploadError || !uploadedFile?.url) {
+    throw new Error('upload_failed');
+  }
 
-    uploaded.push(uploadedFile.url);
+  uploaded.push(uploadedFile.url);
 
-    // Créer le document
-    const document = await db.userDocument.create({
+  const { data: document, error: documentError } = await tryCatch(
+    db.userDocument.create({
       data: {
         type,
         fileUrl: uploadedFile.url,
         status: DocumentStatus.PENDING,
         userId: authResult.user.id,
       },
-    });
+    }),
+  );
 
-    if (profileId) {
-      await connectDocumentToProfile(profileId, document.id, type);
-    }
-
-    revalidatePath(ROUTES.user.profile);
-    revalidatePath(ROUTES.user.documents);
-
-    return document;
-  } catch (error) {
+  if (documentError || !document) {
     await deleteFiles(uploaded);
-    return error;
+    throw new Error('document_creation_failed');
   }
+
+  if (profileId) {
+    await connectDocumentToProfile(profileId, document.id, type);
+  }
+
+  return {
+    ...document,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata: document.metadata as Record<string, any>,
+  };
 }
 
 function connectDocumentToProfile(

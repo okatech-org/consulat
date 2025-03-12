@@ -21,6 +21,7 @@ import {
   FamilyInfoFormData,
   ProfessionalInfoFormData,
   CreateProfileInput,
+  FullProfileUpdateFormData,
 } from '@/schemas/registration';
 import { deleteFiles } from '@/actions/uploads';
 import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
@@ -456,17 +457,9 @@ export async function postProfile(
   }
 }
 
-type UpdateProfileSection = {
-  basicInfo?: BasicInfoFormData;
-  contactInfo?: ContactInfoFormData;
-  familyInfo?: FamilyInfoFormData;
-  professionalInfo?: ProfessionalInfoFormData;
-  documents?: DocumentsFormData;
-};
-
 export async function updateProfile(
-  formData: FormData,
-  section: keyof UpdateProfileSection,
+  profileId: string,
+  data: FullProfileUpdateFormData,
 ): Promise<Profile> {
   const t = await getTranslations('messages.profile.errors');
   const { user } = await checkAuth();
@@ -476,34 +469,24 @@ export async function updateProfile(
   }
 
   const existingProfile = await db.profile.findUnique({
-    where: { userId: user.id },
-    include: {
-      address: true,
-      homeLandContact: true,
-      residentContact: true,
-    },
+    where: { id: profileId },
   });
 
   if (!existingProfile) {
     throw new Error(t('profile_not_found'));
   }
 
-  // Récupérer les données JSON de la section
-  const sectionData = formData.get(section);
-  if (!sectionData) {
-    throw new Error(t('invalid_data'));
-  }
-
-  const data = JSON.parse(sectionData as string);
-
   const {
     passportIssueDate,
     passportExpiryDate,
     phone,
     address,
-    addressInGabon,
     residentContact,
     homeLandContact,
+    passport,
+    birthCertificate,
+    residencePermit,
+    addressProof,
     ...remain
   } = data;
 
@@ -531,14 +514,6 @@ export async function updateProfile(
         upsert: {
           create: address,
           update: address,
-        },
-      },
-    }),
-    ...(addressInGabon && {
-      addressInGabon: {
-        upsert: {
-          create: addressInGabon,
-          update: addressInGabon,
         },
       },
     }),
@@ -610,74 +585,44 @@ export async function updateProfile(
         },
       },
     }),
+    ...(passport && {
+      passport: {
+        upsert: {
+          create: passport,
+          update: passport,
+        },
+      },
+    }),
+    ...(birthCertificate && {
+      birthCertificate: {
+        upsert: {
+          create: birthCertificate,
+          update: birthCertificate,
+        },
+      },
+    }),
+    ...(residencePermit && {
+      residencePermit: {
+        upsert: {
+          create: residencePermit,
+          update: residencePermit,
+        },
+      },
+    }),
+    ...(addressProof && {
+      addressProof: {
+        upsert: {
+          create: addressProof,
+          update: addressProof,
+        },
+      },
+    }),
   };
-
-  const documents = {
-    passportFile: formData.get('passportFile') as File,
-    birthCertificateFile: formData.get('birthCertificateFile') as File,
-    residencePermitFile: formData.get('residencePermitFile') as File,
-    addressProofFile: formData.get('addressProofFile') as File,
-  };
-
-  // Traiter chaque document
-  const uploadPromises = Object.entries(documents)
-    .filter(([, file]) => file)
-    .map(async ([key, file]) => {
-      const formDataForUpload = new FormData();
-      formDataForUpload.append('files', file);
-      const uploadedFile = await processFileData(formDataForUpload);
-      return { key, url: uploadedFile?.url };
-    });
-
-  const uploadedFiles = await Promise.all(uploadPromises);
-
-  uploadedFiles.forEach(({ key, url }) => {
-    if (url) {
-      switch (key) {
-        case 'passportFile':
-          updateData.passport = {
-            create: {
-              type: DocumentType.PASSPORT,
-              fileUrl: url,
-              status: DocumentStatus.PENDING,
-            },
-          };
-          break;
-        case 'birthCertificateFile':
-          updateData.birthCertificate = {
-            create: {
-              type: DocumentType.BIRTH_CERTIFICATE,
-              fileUrl: url,
-              status: DocumentStatus.PENDING,
-            },
-          };
-          break;
-        case 'residencePermitFile':
-          updateData.residencePermit = {
-            create: {
-              type: DocumentType.RESIDENCE_PERMIT,
-              fileUrl: url,
-              status: DocumentStatus.PENDING,
-            },
-          };
-          break;
-        case 'addressProofFile':
-          updateData.addressProof = {
-            create: {
-              type: DocumentType.PROOF_OF_ADDRESS,
-              fileUrl: url,
-              status: DocumentStatus.PENDING,
-            },
-          };
-          break;
-      }
-    }
-  });
 
   // Mettre à jour le profil
   const updatedProfile = await db.profile.update({
     where: { id: existingProfile.id },
-    data: { ...updateData, status: 'DRAFT' },
+    data: { ...updateData },
     ...FullProfileInclude,
   });
 

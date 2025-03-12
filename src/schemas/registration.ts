@@ -29,6 +29,8 @@ export const CreateProfileSchema = z.object({
 export type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 
 export const BasicInfoSchema = z.object({
+  firstName: NameSchema,
+  lastName: NameSchema,
   gender: z.nativeEnum(Gender, {
     required_error: 'messages.errors.field_required',
   }),
@@ -159,14 +161,6 @@ export const DocumentsSchema = z.object({
   addressProof: UserDocumentSchema,
 });
 
-export const CompleteFormSchema = z.object({
-  documents: DocumentsSchema,
-  basicInfo: BasicInfoSchema,
-  familyInfo: FamilyInfoSchema,
-  contactInfo: ContactInfoSchema,
-  professionalInfo: ProfessionalInfoSchema,
-});
-
 export const FullProfileUpdateSchema = z.object({
   ...DocumentsSchema.shape,
   ...BasicInfoSchema.shape,
@@ -175,9 +169,9 @@ export const FullProfileUpdateSchema = z.object({
   ...BaseProfessionalInfoSchema.shape,
 });
 
-export type ConsularFormData = z.infer<typeof CompleteFormSchema>;
 export type BasicInfoFormData = z.infer<typeof BasicInfoSchema>;
 export type ContactInfoFormData = z.infer<typeof ContactInfoSchema>;
 export type FamilyInfoFormData = z.infer<typeof FamilyInfoSchema>;
 export type ProfessionalInfoFormData = z.infer<typeof ProfessionalInfoSchema>;
 export type DocumentsFormData = z.infer<typeof DocumentsSchema>;
+export type FullProfileUpdateFormData = z.infer<typeof FullProfileUpdateSchema>;

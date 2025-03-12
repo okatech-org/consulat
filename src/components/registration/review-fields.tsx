@@ -13,41 +13,58 @@ import {
   Flag,
   Building,
 } from 'lucide-react';
-import { ConsularFormData } from '@/schemas/registration';
+import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { DocumentStatus, InfoField } from '@/components/ui/info-field';
-import { useDateLocale } from '@/lib/utils';
+import { extractFieldsFromObject, useDateLocale } from '@/lib/utils';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import CardContainer from '../layouts/card-container';
 import { FlagIcon } from '../ui/flag-icon';
 import { DisplayAddress } from '../ui/display-address';
 import { Address } from '@prisma/client';
 
-interface ReviewFieldsProps<T extends keyof ConsularFormData> {
-  id: T;
-  data: ConsularFormData[T];
+interface ReviewFieldsProps {
+  data: FullProfileUpdateFormData;
 }
 
-export function ReviewFields<T extends keyof ConsularFormData>({
-  data,
-  id,
-}: ReviewFieldsProps<T>) {
+export function ReviewFields({ data }: ReviewFieldsProps) {
   const t = useTranslations('registration');
   const t_assets = useTranslations('assets');
   const t_inputs = useTranslations('inputs');
   const t_countries = useTranslations('countries');
   const { formatDate } = useDateLocale();
 
-  const documents: ConsularFormData['documents'] | undefined =
-    id === 'documents' ? (data as ConsularFormData['documents']) : undefined;
-  const basicInfo: ConsularFormData['basicInfo'] | undefined =
-    id === 'basicInfo' ? (data as ConsularFormData['basicInfo']) : undefined;
-  const familyInfo: ConsularFormData['familyInfo'] | undefined =
-    id === 'familyInfo' ? (data as ConsularFormData['familyInfo']) : undefined;
-  const contactInfo: ConsularFormData['contactInfo'] | undefined =
-    id === 'contactInfo' ? (data as ConsularFormData['contactInfo']) : undefined;
-  const professionalInfo: ConsularFormData['professionalInfo'] | undefined =
+  const documents = extractFieldsFromObject(data, [
+    'passport',
+    'birthCertificate',
+    'residencePermit',
+    'addressProof',
+    'identityPicture',
+  ]);
+
+  const basicInfo = extractFieldsFromObject(data, [
+    'firstName',
+    'lastName',
+    'gender',
+    'birthDate',
+    'birthPlace',
+    'birthCountry',
+    'nationality',
+    'nationalityAcquisition',
+    'passportNumber',
+    'passportIssueAuthority',
+    'passportIssueDate',
+    'passportExpiryDate',
+  ]);
+
+  const basicInfo: FullProfileUpdateFormData['basicInfo'] | undefined =
+    id === 'basicInfo' ? (data as FullProfileUpdateFormData['basicInfo']) : undefined;
+  const familyInfo: FullProfileUpdateFormData['familyInfo'] | undefined =
+    id === 'familyInfo' ? (data as FullProfileUpdateFormData['familyInfo']) : undefined;
+  const contactInfo: FullProfileUpdateFormData['contactInfo'] | undefined =
+    id === 'contactInfo' ? (data as FullProfileUpdateFormData['contactInfo']) : undefined;
+  const professionalInfo: FullProfileUpdateFormData['professionalInfo'] | undefined =
     id === 'professionalInfo'
-      ? (data as ConsularFormData['professionalInfo'])
+      ? (data as FullProfileUpdateFormData['professionalInfo'])
       : undefined;
 
   return (

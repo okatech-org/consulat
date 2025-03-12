@@ -4,16 +4,16 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Loader } from 'lucide-react';
 import { validateStep as validateStepFn } from '@/lib/form/validation';
-import { ConsularFormData } from '@/schemas/registration';
+import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { UseFormReturn } from 'react-hook-form';
 
-interface NavigationProps<T extends keyof ConsularFormData> {
+interface NavigationProps<T extends keyof FullProfileUpdateFormData> {
   currentStep: number;
   totalSteps: number;
   isLoading: boolean;
-  onNext: (data: ConsularFormData[T]) => void;
+  onNext: (data: FullProfileUpdateFormData[T]) => void;
   onPrevious: () => void;
-  forms: Record<T, UseFormReturn<ConsularFormData[T]>>;
+  forms: Record<T, UseFormReturn<FullProfileUpdateFormData>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateStep?: (step: number, forms: any) => Promise<{ isValid: boolean; data?: any }>;
 }
@@ -26,7 +26,7 @@ export function FormNavigation({
   onPrevious,
   forms,
   validateStep = validateStepFn,
-}: NavigationProps<keyof ConsularFormData>) {
+}: NavigationProps<keyof FullProfileUpdateFormData>) {
   const t = useTranslations('registration');
 
   const handleNext = async () => {

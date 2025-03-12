@@ -9,13 +9,12 @@ import {
   FamilyInfoSchema,
   ProfessionalInfoSchema,
   DocumentsSchema,
-  ConsularFormData,
+  FullProfileUpdateFormData,
   DocumentsFormData,
   BasicInfoFormData,
   FamilyInfoFormData,
   ContactInfoFormData,
   ProfessionalInfoFormData,
-  FullProfileUpdateSchema,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
 import { CountryCode } from '@/lib/autocomplete-datas';
@@ -71,7 +70,12 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
 
   // Sauvegarde automatique des données
   const handleDataChange = useCallback(
-    (data: Record<keyof ConsularFormData, ConsularFormData[keyof ConsularFormData]>) => {
+    (
+      data: Record<
+        keyof FullProfileUpdateFormData,
+        FullProfileUpdateFormData[keyof FullProfileUpdateFormData]
+      >,
+    ) => {
       const currentData = loadSavedData();
 
       saveData({

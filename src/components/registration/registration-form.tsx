@@ -1,7 +1,7 @@
 'use client';
 
 import { useRegistrationForm } from '@/hooks/use-registration-form';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
 import { FormNavigation } from './navigation';
@@ -18,7 +18,7 @@ import { handleFormError } from '@/lib/form/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { postProfile } from '@/actions/profile';
+import { postProfile, submitProfileForValidation } from '@/actions/profile';
 import { tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { Info } from 'lucide-react';
@@ -28,7 +28,7 @@ import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
 import { Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
-import { ConsularFormData } from '@/schemas/registration';
+import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { FullProfile } from '@/types';
 
 export function RegistrationForm({
@@ -36,7 +36,7 @@ export function RegistrationForm({
   profile,
 }: {
   availableCountries: Country[];
-  profile: FullProfile | null;
+  profile: FullProfile;
 }) {
   const country = profile?.user?.countryCode;
   const router = useRouter();
@@ -111,15 +111,6 @@ export function RegistrationForm({
         professionalInfo: forms.professionalInfo,
       });
 
-      // Mettre à jour le stockage local
-      handleDataChange({
-        newProfile: forms.newProfile.getValues(),
-        basicInfo: forms.basicInfo.getValues(),
-        contactInfo: forms.contactInfo.getValues(),
-        familyInfo: forms.familyInfo.getValues(),
-        professionalInfo: forms.professionalInfo.getValues(),
-      });
-
       // Afficher le toast avec les sections mises à jour
       const updatedSections = Object.entries(updateResult)
         .filter(([, hasUpdates]) => hasUpdates)
@@ -161,23 +152,16 @@ export function RegistrationForm({
     setError(undefined);
     setIsLoading(true);
 
-    const stepKey = steps[currentStep]?.key as keyof ConsularFormData;
+    const stepKey = steps[currentStep]?.key as keyof FullProfileUpdateFormData;
 
     const data = {
-      [stepKey]: stepData as ConsularFormData[keyof ConsularFormData],
+      [stepKey]: stepData as FullProfileUpdateFormData[keyof FullProfileUpdateFormData],
     };
 
     if (currentStep === steps.length - 1) {
-      const result = await tryCatch(handleFinalSubmit());
-      if (result.error) {
-        const { title, description } = handleFormError(result.error.message, t);
-        toast({ title, description, variant: 'destructive' });
-      }
-      setIsLoading(false);
+      await handleFinalSubmit();
       return;
     }
-
-    handleDataChange({ ...data });
 
     setCurrentStep((prev) => prev + 1);
     setSteps((prev) =>
@@ -196,27 +180,10 @@ export function RegistrationForm({
   // Soumission finale
   const handleFinalSubmit = async () => {
     setIsLoading(true);
-    const formDataToSend = new FormData();
 
-    // Ajouter les fichiers
-    const documents = {
-      ...forms.documents.getValues(),
-      identityPictureFile: forms.basicInfo.getValues().identityPictureFile,
-    };
-    Object.entries(documents).forEach(([key, file]) => {
-      if (file) formDataToSend.append(key, file as File);
-    });
-
-    // Ajouter les données JSON des formulaires
-    formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()));
-    formDataToSend.append('contactInfo', JSON.stringify(forms.contactInfo.getValues()));
-    formDataToSend.append('familyInfo', JSON.stringify(forms.familyInfo.getValues()));
-    formDataToSend.append(
-      'professionalInfo',
-      JSON.stringify(forms.professionalInfo.getValues()),
+    const result = await tryCatch(
+      submitProfileForValidation(profile.id, profile.category === 'MINOR'),
     );
-
-    const result = await tryCatch(postProfile(formDataToSend, country));
 
     setIsLoading(false);
 
@@ -226,7 +193,6 @@ export function RegistrationForm({
     }
 
     if (result.data) {
-      // Nettoyer les données du formulaire
       clearData();
 
       toast({

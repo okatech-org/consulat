@@ -27,12 +27,12 @@ import {
   deleteUserDocument,
   updateUserDocument,
 } from '@/actions/user-documents';
-import { useToast } from '@/hooks/use-toast';
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { MetadataForm } from '@/components/metadata-form';
+import { toast } from '@/hooks/use-toast';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -44,6 +44,7 @@ interface UserDocumentProps {
   disabled?: boolean;
   allowEdit?: boolean;
   onUpload?: (doc: AppUserDocument) => void;
+  onDelete?: () => void;
 }
 
 const updateDocumentSchema = z.object({
@@ -63,10 +64,13 @@ export function UserDocument({
   required = false,
   disabled = false,
   allowEdit = true,
+  onDelete,
+  onUpload,
 }: UserDocumentProps) {
+  const t_errors = useTranslations('messages.errors');
   const t = useTranslations('common.documents');
+  const t_common = useTranslations('common');
   const t_messages = useTranslations('messages.profile');
-  const { toast } = useToast();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [preview, setPreview] = React.useState<string | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
@@ -87,11 +91,14 @@ export function UserDocument({
         variant: 'success',
       });
 
+      if (onDelete) {
+        onDelete();
+      }
+
       router.refresh();
     }
 
     if (result.error) {
-      console.error('Delete error:', result.error);
       toast({
         title: t_messages('errors.update_failed'),
         description: result.error.message,
@@ -109,10 +116,9 @@ export function UserDocument({
       const result = await tryCatch(createUserDocument(type, file, profileId));
 
       if (result.error) {
-        console.error('Upload error:', result.error);
         toast({
           title: t_messages('errors.update_failed'),
-          description: result.error.message,
+          description: t_errors(result.error.message),
           variant: 'destructive',
         });
       }
@@ -124,42 +130,49 @@ export function UserDocument({
           variant: 'success',
         });
 
+        if (onUpload) {
+          onUpload(result.data);
+        }
+
         router.refresh();
       }
 
       setIsLoading(false);
     },
-    [profileId, toast, t_messages, router],
+    [profileId, t_messages, router, onUpload],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdate = async (documentId: string, data: any) => {
-    try {
-      setIsLoading(true);
-      const result = await updateUserDocument(documentId, data);
+    setIsLoading(true);
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
+    const { error, data: updatedDocument } = await tryCatch(
+      updateUserDocument(documentId, data),
+    );
 
+    if (error) {
+      toast({
+        title: t_messages('success.update_title'),
+        description: t_errors(error.message),
+        variant: 'destructive',
+      });
+    }
+
+    if (updatedDocument) {
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
         variant: 'success',
       });
 
+      if (onUpload) {
+        onUpload(updatedDocument);
+      }
+
       router.refresh();
-    } catch (error) {
-      console.error('Update error:', error);
-      toast({
-        title: t_messages('errors.update_failed'),
-        description:
-          error instanceof Error ? error.message : t_messages('errors.unknown'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   const form = useForm<UpdateDocumentData>({
@@ -251,7 +264,7 @@ export function UserDocument({
     };
     return (
       <Badge className={'min-w-max'} variant={variants[status]}>
-        {t(`status.${status}`)}
+        {t_common(`status.${status}`)}
       </Badge>
     );
   };

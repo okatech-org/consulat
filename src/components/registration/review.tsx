@@ -1,14 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ConsularFormData } from '@/schemas/registration';
+import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ReviewFields } from './review-fields';
 
 interface ReviewProps {
-  data: ConsularFormData;
+  data: FullProfileUpdateFormData;
   onEditAction: (step: number) => void;
 }
 
@@ -63,7 +63,7 @@ export function ReviewForm({ data, onEditAction }: ReviewProps) {
   );
 }
 
-function ReviewSection<T extends keyof ConsularFormData>({
+function ReviewSection<T extends keyof FullProfileUpdateFormData>({
   title,
   data,
   onEdit,
@@ -71,7 +71,7 @@ function ReviewSection<T extends keyof ConsularFormData>({
 }: {
   title: string;
   id: T;
-  data: ConsularFormData[T];
+  data: FullProfileUpdateFormData[T];
   onEdit: () => void;
 }) {
   const t = useTranslations('registration');
