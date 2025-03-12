@@ -737,7 +737,7 @@ export async function submitProfileForValidation(
   if (!isChild) {
     requiredFields.push(
       profile.address,
-      profile.phone,
+      profile.phoneId,
       profile.email,
       profile.residentContact,
       profile.homeLandContact,

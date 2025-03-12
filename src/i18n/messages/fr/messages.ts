@@ -61,7 +61,6 @@ export default {
     doc_expires_soon: 'Le titre de séjour est expiré',
     doc_expired: 'Ce document est expiré',
     doc_type_image_pdf: 'Le fichier doit être au format PNG, JPEG, JPG ou PDF',
-    invalid_phone_number: 'Format invalide, veuillez utiliser le format 06XXXXXXXXX',
     required: 'Ce champ est requis',
     invalid_format: 'Format invalide',
     too_short: 'Trop court',

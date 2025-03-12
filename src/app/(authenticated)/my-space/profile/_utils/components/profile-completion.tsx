@@ -97,11 +97,11 @@ const FieldsList = ({
         >
           <div className="flex items-center gap-2">
             {field.completed ? (
-              <CheckCircle className="text-success size-4" />
+              <CheckCircle className="text-success size-icon" />
             ) : (
               <AlertCircle
                 className={cn(
-                  'h-4 w-4',
+                  'size-icon min-w-max',
                   type === 'required' ? 'text-destructive' : 'text-muted-foreground',
                 )}
               />
@@ -109,14 +109,6 @@ const FieldsList = ({
             {/** @ts-expect-error -- We are sure that the key is valid */}
             {t_inputs(`${field.key}.label`)}
           </div>
-          {!field.completed && (
-            <Badge
-              variant={type === 'required' ? 'destructive' : 'warning'}
-              className="text-xs"
-            >
-              {t(`completion.${type}`)}
-            </Badge>
-          )}
         </motion.li>
       ))}
     </ul>

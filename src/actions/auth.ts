@@ -5,7 +5,6 @@ import { db } from '@/lib/prisma';
 import { generateOTP } from '@/lib/user/otp';
 import { sendSMSOTP } from '@/actions/email';
 import { sendOTPEmail } from '@/services/notifications/providers/emails';
-import { Phone } from '@prisma/client';
 
 export const logUserOut = async () => {
   await signOut({

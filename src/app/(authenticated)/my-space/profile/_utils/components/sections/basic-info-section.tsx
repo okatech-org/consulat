@@ -27,6 +27,7 @@ interface BasicInfoSectionProps {
 }
 
 export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
+  const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
   const t_countries = useTranslations('countries');
   const t_messages = useTranslations('messages');
@@ -125,41 +126,53 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
           {/* Informations d'identité */}
           <div className="grid grid-cols-2 gap-4">
             <InfoField
-              label={t('form.first_name')}
+              label={t_inputs('firstName.label')}
               value={profile.firstName}
               className={'col-span-1'}
             />
             <InfoField
-              label={t('form.last_name')}
+              label={t_inputs('lastName.label')}
               value={profile.lastName}
               className={'col-span-1'}
             />
             <InfoField
-              label={t('form.gender')}
-              // @ts-expect-error - gender is a string
-              value={t(`assets.gender.${profile.gender.toLowerCase()}`)}
+              label={t_inputs('gender.label')}
+              value={
+                profile.gender
+                  ? t_inputs(`gender.options.${profile.gender}`)
+                  : t('form.not_provided')
+              }
             />
 
             <InfoField
-              label={t('form.birth_country')}
-              value={t_countries(profile.birthCountry as CountryCode)}
+              label={t_inputs('birthCountry.label')}
+              value={
+                profile.birthCountry
+                  ? t_countries(profile.birthCountry as CountryCode)
+                  : t('form.not_provided')
+              }
             />
 
             <InfoField
-              label={t('form.birth_date')}
-              value={format(new Date(profile.birthDate), 'PPP', { locale: fr })}
+              label={t_inputs('birthDate.label')}
+              value={
+                profile.birthDate
+                  ? format(new Date(profile.birthDate), 'PPP', { locale: fr })
+                  : t('form.not_provided')
+              }
             />
-            <InfoField label={t('form.birth_place')} value={profile.birthPlace} />
+            <InfoField label={t_inputs('birthPlace.label')} value={profile.birthPlace} />
             <InfoField
-              label={t('form.nationality')}
+              label={t_inputs('nationality.label')}
               value={t_countries(profile.nationality as CountryCode)}
             />
             <InfoField
-              label={t('nationality_acquisition.label')}
-              value={t(
-                // @ts-expect-error - acquisitionMode is a string
-                `nationality_acquisition.modes.${profile.acquisitionMode?.toLowerCase()}`,
-              )}
+              label={t_inputs('nationality_acquisition.label')}
+              value={
+                profile.acquisitionMode
+                  ? t_inputs(`nationality_acquisition.options.${profile.acquisitionMode}`)
+                  : t('form.not_provided')
+              }
             />
           </div>
 
@@ -168,17 +181,17 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
             <h4 className="font-medium">{t('form.passport.section_title')}</h4>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               <InfoField
-                label={t('form.passport.number.label')}
+                label={t_inputs('passport.number.label')}
                 value={profile.passportNumber}
                 className={'col-span-2'}
               />
               <InfoField
-                label={t('form.passport.authority.label')}
+                label={t_inputs('passport.issueAuthority.label')}
                 value={profile.passportIssueAuthority}
                 className={'col-span-2'}
               />
               <InfoField
-                label={t('form.passport.issue_date.label')}
+                label={t_inputs('passport.issueDate.label')}
                 value={
                   profile.passportIssueDate
                     ? formatDate(new Date(profile.passportIssueDate), 'PPP')
@@ -187,7 +200,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
                 className={'col-span-2'}
               />
               <InfoField
-                label={t('form.passport.expiry_date.label')}
+                label={t_inputs('passport.expiryDate.label')}
                 value={
                   profile.passportExpiryDate
                     ? formatDate(new Date(profile.passportExpiryDate), 'PPP')
@@ -197,7 +210,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
               />
 
               <InfoField
-                label={t('form.card_pin.label')}
+                label={t_inputs('nipNumber.label')}
                 value={profile.cardPin}
                 className={'col-span-2'}
               />

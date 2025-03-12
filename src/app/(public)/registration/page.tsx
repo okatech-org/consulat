@@ -13,8 +13,6 @@ export default async function RegistrationPage() {
     getUserFullProfile(currentUser?.user.id ?? ''),
   );
 
-  console.log({ profile, currentUser });
-
   return (
     <RouteAuthGuard
       user={currentUser?.user}

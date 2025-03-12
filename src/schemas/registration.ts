@@ -4,6 +4,8 @@ import {
   MaritalStatus,
   NationalityAcquisition,
   WorkStatus,
+  DocumentType,
+  DocumentStatus,
 } from '@prisma/client';
 import {
   AddressSchema,
@@ -218,6 +220,26 @@ export const CompleteFormSchema = z.object({
   familyInfo: FamilyInfoSchema,
   contactInfo: ContactInfoSchema,
   professionalInfo: ProfessionalInfoSchema,
+});
+
+export const UserDocumentSchema = z.object({
+  id: z.string().optional(),
+  type: z.nativeEnum(DocumentType),
+  status: z.nativeEnum(DocumentStatus),
+  fileUrl: z.string(),
+  issuedAt: DateSchema,
+  expiresAt: DateSchema,
+  metadata: z.record(z.string(), z.any()).optional(),
+  userId: z.string().optional(),
+  serviceRequestId: z.string().optional(),
+  validatedById: z.string().optional(),
+  createdAt: DateSchema,
+  updatedAt: DateSchema,
+});
+
+export const FullProfileSchema = z.object({
+  ...ProfileDataSchema.shape,
+  ...CreateProfileSchema.shape,
 });
 
 export type ConsularFormData = z.infer<typeof CompleteFormSchema>;

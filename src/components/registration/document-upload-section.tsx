@@ -7,13 +7,14 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoaderIcon, ScanBarcode } from 'lucide-react';
 import { DocumentsFormData } from '@/schemas/registration';
-import { DocumentUploadField } from '@/components/ui/document-upload';
 import { Form, FormField } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { getFieldsForDocument } from '@/lib/document-fields';
 import { DocumentField } from '@/lib/utils';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
+import { UserDocument } from '@/app/(authenticated)/my-space/_utils/components/user-document';
+import { DocumentType } from '@prisma/client';
 
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
@@ -22,6 +23,7 @@ interface DocumentUploadSectionProps {
   onAnalysisComplete?: (data: any) => void;
   isLoading?: boolean;
   formRef?: React.RefObject<HTMLFormElement>;
+  profileId?: string;
 }
 
 export function DocumentUploadSection({
@@ -30,6 +32,7 @@ export function DocumentUploadSection({
   isLoading,
   onAnalysisComplete,
   formRef,
+  profileId,
 }: DocumentUploadSectionProps) {
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
@@ -45,6 +48,7 @@ export function DocumentUploadSection({
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
       analysisFields: getFieldsForDocument('passportFile'),
+      expectedType: DocumentType.PASSPORT,
     },
     {
       id: 'birthCertificateFile' as const,
@@ -54,6 +58,7 @@ export function DocumentUploadSection({
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
       analysisFields: getFieldsForDocument('birthCertificateFile'),
+      expectedType: DocumentType.BIRTH_CERTIFICATE,
     },
     {
       id: 'residencePermitFile' as const,
@@ -63,6 +68,7 @@ export function DocumentUploadSection({
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
       analysisFields: getFieldsForDocument('residencePermitFile'),
+      expectedType: DocumentType.RESIDENCE_PERMIT,
     },
     {
       id: 'addressProofFile' as const,
@@ -72,6 +78,7 @@ export function DocumentUploadSection({
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
       analysisFields: getFieldsForDocument('addressProofFile'),
+      expectedType: DocumentType.PROOF_OF_ADDRESS,
     },
   ] as const;
 
@@ -142,16 +149,14 @@ export function DocumentUploadSection({
                     control={form.control}
                     name={doc.id}
                     render={({ field }) => (
-                      <DocumentUploadField
-                        id={doc.id}
-                        field={field}
+                      <UserDocument
+                        document={field.value}
+                        expectedType={doc.expectedType}
                         label={doc.label}
-                        required={doc.required}
                         description={doc.description}
-                        accept={doc.acceptedTypes.join(',')}
-                        maxSize={doc.maxSize}
-                        form={form}
+                        required={doc.required}
                         disabled={isLoading}
+                        profileId={profileId}
                       />
                     )}
                   />

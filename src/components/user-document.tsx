@@ -18,7 +18,6 @@ import { AppUserDocument } from '@/types';
 import { DocumentStatus, DocumentType } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -44,6 +43,7 @@ interface UserDocumentProps {
   required?: boolean;
   disabled?: boolean;
   allowEdit?: boolean;
+  onUpload?: (doc: AppUserDocument) => void;
 }
 
 const updateDocumentSchema = z.object({
