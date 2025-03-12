@@ -34,6 +34,12 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
   const forms = {
     documents: useForm<DocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
+      defaultValues: {
+        ...(profile?.passport && { passport: profile.passport }),
+        ...(profile?.birthCertificate && { birthCertificate: profile.birthCertificate }),
+        ...(profile?.residencePermit && { residencePermit: profile.residencePermit }),
+        ...(profile?.addressProof && { addressProof: profile.addressProof }),
+      },
     }),
     basicInfo: useForm<BasicInfoFormData>({
       resolver: zodResolver(BasicInfoSchema),

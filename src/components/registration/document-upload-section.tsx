@@ -41,7 +41,7 @@ export function DocumentUploadSection({
 
   const requiredDocuments = [
     {
-      id: 'passportFile' as const,
+      id: 'passport' as const,
       label: t_inputs('passport.label'),
       description: t_inputs('passport.help'),
       required: true,
@@ -51,7 +51,7 @@ export function DocumentUploadSection({
       expectedType: DocumentType.PASSPORT,
     },
     {
-      id: 'birthCertificateFile' as const,
+      id: 'birthCertificate' as const,
       label: t_inputs('birthCertificate.label'),
       description: t_inputs('birthCertificate.help'),
       required: true,
@@ -61,7 +61,7 @@ export function DocumentUploadSection({
       expectedType: DocumentType.BIRTH_CERTIFICATE,
     },
     {
-      id: 'residencePermitFile' as const,
+      id: 'residencePermit' as const,
       label: t_inputs('residencePermit.label'),
       description: t_inputs('residencePermit.help'),
       required: false,
@@ -71,7 +71,7 @@ export function DocumentUploadSection({
       expectedType: DocumentType.RESIDENCE_PERMIT,
     },
     {
-      id: 'addressProofFile' as const,
+      id: 'addressProof' as const,
       label: t_inputs('addressProof.label'),
       description: t_inputs('addressProof.help'),
       required: true,
@@ -126,6 +126,10 @@ export function DocumentUploadSection({
       setIsAnalyzing(false);
     }
   };
+
+  React.useEffect(() => {
+    console.log(form.getValues());
+  }, [form, form.formState]);
 
   return (
     <Form {...form}>

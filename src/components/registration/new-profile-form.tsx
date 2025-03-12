@@ -182,10 +182,6 @@ export function NewProfileForm({
     router.refresh();
   };
 
-  React.useEffect(() => {
-    console.log(form.formState.errors);
-  }, [form.formState, form.formState.errors]);
-
   return (
     <div className="flex min-h-full pt-[60px] w-full flex-col items-center justify-center bg-muted p-6 gap-6">
       <div></div>

@@ -192,11 +192,24 @@ export const ProfessionalInfoSchema = z
     }
   });
 
+export const UserDocumentSchema = z.object({
+  id: z.string().optional(),
+  type: z.nativeEnum(DocumentType),
+  status: z.nativeEnum(DocumentStatus),
+  fileUrl: z.string(),
+  issuedAt: DateSchema,
+  expiresAt: DateSchema,
+  metadata: z.record(z.string(), z.any()).optional(),
+  userId: z.string().optional(),
+  serviceRequestId: z.string().optional(),
+  validatedById: z.string().optional(),
+});
+
 export const DocumentsSchema = z.object({
-  passportFile: DocumentFileSchema,
-  birthCertificateFile: DocumentFileSchema,
-  residencePermitFile: DocumentFileSchema.optional(),
-  addressProofFile: DocumentFileSchema,
+  passport: UserDocumentSchema,
+  birthCertificate: UserDocumentSchema,
+  residencePermit: UserDocumentSchema.optional(),
+  addressProof: UserDocumentSchema,
 });
 
 export const ProfileDataSchema = z.object({
@@ -220,21 +233,6 @@ export const CompleteFormSchema = z.object({
   familyInfo: FamilyInfoSchema,
   contactInfo: ContactInfoSchema,
   professionalInfo: ProfessionalInfoSchema,
-});
-
-export const UserDocumentSchema = z.object({
-  id: z.string().optional(),
-  type: z.nativeEnum(DocumentType),
-  status: z.nativeEnum(DocumentStatus),
-  fileUrl: z.string(),
-  issuedAt: DateSchema,
-  expiresAt: DateSchema,
-  metadata: z.record(z.string(), z.any()).optional(),
-  userId: z.string().optional(),
-  serviceRequestId: z.string().optional(),
-  validatedById: z.string().optional(),
-  createdAt: DateSchema,
-  updatedAt: DateSchema,
 });
 
 export const FullProfileSchema = z.object({
