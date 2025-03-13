@@ -1,5 +1,5 @@
 {
-  "editor.fontSize": 14,
+  "editor.fontSize": 16,
   "i18n-ally.localesPaths": ["src/i18n", "src/i18n/messages"],
   "typescript.tsdk": "node_modules/typescript/lib",
   "files.exclude": {

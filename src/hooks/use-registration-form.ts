@@ -17,11 +17,64 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
-import { ErrorMessageKey, removeNullValues } from '@/lib/utils';
+import { ErrorMessageKey, extractFieldsFromObject, removeNullValues } from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
+import {
+  Gender,
+  MaritalStatus,
+  NationalityAcquisition,
+  WorkStatus,
+} from '@prisma/client';
 
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
+
+export const documentsFields: (keyof FullProfile)[] = [
+  'passport',
+  'birthCertificate',
+  'residencePermit',
+  'addressProof',
+];
+
+export const basicInfoFields: (keyof FullProfile)[] = [
+  'firstName',
+  'lastName',
+  'gender',
+  'acquisitionMode',
+  'birthDate',
+  'birthPlace',
+  'birthCountry',
+  'nationality',
+  'identityPicture',
+  'passportNumber',
+  'passportIssueDate',
+  'passportExpiryDate',
+  'passportIssueAuthority',
+  'cardPin',
+];
+
+export const familyInfoFields: (keyof FullProfile)[] = [
+  'maritalStatus',
+  'fatherFullName',
+  'motherFullName',
+  'spouseFullName',
+];
+
+export const contactInfoFields: (keyof FullProfile)[] = [
+  'email',
+  'phone',
+  'address',
+  'residentContact',
+  'homeLandContact',
+];
+
+export const professionalInfoFields: (keyof FullProfile)[] = [
+  'workStatus',
+  'profession',
+  'employer',
+  'employerAddress',
+  'activityInGabon',
+];
 
 export function useRegistrationForm({ profile }: { profile: FullProfile | null }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -30,57 +83,82 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
   const cleanedProfile = removeNullValues({ ...profile });
 
+  const documentsFormData = extractFieldsFromObject(
+    cleanedProfile,
+    documentsFields,
+  ) as DocumentsFormData;
+  const basicInfoFormData = extractFieldsFromObject(
+    cleanedProfile,
+    basicInfoFields,
+  ) as BasicInfoFormData;
+  const familyInfoFormData = extractFieldsFromObject(
+    cleanedProfile,
+    familyInfoFields,
+  ) as FamilyInfoFormData;
+  const contactInfoFormData = extractFieldsFromObject(
+    cleanedProfile,
+    contactInfoFields,
+  ) as ContactInfoFormData;
+  const professionalInfoFormData = extractFieldsFromObject(
+    cleanedProfile,
+    professionalInfoFields,
+  ) as ProfessionalInfoFormData;
+
   const forms = {
     documents: useForm<DocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
-      // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...cleanedProfile,
+        ...documentsFormData,
       },
     }),
     basicInfo: useForm<BasicInfoFormData>({
       resolver: zodResolver(BasicInfoSchema),
-      // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...cleanedProfile,
-        birthCountry: cleanedProfile?.birthCountry ?? homeLandCountry,
-        nationality: cleanedProfile?.nationality ?? homeLandCountry,
+        ...basicInfoFormData,
+        birthCountry: basicInfoFormData?.birthCountry ?? homeLandCountry,
+        nationality: basicInfoFormData?.nationality ?? homeLandCountry,
+        gender: basicInfoFormData?.gender ?? Gender.MALE,
+        acquisitionMode:
+          basicInfoFormData?.acquisitionMode ?? NationalityAcquisition.BIRTH,
       },
       reValidateMode: 'onBlur',
     }),
     familyInfo: useForm<FamilyInfoFormData>({
       resolver: zodResolver(FamilyInfoSchema),
-      // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...cleanedProfile,
+        ...familyInfoFormData,
+        maritalStatus: familyInfoFormData?.maritalStatus ?? MaritalStatus.SINGLE,
       },
     }),
     contactInfo: useForm<ContactInfoFormData>({
       resolver: zodResolver(ContactInfoSchema),
-      // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...cleanedProfile,
+        ...contactInfoFormData,
         phone: {
-          ...cleanedProfile?.phone,
+          ...contactInfoFormData?.phone,
           countryCode:
-            cleanedProfile?.phone?.countryCode ?? profile?.user?.countryCode ?? undefined,
+            contactInfoFormData?.phone?.countryCode ??
+            profile?.user?.phone?.countryCode ??
+            undefined,
         },
         address: {
-          ...cleanedProfile?.address,
+          ...contactInfoFormData?.address,
           country:
-            cleanedProfile?.address?.country ?? profile?.residenceCountyCode ?? undefined,
+            contactInfoFormData?.address?.country ??
+            profile?.residenceCountyCode ??
+            undefined,
         },
         residentContact: {
-          ...cleanedProfile?.residentContact,
+          ...contactInfoFormData?.residentContact,
           address: {
-            ...cleanedProfile?.residentContact?.address,
+            ...contactInfoFormData?.residentContact?.address,
             country:
-              cleanedProfile?.residentContact?.address?.country ??
+              contactInfoFormData?.residentContact?.address?.country ??
               profile?.residenceCountyCode ??
               undefined,
           },
           phone: {
-            ...cleanedProfile?.residentContact?.phone,
+            ...contactInfoFormData?.residentContact?.phone,
             countryCode:
               profile?.user?.phone?.countryCode ??
               getCountryCode(profile?.residenceCountyCode as CountryCode),
@@ -90,12 +168,14 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
     }),
     professionalInfo: useForm<ProfessionalInfoFormData>({
       resolver: zodResolver(ProfessionalInfoSchema),
-      // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...cleanedProfile,
+        ...professionalInfoFormData,
+        workStatus: professionalInfoFormData?.workStatus ?? WorkStatus.UNEMPLOYED,
       },
     }),
   };
+
+  console.log({ documents: forms.documents.getValues() });
 
   // Sauvegarde automatique des données
   const handleDataChange = useCallback(

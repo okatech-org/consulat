@@ -183,18 +183,22 @@ export type AddressInput = z.infer<typeof AddressSchema>;
 export const UserDocumentSchema = z.object({
   id: z.string({
     required_error: 'messages.errors.field_required',
+    invalid_type_error: 'messages.errors.invalid_field',
   }),
   type: z.nativeEnum(DocumentType, {
     required_error: 'messages.errors.field_required',
+    invalid_type_error: 'messages.errors.invalid_field',
   }),
   status: z.nativeEnum(DocumentStatus, {
     required_error: 'messages.errors.field_required',
+    invalid_type_error: 'messages.errors.invalid_field',
   }),
   fileUrl: z.string({
     required_error: 'messages.errors.field_required',
+    invalid_type_error: 'messages.errors.invalid_field',
   }),
   issuedAt: DateSchema.nullable().optional(),
-  expiresAt: DateSchema.nullable(),
+  expiresAt: DateSchema.nullable().optional(),
   metadata: z.record(z.string(), z.any()).nullable().optional(),
   userId: z.string().nullable().optional(),
   serviceRequestId: z.string().nullable().optional(),

@@ -152,7 +152,7 @@ export const ProfessionalInfoSchema = BaseProfessionalInfoSchema.superRefine(
 );
 
 export const DocumentsSchema = z.object({
-  passport: UserDocumentSchema.optional(), // Make it optional at the top level
+  passport: UserDocumentSchema.optional(),
   birthCertificate: UserDocumentSchema,
   residencePermit: UserDocumentSchema.nullable().optional(),
   addressProof: UserDocumentSchema,

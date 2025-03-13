@@ -131,6 +131,8 @@ export function RegistrationForm({
     const stepData = stepForm?.getValues();
     const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
 
+    console.log({ stepForm, stepData, errors: stepForm?.formState.errors });
+
     const isStepValid = await stepForm?.trigger();
 
     if (!isStepValid) {
