@@ -4,8 +4,16 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
+type StepKey =
+  | 'documents'
+  | 'basicInfo'
+  | 'familyInfo'
+  | 'contactInfo'
+  | 'professionalInfo'
+  | 'review';
+
 interface Step {
-  key: string;
+  key: StepKey;
   title: string;
   description: string;
   isComplete: boolean;
@@ -14,12 +22,13 @@ interface Step {
 
 interface StepIndicatorProps {
   steps: Step[];
-  currentStep: number;
-  onChange: (step: number) => void;
+  currentStep: StepKey;
+  onChange: (step: StepKey) => void;
 }
 
 export function StepIndicator({ steps, currentStep, onChange }: StepIndicatorProps) {
   const t = useTranslations('registration');
+  const currentStepIndex = steps.findIndex((step) => step.key === currentStep) ?? 0;
 
   return (
     <div className="relative ">
@@ -29,7 +38,7 @@ export function StepIndicator({ steps, currentStep, onChange }: StepIndicatorPro
           className="h-full bg-primary"
           initial={{ width: '0%' }}
           animate={{
-            width: `${((currentStep + 1) / steps.length) * 100}%`,
+            width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
           }}
           transition={{ duration: 0.3 }}
         />
@@ -38,14 +47,14 @@ export function StepIndicator({ steps, currentStep, onChange }: StepIndicatorPro
       {/* Étapes */}
       <div className="relative z-10 flex justify-between">
         {steps.map((step, index) => {
-          const isCurrent = currentStep === index;
+          const isCurrent = currentStep === step.key;
           const isComplete = step.isComplete;
-          const canAccess = index <= currentStep || isComplete;
+          const canAccess = index <= currentStepIndex || isComplete;
 
           return (
             <button
               key={step.key}
-              onClick={() => canAccess && onChange(index)}
+              onClick={() => canAccess && onChange(step.key)}
               disabled={!canAccess}
               className={cn(
                 'flex flex-col items-center',
@@ -94,8 +103,8 @@ export function StepIndicator({ steps, currentStep, onChange }: StepIndicatorPro
 
       {/* Titre de l'étape courante (mobile) */}
       <div className="mt-4 text-center md:hidden">
-        <p className="font-medium">{steps[currentStep].title}</p>
-        {steps[currentStep].isOptional && (
+        <p className="font-medium">{steps[currentStepIndex]?.title}</p>
+        {steps[currentStepIndex]?.isOptional && (
           <span className="text-sm text-muted-foreground">({t('steps.optional')})</span>
         )}
       </div>

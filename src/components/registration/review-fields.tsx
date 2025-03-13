@@ -13,7 +13,14 @@ import {
   Flag,
   Building,
 } from 'lucide-react';
-import { FullProfileUpdateFormData } from '@/schemas/registration';
+import {
+  BasicInfoFormData,
+  ContactInfoFormData,
+  DocumentsFormData,
+  FamilyInfoFormData,
+  FullProfileUpdateFormData,
+  ProfessionalInfoFormData,
+} from '@/schemas/registration';
 import { DocumentStatus, InfoField } from '@/components/ui/info-field';
 import { extractFieldsFromObject, useDateLocale } from '@/lib/utils';
 import { CountryCode } from '@/lib/autocomplete-datas';
@@ -23,7 +30,7 @@ import { DisplayAddress } from '../ui/display-address';
 import { Address } from '@prisma/client';
 
 interface ReviewFieldsProps {
-  data: FullProfileUpdateFormData;
+  data: Partial<FullProfileUpdateFormData>;
 }
 
 export function ReviewFields({ data }: ReviewFieldsProps) {
@@ -33,7 +40,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
   const t_countries = useTranslations('countries');
   const { formatDate } = useDateLocale();
 
-  const documents = extractFieldsFromObject(data, [
+  const documents: Partial<DocumentsFormData> = extractFieldsFromObject(data, [
     'passport',
     'birthCertificate',
     'residencePermit',
@@ -41,7 +48,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
     'identityPicture',
   ]);
 
-  const basicInfo = extractFieldsFromObject(data, [
+  const basicInfo: Partial<BasicInfoFormData> = extractFieldsFromObject(data, [
     'firstName',
     'lastName',
     'gender',
@@ -49,23 +56,33 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
     'birthPlace',
     'birthCountry',
     'nationality',
-    'nationalityAcquisition',
+    'acquisitionMode',
     'passportNumber',
     'passportIssueAuthority',
     'passportIssueDate',
     'passportExpiryDate',
+    'cardPin',
   ]);
 
-  const basicInfo: FullProfileUpdateFormData['basicInfo'] | undefined =
-    id === 'basicInfo' ? (data as FullProfileUpdateFormData['basicInfo']) : undefined;
-  const familyInfo: FullProfileUpdateFormData['familyInfo'] | undefined =
-    id === 'familyInfo' ? (data as FullProfileUpdateFormData['familyInfo']) : undefined;
-  const contactInfo: FullProfileUpdateFormData['contactInfo'] | undefined =
-    id === 'contactInfo' ? (data as FullProfileUpdateFormData['contactInfo']) : undefined;
-  const professionalInfo: FullProfileUpdateFormData['professionalInfo'] | undefined =
-    id === 'professionalInfo'
-      ? (data as FullProfileUpdateFormData['professionalInfo'])
-      : undefined;
+  const familyInfo: Partial<FamilyInfoFormData> = extractFieldsFromObject(data, [
+    'maritalStatus',
+    'spouseFullName',
+    'fatherFullName',
+    'motherFullName',
+  ]);
+
+  const contactInfo: Partial<ContactInfoFormData> = extractFieldsFromObject(data, [
+    'email',
+    'phone',
+    'address',
+    'residentContact',
+    'homeLandContact',
+  ]);
+
+  const professionalInfo: Partial<ProfessionalInfoFormData> = extractFieldsFromObject(
+    data,
+    ['workStatus', 'profession', 'employer', 'employerAddress', 'activityInGabon'],
+  );
 
   return (
     <>
@@ -73,20 +90,20 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           <DocumentStatus
             type={t('documents.passport.label')}
-            isUploaded={!documents.passportFile?.length}
+            isUploaded={!documents.passport?.fileUrl}
           />
           <DocumentStatus
             type={t('documents.birth_certificate.label')}
-            isUploaded={!documents.birthCertificateFile?.length}
+            isUploaded={!documents.birthCertificate?.fileUrl}
           />
           <DocumentStatus
             type={t('documents.residence_permit.label')}
-            isUploaded={!documents.residencePermitFile?.length}
+            isUploaded={!documents.residencePermit?.fileUrl}
             required={false}
           />
           <DocumentStatus
             type={t('documents.address_proof.label')}
-            isUploaded={!documents.addressProofFile?.length}
+            isUploaded={!documents.addressProof?.fileUrl}
           />
         </div>
       )}
@@ -97,7 +114,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
           <div className="grid gap-4 grid-cols-2">
             <DocumentStatus
               type={t('documents.identity_picture.label')}
-              isUploaded={!basicInfo.identityPictureFile?.length}
+              isUploaded={!basicInfo.identityPicture?.fileUrl}
               required={true}
               className="col-span-2"
             />
@@ -239,7 +256,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
             label={
               t_inputs('address.label') +
               ' - ' +
-              t_countries(contactInfo.address.country as CountryCode)
+              t_countries(contactInfo.address?.country as CountryCode)
             }
             value={<DisplayAddress address={contactInfo.address as Address} />}
             icon={<MapPin className="size-4" />}
@@ -302,9 +319,11 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
                     )
                   }
                   value={
-                    <DisplayAddress
-                      address={contactInfo.residentContact.address as Address}
-                    />
+                    contactInfo.residentContact.address && (
+                      <DisplayAddress
+                        address={contactInfo.residentContact.address as Address}
+                      />
+                    )
                   }
                   icon={<MapPin className="size-4" />}
                 />

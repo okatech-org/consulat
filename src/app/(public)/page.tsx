@@ -9,40 +9,9 @@ import { GlobalAnimations } from '@/components/ui/global-animations';
 import { MobileSectionCarousel } from '@/components/ui/mobile-section-carousel';
 import { ROUTES } from '@/schemas/routes';
 
-// Fonction utilitaire pour extraire l'ID YouTube d'une URL
-function getYoutubeEmbedUrl(url: string) {
-  // Patterns de différentes URL YouTube (standard, abrégée, etc.)
-  const patterns = [
-    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/,
-    /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^?]+)/,
-    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^?]+)/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}`;
-    }
-  }
-
-  // Si aucun pattern ne correspond, renvoyer l'URL telle quelle
-  return url;
-}
-
 export default async function LandingPage() {
   // Utilisation de getTranslations pour les composants serveur
   const l = await getTranslations('home.landing');
-
-  // URL de la vidéo YouTube - à modifier ici pour changer la vidéo
-  const youtubeUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-  const embedUrl = getYoutubeEmbedUrl(youtubeUrl);
-
-  // URLs des vidéos YouTube pour chaque section de fonctionnalités
-  const videoParticipation = getYoutubeEmbedUrl(
-    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-  );
-  const videoDigital = getYoutubeEmbedUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-  const videoTracking = getYoutubeEmbedUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
   return (
     <div className="flex flex-col bg-[#f2f2f2] dark:bg-[#131313] text-neutral-900 dark:text-white antialiased w-full home-container">
@@ -116,13 +85,13 @@ export default async function LandingPage() {
 
                   {/* Intégration vidéo YouTube */}
                   <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
-                    <iframe
-                      className="w-full h-full"
-                      src={embedUrl}
-                      title="Consulat Digital - Présentation"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
+                    <Image
+                      src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv"
+                      alt="Consulat Digital - Présentation"
+                      width={1000}
+                      height={1000}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <p className="mt-4 text-sm text-gray-800 dark:text-gray-200 text-center home-text">
                     {l('consulat_digital.description')}
@@ -145,13 +114,13 @@ export default async function LandingPage() {
         <div className="group h-full transform transition-all duration-700 hover:translate-y-[-8px]">
           {/* Intégration vidéo YouTube - Section Participation */}
           <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/10">
-            <iframe
-              className="w-full h-full"
-              src={videoParticipation}
-              title="Participation Citoyenne"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <Image
+              src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzu3QBBn71geaQjXnHDofPNzyC6pFAxtWIr2Ou"
+              alt="Participation Citoyenne"
+              width={1000}
+              height={1000}
+              className="w-full h-full object-cover"
+            />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
             {l('features.participation.title')}
@@ -165,13 +134,13 @@ export default async function LandingPage() {
         <div className="group h-full transform transition-all duration-700 hover:translate-y-[-8px]">
           {/* Intégration vidéo YouTube - Section Digital */}
           <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/10">
-            <iframe
-              className="w-full h-full"
-              src={videoDigital}
-              title="Digitalisation des Services"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <Image
+              src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzrYVGHZlHiEwjDCgI8pk6FfLB07qAVPd1oWJr"
+              alt="Digitalisation des Services"
+              width={1000}
+              height={1000}
+              className="w-full h-full object-cover"
+            />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
             {l('features.digitalisation.title')}
@@ -185,13 +154,13 @@ export default async function LandingPage() {
         <div className="group h-full transform transition-all duration-700 hover:translate-y-[-8px]">
           {/* Intégration vidéo YouTube - Section Tracking */}
           <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg shadow-purple-500/10">
-            <iframe
-              className="w-full h-full"
-              src={videoTracking}
-              title="Suivi en Temps Réel"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <Image
+              src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvz59ALum6EjW1BNKLHSZd53TRcXzlwEr8J7aiM"
+              alt="Suivi en Temps Réel"
+              width={1000}
+              height={1000}
+              className="w-full h-full object-cover"
+            />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
             {l('features.tracking.title')}

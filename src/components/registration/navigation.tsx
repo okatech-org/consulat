@@ -7,18 +7,28 @@ import { validateStep as validateStepFn } from '@/lib/form/validation';
 import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { UseFormReturn } from 'react-hook-form';
 
-interface NavigationProps<T extends keyof FullProfileUpdateFormData> {
-  currentStep: number;
+type Step =
+  | 'documents'
+  | 'basicInfo'
+  | 'familyInfo'
+  | 'contactInfo'
+  | 'professionalInfo'
+  | 'review';
+
+interface NavigationProps {
+  steps: Step[];
+  currentStep: Step;
   totalSteps: number;
   isLoading: boolean;
-  onNext: (data: FullProfileUpdateFormData[T]) => void;
-  onPrevious: () => void;
-  forms: Record<T, UseFormReturn<FullProfileUpdateFormData>>;
+  onNext: (step: Step) => void;
+  onPrevious: (step: Step) => void;
+  forms: Record<Step, UseFormReturn<Partial<FullProfileUpdateFormData>>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateStep?: (step: number, forms: any) => Promise<{ isValid: boolean; data?: any }>;
 }
 
 export function FormNavigation({
+  steps,
   currentStep,
   totalSteps,
   isLoading,
@@ -26,8 +36,9 @@ export function FormNavigation({
   onPrevious,
   forms,
   validateStep = validateStepFn,
-}: NavigationProps<keyof FullProfileUpdateFormData>) {
+}: NavigationProps) {
   const t = useTranslations('registration');
+  const currentStepIndex = steps.findIndex((step) => step === currentStep) ?? 0;
 
   const handleNext = async () => {
     const validation = await validateStep(currentStep, forms);
@@ -38,7 +49,7 @@ export function FormNavigation({
 
   return (
     <div className="mt-6 flex justify-between gap-4">
-      {currentStep > 0 && (
+      {currentStepIndex > 0 && (
         <Button
           onClick={onPrevious}
           variant="outline"
@@ -52,8 +63,10 @@ export function FormNavigation({
 
       <Button onClick={handleNext} disabled={isLoading} className="ml-auto gap-2">
         {isLoading ? <Loader className="size-4 animate-spin" /> : null}
-        {currentStep === totalSteps - 1 ? t('navigation.submit') : t('navigation.next')}
-        {currentStep !== totalSteps - 1 && <ArrowRight className="size-4" />}
+        {currentStepIndex === totalSteps - 1
+          ? t('navigation.submit')
+          : t('navigation.next')}
+        {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
       </Button>
     </div>
   );

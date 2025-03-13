@@ -19,7 +19,11 @@ export default async function RegistrationPage() {
       fallbackComponent={<NewProfileForm availableCountries={countries} />}
     >
       <div className="container flex flex-col py-6">
-        <RegistrationForm availableCountries={countries} profile={profile} />
+        {profile ? (
+          <RegistrationForm availableCountries={countries} profile={profile} />
+        ) : (
+          <NewProfileForm availableCountries={countries} />
+        )}
       </div>
     </RouteAuthGuard>
   );

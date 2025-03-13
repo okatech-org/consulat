@@ -249,7 +249,7 @@ const profileFields: Array<keyof FullProfile> = [
   'identityPicture',
   'passport',
   'birthCertificate',
-  'phone',
+  'phoneId',
   'address',
   'addressProof',
   'residentContact',
@@ -541,13 +541,23 @@ export function extractFieldsFromObject<T extends Record<string, unknown>>(
   }, {} as Partial<T>);
 }
 
-export function nullifyUndefined<T extends Record<string, unknown>>(
+/**
+ * Retire récursivement les valeurs nulles ou undefined d'un objet et de ses sous-objets
+ * @param object Objet source
+ * @returns Nouvel objet sans les valeurs nulles ou undefined
+ */
+export function removeNullValues<T extends Record<string, unknown>>(
   object: T,
 ): Partial<T> {
   return Object.fromEntries(
-    Object.entries(object).map(([key, value]) => [
-      key,
-      value === undefined ? null : value,
-    ]),
+    Object.entries(object)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .filter(([_, value]) => value != null)
+      .map(([key, value]) => [
+        key,
+        value && typeof value === 'object'
+          ? removeNullValues(value as Record<string, unknown>)
+          : value,
+      ]),
   ) as Partial<T>;
 }

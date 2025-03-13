@@ -1,5 +1,11 @@
 export default {
   errors: {
+    expiry_date_past: "La date d'expiration est passée ou expire bientôt",
+    expiry_date_future: "La date d'expiration ne peut pas être dans le futur",
+    invalid_step: 'Étape invalide, veuillez vérifier les champs et réessayer',
+    upload_failed: "Échec de l'upload du document",
+    document_creation_failed: 'Échec de la création du document',
+    update_profile_failed: 'Échec de la mise à jour du profil',
     otp_required: 'Le code OTP est requis',
     otp_length: 'Le code OTP doit contenir 6 chiffres',
     been_error: 'Une erreur est survenue',

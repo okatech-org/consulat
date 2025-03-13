@@ -59,6 +59,7 @@ export function CountrySelect(props: CountrySelectProps) {
     searchPlaceholder = t('country.search'),
     emptyText = t('country.empty'),
     disabledOptions = [],
+    disabled = false,
   } = props;
   const onChange = (value: CountryCode | CountryCode[]) => {
     if (type === 'single') {
@@ -78,6 +79,7 @@ export function CountrySelect(props: CountrySelectProps) {
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between"
+            disabled={disabled}
           >
             <div className="flex items-center gap-2">
               {type === 'single' && selected && (
@@ -101,7 +103,11 @@ export function CountrySelect(props: CountrySelectProps) {
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
           <Command>
-            <CommandInput placeholder={searchPlaceholder} className="h-9" />
+            <CommandInput
+              placeholder={searchPlaceholder}
+              className="h-9"
+              disabled={disabled}
+            />
             <CommandList>
               <CommandEmpty>{emptyText}</CommandEmpty>
               <CommandGroup>

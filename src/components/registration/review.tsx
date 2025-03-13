@@ -7,8 +7,15 @@ import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ReviewFields } from './review-fields';
 
+export type RegistrationSection =
+  | 'documents'
+  | 'basicInfo'
+  | 'familyInfo'
+  | 'contactInfo'
+  | 'professionalInfo';
+
 interface ReviewProps {
-  data: FullProfileUpdateFormData;
+  data: Record<RegistrationSection, Partial<FullProfileUpdateFormData>>;
   onEditAction: (step: number) => void;
 }
 
@@ -53,7 +60,6 @@ export function ReviewForm({ data, onEditAction }: ReviewProps) {
       {sections.map((section) => (
         <ReviewSection
           key={section.key}
-          id={section.key}
           title={section.title}
           data={section.data}
           onEdit={() => onEditAction(section.step)}
@@ -63,15 +69,14 @@ export function ReviewForm({ data, onEditAction }: ReviewProps) {
   );
 }
 
-function ReviewSection<T extends keyof FullProfileUpdateFormData>({
+function ReviewSection({
   title,
   data,
   onEdit,
-  id,
 }: {
   title: string;
-  id: T;
-  data: FullProfileUpdateFormData[T];
+  id: RegistrationSection;
+  data: Partial<FullProfileUpdateFormData>;
   onEdit: () => void;
 }) {
   const t = useTranslations('registration');
@@ -85,7 +90,7 @@ function ReviewSection<T extends keyof FullProfileUpdateFormData>({
         </Button>
       </CardHeader>
       <CardContent>
-        <ReviewFields id={id} data={data} />
+        <ReviewFields data={data} />
       </CardContent>
     </Card>
   );

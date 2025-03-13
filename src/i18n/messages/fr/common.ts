@@ -1,4 +1,5 @@
 export default {
+  Required: 'Ce champ est requis',
   languages: {
     label: 'Langue',
     fr: 'Français',

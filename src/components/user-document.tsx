@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { Upload, X, FileInput, Eye, PenIcon } from 'lucide-react';
+import { Upload, X, FileInput, Eye, PenIcon, Loader } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,6 +43,7 @@ interface UserDocumentProps {
   required?: boolean;
   disabled?: boolean;
   allowEdit?: boolean;
+  accept?: string;
   onUpload?: (doc: AppUserDocument) => void;
   onDelete?: () => void;
 }
@@ -64,6 +65,7 @@ export function UserDocument({
   required = false,
   disabled = false,
   allowEdit = true,
+  accept = 'image/*,application/pdf',
   onDelete,
   onUpload,
 }: UserDocumentProps) {
@@ -85,17 +87,16 @@ export function UserDocument({
     const result = await tryCatch(deleteUserDocument(documentId));
 
     if (result.data) {
-      toast({
-        title: t_messages('success.update_title'),
-        description: t_messages('success.update_description'),
-        variant: 'success',
-      });
-
       if (onDelete) {
         onDelete();
+      } else {
+        toast({
+          title: t_messages('success.update_title'),
+          description: t_messages('success.update_description'),
+          variant: 'success',
+        });
+        router.refresh();
       }
-
-      router.refresh();
     }
 
     if (result.error) {
@@ -124,22 +125,21 @@ export function UserDocument({
       }
 
       if (result.data) {
-        toast({
-          title: t_messages('success.update_title'),
-          description: t_messages('success.update_description'),
-          variant: 'success',
-        });
-
         if (onUpload) {
           onUpload(result.data);
+        } else {
+          toast({
+            title: t_messages('success.update_title'),
+            description: t_messages('success.update_description'),
+            variant: 'success',
+          });
+          router.refresh();
         }
-
-        router.refresh();
       }
 
       setIsLoading(false);
     },
-    [profileId, t_messages, router, onUpload],
+    [profileId, t_messages, router, onUpload, t_errors],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -272,13 +272,13 @@ export function UserDocument({
   return (
     <div className="mb-2 space-y-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="font-medium">
+        <FormLabel>
+          <h3 className="font-medium text-normal mb-1">
             {label}
             {required && <span className="ml-1 text-destructive">*</span>}
           </h3>
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
-        </div>
+        </FormLabel>
         {document?.status && getStatusBadge(document.status)}
       </div>
 
@@ -298,7 +298,7 @@ export function UserDocument({
         <Input
           ref={inputRef}
           type="file"
-          accept="image/*,application/pdf"
+          accept={accept}
           onChange={handleFileChange}
           disabled={disabled || isLoading}
           className="hidden"
@@ -315,7 +315,7 @@ export function UserDocument({
               disabled={disabled || isLoading}
               onClick={() => inputRef.current?.click()}
             >
-              {isLoading && <ReloadIcon className={'animate-rotate size-6'} />}
+              {isLoading && <Loader className="size-4 animate-spin" />}
 
               {isLoading ? t('actions.uploading') : t('actions.upload')}
             </Button>

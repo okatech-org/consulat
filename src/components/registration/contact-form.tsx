@@ -16,13 +16,13 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Separator } from '@/components/ui/separator';
 import { ContactInfoFormData } from '@/schemas/registration';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
-import { useSearchParams } from 'next/navigation';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
 import { FamilyLink } from '@prisma/client';
 import { CountrySelect } from '../ui/country-select';
 import { Button } from '../ui/button';
 import { MinusIcon, PlusIcon } from 'lucide-react';
+import { FullProfile } from '@/types';
 
 interface ContactInfoFormProps {
   form: UseFormReturn<ContactInfoFormData>;
@@ -30,11 +30,9 @@ interface ContactInfoFormProps {
   formRef?: React.RefObject<HTMLFormElement>;
   isLoading?: boolean;
   banner?: React.ReactNode;
+  profile: FullProfile;
 }
 
-const residenceCountry = process.env.NEXT_PUBLIC_RESIDENT_COUNTRY_CODE as
-  | CountryCode
-  | undefined;
 const homeLandCountryCode = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as
   | CountryCode
   | undefined;
@@ -45,13 +43,12 @@ export function ContactInfoForm({
   formRef,
   isLoading = false,
   banner,
+  profile,
 }: Readonly<ContactInfoFormProps>) {
-  const params = useSearchParams();
-  const residenceCountryCode = (params.get('country') as CountryCode) ?? residenceCountry;
   const t_countries = useTranslations('countries');
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
-
+  const residenceCountryCode = profile.residenceCountyCode as CountryCode;
   function toggleHomeLandContact() {
     const homeLandContact = form.getValues('homeLandContact');
 
@@ -70,7 +67,7 @@ export function ContactInfoForm({
         address: {
           firstLine: '',
           city: '',
-          country: '',
+          country: homeLandCountryCode as CountryCode,
           zipCode: '',
           secondLine: '',
         },
@@ -100,7 +97,7 @@ export function ContactInfoForm({
                     type="email"
                     placeholder={t('form.email_placeholder')}
                     autoComplete="email"
-                    disabled={isLoading}
+                    disabled={Boolean(profile.email) || isLoading}
                   />
                 </FormControl>
                 <TradFormMessage />
@@ -114,7 +111,7 @@ export function ContactInfoForm({
             <PhoneInput
               parentForm={form}
               fieldName="phone"
-              disabled={isLoading}
+              disabled={Boolean(profile.phone) || isLoading}
               options={residenceCountryCode ? [residenceCountryCode] : undefined}
             />
           </FormItem>
@@ -215,6 +212,7 @@ export function ContactInfoForm({
                       selected={field.value as CountryCode}
                       onChange={field.onChange}
                       {...(residenceCountryCode && { options: [residenceCountryCode] })}
+                      disabled={Boolean(isLoading || residenceCountryCode)}
                     />
                   </FormControl>
                   <TradFormMessage />

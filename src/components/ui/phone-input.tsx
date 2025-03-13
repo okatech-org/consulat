@@ -64,6 +64,7 @@ export function PhoneInput({
                     }))}
                     selected={(field.value as CountryCode) ?? defaultCountry}
                     onChange={field.onChange}
+                    disabled={disabled}
                   />
                 </FormControl>
                 <TradFormMessage className="text-xs absolute top-full" />

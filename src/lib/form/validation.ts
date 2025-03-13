@@ -1,6 +1,4 @@
 import {
-  FullProfileUpdateFormData,
-  CreateProfileInput,
   BasicInfoFormData,
   DocumentsFormData,
   ProfessionalInfoFormData,
@@ -20,6 +18,7 @@ export async function validateStep(
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ isValid: boolean; data?: any }> {
+  console.log('validateStep', step);
   try {
     switch (step) {
       case 0: // Documents

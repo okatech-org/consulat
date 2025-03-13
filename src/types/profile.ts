@@ -36,6 +36,7 @@ export const FullProfileInclude = {
         address: true,
       },
     },
+    phone: true,
     address: true,
     passport: true,
     birthCertificate: true,

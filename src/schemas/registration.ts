@@ -67,11 +67,11 @@ export const BasicInfoSchema = z.object({
 
   passportIssueDate: DateSchema.refine(
     (date) => new Date(date) <= new Date(),
-    'messages.errors.issue_date_future',
+    'messages.errors.issue_date_past',
   ),
   passportExpiryDate: DateSchema.refine(
     (date) => new Date(date) > new Date(),
-    'messages.errors.expiry_date_future',
+    'messages.errors.expiry_date_past',
   ),
   passportIssueAuthority: z
     .string({
@@ -155,11 +155,40 @@ export const ProfessionalInfoSchema = BaseProfessionalInfoSchema.superRefine(
 );
 
 export const DocumentsSchema = z.object({
-  passport: UserDocumentSchema,
+  passport: UserDocumentSchema.optional(), // Make it optional at the top level
   birthCertificate: UserDocumentSchema,
   residencePermit: UserDocumentSchema.nullable().optional(),
   addressProof: UserDocumentSchema,
 });
+
+export const DocumentsSchemaRefined = z
+  .object({
+    ...DocumentsSchema.shape,
+  })
+  .superRefine((data, ctx) => {
+    if (!data.passport) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.passport_required',
+        path: ['passport'],
+      });
+    }
+    if (!data.birthCertificate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.birth_certificate_required',
+        path: ['birthCertificate'],
+      });
+    }
+
+    if (!data.addressProof) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'messages.errors.address_proof_required',
+        path: ['addressProof'],
+      });
+    }
+  });
 
 export const FullProfileUpdateSchema = z.object({
   ...DocumentsSchema.shape,

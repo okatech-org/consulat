@@ -17,10 +17,13 @@ import { useTranslations } from 'next-intl';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { NationalityAcquisition } from '@prisma/client';
 import { BasicInfoFormData } from '@/schemas/registration';
-import { DocumentUploadField } from '@/components/ui/document-upload';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { CountrySelect } from '@/components/ui/country-select';
+import { AppUserDocument } from '@/types';
+import { DocumentType } from '@prisma/client';
+import { UserDocument } from '../user-document';
+import { useRouter } from 'next/navigation';
 
 type BasicInfoFormProps = {
   form: UseFormReturn<BasicInfoFormData>;
@@ -29,6 +32,7 @@ type BasicInfoFormProps = {
   isLoading?: boolean;
   displayIdentityPicture?: boolean;
   banner?: React.ReactNode;
+  profileId?: string;
 };
 
 export function BasicInfoForm({
@@ -38,7 +42,9 @@ export function BasicInfoForm({
   isLoading = false,
   displayIdentityPicture = true,
   banner,
+  profileId,
 }: Readonly<BasicInfoFormProps>) {
+  const router = useRouter();
   const t_inputs = useTranslations('inputs');
 
   const formatDateForInput = (date: Date | string | undefined) => {
@@ -63,17 +69,27 @@ export function BasicInfoForm({
             {displayIdentityPicture && (
               <FormField
                 control={form.control}
-                name={'identityPictureFile'}
+                name="identityPicture"
                 render={({ field }) => (
-                  <DocumentUploadField<BasicInfoFormData>
-                    label={t_inputs('identityPicture.label')}
-                    id={field.name}
-                    field={field}
-                    form={form}
-                    required={true}
-                    disabled={isLoading}
-                    accept="image/*"
-                  />
+                  <FormItem className="max-w-md">
+                    <FormControl>
+                      <UserDocument
+                        document={field.value as AppUserDocument}
+                        expectedType={DocumentType.IDENTITY_PHOTO}
+                        label={t_inputs('identityPicture.label')}
+                        description={t_inputs('identityPicture.help')}
+                        required={true}
+                        disabled={isLoading}
+                        profileId={profileId}
+                        onUpload={(doc) => {
+                          field.onChange(doc);
+                          router.refresh();
+                        }}
+                        accept="image/*"
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
                 )}
               />
             )}
@@ -163,9 +179,16 @@ export function BasicInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        onChange={(e) => {
+                          const date = new Date(e.target.value);
+                          if (date > new Date()) {
+                            field.onChange(date);
+                          }
+                        }}
                         type="date"
                         disabled={isLoading}
                         max={new Date().toISOString().split('T')[0]}
+                        value={formatDateForInput(field.value)}
                       />
                     </FormControl>
                     <TradFormMessage />
@@ -275,6 +298,12 @@ export function BasicInfoForm({
                       <FormControl>
                         <Input
                           {...field}
+                          onChange={(e) => {
+                            const date = new Date(e.target.value);
+                            if (date > new Date()) {
+                              field.onChange(date);
+                            }
+                          }}
                           type="date"
                           value={formatDateForInput(field.value)}
                           max={new Date().toISOString().split('T')[0]}
@@ -296,10 +325,17 @@ export function BasicInfoForm({
                       <FormControl>
                         <Input
                           {...field}
+                          onChange={(e) => {
+                            const date = new Date(e.target.value);
+                            if (date > new Date()) {
+                              field.onChange(date);
+                            }
+                          }}
                           value={formatDateForInput(field.value)}
                           type="date"
                           placeholder={t_inputs('passport.expiryDate.placeholder')}
                           disabled={isLoading}
+                          min={new Date().toISOString().split('T')[0]}
                         />
                       </FormControl>
                       <TradFormMessage />

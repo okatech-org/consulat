@@ -59,6 +59,12 @@ export default {
     label: 'Statut',
     placeholder: 'Statut',
   },
+  phoneId: {
+    label: 'Numéro de téléphone',
+    placeholder: '0612345678',
+    'placeholder-local': '612345678',
+    'placeholder-international': '+33612345678',
+  },
   phone: {
     label: 'Numéro de téléphone',
     placeholder: '0612345678',

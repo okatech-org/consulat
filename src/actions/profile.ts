@@ -459,7 +459,7 @@ export async function postProfile(
 
 export async function updateProfile(
   profileId: string,
-  data: FullProfileUpdateFormData,
+  data: Partial<FullProfileUpdateFormData>,
 ): Promise<Profile> {
   const t = await getTranslations('messages.profile.errors');
   const { user } = await checkAuth();
@@ -487,12 +487,15 @@ export async function updateProfile(
     birthCertificate,
     residencePermit,
     addressProof,
+    identityPicture,
+    birthDate,
     ...remain
   } = data;
 
-  // Préparer les données de mise à jour en fonction de la section
+  // @ts-expect-error - TODO: fix this, don't want to deal with the null values
   const updateData: Prisma.ProfileUpdateInput = {
     ...remain,
+    ...(birthDate && { birthDate: new Date(birthDate) }),
     ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
     ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
     ...(phone && {
@@ -582,6 +585,14 @@ export async function updateProfile(
               },
             },
           },
+        },
+      },
+    }),
+    ...(identityPicture && {
+      identityPicture: {
+        upsert: {
+          create: identityPicture,
+          update: identityPicture,
         },
       },
     }),

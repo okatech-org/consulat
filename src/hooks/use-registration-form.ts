@@ -17,53 +17,91 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
-import { CountryCode } from '@/lib/autocomplete-datas';
-import { ErrorMessageKey } from '@/lib/utils';
+import { ErrorMessageKey, removeNullValues } from '@/lib/utils';
 import { FullProfile } from '@/types';
+import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
 
-const homeLandCountryCode = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as
-  | CountryCode
-  | undefined;
+const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 
 export function useRegistrationForm({ profile }: { profile: FullProfile | null }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorMessageKey | undefined>();
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
+  const cleanedProfile = removeNullValues({ ...profile });
 
   const forms = {
     documents: useForm<DocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
       // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...(profile?.passport && { passport: profile.passport }),
-        ...(profile?.birthCertificate && { birthCertificate: profile.birthCertificate }),
-        ...(profile?.residencePermit && { residencePermit: profile.residencePermit }),
-        ...(profile?.addressProof && { addressProof: profile.addressProof }),
+        ...(cleanedProfile?.passport && { passport: cleanedProfile.passport }),
+        ...(cleanedProfile?.birthCertificate && {
+          birthCertificate: cleanedProfile.birthCertificate,
+        }),
+        ...(cleanedProfile?.residencePermit && {
+          residencePermit: cleanedProfile.residencePermit,
+        }),
+        ...(cleanedProfile?.addressProof && {
+          addressProof: cleanedProfile.addressProof,
+        }),
       },
     }),
     basicInfo: useForm<BasicInfoFormData>({
       resolver: zodResolver(BasicInfoSchema),
+      // @ts-expect-error - TODO: fix this, don't want to deal with the null values
+      defaultValues: {
+        ...cleanedProfile,
+        birthCountry: cleanedProfile?.birthCountry ?? homeLandCountry,
+        nationality: cleanedProfile?.nationality ?? homeLandCountry,
+      },
+      reValidateMode: 'onBlur',
     }),
     familyInfo: useForm<FamilyInfoFormData>({
       resolver: zodResolver(FamilyInfoSchema),
       // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...profile,
+        ...cleanedProfile,
       },
     }),
     contactInfo: useForm<ContactInfoFormData>({
       resolver: zodResolver(ContactInfoSchema),
       // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...profile,
+        ...cleanedProfile,
+        phone: {
+          ...cleanedProfile?.phone,
+          countryCode:
+            cleanedProfile?.phone?.countryCode ?? profile?.user?.countryCode ?? undefined,
+        },
+        address: {
+          ...cleanedProfile?.address,
+          country:
+            cleanedProfile?.address?.country ?? profile?.residenceCountyCode ?? undefined,
+        },
+        residentContact: {
+          ...cleanedProfile?.residentContact,
+          address: {
+            ...cleanedProfile?.residentContact?.address,
+            country:
+              cleanedProfile?.residentContact?.address?.country ??
+              profile?.residenceCountyCode ??
+              undefined,
+          },
+          phone: {
+            ...cleanedProfile?.residentContact?.phone,
+            countryCode:
+              profile?.user?.phone?.countryCode ??
+              getCountryCode(profile?.residenceCountyCode as CountryCode),
+          },
+        },
       },
     }),
     professionalInfo: useForm<ProfessionalInfoFormData>({
       resolver: zodResolver(ProfessionalInfoSchema),
       // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...profile,
+        ...cleanedProfile,
       },
     }),
   };

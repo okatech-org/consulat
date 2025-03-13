@@ -7,14 +7,21 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoaderIcon, ScanBarcode } from 'lucide-react';
 import { DocumentsFormData } from '@/schemas/registration';
-import { Form, FormField } from '@/components/ui/form';
+import {
+  Form,
+  FormField,
+  TradFormMessage,
+  FormItem,
+  FormControl,
+} from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { getFieldsForDocument } from '@/lib/document-fields';
 import { DocumentField } from '@/lib/utils';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
-import { UserDocument } from '@/app/(authenticated)/my-space/_utils/components/user-document';
 import { DocumentType } from '@prisma/client';
+import { UserDocument } from '../user-document';
+import { AppUserDocument } from '@/types';
 
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
@@ -36,6 +43,7 @@ export function DocumentUploadSection({
 }: DocumentUploadSectionProps) {
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
+  const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
@@ -88,14 +96,14 @@ export function DocumentUploadSection({
       [];
 
     // Collecter les documents et leurs champs d'analyse respectifs
-    Object.entries(form.getValues()).forEach(([key, fileList]) => {
+    Object.entries(form.getValues()).forEach(([key, document]) => {
       const doc = requiredDocuments.find((d) => d.id === key);
-      if (fileList && doc) {
+      if (document && doc) {
         analysisFields.push({
           key: key as keyof DocumentsFormData,
           fields: doc.analysisFields,
         });
-        analysisFormData.append(key, fileList);
+        analysisFormData.append(key, document);
       }
     });
 
@@ -119,17 +127,13 @@ export function DocumentUploadSection({
     } catch (error) {
       toast({
         title: t('documents.analysis.error.title'),
-        description: error instanceof Error ? error.message : t('errors.unknown'),
+        description: error instanceof Error ? error.message : t_errors('unknown'),
         variant: 'destructive',
       });
     } finally {
       setIsAnalyzing(false);
     }
   };
-
-  React.useEffect(() => {
-    console.log(form.getValues());
-  }, [form, form.formState]);
 
   return (
     <Form {...form}>
@@ -153,15 +157,21 @@ export function DocumentUploadSection({
                     control={form.control}
                     name={doc.id}
                     render={({ field }) => (
-                      <UserDocument
-                        document={field.value}
-                        expectedType={doc.expectedType}
-                        label={doc.label}
-                        description={doc.description}
-                        required={doc.required}
-                        disabled={isLoading}
-                        profileId={profileId}
-                      />
+                      <FormItem>
+                        <FormControl>
+                          <UserDocument
+                            document={field.value as AppUserDocument}
+                            expectedType={doc.expectedType}
+                            label={doc.label}
+                            description={doc.description}
+                            required={doc.required}
+                            disabled={isLoading}
+                            profileId={profileId}
+                            onUpload={field.onChange}
+                          />
+                        </FormControl>
+                        <TradFormMessage />
+                      </FormItem>
                     )}
                   />
                 </motion.div>

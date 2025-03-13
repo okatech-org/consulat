@@ -1,16 +1,19 @@
 import { PublicHeader } from '@/components/public/header';
 import { PublicFooter } from '@/components/public/footer';
+import { auth } from '@/auth';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
 }
 
 export async function PublicLayout({ children }: BaseLayoutProps) {
-  return (
-    <div className="flex h-dvh w-dvw overflow-x-hidden flex-col">
-      <PublicHeader />
+  const session = await auth();
 
-      <main className={'grow min-h-screen w-screen'}>{children}</main>
+  return (
+    <div>
+      <PublicHeader session={session} />
+
+      <main className={'flex size-full grow'}>{children}</main>
 
       <PublicFooter />
     </div>

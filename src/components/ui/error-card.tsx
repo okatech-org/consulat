@@ -1,13 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardFooter, CardTitle } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import CardContainer from '../layouts/card-container';
 

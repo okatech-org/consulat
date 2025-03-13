@@ -6,6 +6,7 @@ import {
   countryIndicators,
   countryKeys,
 } from '@/lib/autocomplete-datas';
+import { log } from 'console';
 
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,
@@ -158,10 +159,18 @@ export const EmergencyContactSchema = z.object({
 export type AddressInput = z.infer<typeof AddressSchema>;
 
 export const UserDocumentSchema = z.object({
-  id: z.string().nullable().optional(),
-  type: z.nativeEnum(DocumentType),
-  status: z.nativeEnum(DocumentStatus),
-  fileUrl: z.string(),
+  id: z.string({
+    required_error: 'messages.errors.field_required',
+  }),
+  type: z.nativeEnum(DocumentType, {
+    required_error: 'messages.errors.field_required',
+  }),
+  status: z.nativeEnum(DocumentStatus, {
+    required_error: 'messages.errors.field_required',
+  }),
+  fileUrl: z.string({
+    required_error: 'messages.errors.field_required',
+  }),
   issuedAt: DateSchema.nullable(),
   expiresAt: DateSchema.nullable(),
   metadata: z.record(z.string(), z.any()).nullable().optional(),

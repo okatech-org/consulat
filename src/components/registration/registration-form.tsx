@@ -4,7 +4,6 @@ import { useRegistrationForm } from '@/hooks/use-registration-form';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import { FormNavigation } from './navigation';
 import { DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { FamilyInfoForm } from './family-info';
@@ -18,18 +17,18 @@ import { handleFormError } from '@/lib/form/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { postProfile, submitProfileForValidation } from '@/actions/profile';
-import { tryCatch } from '@/lib/utils';
+import { submitProfileForValidation, updateProfile } from '@/actions/profile';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
-import { Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
 import { Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
-import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { FullProfile } from '@/types';
+import { useTabs } from '@/hooks/use-tabs';
 
 export function RegistrationForm({
   availableCountries,
@@ -38,13 +37,6 @@ export function RegistrationForm({
   availableCountries: Country[];
   profile: FullProfile;
 }) {
-  const country = profile?.user?.countryCode;
-  const router = useRouter();
-  const t = useTranslations('registration');
-  const t_errors = useTranslations('messages.errors');
-  const { toast } = useToast();
-  const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
-
   const {
     currentStep,
     setCurrentStep,
@@ -53,49 +45,28 @@ export function RegistrationForm({
     setError,
     error,
     forms,
-    handleDataChange,
     clearData,
   } = useRegistrationForm({ profile });
+  const country = profile?.user?.countryCode;
+  const router = useRouter();
+  const t = useTranslations('registration');
+  const t_errors = useTranslations('messages.errors');
+  const { toast } = useToast();
+  const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
+  type Step = keyof typeof forms | 'review';
 
-  const [steps, setSteps] = useState([
-    {
-      key: 'documents',
-      title: t('steps.documents'),
-      description: t('steps.documents_description'),
-      isComplete: forms.documents.formState.isValid,
-    },
-    {
-      key: 'identity',
-      title: t('steps.identity'),
-      description: t('steps.identity_description'),
-      isComplete: forms.basicInfo.formState.isValid,
-    },
-    {
-      key: 'family',
-      title: t('steps.family'),
-      description: t('steps.family_description'),
-      isComplete: forms.familyInfo.formState.isValid,
-    },
-    {
-      key: 'contact',
-      title: t('steps.contact'),
-      description: t('steps.contact_description'),
-      isComplete: false,
-    },
-    {
-      key: 'professional',
-      title: t('steps.professional'),
-      description: t('steps.professional_description'),
-      isComplete: forms.professionalInfo.formState.isValid,
-      isOptional: true,
-    },
-    {
-      key: 'review',
-      title: t('steps.review'),
-      description: t('steps.review_description'),
-      isComplete: false,
-    },
-  ]);
+  const orderedSteps: Step[] = [
+    'documents',
+    'basicInfo',
+    'familyInfo',
+    'contactInfo',
+    'professionalInfo',
+    'review',
+  ];
+
+  const { currentTab, handleTabChange } = useTabs<Step>('step', 'documents');
+  const currentStepIndex = orderedSteps.indexOf(currentTab);
+  const totalSteps = orderedSteps.length;
 
   // Gestionnaire d'analyse des components
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,33 +119,58 @@ export function RegistrationForm({
 
   // Gestionnaire de navigation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleNext = async (stepData: any) => {
-    setError(undefined);
-    setIsLoading(true);
-
-    const stepKey = steps[currentStep]?.key as keyof FullProfileUpdateFormData;
-
-    const data = {
-      [stepKey]: stepData as FullProfileUpdateFormData[keyof FullProfileUpdateFormData],
-    };
-
-    if (currentStep === steps.length - 1) {
+  const handleNext = async () => {
+    if (currentTab === 'review') {
       await handleFinalSubmit();
       return;
     }
 
-    setCurrentStep((prev) => prev + 1);
-    setSteps((prev) =>
-      prev.map((step, index) => ({
-        ...step,
-        isComplete: index <= currentStep,
-      })),
-    );
-    setIsLoading(false);
+    setError(undefined);
+    setIsLoading(true);
+
+    const stepForm = forms[currentTab];
+    const stepData = stepForm?.getValues();
+    const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
+
+    const isStepValid = await stepForm?.trigger();
+
+    if (!isStepValid) {
+      console.log(stepForm.formState.errors);
+      setIsLoading(false);
+      return;
+    }
+
+    if (currentTab === 'documents' && nextStep) {
+      handleTabChange(nextStep);
+      setIsLoading(false);
+    }
+
+    if (stepForm) {
+      const editedFields = filterUneditedKeys(stepData, stepForm.formState.dirtyFields);
+
+      if (editedFields) {
+        const { data: result, error } = await tryCatch(
+          updateProfile(profile.id, editedFields),
+        );
+
+        if (result && nextStep) {
+          handleTabChange(nextStep);
+        }
+
+        if (error) {
+          setError(error.message);
+        }
+      }
+
+      setIsLoading(false);
+    }
   };
 
   const handlePrevious = () => {
-    setCurrentStep((prev) => Math.max(0, prev - 1));
+    const previousStep = orderedSteps[orderedSteps.indexOf(currentTab) - 1];
+    if (previousStep) {
+      handleTabChange(previousStep);
+    }
   };
 
   // Soumission finale
@@ -204,71 +200,68 @@ export function RegistrationForm({
     }
   };
 
+  const stepsComponents: Record<keyof typeof forms | 'review', React.ReactNode> = {
+    documents: (
+      <DocumentUploadSection
+        profileId={profile.id}
+        form={forms.documents}
+        onAnalysisComplete={handleDocumentsAnalysis}
+        handleSubmitAction={() => handleNext()}
+        isLoading={isLoading}
+      />
+    ),
+    basicInfo: (
+      <BasicInfoForm
+        form={forms.basicInfo}
+        onSubmit={() => handleNext()}
+        isLoading={isLoading}
+        profileId={profile.id}
+      />
+    ),
+    familyInfo: (
+      <FamilyInfoForm
+        form={forms.familyInfo}
+        onSubmit={() => handleNext()}
+        isLoading={isLoading}
+      />
+    ),
+    contactInfo: (
+      <ContactInfoForm
+        form={forms.contactInfo}
+        onSubmitAction={() => handleNext()}
+        isLoading={isLoading}
+        profile={profile}
+      />
+    ),
+    professionalInfo: (
+      <ProfessionalInfoForm
+        form={forms.professionalInfo}
+        onSubmit={() => handleNext()}
+        isLoading={isLoading}
+      />
+    ),
+    review: (
+      <ReviewForm
+        data={{
+          documents: forms.documents.getValues(),
+          basicInfo: forms.basicInfo.getValues(),
+          familyInfo: forms.familyInfo.getValues(),
+          contactInfo: forms.contactInfo.getValues(),
+          professionalInfo: forms.professionalInfo.getValues(),
+        }}
+        onEditAction={setCurrentStep}
+      />
+    ),
+  };
+
   // Rendu du formulaire actuel
   const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <DocumentUploadSection
-            form={forms.documents}
-            onAnalysisComplete={handleDocumentsAnalysis}
-            handleSubmitAction={() => handleNext(forms.documents.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 1:
-        return (
-          <BasicInfoForm
-            form={forms.basicInfo}
-            onSubmit={() => handleNext(forms.basicInfo.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 2:
-        return (
-          <FamilyInfoForm
-            form={forms.familyInfo}
-            onSubmit={() => handleNext(forms.familyInfo.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 3:
-        return (
-          <ContactInfoForm
-            form={forms.contactInfo}
-            onSubmitAction={() => handleNext(forms.contactInfo.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 4:
-        return (
-          <ProfessionalInfoForm
-            form={forms.professionalInfo}
-            onSubmit={() => handleNext(forms.professionalInfo.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 6:
-        return (
-          <ReviewForm
-            data={{
-              documents: forms.documents.getValues(),
-              basicInfo: forms.basicInfo.getValues(),
-              familyInfo: forms.familyInfo.getValues(),
-              contactInfo: forms.contactInfo.getValues(),
-              professionalInfo: forms.professionalInfo.getValues(),
-            }}
-            onEditAction={setCurrentStep}
-          />
-        );
-      default:
-        return null;
-    }
+    return stepsComponents[currentTab];
   };
 
   return (
     <>
-      <div className="mx-auto w-full max-w-3xl">
+      <div className="mx-auto w-full max-w-4xl">
         {/* En-tête avec progression */}
         <div className="mb-8 space-y-6">
           <div className="text-center">
@@ -277,9 +270,20 @@ export function RegistrationForm({
           </div>
 
           <StepIndicator
-            steps={steps}
-            currentStep={currentStep}
-            onChange={setCurrentStep}
+            steps={orderedSteps.map((step) => {
+              const stepIndex = orderedSteps.indexOf(step);
+              const currentIndex = orderedSteps.indexOf(currentTab);
+
+              return {
+                title: t(`steps.${step}`),
+                key: step,
+                description: t(`steps.${step}_description`),
+                isOptional: step === 'professionalInfo',
+                isComplete: stepIndex < currentIndex,
+              };
+            })}
+            currentStep={currentTab}
+            onChange={handleTabChange}
           />
         </div>
 
@@ -293,29 +297,46 @@ export function RegistrationForm({
               description={
                 <p className="flex items-center gap-2">
                   <Info className="size-icon" />
-                  {t_errors(error)}
+                  {t_errors('invalid_step')}
                 </p>
               }
             />
           )}
 
-          <FormNavigation
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            isLoading={isLoading}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            forms={forms as any}
-          />
+          <div className="mt-6 flex justify-between gap-4">
+            {currentStepIndex > 0 && (
+              <Button
+                onClick={handlePrevious}
+                variant="outline"
+                disabled={isLoading}
+                className="gap-2"
+              >
+                <ArrowLeft className="size-4" />
+                {t('navigation.previous')}
+              </Button>
+            )}
+
+            <Button
+              type="submit"
+              onClick={() => handleNext()}
+              disabled={isLoading}
+              className="ml-auto gap-2"
+            >
+              {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+              {currentStepIndex === totalSteps - 1
+                ? t('navigation.submit')
+                : t('navigation.next')}
+              {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
+            </Button>
+          </div>
         </div>
 
         {/* Progression mobile */}
         <MobileProgress
           currentStep={currentStep}
-          totalSteps={steps.length}
-          stepTitle={steps[currentStep]?.title ?? ''}
-          isOptional={steps[currentStep]?.isOptional}
+          totalSteps={orderedSteps.length}
+          stepTitle={t(`steps.${currentTab}`)}
+          isOptional={currentTab === 'professionalInfo'}
         />
       </div>
       <Dialog open={!country}>
