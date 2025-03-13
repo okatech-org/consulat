@@ -171,8 +171,8 @@ export const UserDocumentSchema = z.object({
   fileUrl: z.string({
     required_error: 'messages.errors.field_required',
   }),
-  issuedAt: DateSchema.nullable(),
-  expiresAt: DateSchema.nullable(),
+  issuedAt: DateSchema.nullable().optional(),
+  expiresAt: DateSchema.nullable().optional(),
   metadata: z.record(z.string(), z.any()).nullable().optional(),
   userId: z.string().nullable().optional(),
   serviceRequestId: z.string().nullable().optional(),
