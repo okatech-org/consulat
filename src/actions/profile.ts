@@ -524,9 +524,6 @@ export async function updateProfile(
       residentContact: {
         upsert: {
           create: {
-            ...(residentContact.email && {
-              email: residentContact.email,
-            }),
             firstName: residentContact.firstName,
             lastName: residentContact.lastName,
             ...(residentContact.relationship && {
@@ -555,9 +552,6 @@ export async function updateProfile(
             }),
             ...(residentContact.relationship && {
               relationship: residentContact.relationship,
-            }),
-            ...(residentContact.email && {
-              email: residentContact.email,
             }),
             ...(residentContact.phone && {
               phone: {
@@ -726,10 +720,6 @@ export async function submitProfileForValidation(
       profile.residentContact,
       profile.homeLandContact,
     );
-  }
-
-  if (requiredFields.some((field) => !field)) {
-    throw new Error('incomplete_profile');
   }
 
   const serviceRequest = await db.serviceRequest.create({

@@ -61,7 +61,6 @@ export function RegistrationForm({
     'familyInfo',
     'contactInfo',
     'professionalInfo',
-    'review',
   ];
 
   const { currentTab, handleTabChange } = useTabs<Step>('step', 'documents');
@@ -120,7 +119,7 @@ export function RegistrationForm({
   // Gestionnaire de navigation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNext = async () => {
-    if (currentTab === 'review') {
+    if (currentStepIndex === totalSteps - 1) {
       await handleFinalSubmit();
       return;
     }
@@ -304,17 +303,15 @@ export function RegistrationForm({
           )}
 
           <div className="mt-6 flex justify-between gap-4">
-            {currentStepIndex > 0 && (
-              <Button
-                onClick={handlePrevious}
-                variant="outline"
-                disabled={isLoading}
-                className="gap-2"
-              >
-                <ArrowLeft className="size-4" />
-                {t('navigation.previous')}
-              </Button>
-            )}
+            <Button
+              onClick={handlePrevious}
+              variant="outline"
+              disabled={isLoading}
+              className="gap-2"
+            >
+              <ArrowLeft className="size-4" />
+              {t('navigation.previous')}
+            </Button>
 
             <Button
               type="submit"
