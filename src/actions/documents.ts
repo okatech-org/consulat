@@ -192,7 +192,7 @@ function extractJsonFromResponse(content: string): Record<string, any> {
 }
 
 export async function analyzeDocuments(
-  formData: FormData,
+  documentUrls: Record<string, string>,
   fieldsToAnalyze: { key: string; fields: DocumentField[] }[],
   model: AIModel = 'gpt',
 ): Promise<AnalysisResponse> {
@@ -201,14 +201,21 @@ export async function analyzeDocuments(
 
     const analysisResults = await Promise.all(
       fieldsToAnalyze.map(async ({ key, fields }) => {
-        const file = formData.get(key) as File | null;
+        const fileUrl = documentUrls[key];
 
-        if (!file) {
-          console.warn(`No file found for key: ${key}`);
+        if (!fileUrl) {
+          console.warn(`No file URL found for key: ${key}`);
           return null;
         }
 
         try {
+          // Récupérer le fichier depuis l'URL
+          const response = await fetch(fileUrl);
+          const fileBlob = await response.blob();
+          const file = new File([fileBlob], `${key}.${fileBlob.type.split('/')[1]}`, {
+            type: fileBlob.type,
+          });
+
           const images = await fileToImages(file);
           const prompt = generatePrompt(fields);
 

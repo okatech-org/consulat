@@ -91,23 +91,26 @@ export function DocumentUploadSection({
   ] as const;
 
   const handleAnalysis = async () => {
-    const analysisFormData = new FormData();
+    const documentUrls: Record<string, string> = {};
     const analysisFields: { key: keyof DocumentsFormData; fields: DocumentField[] }[] =
       [];
 
-    // Collecter les documents et leurs champs d'analyse respectifs
+    // Collecter les URLs des documents et leurs champs d'analyse
     Object.entries(form.getValues()).forEach(([key, document]) => {
       const doc = requiredDocuments.find((d) => d.id === key);
       if (document && doc) {
-        analysisFields.push({
-          key: key as keyof DocumentsFormData,
-          fields: doc.analysisFields,
-        });
-        analysisFormData.append(key, document);
+        const userDoc = document as AppUserDocument;
+        if (userDoc.fileUrl) {
+          documentUrls[key] = userDoc.fileUrl;
+          analysisFields.push({
+            key: key as keyof DocumentsFormData,
+            fields: doc.analysisFields,
+          });
+        }
       }
     });
 
-    if (analysisFields.length === 0) {
+    if (Object.keys(documentUrls).length === 0) {
       toast({
         title: t('documents.analysis.error.title'),
         description: t('documents.analysis.error.no_documents'),
@@ -119,7 +122,7 @@ export function DocumentUploadSection({
     setIsAnalyzing(true);
 
     try {
-      const results = await analyzeDocuments(analysisFormData, analysisFields);
+      const results = await analyzeDocuments(documentUrls, analysisFields);
 
       if (results.success && results.mergedData) {
         onAnalysisComplete?.(results.mergedData);
