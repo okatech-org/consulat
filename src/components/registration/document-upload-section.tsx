@@ -171,6 +171,9 @@ export function DocumentUploadSection({
                             disabled={isLoading}
                             profileId={profileId}
                             onUpload={field.onChange}
+                            onDelete={() => {
+                              field.onChange(undefined);
+                            }}
                           />
                         </FormControl>
                         <TradFormMessage />

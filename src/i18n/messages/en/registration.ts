@@ -116,7 +116,7 @@ export default {
     analysis: {
       start: 'Analyser les documents',
       analyzing: 'Analyse en cours...',
-      help: "L'analyse automatique des documents permet de pré-remplir vos informations",
+      help: "L'analyse automatique des documents permet de pré-remplir vos informations. Attention, des erreurs sont possibles alors veuillez vérifier les informations avant de continuer.",
       success: {
         title: 'Analyse terminée',
         description: 'Les informations ont été extraites avec succès',
