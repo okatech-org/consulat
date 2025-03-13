@@ -27,18 +27,11 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const familyInfo = extractFieldsFromObject(profile, [
-    'maritalStatus',
-    'spouseFullName',
-    'fatherFullName',
-    'motherFullName',
-  ]);
-
   const form = useForm<FamilyInfoFormData>({
     resolver: zodResolver(FamilyInfoSchema),
     // @ts-expect-error - we know that the maritalStatus is a MaritalStatus
     defaultValues: {
-      ...familyInfo,
+      ...profile,
     },
   });
 
@@ -48,10 +41,7 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
 
     filterUneditedKeys<FamilyInfoFormData>(data, form.formState.dirtyFields);
 
-    const formData = new FormData();
-    formData.append('familyInfo', JSON.stringify(data));
-
-    const result = await tryCatch(updateProfile(formData, 'familyInfo'));
+    const result = await tryCatch(updateProfile(profile.id, data));
 
     if (result.error) {
       toast({
@@ -59,6 +49,8 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
         description: t_errors(result.error.message),
         variant: 'destructive',
       });
+      setIsLoading(false);
+      return;
     }
 
     if (result.data) {
@@ -68,9 +60,8 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
         variant: 'success',
       });
       setIsEditing(false);
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleCancel = () => {

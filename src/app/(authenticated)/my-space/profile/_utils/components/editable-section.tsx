@@ -31,7 +31,7 @@ export function EditableSection({
 }: EditableSectionProps) {
   const t = useTranslations('profile');
 
-  const canEdit = ['DRAFT', 'REJECTED', 'EDITED'].includes(profileStatus);
+  const canEdit = ['DRAFT', 'REJECTED', 'EDITED', 'SUBMITTED'].includes(profileStatus);
 
   return (
     <div className={cn('relative', className)}>

@@ -524,35 +524,57 @@ export async function updateProfile(
       residentContact: {
         upsert: {
           create: {
+            ...(residentContact.email && {
+              email: residentContact.email,
+            }),
             firstName: residentContact.firstName,
             lastName: residentContact.lastName,
-            relationship: residentContact.relationship,
-            phone: {
-              create: {
-                number: residentContact.phone.number,
-                countryCode: residentContact.phone.countryCode,
+            ...(residentContact.relationship && {
+              relationship: residentContact.relationship,
+            }),
+            ...(residentContact.phone && {
+              phone: {
+                create: {
+                  number: residentContact.phone.number,
+                  countryCode: residentContact.phone.countryCode,
+                },
               },
-            },
-            address: {
-              create: residentContact.address,
-            },
+            }),
+            ...(residentContact.address && {
+              address: {
+                create: residentContact.address,
+              },
+            }),
           },
           update: {
-            firstName: residentContact.firstName,
-            lastName: residentContact.lastName,
-            relationship: residentContact.relationship,
-            phone: {
-              create: {
-                number: residentContact.phone.number,
-                countryCode: residentContact.phone.countryCode,
+            ...(residentContact.firstName && {
+              firstName: residentContact.firstName,
+            }),
+            ...(residentContact.lastName && {
+              lastName: residentContact.lastName,
+            }),
+            ...(residentContact.relationship && {
+              relationship: residentContact.relationship,
+            }),
+            ...(residentContact.email && {
+              email: residentContact.email,
+            }),
+            ...(residentContact.phone && {
+              phone: {
+                create: {
+                  number: residentContact.phone.number,
+                  countryCode: residentContact.phone.countryCode,
+                },
               },
-            },
-            address: {
-              upsert: {
-                create: residentContact.address,
-                update: residentContact.address,
+            }),
+            ...(residentContact.address && {
+              address: {
+                upsert: {
+                  create: residentContact.address,
+                  update: residentContact.address,
+                },
               },
-            },
+            }),
           },
         },
       },

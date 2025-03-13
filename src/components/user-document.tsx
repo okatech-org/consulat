@@ -30,7 +30,6 @@ import {
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ReloadIcon } from '@radix-ui/react-icons';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
 
@@ -46,6 +45,7 @@ interface UserDocumentProps {
   accept?: string;
   onUpload?: (doc: AppUserDocument) => void;
   onDelete?: () => void;
+  noFormLabel?: boolean;
 }
 
 const updateDocumentSchema = z.object({
@@ -272,13 +272,12 @@ export function UserDocument({
   return (
     <div className="mb-2 space-y-4">
       <div className="flex items-center justify-between">
-        <FormLabel>
-          <h3 className="font-medium text-normal mb-1">
-            {label}
-            {required && <span className="ml-1 text-destructive">*</span>}
-          </h3>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
-        </FormLabel>
+        <h3 className="font-medium text-normal mb-1">
+          {label}
+          {required && <span className="ml-1 text-destructive">*</span>}
+        </h3>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+
         {document?.status && getStatusBadge(document.status)}
       </div>
 

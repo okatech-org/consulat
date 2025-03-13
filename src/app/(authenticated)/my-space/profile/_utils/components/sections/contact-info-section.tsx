@@ -11,7 +11,7 @@ import { updateProfile } from '@/actions/profile';
 import { Badge } from '@/components/ui/badge';
 import { Flag, Mail, Phone } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { filterUneditedKeys, extractFieldsFromObject, tryCatch } from '@/lib/utils';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
 import { InfoField } from '@/components/ui/info-field';
 import { DisplayAddress } from '@/components/ui/display-address';
@@ -43,9 +43,19 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
     setIsLoading(true);
     const data = form.getValues();
 
-    console.log(data, form.formState.dirtyFields);
-
     filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
+
+    // TODO: Faire en sorte de ne pas supprimer les champs
+    if (data.residentContact) {
+      delete data.residentContact;
+    }
+
+    // TODO: Faire en sorte de ne pas supprimer les champs
+    if (data.homeLandContact) {
+      delete data.homeLandContact;
+    }
+
+    console.log({ data }, form.formState.dirtyFields);
 
     const result = await tryCatch(updateProfile(profile.id, data));
 

@@ -9,6 +9,7 @@ import {
 import { EditableSection } from '../editable-section';
 import { AppUserDocument } from '@/types';
 import { UserDocument } from '@/components/user-document';
+import { useRouter } from 'next/navigation';
 
 interface DocumentsSectionProps {
   documents: {
@@ -31,6 +32,7 @@ export function DocumentsSection({
 }: DocumentsSectionProps) {
   const t = useTranslations('profile');
   const t_common = useTranslations('common');
+  const router = useRouter();
 
   const convertDocument = (
     doc: PrismaUserDocument | null | undefined,
@@ -60,6 +62,10 @@ export function DocumentsSection({
           profileId={profileId}
           allowEdit={true}
           required
+          accept="image/*"
+          onDelete={() => router.refresh()}
+          onUpload={() => router.refresh()}
+          noFormLabel={true}
         />
 
         <UserDocument

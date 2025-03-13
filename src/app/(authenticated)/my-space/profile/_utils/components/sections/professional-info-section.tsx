@@ -47,10 +47,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
 
     filterUneditedKeys<ProfessionalInfoFormData>(data, form.formState.dirtyFields);
 
-    const formData = new FormData();
-    formData.append('professionalInfo', JSON.stringify(data));
-
-    const result = await tryCatch(updateProfile(formData, 'professionalInfo'));
+    const result = await tryCatch(updateProfile(profile.id, data));
 
     if (result.error) {
       toast({
@@ -58,6 +55,8 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
         description: t_errors(result.error.message),
         variant: 'destructive',
       });
+      setIsLoading(false);
+      return;
     }
 
     if (result.data) {
@@ -66,10 +65,9 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
         description: t_messages('success.update_description'),
         variant: 'success',
       });
+      setIsLoading(false);
       setIsEditing(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleCancel = () => {
