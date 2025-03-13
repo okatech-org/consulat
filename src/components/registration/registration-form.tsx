@@ -333,7 +333,7 @@ export function RegistrationForm({
 
         {/* Progression mobile */}
         <MobileProgress
-          currentStep={currentStep}
+          currentStepIndex={currentStepIndex}
           totalSteps={orderedSteps.length}
           stepTitle={t(`steps.${currentTab}`)}
           isOptional={currentTab === 'professionalInfo'}

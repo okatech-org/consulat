@@ -12,7 +12,6 @@ import { fr } from 'date-fns/locale';
 import {
   extractFieldsFromObject,
   filterUneditedKeys,
-  nullifyUndefined,
   tryCatch,
   useDateLocale,
 } from '@/lib/utils';
@@ -53,13 +52,11 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
     'cardPin',
   ]);
 
-  const nonNullBasicInfo = nullifyUndefined(basicInfo);
-
   const form = useForm<BasicInfoFormData>({
     resolver: zodResolver(BasicInfoSchema),
     // @ts-expect-error - we rely on the nullifyUndefined function to handle null values
     defaultValues: {
-      ...nonNullBasicInfo,
+      ...basicInfo,
     },
   });
 
@@ -69,15 +66,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
 
     filterUneditedKeys<BasicInfoFormData>(data, form.formState.dirtyFields);
 
-    const formData = new FormData();
-
-    if (data.identityPictureFile) {
-      formData.append('identityPictureFile', data.identityPictureFile);
-    }
-
-    formData.append('basicInfo', JSON.stringify(data));
-
-    const { data: result, error } = await tryCatch(updateProfile(formData, 'basicInfo'));
+    const { data: result, error } = await tryCatch(updateProfile(profile.id, data));
 
     if (error) {
       toast({

@@ -4,14 +4,14 @@ import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 
 interface MobileProgressProps {
-  currentStep: number;
+  currentStepIndex: number;
   totalSteps: number;
   stepTitle: string;
   isOptional?: boolean;
 }
 
 export function MobileProgress({
-  currentStep,
+  currentStepIndex,
   totalSteps,
   stepTitle,
   isOptional,
@@ -31,14 +31,14 @@ export function MobileProgress({
             )}
           </div>
           <span className="text-sm text-muted-foreground">
-            {t('steps.progress', { current: currentStep + 1, total: totalSteps })}
+            {t('steps.progress', { current: currentStepIndex + 1, total: totalSteps })}
           </span>
         </div>
         <div className="h-1 w-full rounded-full bg-muted">
           <motion.div
             className="h-full rounded-full bg-primary"
             initial={{ width: '0%' }}
-            animate={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+            animate={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
             transition={{ duration: 0.3 }}
           />
         </div>

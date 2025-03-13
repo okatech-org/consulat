@@ -492,7 +492,7 @@ export async function updateProfile(
     ...remain
   } = data;
 
-  // @ts-expect-error - TODO: fix this, don't want to deal with the null values
+  //
   const updateData: Prisma.ProfileUpdateInput = {
     ...remain,
     ...(birthDate && { birthDate: new Date(birthDate) }),
@@ -528,16 +528,13 @@ export async function updateProfile(
             lastName: residentContact.lastName,
             relationship: residentContact.relationship,
             phone: {
-              upsert: {
-                create: {
-                  number: residentContact.phone.number,
-                  countryCode: residentContact.phone.countryCode,
-                },
-                update: {
-                  number: residentContact.phone.number,
-                  countryCode: residentContact.phone.countryCode,
-                },
+              create: {
+                number: residentContact.phone.number,
+                countryCode: residentContact.phone.countryCode,
               },
+            },
+            address: {
+              create: residentContact.address,
             },
           },
           update: {
@@ -545,9 +542,15 @@ export async function updateProfile(
             lastName: residentContact.lastName,
             relationship: residentContact.relationship,
             phone: {
-              update: {
+              create: {
                 number: residentContact.phone.number,
                 countryCode: residentContact.phone.countryCode,
+              },
+            },
+            address: {
+              upsert: {
+                create: residentContact.address,
+                update: residentContact.address,
               },
             },
           },
@@ -562,16 +565,13 @@ export async function updateProfile(
             lastName: homeLandContact.lastName,
             relationship: homeLandContact.relationship,
             phone: {
-              upsert: {
-                create: {
-                  number: homeLandContact.phone.number,
-                  countryCode: homeLandContact.phone.countryCode,
-                },
-                update: {
-                  number: homeLandContact.phone.number,
-                  countryCode: homeLandContact.phone.countryCode,
-                },
+              create: {
+                number: homeLandContact.phone?.number,
+                countryCode: homeLandContact.phone?.countryCode,
               },
+            },
+            address: {
+              create: homeLandContact.address,
             },
           },
           update: {
@@ -579,9 +579,15 @@ export async function updateProfile(
             lastName: homeLandContact.lastName,
             relationship: homeLandContact.relationship,
             phone: {
-              update: {
-                number: homeLandContact.phone.number,
-                countryCode: homeLandContact.phone.countryCode,
+              create: {
+                number: homeLandContact.phone?.number,
+                countryCode: homeLandContact.phone?.countryCode,
+              },
+            },
+            address: {
+              upsert: {
+                create: homeLandContact.address,
+                update: homeLandContact.address,
               },
             },
           },
