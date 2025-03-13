@@ -23,7 +23,7 @@ export function TeamSwitcher({
 }: {
   teams: {
     name: React.ReactNode;
-    logo: React.ElementType;
+    logo: React.ReactNode;
     plan: React.ReactNode;
   }[];
 }) {
@@ -39,7 +39,7 @@ export function TeamSwitcher({
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
             <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              {activeTeam && <activeTeam.logo className="size-4" />}
+              {activeTeam && activeTeam.logo}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <p className="truncate font-semibold">{activeTeam?.name}</p>

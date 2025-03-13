@@ -110,7 +110,6 @@ export default {
       'La période de validité du passeport est invalide (maximum 10 ans)',
     expired: 'Le passeport est expiré',
     number_invalid: 'Format de numéro de passeport invalide',
-    expiry_date_past: 'Le passeport est expiré ou expire bientôt',
     authority_invalid: "L'autorité émettrice n'est pas valide",
     submission_failed: "Échec de l'envoi du formulaire",
     invalid_data: 'Données invalides',

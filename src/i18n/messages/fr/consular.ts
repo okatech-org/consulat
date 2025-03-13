@@ -257,7 +257,7 @@ export default {
     navigation: {
       previous: 'Précédent',
       next: 'Suivant',
-      submit: 'Soumettre la demande',
+      submit: 'Envoyer la demande',
     },
     prefilled_fields_info:
       'Les champs pré-remplis sont basés sur les informations de votre profil',

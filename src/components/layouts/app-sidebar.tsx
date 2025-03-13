@@ -4,9 +4,7 @@ import * as React from 'react';
 import {
   Building2,
   Calendar,
-  FileSliders,
   FileText,
-  Folder,
   GalleryVerticalEnd,
   Globe,
   LayoutDashboard,
@@ -15,7 +13,8 @@ import {
   Users,
   Baby,
 } from 'lucide-react';
-
+import Image from 'next/image';
+import Link from 'next/link';
 import { NavMain, NavMainItem } from '@/components/layouts/nav-main';
 import { NavUser } from '@/components/layouts/nav-user';
 import { TeamSwitcher } from '@/components/layouts/team-switcher';
@@ -33,6 +32,10 @@ import { ROUTES } from '@/schemas/routes';
 import { NotificationBell } from '../notifications/notification-bell';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { FlagIcon } from '../ui/flag-icon';
+
+const logo =
+  process.env.NEXT_PUBLIC_LOGO_URL ||
+  'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzLokCdOyRlrM9oTwuD7FqvYPzsEJWIQGeR1Vx';
 
 export function AppSidebar({
   user,
@@ -179,7 +182,22 @@ export function AppSidebar({
                   )}
                 </span>
               ),
-              logo: GalleryVerticalEnd,
+              logo: (
+                <Link
+                  href={ROUTES.base}
+                  className="flex items-center gap-2 transition-transform duration-300 hover:scale-105"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
+                    <Image
+                      src={logo}
+                      width={60}
+                      height={60}
+                      alt="Consulat.ga"
+                      className="relative h-7 w-7 rounded-md transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                </Link>
+              ),
               plan: user.countryCode && (
                 <span className="flex items-center gap-2">
                   {user.countryCode && t_countries(user.countryCode as CountryCode)}

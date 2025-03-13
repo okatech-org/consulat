@@ -30,14 +30,14 @@ export default {
   navigation: {
     previous: 'Précédent',
     next: 'Suivant',
-    submit: 'Soumettre',
+    submit: 'Envoyer la demande',
   },
   validation: {
     error: {
       title: 'Erreur de validation',
       description: 'Veuillez corriger les erreurs avant de continuer',
     },
-    submit: 'Soumettre',
+    submit: 'Envoyer la demande',
     required: 'Ce champ est requis',
     invalid_format: 'Format invalide',
   },
