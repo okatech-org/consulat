@@ -60,6 +60,7 @@ export function ReviewForm({ data, onEditAction }: ReviewProps) {
       {sections.map((section) => (
         <ReviewSection
           key={section.key}
+          id={section.key}
           title={section.title}
           data={section.data}
           onEdit={() => onEditAction(section.step)}
@@ -70,6 +71,7 @@ export function ReviewForm({ data, onEditAction }: ReviewProps) {
 }
 
 function ReviewSection({
+  id,
   title,
   data,
   onEdit,
@@ -90,7 +92,7 @@ function ReviewSection({
         </Button>
       </CardHeader>
       <CardContent>
-        <ReviewFields data={data} />
+        <ReviewFields data={data} id={id} />
       </CardContent>
     </Card>
   );

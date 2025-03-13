@@ -30,9 +30,6 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
   const cleanedProfile = removeNullValues({ ...profile });
 
-  console.log({ cleanedProfile });
-  console.log({ profile });
-
   const forms = {
     documents: useForm<DocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),

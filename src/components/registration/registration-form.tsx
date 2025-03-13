@@ -131,14 +131,10 @@ export function RegistrationForm({
     const stepForm = forms[currentTab];
     const stepData = stepForm?.getValues();
     const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
-    console.log({ stepData, dirtyFields: stepForm?.formState.dirtyFields });
 
     const isStepValid = await stepForm?.trigger();
 
-    console.log({ isStepValid });
-
     if (!isStepValid) {
-      console.log({ errors: stepForm.formState.errors });
       setIsLoading(false);
       return;
     }

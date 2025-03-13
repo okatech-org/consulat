@@ -96,15 +96,34 @@ export const EmailSchema = z
 
 export const AddressSchema = z.object({
   firstLine: z
-    .string()
+    .string({
+      required_error: 'messages.errors.field_required',
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
     .min(1, 'messages.errors.field_required')
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH),
 
-  secondLine: z.string().max(VALIDATION_RULES.ADDRESS_MAX_LENGTH).nullable().optional(),
+  secondLine: z
+    .string({
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
+    .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH)
+    .nullable()
+    .optional(),
 
-  city: z.string().min(1, 'messages.errors.field_required'),
+  city: z
+    .string({
+      required_error: 'messages.errors.field_required',
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
+    .min(1, 'messages.errors.field_required'),
 
-  zipCode: z.string().nullable().optional(),
+  zipCode: z
+    .string({
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
+    .nullable()
+    .optional(),
 
   country: CountryCodeSchema,
 });
@@ -128,7 +147,10 @@ export const NameSchema = z
   .max(50, 'messages.errors.field_too_long');
 
 export const DateSchema = z
-  .string()
+  .string({
+    required_error: 'messages.errors.field_required',
+    invalid_type_error: 'messages.errors.invalid_date',
+  })
   .min(1, 'messages.errors.field_required')
   .transform((val) => new Date(val))
   .refine((val) => !isNaN(val.getTime()), 'messages.errors.invalid_date');
@@ -172,7 +194,7 @@ export const UserDocumentSchema = z.object({
     required_error: 'messages.errors.field_required',
   }),
   issuedAt: DateSchema.nullable().optional(),
-  expiresAt: DateSchema.nullable().optional(),
+  expiresAt: DateSchema.nullable(),
   metadata: z.record(z.string(), z.any()).nullable().optional(),
   userId: z.string().nullable().optional(),
   serviceRequestId: z.string().nullable().optional(),

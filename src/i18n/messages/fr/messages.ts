@@ -1,5 +1,6 @@
 export default {
   errors: {
+    invalid_field: 'Champ invalide',
     expiry_date_past: "La date d'expiration est passée ou expire bientôt",
     expiry_date_future: "La date d'expiration ne peut pas être dans le futur",
     invalid_step: 'Étape invalide, veuillez vérifier les champs et réessayer',
