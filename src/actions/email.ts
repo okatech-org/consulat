@@ -1,6 +1,6 @@
 'use server';
 
-import { sendSMS } from '@/lib/twilio';
+import { sendSMS } from '@/services/notifications/providers/sms';
 import { getTranslations } from 'next-intl/server';
 
 export async function sendSMSOTP(phone: string, otp: string) {
@@ -18,7 +18,7 @@ export async function sendSMSOTP(phone: string, otp: string) {
       appName: t('app_name'),
     });
 
-    await sendSMS(phone, message);
+    await sendSMS(phone, message, 'Consulat.ga');
   } catch (error) {
     console.error(t('logs.error'), error);
 
