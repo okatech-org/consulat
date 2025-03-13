@@ -33,30 +33,21 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const contactInfo = extractFieldsFromObject(profile, [
-    'email',
-    'phone',
-    'address',
-    'residentContact',
-    'homeLandContact',
-  ]);
-
   const form = useForm<ContactInfoFormData>({
     resolver: zodResolver(ContactInfoSchema),
     // @ts-expect-error -- TODO: fic the don't accept null values
-    defaultValues: contactInfo,
+    defaultValues: profile,
   });
 
   const handleSave = async () => {
     setIsLoading(true);
     const data = form.getValues();
 
+    console.log(data, form.formState.dirtyFields);
+
     filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
 
-    const formData = new FormData();
-    formData.append('contactInfo', JSON.stringify(data));
-
-    const result = await tryCatch(updateProfile(formData, 'contactInfo'));
+    const result = await tryCatch(updateProfile(profile.id, data));
 
     if (result.error) {
       toast({
@@ -64,6 +55,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
         description: t_errors(result.error.message),
         variant: 'destructive',
       });
+      setIsLoading(false);
       return;
     }
 
@@ -74,9 +66,8 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
         variant: 'success',
       });
       setIsEditing(false);
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleCancel = () => {
@@ -95,7 +86,12 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
       profileStatus={profile.status}
     >
       {isEditing ? (
-        <ContactInfoForm form={form} onSubmitAction={handleSave} isLoading={isLoading} />
+        <ContactInfoForm
+          profile={profile}
+          form={form}
+          onSubmitAction={handleSave}
+          isLoading={isLoading}
+        />
       ) : (
         <div className="space-y-4">
           {/* Coordonnées principales */}
@@ -128,18 +124,21 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
 
             <div className="space-y-6">
               {profile.residentContact ? (
-                <InfoField
-                  label={
-                    t_inputs('emergencyContact.label') +
-                    `${profile.residentContact?.address?.country ? ` - ${t_countries(profile.residentContact?.address?.country as CountryCode)}` : ''}`
-                  }
-                  value={
-                    <DisplayAddress
-                      address={profile.residentContact.address as Address}
-                    />
-                  }
-                  icon={<Flag className="size-4" />}
-                />
+                <>
+                  <InfoField
+                    label={
+                      t_inputs('emergencyContact.label') +
+                      `${profile.residentContact?.address?.country ? ` - ${t_countries(profile.residentContact?.address?.country as CountryCode)}` : ''}`
+                    }
+                    value={
+                      <DisplayAddress
+                        title={`${profile.residentContact.firstName || ''} ${profile.residentContact.lastName || ''}`}
+                        address={profile.residentContact.address as Address}
+                      />
+                    }
+                    icon={<Flag className="size-4" />}
+                  />
+                </>
               ) : (
                 <Badge variant="outline">{t('form.required')}</Badge>
               )}
@@ -156,6 +155,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
                   }
                   value={
                     <DisplayAddress
+                      title={`${profile.homeLandContact.firstName || ''} ${profile.homeLandContact.lastName || ''}`}
                       address={profile.homeLandContact.address as Address}
                     />
                   }

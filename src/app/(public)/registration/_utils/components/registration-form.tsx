@@ -304,19 +304,9 @@ export function RegistrationForm({
       <MobileProgress
         currentStep={currentStep}
         totalSteps={steps.length}
-        stepTitle={steps[currentStep].title}
-        isOptional={steps[currentStep].isOptional}
+        stepTitle={steps[currentStep]?.title ?? ''}
+        isOptional={steps[currentStep]?.isOptional ?? false}
       />
     </div>
   );
-}
-
-export function RegistrationFormWrapper() {
-  const handleSubmitProfile = async (formDataToSend: FormData) => {
-    const result = await tryCatch(postProfile(formDataToSend));
-
-    return result;
-  };
-
-  return <RegistrationForm handleSubmitProfile={handleSubmitProfile} />;
 }

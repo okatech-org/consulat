@@ -362,7 +362,7 @@ async function main() {
           motherFullName: 'Marie Itoutou',
           activityInGabon: 'Consultant IT',
           cardPin: 'GA123456',
-          residenceCountyCode: '75',
+          residenceCountyCode: 'FR',
           user: {
             create: {
               id: 'user-berny-itoutou',
@@ -503,7 +503,7 @@ async function main() {
           spouseFullName: 'John Doe',
           activityInGabon: 'Missions humanitaires',
           cardPin: 'GA789012',
-          residenceCountyCode: '75',
+          residenceCountyCode: 'FR',
           user: {
             create: {
               id: 'user-jane-doe',
@@ -635,7 +635,7 @@ async function main() {
         nationality: 'GA',
         category: 'MINOR',
         status: 'DRAFT',
-        residenceCountyCode: '75',
+        residenceCountyCode: 'FR',
         identityPicture: {
           create: {
             type: DocumentType.IDENTITY_PHOTO,

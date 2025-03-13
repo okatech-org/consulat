@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { getCurrentUser } from "@/actions/user"
 import { UserNav } from "../layouts/user-nav"
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
-import { LanguageSwitcherSingle } from "../layouts/language-switcher-single"
+//import { LanguageSwitcherSingle } from "../layouts/language-switcher-single"
 import Image from 'next/image';
 
 
@@ -22,7 +22,7 @@ export async function PublicHeader() {
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
           <Image
                     src={
-                      'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzZXUumO53Mwh7AfKbz94HxeYg2DZaTlQykuvc'
+                      'https://qld7pfnhxe.ufs.sh/f/20b8ac48-8275-4df6-a5f7-ecd26a9bc997-1x9v99.JPG'
                     }
                     width={60}
                     height={60}
@@ -37,7 +37,7 @@ export async function PublicHeader() {
         
         <div className="flex items-center gap-3">
           <ThemeToggleSingle />
-          <LanguageSwitcherSingle />
+          {/* <LanguageSwitcherSingle /> */}
 
           {isAuth ? <UserNav user={user} /> : ( <Link prefetch href={ROUTES.auth.login} className={buttonVariants({ 
             variant: 'default', 

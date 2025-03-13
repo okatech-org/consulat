@@ -355,7 +355,7 @@ export default async function LandingPage() {
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                   <Image
                     src={
-                      'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzZXUumO53Mwh7AfKbz94HxeYg2DZaTlQykuvc'
+                      'https://qld7pfnhxe.ufs.sh/f/20b8ac48-8275-4df6-a5f7-ecd26a9bc997-1x9v99.JPG'
                     }
                     width={60}
                     height={60}

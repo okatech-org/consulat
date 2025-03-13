@@ -85,6 +85,10 @@ export function BasicInfoForm({
                           field.onChange(doc);
                           router.refresh();
                         }}
+                        onDelete={() => {
+                          field.onChange(undefined);
+                          router.refresh();
+                        }}
                         accept="image/*"
                       />
                     </FormControl>

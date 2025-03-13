@@ -20,6 +20,7 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import { BasicInfoForm } from '@/components/registration/basic-info';
 import { InfoField } from '@/components/ui/info-field';
 import { FullProfile } from '@/types';
+import { useRouter } from 'next/navigation';
 
 interface BasicInfoSectionProps {
   profile: FullProfile;
@@ -36,6 +37,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
   const { formatDate } = useDateLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const basicInfo = extractFieldsFromObject(profile, [
     'firstName',
@@ -50,6 +52,8 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
     'passportIssueDate',
     'passportExpiryDate',
     'cardPin',
+    'identityPicture',
+    'residenceCountyCode',
   ]);
 
   const form = useForm<BasicInfoFormData>({
@@ -83,6 +87,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
         variant: 'success',
       });
       setIsEditing(false);
+      router.refresh();
     }
 
     setIsLoading(false);
@@ -108,7 +113,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
           form={form}
           onSubmit={handleSave}
           isLoading={isLoading}
-          displayIdentityPicture={false}
+          profileId={profile.id}
         />
       ) : (
         <div className="space-y-6">
