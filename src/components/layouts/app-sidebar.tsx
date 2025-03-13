@@ -5,7 +5,6 @@ import {
   Building2,
   Calendar,
   FileText,
-  GalleryVerticalEnd,
   Globe,
   LayoutDashboard,
   Settings,

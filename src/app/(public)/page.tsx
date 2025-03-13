@@ -46,7 +46,7 @@ export default async function LandingPage() {
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
                 <Link
-                  href={ROUTES.user.base}
+                  href={ROUTES.registration}
                   className={buttonVariants({
                     size: 'lg',
                     className:
