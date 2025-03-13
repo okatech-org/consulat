@@ -72,7 +72,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
     },
     {
       value: 'identity',
-      label: t('registration.steps.identity'),
+      label: t('registration.steps.basicInfo'),
       component: <BasicInfoSection profile={profile} />,
     },
   ];
