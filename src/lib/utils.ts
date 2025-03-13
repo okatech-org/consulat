@@ -253,7 +253,6 @@ const profileFields: Array<keyof FullProfile> = [
   'address',
   'addressProof',
   'residentContact',
-  'homeLandContact',
   'maritalStatus',
   'activityInGabon',
   'workStatus',
