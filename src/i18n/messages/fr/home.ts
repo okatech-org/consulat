@@ -7,7 +7,7 @@ export default {
       "Simplifiez vos démarches consulaires et gérez tous vos documents en ligne, en toute sécurité et depuis n'importe où.",
     discover_features: 'Découvrir les fonctionnalités',
     start_registration: 'Commencer mon inscription',
-    citizen_space: 'Espace Citoyen',
+    citizen_space: 'Inscription consulaire',
     government_space: 'Espace Gouvernement',
     subtitle: 'Votre Lien Numérique avec le Gabon',
   },
@@ -152,7 +152,7 @@ export default {
       title: 'Prêt à simplifier vos démarches ?',
       description:
         "Rejoignez Consulat.ga et accédez à tous nos services en ligne dès aujourd'hui.",
-      button: 'Démarrer maintenant',
+      button: 'Commencer mon inscription',
       login: 'Se connecter',
     },
     footer: {
