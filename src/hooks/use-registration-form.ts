@@ -30,21 +30,15 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
   const cleanedProfile = removeNullValues({ ...profile });
 
+  console.log({ cleanedProfile });
+  console.log({ profile });
+
   const forms = {
     documents: useForm<DocumentsFormData>({
       resolver: zodResolver(DocumentsSchema),
       // @ts-expect-error - TODO: fix this, don't want to deal with the null values
       defaultValues: {
-        ...(cleanedProfile?.passport && { passport: cleanedProfile.passport }),
-        ...(cleanedProfile?.birthCertificate && {
-          birthCertificate: cleanedProfile.birthCertificate,
-        }),
-        ...(cleanedProfile?.residencePermit && {
-          residencePermit: cleanedProfile.residencePermit,
-        }),
-        ...(cleanedProfile?.addressProof && {
-          addressProof: cleanedProfile.addressProof,
-        }),
+        ...cleanedProfile,
       },
     }),
     basicInfo: useForm<BasicInfoFormData>({

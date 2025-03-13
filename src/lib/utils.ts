@@ -552,7 +552,12 @@ export function removeNullValues<T extends Record<string, unknown>>(
   return Object.fromEntries(
     Object.entries(object)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .filter(([_, value]) => value != null)
+      .filter(([_, value]) => {
+        // Remove null, undefined, and empty objects
+        if (value == null) return false;
+        if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+        return true;
+      })
       .map(([key, value]) => [
         key,
         value && typeof value === 'object'
