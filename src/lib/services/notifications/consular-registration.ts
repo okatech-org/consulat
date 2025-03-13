@@ -4,7 +4,7 @@ import { db } from '@/lib/prisma';
 import { NotificationType, RequestStatus, Notification, User } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
-import { notify } from '@/services/notifications';
+import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env';
 
@@ -22,6 +22,7 @@ interface NotificationDataWithActions
     label: string;
     url: string;
   };
+  channels?: NotificationChannel[];
 }
 
 /**
@@ -80,6 +81,7 @@ async function createConsularNotification({
           label: t('actions.schedule_pickup'),
           url: `${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=DOCUMENT_COLLECTION`,
         },
+        channels: [NotificationChannel.SMS, NotificationChannel.EMAIL],
       };
       break;
     case 'COMPLETED':
@@ -106,7 +108,10 @@ async function createConsularNotification({
       type: notificationData.type,
       title: notificationData.title,
       message: notificationData.message,
-      channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+      channels: notificationData.channels || [
+        NotificationChannel.APP,
+        NotificationChannel.EMAIL,
+      ],
       email: user?.email || undefined,
       priority: 'normal',
       actions: notificationData.actions

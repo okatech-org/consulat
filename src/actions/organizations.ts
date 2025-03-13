@@ -14,8 +14,8 @@ import { Country, OrganizationStatus, ServiceCategory, UserRole } from '@prisma/
 import { AgentFormData } from '@/schemas/user';
 import { processFileData } from './utils';
 import { env } from '@/lib/env';
-import { sendAdminWelcomeEmail } from '@/services/notifications/providers/emails';
-import { notify } from '@/services/notifications';
+import { sendAdminWelcomeEmail } from '@/lib/services/notifications/providers/emails';
+import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { getCurrentUser } from '@/actions/user';
 import { getTranslations } from 'next-intl/server';

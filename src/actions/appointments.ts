@@ -15,7 +15,7 @@ import {
   AppointmentSchema,
   AppointmentWithRelations,
 } from '@/schemas/appointment';
-import { notifyAppointment } from '@/services/notifications';
+import { notifyAppointment } from '@/lib/services/notifications';
 import { getTranslations } from 'next-intl/server';
 import { env } from '@/lib/env';
 import { ROUTES } from '@/schemas/routes';

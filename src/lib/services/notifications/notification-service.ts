@@ -80,25 +80,6 @@ export async function sendNotification(
   // Générer un ID unique pour cette requête de notification
   const requestId = uuidv4();
 
-  /**
-   * Valider la requête avec Zod
-   
-  const { error: validationError, data: validatedRequest } = await tryCatch(
-    Promise.resolve().then(() => notificationSchema.parse(request)),
-  );
- 
-
-  if (validationError) {
-    console.error('Notification validation error:', validationError);
-    return {
-      requestId,
-      results: [],
-      successful: false,
-      timestamp: new Date(),
-    };
-  }
-     */
-
   // Vérifier si la notification est programmée pour plus tard
   if (request?.scheduledFor && request.scheduledFor > new Date()) {
     await scheduleNotification(request);

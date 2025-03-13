@@ -125,3 +125,33 @@ export async function notifyAppointment(
     expiresAt: options?.expiresAt,
   });
 }
+
+/**
+ * Fonction utilitaire pour envoyer un code de validation
+ */
+
+export async function notifyValidationCode(
+  userId: string,
+  title: string,
+  message: string,
+  options?: Partial<
+    Omit<NotificationRequest, 'type' | 'title' | 'message' | 'recipient' | 'actions'>
+  > & {
+    email?: string;
+    phoneNumber?: string;
+  },
+): Promise<NotificationResponse> {
+  return notify({
+    userId,
+    type: NotificationType.FEEDBACK,
+    title,
+    message,
+    channels: options?.channels,
+    email: options?.email,
+    phoneNumber: options?.phoneNumber,
+    metadata: options?.metadata,
+    priority: options?.priority || 'high',
+    scheduledFor: options?.scheduledFor,
+    expiresAt: options?.expiresAt,
+  });
+}

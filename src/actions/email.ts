@@ -1,6 +1,6 @@
 'use server';
 
-import { sendSMS } from '@/services/notifications/providers/sms';
+import { sendSMS } from '@/lib/services/notifications/providers/sms';
 import { getTranslations } from 'next-intl/server';
 
 export async function sendSMSOTP(phone: string, otp: string) {

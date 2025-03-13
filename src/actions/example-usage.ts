@@ -1,6 +1,6 @@
 'use server';
 
-import { notify, notifyInfo, notifyAppointment } from '@/services/notifications';
+import { notify, notifyInfo, notifyAppointment } from '@/lib/services/notifications';
 import { NotificationChannel, NotificationType } from '@/types/notifications';
 
 /**

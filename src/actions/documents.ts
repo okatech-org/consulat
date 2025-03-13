@@ -11,7 +11,7 @@ import { DocumentStatus, UserDocument } from '@prisma/client';
 import { AppUserDocument } from '@/types';
 import { checkAuth } from '@/lib/auth/action';
 import { getTranslations } from 'next-intl/server';
-import { notify } from '@/services/notifications';
+import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env';
 import { ROUTES } from '@/schemas/routes';
