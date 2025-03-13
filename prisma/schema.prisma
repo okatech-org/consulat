@@ -353,6 +353,7 @@ model EmergencyContact {
   id                    String    @id @default(cuid())
   firstName             String
   lastName              String
+  email                 String?
   relationship         FamilyLink
   phone               Phone?    @relation(fields: [phoneId], references: [id])
   phoneId             String?

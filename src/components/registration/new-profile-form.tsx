@@ -238,7 +238,7 @@ export function NewProfileForm({
               name="residenceCountyCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('country.label')}</FormLabel>
+                  <FormLabel>{t('residenceCounty.label')}</FormLabel>
                   <FormControl>
                     <CountrySelect
                       type="single"

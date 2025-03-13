@@ -17,6 +17,10 @@ export default {
     label: 'Nom complet',
     placeholder: 'Nom complet',
   },
+  residenceCounty: {
+    label: 'Pays de résidence',
+    placeholder: 'Pays de résidence',
+  },
   spouse: {
     fullName: {
       label: 'Nom complet du conjoint',
