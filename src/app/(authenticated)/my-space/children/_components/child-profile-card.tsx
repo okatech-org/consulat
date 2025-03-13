@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FileText, ExternalLink } from 'lucide-react';
-import { calculateAge } from '@/lib/utils';
+import { calculateAge, useDateLocale } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 
 interface ChildProfileCardProps {
@@ -18,9 +18,10 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
   const tInputs = useTranslations('inputs');
   const tBase = useTranslations();
   const profile = parentalAuthority.profile;
+  const { formatDate } = useDateLocale();
 
   // Calculer l'âge à partir de la date de naissance
-  const age = profile?.birthDate ? calculateAge(profile.birthDate) : 0;
+  const age = profile?.birthDate ? calculateAge(profile.birthDate.toISOString()) : 0;
 
   return (
     <Card className="overflow-hidden">
@@ -56,7 +57,7 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div>
             <p className="text-muted-foreground">{tInputs('profile.birthDate')}</p>
-            <p>{profile?.birthDate || '-'}</p>
+            <p>{profile?.birthDate ? formatDate(profile.birthDate) : '-'}</p>
           </div>
           <div>
             <p className="text-muted-foreground">{tInputs('profile.nationality')}</p>
