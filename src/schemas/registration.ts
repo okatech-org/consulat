@@ -38,10 +38,7 @@ export const BasicInfoSchema = z.object({
     required_error: 'messages.errors.field_required',
   }),
 
-  birthDate: DateSchema.refine(
-    (date) => new Date(date) <= new Date(),
-    'messages.errors.birth_date_future',
-  ),
+  birthDate: DateSchema,
 
   birthPlace: z.string({
     required_error: 'messages.errors.field_required',

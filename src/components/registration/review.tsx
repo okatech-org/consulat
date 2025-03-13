@@ -92,7 +92,7 @@ function ReviewSection({
         </Button>
       </CardHeader>
       <CardContent>
-        <ReviewFields data={data} id={id} />
+        <ReviewFields data={data} />
       </CardContent>
     </Card>
   );

@@ -183,12 +183,7 @@ export function BasicInfoForm({
                     <FormControl>
                       <Input
                         {...field}
-                        onChange={(e) => {
-                          const date = new Date(e.target.value);
-                          if (date > new Date()) {
-                            field.onChange(date);
-                          }
-                        }}
+                        onChange={field.onChange}
                         type="date"
                         disabled={isLoading}
                         max={new Date().toISOString().split('T')[0]}
@@ -302,12 +297,7 @@ export function BasicInfoForm({
                       <FormControl>
                         <Input
                           {...field}
-                          onChange={(e) => {
-                            const date = new Date(e.target.value);
-                            if (date > new Date()) {
-                              field.onChange(date);
-                            }
-                          }}
+                          onChange={field.onChange}
                           type="date"
                           value={formatDateForInput(field.value)}
                           max={new Date().toISOString().split('T')[0]}
@@ -329,12 +319,7 @@ export function BasicInfoForm({
                       <FormControl>
                         <Input
                           {...field}
-                          onChange={(e) => {
-                            const date = new Date(e.target.value);
-                            if (date > new Date()) {
-                              field.onChange(date);
-                            }
-                          }}
+                          onChange={field.onChange}
                           value={formatDateForInput(field.value)}
                           type="date"
                           placeholder={t_inputs('passport.expiryDate.placeholder')}

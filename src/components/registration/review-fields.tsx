@@ -33,7 +33,7 @@ interface ReviewFieldsProps {
   data: Partial<FullProfileUpdateFormData>;
 }
 
-export function ReviewFields({ data, id }: ReviewFieldsProps) {
+export function ReviewFields({ data }: ReviewFieldsProps) {
   const t = useTranslations('registration');
   const t_assets = useTranslations('assets');
   const t_inputs = useTranslations('inputs');
