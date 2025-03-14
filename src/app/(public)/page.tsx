@@ -9,6 +9,8 @@ import { GlobalAnimations } from '@/components/ui/global-animations';
 import { MobileSectionCarousel } from '@/components/ui/mobile-section-carousel';
 import { ROUTES } from '@/schemas/routes';
 
+const logo = process.env.NEXT_PUBLIC_ORG_LOGO;
+
 export default async function LandingPage() {
   // Utilisation de getTranslations pour les composants serveur
   const l = await getTranslations('home.landing');
@@ -354,7 +356,7 @@ export default async function LandingPage() {
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                   <Image
-                    src={`https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzwdOb0ZwnOheKr38gCfXvmVc2EZ5iGaYk9uQB`}
+                    src={logo ?? ''}
                     width={60}
                     height={60}
                     alt="Consulat.ga"
@@ -362,7 +364,7 @@ export default async function LandingPage() {
                   />
                 </div>
                 <div>
-                  <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  <h2 className="text-2xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     {l('footer.title')}
                   </h2>
                   <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 font-medium">

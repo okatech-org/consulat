@@ -47,6 +47,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'rbvj2i3urx.ufs.sh',
+        pathname: '/f/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'www.youtube.com',
         pathname: '/embed/**',
       },

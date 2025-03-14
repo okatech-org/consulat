@@ -223,12 +223,12 @@ const IAstedButton = () => {
           <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-center z-10 pointer-events-none text-glow icon-container-wrapper">
             <div className="icon-container">
               <div className="alternating-element text-element">
-                <p className="text-2xl tracking-wide whitespace-nowrap">Mr Ray</p>
+                <p className="text-md tracking-wide whitespace-nowrap">Mr Ray</p>
               </div>
               <div className="alternating-element mic-element">
                 <svg
-                  width="56"
-                  height="56"
+                  width="40"
+                  height="40"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -245,8 +245,8 @@ const IAstedButton = () => {
               </div>
               <div className="alternating-element chat-element">
                 <svg
-                  width="56"
-                  height="56"
+                  width="40"
+                  height="40"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"

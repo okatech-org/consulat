@@ -8,7 +8,8 @@ import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 //import { LanguageSwitcherSingle } from "../layouts/language-switcher-single"
 import Image from 'next/image';
 
-const logo = process.env.NEXT_PUBLIC_LOGO_URL || 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzLokCdOyRlrM9oTwuD7FqvYPzsEJWIQGeR1Vx';
+const logo = process.env.NEXT_PUBLIC_ORG_LOGO || 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzLokCdOyRlrM9oTwuD7FqvYPzsEJWIQGeR1Vx';
+const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
 
 
 export async function PublicHeader() {
@@ -33,7 +34,7 @@ export async function PublicHeader() {
           />
           </div>
           <span className="bg-gradient-to-r hidden sm:block from-blue-600 to-indigo-600 bg-clip-text text-xl font-bold text-transparent">
-          {t('consulat')}
+            {appName}
           </span>
         </Link>
         
