@@ -101,6 +101,22 @@ export async function createUserDocument(
 
   uploaded.push(uploadedFile.url);
 
+  // @ts-expect-error - Types are not exhaustive
+  const typesMap: Record<
+    DocumentType,
+    | 'identityPictureProfile'
+    | 'passportProfile'
+    | 'birthCertificateProfile'
+    | 'residencePermitProfile'
+    | 'addressProofProfile'
+  > = {
+    [DocumentType.IDENTITY_PHOTO]: 'identityPictureProfile',
+    [DocumentType.PASSPORT]: 'passportProfile',
+    [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificateProfile',
+    [DocumentType.RESIDENCE_PERMIT]: 'residencePermitProfile',
+    [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
+  } as const;
+
   const { data: document, error: documentError } = await tryCatch(
     db.userDocument.create({
       data: {
@@ -109,36 +125,8 @@ export async function createUserDocument(
         status: DocumentStatus.PENDING,
         userId: authResult.user.id,
         ...(profileId && {
-          ...(type === DocumentType.IDENTITY_PHOTO && {
-            identityPictureProfile: {
-              connect: {
-                id: profileId,
-              },
-            },
-          }),
-          ...(type === DocumentType.PASSPORT && {
-            passportProfile: {
-              connect: {
-                id: profileId,
-              },
-            },
-          }),
-          ...(type === DocumentType.BIRTH_CERTIFICATE && {
-            birthCertificateProfile: {
-              connect: {
-                id: profileId,
-              },
-            },
-          }),
-          ...(type === DocumentType.RESIDENCE_PERMIT && {
-            residencePermitProfile: {
-              connect: {
-                id: profileId,
-              },
-            },
-          }),
-          ...(type === DocumentType.PROOF_OF_ADDRESS && {
-            addressProofProfile: {
+          ...(typesMap[type] && {
+            [typesMap[type]]: {
               connect: {
                 id: profileId,
               },

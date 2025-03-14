@@ -343,13 +343,18 @@ export function NewProfileForm({
         </div>
       </CardContainer>
 
-      <Link
-        prefetch={true}
-        href={ROUTES.user.profile}
-        className={buttonVariants({ variant: 'link', className: 'w-full underline' })}
-      >
-        {t('newProfile.buttons.already_have_account')}
-      </Link>
+      <div className="flex flex-col gap-2">
+        <Link
+          prefetch={true}
+          href={`${ROUTES.auth.login}?callbackUrl=${ROUTES.registration}`}
+          className={buttonVariants({ variant: 'link', className: 'w-full underline' })}
+        >
+          {t('resumeRegistration.label')}
+        </Link>
+        <p className="text-sm text-muted-foreground">
+          {t('resumeRegistration.placeholder')}
+        </p>
+      </div>
     </div>
   );
 }

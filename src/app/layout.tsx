@@ -1,5 +1,6 @@
 import './globals.css';
 import './animation.css';
+import { NextSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
 import { ThemeProvider } from '@/components/layouts/theme-provider';
 import React from 'react';
 import { GeistSans } from 'geist/font/sans';
@@ -84,6 +85,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={GeistSans.className + ' bg-muted'}>
+        <NextSSRPlugin />
         <ClientInit />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider

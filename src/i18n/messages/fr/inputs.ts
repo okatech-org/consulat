@@ -63,6 +63,10 @@ export default {
     label: 'Statut',
     placeholder: 'Statut',
   },
+  resumeRegistration: {
+    label: 'Reprendre mon inscription',
+    placeholder: 'Identifier vous pour reprendre votre inscription précédente',
+  },
   phoneId: {
     label: 'Numéro de téléphone',
     placeholder: '0612345678',

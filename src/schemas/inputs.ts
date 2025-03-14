@@ -6,7 +6,6 @@ import {
   countryIndicators,
   countryKeys,
 } from '@/lib/autocomplete-datas';
-import { log } from 'console';
 
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,

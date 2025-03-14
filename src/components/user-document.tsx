@@ -32,6 +32,7 @@ import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
+import { genUploader } from 'uploadthing/client';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -113,7 +114,6 @@ export function UserDocument({
   const handleUpload = useCallback(
     async (type: DocumentType, file: FormData) => {
       setIsLoading(true);
-
       const result = await tryCatch(createUserDocument(type, file, profileId));
 
       if (result.error) {

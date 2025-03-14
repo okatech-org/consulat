@@ -67,9 +67,9 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>
-                            <a href={subItem.url}>
+                            <Link prefetch={true} href={subItem.url}>
                               <span>{subItem.title}</span>
-                            </a>
+                            </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
@@ -88,7 +88,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                       : pathname === item.url
                   }
                 >
-                  <Link href={item.url}>
+                  <Link prefetch={true} href={item.url}>
                     {item.icon && <item.icon />}
                     {item.iconComponent && item.iconComponent}
                     <span className={item.iconComponent ? '-ml-2' : ''}>

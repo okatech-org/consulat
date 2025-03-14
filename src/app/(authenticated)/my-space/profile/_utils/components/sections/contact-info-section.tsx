@@ -55,8 +55,6 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
       delete data.homeLandContact;
     }
 
-    console.log({ data }, form.formState.dirtyFields);
-
     const result = await tryCatch(updateProfile(profile.id, data));
 
     if (result.error) {

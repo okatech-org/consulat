@@ -131,8 +131,6 @@ export function RegistrationForm({
     const stepData = stepForm?.getValues();
     const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
 
-    console.log({ stepForm, stepData, errors: stepForm?.formState.errors });
-
     const isStepValid = await stepForm?.trigger();
 
     if (!isStepValid) {
@@ -149,7 +147,6 @@ export function RegistrationForm({
       const editedFields = filterUneditedKeys(stepData, stepForm.formState.dirtyFields);
 
       if (editedFields) {
-        console.log({ editedFields });
         const { data: result, error } = await tryCatch(
           updateProfile(profile.id, editedFields),
         );

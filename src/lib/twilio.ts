@@ -9,8 +9,6 @@ if (!TWILIO_PHONE_NUMBER) {
 }
 
 export async function sendSMS(to: string, message: string) {
-  console.log('Sending SMS to:', to, message, TWILIO_PHONE_NUMBER);
-
   try {
     const response = await client.messages.create({
       body: message,
