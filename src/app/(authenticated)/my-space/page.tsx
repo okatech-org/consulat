@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { getUserFullProfile } from '@/lib/user/getters';
 
 export default async function UserDashboard() {
+  const t_common = await getTranslations('common');
   const t = await getTranslations('user.dashboard');
   const t_profile = await getTranslations('profile.dashboard');
   const t_dashboard = await getTranslations('dashboard');
@@ -82,16 +83,6 @@ export default async function UserDashboard() {
   const notifications = await getNotifications();
   const recentNotifications = notifications.slice(0, 5);
 
-  // Helper function to get status translation
-  const getStatusTranslation = (status: string) => {
-    try {
-      // @ts-expect-error - We're using a string literal for translation key
-      return t_common(`status.${status.toUpperCase()}`);
-    } catch {
-      return status;
-    }
-  };
-
   return (
     <div className="container space-y-8 py-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -117,25 +108,29 @@ export default async function UserDashboard() {
             value={`${profileCompletion}%`}
             description={t_profile('stats.profile.completion')}
             icon={User}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30"
+            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
+            iconClassName="bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400"
           />
           <StatsCard
             title={t('overview.pending_requests')}
             value={pendingRequests}
             icon={Clock}
-            className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30"
+            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
+            iconClassName="bg-amber-100 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400"
           />
           <StatsCard
             title={t('overview.processing_requests')}
             value={processingRequests}
             icon={FileText}
-            className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/30"
+            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
+            iconClassName="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400"
           />
           <StatsCard
             title={t('overview.completed_requests')}
             value={completedRequests}
             icon={CheckCircle}
-            className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30"
+            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
+            iconClassName="bg-green-100 dark:bg-green-900/30 text-green-500 dark:text-green-400"
           />
         </div>
       </section>
@@ -147,7 +142,7 @@ export default async function UserDashboard() {
             <CardTitle>{t_profile('stats.profile.title')}</CardTitle>
             <CardDescription>
               {userProfile?.status
-                ? getStatusTranslation(userProfile.status)
+                ? t_common(`status.${userProfile.status}`)
                 : t_dashboard('sections.profile.status.pending')}
             </CardDescription>
           </CardHeader>
@@ -237,7 +232,7 @@ export default async function UserDashboard() {
                                 : 'secondary'
                           }
                         >
-                          {getStatusTranslation(request.status)}
+                          {t_common(`status.${request.status}`)}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
