@@ -448,7 +448,7 @@ export default async function LandingPage() {
                 </p>
 
                 <Link
-                  href="#"
+                  href="mailto:okatech@icloud.com"
                   className="relative group block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg text-base font-medium text-center shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10 transition-all duration-300 overflow-hidden"
                 >
                   <span className="relative z-10">{l('footer.contactButton')}</span>

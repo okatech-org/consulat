@@ -4,87 +4,114 @@
 
 @layer base {
   :root {
+    /* Background and foreground colors */
     --background: 0 0% 98%;
     --foreground: 240 10% 3.9%;
 
-    /* Couleur principale #04387E convertie en HSL */
+    /* Primary colors - Blue from the landing page */
     --primary: 215 95% 25%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Couleurs secondaires dans les tons bleus institutionnels */
+    /* Secondary colors - Indigo tones */
     --secondary: 215 25% 27%;
     --secondary-foreground: 210 40% 98%;
 
+    /* Card styles */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
+    /* Popover styles */
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Tons neutres pour le contenu */
+    /* Muted tones */
     --muted: 215 20% 95%;
     --muted-foreground: 215 25% 40%;
 
+    /* Accent colors */
     --accent: 215 20% 93%;
     --accent-foreground: 222 47% 11%;
 
-    /* Rouge institutionnel pour les erreurs */
+    /* Destructive colors - Red */
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Bordures et anneaux */
+    /* Border and input styles */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 215 95% 25%;
 
+    /* Gold accent color from the landing page */
+    --gold: 51 100% 60%;
+    --gold-foreground: 0 0% 0%;
+
+    /* Border radius */
     --radius: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-2xl: 2rem;
 
+    /* Sidebar styles */
     --sidebar-background: 0 0% 100%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Chart colors */
+    --chart-1: 215 95% 50%;
+    --chart-2: 262 83% 58%;
+    --chart-3: 291 70% 50%;
+    --chart-4: 199 89% 48%;
+    --chart-5: 31 100% 60%;
   }
 
   .dark {
-    --background: 240 5.9% 15%;
+    /* Dark mode background and foreground */
+    --background: 240 5.9% 10%;
     --foreground: 210 40% 98%;
 
-    /* Version sombre de la couleur principale */
+    /* Primary colors - Dark mode */
     --primary: 215 95% 30%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
+    /* Secondary colors - Dark mode */
     --secondary: 215 25% 27%;
     --secondary-foreground: 210 40% 98%;
 
+    /* Card styles - Dark mode */
     --card: 240 5.9% 10%;
     --card-foreground: 240 4.8% 95.9%;
 
+    /* Popover styles - Dark mode */
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
+    /* Muted tones - Dark mode */
     --muted: 215 20% 20%;
     --muted-foreground: 215 20% 65%;
 
+    /* Accent colors - Dark mode */
     --accent: 215 20% 17%;
     --accent-foreground: 210 40% 98%;
 
+    /* Destructive colors - Dark mode */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
+    /* Border and input styles - Dark mode */
     --border: 215 20% 25%;
     --input: 215 20% 25%;
     --ring: 215 95% 30%;
+
+    /* Gold accent color - Dark mode */
+    --gold: 51 100% 50%;
+    --gold-foreground: 0 0% 0%;
+
+    /* Sidebar styles - Dark mode */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -93,6 +120,13 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Chart colors - Dark mode */
+    --chart-1: 215 95% 40%;
+    --chart-2: 262 83% 48%;
+    --chart-3: 291 70% 40%;
+    --chart-4: 199 89% 38%;
+    --chart-5: 31 100% 50%;
   }
 }
 
@@ -159,6 +193,60 @@ html {
     & > * {
       scroll-snap-align: start;
     }
+  }
+
+  /* Gradient text utilities */
+  .text-gradient-blue {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm dark:from-blue-400 dark:to-indigo-400;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-[#FEAA37] to-[#FEAA37] bg-clip-text text-transparent drop-shadow-sm;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transform transition-all duration-700 hover:translate-y-[-8px];
+  }
+
+  /* Button gradients */
+  .btn-gradient-blue {
+    @apply bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-400/10 dark:shadow-blue-900/20 transition-all;
+  }
+
+  /* Background gradients */
+  .bg-gradient-light {
+    @apply bg-gradient-to-b from-[#ffffff] to-[#f2f2f2] dark:from-[#131313] dark:to-[#242424];
+  }
+
+  .bg-gradient-subtle {
+    @apply bg-gradient-to-b from-[#f9fafc] to-[#f4f5f9] dark:from-[#242424] dark:to-[#131313];
+  }
+
+  .bg-gradient-card {
+    @apply bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-[#131313] dark:to-[#242424];
+  }
+
+  /* Blur effects */
+  .blur-backdrop {
+    @apply blur-3xl opacity-[0.08] dark:opacity-[0.1];
+  }
+
+  .blur-shape {
+    @apply blur-3xl;
+  }
+
+  /* Decorative shapes */
+  .shape-circle {
+    @apply rounded-full;
+  }
+
+  .shape-gradient-blue {
+    @apply bg-gradient-to-b from-blue-300/20 to-indigo-300/20 dark:from-blue-700/20 dark:to-indigo-700/20;
+  }
+
+  .shape-gradient-purple {
+    @apply bg-gradient-to-b from-purple-300/20 to-indigo-300/20 dark:from-purple-700/20 dark:to-indigo-700/20;
   }
 }
 

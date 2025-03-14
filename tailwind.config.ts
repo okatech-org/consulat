@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 export default {
   darkMode: ['class'],
@@ -37,10 +38,34 @@ export default {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          // Additional blue shades from landing page
+          50: 'hsl(215, 100%, 97%)',
+          100: 'hsl(215, 100%, 92%)',
+          200: 'hsl(215, 95%, 85%)',
+          300: 'hsl(215, 95%, 70%)',
+          400: 'hsl(215, 95%, 50%)',
+          500: 'hsl(215, 95%, 40%)',
+          600: 'hsl(215, 95%, 30%)',
+          700: 'hsl(215, 95%, 25%)',
+          800: 'hsl(215, 95%, 20%)',
+          900: 'hsl(215, 95%, 15%)',
+          950: 'hsl(215, 95%, 10%)',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
+          // Additional indigo shades from landing page
+          50: 'hsl(226, 100%, 97%)',
+          100: 'hsl(226, 100%, 92%)',
+          200: 'hsl(226, 95%, 85%)',
+          300: 'hsl(226, 95%, 70%)',
+          400: 'hsl(226, 95%, 50%)',
+          500: 'hsl(226, 95%, 40%)',
+          600: 'hsl(226, 95%, 30%)',
+          700: 'hsl(226, 95%, 25%)',
+          800: 'hsl(226, 95%, 20%)',
+          900: 'hsl(226, 95%, 15%)',
+          950: 'hsl(226, 95%, 10%)',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
@@ -55,7 +80,8 @@ export default {
           foreground: 'hsl(var(--destructive-foreground))',
         },
         gold: {
-          DEFAULT: '#FFD700',
+          DEFAULT: 'hsl(var(--gold))',
+          foreground: 'hsl(var(--gold-foreground))',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -77,11 +103,27 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Additional colors from landing page
+        purple: {
+          50: 'hsl(270, 100%, 97%)',
+          100: 'hsl(270, 100%, 92%)',
+          200: 'hsl(270, 95%, 85%)',
+          300: 'hsl(270, 95%, 70%)',
+          400: 'hsl(270, 95%, 50%)',
+          500: 'hsl(270, 95%, 40%)',
+          600: 'hsl(270, 95%, 30%)',
+          700: 'hsl(270, 95%, 25%)',
+          800: 'hsl(270, 95%, 20%)',
+          900: 'hsl(270, 95%, 15%)',
+          950: 'hsl(270, 95%, 10%)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
       },
       keyframes: {
         'accordion-down': {
@@ -100,18 +142,85 @@ export default {
             height: '0',
           },
         },
+        'bell-ring': {
+          '0%': {
+            transform: 'rotate(0deg)',
+          },
+          '25%': {
+            transform: 'rotate(15deg)',
+          },
+          '50%': {
+            transform: 'rotate(-15deg)',
+          },
+          '75%': {
+            transform: 'rotate(5deg)',
+          },
+          '100%': {
+            transform: 'rotate(0deg)',
+          },
+        },
+        'fade-in': {
+          from: {
+            opacity: '0',
+          },
+          to: {
+            opacity: '1',
+          },
+        },
+        'slide-in': {
+          from: {
+            opacity: '0',
+            transform: 'translateY(10px)',
+          },
+          to: {
+            opacity: '1',
+            transform: 'translateY(0)',
+          },
+        },
+        'scale-in': {
+          from: {
+            opacity: '0',
+            transform: 'scale(0.95)',
+          },
+          to: {
+            opacity: '1',
+            transform: 'scale(1)',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'bell-ring': 'bell-ring 0.5s ease-in-out',
+        'fade-in': 'fade-in 0.2s ease-out',
+        'slide-in': 'slide-in 0.2s ease-out',
+        'scale-in': 'scale-in 0.2s ease-out',
       },
       maxWidth: {
         container: '1400px',
+        'screen-xl': '1280px',
       },
       aspectRatio: {
         document: '1/1.4',
+        card: '1.58/1',
+        '16/9': '16/9',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'grid-pattern':
+          'linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px)',
+      },
+      boxShadow: {
+        'blue-sm':
+          '0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06)',
+        'blue-md':
+          '0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05)',
+        'blue-lg':
+          '0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.04)',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;
