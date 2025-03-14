@@ -23,14 +23,14 @@ export async function PublicHeader() {
         <Link href={ROUTES.base} className="flex items-center gap-2 transition-transform duration-300 hover:scale-105">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
           <Image
-                    src={
-                      logo
-                    }
-                    width={60}
-                    height={60}
-                    alt="Consulat.ga"
-                    className="relative h-8 w-8 rounded-md transition-transform duration-500 group-hover:scale-105"
-                  />
+            src={
+              logo
+            }
+            width={60}
+            height={60}
+            alt="Consulat.ga"
+            className="relative h-8 w-8 rounded-md transition-transform duration-500 group-hover:scale-105"
+          />
           </div>
           <span className="bg-gradient-to-r hidden sm:block from-blue-600 to-indigo-600 bg-clip-text text-xl font-bold text-transparent">
           {t('consulat')}
