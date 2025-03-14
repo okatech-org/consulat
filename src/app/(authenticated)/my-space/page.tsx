@@ -108,29 +108,29 @@ export default async function UserDashboard() {
             value={`${profileCompletion}%`}
             description={t_profile('stats.profile.completion')}
             icon={User}
-            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
-            iconClassName="bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400"
+            className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm"
+            iconClassName="bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400"
           />
           <StatsCard
             title={t('overview.pending_requests')}
             value={pendingRequests}
             icon={Clock}
-            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
-            iconClassName="bg-amber-100 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400"
+            className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30 shadow-sm"
+            iconClassName="bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400"
           />
           <StatsCard
             title={t('overview.processing_requests')}
             value={processingRequests}
             icon={FileText}
-            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
-            iconClassName="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400"
+            className="bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm"
+            iconClassName="bg-white dark:bg-neutral-900 text-indigo-500 dark:text-indigo-400"
           />
           <StatsCard
             title={t('overview.completed_requests')}
             value={completedRequests}
             icon={CheckCircle}
-            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm"
-            iconClassName="bg-green-100 dark:bg-green-900/30 text-green-500 dark:text-green-400"
+            className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm"
+            iconClassName="bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400"
           />
         </div>
       </section>
