@@ -49,7 +49,6 @@ function allDocumentsValidated(profile: FullProfile, category: ProfileCategory):
           profile.identityPicture,
           profile.passport,
           profile.birthCertificate,
-          profile.residencePermit,
           profile.addressProof,
         ];
 
