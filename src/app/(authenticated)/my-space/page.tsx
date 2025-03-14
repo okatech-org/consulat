@@ -24,6 +24,8 @@ import { getUserFullProfile } from '@/lib/user/getters';
 export default async function UserDashboard() {
   const t = await getTranslations('user.dashboard');
   const t_profile = await getTranslations('profile.dashboard');
+  const t_dashboard = await getTranslations('dashboard');
+  const t_notifications = await getTranslations('notifications');
 
   const currentUser = await getCurrentUser();
 
@@ -40,11 +42,11 @@ export default async function UserDashboard() {
   // Get missing documents
   const missingDocuments = [];
   if (userProfile) {
-    if (!userProfile.identityPicture) missingDocuments.push("Photo d'identité");
-    if (!userProfile.passport) missingDocuments.push('Passeport');
-    if (!userProfile.birthCertificate) missingDocuments.push('Acte de naissance');
-    if (!userProfile.residencePermit) missingDocuments.push('Titre de séjour');
-    if (!userProfile.addressProof) missingDocuments.push('Justificatif de domicile');
+    if (!userProfile.identityPicture) missingDocuments.push('identity_photo');
+    if (!userProfile.passport) missingDocuments.push('passport');
+    if (!userProfile.birthCertificate) missingDocuments.push('birth_certificate');
+    if (!userProfile.residencePermit) missingDocuments.push('residence_permit');
+    if (!userProfile.addressProof) missingDocuments.push('proof_of_address');
   }
 
   // Fetch user service requests
@@ -79,6 +81,16 @@ export default async function UserDashboard() {
   // Fetch recent notifications
   const notifications = await getNotifications();
   const recentNotifications = notifications.slice(0, 5);
+
+  // Helper function to get status translation
+  const getStatusTranslation = (status: string) => {
+    try {
+      // @ts-expect-error - We're using a string literal for translation key
+      return t_common(`status.${status.toUpperCase()}`);
+    } catch {
+      return status;
+    }
+  };
 
   return (
     <div className="container space-y-8 py-6">
@@ -134,7 +146,9 @@ export default async function UserDashboard() {
           <CardHeader>
             <CardTitle>{t_profile('stats.profile.title')}</CardTitle>
             <CardDescription>
-              {userProfile?.status ? userProfile.status.toLowerCase() : 'En attente'}
+              {userProfile?.status
+                ? getStatusTranslation(userProfile.status)
+                : t_dashboard('sections.profile.status.pending')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -153,17 +167,24 @@ export default async function UserDashboard() {
 
             {missingDocuments.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium">Champs manquants :</p>
+                <p className="text-sm font-medium">
+                  {t_dashboard('sections.profile.missing_fields')}
+                </p>
                 <ul className="text-sm space-y-1">
                   {missingDocuments.slice(0, 3).map((doc, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <span className="size-2 rounded-full bg-destructive/70" />
-                      <span>{doc}</span>
+                      <span>
+                        {/* @ts-expect-error - Using string literal for translation key */}
+                        {t_dashboard(`sections.profile.fields.${doc}`)}
+                      </span>
                     </li>
                   ))}
                   {missingDocuments.length > 3 && (
                     <li className="text-xs text-muted-foreground">
-                      et {missingDocuments.length - 3} autres
+                      {t_dashboard('sections.profile.and_more', {
+                        count: missingDocuments.length - 3,
+                      })}
                     </li>
                   )}
                 </ul>
@@ -216,7 +237,7 @@ export default async function UserDashboard() {
                                 : 'secondary'
                           }
                         >
-                          {request.status}
+                          {getStatusTranslation(request.status)}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -263,7 +284,7 @@ export default async function UserDashboard() {
                     </div>
                     <div className="flex-1 space-y-1">
                       <p className="text-sm font-medium">
-                        {appointment.request?.service?.name || 'Rendez-vous'}
+                        {appointment.request?.service?.name || t('appointments.title')}
                       </p>
                       <div className="flex items-center text-xs text-muted-foreground">
                         <Clock className="mr-1 h-3 w-3" />
@@ -298,7 +319,7 @@ export default async function UserDashboard() {
       {/* Recent Notifications */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Notifications</h2>
+          <h2 className="text-xl font-semibold">{t_notifications('title')}</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link href={ROUTES.user.notifications}>{t_profile('actions.see_all')}</Link>
           </Button>
@@ -334,7 +355,7 @@ export default async function UserDashboard() {
           ) : (
             <Card>
               <CardContent className="text-center py-6">
-                <p className="text-muted-foreground">Aucune notification</p>
+                <p className="text-muted-foreground">{t_notifications('empty')}</p>
               </CardContent>
             </Card>
           )}
