@@ -86,12 +86,12 @@ export function LoginForm() {
       return;
     }
 
-    const { error: loginWithOTPError, data: loginWithOTPData } = await tryCatch(
+    const { error: loginWithOTPError } = await tryCatch(
       signIn('credentials', {
         identifier,
         type: data.type,
         otp: data.otp,
-        redirect: false,
+        redirectTo: callbackUrl ?? '/',
       }),
     );
 
@@ -100,16 +100,6 @@ export function LoginForm() {
         title: t('messages.otp_invalid'),
         variant: 'destructive',
       });
-    }
-
-    if (loginWithOTPData) {
-      if (callbackUrl) {
-        // eslint-disable-next-line
-        router.push(callbackUrl);
-      } else {
-        // eslint-disable-next-line
-        router.push('/');
-      }
     }
 
     setIsLoading(false);

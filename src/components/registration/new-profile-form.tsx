@@ -170,16 +170,13 @@ export function NewProfileForm({
         identifier,
         type: data.type,
         otp: data.otp,
-        redirect: false,
+        redirectTo: ROUTES.registration,
       }),
     );
 
     if (loginWithOTPError) {
       setError(loginWithOTPError.message);
     }
-
-    setIsLoading(false);
-    router.refresh();
   };
 
   return (
