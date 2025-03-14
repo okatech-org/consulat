@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 
 const IAstedButton = () => {
   // États pour les interactions et animations
   const [isHovered, setIsHovered] = useState(false);
-  const [isClicked, setIsClicked] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const buttonRef = useRef(null);
-  const containerRef = useRef(null);
-  const animationFrameRef = useRef(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   // Initialiser les animations et suivre la souris
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
@@ -37,7 +35,6 @@ const IAstedButton = () => {
           rotateZ(${x * y * 5}deg)
           translateZ(20px)
           scale3d(${isHovered ? 1.05 : 1}, ${isHovered ? 1.05 : 1}, ${isHovered ? 1.2 : 1})
-          ${isClicked ? 'scale3d(0.95, 0.95, 0.9)' : ''}
         `;
 
         // Ombre dynamique basée sur la position de la souris - plus profonde et volumineuse
@@ -50,16 +47,16 @@ const IAstedButton = () => {
         `;
 
         // Simuler un mouvement de fluide interne en réponse au mouvement de la souris
-        const innerLayers = buttonRef.current.querySelectorAll('.inner-fluid-layer');
+        const innerLayers =
+          buttonRef.current.querySelectorAll<HTMLElement>('.inner-fluid-layer');
         if (innerLayers && innerLayers.length) {
           innerLayers.forEach((layer, index) => {
-            const delay = index * 0.1;
             const intensity = 1 - index * 0.2;
             layer.style.transform = `
-              translateX(${x * 10 * intensity}px) 
-              translateY(${y * 10 * intensity}px) 
-              translateZ(${10 + index * 5}px)
-              scale(${1 + Math.abs(x * y) * 0.05})
+              translateX(${x * 2 * intensity}px) 
+              translateY(${y * 2 * intensity}px) 
+              translateZ(${0 + index * 1}px)
+              scale(${1 + Math.abs(x * y) * 0.01})
             `;
           });
         }
@@ -84,12 +81,13 @@ const IAstedButton = () => {
           rotateX(${idleY}deg) 
           rotateY(${idleX}deg)
           rotateZ(${idleZ}deg)
-          translateZ(${5 + Math.sin(time * 2) * 5}px)
+          translateZ(${1 + Math.sin(time * 2) * 5}px)
           scale3d(${heartbeatScale}, ${heartbeatScale}, ${heartbeatScale * 1.2})
         `;
 
         // Activation des couches de fluide interne
-        const innerLayers = buttonRef.current.querySelectorAll('.inner-fluid-layer');
+        const innerLayers =
+          buttonRef.current.querySelectorAll<HTMLElement>('.inner-fluid-layer');
         if (innerLayers && innerLayers.length) {
           innerLayers.forEach((layer, index) => {
             const layerTime = time + index;
@@ -121,53 +119,20 @@ const IAstedButton = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isHovered, isClicked]);
-
-  const handleClick = () => {
-    setIsClicked(true);
-
-    // Effet d'ondulation au clic
-    if (buttonRef.current) {
-      // Créer plusieurs ondulations avec des délais et tailles différentes
-      for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-          const ripple = document.createElement('div');
-          ripple.className = 'ripple-effect';
-          ripple.style.animationDuration = `${0.7 + i * 0.2}s`;
-          ripple.style.animationDelay = `${i * 0.1}s`;
-          buttonRef.current.appendChild(ripple);
-
-          setTimeout(
-            () => {
-              ripple.remove();
-            },
-            (0.7 + i * 0.2) * 1000 + i * 0.1 * 1000,
-          );
-        }, i * 50);
-      }
-
-      // Effet de changement de couleur supplémentaire au clic
-      buttonRef.current.classList.add('color-shift');
-      setTimeout(() => {
-        buttonRef.current.classList.remove('color-shift');
-        setIsClicked(false);
-      }, 1000);
-    }
-  };
+  }, [isHovered]);
 
   return (
     <div
       ref={containerRef}
-      className="flex items-center justify-center h-screen w-full bg-gradient-to-br from-gray-900 to-black p-4 perspective-container"
+      className="flex cursor-none items-center w-full h-full justify-center p-4 perspective-container"
     >
       <div className="relative perspective">
         {/* Conteneur principal du bouton avec animation globale */}
         <div
           ref={buttonRef}
-          onClick={handleClick}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="relative w-32 h-32 rounded-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out overflow-hidden thick-matter-button living-matter"
+          className="relative size-20 rounded-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out overflow-hidden thick-matter-button living-matter"
         >
           {/* Indicateurs d'attention déplacés à l'intérieur */}
           <div className="absolute attention-indicator top-4 left-4 z-20"></div>

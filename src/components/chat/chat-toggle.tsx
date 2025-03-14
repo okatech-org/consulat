@@ -1,23 +1,17 @@
 'use client';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { MessageCircleIcon } from 'lucide-react';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
 import { ChatWindow } from './chat-window';
+import IAstedButton from '../ui/mr-ray-button-fixed';
 
 export function ChatToggle() {
-  const t = useTranslations('common.chatbot');
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <button
-          aria-label={t('chat_with_ray')}
-          className="p-1 width-16 aspect-square rounded-full bg-primary/40 "
-        >
-          <MessageCircleIcon className="size-10 text-primary-foreground" />
-        </button>
+      <SheetTitle className="sr-only">Chat with an assistant</SheetTitle>
+      <SheetTrigger className="aspect-square size-24 rounded-full overflow-hidden">
+        <IAstedButton />
       </SheetTrigger>
       <SheetContent side="right" className="w-full max-w-[700px] sm:w-[700px]">
         <div className="py-6 h-full">
