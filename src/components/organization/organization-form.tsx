@@ -4,28 +4,18 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -33,9 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
-import { OrganizationType, OrganizationStatus } from '@prisma/client';
+import { OrganizationType, OrganizationStatus, Country } from '@prisma/client';
 import {
   organizationSchema,
   type CreateOrganizationInput,
@@ -45,15 +34,13 @@ import {
 import { Organization } from '@/types/organization';
 import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { InfoField } from '@/components/ui/info-field';
-
-interface CountryOption {
-  id: string;
-  name: string;
-}
+import { CountryCode } from '@/lib/autocomplete-datas';
+import { MultiSelect } from '../ui/multi-select';
+import { FlagIcon } from '../ui/flag-icon';
 
 interface OrganizationFormProps {
   organization?: Organization;
-  countries: CountryOption[];
+  countries: Country[];
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -66,8 +53,6 @@ export function OrganizationForm({
 }: OrganizationFormProps) {
   const t = useTranslations('organization');
   const t_common = useTranslations('common');
-  const [open, setOpen] = React.useState(false);
-  const [searchValue, setSearchValue] = React.useState('');
   const { handleCreate, handleUpdate, isLoading } = useOrganizationActions();
 
   const form = useForm<CreateOrganizationInput>({
@@ -88,20 +73,8 @@ export function OrganizationForm({
         },
   });
 
-  const selectedCountries = React.useMemo(
-    () => countries.filter((country) => form.watch('countryIds').includes(country.id)),
-    [countries, form],
-  );
-
-  const filteredCountries = React.useMemo(
-    () =>
-      countries.filter((country) =>
-        country.name.toLowerCase().includes(searchValue.toLowerCase()),
-      ),
-    [countries, searchValue],
-  );
-
   async function handleCreateSubmit(data: CreateOrganizationInput) {
+    console.log({ data });
     try {
       const result = await handleCreate(data);
       if (!result) {
@@ -155,7 +128,7 @@ export function OrganizationForm({
                   disabled={isLoading}
                 />
               </FormControl>
-              <FormMessage />
+              <TradFormMessage />
             </FormItem>
           )}
         />
@@ -184,7 +157,7 @@ export function OrganizationForm({
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
+              <TradFormMessage />
             </FormItem>
           )}
         />
@@ -213,7 +186,7 @@ export function OrganizationForm({
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
+              <TradFormMessage />
             </FormItem>
           )}
         />
@@ -224,72 +197,23 @@ export function OrganizationForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('form.countries.label')}</FormLabel>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      type={'button'}
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className={cn(
-                        'w-full justify-between',
-                        !field.value.length && 'text-muted-foreground',
-                      )}
-                      disabled={isLoading}
-                    >
-                      <div className="flex flex-wrap gap-1">
-                        {selectedCountries.length === 0 &&
-                          t('form.countries.placeholder')}
-                        {selectedCountries.map((country) => (
-                          <Badge variant="secondary" key={country.id} className="mr-1">
-                            {country.name}
-                          </Badge>
-                        ))}
-                      </div>
-                      <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder={t('form.countries.search')}
-                      value={searchValue}
-                      onValueChange={setSearchValue}
-                    />
-                    <CommandEmpty>{t('form.countries.empty')}</CommandEmpty>
-                    <CommandList>
-                      <CommandGroup className="max-h-64 overflow-auto">
-                        {filteredCountries.map((country) => (
-                          <CommandItem
-                            key={country.id}
-                            value={country.name}
-                            onSelect={() => {
-                              const current = field.value;
-                              const updated = current.includes(country.id)
-                                ? current.filter((id) => id !== country.id)
-                                : [...current, country.id];
-                              field.onChange(updated);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                field.value.includes(country.id)
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
-                              )}
-                            />
-                            {country.name}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
+              <MultiSelect<CountryCode>
+                type="multiple"
+                options={countries.map((country) => ({
+                  value: country.code as CountryCode,
+                  label: country.name,
+                  component: (
+                    <div className="flex items-center gap-2">
+                      <FlagIcon countryCode={country.code as CountryCode} />
+                      {country.name}
+                    </div>
+                  ),
+                }))}
+                selected={field.value as CountryCode[]}
+                onChange={field.onChange}
+                disabled={isLoading}
+              />
+              <TradFormMessage />
             </FormItem>
           )}
         />
@@ -309,7 +233,7 @@ export function OrganizationForm({
                     disabled={isLoading}
                   />
                 </FormControl>
-                <FormMessage />
+                <TradFormMessage />
               </FormItem>
             )}
           />

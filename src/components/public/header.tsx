@@ -8,7 +8,7 @@ import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 //import { LanguageSwitcherSingle } from "../layouts/language-switcher-single"
 import Image from 'next/image';
 
-const logo = process.env.NEXT_PUBLIC_ORG_LOGO || 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzLokCdOyRlrM9oTwuD7FqvYPzsEJWIQGeR1Vx';
+const logo = process.env.NEXT_PUBLIC_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
 const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
 
 

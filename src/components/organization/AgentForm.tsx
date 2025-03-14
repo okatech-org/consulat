@@ -21,7 +21,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { AgentFormData, AgentSchema } from '@/schemas/user';
 import { useToast } from '@/hooks/use-toast';
 import { ServiceCategory } from '@prisma/client';
-import { PhoneInput, PhoneValue } from '@/components/ui/phone-input';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { createNewAgent } from '@/actions/organizations';
 import { Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
@@ -46,6 +46,9 @@ export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps)
       ...initialData,
       countryIds: initialData?.countryIds ?? [],
       serviceCategories: initialData?.serviceCategories ?? [],
+      phone: initialData?.phone ?? {
+        countryCode: '+33',
+      },
     },
     mode: 'onSubmit',
   });

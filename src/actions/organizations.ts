@@ -64,7 +64,7 @@ export async function createOrganization(data: CreateOrganizationInput) {
         type: data.type,
         status: data.status,
         countries: {
-          connect: data.countryIds.map((id) => ({ id })),
+          connect: data.countryIds.map((id) => ({ code: id })),
         },
       },
     });
