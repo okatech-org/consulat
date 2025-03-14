@@ -90,7 +90,7 @@ export default {
       consulat_ga: 'CONSULAT.GA',
       subtitle: 'Votre Lien Numérique avec le Gabon',
       description:
-        'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France. Participez activement à la construction du Gabon de demain!',
+        'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens à travers le monde. Participez activement à la construction du Gabon de demain!',
       citizen_space: 'Inscription consulaire',
       government_space: 'Espace Gouvernement',
       secure_data: 'Sécurisé et conforme aux normes de protection des données',

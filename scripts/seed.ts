@@ -192,7 +192,7 @@ async function main() {
         user: {
           create: {
             id: 'user-admin',
-            email: 'itoutouberny+admin@gmail.com',
+            email: 'okatech+admin@icloud.com',
             roles: [UserRole.ADMIN],
             organizationId: 'organization-ambassade-france',
             countryCode: 'FR',
@@ -221,7 +221,7 @@ async function main() {
         user: {
           create: {
             id: 'user-agent-france-1',
-            email: 'itoutouberny+agent1@gmail.com',
+            email: 'okatech+agent@icloud.com',
             roles: [UserRole.AGENT],
             assignedOrganizationId: 'organization-ambassade-france',
             countryCode: 'FR',
@@ -245,7 +245,7 @@ async function main() {
         user: {
           create: {
             id: 'user-agent-france-2',
-            email: 'itoutouberny+agent2@gmail.com',
+            email: 'itoutouberny+agent@gmail.com',
             roles: [UserRole.AGENT],
             assignedOrganizationId: 'organization-ambassade-france',
             countryCode: 'FR',
@@ -317,18 +317,11 @@ async function main() {
     await Promise.all([
       prisma.user.create({
         data: {
+          firstName: 'Okatech',
+          lastName: 'SA',
           id: 'user-super-admin',
-          email: 'itoutouberny+sa@gmail.com',
+          email: 'okatech@icloud.com',
           roles: [UserRole.SUPER_ADMIN],
-          specializations: [
-            ServiceCategory.IDENTITY,
-            ServiceCategory.REGISTRATION,
-            ServiceCategory.CIVIL_STATUS,
-            ServiceCategory.VISA,
-            ServiceCategory.CERTIFICATION,
-            ServiceCategory.OTHER,
-          ],
-          linkedCountries: { connect: [{ code: 'FR' }] },
         },
       }),
     ]);
@@ -709,9 +702,9 @@ async function main() {
         data: {
           id: 'appointment-berny-itoutou-1',
           countryCode: 'FR',
-          date: new Date('2024-04-15'),
-          startTime: new Date('2024-04-15T09:00:00Z'),
-          endTime: new Date('2024-04-15T09:30:00Z'),
+          date: new Date('2025-04-15'),
+          startTime: new Date('2025-04-15T09:00:00Z'),
+          endTime: new Date('2025-04-15T09:30:00Z'),
           duration: 30,
           type: AppointmentType.DOCUMENT_SUBMISSION,
           status: AppointmentStatus.CONFIRMED,
@@ -741,9 +734,9 @@ async function main() {
         data: {
           id: 'appointment-jane-doe-1',
           countryCode: 'FR',
-          date: new Date('2024-04-20'),
-          startTime: new Date('2024-04-20T14:00:00Z'),
-          endTime: new Date('2024-04-20T14:30:00Z'),
+          date: new Date('2025-04-20'),
+          startTime: new Date('2025-04-20T14:00:00Z'),
+          endTime: new Date('2025-04-20T14:30:00Z'),
           duration: 30,
           type: AppointmentType.DOCUMENT_SUBMISSION,
           status: AppointmentStatus.CONFIRMED,

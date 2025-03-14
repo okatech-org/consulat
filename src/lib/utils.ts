@@ -109,39 +109,18 @@ export function checkFileType(files: FileList | File[] | undefined, types: strin
   return types.includes(files[0].type);
 }
 
-export const APP_NAME = 'Consulat';
-export const APP_DEFAULT_TITLE = 'Consulat - Les services consulaires à votre portée';
-export const APP_TITLE_TEMPLATE = '%s - Consulat';
+export const APP_NAME = 'Consulat.ga';
+export const APP_DEFAULT_TITLE =
+  'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France.';
+export const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
 export const APP_DESCRIPTION =
-  "Consulat vous permet de partager vos informations de contact simplement et sans contact par QR Code, en NFC ou en lien direct. Vous pouvez aussi acceder à un vaste réseau de professionnels et d'entreprises gabonais.";
+  'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France. Participez activement à la construction du Gabon de demain!';
 
 export type CountryItem = {
   name: string;
   code: string;
   flag?: string;
 };
-
-export async function getApiCountries(): Promise<CountryItem[]> {
-  const response = await fetch(
-    'https://countryapi.io/api/all?apikey=RE7Qb252spEs0eBJvTemFwaH4SE0C5lcmyzYuwkX',
-  );
-
-  const data = await response.json();
-
-  return data.map((country: { name: { common: string }; cca2: string }) => ({
-    name: country.name.common,
-    code: country.cca2,
-  }));
-}
-
-export async function getCountryCode(name: string): Promise<string | null> {
-  const response = await fetch(
-    `https://restcountries.com/v3.1/name/${name}?fields=name,cca2`,
-  );
-  const data = await response.json();
-
-  return data[0]?.cca2 ?? name;
-}
 
 export const weekDays = [
   'monday',

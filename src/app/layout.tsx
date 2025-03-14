@@ -45,12 +45,14 @@ export const metadata: Metadata = {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
-    images: '/images/cover-image-contact.ga.jpg',
+    images:
+      'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOibxPJi1LYxGmEboytI3PS7QDKqgNOVFnvWRli',
     description: APP_DESCRIPTION,
   },
   twitter: {
     card: 'summary',
-    images: '/images/cover-image-contact.ga.jpg',
+    images:
+      'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOibxPJi1LYxGmEboytI3PS7QDKqgNOVFnvWRli',
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
@@ -58,7 +60,7 @@ export const metadata: Metadata = {
     description: APP_DESCRIPTION,
   },
   icons: {
-    icon: '/images/favicon.ico',
+    icon: '/favicon.ico',
   },
 };
 
