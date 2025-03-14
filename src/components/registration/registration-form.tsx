@@ -14,7 +14,7 @@ import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
 import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
 import { handleFormError } from '@/lib/form/errors';
-import { useToast } from '@/hooks/use-toast';
+import { toast, useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { submitProfileForValidation, updateProfile } from '@/actions/profile';
@@ -51,7 +51,6 @@ export function RegistrationForm({
   const router = useRouter();
   const t = useTranslations('registration');
   const t_errors = useTranslations('messages.errors');
-  const { toast } = useToast();
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
   type Step = keyof typeof forms | 'review';
 
@@ -74,30 +73,20 @@ export function RegistrationForm({
     setError(undefined);
 
     try {
-      const updateResult = updateFormsFromAnalysis(data, {
+      updateFormsFromAnalysis(data, {
         basicInfo: forms.basicInfo,
         contactInfo: forms.contactInfo,
         familyInfo: forms.familyInfo,
         professionalInfo: forms.professionalInfo,
       });
 
-      // Afficher le toast avec les sections mises à jour
-      const updatedSections = Object.entries(updateResult)
-        .filter(([, hasUpdates]) => hasUpdates)
-        // @ts-expect-error - Les sections sont dynamiques
-        .map(([key]) => t(`sections.${key.replace('has', '').toLowerCase()}`));
-
       toast({
+        duration: 1000,
         title: t('profile.analysis.success.title'),
         description: (
           <div className="space-y-2">
             <p>{t('profile.analysis.success.description')}</p>
-            <ul>
-              {updatedSections.map((section) => (
-                <li key={section}>{section}</li>
-              ))}
-            </ul>
-            <Button onClick={() => setCurrentStep((prev) => prev + 1)} size="sm">
+            <Button onClick={handleNext} size="sm">
               {t('profile.analysis.success.action')}
             </Button>
           </div>
