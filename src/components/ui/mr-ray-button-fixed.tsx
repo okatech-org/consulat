@@ -132,7 +132,7 @@ const IAstedButton = () => {
           ref={buttonRef}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="relative size-20 rounded-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out overflow-hidden thick-matter-button living-matter"
+          className="relative size-16 rounded-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out overflow-hidden thick-matter-button living-matter"
         >
           {/* Indicateurs d'attention déplacés à l'intérieur */}
           <div className="absolute attention-indicator top-4 left-4 z-20"></div>

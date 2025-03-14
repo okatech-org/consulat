@@ -1,6 +1,5 @@
 import './globals.css';
 import './animation.css';
-import { NextSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
 import { ThemeProvider } from '@/components/layouts/theme-provider';
 import React from 'react';
 import { GeistSans } from 'geist/font/sans';
@@ -85,7 +84,6 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={GeistSans.className + ' bg-muted'}>
-        <NextSSRPlugin />
         <ClientInit />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
@@ -97,7 +95,7 @@ export default async function RootLayout({
             <SessionProvider session={session}>
               {children}
               <Toaster />
-              <div className="hidden sm:flex fixed flex-col p-2 items-center bottom-10 right-4 rounded-full md:bottom-4 md:right-6">
+              <div className="flex fixed flex-col p-2 items-center bottom-2 translate-x-1/2 right-[50%] rounded-full md:bottom-4 md:right-6">
                 <ChatToggle />
               </div>
             </SessionProvider>
