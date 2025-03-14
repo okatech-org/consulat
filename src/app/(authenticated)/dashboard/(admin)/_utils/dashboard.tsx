@@ -3,6 +3,7 @@ import { StatsCard } from '@/components/ui/stats-card';
 import { FileText, Users, CheckCircle, Clock } from 'lucide-react';
 import { getAdminStats } from './actions/dashboard';
 import { tryCatch } from '@/lib/utils';
+
 export default async function AdminDashboard() {
   const t = await getTranslations('admin.dashboard');
 

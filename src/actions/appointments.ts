@@ -375,8 +375,7 @@ export async function getUserAppointments(params: {
   try {
     const appointments = await db.appointment.findMany({
       where: {
-        ...(params.userId && { attendeeId: params.userId }),
-        ...(params.agentId && { agentId: params.agentId }),
+        OR: [{ attendeeId: params.userId }, { agentId: params.agentId }],
       },
       include: {
         organization: true,

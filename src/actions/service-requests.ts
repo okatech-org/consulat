@@ -38,7 +38,9 @@ export async function getServiceRequestsByUser(userId: string) {
   await checkAuth();
 
   const requests = await db.serviceRequest.findMany({
-    where: { submittedById: userId },
+    where: {
+      OR: [{ submittedById: userId }, { assignedToId: userId }],
+    },
     ...FullServiceRequestInclude,
   });
 
