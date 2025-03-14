@@ -34,6 +34,17 @@ export interface GetRequestsOptions extends ServiceRequestFilters {
   sortOrder?: 'asc' | 'desc';
 }
 
+export async function getServiceRequestsByUser(userId: string) {
+  await checkAuth();
+
+  const requests = await db.serviceRequest.findMany({
+    where: { submittedById: userId },
+    ...FullServiceRequestInclude,
+  });
+
+  return requests;
+}
+
 /**
  * Récupérer les demandes de services avec filtres et pagination
  */
