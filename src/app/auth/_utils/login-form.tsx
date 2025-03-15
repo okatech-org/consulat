@@ -24,7 +24,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { isUserExists, sendOTP } from '@/actions/auth';
 import { toast } from '@/hooks/use-toast';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -33,12 +33,43 @@ import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { ErrorCard } from '@/components/ui/error-card';
 import { validateOTP } from '@/lib/user/otp';
+import { z } from 'zod';
 
-function getLoginSchema(type: 'EMAIL' | 'PHONE') {
+function getLoginSchema(type: 'EMAIL' | 'PHONE', showOTP: boolean) {
   if (type === 'EMAIL') {
-    return LoginWithEmailSchema;
+    return LoginWithEmailSchema.extend({
+      otp: showOTP
+        ? z
+            .string({
+              invalid_type_error: 'messages.errors.opt_min_length',
+              required_error: 'messages.errors.opt_min_length',
+            })
+            .min(6, {
+              message: 'messages.errors.opt_min_length',
+            })
+        : z
+            .string({
+              invalid_type_error: 'messages.errors.opt_min_length',
+            })
+            .optional(),
+    });
   }
-  return LoginWithPhoneSchema;
+  return LoginWithPhoneSchema.extend({
+    otp: showOTP
+      ? z
+          .string({
+            invalid_type_error: 'messages.errors.opt_min_length',
+            required_error: 'messages.errors.opt_min_length',
+          })
+          .min(6, {
+            message: 'messages.errors.opt_min_length',
+          })
+      : z
+          .string({
+            invalid_type_error: 'messages.errors.opt_min_length',
+          })
+          .optional(),
+  });
 }
 
 export function LoginForm() {
@@ -54,7 +85,7 @@ export function LoginForm() {
   const [resendCooldown, setResendCooldown] = React.useState(0);
 
   const form = useForm<LoginInput>({
-    resolver: zodResolver(getLoginSchema(method)),
+    resolver: zodResolver(getLoginSchema(method, false)),
     defaultValues: {
       type: method,
       email: undefined,
@@ -118,7 +149,7 @@ export function LoginForm() {
       const isExist = await isUserExists(undefined, data.email);
       if (!isExist) {
         form.setError('email', {
-          message: `${tError('no_user_found_with_email')}`,
+          message: 'messages.errors.no_user_found_with_email',
         });
         setIsLoading(false);
         return;
@@ -129,7 +160,7 @@ export function LoginForm() {
       const isExist = await isUserExists(undefined, undefined, data.phone);
       if (!isExist) {
         form.setError('phone.number', {
-          message: `${tError('no_user_found_with_phone')}`,
+          message: 'messages.errors.no_user_found_with_phone',
         });
         setIsLoading(false);
         return;
@@ -165,10 +196,10 @@ export function LoginForm() {
       return;
     }
 
-    if (showOTP && data.otp) {
+    if (showOTP) {
       const isOTPValid = await validateOTP({
         identifier,
-        otp: data.otp,
+        otp: data.otp ?? '',
         type: data.type,
       });
 
@@ -179,13 +210,15 @@ export function LoginForm() {
         setIsLoading(false);
         return;
       }
-    }
 
-    await signIn('credentials', {
-      identifier,
-      type: data.type,
-      redirectTo: callbackUrl ?? '/',
-    });
+      if (isOTPValid) {
+        await signIn('credentials', {
+          identifier,
+          type: data.type,
+          redirectTo: callbackUrl ?? '/',
+        });
+      }
+    }
 
     setIsLoading(false);
   };
@@ -283,13 +316,32 @@ export function LoginForm() {
             </div>
           )}
           <div className="actions flex flex-col gap-4">
-            <Button variant="default" type="submit" disabled={isLoading}>
+            <Button
+              variant="default"
+              type="submit"
+              disabled={isLoading || !form.formState.isValid}
+            >
               <span>{showOTP ? t('access_space') : t('login_button')}</span>
               {!isLoading && <ArrowRight className="size-icon" />}
               {isLoading && <Loader2 className="size-icon animate-spin" />}
             </Button>
+
             {showOTP && (
-              <div className="flex justify-end items-center">
+              <div className="flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-muted-foreground p-0"
+                  disabled={isLoading}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams);
+                    params.delete('otp');
+                    router.push(`?${params.toString()}`);
+                  }}
+                >
+                  <ArrowLeft className="size-icon" />
+                  {t('back')}
+                </Button>
                 <Button
                   variant="link"
                   className="text-muted-foreground p-0"
@@ -297,6 +349,11 @@ export function LoginForm() {
                   onClick={handleResendOTP}
                 >
                   {t('resend_code')}
+                  {resendCooldown > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {t('resend_cooldown', { cooldown: resendCooldown })}
+                    </span>
+                  )}
                 </Button>
               </div>
             )}

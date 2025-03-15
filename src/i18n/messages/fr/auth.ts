@@ -13,6 +13,7 @@ export default {
       phone: 'Téléphone',
       email: 'Email',
     },
+    resend_cooldown: ' - Dans {cooldown}s',
     agreement: 'En cliquant sur Continuer, vous acceptez nos',
     terms: "Conditions d'utilisation",
     privacy: 'Politique de confidentialité',
@@ -39,7 +40,7 @@ export default {
       loading: 'Chargement...',
     },
     messages: {
-      otp_sent: 'Un code de vérification a été envoyé',
+      otp_sent: 'Un code de vérification vous a été envoyé',
       otp_expired: 'Le code de vérification a expiré',
       otp_invalid: 'Code de vérification invalide ou expiré',
       otp_required: 'Le code de vérification est requis',
