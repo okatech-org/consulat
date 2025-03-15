@@ -56,8 +56,7 @@ export const {
       name: 'Credentials',
       credentials: {
         identifier: { type: 'string' },
-        type: { type: 'text' },
-        otp: { type: 'text' },
+        type: { type: 'enum', enum: ['EMAIL', 'PHONE'] },
         callbackUrl: { type: 'text' },
       },
       async authorize(credentials) {
@@ -69,21 +68,11 @@ export const {
 
 async function handleAuthorize(credentials: unknown) {
   try {
-    if (!credentials) return new Error('No credentials');
-    const { identifier, type, otp } = credentials as unknown as AuthPayload;
+    if (!credentials) return new Error('no_credentials');
+    const { identifier, type } = credentials as unknown as AuthPayload;
 
-    if (!identifier || !otp) {
-      return new Error('Missing credentials');
-    }
-
-    const isValid = await validateOTP({
-      identifier,
-      otp,
-      type,
-    });
-
-    if (!isValid) {
-      return null;
+    if (!identifier || !type) {
+      return new Error('missing_credentials');
     }
 
     // Trouver ou créer l'utilisateur
@@ -92,45 +81,12 @@ async function handleAuthorize(credentials: unknown) {
         ? { email: identifier }
         : { phone: { number: extractNumber(identifier).number } };
 
-    let user = await db.user.findFirst({
+    const user = await db.user.findFirst({
       where: userWhere,
-      select: {
-        id: true,
-        email: true,
-        roles: true,
-        phone: true,
-        lastLogin: true,
-        organizationId: true,
-        assignedOrganizationId: true,
-        countryCode: true,
-        specializations: true,
-        linkedCountries: true,
-      },
     });
 
     if (!user) {
-      user = await db.user.create({
-        data: {
-          ...(type === 'EMAIL'
-            ? { email: identifier }
-            : { phone: { create: extractNumber(identifier) } }),
-          emailVerified: type === 'EMAIL' ? new Date() : null,
-          phoneVerified: type === 'PHONE' ? new Date() : null,
-          roles: [UserRole.USER], // Rôle par défaut
-        },
-        select: {
-          id: true,
-          email: true,
-          roles: true,
-          phone: true,
-          lastLogin: true,
-          organizationId: true,
-          assignedOrganizationId: true,
-          countryCode: true,
-          specializations: true,
-          linkedCountries: true,
-        },
-      });
+      return new Error('user_not_found');
     }
 
     return user;

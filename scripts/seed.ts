@@ -365,6 +365,7 @@ async function main() {
               roles: [UserRole.USER],
               emailVerified: new Date(),
               countryCode: 'FR',
+              phoneId: 'phone-berny-itoutou',
             },
           },
           address: {
@@ -378,7 +379,8 @@ async function main() {
           },
           phone: {
             create: {
-              number: '0612345678',
+              id: 'phone-berny-itoutou',
+              number: '612250393',
               countryCode: '+33',
             },
           },

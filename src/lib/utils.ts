@@ -109,13 +109,6 @@ export function checkFileType(files: FileList | File[] | undefined, types: strin
   return types.includes(files[0].type);
 }
 
-export const APP_NAME = 'Consulat.ga';
-export const APP_DEFAULT_TITLE =
-  'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France.';
-export const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
-export const APP_DESCRIPTION =
-  'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France. Participez activement à la construction du Gabon de demain!';
-
 export type CountryItem = {
   name: string;
   code: string;

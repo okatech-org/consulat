@@ -36,6 +36,11 @@
       "command": "bun run db:studio"
     },
     {
+      "label": "DB Seed Light",
+      "type": "shell",
+      "command": "bun run db:seed-light"
+    },
+    {
       "label": "DB Server",
       "type": "shell",
       "command": "bun run db:server"

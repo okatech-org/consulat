@@ -80,8 +80,11 @@ export function PhoneInput({
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value || ''}
                     onChange={(e) => {
-                      field.onChange(e.target.value.replace(/\D/g, ''));
+                      const value = e.target.value.replace(/\D/g, '');
+                      const valueWithoutZero = value.replace(/^0+/, '');
+                      field.onChange(valueWithoutZero);
                     }}
                     type="tel"
                     disabled={disabled}

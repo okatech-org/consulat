@@ -8,7 +8,7 @@ export default {
     discover_features: 'Découvrir les fonctionnalités',
     start_registration: 'Commencer mon inscription',
     citizen_space: 'Inscription consulaire',
-    government_space: 'Espace Gouvernement',
+    government_space: 'Administration diplomatique',
     subtitle: 'Votre Lien Numérique avec le Gabon',
   },
   features: {
@@ -92,7 +92,7 @@ export default {
       description:
         'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens à travers le monde. Participez activement à la construction du Gabon de demain!',
       citizen_space: 'Inscription consulaire',
-      government_space: 'Espace Gouvernement',
+      government_space: 'Administration diplomatique',
       secure_data: 'Sécurisé et conforme aux normes de protection des données',
     },
     consulat_digital: {

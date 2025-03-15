@@ -5,7 +5,6 @@ import { buttonVariants } from "@/components/ui/button"
 import { getCurrentUser } from "@/actions/user"
 import { UserNav } from "../layouts/user-nav"
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
-//import { LanguageSwitcherSingle } from "../layouts/language-switcher-single"
 import Image from 'next/image';
 
 const logo = process.env.NEXT_PUBLIC_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
@@ -42,14 +41,12 @@ export async function PublicHeader() {
           <ThemeToggleSingle />
           {/* <LanguageSwitcherSingle /> */}
 
-          {isAuth ? <UserNav user={user} /> : ( <Link prefetch href={ROUTES.auth.login} className={buttonVariants({ 
+          {isAuth ? <UserNav user={user} /> : ( <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base} className={buttonVariants({ 
             variant: 'default', 
             className: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800' 
           })}>
             {t('nav.login')}
           </Link>)}
-          
-         
         </div>
       </div>
     </header>

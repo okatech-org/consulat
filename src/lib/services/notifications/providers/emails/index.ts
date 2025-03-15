@@ -70,18 +70,13 @@ export async function sendOTPEmail(email: string, otp: string) {
       warning: t('warning'),
     },
   });
-  try {
-    await resend.emails.send({
-      from: `${env.NEXT_PUBLIC_APP_NAME} <${env.RESEND_SENDER}>`,
-      to: email,
-      subject: t('subject'),
-      html: emailHtml,
-      tags: [{ name: 'category', value: 'otp' }],
-    });
-  } catch (error) {
-    console.error('Failed to send OTP email:', error);
-    throw new Error('Failed to send OTP email');
-  }
+  await resend.emails.send({
+    from: `${appName} <${resend_sender}>`,
+    to: email,
+    subject: t('subject'),
+    html: emailHtml,
+    tags: [{ name: 'category', value: 'otp' }],
+  });
 }
 
 interface SendNotificationEmailParams {

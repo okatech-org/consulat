@@ -59,7 +59,7 @@ export default async function LandingPage() {
                   <ArrowRight className="size-4" />
                 </Link>
                 <Link
-                  href={ROUTES.dashboard.base}
+                  href={`mailto:okatech@icloud.com`}
                   className={buttonVariants({
                     size: 'lg',
                     variant: 'outline',
@@ -485,7 +485,7 @@ export default async function LandingPage() {
             <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 tracking-wide">
               {l('footer.copyright', { year: new Date().getFullYear() })}
             </p>
-            <div className="flex flex-wrap justify-center md:justify-end gap-6">
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-6">
               <Link
                 href="/legal/privacy"
                 className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
@@ -506,6 +506,14 @@ export default async function LandingPage() {
               >
                 <span>{l('footer.legalMentions')}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
+              </Link>
+              <Link
+                href="/dashboard"
+                className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                <span className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 home-badge">
+                  Espace Administration
+                </span>
               </Link>
             </div>
           </AnimatedSection>

@@ -4,31 +4,35 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
   LoginWithPhoneSchema,
   LoginWithEmailSchema,
   type LoginInput,
 } from '@/schemas/user';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { sendOTP } from '@/actions/auth';
+import { isUserExists, sendOTP } from '@/actions/auth';
 import { toast } from '@/hooks/use-toast';
-import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { tryCatch } from '@/lib/utils';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { ROUTES } from '@/schemas/routes';
+import Link from 'next/link';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { ErrorCard } from '@/components/ui/error-card';
+import { validateOTP } from '@/lib/user/otp';
 
 function getLoginSchema(type: 'EMAIL' | 'PHONE') {
   if (type === 'EMAIL') {
@@ -39,19 +43,69 @@ function getLoginSchema(type: 'EMAIL' | 'PHONE') {
 
 export function LoginForm() {
   const t = useTranslations('auth.login');
-  const router = useRouter();
+  const tError = useTranslations('messages.errors');
   const searchParams = useSearchParams();
+  const router = useRouter();
   const callbackUrl = searchParams.get('callbackUrl');
+  const showOTP = Boolean(searchParams.get('otp'));
+  const authError = searchParams.get('error') as ErrorMessageKey | null;
   const [isLoading, setIsLoading] = React.useState(false);
-  const [showOTP, setShowOTP] = React.useState(false);
-  const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('EMAIL');
+  const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('PHONE');
+  const [resendCooldown, setResendCooldown] = React.useState(0);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(getLoginSchema(method)),
     defaultValues: {
       type: method,
+      email: undefined,
+      phone: {
+        countryCode: '+33',
+        number: '',
+      },
     },
   });
+
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) return;
+
+    const data = form.getValues();
+    const identifier =
+      data.type === 'EMAIL'
+        ? data.email
+        : `${data.phone?.countryCode}${data.phone?.number}`;
+
+    setIsLoading(true);
+    const { error: sendOTPError, data: sendOTPData } = await tryCatch(
+      sendOTP(identifier ?? '', data.type),
+    );
+
+    if (sendOTPError) {
+      toast({
+        title: t('messages.code_not_sent_otp'),
+        variant: 'destructive',
+      });
+    }
+
+    if (sendOTPData) {
+      toast({
+        title: t('messages.otp_sent'),
+        variant: 'success',
+      });
+      setResendCooldown(60); // 60 seconds cooldown
+    }
+
+    setIsLoading(false);
+  };
 
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
@@ -59,6 +113,28 @@ export function LoginForm() {
       data.type === 'EMAIL'
         ? data.email
         : `${data.phone?.countryCode}${data.phone?.number}`;
+
+    if (!showOTP && data.type === 'EMAIL') {
+      const isExist = await isUserExists(undefined, data.email);
+      if (!isExist) {
+        form.setError('email', {
+          message: `${tError('no_user_found_with_email')}`,
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    if (!showOTP && data.type === 'PHONE') {
+      const isExist = await isUserExists(undefined, undefined, data.phone);
+      if (!isExist) {
+        form.setError('phone.number', {
+          message: `${tError('no_user_found_with_phone')}`,
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
 
     if (!showOTP) {
       // Envoyer l'OTP
@@ -68,17 +144,20 @@ export function LoginForm() {
 
       if (sendOTPError) {
         toast({
-          title: t('messages.code_not_sent_otp'),
+          title: tError('code_not_sent_otp'),
           variant: 'destructive',
         });
       }
 
       if (sendOTPData) {
-        setShowOTP(true);
+        const params = new URLSearchParams(searchParams);
+        params.set('otp', 'true');
+        router.push(`?${params.toString()}`);
         toast({
           title: t('messages.otp_sent'),
           variant: 'success',
         });
+        setResendCooldown(60); // 60 seconds cooldown
       }
 
       setIsLoading(false);
@@ -86,21 +165,27 @@ export function LoginForm() {
       return;
     }
 
-    const { error: loginWithOTPError } = await tryCatch(
-      signIn('credentials', {
+    if (showOTP && data.otp) {
+      const isOTPValid = await validateOTP({
         identifier,
-        type: data.type,
         otp: data.otp,
-        redirectTo: callbackUrl ?? '/',
-      }),
-    );
-
-    if (loginWithOTPError) {
-      toast({
-        title: t('messages.otp_invalid'),
-        variant: 'destructive',
+        type: data.type,
       });
+
+      if (!isOTPValid) {
+        form.setError('otp', {
+          message: `${tError('invalid_otp')}`,
+        });
+        setIsLoading(false);
+        return;
+      }
     }
+
+    await signIn('credentials', {
+      identifier,
+      type: data.type,
+      redirectTo: callbackUrl ?? '/',
+    });
 
     setIsLoading(false);
   };
@@ -108,7 +193,6 @@ export function LoginForm() {
   // Gérer le changement de méthode
   const handleMethodChange = (value: string) => {
     setMethod(value as 'EMAIL' | 'PHONE');
-    setShowOTP(false);
     form.reset();
     if (value === 'EMAIL') {
       form.setValue('type', 'EMAIL');
@@ -124,109 +208,126 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={'flex flex-col gap-6'}>
-        <div className="space-y-4">
-          <Card className="overflow-hidden">
-            <CardContent className="grid min-h-[500px] p-0 md:grid-cols-2">
-              <div className="flex flex-col gap-8 p-6 md:p-8">
-                <div className="flex flex-col gap-6">
-                  <div className="flex flex-grow flex-col items-center text-center">
-                    <h1 className="text-2xl font-bold">{t('welcome')}</h1>
-                    <p className="text-balance text-muted-foreground">
-                      {t('description')}
-                    </p>
-                  </div>
-                  <div className="space-y-4">
-                    <Tabs
-                      defaultValue="EMAIL"
-                      value={method}
-                      onValueChange={handleMethodChange}
-                      className="w-full"
-                    >
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="EMAIL">{t('tabs.email')}</TabsTrigger>
-                        <TabsTrigger value="PHONE">{t('tabs.phone')}</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="EMAIL">
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('inputs.email.label')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  autoFocus={true}
-                                  {...field}
-                                  type="email"
-                                  placeholder={t('inputs.email.placeholder')}
-                                  disabled={isLoading}
-                                />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
-                          )}
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={'w-full flex flex-col gap-6'}
+      >
+        <div className="flex flex-col gap-6">
+          {!showOTP && (
+            <Tabs
+              value={method}
+              onValueChange={handleMethodChange}
+              className="inputs w-full"
+            >
+              <TabsContent value="EMAIL">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inputs.email.label')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          autoFocus={true}
+                          {...field}
+                          type="email"
+                          placeholder={t('inputs.email.placeholder')}
+                          disabled={isLoading}
                         />
-                      </TabsContent>
-
-                      <TabsContent value="PHONE">
-                        <FormItem>
-                          <FormLabel>{t('inputs.phone.label')}</FormLabel>
-                          <PhoneInput
-                            parentForm={form}
-                            fieldName="phone"
-                            disabled={isLoading}
-                          />
-                        </FormItem>
-                      </TabsContent>
-                    </Tabs>
-
-                    {showOTP && (
-                      <FormField
-                        control={form.control}
-                        name="otp"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('inputs.otp.label')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                autoFocus={true}
-                                {...field}
-                                placeholder={t('inputs.otp.placeholder')}
-                                disabled={isLoading}
-                              />
-                            </FormControl>
-                            <TradFormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-                    {showOTP ? t('buttons.verify') : t('buttons.get_code')}
-                  </Button>
-                </div>
-              </div>
-              <div className="relative hidden bg-muted md:block">
-                <Image
-                  src="https://utfs.io/f/yMD4lMLsSKvz349tIYw9oyDVxmdLHiTXuO0SKbeYqQUlPghR"
-                  alt="Image"
-                  className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-                  width={800}
-                  height={800}
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
                 />
+              </TabsContent>
+
+              <TabsContent value="PHONE">
+                <FormItem>
+                  <FormLabel>{t('inputs.phone.label')}</FormLabel>
+                  <PhoneInput parentForm={form} fieldName="phone" disabled={isLoading} />
+                </FormItem>
+              </TabsContent>
+            </Tabs>
+          )}
+          {showOTP && (
+            <div className="otp">
+              <FormField
+                control={form.control}
+                name="otp"
+                render={({ field }) => (
+                  <FormItem className="space-y-4">
+                    <FormLabel className="text-xl font-semibold">
+                      {t('access_code')}
+                    </FormLabel>
+                    <FormControl>
+                      <InputOTP maxLength={6} {...field}>
+                        <InputOTPGroup>
+                          <InputOTPSlot className="w-12" index={0} />
+                          <InputOTPSlot className="w-12" index={1} />
+                          <InputOTPSlot className="w-12" index={2} />
+                          <InputOTPSlot className="w-12" index={3} />
+                          <InputOTPSlot className="w-12" index={4} />
+                          <InputOTPSlot className="w-12" index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </FormControl>
+                    <FormDescription>
+                      {method === 'PHONE'
+                        ? t('access_code_phone_description')
+                        : t('access_code_email_description')}
+                    </FormDescription>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+          <div className="actions flex flex-col gap-4">
+            <Button variant="default" type="submit" disabled={isLoading}>
+              <span>{showOTP ? t('access_space') : t('login_button')}</span>
+              {!isLoading && <ArrowRight className="size-icon" />}
+              {isLoading && <Loader2 className="size-icon animate-spin" />}
+            </Button>
+            {showOTP && (
+              <div className="flex justify-end items-center">
+                <Button
+                  variant="link"
+                  className="text-muted-foreground p-0"
+                  disabled={isLoading || resendCooldown > 0}
+                  onClick={handleResendOTP}
+                >
+                  {t('resend_code')}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-          <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
-            {t('agreement')} <a href="#">{t('terms')}</a> {t('and')}{' '}
-            <a href="#">{t('privacy')}</a>.
+            )}
+            {!showOTP && (
+              <Button
+                type="button"
+                variant="link"
+                disabled={isLoading}
+                onClick={() => handleMethodChange(method === 'EMAIL' ? 'PHONE' : 'EMAIL')}
+              >
+                <span className="text-muted-foreground">
+                  {method === 'EMAIL'
+                    ? t('login_with_phone_prompt')
+                    : t('login_with_email_prompt')}
+                </span>
+              </Button>
+            )}
           </div>
-        </div>
+          {authError && <ErrorCard description={tError('auth_error')} />}
+          <div className="subactions flex justify-center">
+            <p className="text-sm text-muted-foreground">
+              <span>{t('no_account')}</span>
+              <Link
+                className={buttonVariants({ variant: 'link' }) + ' !p-0'}
+                href={ROUTES.registration}
+              >
+                {t('create_consular_space')}
+              </Link>
+            </p>
+          </div>
+        </div>{' '}
       </form>
     </Form>
   );

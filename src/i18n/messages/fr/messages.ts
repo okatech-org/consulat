@@ -1,5 +1,15 @@
 export default {
   errors: {
+    code_not_sent_otp: "Le code n'a pas été envoyé, veuillez réessayer",
+    auth_error:
+      "Erreur de connexion, veuillez réessayer. Si le problème persiste, contactez l'assistance.",
+    no_user_found_with_email: "Nous n'avons pas trouvé d'utilisateur avec cet email",
+    no_user_found_with_phone:
+      "Nous n'avons pas trouvé d'utilisateur avec ce numéro de téléphone",
+    missing_credentials: 'Identifiants manquants',
+    invalid_identifier: 'Erreur de connexion: Identifiant invalides',
+    user_not_found: "Nous n'avons pas trouvé d'utilisateur avec ces identifiants",
+    invalid_otp: "Ce code d'accès est invalide ou a expiré, veuillez réessayer",
     invalid_field: 'Champ invalide',
     expiry_date_past: "La date d'expiration est passée ou expire bientôt",
     expiry_date_future: "La date d'expiration ne peut pas être dans le futur",

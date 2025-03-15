@@ -2,14 +2,8 @@ import './globals.css';
 import './animation.css';
 import { ThemeProvider } from '@/components/layouts/theme-provider';
 import React from 'react';
-import { GeistSans } from 'geist/font/sans';
+import { Inter } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
-import {
-  APP_DEFAULT_TITLE,
-  APP_DESCRIPTION,
-  APP_NAME,
-  APP_TITLE_TEMPLATE,
-} from '@/lib/utils';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
@@ -17,10 +11,16 @@ import { ChatToggle } from '@/components/chat/chat-toggle';
 import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 import { ClientInit } from '@/components/ui/client-init';
+import { env } from '@/lib/env';
+
+const APP_DEFAULT_TITLE = 'Consulat.ga';
+const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
+const APP_DESCRIPTION =
+  'Initiative du CTRI pour la diaspora, Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France. Participez activement à la construction du Gabon de demain!';
 
 export const metadata: Metadata = {
-  applicationName: APP_NAME,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000'),
+  applicationName: env.NEXT_PUBLIC_APP_NAME,
+  metadataBase: new URL(env.NEXT_PUBLIC_URL),
   alternates: {
     canonical: '/',
   },
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    siteName: APP_NAME,
+    siteName: env.NEXT_PUBLIC_APP_NAME,
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
@@ -74,6 +74,8 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
 };
 
+const inter = Inter({ subsets: ['latin'] });
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -85,7 +87,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={GeistSans.className + ' bg-muted'}>
+      <body className={inter.className + ' bg-muted'}>
         <ClientInit />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider

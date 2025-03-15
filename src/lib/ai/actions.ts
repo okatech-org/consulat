@@ -1,7 +1,5 @@
 'use server';
 
-'use server';
-
 import OpenAI from 'openai';
 import { ContextData } from '@/lib/ai/types';
 import { db } from '@/lib/prisma';
@@ -13,6 +11,7 @@ import {
   RAY_AGENT_PROMPT,
   SUPER_ADMIN_PROMPT,
 } from '@/lib/ai/prompts';
+import { FullProfileInclude, FullUserInclude } from '@/types';
 
 const openai = new OpenAI();
 
@@ -106,9 +105,7 @@ async function getUserContextDataForUser(
     await Promise.all([
       db.user.findUnique({
         where: { id: userId },
-        include: {
-          phone: true,
-        },
+        ...FullUserInclude,
       }),
       db.country.findUnique({
         where: { id: userId },
@@ -122,19 +119,7 @@ async function getUserContextDataForUser(
       }),
       db.profile.findUnique({
         where: { id: userId },
-        include: {
-          identityPicture: true,
-          passport: true,
-          birthCertificate: true,
-          residencePermit: true,
-          addressProof: true,
-          address: true,
-          phone: true,
-          emergencyContact: true,
-          addressInGabon: true,
-          notes: true,
-          notifications: true,
-        },
+        ...FullProfileInclude,
       }),
       db.serviceRequest.findMany({
         where: { userId },

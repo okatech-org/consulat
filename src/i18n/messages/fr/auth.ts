@@ -78,6 +78,25 @@ export default {
     email_expiry: 'Ce code est valable pendant 10 minutes. Ne le partagez avec personne.',
     phone_verify:
       'Votre code de vérification pour Consulat.ga est : {otp}. Ce code expirera dans 10 minutes.',
+    access_code: "Code d'accès",
+    access_code_phone_description:
+      "Veuillez entrer le code d'accès envoyé à votre numéro de téléphone",
+    access_code_email_description: "Veuillez entrer le code d'accès envoyé à votre email",
+    access_space: 'Accéder à mon espace',
+    login_button: 'Se connecter',
+    back: 'Retour',
+    resend_code: "Renvoyer le code d'accès",
+    login_with_phone_prompt: 'Se connecter avec un numéro de téléphone',
+    login_with_email_prompt: 'Se connecter avec un email',
+    no_account: 'Pas encore de compte ? ',
+    create_consular_space: 'Créer mon espace consulaire',
+    page: {
+      title: "S'identifier",
+      welcome_message:
+        'Bienvenue sur {appName} - Connectez-vous pour accéder à votre espace consulaire.',
+      image_alt: 'Consulat.ga',
+      hero_image_alt: 'Image',
+    },
   },
   actions: {
     otp: 'Code de vérification',
