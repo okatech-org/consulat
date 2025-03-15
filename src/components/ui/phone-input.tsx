@@ -65,6 +65,7 @@ export function PhoneInput({
                     selected={(field.value as CountryCode) ?? defaultCountry}
                     onChange={field.onChange}
                     disabled={disabled}
+                    autoComplete="tel-country-code"
                   />
                 </FormControl>
                 <TradFormMessage className="text-xs absolute top-full" />
@@ -88,6 +89,7 @@ export function PhoneInput({
                     }}
                     type="tel"
                     disabled={disabled}
+                    autoComplete="tel-national"
                   />
                 </FormControl>
                 <TradFormMessage />

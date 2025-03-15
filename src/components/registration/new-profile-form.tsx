@@ -17,7 +17,6 @@ import { CountrySelect } from '@/components/ui/country-select';
 import { getCountryCode, type CountryCode } from '@/lib/autocomplete-datas';
 import CardContainer from '../layouts/card-container';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import {
   CountryCodeSchema,
   DateSchema,
@@ -48,7 +47,6 @@ export function NewProfileForm({
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
   const tErrors = useTranslations('messages.errors');
-  const router = useRouter();
   const [showOTP, setShowOTP] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<ErrorMessageKey | null>(null);

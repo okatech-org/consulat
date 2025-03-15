@@ -42,6 +42,7 @@ interface MultiSelectSingleProps<T> {
   emptyText?: string;
   type: 'single';
   disabled?: boolean;
+  autoComplete?: string;
 }
 
 export function MultiSelect<T>({
@@ -53,6 +54,7 @@ export function MultiSelect<T>({
   emptyText = 'Aucun résultat trouvé.',
   type = 'multiple',
   disabled = false,
+  autoComplete = 'off',
 }: MultiSelectMultipleProps<T> | MultiSelectSingleProps<T>) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
@@ -127,6 +129,7 @@ export function MultiSelect<T>({
               placeholder={searchPlaceholder}
               value={searchValue}
               onValueChange={setSearchValue}
+              autoComplete={autoComplete}
             />
             <CommandList>
               <CommandEmpty>{emptyText}</CommandEmpty>

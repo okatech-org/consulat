@@ -76,16 +76,15 @@ export function LoginForm() {
   const t = useTranslations('auth.login');
   const tError = useTranslations('messages.errors');
   const searchParams = useSearchParams();
-  const router = useRouter();
   const callbackUrl = searchParams.get('callbackUrl');
-  const showOTP = Boolean(searchParams.get('otp'));
+  const [displayOTP, setDisplayOTP] = React.useState(false);
   const authError = searchParams.get('error') as ErrorMessageKey | null;
   const [isLoading, setIsLoading] = React.useState(false);
   const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('PHONE');
   const [resendCooldown, setResendCooldown] = React.useState(0);
 
   const form = useForm<LoginInput>({
-    resolver: zodResolver(getLoginSchema(method, false)),
+    resolver: zodResolver(getLoginSchema(method, displayOTP)),
     defaultValues: {
       type: method,
       email: undefined,
@@ -145,7 +144,7 @@ export function LoginForm() {
         ? data.email
         : `${data.phone?.countryCode}${data.phone?.number}`;
 
-    if (!showOTP && data.type === 'EMAIL') {
+    if (!displayOTP && data.type === 'EMAIL') {
       const isExist = await isUserExists(undefined, data.email);
       if (!isExist) {
         form.setError('email', {
@@ -156,7 +155,7 @@ export function LoginForm() {
       }
     }
 
-    if (!showOTP && data.type === 'PHONE') {
+    if (!displayOTP && data.type === 'PHONE') {
       const isExist = await isUserExists(undefined, undefined, data.phone);
       if (!isExist) {
         form.setError('phone.number', {
@@ -167,7 +166,7 @@ export function LoginForm() {
       }
     }
 
-    if (!showOTP) {
+    if (!displayOTP) {
       // Envoyer l'OTP
       const { error: sendOTPError, data: sendOTPData } = await tryCatch(
         sendOTP(identifier ?? '', data.type),
@@ -181,9 +180,7 @@ export function LoginForm() {
       }
 
       if (sendOTPData) {
-        const params = new URLSearchParams(searchParams);
-        params.set('otp', 'true');
-        router.push(`?${params.toString()}`);
+        setDisplayOTP(true);
         toast({
           title: t('messages.otp_sent'),
           variant: 'success',
@@ -196,7 +193,7 @@ export function LoginForm() {
       return;
     }
 
-    if (showOTP) {
+    if (displayOTP) {
       const isOTPValid = await validateOTP({
         identifier,
         otp: data.otp ?? '',
@@ -246,7 +243,7 @@ export function LoginForm() {
         className={'w-full flex flex-col gap-6'}
       >
         <div className="flex flex-col gap-6">
-          {!showOTP && (
+          {!displayOTP && (
             <Tabs
               value={method}
               onValueChange={handleMethodChange}
@@ -264,6 +261,7 @@ export function LoginForm() {
                           autoFocus={true}
                           {...field}
                           type="email"
+                          autoComplete="email"
                           placeholder={t('inputs.email.placeholder')}
                           disabled={isLoading}
                         />
@@ -282,7 +280,7 @@ export function LoginForm() {
               </TabsContent>
             </Tabs>
           )}
-          {showOTP && (
+          {displayOTP && (
             <div className="otp">
               <FormField
                 control={form.control}
@@ -293,7 +291,7 @@ export function LoginForm() {
                       {t('access_code')}
                     </FormLabel>
                     <FormControl>
-                      <InputOTP maxLength={6} {...field}>
+                      <InputOTP maxLength={6} {...field} autoComplete="one-time-code">
                         <InputOTPGroup>
                           <InputOTPSlot className="w-12" index={0} />
                           <InputOTPSlot className="w-12" index={1} />
@@ -321,12 +319,12 @@ export function LoginForm() {
               type="submit"
               disabled={isLoading || !form.formState.isValid}
             >
-              <span>{showOTP ? t('access_space') : t('login_button')}</span>
+              <span>{displayOTP ? t('access_space') : t('login_button')}</span>
               {!isLoading && <ArrowRight className="size-icon" />}
               {isLoading && <Loader2 className="size-icon animate-spin" />}
             </Button>
 
-            {showOTP && (
+            {displayOTP && (
               <div className="flex justify-between items-center">
                 <Button
                   type="button"
@@ -334,9 +332,7 @@ export function LoginForm() {
                   className="text-muted-foreground p-0"
                   disabled={isLoading}
                   onClick={() => {
-                    const params = new URLSearchParams(searchParams);
-                    params.delete('otp');
-                    router.push(`?${params.toString()}`);
+                    setDisplayOTP(false);
                   }}
                 >
                   <ArrowLeft className="size-icon" />
@@ -357,7 +353,7 @@ export function LoginForm() {
                 </Button>
               </div>
             )}
-            {!showOTP && (
+            {!displayOTP && (
               <Button
                 type="button"
                 variant="link"

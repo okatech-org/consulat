@@ -14,7 +14,7 @@ import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
 import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
 import { handleFormError } from '@/lib/form/errors';
-import { toast, useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { submitProfileForValidation, updateProfile } from '@/actions/profile';

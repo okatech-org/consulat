@@ -7,13 +7,13 @@ export default {
     create_card_prompt: 'Créez votre carte consulaire gratuitement.',
   },
   login: {
+    resend_cooldown: ' - Dans {cooldown}s',
     welcome: 'Bienvenue 👋',
     description: 'Identifiez-vous pour accéder à votre espace consulaire',
     tabs: {
       phone: 'Téléphone',
       email: 'Email',
     },
-    resend_cooldown: ' - Dans {cooldown}s',
     agreement: 'En cliquant sur Continuer, vous acceptez nos',
     terms: "Conditions d'utilisation",
     privacy: 'Politique de confidentialité',
