@@ -175,8 +175,6 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
     }),
   };
 
-  console.log({ documents: forms.documents.getValues() });
-
   // Sauvegarde automatique des données
   const handleDataChange = useCallback(
     (

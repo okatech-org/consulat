@@ -47,19 +47,17 @@ export default async function RegistrationPage() {
 
   return (
     <div className="w-dvw relative bg-background h-dvh p-4 overflow-hidden flex items-center justify-center md:grid md:grid-cols-12 md:gap-4">
-      <div className="min-h-full w-full overflow-y-auto flex flex-col items-center justify-center md:col-span-7">
-        <div className="min-w-full h-full max-w-2xl">
-          <RouteAuthGuard
-            user={currentUser?.user}
-            fallbackComponent={<CreateProfileFormComponent />}
-          >
-            {profile ? (
-              <RegistrationForm availableCountries={countries} profile={profile} />
-            ) : (
-              <CreateProfileFormComponent />
-            )}
-          </RouteAuthGuard>
-        </div>
+      <div className="min-h-full h-full w-full overflow-y-auto flex flex-col items-center justify-center md:col-span-7">
+        <RouteAuthGuard
+          user={currentUser?.user}
+          fallbackComponent={<CreateProfileFormComponent />}
+        >
+          {profile ? (
+            <RegistrationForm availableCountries={countries} profile={profile} />
+          ) : (
+            <CreateProfileFormComponent />
+          )}
+        </RouteAuthGuard>
       </div>
       <div className="w-full h-full overflow-hidden rounded-lg hidden md:block md:col-span-5">
         <Image

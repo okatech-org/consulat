@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoaderIcon, ScanBarcode } from 'lucide-react';
 import { DocumentsFormData } from '@/schemas/registration';
@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../user-document';
 import { AppUserDocument } from '@/types';
-
+import { useRouter } from 'next/navigation';
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
   handleSubmitAction: (data: DocumentsFormData) => void;
@@ -41,6 +41,7 @@ export function DocumentUploadSection({
   formRef,
   profileId,
 }: DocumentUploadSectionProps) {
+  const router = useRouter();
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
@@ -140,118 +141,82 @@ export function DocumentUploadSection({
 
   return (
     <Form {...form}>
-      <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
-        <AnimatePresence mode="sync">
-          {requiredDocuments.map((doc, index) => (
-            <motion.div
-              key={doc.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <FormField
-                control={form.control}
-                name={doc.id}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <UserDocument
-                        document={field.value as AppUserDocument}
-                        expectedType={doc.expectedType}
-                        label={doc.label}
-                        description={doc.description}
-                        required={doc.required}
-                        disabled={isLoading}
-                        profileId={profileId}
-                        onUpload={field.onChange}
-                        onDelete={() => {
-                          field.onChange(undefined);
-                        }}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
       <form
         ref={formRef}
         onSubmit={form.handleSubmit(handleSubmitAction)}
         className="space-y-8"
       >
-        {/* Section des documents */}
-        <Card className="overflow-hidden">
-          <CardFooter>
-            <div className={'w-full space-y-4'}>
-              {/* Section d'analyse */}
-              {onAnalysisComplete && (
-                <Card className="overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col items-center gap-4 text-center">
-                      <Button
-                        type="button"
-                        onClick={handleAnalysis}
-                        disabled={isAnalyzing || isLoading}
-                        className="w-full gap-2 md:w-auto"
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <LoaderIcon className="size-5 animate-spin" />
-                            {t('documents.analysis.analyzing')}
-                          </>
-                        ) : (
-                          <>
-                            <ScanBarcode className="size-5" />
-                            {t('documents.analysis.start')}
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-sm text-muted-foreground">
-                        {t('documents.analysis.help')}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              {/* Guide d'aide */}
-              <DocumentUploadGuide />
-            </div>
-          </CardFooter>
-        </Card>
+        <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
+          <AnimatePresence mode="sync">
+            {requiredDocuments.map((doc, index) => (
+              <motion.div
+                key={doc.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <FormField
+                  control={form.control}
+                  name={doc.id}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <UserDocument
+                          document={field.value as AppUserDocument}
+                          expectedType={doc.expectedType}
+                          label={doc.label}
+                          description={doc.description}
+                          required={doc.required}
+                          disabled={isLoading}
+                          profileId={profileId}
+                          onUpload={field.onChange}
+                          onDelete={() => {
+                            field.onChange(undefined);
+                            router.refresh();
+                          }}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+        <div className={'w-full space-y-4'}>
+          {/* Section d'analyse */}
+          {onAnalysisComplete && (
+            <Card className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <Button
+                    type="button"
+                    onClick={handleAnalysis}
+                    disabled={isAnalyzing || isLoading}
+                    className="w-full gap-2 md:w-auto"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <LoaderIcon className="size-5 animate-spin" />
+                        {t('documents.analysis.analyzing')}
+                      </>
+                    ) : (
+                      <>
+                        <ScanBarcode className="size-5" />
+                        {t('documents.analysis.start')}
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    {t('documents.analysis.help')}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </form>
     </Form>
-  );
-}
-
-function DocumentUploadGuide() {
-  const t = useTranslations('registration');
-
-  const documentTips = [
-    t('documents.tips.list.quality'),
-    t('documents.tips.list.validity'),
-    t('documents.tips.list.reflection'),
-  ];
-
-  return (
-    <div className="rounded-lg bg-muted p-4">
-      <h3 className="font-medium">{t('documents.tips.title')}</h3>
-      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-        {documentTips.map((tip, index) => (
-          <motion.li
-            key={index}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="flex items-center gap-2"
-          >
-            <span className="size-1.5 rounded-full bg-primary" />
-            {tip}
-          </motion.li>
-        ))}
-      </ul>
-    </div>
   );
 }

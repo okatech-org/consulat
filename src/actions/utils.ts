@@ -1,8 +1,7 @@
 'use server';
 
-import { UTApi } from 'uploadthing/server';
-
-const utapi = new UTApi();
+import { utapi } from '@/app/api/uploadthing/core';
+import { tryCatch } from '@/lib/utils';
 
 export async function processFileData(
   formData: FormData | undefined,
@@ -14,12 +13,11 @@ export async function processFileData(
     const files = formData.getAll('files');
     if (!files || files.length === 0) return null;
 
-    // Suppression du fichier existant si nécessaire
     if (existingKey) {
-      try {
-        await utapi.deleteFiles(existingKey);
-      } catch (error) {
-        console.error('Error deleting existing file:', error);
+      const result = await tryCatch(utapi.deleteFiles(existingKey));
+
+      if (result.error) {
+        console.error('Error deleting existing file:', result.error);
       }
     }
 
@@ -33,7 +31,7 @@ export async function processFileData(
 
     return {
       key: response.data.key,
-      url: response.data.url,
+      url: response.data.ufsUrl,
     };
   } catch (error) {
     console.error('File processing error:', error);

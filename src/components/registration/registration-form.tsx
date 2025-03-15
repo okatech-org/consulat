@@ -29,6 +29,10 @@ import { Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
 import { FullProfile } from '@/types';
 import { useTabs } from '@/hooks/use-tabs';
+import { env } from '@/lib/env';
+import Image from 'next/image';
+
+const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export function RegistrationForm({
   availableCountries,
@@ -50,6 +54,7 @@ export function RegistrationForm({
   const country = profile?.user?.countryCode;
   const router = useRouter();
   const t = useTranslations('registration');
+  const tInputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
   type Step = keyof typeof forms | 'review';
@@ -195,6 +200,12 @@ export function RegistrationForm({
         onAnalysisComplete={handleDocumentsAnalysis}
         handleSubmitAction={() => handleNext()}
         isLoading={isLoading}
+        onUpload={() => {
+          router.refresh();
+        }}
+        onDelete={() => {
+          router.refresh();
+        }}
       />
     ),
     basicInfo: (
@@ -247,89 +258,97 @@ export function RegistrationForm({
   };
 
   return (
-    <>
-      <div className="mx-auto w-full max-w-4xl">
-        {/* En-tête avec progression */}
-        <div className="mb-8 space-y-6">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h3>
-            <p className="mt-2 text-muted-foreground">{t('header.subtitle')}</p>
-          </div>
-
-          <StepIndicator
-            steps={orderedSteps.map((step) => {
-              const stepIndex = orderedSteps.indexOf(step);
-              const currentIndex = orderedSteps.indexOf(currentTab);
-
-              return {
-                title: t(`steps.${step}`),
-                key: step,
-                description: t(`steps.${step}_description`),
-                isOptional: step === 'professionalInfo',
-                isComplete: stepIndex < currentIndex,
-              };
-            })}
-            currentStep={currentTab}
-            onChange={handleTabChange}
+    <div className="w-full max-w-3xl min-h-full overflow-y-auto  py-10 pb-24 md:pb-6 flex flex-col">
+      <header className="w-full border-b border-border pb-6">
+        <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
+          <Image
+            src={appLogo}
+            width={200}
+            height={200}
+            alt={'Logo'}
+            className="relative h-16 w-16 rounded-md transition-transform duration-500 group-hover:scale-105"
           />
         </div>
+        <h1 className="text-2xl mb-4 font-bold">{tInputs('newProfile.title')}</h1>
+        <StepIndicator
+          steps={orderedSteps.map((step) => {
+            const stepIndex = orderedSteps.indexOf(step);
+            const currentIndex = orderedSteps.indexOf(currentTab);
 
-        {/* Contenu principal */}
-        <div className="flex flex-col gap-4 justify-center">
-          {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
-          {renderCurrentStep()}
-
-          {error && (
-            <ErrorCard
-              description={
-                <p className="flex items-center gap-2">
-                  <Info className="size-icon" />
-                  {t_errors('invalid_step')}
-                </p>
-              }
-            />
-          )}
-
-          <div className="mt-6 flex justify-between gap-4">
-            <Button
-              onClick={handlePrevious}
-              variant="outline"
-              disabled={isLoading}
-              className="gap-2"
-            >
-              <ArrowLeft className="size-4" />
-              {t('navigation.previous')}
-            </Button>
-
-            <Button
-              type="submit"
-              onClick={() => handleNext()}
-              disabled={isLoading}
-              className="ml-auto gap-2"
-            >
-              {isLoading ? <Loader className="size-4 animate-spin" /> : null}
-              {currentStepIndex === totalSteps - 1
-                ? t('navigation.submit')
-                : t('navigation.next')}
-              {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Progression mobile */}
-        <MobileProgress
-          currentStepIndex={currentStepIndex}
-          totalSteps={orderedSteps.length}
-          stepTitle={t(`steps.${currentTab}`)}
-          isOptional={currentTab === 'professionalInfo'}
+            return {
+              title: t(`steps.${step}`),
+              key: step,
+              description: t(`steps.${step}_description`),
+              isOptional: step === 'professionalInfo',
+              isComplete: stepIndex < currentIndex,
+            };
+          })}
+          currentStep={currentTab}
+          onChange={handleTabChange}
         />
+      </header>
+      <div className="w-full flex flex-col">
+        <div className="mx-auto w-full max-w-4xl">
+          {/* En-tête avec progression */}
+          <div className="mb-8 space-y-6"></div>
+
+          {/* Contenu principal */}
+          <div className="flex flex-col gap-4 justify-center">
+            {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
+            {renderCurrentStep()}
+
+            {error && (
+              <ErrorCard
+                description={
+                  <p className="flex items-center gap-2">
+                    <Info className="size-icon" />
+                    {t_errors('invalid_step')}
+                  </p>
+                }
+              />
+            )}
+
+            <div className="flex justify-between gap-4">
+              <Button
+                onClick={handlePrevious}
+                variant="outline"
+                disabled={isLoading}
+                className="gap-2"
+              >
+                <ArrowLeft className="size-4" />
+                {t('navigation.previous')}
+              </Button>
+
+              <Button
+                type="submit"
+                onClick={() => handleNext()}
+                disabled={isLoading}
+                className="ml-auto gap-2"
+              >
+                {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+                {currentStepIndex === totalSteps - 1
+                  ? t('navigation.submit')
+                  : t('navigation.next')}
+                {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
+              </Button>
+            </div>
+          </div>
+
+          {/* Progression mobile */}
+          <MobileProgress
+            currentStepIndex={currentStepIndex}
+            totalSteps={orderedSteps.length}
+            stepTitle={t(`steps.${currentTab}`)}
+            isOptional={currentTab === 'professionalInfo'}
+          />
+        </div>
       </div>
       <Dialog open={!country}>
         <DialogContent>
           <SelectRegistrationCountryForm countries={availableCountries} />
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
 
