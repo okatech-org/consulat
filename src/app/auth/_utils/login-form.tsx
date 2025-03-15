@@ -20,7 +20,7 @@ import {
   LoginWithEmailSchema,
   type LoginInput,
 } from '@/schemas/user';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { isUserExists, sendOTP } from '@/actions/auth';
 import { toast } from '@/hooks/use-toast';
@@ -87,7 +87,8 @@ export function LoginForm() {
     resolver: zodResolver(getLoginSchema(method, displayOTP)),
     defaultValues: {
       type: method,
-      email: undefined,
+      email: '',
+      otp: '',
       phone: {
         countryCode: '+33',
         number: '',
@@ -202,7 +203,7 @@ export function LoginForm() {
 
       if (!isOTPValid) {
         form.setError('otp', {
-          message: `${tError('invalid_otp')}`,
+          message: 'messages.errors.invalid_otp',
         });
         setIsLoading(false);
         return;

@@ -35,6 +35,7 @@ export function PhoneInput({
   defaultCountry = '+33',
   ...props
 }: PhoneInputProps) {
+  const t = useTranslations('inputs.phone');
   const availableCountries = options
     ? phoneCountries.filter((country) => options.includes(country.countryCode))
     : phoneCountries;
@@ -90,6 +91,7 @@ export function PhoneInput({
                     type="tel"
                     disabled={disabled}
                     autoComplete="tel-national"
+                    placeholder={t('placeholder')}
                   />
                 </FormControl>
                 <TradFormMessage />

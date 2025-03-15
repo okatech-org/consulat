@@ -86,6 +86,7 @@ export default {
     },
   },
   landing: {
+    designed_by: 'Conçu et développé par',
     hero: {
       consulat_ga: 'CONSULAT.GA',
       subtitle: 'Votre Lien Numérique avec le Gabon',

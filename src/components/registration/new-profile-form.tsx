@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,6 +18,7 @@ import { CountrySelect } from '@/components/ui/country-select';
 import { getCountryCode, type CountryCode } from '@/lib/autocomplete-datas';
 import CardContainer from '../layouts/card-container';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import {
   CountryCodeSchema,
   DateSchema,
@@ -26,11 +28,10 @@ import {
 } from '@/schemas/inputs';
 import { z } from 'zod';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
-import Image from 'next/image';
 import { sendOTP, isUserExists } from '@/actions/auth';
 import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ErrorCard } from '../ui/error-card';
@@ -38,6 +39,7 @@ import { toast } from '@/hooks/use-toast';
 import { signIn } from 'next-auth/react';
 import { validateOTP } from '@/lib/user/otp';
 import { createUserWithProfile } from '@/actions/profile';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 
 export function NewProfileForm({
   availableCountries,
@@ -47,74 +49,124 @@ export function NewProfileForm({
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
   const tErrors = useTranslations('messages.errors');
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+
   const [showOTP, setShowOTP] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<ErrorMessageKey | null>(null);
 
-  const CreateProfileSchema = z
-    .object({
-      firstName: NameSchema,
-      lastName: NameSchema,
-      residenceCountyCode: CountryCodeSchema,
-      email: EmailSchema.optional(),
-      phone: PhoneValueSchema,
-      emailVerified: DateSchema.optional(),
-      phoneVerified: DateSchema.optional(),
-      type: z.enum(['EMAIL', 'PHONE']),
-      otp: z.string().length(6, { message: 'messages.errors.otp_length' }).optional(),
-    })
-    .superRefine(async (data, ctx) => {
-      if (showOTP && !data.otp) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'messages.errors.otp_required',
-          path: ['otp'],
-        });
-      }
-
-      if (data.email) {
-        const isUserWithEmail = await isUserExists(undefined, data.email);
-        if (isUserWithEmail) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'messages.errors.user_email_already_exists',
-            path: ['email'],
-          });
-        }
-      }
-
-      if (data.phone) {
-        const isUserWithPhone = await isUserExists(undefined, undefined, data.phone);
-        if (isUserWithPhone) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'messages.errors.user_phone_already_exists',
-            path: ['phone.number'],
-          });
-        }
-      }
-    });
+  const CreateProfileSchema = z.object({
+    firstName: NameSchema,
+    lastName: NameSchema,
+    residenceCountyCode: CountryCodeSchema,
+    email: EmailSchema.optional(),
+    phone: PhoneValueSchema,
+    emailVerified: DateSchema.optional(),
+    phoneVerified: DateSchema.optional(),
+    type: z.enum(['EMAIL', 'PHONE']),
+    otp: z.string().optional(),
+  });
 
   type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 
   const form = useForm<CreateProfileInput>({
-    resolver: zodResolver(CreateProfileSchema),
+    resolver: zodResolver(
+      showOTP
+        ? CreateProfileSchema.extend({
+            otp: z
+              .string({
+                required_error: 'messages.errors.otp_length',
+                invalid_type_error: 'messages.errors.otp_length',
+              })
+              .length(6, { message: 'messages.errors.otp_length' }),
+          })
+        : CreateProfileSchema,
+    ),
     defaultValues: {
+      firstName: '',
+      lastName: '',
       type: 'PHONE',
+      email: '',
       phone: {
         countryCode: '+33',
+        number: '',
       },
-      residenceCountyCode: availableCountries?.[0]?.code as CountryCode,
+      otp: '',
+      residenceCountyCode: (availableCountries?.[0]?.code ?? '') as CountryCode,
     },
     mode: 'onBlur',
   });
 
-  const onSubmit = async (data: CreateProfileInput) => {
-    setIsLoading(true);
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) return;
+
+    const data = form.getValues();
     const identifier =
       data.type === 'EMAIL'
         ? data.email
-        : (`${data.phone?.countryCode}${data.phone?.number}` as string);
+        : `${data.phone?.countryCode}${data.phone?.number}`;
+
+    setIsLoading(true);
+    const { error: sendOTPError, data: sendOTPData } = await tryCatch(
+      sendOTP(identifier ?? '', data.type),
+    );
+
+    if (sendOTPError) {
+      toast({
+        title: tAuth('messages.code_not_sent_otp'),
+        variant: 'destructive',
+      });
+    }
+
+    if (sendOTPData) {
+      toast({
+        title: tAuth('messages.otp_sent'),
+        variant: 'success',
+      });
+      setResendCooldown(60); // 60 seconds cooldown
+    }
+
+    setIsLoading(false);
+  };
+
+  const onFinalSubmit = async (data: CreateProfileInput) => {
+    setIsLoading(true);
+
+    const identifier =
+      data.type === 'EMAIL'
+        ? data.email
+        : `${data.phone?.countryCode}${data.phone?.number}`;
+
+    if (!showOTP) {
+      const isEmailExist = await isUserExists(undefined, data.email);
+      if (isEmailExist) {
+        form.setError('email', {
+          message: 'messages.errors.user_email_already_exists',
+        });
+      }
+
+      const isPhoneExist = await isUserExists(undefined, undefined, data.phone);
+      if (isPhoneExist) {
+        form.setError('phone.number', {
+          message: 'messages.errors.user_phone_already_exists',
+        });
+      }
+
+      if (isEmailExist || isPhoneExist) {
+        setIsLoading(false);
+        return;
+      }
+    }
 
     if (!showOTP) {
       // Envoyer l'OTP
@@ -123,7 +175,10 @@ export function NewProfileForm({
       );
 
       if (sendOTPError) {
-        setError(sendOTPError.message);
+        toast({
+          title: tErrors('code_not_sent_otp'),
+          variant: 'destructive',
+        });
       }
 
       if (sendOTPData) {
@@ -132,6 +187,7 @@ export function NewProfileForm({
           title: tAuth('messages.otp_sent'),
           variant: 'success',
         });
+        setResendCooldown(60); // 60 seconds cooldown
       }
 
       setIsLoading(false);
@@ -139,217 +195,245 @@ export function NewProfileForm({
       return;
     }
 
-    if (data.otp) {
-      const { error: validatedOTPError } = await tryCatch(
-        validateOTP({ identifier: identifier ?? '', otp: data.otp, type: data.type }),
-      );
-
-      if (validatedOTPError) {
-        setError(validatedOTPError.message);
-      }
-
-      if (data.type === 'EMAIL') {
-        form.setValue('emailVerified', new Date());
-      }
-
-      if (data.type === 'PHONE') {
-        form.setValue('phoneVerified', new Date());
-      }
-    }
-
-    const newProfile = await tryCatch(createUserWithProfile(data));
-
-    if (newProfile.error) {
-      setError(newProfile.error.message);
-    }
-
-    const { error: loginWithOTPError } = await tryCatch(
-      signIn('credentials', {
-        identifier,
+    if (showOTP) {
+      const isOTPValid = await validateOTP({
+        identifier: identifier ?? '',
+        otp: data.otp ?? '',
         type: data.type,
-        otp: data.otp,
-        redirectTo: ROUTES.registration,
-      }),
-    );
+      });
 
-    if (loginWithOTPError) {
-      setError(loginWithOTPError.message);
+      if (!isOTPValid) {
+        form.setError('otp', {
+          message: 'messages.errors.invalid_otp',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (isOTPValid) {
+        const newProfile = await tryCatch(createUserWithProfile(data));
+
+        if (newProfile.error) {
+          setError(newProfile.error.message);
+        }
+
+        await signIn('credentials', {
+          identifier,
+          type: data.type,
+          redirectTo: ROUTES.registration,
+        });
+      }
     }
+
+    setIsLoading(false);
   };
 
   return (
-    <div className="flex min-h-full pt-[60px] w-full flex-col items-center justify-center bg-muted p-6 gap-6">
-      <div></div>
-      <CardContainer
-        className={'overflow-hidden'}
-        contentClass="grid min-h-[500px] p-0 md:grid-cols-2 max-w-5xl mx-auto"
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onFinalSubmit)}
+        className={'w-full flex flex-col gap-6'}
       >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 sm:p-6">
-            <div className="flex flex-grow flex-col ">
-              <h1 className="text-xl font-bold">{t('newProfile.title')}</h1>
-              <p className="text-balance text-muted-foreground">
-                {t('newProfile.description')}
-              </p>
-            </div>
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('firstName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isLoading}
-                      placeholder={t('firstName.placeholder')}
-                      {...field}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('lastName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isLoading}
-                      placeholder={t('lastName.placeholder')}
-                      {...field}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="residenceCountyCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('residenceCounty.label')}</FormLabel>
-                  <FormControl>
-                    <CountrySelect
-                      type="single"
-                      selected={field.value as CountryCode}
-                      onChange={(value) => field.onChange(value)}
-                      options={availableCountries?.map(
-                        (item) => item.code as CountryCode,
-                      )}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('email.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isLoading}
-                      placeholder={t('email.placeholder')}
-                      {...field}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormItem>
-              <FormLabel>{t('phone.label')}</FormLabel>
-              <PhoneInput
-                parentForm={form}
-                fieldName="phone"
-                options={availableCountries?.map((item) => item.code as CountryCode)}
-                defaultCountry={getCountryCode(
-                  form.watch('residenceCountyCode') as CountryCode,
-                )}
-              />
-            </FormItem>
-
-            {showOTP && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {!showOTP && (
+            <>
               <FormField
                 control={form.control}
-                name="otp"
+                name="firstName"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('otp.label')}</FormLabel>
+                  <FormItem className="lg:col-span-1">
+                    <FormLabel>{t('firstName.label')}</FormLabel>
                     <FormControl>
                       <Input
-                        autoFocus={true}
-                        {...field}
-                        placeholder={t('otp.placeholder')}
                         disabled={isLoading}
+                        placeholder={t('firstName.placeholder')}
+                        {...field}
                       />
                     </FormControl>
                     <TradFormMessage />
                   </FormItem>
                 )}
               />
-            )}
-            <div className="flex flex-col gap-2">
+
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem className="lg:col-span-1">
+                    <FormLabel>{t('lastName.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={isLoading}
+                        placeholder={t('lastName.placeholder')}
+                        {...field}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="residenceCountyCode"
+                render={({ field }) => (
+                  <FormItem className="lg:col-span-full">
+                    <FormLabel>{t('residenceCounty.label')}</FormLabel>
+                    <FormControl>
+                      <CountrySelect
+                        type="single"
+                        selected={field.value as CountryCode}
+                        onChange={(value) => field.onChange(value)}
+                        options={availableCountries?.map(
+                          (item) => item.code as CountryCode,
+                        )}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="col-span-full">
+                    <FormLabel>{t('email.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={isLoading}
+                        placeholder={t('email.placeholder')}
+                        {...field}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormItem className="col-span-full">
+                <FormLabel>{t('phone.label')}</FormLabel>
+                <PhoneInput
+                  parentForm={form}
+                  fieldName="phone"
+                  options={availableCountries?.map((item) => item.code as CountryCode)}
+                  defaultCountry={getCountryCode(
+                    form.watch('residenceCountyCode') as CountryCode,
+                  )}
+                />
+              </FormItem>
+            </>
+          )}
+          {showOTP && (
+            <div className="otp">
+              <FormField
+                control={form.control}
+                name="otp"
+                render={({ field }) => (
+                  <FormItem className="space-y-4 lg:col-span-2">
+                    <FormLabel className="text-xl font-semibold">
+                      {t('otp.label')}
+                    </FormLabel>
+                    <FormControl>
+                      <InputOTP maxLength={6} {...field} autoComplete="one-time-code">
+                        <InputOTPGroup>
+                          <InputOTPSlot className="w-12" index={0} />
+                          <InputOTPSlot className="w-12" index={1} />
+                          <InputOTPSlot className="w-12" index={2} />
+                          <InputOTPSlot className="w-12" index={3} />
+                          <InputOTPSlot className="w-12" index={4} />
+                          <InputOTPSlot className="w-12" index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </FormControl>
+                    <FormDescription>
+                      {form.watch('type') === 'PHONE'
+                        ? t('otp.phone_description')
+                        : t('otp.email_description')}
+                    </FormDescription>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="actions flex flex-col gap-4">
+          <Button
+            variant="default"
+            type="submit"
+            disabled={isLoading || !form.formState.isValid}
+          >
+            <span>
+              {showOTP ? "Obtenir un code d'accès" : 'Continuer mon inscription'}
+            </span>
+            {!isLoading && <ArrowRight className="size-icon" />}
+            {isLoading && <Loader2 className="size-icon animate-spin" />}
+          </Button>
+
+          {showOTP && (
+            <div className="flex justify-between items-center">
               <Button
-                type="submit"
-                className="w-full"
+                type="button"
+                variant="link"
+                className="text-muted-foreground p-0"
                 disabled={isLoading}
                 onClick={() => {
-                  form.setValue('type', 'PHONE');
+                  setShowOTP(false);
+                  form.trigger();
                 }}
               >
-                {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {showOTP
-                  ? t('newProfile.buttons.verify')
-                  : t('newProfile.buttons.get_code')}
+                <ArrowLeft className="size-icon" />
+                {'Retour'}
               </Button>
               <Button
                 variant="link"
-                className="w-full"
-                disabled={isLoading}
-                onClick={() => {
-                  form.setValue('type', 'EMAIL');
-                }}
+                className="text-muted-foreground p-0"
+                disabled={isLoading || resendCooldown > 0}
+                onClick={handleResendOTP}
               >
-                {t('newProfile.buttons.use_email')}
+                {'Renvoyer le code'}
+                {resendCooldown > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {tAuth('resend_cooldown', { cooldown: resendCooldown })}
+                  </span>
+                )}
               </Button>
-              {error && <ErrorCard description={tErrors(error)} />}
             </div>
-          </form>
-        </Form>
-        <div className="relative w-full h-full hidden bg-muted md:block">
-          <Image
-            src="https://utfs.io/f/yMD4lMLsSKvz349tIYw9oyDVxmdLHiTXuO0SKbeYqQUlPghR"
-            alt="Image"
-            className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-            width={800}
-            height={800}
-          />
+          )}
+          {!showOTP && (
+            <Button
+              type="button"
+              variant="link"
+              disabled={isLoading}
+              onClick={() => {
+                form.setValue('type', form.watch('type') === 'EMAIL' ? 'PHONE' : 'EMAIL');
+              }}
+            >
+              <span className="text-muted-foreground">
+                {form.watch('type') === 'EMAIL'
+                  ? tAuth('login_with_phone_prompt')
+                  : tAuth('login_with_email_prompt')}
+              </span>
+            </Button>
+          )}
         </div>
-      </CardContainer>
 
-      <div className="flex flex-col gap-2">
-        <Link
-          prefetch={true}
-          href={`${ROUTES.auth.login}?callbackUrl=${ROUTES.registration}`}
-          className={buttonVariants({ variant: 'link', className: 'w-full underline' })}
-        >
-          {t('resumeRegistration.label')}
-        </Link>
-        <p className="text-sm text-muted-foreground">
-          {t('resumeRegistration.placeholder')}
-        </p>
-      </div>
-    </div>
+        <div className="subactions flex justify-center">
+          {error && <ErrorCard description={tErrors(error)} />}
+          <p className="text-sm text-muted-foreground">
+            <span>Vous avez déjà une demande en cours ?</span>
+            <Link
+              className={buttonVariants({ variant: 'link' }) + ' !p-0 !px-1 h-min'}
+              href={`${ROUTES.auth.login}?callBackUrl=${ROUTES.registration}`}
+            >
+              {'Continuer mon inscription'}
+            </Link>
+          </p>
+        </div>
+      </form>
+    </Form>
   );
 }

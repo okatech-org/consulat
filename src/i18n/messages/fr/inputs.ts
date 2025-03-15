@@ -69,15 +69,15 @@ export default {
   },
   phoneId: {
     label: 'Numéro de téléphone',
-    placeholder: '0612345678',
-    'placeholder-local': '612345678',
-    'placeholder-international': '+33612345678',
+    placeholder: 'Ex: 612345678',
+    placeholder_local: 'Ex: 612345678',
+    placeholder_international: 'Ex: +33612345678',
   },
   phone: {
     label: 'Numéro de téléphone',
-    placeholder: '0612345678',
-    'placeholder-local': '612345678',
-    'placeholder-international': '+33612345678',
+    placeholder: 'Ex: 612345678',
+    placeholder_local: 'Ex: 612345678',
+    placeholder_international: 'Ex: +33612345678',
   },
   email: {
     label: 'Adresse email',
@@ -182,14 +182,17 @@ export default {
   otp: {
     label: 'Code de vérification',
     placeholder: 'Code à 6 chiffres reçu par SMS/Email',
+    phone_description: 'Entrez le code à 6 chiffres reçu par SMS',
+    email_description: 'Entrez le code à 6 chiffres reçu par email',
   },
   newProfile: {
     title: 'Créez votre espace consulaire',
     description: 'Veuillez remplir les champs ci-dessous pour créer un nouveau profil.',
     buttons: {
-      get_code: 'Obtenir le code',
-      verify: 'Vérifier',
-      use_email: "Utiliser l'adresse email",
+      get_code: "Obtenir le code d'accès",
+      create_account: 'Créer un mon espace consulaire',
+      use_email: 'Utiliser une adresse email',
+      use_phone: 'Utiliser un numéro de téléphone',
       already_have_account: "J'ai déjà un compte",
     },
   },

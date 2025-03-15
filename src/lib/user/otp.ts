@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/prisma';
 import { customAlphabet } from 'nanoid';
-
+import { tryCatch } from '@/lib/utils';
 export const generateOTP = async () => {
   const nanoid = customAlphabet('0123456789', 6);
   return nanoid();
@@ -19,8 +19,9 @@ export const validateOTP = async ({
 }) => {
   // TODO: Remove this line
   if (otp === '000241') return true;
-  try {
-    const token = await db.verificationToken.findFirst({
+
+  const tokenVerification = await tryCatch(
+    db.verificationToken.findFirst({
       where: {
         identifier,
         token: otp,
@@ -29,18 +30,24 @@ export const validateOTP = async ({
           gt: new Date(),
         },
       },
-    });
+    }),
+  );
 
-    if (!token) return false;
-
-    // Supprimer le token après utilisation
-    await db.verificationToken.delete({
-      where: { id: token.id },
-    });
-
-    return true;
-  } catch (error) {
-    console.error('OTP Validation Error:', error);
+  if (!tokenVerification.error) {
+    console.error('OTP Validation Error:', tokenVerification.error);
     return false;
   }
+
+  const deleteToken = await tryCatch(
+    db.verificationToken.delete({
+      where: { id: tokenVerification.data?.id },
+    }),
+  );
+
+  if (deleteToken.error) {
+    console.error('OTP Validation Error:', deleteToken.error);
+    return false;
+  }
+
+  return true;
 };
