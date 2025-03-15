@@ -140,6 +140,43 @@ export function DocumentUploadSection({
 
   return (
     <Form {...form}>
+      <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
+        <AnimatePresence mode="sync">
+          {requiredDocuments.map((doc, index) => (
+            <motion.div
+              key={doc.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <FormField
+                control={form.control}
+                name={doc.id}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <UserDocument
+                        document={field.value as AppUserDocument}
+                        expectedType={doc.expectedType}
+                        label={doc.label}
+                        description={doc.description}
+                        required={doc.required}
+                        disabled={isLoading}
+                        profileId={profileId}
+                        onUpload={field.onChange}
+                        onDelete={() => {
+                          field.onChange(undefined);
+                        }}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
       <form
         ref={formRef}
         onSubmit={form.handleSubmit(handleSubmitAction)}
@@ -147,43 +184,6 @@ export function DocumentUploadSection({
       >
         {/* Section des documents */}
         <Card className="overflow-hidden">
-          <CardContent className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
-            <AnimatePresence mode="sync">
-              {requiredDocuments.map((doc, index) => (
-                <motion.div
-                  key={doc.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <FormField
-                    control={form.control}
-                    name={doc.id}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <UserDocument
-                            document={field.value as AppUserDocument}
-                            expectedType={doc.expectedType}
-                            label={doc.label}
-                            description={doc.description}
-                            required={doc.required}
-                            disabled={isLoading}
-                            profileId={profileId}
-                            onUpload={field.onChange}
-                            onDelete={() => {
-                              field.onChange(undefined);
-                            }}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </CardContent>
           <CardFooter>
             <div className={'w-full space-y-4'}>
               {/* Section d'analyse */}
@@ -231,10 +231,8 @@ function DocumentUploadGuide() {
 
   const documentTips = [
     t('documents.tips.list.quality'),
-    t('documents.tips.list.lighting'),
-    t('documents.tips.list.reflection'),
-    t('documents.tips.list.corners'),
     t('documents.tips.list.validity'),
+    t('documents.tips.list.reflection'),
   ];
 
   return (
