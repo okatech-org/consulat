@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { X, Eye, PenIcon } from 'lucide-react';
+import { X, PenIcon } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { AppUserDocument } from '@/types';
 import { DocumentStatus, DocumentType } from '@prisma/client';
@@ -27,7 +26,6 @@ import {
   deleteUserDocument,
   updateUserDocument,
 } from '@/actions/user-documents';
-import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
@@ -74,12 +72,8 @@ export function UserDocument({
   const t = useTranslations('common.documents');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages.profile');
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = React.useState<string | null>(null);
-  const [isDragging, setIsDragging] = React.useState(false);
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const router = useRouter();
   const { formatDate } = useDateLocale();
 
@@ -157,21 +151,6 @@ export function UserDocument({
     },
   });
 
-  // Gérer la prévisualisation
-  React.useEffect(() => {
-    if (!document?.fileUrl) {
-      setPreview(null);
-      return;
-    }
-
-    if (document.fileUrl.endsWith('.pdf')) {
-      setPreview(null);
-      return;
-    }
-
-    setPreview(document.fileUrl);
-  }, [document]);
-
   const handleFileChange = async (fileData: FileUploadResponse) => {
     setIsLoading(true);
     const data = {
@@ -233,7 +212,7 @@ export function UserDocument({
       EXPIRING: 'warning',
     };
     return (
-      <Badge className={'min-w-max'} variant={variants[status]}>
+      <Badge className={'min-w-max ml-2'} variant={variants[status]}>
         {t_common(`status.${status}`)}
       </Badge>
     );
@@ -252,97 +231,57 @@ export function UserDocument({
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 
-      <div>
-        {!document ? (
-          // État vide
-          <div className="flex flex-col items-center justify-center text-center">
-            <FileInput onChange={handleFileChange} />
-          </div>
-        ) : (
-          // Document existant
-          <div className="flex h-full gap-4">
-            {/* Prévisualisation */}
-            {preview ? (
+      <div className={cn('relative', 'h-full')}>
+        <FileInput
+          onChange={handleFileChange}
+          accept={accept}
+          loading={isLoading}
+          fileUrl={document?.fileUrl}
+          showPreview={true}
+        />
+
+        {document && (
+          <div className="absolute right-1 top-1 flex items-center gap-2">
+            {allowEdit && (
               <Button
                 type="button"
                 variant="ghost"
-                className="flex aspect-document h-full max-h-[150px] w-auto overflow-hidden !p-0"
-                onClick={() => setIsPreviewOpen(true)}
+                size="sm"
+                onClick={() => setIsUpdating(true)}
+                disabled={disabled || isLoading}
               >
-                <Image
-                  src={preview}
-                  alt="Preview"
-                  width={400}
-                  height={600}
-                  className="size-full object-cover"
-                />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted !p-0"
-                onClick={() => setIsPreviewOpen(true)}
-              >
-                <FileInput onChange={handleFileChange} />
+                <PenIcon className="size-4" />
               </Button>
             )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDelete(document.id)}
+              disabled={disabled || isLoading}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        )}
 
-            {/* Actions */}
-            <div className="absolute right-1 top-1 flex items-center gap-2">
-              {allowEdit && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsUpdating(true)}
-                  disabled={disabled || isLoading}
-                >
-                  <PenIcon className="size-4" />
-                </Button>
-              )}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsPreviewOpen(true)}
-                disabled={disabled || isLoading}
-              >
-                <Eye className="size-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(document.id)}
-                disabled={disabled || isLoading}
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-
-            {/* Informations */}
-            <div className="flex flex-1 grow flex-col justify-end space-y-1 pt-6">
-              <p className="text-sm text-muted-foreground">
-                {(document.issuedAt || document.expiresAt) && (
-                  <>
-                    {t('validity', {
-                      start: document.issuedAt ? formatDate(document.issuedAt) : 'N/A',
-                      end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
-                    })}
-                  </>
-                )}
+        {document && document.metadata && (
+          <div className="flex flex-1 flex-col justify-end space-y-1 pt-4 text-sm text-muted-foreground">
+            {(document.issuedAt || document.expiresAt) && (
+              <p>
+                {t('validity', {
+                  start: document.issuedAt ? formatDate(document.issuedAt) : 'N/A',
+                  end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
+                })}
               </p>
-              {document.metadata && (
-                <div className="text-sm text-muted-foreground">
-                  {Object.entries(document.metadata).map(([key, value]) => (
-                    <p key={key}>
-                      {/** @ts-expect-error - key is a string */}
-                      {t(`metadata.${key}`)}: {`${value}`}
-                    </p>
-                  ))}
-                </div>
-              )}
+            )}
+            <div>
+              {Object.entries(document.metadata).map(([key, value]) => (
+                <p key={key}>
+                  {/** @ts-expect-error - key is a string */}
+                  {t(`metadata.${key}`)}: {`${value}`}
+                </p>
+              ))}
             </div>
           </div>
         )}
@@ -416,31 +355,6 @@ export function UserDocument({
           </Tabs>
         </DialogContent>
       </Dialog>
-
-      {/* Preview Dialog */}
-      {document && (
-        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-screen-lg max-h-[90vh]">
-            {document.fileUrl.endsWith('.pdf') ? (
-              <iframe
-                src={document.fileUrl}
-                className="w-full h-[80vh] rounded-lg"
-                title="PDF Preview"
-              />
-            ) : (
-              <div className="relative aspect-[3/4] w-full h-full overflow-hidden rounded-lg">
-                <Image
-                  src={document.fileUrl}
-                  alt="Preview"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }

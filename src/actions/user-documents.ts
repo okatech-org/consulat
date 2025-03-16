@@ -91,15 +91,20 @@ export async function createUserDocument(data: {
   userId: string;
   profileId?: string;
 }): Promise<AppUserDocument | null> {
-  const authResult = await checkAuth();
-
   // @ts-expect-error - We don't need to define the type for the typesMap
-  const typesMap: Record<DocumentType, string> = {
-    [DocumentType.PASSPORT]: 'passport',
-    [DocumentType.IDENTITY_PHOTO]: 'identityPhoto',
-    [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificate',
-    [DocumentType.RESIDENCE_PERMIT]: 'residencePermit',
-    [DocumentType.PROOF_OF_ADDRESS]: 'proofOfAddress',
+  const typesMap: Record<
+    DocumentType,
+    | 'identityPictureProfile'
+    | 'passportProfile'
+    | 'birthCertificateProfile'
+    | 'residencePermitProfile'
+    | 'addressProofProfile'
+  > = {
+    [DocumentType.IDENTITY_PHOTO]: 'identityPictureProfile',
+    [DocumentType.PASSPORT]: 'passportProfile',
+    [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificateProfile',
+    [DocumentType.RESIDENCE_PERMIT]: 'residencePermitProfile',
+    [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
   } as const;
 
   const { data: document, error: documentError } = await tryCatch(

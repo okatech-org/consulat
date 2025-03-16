@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UploadDropzone } from './uploadthing';
 import { ClientUploadedFileData } from 'uploadthing/types';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { buttonVariants } from './button';
+import Image from 'next/image';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Eye } from 'lucide-react';
+import { Button } from './button';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 type FileUploadResponse = ClientUploadedFileData<{
   fileName: string;
@@ -17,18 +22,29 @@ type FileInputProps = {
   onChange: (result: FileUploadResponse) => void;
   accept?: string;
   className?: string;
+  loading?: boolean;
+  fileUrl?: string;
+  showPreview?: boolean;
+  previewSize?: { width: number; height: number };
 };
 
 const FileInput = ({
   onChange,
   className,
+  loading,
   accept = 'image/*,application/pdf',
+  fileUrl,
+  showPreview = true,
+  previewSize = { width: 400, height: 600 },
 }: FileInputProps) => {
   const t = useTranslations('inputs');
   const [uploading, setUploading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [preview, setPreview] = useState<string | null>(fileUrl || null);
 
   const acceptedFileTypes: Array<'image' | 'pdf'> = [];
 
@@ -53,10 +69,104 @@ const FileInput = ({
     return `${nameWithoutExtension.substring(0, maxLength - extension.length - 3)}...${extension ? `.${extension}` : ''}`;
   };
 
+  useEffect(() => {
+    if (fileUrl) {
+      setPreview(fileUrl);
+    }
+  }, [fileUrl]);
+
+  const isPdf = preview && preview.endsWith('.pdf');
+  const isImage = preview && !isPdf;
+
+  if (preview && showPreview) {
+    return (
+      <div className="relative aspect-16/9 rounded-md min-h-full w-auto overflow-hidden !p-0">
+        {isImage ? (
+          <div className="flex relative aspect-document rounded-md min-h-full max-h-full w-auto overflow-hidden !p-0">
+            {showPreview && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="min-h-full min-w-full absolute hover:bg-transparent inset-0 flex top-1/2 translate-y-[-50%]"
+                onClick={() => setIsPreviewOpen(true)}
+              >
+                <Eye className="size-4" />
+              </Button>
+            )}
+            <Image
+              src={preview}
+              alt="Preview"
+              width={previewSize.width}
+              height={previewSize.height}
+              className="size-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted !p-0">
+            {showPreview && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="min-h-full min-w-full absolute hover:bg-transparent inset-0 flex top-1/2 translate-y-[-50%]"
+                onClick={() => setIsPreviewOpen(true)}
+              >
+                <Eye className="size-4" />
+              </Button>
+            )}
+            <div className="flex flex-col items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-10 h-10 mb-2 text-primary/60"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                />
+              </svg>
+              <span className="text-sm text-gray-600">Document PDF</span>
+            </div>
+          </div>
+        )}
+
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className={cn('max-w-screen-lg', 'max-h-[90vh]')}>
+            <DialogTitle className="sr-only">
+              Voir le document : {truncateFileName(currentFile || '')}
+            </DialogTitle>
+            {isPdf ? (
+              <iframe
+                src={preview}
+                className="w-full h-[80vh] rounded-lg"
+                title="PDF Preview"
+              />
+            ) : (
+              <div className="relative aspect-[3/4] w-full h-full overflow-hidden rounded-lg">
+                <Image
+                  src={preview}
+                  alt="Preview"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
   return (
     <UploadDropzone
       className={cn(
-        'cursor-pointer bg-primary/10 transition-all',
+        'cursor-pointer bg-primary/10 transition-all relative aspect-16/9 rounded-md min-h-full w-auto overflow-hidden !p-0',
         uploading ? 'bg-primary/5' : 'bg-primary/10',
         className,
       )}
@@ -67,7 +177,7 @@ const FileInput = ({
         setUploadProgress(0);
       }}
       onUploadProgress={(progress) => {
-        setUploadProgress(progress);
+        setUploadProgress(progress + (loading ? 10 : 0));
       }}
       onChange={(files) => {
         console.log('Files selected:', files);
@@ -81,6 +191,8 @@ const FileInput = ({
         setSelectedFiles([]);
 
         if (file) {
+          const fileUrl = file.serverData?.fileUrl || file.url;
+          setPreview(fileUrl);
           onChange(file as FileUploadResponse);
         }
       }}
@@ -93,7 +205,7 @@ const FileInput = ({
       appearance={{
         container: ({ isUploading }) =>
           cn(
-            'border-2 border-dashed rounded-md p-8',
+            'border-2 border-dashed rounded-md p-4',
             isUploading
               ? 'border-primary/30'
               : 'border-primary/50 hover:border-primary/80',
