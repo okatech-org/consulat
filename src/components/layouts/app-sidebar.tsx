@@ -75,7 +75,7 @@ export function AppSidebar({
       title: t('super_admin.users'),
       url: ROUTES.dashboard.users,
       icon: Users,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+      roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('admin.notifications'),
