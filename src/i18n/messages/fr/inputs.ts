@@ -8,6 +8,12 @@ export default {
     image: 'Images',
     pdf: 'PDF',
     button: 'Choisir un fichier',
+    uploading: 'Téléchargement en cours: {progress}%',
+    uploadingFile: 'Téléchargement de: {fileName}',
+    uploadSuccess: 'Fichier téléchargé avec succès',
+    uploadError: 'Erreur lors du téléchargement',
+    dragActive: 'Déposez le fichier ici',
+    start: 'Envoyer ce fichier',
   },
   priority: {
     label: 'Priorité',

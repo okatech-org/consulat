@@ -72,6 +72,10 @@ const FileInput = ({
   useEffect(() => {
     if (fileUrl) {
       setPreview(fileUrl);
+    } else {
+      setPreview(null);
+      setCurrentFile(null);
+      setSelectedFiles([]);
     }
   }, [fileUrl]);
 
@@ -230,7 +234,7 @@ const FileInput = ({
             return (
               <div className="flex flex-col items-center">
                 <span className="text-sm font-medium text-gray-700">
-                  {t.rich('fileInput.uploading', {
+                  {t('fileInput.uploading', {
                     progress: Math.round(uploadProgress),
                   })}
                 </span>
@@ -242,7 +246,7 @@ const FileInput = ({
                 </div>
                 {currentFile && (
                   <span className="text-xs text-gray-500 mt-1">
-                    {t.rich('fileInput.uploadingFile', { fileName: currentFile })}
+                    {t('fileInput.uploadingFile', { fileName: currentFile })}
                   </span>
                 )}
               </div>
