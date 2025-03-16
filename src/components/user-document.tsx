@@ -111,38 +111,6 @@ export function UserDocument({
     setIsLoading(false);
   };
 
-  const handleUpload = useCallback(
-    async (type: DocumentType, fileData: FileUploadResponse) => {
-      setIsLoading(true);
-
-      const result = await tryCatch(createUserDocument(type, fileData, profileId));
-
-      if (result.error) {
-        toast({
-          title: t_messages('errors.update_failed'),
-          description: t_errors(result.error.message),
-          variant: 'destructive',
-        });
-      }
-
-      if (result.data) {
-        if (onUpload) {
-          onUpload(result.data);
-        } else {
-          toast({
-            title: t_messages('success.update_title'),
-            description: t_messages('success.update_description'),
-            variant: 'success',
-          });
-          router.refresh();
-        }
-      }
-
-      setIsLoading(false);
-    },
-    [profileId, t_messages, router, onUpload, t_errors],
-  );
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdate = async (documentId: string, data: any) => {
     setIsLoading(true);
@@ -204,14 +172,40 @@ export function UserDocument({
     setPreview(document.fileUrl);
   }, [document]);
 
-  const handleFileChange = async (result: {
-    uploadedBy: string;
-    fileUrl: string;
-    name: string;
-    size: number;
-    type: string;
-  }) => {
-    console.log('result', result);
+  const handleFileChange = async (fileData: FileUploadResponse) => {
+    setIsLoading(true);
+    const data = {
+      id: fileData.key,
+      type: expectedType,
+      fileUrl: fileData.serverData.fileUrl,
+      userId: fileData.serverData.userId,
+      ...(profileId && {
+        profileId,
+      }),
+    };
+
+    const result = await tryCatch(createUserDocument(data));
+
+    if (result.error) {
+      toast({
+        title: t_messages('errors.update_failed'),
+        description: t_errors(result.error.message),
+        variant: 'destructive',
+      });
+    }
+
+    if (result.data) {
+      if (onUpload) {
+        onUpload(result.data);
+      } else {
+        toast({
+          title: t_messages('success.update_title'),
+          description: t_messages('success.update_description'),
+          variant: 'success',
+        });
+        router.refresh();
+      }
+    }
 
     setIsLoading(false);
   };
@@ -290,7 +284,7 @@ export function UserDocument({
                 className="flex aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted !p-0"
                 onClick={() => setIsPreviewOpen(true)}
               >
-                <FileInput className="size-10 opacity-20" />
+                <FileInput onChange={handleFileChange} />
               </Button>
             )}
 

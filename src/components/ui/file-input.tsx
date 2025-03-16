@@ -3,6 +3,7 @@ import { UploadDropzone } from './uploadthing';
 import { ClientUploadedFileData } from 'uploadthing/types';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import { buttonVariants } from './button';
 
 type FileUploadResponse = ClientUploadedFileData<{
   fileName: string;
@@ -27,6 +28,7 @@ const FileInput = ({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const acceptedFileTypes: Array<'image' | 'pdf'> = [];
 
@@ -37,6 +39,19 @@ const FileInput = ({
   if (accept.includes('application/pdf')) {
     acceptedFileTypes.push('pdf');
   }
+
+  const truncateFileName = (fileName: string, maxLength = 20) => {
+    if (fileName.length <= maxLength) return fileName;
+
+    const extension = fileName.split('.').pop() || '';
+    const nameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.'));
+
+    if (nameWithoutExtension.length <= maxLength - extension.length - 3) {
+      return fileName;
+    }
+
+    return `${nameWithoutExtension.substring(0, maxLength - extension.length - 3)}...${extension ? `.${extension}` : ''}`;
+  };
 
   return (
     <UploadDropzone
@@ -56,12 +71,14 @@ const FileInput = ({
       }}
       onChange={(files) => {
         console.log('Files selected:', files);
+        setSelectedFiles(files);
       }}
       onClientUploadComplete={(res) => {
         const file = res[0];
         setUploading(false);
         setUploadProgress(0);
         setCurrentFile(null);
+        setSelectedFiles([]);
 
         if (file) {
           onChange(file as FileUploadResponse);
@@ -119,6 +136,40 @@ const FileInput = ({
               </div>
             );
           }
+
+          if (selectedFiles.length > 0 && selectedFiles[0]) {
+            const fileName = selectedFiles[0].name;
+            return (
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-medium text-gray-700">
+                  {t('fileInput.label')}
+                </span>
+                <div
+                  className="mt-2 text-sm text-gray-600 flex items-center justify-center"
+                  title={fileName}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                    />
+                  </svg>
+                  <span className="truncate max-w-[200px]">
+                    {truncateFileName(fileName)}
+                  </span>
+                </div>
+              </div>
+            );
+          }
+
           return (
             <span className="text-sm font-medium text-gray-700">
               {t('fileInput.label')}
@@ -126,7 +177,7 @@ const FileInput = ({
           );
         },
         allowedContent: ({ isUploading }) => {
-          if (isUploading) return null;
+          if (isUploading || selectedFiles.length > 0) return null;
           return (
             <span className="text-xs font-medium text-gray-500">
               {t('fileInput.acceptedFileTypes', {
@@ -137,16 +188,25 @@ const FileInput = ({
             </span>
           );
         },
-        button: ({ isUploading, ready }) => {
+        button: ({ isUploading }) => {
           if (isUploading) return null;
+
+          const buttonText =
+            selectedFiles.length > 0 ? t('fileInput.start') : t('fileInput.button');
+
           return (
-            <span className="px-3 py-2 text-sm inline-block">
-              {ready ? t('fileInput.button') : t('fileInput.uploading')}
+            <span
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'w-full bg-transparent',
+              )}
+            >
+              {buttonText}
             </span>
           );
         },
         uploadIcon: ({ isUploading }) => {
-          if (isUploading) return null;
+          if (isUploading || selectedFiles.length > 0) return null;
           return (
             <svg
               xmlns="http://www.w3.org/2000/svg"

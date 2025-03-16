@@ -84,27 +84,41 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
   return true;
 }
 
-export async function createUserDocument(
-  type: DocumentType,
-  fileData: FileUploadResponse,
-  profileId?: string,
-): Promise<AppUserDocument | null> {
-  const uploaded = [];
+export async function createUserDocument(data: {
+  id?: string;
+  type: DocumentType;
+  fileUrl: string;
+  userId: string;
+  profileId?: string;
+}): Promise<AppUserDocument | null> {
   const authResult = await checkAuth();
+
+  // @ts-expect-error - We don't need to define the type for the typesMap
+  const typesMap: Record<DocumentType, string> = {
+    [DocumentType.PASSPORT]: 'passport',
+    [DocumentType.IDENTITY_PHOTO]: 'identityPhoto',
+    [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificate',
+    [DocumentType.RESIDENCE_PERMIT]: 'residencePermit',
+    [DocumentType.PROOF_OF_ADDRESS]: 'proofOfAddress',
+  } as const;
 
   const { data: document, error: documentError } = await tryCatch(
     db.userDocument.create({
       data: {
-        id: fileData.serverData.id,
-        type,
-        fileUrl: fileData.serverData.fileUrl,
+        id: data.id,
+        type: data.type,
+        fileUrl: data.fileUrl,
         status: DocumentStatus.PENDING,
-        userId: authResult.user.id,
-        ...(profileId && {
-          ...(typesMap[type] && {
-            [typesMap[type]]: {
+        user: {
+          connect: {
+            id: data.userId,
+          },
+        },
+        ...(data.profileId && {
+          ...(typesMap[data.type] && {
+            [typesMap[data.type]]: {
               connect: {
-                id: profileId,
+                id: data.profileId,
               },
             },
           }),
@@ -114,7 +128,9 @@ export async function createUserDocument(
   );
 
   if (documentError || !document) {
-    await deleteFiles(uploaded);
+    if (data.id) {
+      await deleteFiles([data.id]);
+    }
     throw new Error('document_creation_failed');
   }
 
