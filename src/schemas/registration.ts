@@ -163,7 +163,6 @@ export const DocumentsSchemaRefined = z
     ...DocumentsSchema.shape,
   })
   .superRefine((data, ctx) => {
-    console.log('data', data);
     if (!data.passport) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

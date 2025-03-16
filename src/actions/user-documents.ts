@@ -92,8 +92,6 @@ export async function createUserDocument(data: {
     [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
   } as const;
 
-  console.log('data', data);
-
   const { data: document, error: documentError } = await tryCatch(
     db.userDocument.create({
       data: {
