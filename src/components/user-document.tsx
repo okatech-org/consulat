@@ -74,14 +74,26 @@ export function UserDocument({
   const t_messages = useTranslations('messages.profile');
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [localDocument, setLocalDocument] = React.useState(document);
+  const [resetKey, setResetKey] = React.useState(Date.now());
   const router = useRouter();
   const { formatDate } = useDateLocale();
+
+  // Mettre à jour le document local lorsque le document externe change
+  React.useEffect(() => {
+    setLocalDocument(document);
+  }, [document]);
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
     const result = await tryCatch(deleteUserDocument(documentId));
 
     if (result.data) {
+      // Réinitialiser le document local
+      setLocalDocument(null);
+      // Forcer le remontage du composant FileInput
+      setResetKey(Date.now());
+
       if (onDelete) {
         onDelete();
       } else {
@@ -122,6 +134,9 @@ export function UserDocument({
     }
 
     if (updatedDocument) {
+      // Mettre à jour le document local
+      setLocalDocument(updatedDocument);
+
       toast({
         title: t_messages('success.update_title'),
         description: t_messages('success.update_description'),
@@ -141,13 +156,13 @@ export function UserDocument({
   const form = useForm<UpdateDocumentData>({
     resolver: zodResolver(updateDocumentSchema),
     defaultValues: {
-      issuedAt: document?.issuedAt
-        ? format(new Date(document.issuedAt), 'yyyy-MM-dd')
+      issuedAt: localDocument?.issuedAt
+        ? format(new Date(localDocument.issuedAt), 'yyyy-MM-dd')
         : undefined,
-      expiresAt: document?.expiresAt
-        ? format(new Date(document.expiresAt), 'yyyy-MM-dd')
+      expiresAt: localDocument?.expiresAt
+        ? format(new Date(localDocument.expiresAt), 'yyyy-MM-dd')
         : undefined,
-      metadata: document?.metadata,
+      metadata: localDocument?.metadata,
     },
   });
 
@@ -174,6 +189,9 @@ export function UserDocument({
     }
 
     if (result.data) {
+      // Mettre à jour le document local avec le résultat
+      setLocalDocument(result.data);
+
       if (onUpload) {
         onUpload(result.data);
       } else {
@@ -190,10 +208,10 @@ export function UserDocument({
   };
 
   const onUpdate = async (data: UpdateDocumentData) => {
-    if (!document) return;
+    if (!localDocument) return;
 
     try {
-      await handleUpdate(document.id, data);
+      await handleUpdate(localDocument.id, data);
       setIsUpdating(false);
     } finally {
       setIsLoading(false);
@@ -226,21 +244,23 @@ export function UserDocument({
             {label}
             {required && <span className="ml-1 text-destructive">*</span>}
           </span>
-          {document?.status && getStatusBadge(document.status)}
+          {localDocument?.status && getStatusBadge(localDocument.status)}
         </h3>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 
       <div className={cn('relative', 'h-full')}>
         <FileInput
+          key={resetKey}
           onChange={handleFileChange}
           accept={accept}
           loading={isLoading}
-          fileUrl={document?.fileUrl}
+          fileUrl={localDocument?.fileUrl}
           showPreview={true}
+          autoUpload={true}
         />
 
-        {document && (
+        {localDocument && (
           <div className="absolute right-1 top-1 flex items-center gap-2">
             {allowEdit && (
               <Button
@@ -257,7 +277,7 @@ export function UserDocument({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => handleDelete(document.id)}
+              onClick={() => handleDelete(localDocument.id)}
               disabled={disabled || isLoading}
             >
               <X className="size-4" />
@@ -265,18 +285,22 @@ export function UserDocument({
           </div>
         )}
 
-        {document && document.metadata && (
+        {localDocument && localDocument.metadata && (
           <div className="flex flex-1 flex-col justify-end space-y-1 pt-4 text-sm text-muted-foreground">
-            {(document.issuedAt || document.expiresAt) && (
+            {(localDocument.issuedAt || localDocument.expiresAt) && (
               <p>
                 {t('validity', {
-                  start: document.issuedAt ? formatDate(document.issuedAt) : 'N/A',
-                  end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
+                  start: localDocument.issuedAt
+                    ? formatDate(localDocument.issuedAt)
+                    : 'N/A',
+                  end: localDocument.expiresAt
+                    ? formatDate(localDocument.expiresAt)
+                    : 'N/A',
                 })}
               </p>
             )}
             <div>
-              {Object.entries(document.metadata).map(([key, value]) => (
+              {Object.entries(localDocument.metadata).map(([key, value]) => (
                 <p key={key}>
                   {/** @ts-expect-error - key is a string */}
                   {t(`metadata.${key}`)}: {`${value}`}
@@ -341,12 +365,12 @@ export function UserDocument({
               </Form>
             </TabsContent>
             <TabsContent value="metadata">
-              {document && (
+              {localDocument && (
                 <MetadataForm
-                  documentType={document.type}
-                  metadata={document.metadata}
+                  documentType={localDocument.type}
+                  metadata={localDocument.metadata}
                   onSubmit={async (metadata) => {
-                    await handleUpdate(document.id, { metadata });
+                    await handleUpdate(localDocument.id, { metadata });
                     setIsUpdating(false);
                   }}
                 />

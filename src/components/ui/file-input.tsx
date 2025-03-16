@@ -26,6 +26,7 @@ type FileInputProps = {
   fileUrl?: string;
   showPreview?: boolean;
   previewSize?: { width: number; height: number };
+  autoUpload?: boolean;
 };
 
 const FileInput = ({
@@ -36,6 +37,7 @@ const FileInput = ({
   fileUrl,
   showPreview = true,
   previewSize = { width: 400, height: 600 },
+  autoUpload = true,
 }: FileInputProps) => {
   const t = useTranslations('inputs');
   const [uploading, setUploading] = useState(false);
@@ -206,6 +208,9 @@ const FileInput = ({
         setUploadProgress(0);
         setCurrentFile(null);
       }}
+      config={{
+        mode: autoUpload ? 'auto' : 'manual',
+      }}
       appearance={{
         container: ({ isUploading }) =>
           cn(
@@ -302,10 +307,7 @@ const FileInput = ({
           );
         },
         button: ({ isUploading }) => {
-          if (isUploading) return null;
-
-          const buttonText =
-            selectedFiles.length > 0 ? t('fileInput.start') : t('fileInput.button');
+          if (isUploading || (autoUpload && selectedFiles.length > 0)) return null;
 
           return (
             <span
@@ -314,7 +316,7 @@ const FileInput = ({
                 'w-full bg-transparent',
               )}
             >
-              {buttonText}
+              {selectedFiles.length > 0 ? t('fileInput.start') : t('fileInput.button')}
             </span>
           );
         },

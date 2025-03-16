@@ -121,7 +121,7 @@ export function RegistrationForm({
     setError(undefined);
     setIsLoading(true);
 
-    const stepForm = forms[currentTab];
+    const stepForm = forms[currentTab as keyof typeof forms];
     const stepData = stepForm?.getValues();
     const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
 
@@ -252,7 +252,7 @@ export function RegistrationForm({
   };
 
   return (
-    <div className="w-full max-w-3xl min-h-full overflow-y-auto  py-10 pb-24 md:pb-6 flex flex-col">
+    <div className="w-full max-w-3xl min-h-full flex flex-col">
       <header className="w-full border-b border-border pb-6">
         <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
           <Image
