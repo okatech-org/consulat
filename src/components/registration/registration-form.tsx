@@ -287,7 +287,7 @@ export function RegistrationForm({
           <div className="mb-8 space-y-6"></div>
 
           {/* Contenu principal */}
-          <div className="flex flex-col gap-4 justify-center">
+          <div className="flex flex-col pb-24 md:pb-10 gap-4 justify-center">
             {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
             {renderCurrentStep()}
 

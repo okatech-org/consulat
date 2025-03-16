@@ -74,26 +74,14 @@ export function UserDocument({
   const t_messages = useTranslations('messages.profile');
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [localDocument, setLocalDocument] = React.useState(document);
-  const [resetKey, setResetKey] = React.useState(Date.now());
   const router = useRouter();
   const { formatDate } = useDateLocale();
-
-  // Mettre à jour le document local lorsque le document externe change
-  React.useEffect(() => {
-    setLocalDocument(document);
-  }, [document]);
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
     const result = await tryCatch(deleteUserDocument(documentId));
 
     if (result.data) {
-      // Réinitialiser le document local
-      setLocalDocument(null);
-      // Forcer le remontage du composant FileInput
-      setResetKey(Date.now());
-
       if (onDelete) {
         onDelete();
       } else {
@@ -134,8 +122,7 @@ export function UserDocument({
     }
 
     if (updatedDocument) {
-      // Mettre à jour le document local
-      setLocalDocument(updatedDocument);
+      onUpload?.(updatedDocument);
 
       toast({
         title: t_messages('success.update_title'),
@@ -156,13 +143,13 @@ export function UserDocument({
   const form = useForm<UpdateDocumentData>({
     resolver: zodResolver(updateDocumentSchema),
     defaultValues: {
-      issuedAt: localDocument?.issuedAt
-        ? format(new Date(localDocument.issuedAt), 'yyyy-MM-dd')
+      issuedAt: document?.issuedAt
+        ? format(new Date(document.issuedAt), 'yyyy-MM-dd')
         : undefined,
-      expiresAt: localDocument?.expiresAt
-        ? format(new Date(localDocument.expiresAt), 'yyyy-MM-dd')
+      expiresAt: document?.expiresAt
+        ? format(new Date(document.expiresAt), 'yyyy-MM-dd')
         : undefined,
-      metadata: localDocument?.metadata,
+      metadata: document?.metadata,
     },
   });
 
@@ -189,9 +176,6 @@ export function UserDocument({
     }
 
     if (result.data) {
-      // Mettre à jour le document local avec le résultat
-      setLocalDocument(result.data);
-
       if (onUpload) {
         onUpload(result.data);
       } else {
@@ -208,10 +192,10 @@ export function UserDocument({
   };
 
   const onUpdate = async (data: UpdateDocumentData) => {
-    if (!localDocument) return;
+    if (!document) return;
 
     try {
-      await handleUpdate(localDocument.id, data);
+      await handleUpdate(document.id, data);
       setIsUpdating(false);
     } finally {
       setIsLoading(false);
@@ -237,30 +221,29 @@ export function UserDocument({
   };
 
   return (
-    <div className="mb-2 space-y-4">
+    <div className="mb-2 space-y-4 relative w-full h-full overflow-hidden">
       <div className="flex flex-col gap-1">
         <h3 className="font-medium text-normal mb-1">
           <span>
             {label}
             {required && <span className="ml-1 text-destructive">*</span>}
           </span>
-          {localDocument?.status && getStatusBadge(localDocument.status)}
+          {document?.status && getStatusBadge(document.status)}
         </h3>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 
-      <div className={cn('relative', 'h-full')}>
+      <div className={cn('relative', 'h-full w-full')}>
         <FileInput
-          key={resetKey}
           onChange={handleFileChange}
           accept={accept}
           loading={isLoading}
-          fileUrl={localDocument?.fileUrl}
+          fileUrl={document?.fileUrl}
           showPreview={true}
           autoUpload={true}
         />
 
-        {localDocument && (
+        {document && (
           <div className="absolute right-1 top-1 flex items-center gap-2">
             {allowEdit && (
               <Button
@@ -277,7 +260,7 @@ export function UserDocument({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => handleDelete(localDocument.id)}
+              onClick={() => handleDelete(document.id)}
               disabled={disabled || isLoading}
             >
               <X className="size-4" />
@@ -285,22 +268,18 @@ export function UserDocument({
           </div>
         )}
 
-        {localDocument && localDocument.metadata && (
+        {document && document.metadata && (
           <div className="flex flex-1 flex-col justify-end space-y-1 pt-4 text-sm text-muted-foreground">
-            {(localDocument.issuedAt || localDocument.expiresAt) && (
+            {(document.issuedAt || document.expiresAt) && (
               <p>
                 {t('validity', {
-                  start: localDocument.issuedAt
-                    ? formatDate(localDocument.issuedAt)
-                    : 'N/A',
-                  end: localDocument.expiresAt
-                    ? formatDate(localDocument.expiresAt)
-                    : 'N/A',
+                  start: document.issuedAt ? formatDate(document.issuedAt) : 'N/A',
+                  end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
                 })}
               </p>
             )}
             <div>
-              {Object.entries(localDocument.metadata).map(([key, value]) => (
+              {Object.entries(document.metadata).map(([key, value]) => (
                 <p key={key}>
                   {/** @ts-expect-error - key is a string */}
                   {t(`metadata.${key}`)}: {`${value}`}
@@ -365,12 +344,12 @@ export function UserDocument({
               </Form>
             </TabsContent>
             <TabsContent value="metadata">
-              {localDocument && (
+              {document && (
                 <MetadataForm
-                  documentType={localDocument.type}
-                  metadata={localDocument.metadata}
+                  documentType={document.type}
+                  metadata={document.metadata}
                   onSubmit={async (metadata) => {
-                    await handleUpdate(localDocument.id, { metadata });
+                    await handleUpdate(document.id, { metadata });
                     setIsUpdating(false);
                   }}
                 />

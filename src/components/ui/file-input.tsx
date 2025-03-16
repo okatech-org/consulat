@@ -86,7 +86,7 @@ const FileInput = ({
 
   if (preview && showPreview) {
     return (
-      <div className="relative aspect-16/9 rounded-md min-h-full w-auto overflow-hidden !p-0">
+      <div className="relative aspect-16/9 rounded-md min-h-full max-h-[150px] w-auto overflow-hidden !p-0">
         {isImage ? (
           <div className="flex relative aspect-document rounded-md min-h-full max-h-full w-auto overflow-hidden !p-0">
             {showPreview && (

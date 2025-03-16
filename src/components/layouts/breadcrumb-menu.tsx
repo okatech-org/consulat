@@ -18,8 +18,6 @@ export function BreadcrumbMenu() {
   const pathnameParts = pathname.split('/').filter(Boolean) as Array<keyof typeof ROUTES>;
   const t = useTranslations('navigation.breadcrumb');
 
-  console.log(pathnameParts);
-
   return (
     <Breadcrumb className="w-full overflow-hidden">
       <BreadcrumbList className="truncate text-nowrap flex-nowrap">

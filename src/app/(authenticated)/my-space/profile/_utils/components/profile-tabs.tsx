@@ -47,7 +47,6 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
             birthCertificate: profile.birthCertificate,
             residencePermit: profile.residencePermit,
             addressProof: profile.addressProof,
-            identityPhoto: profile.identityPicture,
           }}
           profileId={profile.id}
           profileStatus={profile.status}

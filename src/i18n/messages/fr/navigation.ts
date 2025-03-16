@@ -13,6 +13,8 @@ export default {
     'my-space': 'Mon espace',
     children: 'Mes enfants',
     account: 'Mon compte',
+    documents: 'Mes documents',
+    profile: 'Mon profil',
   },
   dashboard: {
     title: 'Tableau de bord',
