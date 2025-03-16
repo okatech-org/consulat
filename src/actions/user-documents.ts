@@ -7,6 +7,7 @@ import { processFileData } from '@/actions/utils';
 import { deleteFiles } from '@/actions/uploads';
 import { tryCatch } from '@/lib/utils';
 import { AppUserDocument } from '@/types';
+import { FileUploadResponse } from '@/components/ui/file-input';
 
 interface UpdateDocumentData {
   issuedAt?: string;
@@ -85,43 +86,18 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
 
 export async function createUserDocument(
   type: DocumentType,
-  file: FormData,
+  fileData: FileUploadResponse,
   profileId?: string,
 ): Promise<AppUserDocument | null> {
   const uploaded = [];
   const authResult = await checkAuth();
 
-  const { data: uploadedFile, error: uploadError } = await tryCatch(
-    processFileData(file),
-  );
-
-  if (uploadError || !uploadedFile?.url) {
-    throw new Error('upload_failed');
-  }
-
-  uploaded.push(uploadedFile.url);
-
-  // @ts-expect-error - Types are not exhaustive
-  const typesMap: Record<
-    DocumentType,
-    | 'identityPictureProfile'
-    | 'passportProfile'
-    | 'birthCertificateProfile'
-    | 'residencePermitProfile'
-    | 'addressProofProfile'
-  > = {
-    [DocumentType.IDENTITY_PHOTO]: 'identityPictureProfile',
-    [DocumentType.PASSPORT]: 'passportProfile',
-    [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificateProfile',
-    [DocumentType.RESIDENCE_PERMIT]: 'residencePermitProfile',
-    [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
-  } as const;
-
   const { data: document, error: documentError } = await tryCatch(
     db.userDocument.create({
       data: {
+        id: fileData.serverData.id,
         type,
-        fileUrl: uploadedFile.url,
+        fileUrl: fileData.serverData.fileUrl,
         status: DocumentStatus.PENDING,
         userId: authResult.user.id,
         ...(profileId && {

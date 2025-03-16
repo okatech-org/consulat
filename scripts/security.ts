@@ -12,6 +12,7 @@ export const ContentSecurityPolicy = `
     https://api.anthropic.com
     https://api.resend.com
     https://uploadthing.com
+    https://*.uploadthing.com
     https://utfs.io
     https://api.twilio.com
     https://lottie.host

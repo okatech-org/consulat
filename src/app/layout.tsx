@@ -12,6 +12,9 @@ import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 import { ClientInit } from '@/components/ui/client-init';
 import { env } from '@/lib/env/index';
+import { NextSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
+import { extractRouterConfig } from 'uploadthing/server';
+import { ourFileRouter } from '@/app/api/uploadthing/core';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -88,6 +91,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={inter.className + ' bg-muted'}>
+        <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <ClientInit />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider

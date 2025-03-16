@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { Upload, X, FileInput, Eye, PenIcon, Loader } from 'lucide-react';
+import { X, Eye, PenIcon } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,11 +32,7 @@ import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
-import { genUploader } from 'uploadthing/client';
-import { OurFileRouter } from '@/app/api/uploadthing/core';
-import { uploadFile } from '@/lib/services/files/client-upload';
-
-const { uploadFiles } = genUploader<OurFileRouter>();
+import { FileInput, FileUploadResponse } from '@/components/ui/file-input';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -116,10 +112,10 @@ export function UserDocument({
   };
 
   const handleUpload = useCallback(
-    async (type: DocumentType, file: FormData) => {
+    async (type: DocumentType, fileData: FileUploadResponse) => {
       setIsLoading(true);
 
-      const result = await tryCatch(createUserDocument(type, file, profileId));
+      const result = await tryCatch(createUserDocument(type, fileData, profileId));
 
       if (result.error) {
         toast({
@@ -208,40 +204,16 @@ export function UserDocument({
     setPreview(document.fileUrl);
   }, [document]);
 
-  const handleDrop = React.useCallback(
-    async (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      setIsDragging(false);
-      if (disabled) return;
+  const handleFileChange = async (result: {
+    uploadedBy: string;
+    fileUrl: string;
+    name: string;
+    size: number;
+    type: string;
+  }) => {
+    console.log('result', result);
 
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        setIsLoading(true);
-        try {
-          const formData = new FormData();
-          formData.append('files', file);
-          await handleUpload(document?.type || DocumentType.IDENTITY_PHOTO, formData);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    },
-    [disabled, document?.type, handleUpload],
-  );
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const formData = new FormData();
-
-        formData.append('files', file);
-
-        await handleUpload(document?.type ?? expectedType, formData);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    setIsLoading(false);
   };
 
   const onUpdate = async (data: UpdateDocumentData) => {
@@ -286,46 +258,11 @@ export function UserDocument({
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          if (!disabled) setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        className={cn(
-          'relative aspect-[4/1.5] p-4 rounded-lg border-2 border-dashed transition-colors',
-          isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25',
-          disabled && 'cursor-not-allowed opacity-60',
-        )}
-      >
-        <Input
-          ref={inputRef}
-          type="file"
-          accept={accept}
-          onChange={handleFileChange}
-          disabled={disabled || isLoading}
-          className="hidden"
-        />
-
+      <div>
         {!document ? (
           // État vide
           <div className="flex flex-col items-center justify-center text-center">
-            <Upload className="mb-4 size-8 text-muted-foreground" />
-            <Button
-              type="button"
-              variant="outline"
-              className={'gap-1'}
-              disabled={disabled || isLoading}
-              onClick={() => inputRef.current?.click()}
-            >
-              {isLoading && <Loader className="size-4 animate-spin" />}
-
-              {isLoading ? t('actions.uploading') : t('actions.upload')}
-            </Button>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t('upload.description')}
-            </p>
+            <FileInput onChange={handleFileChange} />
           </div>
         ) : (
           // Document existant

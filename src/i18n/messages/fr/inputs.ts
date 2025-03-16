@@ -1,4 +1,20 @@
 export default {
+  fileInput: {
+    label: 'Télécharger votre fichier',
+    placeholder: 'Sélectionner un fichier',
+    maxFileSize: 'Taille maximale du fichier, {maxFileSize}',
+    maxFileCount: 'Nombre maximum de fichiers, {maxFileCount}',
+    acceptedFileTypes: 'Types de fichiers acceptés: {acceptedFileTypes}',
+    image: 'Images',
+    pdf: 'PDF',
+    button: 'Choisir un fichier',
+    start: 'Envoyer ce fichier',
+    uploading: 'Téléchargement en cours: {progress}%',
+    uploadingFile: 'Téléchargement de: {fileName}',
+    uploadSuccess: 'Fichier téléchargé avec succès',
+    uploadError: 'Erreur lors du téléchargement',
+    dragActive: 'Déposez le fichier ici',
+  },
   priority: {
     label: 'Priorité',
     options: {
