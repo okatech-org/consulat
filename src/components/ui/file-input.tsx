@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { Input } from './input';
 
@@ -82,7 +82,7 @@ export function FileInput({
                 />
               </svg>
               <span className="text-sm text-center text-muted-foreground">
-                {t('dragActive')}
+                {t('preview')}
               </span>
             </div>
           ) : (
@@ -101,13 +101,21 @@ export function FileInput({
         {/* Dialog de prévisualisation */}
         <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
           <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden">
+            <DialogTitle className="sr-only">{t('preview')}</DialogTitle>
             {isPdf ? (
-              <iframe src={fileUrl} className="w-full h-[70vh]" title={t('pdf')} />
+              <div className="flex flex-col items-center justify-center gap-2 p-4">
+                <iframe src={fileUrl} className="w-full h-[70vh]" title={t('pdf')} />
+                <Button asChild variant="outline">
+                  <a href={fileUrl} target="_blank" rel="noopener noreferrer" download>
+                    {t('downloadPdf')}
+                  </a>
+                </Button>
+              </div>
             ) : (
               <div className="relative w-full h-[70vh]">
                 <Image
                   src={fileUrl}
-                  alt={t('label')}
+                  alt={t('preview')}
                   fill
                   style={{ objectFit: 'contain' }}
                   priority

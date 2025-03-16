@@ -270,6 +270,7 @@ export function UserDocument({
           disabled={isLoading}
           loading={isLoading}
           fileUrl={document?.fileUrl}
+          fileType={document?.fileType}
           showPreview={true}
         />
 

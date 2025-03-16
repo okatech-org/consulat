@@ -2,7 +2,7 @@ export const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://uploadthing.com https://placehold.co https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
   child-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
-  frame-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://utfs.io https://utfs.io/f;
+  frame-src 'self' https://rbvj2i3urx.ufs.sh https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://utfs.io https://utfs.io/f;
   style-src 'self' 'unsafe-inline';
   font-src 'self' data:;
   img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io https://rbvj2i3urx.ufs.sh https://qld7pfnhxe.ufs.sh https://i.ytimg.com blob: data:;

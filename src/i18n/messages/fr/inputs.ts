@@ -14,6 +14,9 @@ export default {
     uploadError: 'Erreur lors du téléchargement',
     dragActive: 'Déposez le fichier ici',
     start: 'Envoyer ce fichier',
+    preview: 'Aperçu du fichier',
+    pdfNotSupported: 'Votre navigateur ne prend pas en charge la visualisation des PDF',
+    downloadPdf: 'Télécharger le PDF',
   },
   priority: {
     label: 'Priorité',
