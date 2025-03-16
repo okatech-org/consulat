@@ -223,10 +223,7 @@ const FileInput = ({
             'bg-primary hover:bg-primary/90 text-white rounded-md mt-2 transition-all',
         },
         uploadIcon: ({ isUploading }) =>
-          cn(
-            'w-12 h-12 mx-auto mb-4',
-            isUploading ? 'text-primary/30' : 'text-primary/60',
-          ),
+          cn('!size-8 mx-auto', isUploading ? 'text-primary/30' : 'text-primary/60'),
       }}
       content={{
         label: ({ isUploading, uploadProgress }) => {
@@ -319,25 +316,6 @@ const FileInput = ({
             >
               {buttonText}
             </span>
-          );
-        },
-        uploadIcon: ({ isUploading }) => {
-          if (isUploading || selectedFiles.length > 0) return null;
-          return (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-10 h-10 mx-auto text-primary/60"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-              />
-            </svg>
           );
         },
       }}
