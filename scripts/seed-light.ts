@@ -38,6 +38,12 @@ async function main() {
         id: 'user-super-admin',
         email: 'okatech@icloud.com',
         roles: [UserRole.SUPER_ADMIN],
+        phone: {
+          create: {
+            number: '612250393',
+            countryCode: '+33',
+          },
+        },
       },
     });
 

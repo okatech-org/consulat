@@ -2,29 +2,11 @@
 
 import { getTranslations } from 'next-intl/server';
 import { checkAuth } from '@/lib/auth/action';
-import {
-  ConsularService,
-  DocumentStatus,
-  DocumentType,
-  Prisma,
-  Profile,
-  RequestStatus,
-  ServiceCategory,
-} from '@prisma/client';
+import { ConsularService, Prisma, Profile, ServiceCategory } from '@prisma/client';
 import { db } from '@/lib/prisma';
 
-import { processFileData } from '@/actions/utils';
-import {
-  BasicInfoFormData,
-  ContactInfoFormData,
-  DocumentsFormData,
-  FamilyInfoFormData,
-  ProfessionalInfoFormData,
-  CreateProfileInput,
-  FullProfileUpdateFormData,
-} from '@/schemas/registration';
-import { deleteFiles } from '@/actions/uploads';
-import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
+import { CreateProfileInput, FullProfileUpdateFormData } from '@/schemas/registration';
+import { tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { FullProfileInclude } from '@/types';

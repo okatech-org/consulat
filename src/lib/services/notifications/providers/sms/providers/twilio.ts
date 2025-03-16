@@ -1,44 +1,32 @@
-import { Twilio } from 'twilio';
+import twilio, { Twilio } from 'twilio';
 import { SMSMessage, SMSProvider, SMSResponse } from '../types';
 import { tryCatch } from '@/lib/utils';
+import { env } from '@/lib/env/index';
 
 export class TwilioProvider implements SMSProvider {
   private client: Twilio;
   private defaultFrom: string;
 
   constructor() {
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const from = process.env.TWILIO_PHONE_NUMBER;
+    const accountSid = env.TWILIO_ACCOUNT_SID;
+    const authToken = env.TWILIO_AUTH_TOKEN;
+    const from = env.TWILIO_PHONE_NUMBER;
 
     if (!accountSid || !authToken || !from) {
       throw new Error('Missing Twilio configuration');
     }
 
-    this.client = new Twilio(accountSid, authToken);
+    this.client = twilio(accountSid, authToken);
     this.defaultFrom = from;
   }
 
   async sendSMS(message: SMSMessage): Promise<SMSResponse> {
     const { error, data } = await tryCatch(
-      this.client.messages
-        .create({
-          body: message.body,
-          to: message.to,
-          from: message.from || this.defaultFrom,
-        })
-        .then((result) => {
-          return {
-            providerId: 'twilio',
-            messageId: result.sid,
-            status:
-              result.status === 'sent'
-                ? 'sent'
-                : result.status === 'queued'
-                  ? 'queued'
-                  : 'failed',
-          } as SMSResponse;
-        }),
+      this.client.messages.create({
+        body: message.body,
+        to: message.to,
+        from: this.defaultFrom,
+      }),
     );
 
     if (error) {
@@ -51,6 +39,13 @@ export class TwilioProvider implements SMSProvider {
       };
     }
 
-    return data as SMSResponse;
+    console.log('data', { data });
+
+    return {
+      providerId: 'twilio',
+      messageId: data?.sid || '',
+      status: 'sent',
+      errorMessage: '',
+    } as SMSResponse;
   }
 }

@@ -213,8 +213,13 @@ export function LoginForm() {
         await signIn('credentials', {
           identifier,
           type: data.type,
-          redirectTo: callbackUrl ?? '/',
         });
+
+        if (callbackUrl) {
+          router.push(callbackUrl);
+        } else {
+          router.push('/');
+        }
       }
     }
 

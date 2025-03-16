@@ -1,6 +1,7 @@
 import { Vonage } from '@vonage/server-sdk';
 import { SMSMessage, SMSProvider, SMSResponse } from '../types';
 import { tryCatch } from '@/lib/utils';
+import { env } from '@/lib/env/index';
 
 /**
  * Vonage SMS Provider
@@ -15,9 +16,9 @@ export class VonageProvider implements SMSProvider {
   private defaultFrom: string;
 
   constructor() {
-    const apiKey = process.env.VONAGE_API_KEY;
-    const apiSecret = process.env.VONAGE_API_SECRET;
-    const from = process.env.VONAGE_PHONE_NUMBER;
+    const apiKey = env.VONAGE_API_KEY;
+    const apiSecret = env.VONAGE_API_SECRET;
+    const from = env.VONAGE_PHONE_NUMBER;
 
     if (!apiKey || !apiSecret || !from) {
       throw new Error('Missing Vonage configuration');

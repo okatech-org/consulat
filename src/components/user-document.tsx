@@ -33,6 +33,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
 import { genUploader } from 'uploadthing/client';
+import { OurFileRouter } from '@/app/api/uploadthing/core';
+import { uploadFile } from '@/lib/services/files/client-upload';
+
+const { uploadFiles } = genUploader<OurFileRouter>();
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -114,6 +118,7 @@ export function UserDocument({
   const handleUpload = useCallback(
     async (type: DocumentType, file: FormData) => {
       setIsLoading(true);
+
       const result = await tryCatch(createUserDocument(type, file, profileId));
 
       if (result.error) {
@@ -228,7 +233,24 @@ export function UserDocument({
     const file = e.target.files?.[0];
     if (file) {
       setIsLoading(true);
-      try {
+
+      const uploadFilesResult = await tryCatch(uploadFile(file));
+
+      if (uploadFilesResult.error) {
+        toast({
+          title: t_messages('errors.update_failed'),
+          description: t_errors(uploadFilesResult.error.message),
+          variant: 'destructive',
+        });
+      }
+
+      if (uploadFilesResult.data) {
+        console.log(uploadFilesResult.data);
+      }
+
+      setIsLoading(false);
+
+      /**try {
         const formData = new FormData();
 
         formData.append('files', file);
@@ -236,7 +258,7 @@ export function UserDocument({
         await handleUpload(document?.type ?? expectedType, formData);
       } finally {
         setIsLoading(false);
-      }
+      }*/
     }
   };
 

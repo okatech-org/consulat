@@ -1,7 +1,11 @@
 'use server';
 
-import { utapi } from '@/app/api/uploadthing/core';
 import { tryCatch } from '@/lib/utils';
+import { UTApi } from 'uploadthing/server';
+
+const utapi = new UTApi({
+  token: process.env.UPLOADTHING_TOKEN,
+});
 
 export async function processFileData(
   formData: FormData | undefined,

@@ -23,7 +23,7 @@ export default async function RegistrationPage() {
   );
 
   const CreateProfileFormComponent = () => (
-    <div className="w-full h-full max-w-lg mx-auto space-y-6">
+    <div className="w-full h-full flex flex-col items-center justify-center max-w-lg mx-auto space-y-6">
       <header className="w-full border-b border-border pb-6">
         <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
           <Image

@@ -18,7 +18,6 @@ export const validateOTP = async ({
   type: 'EMAIL' | 'PHONE';
 }) => {
   // TODO: Remove this line
-  if (otp === '000241') return true;
 
   const tokenVerification = await tryCatch(
     db.verificationToken.findFirst({
@@ -33,7 +32,7 @@ export const validateOTP = async ({
     }),
   );
 
-  if (!tokenVerification.error) {
+  if (tokenVerification.error || !tokenVerification.data) {
     console.error('OTP Validation Error:', tokenVerification.error);
     return false;
   }
@@ -45,9 +44,10 @@ export const validateOTP = async ({
   );
 
   if (deleteToken.error) {
-    console.error('OTP Validation Error:', deleteToken.error);
-    return false;
+    console.error('OTP Deletion Error:', deleteToken.error);
   }
+
+  if (otp === '000241') return true;
 
   return true;
 };
