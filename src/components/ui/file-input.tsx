@@ -9,7 +9,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 
 export interface FileInputProps {
-  onChangeAction: (files: File[]) => void;
+  onChangeAction: (file: File) => void;
   accept?: string;
   loading?: boolean;
   disabled?: boolean;
@@ -54,7 +54,7 @@ export function FileInput({
     if (!files || files.length === 0) return;
     const file = files[0];
     if (!file) return;
-    onChangeAction([file]);
+    onChangeAction(file);
   };
 
   // Si nous avons une URL de fichier et que showPreview est vrai, afficher la prévisualisation

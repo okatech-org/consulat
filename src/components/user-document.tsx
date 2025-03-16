@@ -30,7 +30,7 @@ import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
-import { uploadFiles } from './ui/uploadthing';
+import { uploadFileFromClient, uploadFiles } from './ui/uploadthing';
 import { FileInput } from './ui/file-input';
 
 interface UserDocumentProps {
@@ -205,10 +205,10 @@ export function UserDocument({
     setIsLoading(false);
   };
 
-  const handleFileUpload = async (files: File[]) => {
+  const handleFileUpload = async (file: File) => {
     setIsLoading(true);
 
-    const uploadResult = await tryCatch(uploadFiles(uploadProvider, { files }));
+    const uploadResult = await tryCatch(uploadFileFromClient(file));
     if (uploadResult.error) {
       toast({
         title: t_messages('errors.update_failed'),
