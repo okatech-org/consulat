@@ -163,6 +163,7 @@ export const DocumentsSchemaRefined = z
     ...DocumentsSchema.shape,
   })
   .superRefine((data, ctx) => {
+    console.log('data', data);
     if (!data.passport) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -199,5 +200,5 @@ export type BasicInfoFormData = z.infer<typeof BasicInfoSchema>;
 export type ContactInfoFormData = z.infer<typeof ContactInfoSchema>;
 export type FamilyInfoFormData = z.infer<typeof FamilyInfoSchema>;
 export type ProfessionalInfoFormData = z.infer<typeof ProfessionalInfoSchema>;
-export type DocumentsFormData = z.infer<typeof DocumentsSchema>;
+export type DocumentsFormData = z.infer<typeof DocumentsSchemaRefined>;
 export type FullProfileUpdateFormData = z.infer<typeof FullProfileUpdateSchema>;

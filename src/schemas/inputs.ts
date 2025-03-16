@@ -26,7 +26,7 @@ const FileListSchema = z.any().refine((files) => {
   if (files instanceof File) return true;
   // Sinon invalide
   return false;
-}, 'messages.errors.doc_required');
+}, 'messages.errors.field_required');
 
 export const DocumentFileSchema = z
   .union([
@@ -60,7 +60,7 @@ export const DocumentFileSchema = z
       if (typeof window === 'undefined') return true;
       return files !== null && files !== undefined;
     },
-    { message: 'messages.errors.doc_required' },
+    { message: 'messages.errors.field_required' },
   );
 
 export const GenderSchema = z.nativeEnum(Gender, {

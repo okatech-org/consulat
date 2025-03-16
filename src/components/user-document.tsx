@@ -30,8 +30,9 @@ import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
-import { uploadFileFromClient, uploadFiles } from './ui/uploadthing';
 import { FileInput } from './ui/file-input';
+import { uploadFileFromServer } from '@/actions/uploads';
+import { UploadedFileData } from 'uploadthing/types';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -77,8 +78,6 @@ export function UserDocument({
   const [isLoading, setIsLoading] = React.useState(false);
   const router = useRouter();
   const { formatDate } = useDateLocale();
-  const uploadProvider =
-    accept === 'image/*' ? 'imageUploader' : ('documentUploader' as const);
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
@@ -158,18 +157,14 @@ export function UserDocument({
     },
   });
 
-  const handleFileChange = async (fileData: {
-    key: string;
-    url: string;
-    serverData: { userId: string };
-  }) => {
+  const handleFileChange = async (fileData: UploadedFileData & { userId: string }) => {
     setIsLoading(true);
 
     const data = {
       id: fileData.key,
       type: expectedType,
       fileUrl: fileData.url,
-      userId: fileData.serverData.userId,
+      userId: fileData.userId,
       ...(profileId && {
         profileId,
       }),
@@ -208,7 +203,10 @@ export function UserDocument({
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
 
-    const uploadResult = await tryCatch(uploadFileFromClient(file));
+    const fileFormData = new FormData();
+    fileFormData.append('files', file);
+
+    const uploadResult = await tryCatch(uploadFileFromServer(fileFormData));
     if (uploadResult.error) {
       toast({
         title: t_messages('errors.update_failed'),
@@ -219,8 +217,8 @@ export function UserDocument({
       return;
     }
 
-    if (uploadResult.data && uploadResult.data[0]) {
-      await handleFileChange(uploadResult.data[0]);
+    if (uploadResult.data) {
+      await handleFileChange(uploadResult.data);
     }
   };
 

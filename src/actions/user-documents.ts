@@ -3,11 +3,9 @@
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { DocumentStatus, DocumentType } from '@prisma/client';
-import { processFileData } from '@/actions/utils';
 import { deleteFiles } from '@/actions/uploads';
 import { tryCatch } from '@/lib/utils';
 import { AppUserDocument } from '@/types';
-import { FileUploadResponse } from '@/components/ui/file-input';
 
 interface UpdateDocumentData {
   issuedAt?: string;
@@ -60,7 +58,7 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
   );
 
   if (documentError || !document) {
-    throw new Error('document_not_found');
+    throw new Error('messages.errors.document_not_found');
   }
 
   // Supprimer le fichier si c'est un fichier uploadthing
@@ -78,7 +76,7 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
   );
 
   if (deleteError) {
-    throw new Error('delete_document_failed');
+    throw new Error('messages.errors.delete_document_failed');
   }
 
   return true;

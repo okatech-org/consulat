@@ -1,6 +1,7 @@
 export default {
   errors: {
     code_not_sent_otp: "Le code n'a pas été envoyé, veuillez réessayer",
+    document_not_found: 'Document non trouvé, veuillez réessayer ou actualiser la page',
     auth_error:
       "Erreur de connexion, veuillez réessayer. Si le problème persiste, contactez l'assistance.",
     no_user_found_with_email: "Nous n'avons pas trouvé d'utilisateur avec cet email",
@@ -17,7 +18,6 @@ export default {
     expiry_date_past: "La date d'expiration est passée ou expire bientôt",
     expiry_date_future: "La date d'expiration ne peut pas être dans le futur",
     invalid_step: 'Étape invalide, veuillez vérifier les champs et réessayer',
-    upload_failed: "Échec de l'upload du document",
     document_creation_failed: 'Échec de la création du document',
     update_profile_failed: 'Échec de la mise à jour du profil',
     otp_required: 'Le code OTP est requis',
@@ -69,6 +69,7 @@ export default {
     invalid_relationship: "Le lien de parenté sélectionné n'est pas valide",
     invalid_phone: 'Format invalide, veuillez utiliser le format 06XXXXXXXX',
     doc_required: 'Ce document est obligatoire',
+    upload_failed: "Échec de l'upload du document, veuillez réessayer",
     required_document: 'Document requis',
     doc_one_max: 'Un seul document est autorisé',
     doc_invalid: 'Document invalide',
