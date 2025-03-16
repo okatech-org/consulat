@@ -34,13 +34,6 @@ export const env = createEnv({
     VONAGE_API_KEY: z.string().min(1),
     VONAGE_API_SECRET: z.string().min(1),
     VONAGE_PHONE_NUMBER: z.string().startsWith('+'),
-
-    // S3 configuration
-    S3_ENDPOINT: z.string().url(),
-    S3_ACCESS_KEY_ID: z.string().min(1),
-    S3_SECRET_ACCESS_KEY: z.string().min(1),
-    S3_BUCKET_NAME: z.string().min(1),
-    S3_PUBLIC_DOMAIN: z.string().url(),
   },
 
   /**
@@ -88,13 +81,6 @@ export const env = createEnv({
     VONAGE_API_KEY: process.env.VONAGE_API_KEY,
     VONAGE_API_SECRET: process.env.VONAGE_API_SECRET,
     VONAGE_PHONE_NUMBER: process.env.VONAGE_PHONE_NUMBER,
-
-    // S3 configuration
-    S3_ENDPOINT: process.env.S3_ENDPOINT,
-    S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
-    S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
-    S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
-    S3_PUBLIC_DOMAIN: process.env.S3_PUBLIC_DOMAIN,
 
     // Public variables
     NEXT_PUBLIC_BASE_COUNTRY_CODE: process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE,
