@@ -3,7 +3,7 @@ import { LoginForm } from '../_utils/login-form';
 import { redirect } from 'next/navigation';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 

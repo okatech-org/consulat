@@ -29,6 +29,28 @@ async function main() {
       prisma.country.deleteMany(),
     ]);
 
+    await prisma.country.create({
+      data: {
+        id: 'country-france',
+        name: 'France',
+        code: 'FR',
+        flag: 'https://flagcdn.com/fr.svg',
+        status: 'ACTIVE',
+        metadata: JSON.stringify({
+          currency: {
+            code: 'EUR',
+            symbol: '€',
+            format: '#,##0.00',
+            symbolPosition: 'after',
+          },
+          language: { defaultLocale: 'fr', locales: ['fr', 'en', 'es'] },
+          dateFormat: 'DD/MM/YYYY',
+          timeFormat: '24h',
+          timeZone: 'Europe/Paris',
+        }),
+      },
+    });
+
     // Create super admin user
     console.log('Creating super admin user...');
     await prisma.user.create({
@@ -40,7 +62,7 @@ async function main() {
         roles: [UserRole.SUPER_ADMIN],
         phone: {
           create: {
-            number: '612250393',
+            number: '666100823',
             countryCode: '+33',
           },
         },

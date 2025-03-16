@@ -14,7 +14,7 @@ export async function sendSMSOTP(phone: string, otp: string) {
 
     const message = t('message', {
       otp,
-      expiry: t('expiry_time'),
+      expiry: t('expiry_time', { count: 10 }),
       appName: t('app_name'),
     });
 

@@ -29,7 +29,7 @@ import { Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
 import { FullProfile } from '@/types';
 import { useTabs } from '@/hooks/use-tabs';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 import Image from 'next/image';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;

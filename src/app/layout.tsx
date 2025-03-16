@@ -11,7 +11,7 @@ import { ChatToggle } from '@/components/chat/chat-toggle';
 import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 import { ClientInit } from '@/components/ui/client-init';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';

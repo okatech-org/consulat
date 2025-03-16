@@ -7,7 +7,7 @@ import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { NewProfileForm } from '@/components/registration/new-profile-form';
 import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 

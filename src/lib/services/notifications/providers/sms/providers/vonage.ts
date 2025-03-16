@@ -35,7 +35,7 @@ export class VonageProvider implements SMSProvider {
       this.client.sms
         .send({
           to: message.to,
-          from: message.from || this.defaultFrom,
+          from: this.defaultFrom,
           text: message.body,
         })
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

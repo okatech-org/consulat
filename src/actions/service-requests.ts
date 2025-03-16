@@ -24,7 +24,7 @@ import {
 import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {

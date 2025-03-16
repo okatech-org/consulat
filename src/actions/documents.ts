@@ -13,7 +13,7 @@ import { checkAuth } from '@/lib/auth/action';
 import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 import { ROUTES } from '@/schemas/routes';
 
 // Types

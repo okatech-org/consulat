@@ -17,7 +17,7 @@ import {
 } from '@/schemas/appointment';
 import { notifyAppointment } from '@/lib/services/notifications';
 import { getTranslations } from 'next-intl/server';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 import { ROUTES } from '@/schemas/routes';
 import { NotificationChannel } from '@/types/notifications';
 

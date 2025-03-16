@@ -11,7 +11,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 interface EmailLayoutProps {

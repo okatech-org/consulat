@@ -220,8 +220,10 @@ export function NewProfileForm({
         await signIn('credentials', {
           identifier,
           type: data.type,
-          redirectTo: ROUTES.registration,
+          redirect: false,
         });
+
+        window.location.assign(ROUTES.registration);
       }
     }
 

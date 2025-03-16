@@ -39,8 +39,6 @@ export class TwilioProvider implements SMSProvider {
       };
     }
 
-    console.log('data', { data });
-
     return {
       providerId: 'twilio',
       messageId: data?.sid || '',

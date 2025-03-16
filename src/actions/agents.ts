@@ -14,7 +14,7 @@ import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/lib/env';
+import { env } from '@/lib/env/index';
 
 type Agent = User & { assignedRequests: ServiceRequest[] };
 

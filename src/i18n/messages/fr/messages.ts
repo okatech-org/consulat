@@ -10,7 +10,8 @@ export default {
     invalid_identifier: 'Erreur de connexion: Identifiant invalides',
     user_not_found: "Nous n'avons pas trouvé d'utilisateur avec ces identifiants",
     invalid_otp_field: 'Doit contenir 6 chiffres',
-    invalid_otp: "Ce code d'accès est invalide ou a expiré, veuillez réessayer",
+    invalid_otp:
+      "Ce code d'accès est invalide ou a expiré, veuillez réessayer ou demander un nouveau code",
     opt_min_length: "Le code d'accès doit contenir 6 chiffres",
     invalid_field: 'Champ invalide',
     expiry_date_past: "La date d'expiration est passée ou expire bientôt",
