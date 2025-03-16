@@ -47,27 +47,6 @@ export async function updateUserDocument(
 export async function deleteUserDocument(documentId: string): Promise<boolean> {
   await checkAuth();
 
-  // Vérifier que le document appartient à l'utilisateur
-  // TODO: Vérifier que le document appartient à l'utilisateur
-  const { data: document, error: documentError } = await tryCatch(
-    db.userDocument.findFirst({
-      where: {
-        id: documentId,
-      },
-    }),
-  );
-
-  if (documentError || !document) {
-    throw new Error('messages.errors.document_not_found');
-  }
-
-  // Supprimer le fichier si c'est un fichier uploadthing
-  const { error: deleteErrorFile } = await tryCatch(deleteFiles([document.id]));
-
-  if (deleteErrorFile) {
-    console.error('delete_file_failed', deleteErrorFile);
-  }
-
   // Supprimer le document
   const { error: deleteError } = await tryCatch(
     db.userDocument.delete({
@@ -79,6 +58,13 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
     throw new Error('messages.errors.delete_document_failed');
   }
 
+  // Supprimer le fichier si c'est un fichier uploadthing
+  const { error: deleteErrorFile } = await tryCatch(deleteFiles([documentId]));
+
+  if (deleteErrorFile) {
+    console.error('delete_file_failed', deleteErrorFile);
+  }
+
   return true;
 }
 
@@ -86,6 +72,7 @@ export async function createUserDocument(data: {
   id?: string;
   type: DocumentType;
   fileUrl: string;
+  fileType: string;
   userId: string;
   profileId?: string;
 }): Promise<AppUserDocument | null> {
@@ -105,6 +92,8 @@ export async function createUserDocument(data: {
     [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
   } as const;
 
+  console.log('data', data);
+
   const { data: document, error: documentError } = await tryCatch(
     db.userDocument.create({
       data: {
@@ -112,6 +101,7 @@ export async function createUserDocument(data: {
         type: data.type,
         fileUrl: data.fileUrl,
         status: DocumentStatus.PENDING,
+        fileType: data.fileType,
         user: {
           connect: {
             id: data.userId,

@@ -18,9 +18,10 @@ export const ourFileRouter = {
       if (!session?.user) throw new UploadThingError('Unauthorized');
       return { userId: session.user.id };
     })
-    .onUploadComplete(async ({ metadata }) => {
+    .onUploadComplete(async ({ metadata, file }) => {
       return {
         userId: metadata.userId,
+        fileUrl: file.ufsUrl,
       };
     }),
   imageUploader: f({
@@ -34,9 +35,10 @@ export const ourFileRouter = {
       if (!session?.user) throw new UploadThingError('Unauthorized');
       return { userId: session.user.id };
     })
-    .onUploadComplete(async ({ metadata }) => {
+    .onUploadComplete(async ({ metadata, file }) => {
       return {
         userId: metadata.userId,
+        fileUrl: file.ufsUrl,
       };
     }),
 } satisfies FileRouter;

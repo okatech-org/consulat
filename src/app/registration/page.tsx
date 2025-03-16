@@ -46,7 +46,7 @@ export default async function RegistrationPage() {
   );
 
   return (
-    <div className="w-dvw relative bg-background h-dvh p-4 overflow-hidden flex items-center justify-center md:grid md:grid-cols-12 md:gap-4">
+    <div className="w-dvw relative bg-background h-dvh p-4 overflow-hidden flex items-center justify-center md:grid lg:grid-cols-12 lg:gap-4">
       <div className="min-h-full h-full w-full overflow-y-auto flex flex-col items-center justify-center md:col-span-7">
         <RouteAuthGuard
           user={currentUser?.user}
@@ -59,7 +59,7 @@ export default async function RegistrationPage() {
           )}
         </RouteAuthGuard>
       </div>
-      <div className="w-full h-full overflow-hidden rounded-lg hidden md:block md:col-span-5">
+      <div className="w-full h-full overflow-hidden rounded-lg hidden lg:block lg:col-span-5">
         <Image
           src={'https://utfs.io/f/yMD4lMLsSKvz349tIYw9oyDVxmdLHiTXuO0SKbeYqQUlPghR'}
           alt={t('page.hero_image_alt')}

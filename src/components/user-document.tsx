@@ -33,6 +33,7 @@ import { toast } from '@/hooks/use-toast';
 import { FileInput } from './ui/file-input';
 import { uploadFileFromServer } from '@/actions/uploads';
 import { UploadedFileData } from 'uploadthing/types';
+import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -157,14 +158,15 @@ export function UserDocument({
     },
   });
 
-  const handleFileChange = async (fileData: UploadedFileData & { userId: string }) => {
+  const handleFileChange = async (fileData: FileUploadResponse) => {
     setIsLoading(true);
 
     const data = {
       id: fileData.key,
       type: expectedType,
-      fileUrl: fileData.url,
-      userId: fileData.userId,
+      fileUrl: fileData.serverData.fileUrl,
+      fileType: fileData.type,
+      userId: fileData.serverData.userId,
       ...(profileId && {
         profileId,
       }),
@@ -203,10 +205,7 @@ export function UserDocument({
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
 
-    const fileFormData = new FormData();
-    fileFormData.append('files', file);
-
-    const uploadResult = await tryCatch(uploadFileFromServer(fileFormData));
+    const uploadResult = await tryCatch(uploadFileFromClient(file));
     if (uploadResult.error) {
       toast({
         title: t_messages('errors.update_failed'),
@@ -218,7 +217,7 @@ export function UserDocument({
     }
 
     if (uploadResult.data) {
-      await handleFileChange(uploadResult.data);
+      await handleFileChange(uploadResult.data[0] as FileUploadResponse);
     }
   };
 

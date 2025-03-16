@@ -433,6 +433,7 @@ async function main() {
               fileUrl: '/images/avatar-placeholder.png',
               issuedAt: new Date('2024-04-15T09:00:00Z'),
               expiresAt: new Date('2029-04-15T09:00:00Z'),
+              fileType: 'image/png',
             },
           },
           passport: {
@@ -442,6 +443,7 @@ async function main() {
               fileUrl: 'https://example.com/passport.pdf',
               issuedAt: new Date('2020-04-15T09:00:00Z'),
               expiresAt: new Date('2030-04-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
           birthCertificate: {
@@ -450,6 +452,7 @@ async function main() {
               status: DocumentStatus.VALIDATED,
               fileUrl: 'https://example.com/birth-certificate.pdf',
               issuedAt: new Date('1990-04-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
           residencePermit: {
@@ -459,6 +462,7 @@ async function main() {
               fileUrl: 'https://example.com/residence-permit.pdf',
               issuedAt: new Date('2023-04-15T09:00:00Z'),
               expiresAt: new Date('2028-04-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
           addressProof: {
@@ -468,6 +472,7 @@ async function main() {
               fileUrl: 'https://example.com/proof-of-address.pdf',
               issuedAt: new Date('2024-04-15T09:00:00Z'),
               expiresAt: new Date('2025-04-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
         },
@@ -575,6 +580,7 @@ async function main() {
               fileUrl: '/images/avatar-placeholder.png',
               issuedAt: new Date('2023-05-15T09:00:00Z'),
               expiresAt: new Date('2028-05-15T09:00:00Z'),
+              fileType: 'image/*',
             },
           },
           passport: {
@@ -584,6 +590,7 @@ async function main() {
               fileUrl: 'https://example.com/jane-passport.pdf',
               issuedAt: new Date('2021-03-15T09:00:00Z'),
               expiresAt: new Date('2031-03-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
           birthCertificate: {
@@ -592,6 +599,7 @@ async function main() {
               status: DocumentStatus.VALIDATED,
               fileUrl: 'https://example.com/jane-birth-certificate.pdf',
               issuedAt: new Date('1988-05-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
           residencePermit: {
@@ -601,6 +609,7 @@ async function main() {
               fileUrl: 'https://example.com/jane-residence-permit.pdf',
               issuedAt: new Date('2021-03-15T09:00:00Z'),
               expiresAt: new Date('2031-03-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
           addressProof: {
@@ -610,6 +619,7 @@ async function main() {
               fileUrl: 'https://example.com/jane-address-proof.pdf',
               issuedAt: new Date('2021-03-15T09:00:00Z'),
               expiresAt: new Date('2031-03-15T09:00:00Z'),
+              fileType: 'application/pdf',
             },
           },
         },
@@ -638,6 +648,7 @@ async function main() {
             fileUrl: '/images/avatar-placeholder.png',
             issuedAt: new Date('2024-01-01'),
             expiresAt: new Date('2029-01-01'),
+            fileType: 'image/*',
           },
         },
         birthCertificate: {
@@ -647,6 +658,7 @@ async function main() {
             fileUrl: 'https://example.com/emma-birth-certificate.pdf',
             issuedAt: new Date('2020-05-15'),
             expiresAt: new Date('2030-05-15'),
+            fileType: 'application/pdf',
           },
         },
         address: {
@@ -789,11 +801,13 @@ async function main() {
                 type: DocumentType.PASSPORT,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/passport.pdf',
+                fileType: 'application/pdf',
               },
               {
                 type: DocumentType.IDENTITY_PHOTO,
                 status: DocumentStatus.PENDING,
                 fileUrl: 'https://example.com/photo.jpg',
+                fileType: 'image/*',
               },
             ],
           },

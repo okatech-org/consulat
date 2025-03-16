@@ -1,7 +1,6 @@
 'use server';
 
 import { checkAuth } from '@/lib/auth/action';
-import { tryCatch } from '@/lib/utils';
 import { UTApi } from 'uploadthing/server';
 
 const utapi = new UTApi({

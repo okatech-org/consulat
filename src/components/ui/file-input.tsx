@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
+import { Input } from './input';
 
 export interface FileInputProps {
   onChangeAction: (file: File) => void;
@@ -14,6 +15,7 @@ export interface FileInputProps {
   loading?: boolean;
   disabled?: boolean;
   fileUrl?: string | null;
+  fileType?: string | null;
   showPreview?: boolean;
   aspectRatio?: string;
 }
@@ -24,13 +26,14 @@ export function FileInput({
   loading = false,
   disabled = false,
   fileUrl,
+  fileType,
   showPreview = true,
   aspectRatio = '16/9',
 }: FileInputProps) {
   const t = useTranslations('inputs.fileInput');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [previewOpen, setPreviewOpen] = React.useState(false);
-  const [isPdf, setIsPdf] = React.useState(false);
+  const isPdf = fileType?.includes('application/pdf') ?? false;
 
   const acceptedFileTypes: Array<'image' | 'pdf'> = [];
 
@@ -41,13 +44,6 @@ export function FileInput({
   if (accept.includes('application/pdf')) {
     acceptedFileTypes.push('pdf');
   }
-
-  // Détecter si le fichier est un PDF basé sur l'URL
-  React.useEffect(() => {
-    if (fileUrl) {
-      setIsPdf(fileUrl.toLowerCase().endsWith('.pdf'));
-    }
-  }, [fileUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -165,7 +161,7 @@ export function FileInput({
                 })}
               </p>
             </div>
-            <input
+            <Input
               ref={fileInputRef}
               type="file"
               className="hidden"

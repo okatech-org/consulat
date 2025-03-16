@@ -391,9 +391,11 @@ model UserDocument {
   type      DocumentType
   status    DocumentStatus @default(PENDING)
   fileUrl   String // URL du fichier stocké
+  fileType  String // Type de fichier
   issuedAt  DateTime?
   expiresAt DateTime?
   metadata  Json? // Métadonnées additionnelles
+
 
   userId String?
   user   User?   @relation("userDocuments", fields: [userId], references: [id])
