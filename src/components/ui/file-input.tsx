@@ -176,7 +176,7 @@ const FileInput = ({
         uploading ? 'bg-primary/5' : 'bg-primary/10',
         className,
       )}
-      endpoint={accept === 'image/*' ? 'imageUploader' : 'documentUploader'}
+      endpoint={'documentUploader'}
       onUploadBegin={(fileName) => {
         setUploading(true);
         setCurrentFile(fileName);
