@@ -18,9 +18,9 @@ yarn-error.log*
 .env
 .vercel@
 *.tsbuildinfo
--/prisma/migrations
+/prisma/migrations
 .git
-/public
+/public/
 /ai-sum/*
 /src/assets
 /src/components
@@ -31,7 +31,8 @@ yarn-error.log*
 /src/schemas
 /src/types
 /src/actions
-/src/app/(authenticated)/dashboard/(superadmin)
-/src/app/(authenticated)/dashboard/(admin)
-/src/app/(authenticated)/dashboard/notifications
-/src/app/(authenticated)/dashboard/_utils
+/src/components/ui/
+.vscode
+.next
+package-lock.json
+bun.lock
