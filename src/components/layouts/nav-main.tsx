@@ -22,6 +22,7 @@ import { Route } from 'next';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
 export type NavMainItem = {
   title: string;
   url: Route<string>;

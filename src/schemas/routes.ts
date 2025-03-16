@@ -33,6 +33,7 @@ export const ROUTES = {
     registrations: '/dashboard/registrations' as Route<string>,
     edit_organization: (id: string) => `/dashboard/organizations/${id}` as Route<string>,
     countries: '/dashboard/countries' as Route<string>,
+    account_settings: '/dashboard/account' as Route<string>,
   },
 
   // Pages administratives
@@ -57,6 +58,7 @@ export const ROUTES = {
     children: '/my-space/children' as Route<string>,
     new_child: '/my-space/children/new' as Route<string>,
     child_profile: (id: string) => `/my-space/children/${id}` as Route<string>,
+    account: '/my-space/account' as Route<string>,
   },
 
   help: '/help' as Route<string>,

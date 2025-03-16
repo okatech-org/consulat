@@ -27,9 +27,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ServiceCategory } from '@prisma/client';
+import { PageContainer } from '@/components/layouts/page-container';
 
 export default function AdminAccountPage() {
-  const t = useTranslations('Account');
+  const t = useTranslations('account');
   const { data: session, update } = useSession();
   const user = session?.user;
 
@@ -51,7 +52,7 @@ export default function AdminAccountPage() {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <PageContainer title={t('title')}>
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">{t('profile')}</TabsTrigger>
@@ -80,7 +81,7 @@ export default function AdminAccountPage() {
                     <div className="flex gap-2">
                       {user.roles.map((role) => (
                         <Badge key={role} variant="secondary">
-                          {role}
+                          {t(`roles.${role}`)}
                         </Badge>
                       ))}
                     </div>
@@ -232,6 +233,6 @@ export default function AdminAccountPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

@@ -18,6 +18,8 @@ export function BreadcrumbMenu() {
   const pathnameParts = pathname.split('/').filter(Boolean) as Array<keyof typeof ROUTES>;
   const t = useTranslations('navigation.breadcrumb');
 
+  console.log(pathnameParts);
+
   return (
     <Breadcrumb className="w-full overflow-hidden">
       <BreadcrumbList className="truncate text-nowrap flex-nowrap">
@@ -30,7 +32,8 @@ export function BreadcrumbMenu() {
                   {index <= 1 ? t(part) : part}
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage>{part}</BreadcrumbPage>
+                // @ts-expect-error - part is not a valid key
+                <BreadcrumbPage>{index <= 1 ? t(part) : part}</BreadcrumbPage>
               )}
             </BreadcrumbItem>
             {index !== pathnameParts.length - 1 && <BreadcrumbSeparator />}

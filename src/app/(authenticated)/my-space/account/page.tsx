@@ -17,9 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSession } from 'next-auth/react';
 import { updateUserProfile } from '@/actions/user';
 import { toast } from '@/hooks/use-toast';
+import { PageContainer } from '@/components/layouts/page-container';
 
 export default function AccountPage() {
-  const t = useTranslations('Account');
+  const t = useTranslations('account');
   const { data: session, update } = useSession();
   const user = session?.user;
 
@@ -41,7 +42,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <PageContainer title={t('title')}>
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">{t('profile')}</TabsTrigger>
@@ -150,6 +151,6 @@ export default function AccountPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

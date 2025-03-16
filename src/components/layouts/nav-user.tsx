@@ -1,6 +1,13 @@
 'use client';
 
-import { BadgeCheck, ChevronsUpDown, LogOut, MoonIcon, SunIcon } from 'lucide-react';
+import {
+  BadgeCheck,
+  ChevronsUpDown,
+  LogOut,
+  MoonIcon,
+  SunIcon,
+  UserIcon,
+} from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -22,6 +29,10 @@ import {
 import { useTranslations } from 'next-intl';
 import { logUserOut } from '@/actions/auth';
 import { useTheme } from 'next-themes';
+import { hasAnyRole } from '@/lib/permissions/utils';
+import { ROUTES } from '@/schemas/routes';
+import { User, UserRole } from '@prisma/client';
+import { useRouter } from 'next/navigation';
 
 export function NavUser({
   user,
@@ -30,8 +41,10 @@ export function NavUser({
     name: string;
     email?: string;
     avatar?: string;
+    roles: UserRole[];
   };
 }) {
+  const router = useRouter();
   const { isMobile } = useSidebar();
   const { setTheme, resolvedTheme } = useTheme();
   const t = useTranslations();
@@ -86,8 +99,18 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
+              <DropdownMenuItem
+                onClick={() => {
+                  if (hasAnyRole(user as User, [UserRole.SUPER_ADMIN, UserRole.ADMIN])) {
+                    router.push(ROUTES.dashboard.account_settings);
+                  }
+
+                  if (hasAnyRole(user as User, [UserRole.USER])) {
+                    router.push(ROUTES.user.account);
+                  }
+                }}
+              >
+                <UserIcon className="size-icon" />
                 {t('navigation.my_account')}
               </DropdownMenuItem>
               <DropdownMenuItem

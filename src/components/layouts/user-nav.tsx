@@ -21,6 +21,7 @@ import { ROUTES } from '@/schemas/routes';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { useRouter } from 'next/navigation';
 import { UserIcon, UsersIcon } from 'lucide-react';
+
 export function UserNav({ user }: { user: User }) {
   const router = useRouter();
   const t = useTranslations();

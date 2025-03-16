@@ -30,7 +30,6 @@ import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
 import { NotificationBell } from '../notifications/notification-bell';
 import { CountryCode } from '@/lib/autocomplete-datas';
-import { FlagIcon } from '../ui/flag-icon';
 
 const logo =
   process.env.NEXT_PUBLIC_LOGO_URL ||
@@ -45,127 +44,95 @@ export function AppSidebar({
   const t = useTranslations('navigation');
   const t_nav = useTranslations('user.nav');
   const t_countries = useTranslations('countries');
+  const currentUserRoles = user.roles;
 
-  const AdminNavigation: NavMainItem[] = [
-    {
-      title: t('admin.dashboard'),
-      url: ROUTES.dashboard.base,
-      icon: LayoutDashboard,
-      isActive: true,
-    },
-    {
-      title: t('admin.requests'),
-      url: ROUTES.dashboard.requests,
-      icon: FileText,
-    },
-    {
-      title: t('admin.settings'),
-      url: ROUTES.dashboard.settings,
-      icon: Settings,
-    },
-    {
-      title: t('admin.notifications'),
-      url: ROUTES.dashboard.notifications,
-      iconComponent: <NotificationBell />,
-    },
-  ];
-
-  const AgentNavigation: NavMainItem[] = [
-    {
-      title: t('agent.dashboard'),
-      url: ROUTES.dashboard.base,
-      icon: LayoutDashboard,
-      isActive: true,
-    },
-    {
-      title: t('agent.appointments'),
-      url: ROUTES.dashboard.appointments,
-      icon: Calendar,
-    },
-    {
-      title: t('agent.requests'),
-      url: ROUTES.dashboard.requests,
-      icon: FileText,
-    },
-    {
-      title: t('agent.notifications'),
-      url: ROUTES.dashboard.notifications,
-      iconComponent: <NotificationBell />,
-    },
-  ];
-
-  const SuperAdminNavigation: NavMainItem[] = [
+  const AdminNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {
       title: t('super_admin.dashboard'),
       url: ROUTES.dashboard.base,
       icon: LayoutDashboard,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT],
     },
     {
       title: t('super_admin.countries'),
       url: ROUTES.sa.countries,
       icon: Globe,
+      roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('super_admin.organizations'),
       url: ROUTES.sa.organizations,
       icon: Building2,
+      roles: [UserRole.SUPER_ADMIN],
+    },
+    {
+      title: t('admin.requests'),
+      url: ROUTES.dashboard.requests,
+      icon: FileText,
+      roles: [UserRole.ADMIN, UserRole.AGENT],
     },
     {
       title: t('super_admin.users'),
       url: ROUTES.dashboard.users,
       icon: Users,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
-      title: t('super_admin.notifications'),
+      title: t('admin.notifications'),
       url: ROUTES.dashboard.notifications,
       iconComponent: <NotificationBell />,
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT],
+    },
+
+    {
+      title: t('admin.settings'),
+      url: ROUTES.dashboard.settings,
+      icon: Settings,
+      roles: [UserRole.ADMIN],
     },
   ];
 
-  const UserNavigation: NavMainItem[] = [
+  const UserNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {
       title: t_nav('dashboard'),
       url: ROUTES.user.dashboard,
       icon: LayoutDashboard,
+      roles: [UserRole.USER],
     },
     {
       title: t_nav('profile'),
       url: ROUTES.user.profile,
       icon: User,
+      roles: [UserRole.USER],
     },
     {
       title: t_nav('children'),
       url: ROUTES.user.children,
       icon: Baby,
+      roles: [UserRole.USER],
     },
     {
       title: t_nav('appointments'),
       url: ROUTES.user.appointments,
       icon: Calendar,
+      roles: [UserRole.USER],
     },
     {
       title: t('notifications'),
       url: ROUTES.user.notifications,
       iconComponent: <NotificationBell />,
+      roles: [UserRole.USER],
     },
   ];
 
-  function getUserMenu(userRole: UserRole): NavMainItem[] {
-    switch (userRole) {
-      case UserRole.SUPER_ADMIN:
-        return SuperAdminNavigation;
-      case UserRole.ADMIN:
-        return AdminNavigation;
-      case UserRole.AGENT:
-        return AgentNavigation;
-      case UserRole.USER:
-        return UserNavigation;
-      default:
-        return [];
-    }
-  }
+  const menuItems: Array<NavMainItem & { roles: UserRole[] }> = [
+    ...UserNavigation,
+    ...AdminNavigation,
+  ];
 
-  const userMenu = user?.roles[0] ? getUserMenu(user.roles[0]) : [];
+  const filteredMenuItems = menuItems.filter((item) => {
+    return item.roles.some((role) => currentUserRoles.includes(role));
+  });
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -204,7 +171,7 @@ export function AppSidebar({
         />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={userMenu} />
+        <NavMain items={filteredMenuItems} />
       </SidebarContent>
       <SidebarFooter className="py-6">
         <NavUser
@@ -215,6 +182,7 @@ export function AppSidebar({
                 : ' - ',
             email: user.email ?? user.phone?.number ?? '',
             avatar: user.image ?? '/images/avatar-placeholder.png',
+            roles: currentUserRoles,
           }}
         />
       </SidebarFooter>

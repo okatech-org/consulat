@@ -12,6 +12,7 @@ export default {
     settings: 'Paramètres',
     'my-space': 'Mon espace',
     children: 'Mes enfants',
+    account: 'Mon compte',
   },
   dashboard: {
     title: 'Tableau de bord',
