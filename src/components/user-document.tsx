@@ -87,6 +87,7 @@ export function UserDocument({
     if (result.data) {
       if (onDelete) {
         onDelete();
+        router.refresh();
       } else {
         toast({
           title: t_messages('success.update_title'),
@@ -103,6 +104,7 @@ export function UserDocument({
         description: result.error.message,
         variant: 'destructive',
       });
+      router.refresh();
     }
 
     setIsLoading(false);

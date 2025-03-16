@@ -8,7 +8,7 @@ export default {
     image: 'Images',
     pdf: 'PDF',
     button: 'Choisir un fichier',
-    uploading: 'Téléchargement en cours: {progress}%',
+    uploading: 'Chargement en cours',
     uploadingFile: 'Téléchargement de: {fileName}',
     uploadSuccess: 'Fichier téléchargé avec succès',
     uploadError: 'Erreur lors du téléchargement',

@@ -58,7 +58,7 @@ export function FileInput({
   };
 
   // Si nous avons une URL de fichier et que showPreview est vrai, afficher la prévisualisation
-  if (fileUrl && showPreview) {
+  if (fileUrl && showPreview && !loading) {
     return (
       <div
         className={cn(
@@ -137,9 +137,7 @@ export function FileInput({
         {loading ? (
           <>
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <span className="text-sm text-muted-foreground">
-              {t('uploading', { progress: 0 })}
-            </span>
+            <span className="text-sm text-muted-foreground">{t('uploading')}</span>
           </>
         ) : (
           <>
