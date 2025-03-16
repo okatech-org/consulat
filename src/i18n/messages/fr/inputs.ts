@@ -4,7 +4,7 @@ export default {
     placeholder: 'Sélectionner un fichier',
     maxFileSize: 'Taille maximale du fichier, {maxFileSize}',
     maxFileCount: 'Nombre maximum de fichiers, {maxFileCount}',
-    acceptedFileTypes: 'Types de fichiers acceptés: {acceptedFileTypes}',
+    acceptedFileTypes: 'Fichiers acceptés: {acceptedFileTypes}',
     image: 'Images',
     pdf: 'PDF',
     button: 'Choisir un fichier',

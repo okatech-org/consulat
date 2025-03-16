@@ -30,7 +30,8 @@ import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
-import { FileInput, FileUploadResponse } from '@/components/ui/file-input';
+import { uploadFiles } from './ui/uploadthing';
+import { FileInput } from './ui/file-input';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -76,6 +77,8 @@ export function UserDocument({
   const [isLoading, setIsLoading] = React.useState(false);
   const router = useRouter();
   const { formatDate } = useDateLocale();
+  const uploadProvider =
+    accept === 'image/*' ? 'imageUploader' : ('documentUploader' as const);
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
@@ -153,12 +156,17 @@ export function UserDocument({
     },
   });
 
-  const handleFileChange = async (fileData: FileUploadResponse) => {
+  const handleFileChange = async (fileData: {
+    key: string;
+    url: string;
+    serverData: { userId: string };
+  }) => {
     setIsLoading(true);
+
     const data = {
       id: fileData.key,
       type: expectedType,
-      fileUrl: fileData.serverData.fileUrl,
+      fileUrl: fileData.url,
       userId: fileData.serverData.userId,
       ...(profileId && {
         profileId,
@@ -173,6 +181,8 @@ export function UserDocument({
         description: t_errors(result.error.message),
         variant: 'destructive',
       });
+      setIsLoading(false);
+      return;
     }
 
     if (result.data) {
@@ -184,11 +194,32 @@ export function UserDocument({
           description: t_messages('success.update_description'),
           variant: 'success',
         });
-        router.refresh();
       }
+
+      setIsLoading(false);
+      router.refresh();
     }
 
     setIsLoading(false);
+  };
+
+  const handleFileUpload = async (files: File[]) => {
+    setIsLoading(true);
+
+    const uploadResult = await tryCatch(uploadFiles(uploadProvider, { files }));
+    if (uploadResult.error) {
+      toast({
+        title: t_messages('errors.update_failed'),
+        description: t_errors(uploadResult.error.message),
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (uploadResult.data && uploadResult.data[0]) {
+      await handleFileChange(uploadResult.data[0]);
+    }
   };
 
   const onUpdate = async (data: UpdateDocumentData) => {
@@ -233,14 +264,14 @@ export function UserDocument({
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 
-      <div className={cn('relative', 'h-full w-full')}>
+      <div className={cn('relative', 'w-full')}>
         <FileInput
-          onChange={handleFileChange}
+          onChangeAction={handleFileUpload}
           accept={accept}
+          disabled={isLoading}
           loading={isLoading}
           fileUrl={document?.fileUrl}
           showPreview={true}
-          autoUpload={true}
         />
 
         {document && (

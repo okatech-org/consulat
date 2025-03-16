@@ -1,52 +1,36 @@
-import { useState, useEffect } from 'react';
-import { UploadDropzone } from './uploadthing';
-import { ClientUploadedFileData } from 'uploadthing/types';
+'use client';
+
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
-import { buttonVariants } from './button';
 import Image from 'next/image';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Eye } from 'lucide-react';
-import { Button } from './button';
-import { DialogTitle } from '@radix-ui/react-dialog';
+import { Loader2 } from 'lucide-react';
 
-type FileUploadResponse = ClientUploadedFileData<{
-  fileName: string;
-  fileUrl: string;
-  fileSize: number;
-  fileType: string;
-  userId: string;
-}>;
-
-type FileInputProps = {
-  onChange: (result: FileUploadResponse) => void;
+export interface FileInputProps {
+  onChangeAction: (files: File[]) => void;
   accept?: string;
-  className?: string;
   loading?: boolean;
-  fileUrl?: string;
+  disabled?: boolean;
+  fileUrl?: string | null;
   showPreview?: boolean;
-  previewSize?: { width: number; height: number };
-  autoUpload?: boolean;
-};
+  aspectRatio?: string;
+}
 
-const FileInput = ({
-  onChange,
-  className,
-  loading,
+export function FileInput({
+  onChangeAction,
   accept = 'image/*,application/pdf',
+  loading = false,
+  disabled = false,
   fileUrl,
   showPreview = true,
-  previewSize = { width: 400, height: 600 },
-  autoUpload = true,
-}: FileInputProps) => {
-  const t = useTranslations('inputs');
-  const [uploading, setUploading] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [currentFile, setCurrentFile] = useState<string | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [preview, setPreview] = useState<string | null>(fileUrl || null);
+  aspectRatio = '16/9',
+}: FileInputProps) {
+  const t = useTranslations('inputs.fileInput');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [isPdf, setIsPdf] = React.useState(false);
 
   const acceptedFileTypes: Array<'image' | 'pdf'> = [];
 
@@ -58,107 +42,78 @@ const FileInput = ({
     acceptedFileTypes.push('pdf');
   }
 
-  const truncateFileName = (fileName: string, maxLength = 20) => {
-    if (fileName.length <= maxLength) return fileName;
-
-    const extension = fileName.split('.').pop() || '';
-    const nameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.'));
-
-    if (nameWithoutExtension.length <= maxLength - extension.length - 3) {
-      return fileName;
-    }
-
-    return `${nameWithoutExtension.substring(0, maxLength - extension.length - 3)}...${extension ? `.${extension}` : ''}`;
-  };
-
-  useEffect(() => {
+  // Détecter si le fichier est un PDF basé sur l'URL
+  React.useEffect(() => {
     if (fileUrl) {
-      setPreview(fileUrl);
-    } else {
-      setPreview(null);
-      setCurrentFile(null);
-      setSelectedFiles([]);
+      setIsPdf(fileUrl.toLowerCase().endsWith('.pdf'));
     }
   }, [fileUrl]);
 
-  const isPdf = preview && preview.endsWith('.pdf');
-  const isImage = preview && !isPdf;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file) return;
+    onChangeAction([file]);
+  };
 
-  if (preview && showPreview) {
+  // Si nous avons une URL de fichier et que showPreview est vrai, afficher la prévisualisation
+  if (fileUrl && showPreview) {
     return (
-      <div className="relative aspect-16/9 rounded-md min-h-full max-h-[150px] w-auto overflow-hidden !p-0">
-        {isImage ? (
-          <div className="flex relative aspect-document rounded-md min-h-full max-h-full w-auto overflow-hidden !p-0">
-            {showPreview && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="min-h-full min-w-full absolute hover:bg-transparent inset-0 flex top-1/2 translate-y-[-50%]"
-                onClick={() => setIsPreviewOpen(true)}
-              >
-                <Eye className="size-4" />
-              </Button>
-            )}
-            <Image
-              src={preview}
-              alt="Preview"
-              width={previewSize.width}
-              height={previewSize.height}
-              className="size-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="flex relative aspect-document h-full max-h-[150px] w-auto items-center justify-center rounded-md bg-muted !p-0">
-            {showPreview && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="min-h-full min-w-full absolute hover:bg-transparent inset-0 flex top-1/2 translate-y-[-50%]"
-                onClick={() => setIsPreviewOpen(true)}
-              >
-                <Eye className="size-4" />
-              </Button>
-            )}
-            <div className="flex flex-col items-center justify-center">
+      <div
+        className={cn(
+          'relative flex flex-col border-dashed w-full p-4 h-[150px] rounded-md border bg-background',
+          aspectRatio && `aspect-[${aspectRatio}]`,
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => setPreviewOpen(true)}
+          className="w-full h-full flex items-center justify-center cursor-pointer overflow-hidden rounded-md"
+        >
+          {isPdf ? (
+            <div className="flex flex-col items-center justify-center gap-2 p-4">
               <svg
+                className="w-10 h-10 text-primary"
+                fill="currentColor"
+                viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-10 h-10 mb-2 text-primary/60"
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                  fillRule="evenodd"
+                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                  clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm text-gray-600">Document</span>
+              <span className="text-sm text-center text-muted-foreground">
+                {t('dragActive')}
+              </span>
             </div>
-          </div>
-        )}
-
-        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className={cn('max-w-screen-lg', 'max-h-[90vh]')}>
-            <DialogTitle className="sr-only">
-              Voir le document : {truncateFileName(currentFile || '')}
-            </DialogTitle>
-            {isPdf ? (
-              <iframe
-                src={preview}
-                className="w-full h-[80vh] rounded-lg"
-                title="PDF Preview"
+          ) : (
+            <div className="relative w-full h-full">
+              <Image
+                src={fileUrl}
+                alt={t('label')}
+                fill
+                style={{ objectFit: 'contain' }}
+                priority
               />
+            </div>
+          )}
+        </button>
+
+        {/* Dialog de prévisualisation */}
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden">
+            {isPdf ? (
+              <iframe src={fileUrl} className="w-full h-[70vh]" title={t('pdf')} />
             ) : (
-              <div className="relative aspect-[3/4] w-full h-full overflow-hidden rounded-lg">
+              <div className="relative w-full h-[70vh]">
                 <Image
-                  src={preview}
-                  alt="Preview"
+                  src={fileUrl}
+                  alt={t('label')}
                   fill
-                  className="object-contain"
+                  style={{ objectFit: 'contain' }}
                   priority
                 />
               </div>
@@ -169,162 +124,69 @@ const FileInput = ({
     );
   }
 
+  // Sinon, afficher le champ d'upload
   return (
-    <UploadDropzone
+    <div
       className={cn(
-        'cursor-pointer bg-primary/10 transition-all relative aspect-16/9 rounded-md min-h-full w-auto overflow-hidden !p-0',
-        uploading ? 'bg-primary/5' : 'bg-primary/10',
-        className,
+        `flex flex-col items-center justify-start p-4 w-full h-[150px] aspect-[${aspectRatio}] rounded-md border border-dashed bg-muted/50 p-4`,
+        'transition-all duration-300 ease-in-out',
+        loading || disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
       )}
-      endpoint={'documentUploader'}
-      onUploadBegin={(fileName) => {
-        setUploading(true);
-        setCurrentFile(fileName);
-        setUploadProgress(0);
-      }}
-      onUploadProgress={(progress) => {
-        setUploadProgress(progress + (loading ? 10 : 0));
-      }}
-      onChange={(files) => {
-        console.log('Files selected:', files);
-        setSelectedFiles(files);
-      }}
-      onClientUploadComplete={(res) => {
-        const file = res[0];
-        setUploading(false);
-        setUploadProgress(0);
-        setCurrentFile(null);
-        setSelectedFiles([]);
-
-        if (file) {
-          const fileUrl = file.serverData?.fileUrl || file.url;
-          setPreview(fileUrl);
-          onChange(file as FileUploadResponse);
-        }
-      }}
-      onUploadError={(error) => {
-        console.error('Upload error:', error);
-        setUploading(false);
-        setUploadProgress(0);
-        setCurrentFile(null);
-      }}
-      config={{
-        mode: autoUpload ? 'auto' : 'manual',
-      }}
-      appearance={{
-        container: ({ isUploading }) =>
-          cn(
-            'border-2 border-dashed rounded-md p-4',
-            isUploading
-              ? 'border-primary/30'
-              : 'border-primary/50 hover:border-primary/80',
-          ),
-        label: ({ isUploading }) =>
-          cn('text-sm font-medium', isUploading ? 'text-gray-500' : 'text-gray-700'),
-        allowedContent: ({ isUploading }) =>
-          cn('text-xs mt-1', isUploading ? 'text-gray-400' : 'text-gray-500'),
-        button: {
-          container:
-            'bg-primary hover:bg-primary/90 text-white rounded-md mt-2 transition-all',
-        },
-        uploadIcon: ({ isUploading }) =>
-          cn('!size-8 mx-auto', isUploading ? 'text-primary/30' : 'text-primary/60'),
-      }}
-      content={{
-        label: ({ isUploading, uploadProgress }) => {
-          if (isUploading) {
-            return (
-              <div className="flex flex-col items-center">
-                <span className="text-sm font-medium text-gray-700">
-                  {t('fileInput.uploading', {
-                    progress: Math.round(uploadProgress),
-                  })}
-                </span>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-                {currentFile && (
-                  <span className="text-xs text-gray-500 mt-1">
-                    {t('fileInput.uploadingFile', { fileName: currentFile })}
-                  </span>
-                )}
-              </div>
-            );
-          }
-
-          if (selectedFiles.length > 0 && selectedFiles[0]) {
-            const fileName = selectedFiles[0].name;
-            return (
-              <div className="flex flex-col items-center">
-                <span className="text-sm font-medium text-gray-700">
-                  {t('fileInput.label')}
-                </span>
-                <div
-                  className="mt-2 text-sm text-gray-600 flex items-center justify-center"
-                  title={fileName}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1 text-gray-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                    />
-                  </svg>
-                  <span className="truncate max-w-[200px]">
-                    {truncateFileName(fileName)}
-                  </span>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <span className="text-sm font-medium text-gray-700">
-              {t('fileInput.label')}
+    >
+      <div className="flex flex-col items-center justify-center w-full h-full text-center gap-2">
+        {loading ? (
+          <>
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <span className="text-sm text-muted-foreground">
+              {t('uploading', { progress: 0 })}
             </span>
-          );
-        },
-        allowedContent: ({ isUploading }) => {
-          if (isUploading || selectedFiles.length > 0) return null;
-          return (
-            <span className="text-xs font-medium text-gray-500">
-              {t('fileInput.acceptedFileTypes', {
-                acceptedFileTypes: acceptedFileTypes
-                  .map((type) => t(`fileInput.${type}`))
-                  .join(', '),
-              })}
-            </span>
-          );
-        },
-        button: ({ isUploading }) => {
-          if (isUploading || (autoUpload && selectedFiles.length > 0)) return null;
-
-          return (
-            <span
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'w-full bg-transparent',
-              )}
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col items-center gap-1">
+              <svg
+                className="w-10 h-10 text-primary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                ></path>
+              </svg>
+              <p className="text-sm text-muted-foreground">{t('label')}</p>
+              <p className="text-xs text-muted-foreground">
+                {t('acceptedFileTypes', {
+                  acceptedFileTypes: acceptedFileTypes
+                    .map((type) => t(`${type}`))
+                    .join(', '),
+                })}
+              </p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept={accept}
+              onChange={handleFileChange}
+              disabled={loading || disabled}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-transparent border-dashed border-input"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading || disabled}
             >
-              {selectedFiles.length > 0 ? t('fileInput.start') : t('fileInput.button')}
-            </span>
-          );
-        },
-      }}
-    />
+              {t('button')}
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
   );
-};
-
-FileInput.displayName = 'FileInput';
-
-export { FileInput, type FileUploadResponse };
+}

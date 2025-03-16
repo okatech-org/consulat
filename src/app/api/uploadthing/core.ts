@@ -8,20 +8,15 @@ const f = createUploadthing();
 export const ourFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
   documentUploader: f({
-    image: {
-      /**
-       * For full list of options and defaults, see the File Route API reference
-       * @see https://docs.uploadthing.com/file-routes#route-config
-       */
-      maxFileSize: '8MB',
-      maxFileCount: 1,
-    },
     pdf: {
       maxFileSize: '4MB',
       maxFileCount: 1,
     },
+    image: {
+      maxFileSize: '4MB',
+      maxFileCount: 1,
+    },
   })
-    // Set permissions and file types for this FileRoute
     .middleware(async () => {
       // This code runs on your server before upload
       const session = await auth();
@@ -31,13 +26,26 @@ export const ourFileRouter = {
 
       return { userId: session.user.id };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
+    .onUploadComplete(async ({ metadata }) => {
       return {
-        fileName: file.name,
-        fileUrl: file.ufsUrl,
-        fileSize: file.size,
-        fileType: file.type,
+        userId: metadata.userId,
+      };
+    }),
+  imageUploader: f({
+    image: {
+      maxFileSize: '4MB',
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await auth();
+
+      if (!session?.user) throw new UploadThingError('Unauthorized');
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata }) => {
+      return {
         userId: metadata.userId,
       };
     }),

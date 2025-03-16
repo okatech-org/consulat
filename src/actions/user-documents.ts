@@ -64,10 +64,10 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
   }
 
   // Supprimer le fichier si c'est un fichier uploadthing
-  const { error: deleteErrorFile } = await tryCatch(deleteFiles([document.fileUrl]));
+  const { error: deleteErrorFile } = await tryCatch(deleteFiles([document.id]));
 
   if (deleteErrorFile) {
-    throw new Error('delete_file_failed');
+    console.error('delete_file_failed', deleteErrorFile);
   }
 
   // Supprimer le document

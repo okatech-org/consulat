@@ -53,7 +53,7 @@ export function DocumentsSection({
       className={className}
       profileStatus={profileStatus}
     >
-      <div className="mb-4 grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <UserDocument
           label={t_common('documents.types.identity_photo')}
           description={t_common('documents.descriptions.identity_photo')}
