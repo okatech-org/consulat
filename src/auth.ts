@@ -5,10 +5,9 @@ import { db } from '@/lib/prisma';
 import { ROUTES } from '@/schemas/routes';
 import { getUserById } from '@/lib/user/getters';
 import { FullUser } from '@/types';
-import { validateOTP } from '@/lib/user/otp';
-import { extractNumber } from '@/lib/utils';
-import { Country, Phone, User, UserRole } from '@prisma/client';
+import { Country, Phone, User } from '@prisma/client';
 import { JWT } from 'next-auth/jwt';
+import { PhoneValue } from './components/ui/phone-input';
 
 declare module 'next-auth' {
   interface Session {
@@ -19,12 +18,21 @@ declare module 'next-auth' {
   }
 }
 
-export interface AuthPayload {
-  identifier: string;
-  type: 'EMAIL' | 'PHONE';
+type PhoneAuthPayload = {
+  identifier: PhoneValue;
+  type: 'PHONE';
   otp: string;
   callbackUrl?: string;
-}
+};
+
+type EmailAuthPayload = {
+  identifier: string;
+  type: 'EMAIL';
+  otp: string;
+  callbackUrl?: string;
+};
+
+export type AuthPayload = PhoneAuthPayload | EmailAuthPayload;
 
 export const {
   handlers: { GET, POST },
@@ -75,14 +83,20 @@ async function handleAuthorize(credentials: unknown) {
       return new Error('missing_credentials');
     }
 
-    // Trouver ou créer l'utilisateur
-    const userWhere =
-      type === 'EMAIL'
-        ? { email: identifier }
-        : { phone: { number: extractNumber(identifier).number } };
-
     const user = await db.user.findFirst({
-      where: userWhere,
+      where: {
+        ...(type === 'EMAIL' && { email: identifier }),
+        ...(type === 'PHONE' && {
+          phone: {
+            number: {
+              equals: identifier.number,
+            },
+            countryCode: {
+              equals: identifier.countryCode,
+            },
+          },
+        }),
+      },
     });
 
     if (!user) {

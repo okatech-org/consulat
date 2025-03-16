@@ -232,25 +232,7 @@ export function UserDocument({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsLoading(true);
-
-      const uploadFilesResult = await tryCatch(uploadFile(file));
-
-      if (uploadFilesResult.error) {
-        toast({
-          title: t_messages('errors.update_failed'),
-          description: t_errors(uploadFilesResult.error.message),
-          variant: 'destructive',
-        });
-      }
-
-      if (uploadFilesResult.data) {
-        console.log(uploadFilesResult.data);
-      }
-
-      setIsLoading(false);
-
-      /**try {
+      try {
         const formData = new FormData();
 
         formData.append('files', file);
@@ -258,7 +240,7 @@ export function UserDocument({
         await handleUpload(document?.type ?? expectedType, formData);
       } finally {
         setIsLoading(false);
-      }*/
+      }
     }
   };
 

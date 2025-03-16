@@ -24,6 +24,7 @@ export function middleware(request: NextRequest) {
     'x-current-path',
     request.nextUrl.pathname + (searchParams ? `?${searchParams}` : ''),
   );
+  response.headers.set('x-params-string', request.nextUrl.searchParams.toString());
   return response;
 }
 

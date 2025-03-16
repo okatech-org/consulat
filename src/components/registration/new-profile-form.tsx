@@ -16,9 +16,7 @@ import {
 import { PhoneInput } from '@/components/ui/phone-input';
 import { CountrySelect } from '@/components/ui/country-select';
 import { getCountryCode, type CountryCode } from '@/lib/autocomplete-datas';
-import CardContainer from '../layouts/card-container';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import {
   CountryCodeSchema,
   DateSchema,
@@ -40,12 +38,14 @@ import { signIn } from 'next-auth/react';
 import { validateOTP } from '@/lib/user/otp';
 import { createUserWithProfile } from '@/actions/profile';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
+import { useRouter } from 'next/navigation';
 
 export function NewProfileForm({
   availableCountries,
 }: {
   availableCountries: Country[];
 }) {
+  const router = useRouter();
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
   const tErrors = useTranslations('messages.errors');
@@ -218,12 +218,12 @@ export function NewProfileForm({
         }
 
         await signIn('credentials', {
-          identifier,
+          identifier: data.type === 'EMAIL' ? data.email : data.phone,
           type: data.type,
           redirect: false,
         });
 
-        window.location.assign(ROUTES.registration);
+        router.refresh();
       }
     }
 
@@ -429,7 +429,7 @@ export function NewProfileForm({
             <span>Vous avez déjà une demande en cours ?</span>
             <Link
               className={buttonVariants({ variant: 'link' }) + ' !p-0 !px-1 h-min'}
-              href={`${ROUTES.auth.login}?callBackUrl=${ROUTES.registration}`}
+              href={`${ROUTES.auth.login}?callbackUrl=${ROUTES.registration}`}
             >
               {'Continuer mon inscription'}
             </Link>

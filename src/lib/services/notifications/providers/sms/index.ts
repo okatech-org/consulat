@@ -18,8 +18,6 @@ export class SMSService {
         this.provider = new TwilioProvider();
         break;
     }
-
-    console.log(`SMS Service initialized with provider: ${providerName}`);
   }
 
   async sendSMS(to: string, body: string, from?: string): Promise<SMSResponse> {

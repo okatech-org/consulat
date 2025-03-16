@@ -200,12 +200,6 @@ export function RegistrationForm({
         onAnalysisComplete={handleDocumentsAnalysis}
         handleSubmitAction={() => handleNext()}
         isLoading={isLoading}
-        onUpload={() => {
-          router.refresh();
-        }}
-        onDelete={() => {
-          router.refresh();
-        }}
       />
     ),
     basicInfo: (
@@ -312,7 +306,7 @@ export function RegistrationForm({
               <Button
                 onClick={handlePrevious}
                 variant="outline"
-                disabled={isLoading}
+                disabled={isLoading || currentStepIndex === 0}
                 className="gap-2"
               >
                 <ArrowLeft className="size-4" />

@@ -23,6 +23,7 @@ import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../user-document';
 import { AppUserDocument } from '@/types';
 import { useRouter } from 'next/navigation';
+
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
   handleSubmitAction: (data: DocumentsFormData) => void;

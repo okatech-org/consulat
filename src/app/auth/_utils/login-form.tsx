@@ -20,7 +20,7 @@ import {
   LoginWithEmailSchema,
   type LoginInput,
 } from '@/schemas/user';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { isUserExists, sendOTP } from '@/actions/auth';
 import { toast } from '@/hooks/use-toast';
@@ -73,10 +73,10 @@ function getLoginSchema(type: 'EMAIL' | 'PHONE', showOTP: boolean) {
 }
 
 export function LoginForm() {
+  const router = useRouter();
   const t = useTranslations('auth.login');
   const tError = useTranslations('messages.errors');
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
   const [displayOTP, setDisplayOTP] = React.useState(false);
   const authError = searchParams.get('error') as ErrorMessageKey | null;
   const [isLoading, setIsLoading] = React.useState(false);
@@ -211,15 +211,12 @@ export function LoginForm() {
 
       if (isOTPValid) {
         await signIn('credentials', {
-          identifier,
+          identifier: data.type === 'EMAIL' ? data.email : data.phone,
           type: data.type,
+          redirect: false,
         });
 
-        if (callbackUrl) {
-          router.push(callbackUrl);
-        } else {
-          router.push('/');
-        }
+        router.refresh();
       }
     }
 
@@ -297,7 +294,12 @@ export function LoginForm() {
                       {t('access_code')}
                     </FormLabel>
                     <FormControl>
-                      <InputOTP maxLength={6} {...field} autoComplete="one-time-code">
+                      <InputOTP
+                        autoFocus
+                        maxLength={6}
+                        {...field}
+                        autoComplete="one-time-code"
+                      >
                         <InputOTPGroup>
                           <InputOTPSlot className="w-12" index={0} />
                           <InputOTPSlot className="w-12" index={1} />

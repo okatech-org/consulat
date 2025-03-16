@@ -1,26 +1,42 @@
-import { getCurrentUser } from '@/actions/user';
 import { LoginForm } from '../_utils/login-form';
-import { redirect } from 'next/navigation';
-import { hasAnyRole } from '@/lib/permissions/utils';
-import { ROUTES } from '@/schemas/routes';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
+import { auth } from '@/auth';
+import { hasAnyRole } from '@/lib/permissions/utils';
+import { ROUTES } from '@/schemas/routes';
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function LoginPage() {
-  const user = await getCurrentUser();
   const t = await getTranslations('auth.login');
+  const session = await auth();
+  const headersList = await headers();
+  const searchParams = new URLSearchParams(headersList.get('x-params-string') ?? '');
+  const callbackUrl = searchParams.get('callbackUrl');
 
-  if (user) {
-    const isAdmin = hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER']);
-    if (isAdmin) {
-      redirect(ROUTES.dashboard.base);
-    }
+  if (session?.user) {
+    if (callbackUrl) {
+      redirect(callbackUrl);
+    } else {
+      const isAdmin = hasAnyRole(session.user, [
+        'ADMIN',
+        'SUPER_ADMIN',
+        'AGENT',
+        'MANAGER',
+      ]);
 
-    if (hasAnyRole(user, ['USER'])) {
-      redirect(ROUTES.user.base);
+      if (isAdmin) {
+        redirect(ROUTES.dashboard.base);
+      }
+
+      if (hasAnyRole(session.user, ['USER'])) {
+        redirect(ROUTES.user.base);
+      }
+
+      redirect(ROUTES.base);
     }
   }
 

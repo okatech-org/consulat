@@ -74,7 +74,6 @@ export function OrganizationForm({
   });
 
   async function handleCreateSubmit(data: CreateOrganizationInput) {
-    console.log({ data });
     try {
       const result = await handleCreate(data);
       if (!result) {

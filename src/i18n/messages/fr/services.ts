@@ -277,7 +277,7 @@ export default {
     CIVIL_STATUS: 'État civil',
     VISA: 'Visa',
     CERTIFICATION: 'Certification',
-    REGISTRATION: 'Enregistrement',
+    REGISTRATION: 'Inscription',
     OTHER: 'Autre',
   },
   documents: {

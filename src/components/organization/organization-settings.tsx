@@ -105,8 +105,6 @@ export function OrganizationSettings({
     setIsLoading(false);
   };
 
-  console.log({ organization });
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
