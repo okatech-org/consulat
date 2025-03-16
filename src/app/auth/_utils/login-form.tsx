@@ -364,6 +364,7 @@ export function LoginForm() {
                 type="button"
                 variant="link"
                 disabled={isLoading}
+                className="max-w-fit mx-auto"
                 onClick={() => handleMethodChange(method === 'EMAIL' ? 'PHONE' : 'EMAIL')}
               >
                 <span className="text-muted-foreground">

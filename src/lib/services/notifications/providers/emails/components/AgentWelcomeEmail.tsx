@@ -3,18 +3,15 @@ import {
   Button,
   Section,
   Heading,
-  Link,
-  Row,
-  Column,
   Container,
   render,
 } from '@react-email/components';
 import * as React from 'react';
-import { EmailLayout } from './components/EmailLayout';
+import { EmailLayout } from './EmailLayout';
 
-interface AdminWelcomeEmailProps {
-  dashboardUrl: string;
-  organizationLogo: string;
+interface AgentWelcomeEmailProps {
+  loginUrl: string;
+  organizationLogo?: string;
   content: {
     subject: string;
     greeting: string;
@@ -23,15 +20,14 @@ interface AdminWelcomeEmailProps {
     buttonLabel: string;
     outro: string;
     signature: string;
-    links?: { label: string; url: string }[];
   };
 }
 
-export const AdminWelcomeEmail = async ({
-  dashboardUrl,
+export const AgentWelcomeEmail = async ({
+  loginUrl,
   organizationLogo,
   content,
-}: AdminWelcomeEmailProps) => {
+}: AgentWelcomeEmailProps) => {
   return (
     <EmailLayout
       title={content.subject}
@@ -57,7 +53,7 @@ export const AdminWelcomeEmail = async ({
 
         <Section className="text-center mb-20">
           <Button
-            href={dashboardUrl}
+            href={loginUrl}
             className="bg-primary text-white rounded-lg py-3 px-6 inline-block"
           >
             {content.buttonLabel}
@@ -66,26 +62,10 @@ export const AdminWelcomeEmail = async ({
 
         <Text className="mb-20">{content.outro}</Text>
         <Text>{content.signature}</Text>
-
-        {content.links && (
-          <Section className="mt-20">
-            <Row>
-              {content.links.map((link) => (
-                <Column key={link.url} className="text-center">
-                  <Link href={link.url} className="underline font-semibold">
-                    {link.label}
-                  </Link>
-                </Column>
-              ))}
-            </Row>
-          </Section>
-        )}
       </Container>
     </EmailLayout>
   );
 };
 
-export const AdminWelcomeEmailToHtml = (props: AdminWelcomeEmailProps) => {
-  const emailHtml = render(<AdminWelcomeEmail {...props} />);
-  return emailHtml;
-};
+export const AgentWelcomeEmailToHtml = (props: AgentWelcomeEmailProps) =>
+  render(<AgentWelcomeEmail {...props} />);

@@ -5,6 +5,8 @@ import { db } from '@/lib/prisma';
 import { generateOTP } from '@/lib/user/otp';
 import { sendSMSOTP } from '@/actions/email';
 import { sendOTPEmail } from '@/lib/services/notifications/providers/emails';
+import { notifyValidationCode } from '@/lib/services/notifications';
+import { tryCatch } from '@/lib/utils';
 
 export const logUserOut = async () => {
   await signOut({
@@ -35,10 +37,16 @@ export async function sendOTP(identifier: string, type: AuthType) {
       }),
     ]);
 
-    if (type === 'EMAIL') {
-      await sendOTPEmail(identifier, generatedOTP);
-    } else {
-      await sendSMSOTP(identifier, generatedOTP);
+    const notificationResult = await tryCatch(
+      notifyValidationCode(generatedOTP, {
+        ...(type === 'EMAIL' && { email: identifier }),
+        ...(type === 'PHONE' && { phoneNumber: identifier }),
+      }),
+    );
+
+    if (notificationResult.error) {
+      console.error('Error sending OTP:', notificationResult.error);
+      return { error: 'Failed to send verification code' };
     }
 
     return { success: true };

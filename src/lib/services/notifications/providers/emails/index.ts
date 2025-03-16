@@ -3,9 +3,9 @@
 import { Resend } from 'resend';
 import { getTranslations } from 'next-intl/server';
 import { env } from '@/lib/env/index';
-import { OTPEmailToHtml } from './OTPEmail';
-import { AdminWelcomeEmailToHtml } from './AdminWelcomeEmail';
-import { NotificationEmailToHtml } from './NotificationEmail';
+import { OTPEmailToHtml } from './components/OTPEmail';
+import { AdminWelcomeEmailToHtml } from './components/AdminWelcomeEmail';
+import { NotificationEmailToHtml } from './components/NotificationEmail';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const resend_sender = env.RESEND_SENDER;

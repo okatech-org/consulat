@@ -5,9 +5,7 @@ import {
   NotificationRequest,
   NotificationResponse,
   NotificationResult,
-  notificationSchema,
 } from '@/types/notifications';
-import { tryCatch } from '@/lib/utils';
 import { getNotificationProvider } from './provider-registry';
 import { AppNotificationProvider } from './providers/app-provider';
 import { EmailNotificationProvider } from './providers/email-provider';

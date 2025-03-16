@@ -17,14 +17,6 @@ export const validateOTP = async ({
   otp: string;
   type: 'EMAIL' | 'PHONE';
 }) => {
-  // TODO: Remove this line
-
-  console.log({
-    identifier,
-    otp,
-    type,
-  });
-
   const tokenVerification = await tryCatch(
     db.verificationToken.findFirst({
       where: {
@@ -37,8 +29,6 @@ export const validateOTP = async ({
       },
     }),
   );
-
-  console.log('tokenVerification', tokenVerification);
 
   if (tokenVerification.error || !tokenVerification.data) {
     console.error('OTP Validation Error:', tokenVerification.error);

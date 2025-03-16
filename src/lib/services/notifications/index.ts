@@ -7,6 +7,9 @@ import {
   NotificationResponse,
 } from '@/types/notifications';
 import { sendNotification } from './notification-service';
+import { sendSMSOTP } from '@/actions/email';
+import { sendOTPEmail } from './providers/emails';
+import { tryCatch } from '@/lib/utils';
 
 /**
  * Fonction simplifiée pour créer et envoyer une notification
@@ -131,8 +134,6 @@ export async function notifyAppointment(
  */
 
 export async function notifyValidationCode(
-  userId: string,
-  title: string,
   message: string,
   options?: Partial<
     Omit<NotificationRequest, 'type' | 'title' | 'message' | 'recipient' | 'actions'>
@@ -140,18 +141,18 @@ export async function notifyValidationCode(
     email?: string;
     phoneNumber?: string;
   },
-): Promise<NotificationResponse> {
-  return notify({
-    userId,
-    type: NotificationType.FEEDBACK,
-    title,
-    message,
-    channels: options?.channels,
-    email: options?.email,
-    phoneNumber: options?.phoneNumber,
-    metadata: options?.metadata,
-    priority: options?.priority || 'high',
-    scheduledFor: options?.scheduledFor,
-    expiresAt: options?.expiresAt,
-  });
+): Promise<boolean> {
+  if (options?.email) {
+    await sendOTPEmail(options?.email, message);
+
+    return true;
+  }
+
+  if (options?.phoneNumber) {
+    await sendSMSOTP(options?.phoneNumber, message);
+
+    return true;
+  }
+
+  return false;
 }

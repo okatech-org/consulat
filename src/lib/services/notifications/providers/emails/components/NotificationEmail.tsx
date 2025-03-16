@@ -1,4 +1,3 @@
-import { EmailLayout } from './components/EmailLayout';
 import {
   Text,
   Section,
@@ -8,6 +7,7 @@ import {
   render,
 } from '@react-email/components';
 import * as React from 'react';
+import { EmailLayout } from './EmailLayout';
 
 interface NotificationEmailProps {
   notificationTitle: string;
