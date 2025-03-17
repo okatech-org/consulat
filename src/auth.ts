@@ -6,6 +6,7 @@ import { ROUTES } from '@/schemas/routes';
 import { getUserSession } from '@/lib/user/getters';
 import { SessionUser } from '@/types';
 import { JWT } from 'next-auth/jwt';
+import { unstable_cache } from 'next/cache';
 
 declare module 'next-auth' {
   interface Session {
@@ -69,6 +70,17 @@ export const {
   ],
 });
 
+const getCachedUserSession = unstable_cache(
+  async (userId: string) => {
+    return getUserSession(userId);
+  },
+  ['user-session'],
+  {
+    revalidate: 60, // Cache for 1 minute
+    tags: ['user-session'],
+  },
+);
+
 async function handleAuthorize(credentials: unknown) {
   try {
     if (!credentials) return new Error('no_credentials');
@@ -128,7 +140,7 @@ async function handleAuthorize(credentials: unknown) {
 
 async function handleSession({ session, token }: { session: Session; token: JWT }) {
   if (token.sub && session.user) {
-    const existingUser = await getUserSession(token.sub);
+    const existingUser = await getCachedUserSession(token.sub);
 
     if (existingUser) {
       session.user = existingUser;
