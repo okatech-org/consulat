@@ -6,6 +6,7 @@ import {
   ProcessingMode,
   DeliveryMode,
 } from '@prisma/client';
+import { CountryCodeSchema } from './inputs';
 
 export const ServiceFieldSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
@@ -79,6 +80,7 @@ export const NewServiceSchema = z.object({
   category: z.nativeEnum(ServiceCategory),
   description: z.string().optional(),
   organizationId: z.string().optional(),
+  countryCode: CountryCodeSchema,
 });
 
 export type NewServiceSchemaInput = z.infer<typeof NewServiceSchema>;

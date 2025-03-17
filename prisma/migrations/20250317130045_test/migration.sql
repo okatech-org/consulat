@@ -252,6 +252,7 @@ CREATE TABLE "UserDocument" (
     "type" "DocumentType" NOT NULL,
     "status" "DocumentStatus" NOT NULL DEFAULT 'PENDING',
     "fileUrl" TEXT NOT NULL,
+    "fileType" TEXT NOT NULL,
     "issuedAt" TIMESTAMP(3),
     "expiresAt" TIMESTAMP(3),
     "metadata" JSONB,

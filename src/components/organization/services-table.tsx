@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { ConsularServiceListingItem, UpdateServiceInput } from '@/types/consular-service';
-import { ServiceCategory } from '@prisma/client';
+import { Country, ServiceCategory } from '@prisma/client';
 import { OrganizationListingItem } from '@/types/organization';
 import {
   deleteService,
@@ -32,10 +32,12 @@ export function ServicesTable({
   services,
   organizations = [],
   columns,
+  countries = [],
 }: {
   services: ConsularServiceListingItem[];
   organizations: OrganizationListingItem[];
   columns?: ColumnDef<ConsularServiceListingItem>[];
+  countries: Country[];
 }) {
   const t = useTranslations('services');
   const t_common = useTranslations('common');
@@ -291,6 +293,7 @@ export function ServicesTable({
               initialData={selectedService}
               handleSubmit={(data) => handleServiceUpdate(data)}
               isLoading={isLoading}
+              countries={countries}
             />
           )}
         </DialogContent>

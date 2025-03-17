@@ -81,13 +81,7 @@ export function AppSidebar({
       title: t('admin.notifications'),
       url: ROUTES.dashboard.notifications,
       iconComponent: <NotificationBell />,
-      roles: [UserRole.ADMIN, UserRole.AGENT],
-    },
-    {
-      title: t('admin.notifications'),
-      url: ROUTES.dashboard.notifications,
-      iconComponent: <NotificationBell />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
     },
 
     {

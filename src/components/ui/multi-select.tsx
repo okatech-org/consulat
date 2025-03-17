@@ -31,6 +31,7 @@ interface MultiSelectMultipleProps<T> {
   emptyText?: string;
   type: 'multiple';
   disabled?: boolean;
+  autoComplete?: string;
 }
 
 interface MultiSelectSingleProps<T> {

@@ -8,6 +8,7 @@ import {
   Phone,
 } from '@prisma/client';
 import { FullProfile, ProfileKey } from '@/types/profile';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 export const fieldTypes = [
   'text',
@@ -91,6 +92,7 @@ export interface ConsularServiceListingItem {
   category: ServiceCategory;
   isActive: boolean;
   organizationId: string | null;
+  countryCode: string | null;
 }
 
 export type RegistrationListingItem = {

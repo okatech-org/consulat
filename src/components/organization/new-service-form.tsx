@@ -21,33 +21,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ServiceCategory } from '@prisma/client';
+import { Country, ServiceCategory } from '@prisma/client';
 import { Loader2 } from 'lucide-react';
 import { ConsularServiceListingItem } from '@/types/consular-service';
 import { NewServiceSchema, NewServiceSchemaInput } from '@/schemas/consular-service';
 import { InfoField } from '@/components/ui/info-field';
+import { CountrySelect } from '../ui/country-select';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface ServiceFormProps {
   initialData?: Partial<ConsularServiceListingItem>;
   handleSubmit: (data: NewServiceSchemaInput) => Promise<void>;
   isLoading?: boolean;
+  countries: Country[];
 }
 
 export function NewServiceForm({
   initialData,
   handleSubmit,
   isLoading,
+  countries,
 }: ServiceFormProps) {
+  const tInputs = useTranslations('inputs');
   const t = useTranslations('services');
   const t_common = useTranslations('common');
 
   const form = useForm<NewServiceSchemaInput>({
     resolver: zodResolver(NewServiceSchema),
     defaultValues: {
+      id: initialData?.id ?? '',
       name: initialData?.name || '',
       description: initialData?.description || '',
       category: initialData?.category || ServiceCategory.CIVIL_STATUS,
-      organizationId: initialData?.organizationId ?? undefined,
+      organizationId: initialData?.organizationId ?? '',
+      countryCode: initialData?.countryCode ?? '',
     },
   });
 
@@ -115,6 +122,25 @@ export function NewServiceForm({
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="countryCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{tInputs('country.label')}</FormLabel>
+              <FormControl>
+                <CountrySelect
+                  type="single"
+                  selected={field.value as CountryCode}
+                  onChange={(value) => field.onChange(value)}
+                  options={countries?.map((item) => item.code as CountryCode)}
+                />
+              </FormControl>
+              <TradFormMessage />
+            </FormItem>
+          )}
+        />
+
         {initialData?.organizationId && (
           <InfoField
             label={t('form.organizationId.label')}
@@ -124,7 +150,7 @@ export function NewServiceForm({
 
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {isLoading && <Loader2 className="size-icon animate-spin" />}
             {initialData ? t('actions.update') : t('actions.create')}
           </Button>
         </div>

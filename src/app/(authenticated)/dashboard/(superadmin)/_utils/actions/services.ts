@@ -26,6 +26,7 @@ export async function getServices(): Promise<ConsularServiceListingItem[]> {
       category: true,
       isActive: true,
       organizationId: true,
+      countryCode: true,
     },
   });
 }
@@ -44,11 +45,8 @@ export async function createService(data: NewServiceSchemaInput) {
         name: data.name,
         description: data.description,
         category: data.category,
-        ...(data.organizationId && {
-          organization: {
-            connect: { id: data.organizationId },
-          },
-        }),
+        countryCode: data.countryCode,
+        organizationId: data.organizationId,
       },
     });
 

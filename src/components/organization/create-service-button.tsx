@@ -16,11 +16,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { NewServiceForm } from '@/components/organization/new-service-form';
 import { NewServiceSchemaInput } from '@/schemas/consular-service';
+import { Country } from '@prisma/client';
 
 export function CreateServiceButton({
   initialData,
+  countries,
 }: {
   initialData?: Partial<NewServiceSchemaInput>;
+  countries: Country[];
 }) {
   const t = useTranslations('services');
   const { toast } = useToast();
@@ -65,6 +68,7 @@ export function CreateServiceButton({
           <DialogTitle>{t('form.create_title')}</DialogTitle>
         </DialogHeader>
         <NewServiceForm
+          countries={countries}
           handleSubmit={handleSubmit}
           isLoading={isLoading}
           initialData={initialData}

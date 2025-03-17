@@ -49,12 +49,14 @@ export function SettingsTabs({
               initialData={{
                 organizationId: organization.id,
               }}
+              countries={organization.countries ?? []}
             />
           }
         >
           <ServicesTable
             organizations={[organization]}
             services={organization.services ?? []}
+            countries={organization.countries ?? []}
           />
         </CardContainer>
       </TabsContent>
