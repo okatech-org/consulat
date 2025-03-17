@@ -71,14 +71,14 @@ export default async function ProfilePage() {
           status={profile.status}
           notes={registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content}
           organizationName={organisationInfos?.name}
-          organizationAddress={organisationInfos?.settings.contact.address}
+          organizationAddress={organisationInfos?.settings?.contact?.address}
           requestId={registrationRequest?.id}
         />
       </div>
       <div className="grid grid-cols-8 gap-4">
         {profile && <ProfileTabs profile={profile} />}
         <div className={'col-span-full flex flex-col gap-4 lg:col-span-2'}>
-          {registrationRequest?.notes && registrationRequest?.notes.length > 0 && (
+          {registrationRequest?.notes && registrationRequest?.notes?.length > 0 && (
             <NotesList
               notes={registrationRequest.notes.filter((note) => note.type === 'FEEDBACK')}
             />

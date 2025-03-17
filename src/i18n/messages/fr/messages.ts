@@ -1,5 +1,6 @@
 export default {
   errors: {
+    email_user_email_already_exists: 'Un utilisateur avec cet email existe déjà',
     code_not_sent_otp: "Le code n'a pas été envoyé, veuillez réessayer",
     document_not_found: 'Document non trouvé, veuillez réessayer ou actualiser la page',
     auth_error:
