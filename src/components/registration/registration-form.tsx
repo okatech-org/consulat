@@ -113,11 +113,6 @@ export function RegistrationForm({
   // Gestionnaire de navigation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNext = async () => {
-    if (currentStepIndex === totalSteps - 1) {
-      await handleFinalSubmit();
-      return;
-    }
-
     setError(undefined);
     setIsLoading(true);
 
@@ -144,6 +139,11 @@ export function RegistrationForm({
         const { data: result, error } = await tryCatch(
           updateProfile(profile.id, editedFields),
         );
+
+        if (currentStepIndex === totalSteps - 1) {
+          await handleFinalSubmit();
+          return;
+        }
 
         if (result && nextStep) {
           handleTabChange(nextStep);
