@@ -1,26 +1,23 @@
 import { RegistrationForm } from '@/components/registration/registration-form';
 import { getActiveCountries } from '@/actions/countries';
-import { checkAuth } from '@/lib/auth/action';
-import { tryCatch } from '@/lib/utils';
-import { getUserFullProfile } from '@/lib/user/getters';
+import { getUserFullProfileById } from '@/lib/user/getters';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { NewProfileForm } from '@/components/registration/new-profile-form';
 import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import { env } from '@/lib/env/index';
+import { getCurrentUser } from '@/actions/user';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function RegistrationPage() {
+  const currentUser = await getCurrentUser();
   const t = await getTranslations('auth.login');
   const tInputs = await getTranslations('inputs');
 
   const countries = await getActiveCountries();
-  const { data: currentUser } = await tryCatch(checkAuth());
 
-  const { data: profile } = await tryCatch(
-    getUserFullProfile(currentUser?.user.id ?? ''),
-  );
+  const profile = await getUserFullProfileById(currentUser?.profileId ?? '');
 
   const CreateProfileFormComponent = () => (
     <div className="w-full h-full flex flex-col items-center justify-center max-w-lg mx-auto space-y-6">
@@ -49,7 +46,7 @@ export default async function RegistrationPage() {
     <div className="w-dvw relative bg-background h-dvh p-4 overflow-hidden flex items-center justify-center md:grid lg:grid-cols-12 lg:gap-4">
       <div className="min-h-full h-full w-full overflow-y-auto flex flex-col items-center justify-center md:col-span-7">
         <RouteAuthGuard
-          user={currentUser?.user}
+          user={currentUser}
           fallbackComponent={<CreateProfileFormComponent />}
         >
           {profile ? (

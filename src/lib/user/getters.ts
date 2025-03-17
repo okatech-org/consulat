@@ -1,7 +1,20 @@
 'use server';
 
 import { db } from '@/lib/prisma';
-import { FullProfile, FullProfileInclude, FullUser, FullUserInclude } from '@/types';
+import {
+  FullProfile,
+  FullProfileInclude,
+  FullUser,
+  FullUserInclude,
+  SessionUserInclude,
+} from '@/types';
+
+export async function getUserSession(id: string) {
+  return await db.user.findUnique({
+    where: { id: id },
+    ...SessionUserInclude,
+  });
+}
 
 export async function getUserById(
   id: string | undefined | null,
@@ -11,7 +24,7 @@ export async function getUserById(
   }
 
   try {
-    return await db.user.findFirst({
+    return await db.user.findUnique({
       where: {
         id: id,
       },
@@ -35,7 +48,7 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
 }
 
 export async function getUserFullProfileById(id: string): Promise<FullProfile | null> {
-  return db.profile.findFirst({
+  return db.profile.findUnique({
     where: { id: id },
     ...FullProfileInclude,
   });

@@ -3,18 +3,14 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import Credentials from 'next-auth/providers/credentials';
 import { db } from '@/lib/prisma';
 import { ROUTES } from '@/schemas/routes';
-import { getUserById } from '@/lib/user/getters';
-import { FullUser } from '@/types';
-import { Country, Phone, User } from '@prisma/client';
+import { getUserSession } from '@/lib/user/getters';
+import { SessionUser } from '@/types';
 import { JWT } from 'next-auth/jwt';
 import { PhoneValue } from './components/ui/phone-input';
 
 declare module 'next-auth' {
   interface Session {
-    user: User & {
-      phone: Phone | null;
-      linkedCountries: Country[];
-    };
+    user: SessionUser;
   }
 }
 
@@ -51,7 +47,7 @@ export const {
     },
     async jwt({ token, user }) {
       if (user) {
-        token.roles = (user as FullUser).roles;
+        token.roles = (user as SessionUser).roles;
       }
       return token;
     },
@@ -112,45 +108,11 @@ async function handleAuthorize(credentials: unknown) {
 
 async function handleSession({ session, token }: { session: Session; token: JWT }) {
   if (token.sub && session.user) {
-    const existingUser = await getUserById(token.sub);
+    const existingUser = await getUserSession(token.sub);
+
     if (existingUser) {
-      session.user.roles = existingUser.roles;
-
-      if (existingUser.name) {
-        session.user.name = existingUser.name;
-      }
-
-      if (existingUser.phone) {
-        session.user.phone = existingUser.phone;
-      }
-
-      if (existingUser.email) {
-        session.user.email = existingUser.email;
-      }
-
-      if (existingUser.organizationId) {
-        session.user.organizationId = existingUser.organizationId;
-      }
-
-      if (existingUser.assignedOrganizationId) {
-        session.user.assignedOrganizationId = existingUser.assignedOrganizationId;
-      }
-
-      session.user.lastLogin = existingUser.lastLogin ?? new Date();
-
-      if (existingUser.countryCode) {
-        session.user.countryCode = existingUser.countryCode;
-      }
-
-      if (existingUser.specializations) {
-        session.user.specializations = existingUser.specializations;
-      }
-
-      if (existingUser.linkedCountries) {
-        session.user.linkedCountries = existingUser.linkedCountries;
-      }
+      session.user = existingUser;
     }
-    session.user.id = token.sub;
   }
 
   return session;
