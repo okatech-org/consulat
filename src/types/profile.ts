@@ -19,24 +19,17 @@ export const BaseProfileInclude = {
 // Includes complet pour un profil avec tous les documents
 export const FullProfileInclude = {
   include: {
-    user: {
-      include: {
-        phone: true,
-      },
-    },
+    user: true,
     residentContact: {
       include: {
-        phone: true,
         address: true,
       },
     },
     homeLandContact: {
       include: {
-        phone: true,
         address: true,
       },
     },
-    phone: true,
     address: true,
     passport: true,
     birthCertificate: true,
@@ -51,10 +44,8 @@ export const FullProfileInclude = {
         parentUser: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            name: true,
             email: true,
-            phone: true,
             roles: true,
           },
         },
@@ -66,7 +57,6 @@ export const FullProfileInclude = {
 export const FullUserInclude = {
   include: {
     profile: true,
-    phone: true,
     country: true,
     notifications: true,
     linkedCountries: true,
@@ -167,7 +157,7 @@ export const profileFields: ProfileField[] = [
     category: 'contact',
   },
   {
-    key: 'phone',
+    key: 'phoneNumber',
     type: 'phone',
     category: 'contact',
   },

@@ -100,7 +100,7 @@ export function MultiSelect<T>({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full min-w-max justify-between px-2"
+            className="min-w-fit w-max justify-between px-2"
             disabled={disabled}
           >
             <div className="flex flex-wrap gap-1">

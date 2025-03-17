@@ -26,7 +26,7 @@ import { isUserExists, sendOTP } from '@/actions/auth';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ErrorMessageKey, tryCatch } from '@/lib/utils';
+import { ErrorMessageKey, retrievePhoneNumber, tryCatch } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
@@ -34,6 +34,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { ErrorCard } from '@/components/ui/error-card';
 import { validateOTP } from '@/lib/user/otp';
 import { z } from 'zod';
+import { PhoneNumberInput } from '@/components/ui/phone-number';
 
 function getLoginSchema(type: 'EMAIL' | 'PHONE', showOTP: boolean) {
   if (type === 'EMAIL') {
@@ -89,10 +90,7 @@ export function LoginForm() {
       type: method,
       email: '',
       otp: '',
-      phone: {
-        countryCode: '+33',
-        number: '',
-      },
+      phoneNumber: '+33-',
     },
   });
 
@@ -110,10 +108,7 @@ export function LoginForm() {
     if (resendCooldown > 0) return;
 
     const data = form.getValues();
-    const identifier =
-      data.type === 'EMAIL'
-        ? data.email
-        : `${data.phone?.countryCode}${data.phone?.number}`;
+    const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
     setIsLoading(true);
     const { error: sendOTPError, data: sendOTPData } = await tryCatch(
@@ -140,13 +135,10 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
-    const identifier =
-      data.type === 'EMAIL'
-        ? data.email
-        : `${data.phone?.countryCode}${data.phone?.number}`;
+    const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
     if (!displayOTP && data.type === 'EMAIL') {
-      const isExist = await isUserExists(undefined, data.email);
+      const isExist = await isUserExists(undefined, identifier);
       if (!isExist) {
         form.setError('email', {
           message: 'messages.errors.no_user_found_with_email',
@@ -157,9 +149,9 @@ export function LoginForm() {
     }
 
     if (!displayOTP && data.type === 'PHONE') {
-      const isExist = await isUserExists(undefined, undefined, data.phone);
+      const isExist = await isUserExists(undefined, undefined, identifier);
       if (!isExist) {
-        form.setError('phone.number', {
+        form.setError('phoneNumber', {
           message: 'messages.errors.no_user_found_with_phone',
         });
         setIsLoading(false);
@@ -167,10 +159,15 @@ export function LoginForm() {
       }
     }
 
+    console.log(retrievePhoneNumber(identifier).join(''));
+
     if (!displayOTP) {
       // Envoyer l'OTP
       const { error: sendOTPError, data: sendOTPData } = await tryCatch(
-        sendOTP(identifier ?? '', data.type),
+        sendOTP(
+          data.type === 'EMAIL' ? identifier : retrievePhoneNumber(identifier).join(''),
+          data.type,
+        ),
       );
 
       if (sendOTPError) {
@@ -196,7 +193,10 @@ export function LoginForm() {
 
     if (displayOTP) {
       const isOTPValid = await validateOTP({
-        identifier,
+        identifier:
+          data.type === 'EMAIL'
+            ? data.email
+            : retrievePhoneNumber(data.phoneNumber).join(''),
         otp: data.otp ?? '',
         type: data.type,
       });
@@ -211,7 +211,7 @@ export function LoginForm() {
 
       if (isOTPValid) {
         await signIn('credentials', {
-          identifier: data.type === 'EMAIL' ? data.email : data.phone.number,
+          identifier,
           type: data.type,
           redirect: false,
         });
@@ -232,10 +232,7 @@ export function LoginForm() {
       form.setValue('email', '');
     } else {
       form.setValue('type', 'PHONE');
-      form.setValue('phone', {
-        countryCode: '+33',
-        number: '',
-      });
+      form.setValue('phoneNumber', '+33-');
     }
   };
 
@@ -276,9 +273,25 @@ export function LoginForm() {
               </TabsContent>
 
               <TabsContent value="PHONE">
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inputs.phone.label')}</FormLabel>
+                      <FormControl>
+                        <PhoneNumberInput
+                          value={field.value}
+                          onChangeAction={field.onChange}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormItem>
                   <FormLabel>{t('inputs.phone.label')}</FormLabel>
-                  <PhoneInput parentForm={form} fieldName="phone" disabled={isLoading} />
                 </FormItem>
               </TabsContent>
             </Tabs>

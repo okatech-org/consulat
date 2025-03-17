@@ -54,32 +54,15 @@ export async function sendOTP(identifier: string, type: AuthType) {
   }
 }
 
-export async function isUserExists(
-  id?: string,
-  email?: string,
-  phone?: {
-    number: string;
-    countryCode: string;
-  },
-) {
+export async function isUserExists(id?: string, email?: string, phoneNumber?: string) {
   const user = await db.user.findFirst({
     where: {
       OR: [
         ...(id ? [{ id }] : []),
         ...(email ? [{ email }] : []),
-        ...(phone
-          ? [
-              {
-                phone: {
-                  number: phone.number,
-                  countryCode: phone.countryCode,
-                },
-              },
-            ]
-          : []),
+        ...(phoneNumber ? [{ phoneNumber }] : []),
       ],
     },
   });
-
   return Boolean(user);
 }

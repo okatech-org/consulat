@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Profile } from '@prisma/client';
-import { phoneCountries } from '@/lib/autocomplete-datas';
+import { CountryIndicator, phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
 import { DateTimeFormatOptions, useLocale } from 'next-intl';
@@ -536,4 +536,12 @@ export function removeNullValues<T extends Record<string, unknown>>(
           : value,
       ]),
   ) as Partial<T>;
+}
+
+export type PhoneParts = [CountryIndicator, string];
+
+export function retrievePhoneNumber(phoneNumber: string): PhoneParts {
+  const parts = phoneNumber.split('-') as [CountryIndicator, string];
+
+  return parts;
 }

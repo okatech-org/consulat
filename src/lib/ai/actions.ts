@@ -181,9 +181,6 @@ async function getUserContextDataSuperAdmin(
     const [user, statistics, activities] = await Promise.all([
       db.user.findUnique({
         where: { id: userId },
-        include: {
-          phone: true,
-        },
       }),
       db.serviceRequest.groupBy({
         by: ['status'],
@@ -192,10 +189,9 @@ async function getUserContextDataSuperAdmin(
         },
       }),
       db.user.findMany({
-        where: { role: { not: 'SUPER_ADMIN' } },
+        where: { roles: { has: UserRole.USER } },
         include: {
           profile: true,
-          serviceRequests: true,
         },
       }),
     ]);
@@ -204,10 +200,9 @@ async function getUserContextDataSuperAdmin(
       baseData.user = JSON.stringify({
         id: user.id,
         email: user.email,
-        phone: user.phone,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
+        phoneNumber: user.phoneNumber,
+        name: user.name,
+        role: user.roles,
       });
     }
 
@@ -238,9 +233,6 @@ async function getUserContextDataAgent(
     const [user, consularProfiles, notifications, appointments] = await Promise.all([
       db.user.findUnique({
         where: { id: userId },
-        include: {
-          phone: true,
-        },
       }),
       db.profile.findMany({
         where: { userId },
@@ -251,10 +243,6 @@ async function getUserContextDataAgent(
           residencePermit: true,
           addressProof: true,
           address: true,
-          phone: true,
-          emergencyContact: true,
-          addressInGabon: true,
-          notes: true,
           notifications: true,
         },
       }),
@@ -262,7 +250,9 @@ async function getUserContextDataAgent(
         where: { userId },
       }),
       db.appointment.findMany({
-        where: { userId },
+        where: {
+          attendeeId: userId,
+        },
       }),
     ]);
 
@@ -270,10 +260,9 @@ async function getUserContextDataAgent(
       baseData.user = JSON.stringify({
         id: user.id,
         email: user.email,
-        phone: user.phone,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
+        phoneNumber: user.phoneNumber,
+        name: user.name,
+        role: user.roles,
       });
     }
 
@@ -305,12 +294,9 @@ async function getUserContextDataAdmin(
     const [user, serviceRequests, consularStatistics] = await Promise.all([
       db.user.findUnique({
         where: { id: userId },
-        include: {
-          phone: true,
-        },
       }),
       db.serviceRequest.findMany({
-        where: { userId },
+        where: { assignedToId: userId },
       }),
       db.serviceRequest.groupBy({
         by: ['status'],
@@ -324,10 +310,9 @@ async function getUserContextDataAdmin(
       baseData.user = JSON.stringify({
         id: user.id,
         email: user.email,
-        phone: user.phone,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
+        phoneNumber: user.phoneNumber,
+        name: user.name,
+        role: user.roles,
       });
     }
 

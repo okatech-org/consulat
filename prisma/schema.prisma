@@ -49,11 +49,8 @@ model VerificationToken {
 model User {
   id        String   @id @default(cuid())
   email     String?  @unique
-  phone     Phone?   @relation(fields: [phoneId], references: [id])
-  phoneId   String?  @unique
+  phoneNumber String? @unique
   name      String?
-  firstName String?
-  lastName  String?
   roles     UserRole[] @default([USER])
   image     String   @default("https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE")
 
@@ -231,19 +228,6 @@ enum DocumentType {
   CONSULAR_CARD
 }
 
-model Phone {
-  id               String             @id @default(cuid())
-  number           String             @unique
-  countryCode      String
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  user             User?
-  userId           String?
-  profile          Profile[]
-  emergencyContacts EmergencyContact[]
-}
-
-
 enum NoteType {
   INTERNAL
   FEEDBACK
@@ -305,8 +289,7 @@ model Profile {
   // Contact
   address          Address?          @relation(fields: [addressId], references: [id])
   addressId        String?
-  phone            Phone?            @relation(fields: [phoneId], references: [id])
-  phoneId          String?
+  phoneNumber      String?
   email            String?
   residentContact EmergencyContact? @relation("residentContact")
   residentContactId String? @unique
@@ -355,8 +338,7 @@ model EmergencyContact {
   lastName              String
   email                 String?
   relationship         FamilyLink
-  phone               Phone?    @relation(fields: [phoneId], references: [id])
-  phoneId             String?
+  phoneNumber           String?
   address             Address?  @relation(fields: [addressId], references: [id])
   addressId           String?
   residentProfile     Profile?  @relation("residentContact", fields: [residentProfileId], references: [id])
@@ -367,7 +349,6 @@ model EmergencyContact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([phoneId])
   @@index([addressId])
 }
 

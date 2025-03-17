@@ -39,7 +39,6 @@ async function main() {
       prisma.serviceRequest.deleteMany(),
       prisma.consularService.deleteMany(),
       prisma.emergencyContact.deleteMany(),
-      prisma.phone.deleteMany(),
       prisma.address.deleteMany(),
       prisma.parentalAuthority.deleteMany(),
       prisma.profile.deleteMany(),
@@ -317,8 +316,7 @@ async function main() {
     await Promise.all([
       prisma.user.create({
         data: {
-          firstName: 'Okatech',
-          lastName: 'SA',
+          name: 'Okatech SA',
           id: 'user-super-admin',
           email: 'okatech@icloud.com',
           roles: [UserRole.SUPER_ADMIN],
@@ -360,12 +358,11 @@ async function main() {
             create: {
               id: 'user-berny-itoutou',
               email: 'itoutouberny@gmail.com',
-              firstName: 'Berny',
-              lastName: 'Itoutou',
+              name: 'Berny Itoutou',
               roles: [UserRole.USER],
               emailVerified: new Date(),
               countryCode: 'FR',
-              phoneId: 'phone-berny-itoutou',
+              phoneNumber: '+33-612250393',
             },
           },
           address: {
@@ -377,24 +374,13 @@ async function main() {
               country: 'FR',
             },
           },
-          phone: {
-            create: {
-              id: 'phone-berny-itoutou',
-              number: '612250393',
-              countryCode: '+33',
-            },
-          },
+          phoneNumber: '+33-612250393',
           residentContact: {
             create: {
               firstName: 'Pierre',
               lastName: 'Itoutou',
               relationship: FamilyLink.FATHER,
-              phone: {
-                create: {
-                  number: '0687654321',
-                  countryCode: '+33',
-                },
-              },
+              phoneNumber: '+33-612250393',
               address: {
                 create: {
                   firstLine: '42 Boulevard de la Liberté',
@@ -410,12 +396,7 @@ async function main() {
               firstName: 'Marie',
               lastName: 'Itoutou',
               relationship: FamilyLink.MOTHER,
-              phone: {
-                create: {
-                  number: '074123456',
-                  countryCode: '+241',
-                },
-              },
+              phoneNumber: '+241-074123456',
               address: {
                 create: {
                   firstLine: "42 Boulevard de l'Indépendance",
@@ -508,8 +489,7 @@ async function main() {
             create: {
               id: 'user-jane-doe',
               email: 'itoutouberny+jane@gmail.com',
-              firstName: 'Jane',
-              lastName: 'Doe',
+              name: 'Jane Doe',
               roles: [UserRole.USER],
               emailVerified: new Date(),
               countryCode: 'FR',
@@ -524,23 +504,13 @@ async function main() {
               country: 'FR',
             },
           },
-          phone: {
-            create: {
-              number: '0623456789',
-              countryCode: '+33',
-            },
-          },
+          phoneNumber: '+33-623456789',
           residentContact: {
             create: {
               firstName: 'Michael',
               lastName: 'Doe',
               relationship: FamilyLink.SPOUSE,
-              phone: {
-                create: {
-                  number: '0634567890',
-                  countryCode: '+33',
-                },
-              },
+              phoneNumber: '+33-634567890',
               address: {
                 create: {
                   firstLine: '45 Rue de Rivoli',
@@ -557,12 +527,7 @@ async function main() {
               firstName: 'John',
               lastName: 'Doe',
               relationship: FamilyLink.FATHER,
-              phone: {
-                create: {
-                  number: '074987654',
-                  countryCode: '+241',
-                },
-              },
+              phoneNumber: '+241-074987654',
               address: {
                 create: {
                   firstLine: '123 Boulevard Triomphal',

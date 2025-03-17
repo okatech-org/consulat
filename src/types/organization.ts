@@ -143,7 +143,6 @@ export const BaseAgentInclude = {
         flag: true,
       },
     },
-    phone: true,
   },
 } as const;
 

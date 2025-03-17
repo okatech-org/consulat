@@ -1,0 +1,68 @@
+'use client';
+
+import * as React from 'react';
+import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import { cn, retrievePhoneNumber } from '@/lib/utils';
+import { CountryCode, CountryIndicator, phoneCountries } from '@/lib/autocomplete-datas';
+import { FlagIcon } from './flag-icon';
+import { MultiSelect } from './multi-select';
+
+interface PhoneInputProps {
+  value: string;
+  onChangeAction: (value: string) => void;
+  disabled?: boolean;
+  options?: CountryCode[];
+  className?: string;
+}
+
+export function PhoneNumberInput({
+  value,
+  onChangeAction,
+  disabled = false,
+  options,
+}: PhoneInputProps) {
+  const t = useTranslations('inputs.phone');
+  const [indicator, number] = retrievePhoneNumber(value);
+  const availableCountries = options
+    ? phoneCountries.filter((country) => options.includes(country.countryCode))
+    : phoneCountries;
+  const t_countries = useTranslations('countries');
+
+  return (
+    <div className={cn('flex items-center w-full relative gap-2')}>
+      <MultiSelect<CountryIndicator>
+        type="single"
+        options={availableCountries.map((country) => ({
+          label: `${t_countries(country.countryCode)} (${country.value})`,
+          value: country.value,
+          component: (
+            <div className="flex items-center gap-2">
+              <FlagIcon countryCode={country.countryCode} />
+              {country.value}
+            </div>
+          ),
+        }))}
+        selected={indicator}
+        onChange={(value) => {
+          onChangeAction(`${value}-${number}`);
+        }}
+        disabled={disabled}
+        autoComplete="tel-country-code"
+      />
+      <Input
+        value={number || ''}
+        onChange={(e) => {
+          const value = e.target.value.replace(/\D/g, '');
+          const valueWithoutZero = value.replace(/^0+/, '');
+          onChangeAction(`${indicator}-${valueWithoutZero}`);
+        }}
+        className="w-full"
+        type="tel"
+        disabled={disabled}
+        autoComplete="tel-national"
+        placeholder={t('placeholder')}
+      />
+    </div>
+  );
+}

@@ -176,11 +176,8 @@ export function AppSidebar({
       <SidebarFooter className="py-6">
         <NavUser
           user={{
-            name:
-              user.firstName && user.lastName
-                ? `${user.firstName} ${user.lastName.charAt(0)}`
-                : ' - ',
-            email: user.email ?? user.phone?.number ?? '',
+            name: user.name ?? '',
+            email: user.email ?? user.phoneNumber ?? '',
             avatar: user.image ?? '/images/avatar-placeholder.png',
             roles: currentUserRoles,
           }}

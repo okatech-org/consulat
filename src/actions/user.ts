@@ -31,20 +31,16 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
   });
 };
 
-export const getUserByPhone = async (phone: {
-  countryCode: string;
-  number: string;
-}): Promise<User | null> => {
+export const getUserByPhone = async (phoneNumber: string): Promise<User | null> => {
   return await db.user.findFirst({
     where: {
-      phone,
+      phoneNumber,
     },
   });
 };
 
 const updateProfileSchema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  name: z.string().optional(),
   maxActiveRequests: z.coerce.number().optional(),
   specializations: z.array(z.string()).optional(),
 });

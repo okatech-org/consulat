@@ -124,6 +124,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
           data: {
             type: DocumentType.PASSPORT,
             fileUrl: passport.url,
+            fileType: passport.type,
             userId: currentUser.user.id,
             ...(basicInfo.passportIssueDate && {
               issuedAt: new Date(basicInfo.passportIssueDate),
@@ -168,6 +169,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
                 type: DocumentType.BIRTH_CERTIFICATE,
                 fileUrl: birthCertificate.url,
                 userId: currentUser.user.id,
+                fileType: birthCertificate.type,
               },
             },
           },
@@ -184,6 +186,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
                 type: DocumentType.IDENTITY_PHOTO,
                 fileUrl: identityPicture.url,
                 userId: currentUser.user.id,
+                fileType: identityPicture.type,
               },
             },
           },
@@ -202,6 +205,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
                 issuedAt: now,
                 expiresAt: inOneYear,
                 userId: currentUser.user.id,
+                fileType: residencePermit.type,
               },
             },
           },
@@ -220,6 +224,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
                 issuedAt: now,
                 expiresAt: inThreeMonths,
                 userId: currentUser.user.id,
+                fileType: addressProof.type,
               },
             },
           },
@@ -245,19 +250,13 @@ export async function createChildProfile(formData: FormData): Promise<string> {
 
           if (linkInfo.otherParentPhone) {
             otherParentReq.push({
-              phone: {
-                number: linkInfo.otherParentPhone.number,
-                countryCode: linkInfo.otherParentPhone.countryCode,
-              },
+              phoneNumber: linkInfo.otherParentPhone,
             });
           }
 
           const otherParentUser = await db.user.findFirst({
             where: {
               OR: otherParentReq,
-            },
-            include: {
-              phone: true,
             },
           });
 

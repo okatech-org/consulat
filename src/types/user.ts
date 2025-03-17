@@ -6,15 +6,9 @@ export const SessionUserInclude = {
     profileId: true,
     organizationId: true,
     assignedOrganizationId: true,
-    firstName: true,
-    lastName: true,
+    name: true,
     email: true,
-    phone: {
-      select: {
-        number: true,
-        countryCode: true,
-      },
-    },
+    phoneNumber: true,
     roles: true,
     image: true,
     emailVerified: true,

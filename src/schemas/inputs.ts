@@ -127,6 +127,10 @@ export const AddressSchema = z.object({
   country: CountryCodeSchema,
 });
 
+export const PhoneNumberSchema = z
+  .string({ required_error: 'messages.errors.field_required' })
+  .regex(/^\+[1-9]\d{1,3}-[1-9]\d{7,14}$/, 'messages.errors.invalid_phone_number');
+
 export const PhoneSchema = z
   .string({ required_error: 'messages.errors.field_required' })
   .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone');

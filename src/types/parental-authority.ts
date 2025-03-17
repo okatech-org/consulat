@@ -28,7 +28,6 @@ export const FullParentalAuthorityInclude = {
   profile: {
     include: {
       user: true,
-      phone: true,
       address: true,
       requestsFor: {
         include: {

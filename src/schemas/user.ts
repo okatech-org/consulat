@@ -1,9 +1,14 @@
 import * as z from 'zod';
 import { ServiceCategory } from '@prisma/client';
-import { EmailSchema, NameSchema, PhoneValueSchema } from '@/schemas/inputs';
+import {
+  EmailSchema,
+  NameSchema,
+  PhoneNumberSchema,
+  PhoneValueSchema,
+} from '@/schemas/inputs';
 
 export const LoginWithPhoneSchema = z.object({
-  phone: PhoneValueSchema,
+  phoneNumber: PhoneNumberSchema,
   type: z.literal('PHONE'),
   otp: z.string().optional(),
 });

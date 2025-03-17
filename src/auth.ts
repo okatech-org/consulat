@@ -14,21 +14,12 @@ declare module 'next-auth' {
   }
 }
 
-type PhoneAuthPayload = {
+export type AuthPayload = {
   identifier: string;
-  type: 'PHONE';
+  type: 'EMAIL' | 'PHONE';
   otp: string;
   callbackUrl?: string;
 };
-
-type EmailAuthPayload = {
-  identifier: string;
-  type: 'EMAIL';
-  otp: string;
-  callbackUrl?: string;
-};
-
-export type AuthPayload = PhoneAuthPayload | EmailAuthPayload;
 
 export const {
   handlers: { GET, POST },
@@ -90,48 +81,15 @@ async function handleAuthorize(credentials: unknown) {
       return new Error('missing_credentials');
     }
 
-    // For phone authentication, first find the phone record to get its ID
-    if (type === 'PHONE') {
-      const phone = await db.phone.findUnique({
-        where: {
-          number: identifier,
-        },
-      });
+    const user = await db.user.findUnique({
+      where: type === 'EMAIL' ? { email: identifier } : { phoneNumber: identifier },
+    });
 
-      if (!phone) {
-        return new Error('user_not_found');
-      }
-
-      // Then find the user with this phoneId
-      const user = await db.user.findUnique({
-        where: {
-          phoneId: phone.id,
-        },
-      });
-
-      if (!user) {
-        return new Error('user_not_found');
-      }
-
-      return user;
+    if (!user) {
+      return new Error('user_not_found');
     }
 
-    // For email authentication
-    if (type === 'EMAIL') {
-      const user = await db.user.findUnique({
-        where: {
-          email: identifier,
-        },
-      });
-
-      if (!user) {
-        return new Error('user_not_found');
-      }
-
-      return user;
-    }
-
-    return null;
+    return user;
   } catch (error) {
     console.error('Auth Error:', error);
     return null;
