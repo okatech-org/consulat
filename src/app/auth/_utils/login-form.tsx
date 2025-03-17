@@ -211,7 +211,7 @@ export function LoginForm() {
 
       if (isOTPValid) {
         await signIn('credentials', {
-          identifier: data.type === 'EMAIL' ? data.email : data.phone,
+          identifier: data.type === 'EMAIL' ? data.email : data.phone.number,
           type: data.type,
           redirect: false,
         });

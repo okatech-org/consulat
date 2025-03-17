@@ -6,7 +6,6 @@ import { ROUTES } from '@/schemas/routes';
 import { getUserSession } from '@/lib/user/getters';
 import { SessionUser } from '@/types';
 import { JWT } from 'next-auth/jwt';
-import { PhoneValue } from './components/ui/phone-input';
 
 declare module 'next-auth' {
   interface Session {
@@ -15,7 +14,7 @@ declare module 'next-auth' {
 }
 
 type PhoneAuthPayload = {
-  identifier: PhoneValue;
+  identifier: string;
   type: 'PHONE';
   otp: string;
   callbackUrl?: string;
@@ -79,27 +78,48 @@ async function handleAuthorize(credentials: unknown) {
       return new Error('missing_credentials');
     }
 
-    const user = await db.user.findFirst({
-      where: {
-        ...(type === 'EMAIL' && { email: identifier }),
-        ...(type === 'PHONE' && {
-          phone: {
-            number: {
-              equals: identifier.number,
-            },
-            countryCode: {
-              equals: identifier.countryCode,
-            },
-          },
-        }),
-      },
-    });
+    // For phone authentication, first find the phone record to get its ID
+    if (type === 'PHONE') {
+      const phone = await db.phone.findUnique({
+        where: {
+          number: identifier,
+        },
+      });
 
-    if (!user) {
-      return new Error('user_not_found');
+      if (!phone) {
+        return new Error('user_not_found');
+      }
+
+      // Then find the user with this phoneId
+      const user = await db.user.findUnique({
+        where: {
+          phoneId: phone.id,
+        },
+      });
+
+      if (!user) {
+        return new Error('user_not_found');
+      }
+
+      return user;
     }
 
-    return user;
+    // For email authentication
+    if (type === 'EMAIL') {
+      const user = await db.user.findUnique({
+        where: {
+          email: identifier,
+        },
+      });
+
+      if (!user) {
+        return new Error('user_not_found');
+      }
+
+      return user;
+    }
+
+    return null;
   } catch (error) {
     console.error('Auth Error:', error);
     return null;
@@ -108,7 +128,9 @@ async function handleAuthorize(credentials: unknown) {
 
 async function handleSession({ session, token }: { session: Session; token: JWT }) {
   if (token.sub && session.user) {
+    console.log('token.sub', token.sub, 'session.user', session.user);
     const existingUser = await getUserSession(token.sub);
+    console.log('existingUser', existingUser);
 
     if (existingUser) {
       session.user = existingUser;

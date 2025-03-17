@@ -3,8 +3,6 @@
 import { signOut } from '@/auth';
 import { db } from '@/lib/prisma';
 import { generateOTP } from '@/lib/user/otp';
-import { sendSMSOTP } from '@/actions/email';
-import { sendOTPEmail } from '@/lib/services/notifications/providers/emails';
 import { notifyValidationCode } from '@/lib/services/notifications';
 import { tryCatch } from '@/lib/utils';
 
