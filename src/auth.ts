@@ -128,9 +128,7 @@ async function handleAuthorize(credentials: unknown) {
 
 async function handleSession({ session, token }: { session: Session; token: JWT }) {
   if (token.sub && session.user) {
-    console.log('token.sub', token.sub, 'session.user', session.user);
     const existingUser = await getUserSession(token.sub);
-    console.log('existingUser', existingUser);
 
     if (existingUser) {
       session.user = existingUser;
