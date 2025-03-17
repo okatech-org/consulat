@@ -13,16 +13,15 @@ import {
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { CountrySelect } from '@/components/ui/country-select';
-import { getCountryCode, type CountryCode } from '@/lib/autocomplete-datas';
+import { type CountryCode } from '@/lib/autocomplete-datas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   CountryCodeSchema,
   DateSchema,
   EmailSchema,
   NameSchema,
-  PhoneValueSchema,
+  PhoneNumberSchema,
 } from '@/schemas/inputs';
 import { z } from 'zod';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -31,7 +30,7 @@ import { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { sendOTP, isUserExists } from '@/actions/auth';
-import { ErrorMessageKey, tryCatch } from '@/lib/utils';
+import { ErrorMessageKey, retrievePhoneNumber, tryCatch } from '@/lib/utils';
 import { ErrorCard } from '../ui/error-card';
 import { toast } from '@/hooks/use-toast';
 import { signIn } from 'next-auth/react';
@@ -39,6 +38,7 @@ import { validateOTP } from '@/lib/user/otp';
 import { createUserWithProfile } from '@/actions/profile';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 import { useRouter } from 'next/navigation';
+import { PhoneNumberInput } from '../ui/phone-number';
 
 export function NewProfileForm({
   availableCountries,
@@ -60,7 +60,7 @@ export function NewProfileForm({
     lastName: NameSchema,
     residenceCountyCode: CountryCodeSchema,
     email: EmailSchema.optional(),
-    phone: PhoneValueSchema,
+    phoneNumber: PhoneNumberSchema,
     emailVerified: DateSchema.optional(),
     phoneVerified: DateSchema.optional(),
     type: z.enum(['EMAIL', 'PHONE']),
@@ -87,10 +87,7 @@ export function NewProfileForm({
       lastName: '',
       type: 'PHONE',
       email: '',
-      phone: {
-        countryCode: '+33',
-        number: '',
-      },
+      phoneNumber: '+33-',
       otp: '',
       residenceCountyCode: (availableCountries?.[0]?.code ?? '') as CountryCode,
     },
@@ -112,9 +109,7 @@ export function NewProfileForm({
 
     const data = form.getValues();
     const identifier =
-      data.type === 'EMAIL'
-        ? data.email
-        : `${data.phone?.countryCode}${data.phone?.number}`;
+      data.type === 'EMAIL' ? data.email : retrievePhoneNumber(data.phoneNumber).join('');
 
     setIsLoading(true);
     const { error: sendOTPError, data: sendOTPData } = await tryCatch(
@@ -142,10 +137,7 @@ export function NewProfileForm({
   const onFinalSubmit = async (data: CreateProfileInput) => {
     setIsLoading(true);
 
-    const identifier =
-      data.type === 'EMAIL'
-        ? data.email
-        : `${data.phone?.countryCode}${data.phone?.number}`;
+    const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
     if (!showOTP) {
       const isEmailExist = await isUserExists(undefined, data.email);
@@ -155,9 +147,9 @@ export function NewProfileForm({
         });
       }
 
-      const isPhoneExist = await isUserExists(undefined, undefined, data.phone);
+      const isPhoneExist = await isUserExists(undefined, undefined, data.phoneNumber);
       if (isPhoneExist) {
-        form.setError('phone.number', {
+        form.setError('phoneNumber', {
           message: 'messages.errors.user_phone_already_exists',
         });
       }
@@ -218,7 +210,7 @@ export function NewProfileForm({
         }
 
         await signIn('credentials', {
-          identifier: data.type === 'EMAIL' ? data.email : data.phone.number,
+          identifier,
           type: data.type,
           redirect: false,
         });
@@ -314,17 +306,26 @@ export function NewProfileForm({
                 )}
               />
 
-              <FormItem className="col-span-full">
-                <FormLabel>{t('phone.label')}</FormLabel>
-                <PhoneInput
-                  parentForm={form}
-                  fieldName="phone"
-                  options={availableCountries?.map((item) => item.code as CountryCode)}
-                  defaultCountry={getCountryCode(
-                    form.watch('residenceCountyCode') as CountryCode,
-                  )}
-                />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-1">
+                    <FormLabel>{t('phone.label')}</FormLabel>
+                    <FormControl>
+                      <PhoneNumberInput
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        disabled={isLoading}
+                        options={availableCountries?.map(
+                          (item) => item.code as CountryCode,
+                        )}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
             </>
           )}
           {showOTP && (

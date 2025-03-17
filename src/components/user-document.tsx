@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { X, PenIcon } from 'lucide-react';
+import { X, PenIcon, Trash } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,8 +31,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
 import { FileInput } from './ui/file-input';
-import { uploadFileFromServer } from '@/actions/uploads';
-import { UploadedFileData } from 'uploadthing/types';
 import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
 
 interface UserDocumentProps {
@@ -289,12 +287,12 @@ export function UserDocument({
             )}
             <Button
               type="button"
-              variant="ghost"
+              variant="destructive"
               size="sm"
               onClick={() => handleDelete(document.id)}
               disabled={disabled || isLoading}
             >
-              <X className="size-4" />
+              <Trash className="size-icon" />
             </Button>
           </div>
         )}

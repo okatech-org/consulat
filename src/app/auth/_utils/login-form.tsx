@@ -27,7 +27,6 @@ import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ErrorMessageKey, retrievePhoneNumber, tryCatch } from '@/lib/utils';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -158,8 +157,6 @@ export function LoginForm() {
         return;
       }
     }
-
-    console.log(retrievePhoneNumber(identifier).join(''));
 
     if (!displayOTP) {
       // Envoyer l'OTP

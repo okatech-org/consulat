@@ -396,7 +396,7 @@ async function main() {
               firstName: 'Marie',
               lastName: 'Itoutou',
               relationship: FamilyLink.MOTHER,
-              phoneNumber: '+241-074123456',
+              phoneNumber: '+241-74123456',
               address: {
                 create: {
                   firstLine: "42 Boulevard de l'Indépendance",
@@ -527,7 +527,7 @@ async function main() {
               firstName: 'John',
               lastName: 'Doe',
               relationship: FamilyLink.FATHER,
-              phoneNumber: '+241-074987654',
+              phoneNumber: '+241-74987654',
               address: {
                 create: {
                   firstLine: '123 Boulevard Triomphal',

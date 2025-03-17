@@ -62,7 +62,7 @@ export const familyInfoFields: (keyof FullProfile)[] = [
 
 export const contactInfoFields: (keyof FullProfile)[] = [
   'email',
-  'phone',
+  'phoneNumber',
   'address',
   'residentContact',
   'homeLandContact',
@@ -80,6 +80,7 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorMessageKey | undefined>();
+  const defaultNumber = `${getCountryCode(profile?.residenceCountyCode as CountryCode)}-`;
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
   const cleanedProfile = removeNullValues({ ...profile });
 
@@ -134,13 +135,7 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
       resolver: zodResolver(ContactInfoSchema),
       defaultValues: {
         ...contactInfoFormData,
-        phone: {
-          ...contactInfoFormData?.phone,
-          countryCode:
-            contactInfoFormData?.phone?.countryCode ??
-            profile?.user?.phone?.countryCode ??
-            undefined,
-        },
+        phoneNumber: contactInfoFormData?.phoneNumber ?? defaultNumber,
         address: {
           ...contactInfoFormData?.address,
           country:
@@ -157,12 +152,7 @@ export function useRegistrationForm({ profile }: { profile: FullProfile | null }
               profile?.residenceCountyCode ??
               undefined,
           },
-          phone: {
-            ...contactInfoFormData?.residentContact?.phone,
-            countryCode:
-              profile?.user?.phone?.countryCode ??
-              getCountryCode(profile?.residenceCountyCode as CountryCode),
-          },
+          phoneNumber: contactInfoFormData?.residentContact?.phoneNumber ?? defaultNumber,
         },
       },
     }),

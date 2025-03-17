@@ -16,8 +16,7 @@ export const BaseServiceRequestInclude = {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
+        name: true,
         image: true,
       },
     },
@@ -49,8 +48,7 @@ export const FullServiceRequestInclude = {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
+        name: true,
         image: true,
         specializations: true,
         linkedCountries: {
@@ -66,8 +64,7 @@ export const FullServiceRequestInclude = {
         validatedBy: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            name: true,
             image: true,
           },
         },
@@ -82,8 +79,7 @@ export const FullServiceRequestInclude = {
           select: {
             id: true,
             image: true,
-            firstName: true,
-            lastName: true,
+            name: true,
           },
         },
       },

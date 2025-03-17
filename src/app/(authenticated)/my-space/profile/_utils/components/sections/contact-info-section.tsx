@@ -11,7 +11,7 @@ import { updateProfile } from '@/actions/profile';
 import { Badge } from '@/components/ui/badge';
 import { Flag, Mail, Phone } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { filterUneditedKeys, tryCatch } from '@/lib/utils';
+import { filterUneditedKeys, retrievePhoneNumber, tryCatch } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
 import { InfoField } from '@/components/ui/info-field';
 import { DisplayAddress } from '@/components/ui/display-address';
@@ -45,14 +45,19 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
 
     filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
 
-    // TODO: Faire en sorte de ne pas supprimer les champs
     if (data.residentContact) {
-      delete data.residentContact;
+      filterUneditedKeys<ContactInfoFormData['residentContact']>(
+        data.residentContact,
+        form.formState.dirtyFields,
+      );
     }
 
-    // TODO: Faire en sorte de ne pas supprimer les champs
     if (data.homeLandContact) {
-      delete data.homeLandContact;
+      // @ts-expect-error -- not sure why this is not working
+      filterUneditedKeys<ContactInfoFormData['homeLandContact']>(
+        data.homeLandContact,
+        form.formState.dirtyFields,
+      );
     }
 
     const result = await tryCatch(updateProfile(profile.id, data));
@@ -111,7 +116,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
             />
             <InfoField
               label={t_inputs('phone.label')}
-              value={`${profile?.phone?.countryCode}${profile?.phone?.number}`}
+              value={retrievePhoneNumber(profile?.phoneNumber ?? '').join(' ')}
               icon={<Phone className="size-4" />}
             />
           </div>

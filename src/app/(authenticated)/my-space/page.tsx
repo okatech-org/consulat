@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { StatsCard } from '@/components/ui/stats-card';
-import { getCurrentUser } from '@/actions/user';
 import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
 import { getServiceRequestsByUser } from '@/actions/service-requests';
@@ -19,7 +18,8 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { getUserFullProfile } from '@/lib/user/getters';
+import { getUserFullProfileById } from '@/lib/user/getters';
+import { auth } from '@/auth';
 
 export default async function UserDashboard() {
   const t_common = await getTranslations('common');
@@ -28,14 +28,14 @@ export default async function UserDashboard() {
   const t_dashboard = await getTranslations('dashboard');
   const t_notifications = await getTranslations('notifications');
 
-  const currentUser = await getCurrentUser();
+  const session = await auth();
 
-  if (!currentUser) {
+  if (!session?.user) {
     return null;
   }
 
   // Fetch user profile
-  const userProfile = await getUserFullProfile(currentUser.id);
+  const userProfile = await getUserFullProfileById(session.user.profileId ?? '');
 
   // Calculate profile completion percentage
   const profileCompletion = userProfile ? calculateProfileCompletion(userProfile) : 0;
@@ -51,7 +51,7 @@ export default async function UserDashboard() {
   }
 
   // Fetch user service requests
-  const serviceRequests = await getServiceRequestsByUser(currentUser.id);
+  const serviceRequests = await getServiceRequestsByUser(session.user.id);
 
   // Count requests by status
   const pendingRequests = serviceRequests.filter((req) =>
@@ -72,7 +72,7 @@ export default async function UserDashboard() {
   ).length;
 
   // Fetch user appointments
-  const appointmentsResponse = await getUserAppointments({ userId: currentUser.id });
+  const appointmentsResponse = await getUserAppointments({ userId: session.user.id });
   const appointments = appointmentsResponse.data || {
     upcoming: [],
     past: [],
@@ -90,7 +90,7 @@ export default async function UserDashboard() {
           <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
             {t_profile('welcome', {
-              name: currentUser.firstName || currentUser.name || '',
+              name: session.user.name || '',
             })}
           </p>
         </div>

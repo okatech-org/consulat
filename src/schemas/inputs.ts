@@ -177,7 +177,7 @@ export const EmergencyContactSchema = z.object({
     required_error: 'messages.errors.field_required',
   }),
   email: EmailSchema.nullable().optional(),
-  phone: PhoneValueSchema.nullable(),
+  phoneNumber: PhoneNumberSchema.nullable(),
   address: AddressSchema,
 });
 

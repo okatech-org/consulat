@@ -14,8 +14,8 @@ import {
   NameSchema,
   CountryCodeSchema,
   EmailSchema,
-  PhoneValueSchema,
   DateSchema,
+  PhoneNumberSchema,
 } from '@/schemas/inputs';
 import { z } from 'zod';
 import { isUserExists } from './auth';
@@ -28,17 +28,14 @@ const CreateProfileAsyncSchema = z
     lastName: NameSchema,
     residenceCountyCode: CountryCodeSchema,
     email: EmailSchema.optional(),
-    phone: PhoneValueSchema.refine(async (phone) => {
-      const existingPhone = await db.phone.findUnique({
+    phoneNumber: PhoneNumberSchema.refine(async (phone) => {
+      const existingPhoneUser = await db.user.findUnique({
         where: {
-          number: phone.number,
-        },
-        include: {
-          user: true,
+          phoneNumber: phone,
         },
       });
 
-      return !existingPhone?.user;
+      return !existingPhoneUser;
     }),
     emailVerified: DateSchema.optional(),
     phoneVerified: DateSchema.optional(),
@@ -46,8 +43,8 @@ const CreateProfileAsyncSchema = z
   })
   .superRefine(async (data) => {
     const [existingUser, existingPhone] = await Promise.all([
-      isUserExists(undefined, data.email, data.phone),
-      isUserExists(undefined, undefined, data.phone),
+      isUserExists(undefined, data.email, data.phoneNumber),
+      isUserExists(undefined, undefined, data.phoneNumber),
     ]);
 
     if (existingUser) {
@@ -65,7 +62,7 @@ export async function createUserWithProfile(input: CreateProfileInput) {
     lastName,
     residenceCountyCode,
     email,
-    phone,
+    phoneNumber,
     emailVerified,
     phoneVerified,
   } = await CreateProfileAsyncSchema.parseAsync(input);
@@ -73,19 +70,12 @@ export async function createUserWithProfile(input: CreateProfileInput) {
   await db.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {
-        firstName,
-        lastName,
+        name: `${firstName ?? ''} ${lastName ?? ''}`,
         email,
         emailVerified,
         phoneVerified,
-        phone: {
-          create: phone,
-        },
-        country: {
-          connect: {
-            code: residenceCountyCode,
-          },
-        },
+        phoneNumber,
+        countryCode: residenceCountyCode,
       },
     });
 
@@ -97,16 +87,10 @@ export async function createUserWithProfile(input: CreateProfileInput) {
       data: {
         firstName,
         lastName,
+        phoneNumber,
         residenceCountyCode,
         ...(homeLandCountry && { nationality: homeLandCountry }),
         ...(email && { email }),
-        ...(user.phoneId && {
-          phone: {
-            connect: {
-              id: user.phoneId,
-            },
-          },
-        }),
         user: {
           connect: {
             id: user.id,
@@ -139,7 +123,6 @@ export async function updateProfile(
   const {
     passportIssueDate,
     passportExpiryDate,
-    phone,
     address,
     residentContact,
     homeLandContact,
@@ -158,20 +141,6 @@ export async function updateProfile(
     ...(birthDate && { birthDate: new Date(birthDate) }),
     ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
     ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
-    ...(phone && {
-      phone: {
-        upsert: {
-          create: {
-            number: phone.number,
-            countryCode: phone.countryCode,
-          },
-          update: {
-            number: phone.number,
-            countryCode: phone.countryCode,
-          },
-        },
-      },
-    }),
     ...(address && {
       address: {
         upsert: {
@@ -184,18 +153,11 @@ export async function updateProfile(
       residentContact: {
         upsert: {
           create: {
+            phoneNumber: residentContact.phoneNumber,
             firstName: residentContact.firstName,
             lastName: residentContact.lastName,
             ...(residentContact.relationship && {
               relationship: residentContact.relationship,
-            }),
-            ...(residentContact.phone && {
-              phone: {
-                create: {
-                  number: residentContact.phone.number,
-                  countryCode: residentContact.phone.countryCode,
-                },
-              },
             }),
             ...(residentContact.address && {
               address: {
@@ -213,13 +175,8 @@ export async function updateProfile(
             ...(residentContact.relationship && {
               relationship: residentContact.relationship,
             }),
-            ...(residentContact.phone && {
-              phone: {
-                create: {
-                  number: residentContact.phone.number,
-                  countryCode: residentContact.phone.countryCode,
-                },
-              },
+            ...(residentContact.phoneNumber && {
+              phoneNumber: residentContact.phoneNumber,
             }),
             ...(residentContact.address && {
               address: {
@@ -240,12 +197,7 @@ export async function updateProfile(
             firstName: homeLandContact.firstName,
             lastName: homeLandContact.lastName,
             relationship: homeLandContact.relationship,
-            phone: {
-              create: {
-                number: homeLandContact.phone?.number,
-                countryCode: homeLandContact.phone?.countryCode,
-              },
-            },
+            phoneNumber: homeLandContact.phoneNumber,
             address: {
               create: homeLandContact.address,
             },
@@ -254,12 +206,7 @@ export async function updateProfile(
             firstName: homeLandContact.firstName,
             lastName: homeLandContact.lastName,
             relationship: homeLandContact.relationship,
-            phone: {
-              create: {
-                number: homeLandContact.phone?.number,
-                countryCode: homeLandContact.phone?.countryCode,
-              },
-            },
+            phoneNumber: homeLandContact.phoneNumber,
             address: {
               upsert: {
                 create: homeLandContact.address,

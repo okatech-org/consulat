@@ -221,7 +221,7 @@ const profileFields: Array<keyof FullProfile> = [
   'identityPicture',
   'passport',
   'birthCertificate',
-  'phoneId',
+  'phoneNumber',
   'address',
   'addressProof',
   'residentContact',

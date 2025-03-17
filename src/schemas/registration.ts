@@ -12,7 +12,7 @@ import {
   EmailSchema,
   EmergencyContactSchema,
   NameSchema,
-  PhoneValueSchema,
+  PhoneNumberSchema,
   UserDocumentSchema,
 } from './inputs';
 
@@ -21,7 +21,7 @@ export const CreateProfileSchema = z.object({
   lastName: NameSchema,
   residenceCountyCode: CountryCodeSchema,
   email: EmailSchema.optional(),
-  phone: PhoneValueSchema,
+  phoneNumber: PhoneNumberSchema,
   emailVerified: DateSchema.optional(),
   phoneVerified: DateSchema.optional(),
 });
@@ -83,18 +83,18 @@ export const BasicInfoSchema = z.object({
 // Validation pour la section Contact
 const BaseContactInfoSchema = z.object({
   email: EmailSchema.optional(),
-  phone: PhoneValueSchema.nullable(),
+  phoneNumber: PhoneNumberSchema.nullable(),
   address: AddressSchema,
   residentContact: EmergencyContactSchema,
   homeLandContact: EmergencyContactSchema.optional(),
 });
 
 export const ContactInfoSchema = BaseContactInfoSchema.superRefine((data, ctx) => {
-  if (!data.email && !data.phone) {
+  if (!data.email && !data.phoneNumber) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'messages.errors.email_or_phone_required',
-      path: ['email', 'phone'],
+      path: ['email', 'phoneNumber'],
     });
   }
 });

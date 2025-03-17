@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { Separator } from '@/components/ui/separator';
 import { ContactInfoFormData } from '@/schemas/registration';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
@@ -23,6 +22,7 @@ import { CountrySelect } from '../ui/country-select';
 import { Button } from '../ui/button';
 import { MinusIcon, PlusIcon } from 'lucide-react';
 import { FullProfile } from '@/types';
+import { PhoneNumberInput } from '../ui/phone-number';
 
 interface ContactInfoFormProps {
   form: UseFormReturn<ContactInfoFormData>;
@@ -49,6 +49,8 @@ export function ContactInfoForm({
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
   const residenceCountryCode = profile.residenceCountyCode as CountryCode;
+  const defaultNumber = `${getCountryCode(residenceCountryCode as CountryCode)}-`;
+
   function toggleHomeLandContact() {
     const homeLandContact = form.getValues('homeLandContact');
 
@@ -59,10 +61,7 @@ export function ContactInfoForm({
         firstName: '',
         lastName: '',
         email: '',
-        phone: {
-          number: '',
-          countryCode: getCountryCode(homeLandCountryCode as CountryCode) ?? '',
-        },
+        phoneNumber: defaultNumber,
         relationship: 'MOTHER',
         address: {
           firstLine: '',
@@ -105,16 +104,24 @@ export function ContactInfoForm({
             )}
           />
 
-          {/* Phone */}
-          <FormItem className="col-span-full w-full sm:col-span-1">
-            <FormLabel>{t('form.phone')}</FormLabel>
-            <PhoneInput
-              parentForm={form}
-              fieldName="phone"
-              disabled={Boolean(profile.phone) || isLoading}
-              options={residenceCountryCode ? [residenceCountryCode] : undefined}
-            />
-          </FormItem>
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-1">
+                <FormLabel>{t_inputs('phone.label')}</FormLabel>
+                <FormControl>
+                  <PhoneNumberInput
+                    value={field.value ?? defaultNumber}
+                    onChangeAction={field.onChange}
+                    disabled={Boolean(profile.phoneNumber) || isLoading}
+                    options={residenceCountryCode ? [residenceCountryCode] : undefined}
+                  />
+                </FormControl>
+                <TradFormMessage />
+              </FormItem>
+            )}
+          />
 
           <Separator className="col-span-full" />
 
@@ -274,7 +281,7 @@ export function ContactInfoForm({
               control={form.control}
               name="residentContact.relationship"
               render={({ field }) => (
-                <FormItem className="sm:col-span-full">
+                <FormItem className="sm:col-span-full flex flex-col gap-2">
                   <FormLabel>{t_inputs('familyLink.label')}</FormLabel>
                   <FormControl>
                     <MultiSelect<FamilyLink>
@@ -314,16 +321,24 @@ export function ContactInfoForm({
               )}
             />
 
-            {/* Phone */}
-            <FormItem className="col-span-full w-full sm:col-span-1">
-              <FormLabel>{t('form.phone')}</FormLabel>
-              <PhoneInput
-                parentForm={form}
-                fieldName="residentContact.phone"
-                disabled={isLoading}
-                options={residenceCountryCode ? [residenceCountryCode] : undefined}
-              />
-            </FormItem>
+            <FormField
+              control={form.control}
+              name="residentContact.phoneNumber"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-1">
+                  <FormLabel>{t_inputs('phone.label')}</FormLabel>
+                  <FormControl>
+                    <PhoneNumberInput
+                      value={field.value ?? defaultNumber}
+                      onChangeAction={field.onChange}
+                      disabled={isLoading}
+                      options={residenceCountryCode ? [residenceCountryCode] : undefined}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
 
             <fieldset className="sm:col-span-full grid grid-cols-2 gap-x-4 space-y-4">
               <legend className="text-sm font-medium sr-only">
@@ -502,7 +517,7 @@ export function ContactInfoForm({
                 control={form.control}
                 name="homeLandContact.relationship"
                 render={({ field }) => (
-                  <FormItem className="sm:col-span-full">
+                  <FormItem className="sm:col-span-full flex flex-col gap-2">
                     <FormLabel>{t_inputs('familyLink.label')}</FormLabel>
                     <FormControl>
                       <MultiSelect<FamilyLink>
@@ -544,15 +559,24 @@ export function ContactInfoForm({
 
               {/* Phone */}
 
-              <FormItem className="col-span-full w-full sm:col-span-1">
-                <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                <PhoneInput
-                  parentForm={form}
-                  fieldName="homeLandContact.phone"
-                  disabled={isLoading}
-                  options={homeLandCountryCode ? [homeLandCountryCode] : undefined}
-                />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="homeLandContact.phoneNumber"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-1">
+                    <FormLabel>{t_inputs('phone.label')}</FormLabel>
+                    <FormControl>
+                      <PhoneNumberInput
+                        value={field.value ?? defaultNumber}
+                        onChangeAction={field.onChange}
+                        disabled={isLoading}
+                        options={homeLandCountryCode ? [homeLandCountryCode] : undefined}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
 
               <fieldset className="sm:col-span-full grid grid-cols-2 gap-x-4 space-y-4">
                 <legend className="text-sm font-medium sr-only">
