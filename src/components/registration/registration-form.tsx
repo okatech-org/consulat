@@ -316,7 +316,9 @@ export function RegistrationForm({
               <Button
                 type="submit"
                 onClick={() => handleNext()}
-                disabled={isLoading}
+                disabled={
+                  isLoading || !forms[currentTab as keyof typeof forms].formState.isValid
+                }
                 className="ml-auto gap-2"
               >
                 {isLoading ? <Loader className="size-4 animate-spin" /> : null}

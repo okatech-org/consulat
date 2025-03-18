@@ -96,7 +96,7 @@ export function ChildRegistrationForm() {
     // Ajouter les fichiers
     const documents = {
       ...forms.documents.getValues(),
-      identityPictureFile: forms.basicInfo.getValues().identityPictureFile,
+      identityPictureFile: forms.basicInfo.getValues().identityPicture,
     };
     Object.entries(documents).forEach(([key, file]) => {
       if (file) formDataToSend.append(key, file as File);

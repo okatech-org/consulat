@@ -21,10 +21,11 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { AgentFormData, AgentSchema } from '@/schemas/user';
 import { useToast } from '@/hooks/use-toast';
 import { ServiceCategory } from '@prisma/client';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { createNewAgent } from '@/actions/organizations';
 import { Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
+import { PhoneNumberInput } from '../ui/phone-number';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
@@ -46,9 +47,7 @@ export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps)
       ...initialData,
       countryIds: initialData?.countryIds ?? [],
       serviceCategories: initialData?.serviceCategories ?? [],
-      phone: initialData?.phone ?? {
-        countryCode: '+33',
-      },
+      phoneNumber: initialData?.phoneNumber ?? '+33-',
     },
     mode: 'onSubmit',
   });
@@ -131,10 +130,25 @@ export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps)
             </FormItem>
           )}
         />
-        <FormItem className={'col-span-full'}>
-          <FormLabel>{t_inputs('phone.label')}</FormLabel>
-          <PhoneInput parentForm={form} fieldName="phone" disabled={isLoading} />
-        </FormItem>
+        <FormField
+          control={form.control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem className="col-span-full">
+              <FormLabel>{t_inputs('phone.label')}</FormLabel>
+              <FormControl>
+                <PhoneNumberInput
+                  value={field.value ?? '+33-'}
+                  onChangeAction={field.onChange}
+                  disabled={isLoading}
+                  options={countries.map((country) => country.code as CountryCode)}
+                />
+              </FormControl>
+              <TradFormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="countryIds"

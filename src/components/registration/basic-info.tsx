@@ -47,19 +47,6 @@ export function BasicInfoForm({
   const router = useRouter();
   const t_inputs = useTranslations('inputs');
 
-  const formatDateForInput = (date: Date | string | undefined) => {
-    if (!date) return '';
-    if (typeof date === 'string') {
-      if (date.includes('T')) return date.split('T')[0];
-      const [day, month, year] = date.split('/');
-      if (day && month && year) {
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      }
-      return date;
-    }
-    return date.toISOString().split('T')[0];
-  };
-
   return (
     <Form {...form}>
       <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -183,11 +170,9 @@ export function BasicInfoForm({
                     <FormControl>
                       <Input
                         {...field}
-                        onChange={field.onChange}
                         type="date"
                         disabled={isLoading}
                         max={new Date().toISOString().split('T')[0]}
-                        value={formatDateForInput(field.value)}
                       />
                     </FormControl>
                     <TradFormMessage />
@@ -297,9 +282,7 @@ export function BasicInfoForm({
                       <FormControl>
                         <Input
                           {...field}
-                          onChange={field.onChange}
                           type="date"
-                          value={formatDateForInput(field.value)}
                           max={new Date().toISOString().split('T')[0]}
                           placeholder={t_inputs('passport.issueDate.placeholder')}
                           disabled={isLoading}
@@ -319,8 +302,6 @@ export function BasicInfoForm({
                       <FormControl>
                         <Input
                           {...field}
-                          onChange={field.onChange}
-                          value={formatDateForInput(field.value)}
                           type="date"
                           placeholder={t_inputs('passport.expiryDate.placeholder')}
                           disabled={isLoading}

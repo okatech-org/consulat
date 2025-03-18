@@ -17,9 +17,7 @@ import { env } from '@/lib/env/index';
 import { sendAdminWelcomeEmail } from '@/lib/services/notifications/providers/emails';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { getCurrentUser } from '@/actions/user';
 import { getTranslations } from 'next-intl/server';
-import { CountryCode } from '@/lib/autocomplete-datas';
 import { checkAuth } from '@/lib/auth/action';
 import { db } from '@/lib/prisma';
 import {
@@ -270,20 +268,7 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
 
   const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-  const { countryIds, phone, serviceCategories, ...rest } = data;
-
-  // Créer le téléphone d'abord si nécessaire
-  let phoneId: string | undefined;
-
-  if (phone) {
-    const newPhone = await db.phone.create({
-      data: {
-        number: phone.number,
-        countryCode: phone.countryCode,
-      },
-    });
-    phoneId = newPhone.id;
-  }
+  const { countryIds, serviceCategories, ...rest } = data;
 
   const agent = await db.user.create({
     data: {
@@ -293,7 +278,6 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
       linkedCountries: {
         connect: countryIds.map((id) => ({ id })),
       },
-      ...(phoneId && { phoneId }),
     },
     include: {
       ...BaseAgentInclude.include,

@@ -154,9 +154,7 @@ export const DateSchema = z
     required_error: 'messages.errors.field_required',
     invalid_type_error: 'messages.errors.invalid_date',
   })
-  .min(1, 'messages.errors.field_required')
-  .transform((val) => new Date(val))
-  .refine((val) => !isNaN(val.getTime()), 'messages.errors.invalid_date');
+  .min(1, 'messages.errors.field_required');
 
 export const NumberSchema = z.number();
 

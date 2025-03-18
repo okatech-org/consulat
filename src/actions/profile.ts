@@ -135,7 +135,6 @@ export async function updateProfile(
     ...remain
   } = data;
 
-  //
   const updateData: Prisma.ProfileUpdateInput = {
     ...remain,
     ...(birthDate && { birthDate: new Date(birthDate) }),

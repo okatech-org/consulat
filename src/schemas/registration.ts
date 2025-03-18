@@ -77,7 +77,7 @@ export const BasicInfoSchema = z.object({
     .min(2, 'messages.errors.field_too_short')
     .max(100, 'messages.errors.field_too_long'),
 
-  cardPin: z.string().optional(),
+  cardPin: z.string().optional().nullable(),
 });
 
 // Validation pour la section Contact

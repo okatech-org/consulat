@@ -17,7 +17,7 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
-import { ErrorMessageKey, extractFieldsFromObject, removeNullValues } from '@/lib/utils';
+import { ErrorMessageKey, extractFieldsFromObject, getValuable } from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
 import {
@@ -26,6 +26,7 @@ import {
   NationalityAcquisition,
   WorkStatus,
 } from '@prisma/client';
+import { format } from 'date-fns';
 
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 
@@ -76,20 +77,25 @@ export const professionalInfoFields: (keyof FullProfile)[] = [
   'activityInGabon',
 ];
 
-export function useRegistrationForm({ profile }: { profile: FullProfile | null }) {
+export function useRegistrationForm({ profile }: { profile: FullProfile }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorMessageKey | undefined>();
   const defaultNumber = `${getCountryCode(profile?.residenceCountyCode as CountryCode)}-`;
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
-  const cleanedProfile = removeNullValues({ ...profile });
+  const cleanedProfile = getValuable({ ...profile });
 
   const documentsFormData = extractFieldsFromObject(
     cleanedProfile,
     documentsFields,
   ) as DocumentsFormData;
   const basicInfoFormData = extractFieldsFromObject(
-    cleanedProfile,
+    {
+      ...cleanedProfile,
+      birthDate: cleanedProfile.birthDate?.toISOString().split('T')[0],
+      passportIssueDate: cleanedProfile.passportIssueDate?.toISOString().split('T')[0],
+      passportExpiryDate: cleanedProfile.passportExpiryDate?.toISOString().split('T')[0],
+    },
     basicInfoFields,
   ) as BasicInfoFormData;
   const familyInfoFormData = extractFieldsFromObject(

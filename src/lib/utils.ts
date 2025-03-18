@@ -512,6 +512,17 @@ export function extractFieldsFromObject<T extends Record<string, unknown>>(
   }, {} as Partial<T>);
 }
 
+type Valuable<T> = { [K in keyof T as T[K] extends null | undefined ? never : K]: T[K] };
+
+export function getValuable<T extends object, V = Valuable<T>>(obj: T): V {
+  return Object.fromEntries(
+    Object.entries(obj).filter(
+      ([, v]) =>
+        !((typeof v === 'string' && !v.length) || v === null || typeof v === 'undefined'),
+    ),
+  ) as V;
+}
+
 /**
  * Retire récursivement les valeurs nulles ou undefined d'un objet et de ses sous-objets
  * @param object Objet source

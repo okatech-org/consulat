@@ -27,7 +27,7 @@ export const AgentSchema = z.object({
   firstName: NameSchema,
   lastName: NameSchema,
   email: EmailSchema.optional(),
-  phone: PhoneValueSchema.optional(),
+  phoneNumber: PhoneNumberSchema.optional(),
   countryIds: z.array(z.string()).min(1, {
     message: 'Vous devez sélectionner au moins un pays.',
   }),

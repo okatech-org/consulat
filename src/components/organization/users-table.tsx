@@ -24,14 +24,9 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
 
   const columns: ColumnDef<BaseAgent>[] = [
     {
-      header: t('table.lastName'),
-      accessorKey: 'lastName',
-      cell: ({ row }) => row.original.lastName || '-',
-    },
-    {
-      header: t('table.firstName'),
-      accessorKey: 'firstName',
-      cell: ({ row }) => row.original.firstName || '-',
+      header: t('table.name'),
+      accessorKey: 'name',
+      cell: ({ row }) => row.original.name || '-',
     },
     {
       header: t('table.email'),
@@ -40,11 +35,8 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
     },
     {
       header: t('table.phone'),
-      accessorKey: 'phone',
-      cell: ({ row }) =>
-        row.original.phone
-          ? `${row.original.phone?.countryCode} ${row.original.phone?.number}`
-          : '-',
+      accessorKey: 'phoneNumber',
+      cell: ({ row }) => (row.original.phoneNumber ? `${row.original.phoneNumber}` : '-'),
     },
     {
       accessorKey: 'linkedCountries',
@@ -101,8 +93,8 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
   const localFilters: FilterOption<BaseAgent>[] = [
     {
       type: 'search',
-      property: 'firstName',
-      label: t('table.firstName'),
+      property: 'name',
+      label: t('table.name'),
     },
     {
       type: 'checkbox',
