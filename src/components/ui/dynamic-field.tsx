@@ -17,13 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { ServiceField } from '@/types/consular-service';
 import { DocumentUploadField } from '@/components/ui/document-upload';
 import React from 'react';
+import { PhoneNumberInput } from './phone-number';
 
 interface DynamicFieldProps<T extends FieldValues> {
   data: ServiceField;
@@ -38,7 +38,7 @@ export function DynamicField({
   isPreFilled,
   disabled,
 }: DynamicFieldProps<FieldValues>) {
-  const t = useTranslations('consular.services.form');
+  const t = useTranslations('consular.form');
 
   const renderFieldInput = (formField: FieldValues) => {
     switch (data.type) {
@@ -77,10 +77,10 @@ export function DynamicField({
 
       case 'phone':
         return (
-          <PhoneInput
-            parentForm={form}
+          <PhoneNumberInput
+            value={formField.value}
+            onChangeAction={formField.onChange}
             disabled={disabled}
-            fieldName={data.name}
             className={cn(isPreFilled && 'bg-muted text-muted-foreground')}
           />
         );
