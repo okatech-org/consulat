@@ -9,7 +9,7 @@ export async function checkAuth(roles?: UserRole[]) {
     throw new Error('unauthorized');
   }
 
-  if (roles && !hasAnyRole(session.user, roles)) {
+  if (roles && !hasAnyRole(session?.user, roles)) {
     throw new Error('forbidden');
   }
 

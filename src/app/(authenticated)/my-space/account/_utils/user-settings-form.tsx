@@ -1,6 +1,7 @@
 'use client';
 
 import { updateUserData } from '@/actions/user';
+import { Button } from '@/components/ui/button';
 import { CountrySelect } from '@/components/ui/country-select';
 import {
   FormField,
@@ -8,12 +9,13 @@ import {
   FormLabel,
   FormControl,
   TradFormMessage,
+  Form,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { toast } from '@/hooks/use-toast';
 import { CountryCode } from '@/lib/autocomplete-datas';
-import { tryCatch } from '@/lib/utils';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import {
   UserSettingsSchema,
   AgentSettingsSchema,
@@ -24,7 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Country, UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Form, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 type UserSettingsFormProps = {
@@ -42,15 +44,18 @@ const schemByRole: Record<UserRole, z.ZodSchema> = {
 
 export function UserSettingsForm({ user, availableCountries }: UserSettingsFormProps) {
   const tInput = useTranslations('inputs');
+  const t = useTranslations('common');
   const UserSchema = schemByRole[user?.roles[0] ?? UserRole.USER];
   const [isLoading, setIsLoading] = React.useState(false);
   const form = useForm<z.infer<typeof UserSchema>>({
     resolver: zodResolver(UserSchema),
-    defaultValues: { user },
+    defaultValues: user,
   });
 
   const onSubmit = async (data: z.infer<typeof UserSchema>) => {
     setIsLoading(true);
+
+    filterUneditedKeys(data, form.formState.dirtyFields);
 
     const result = await tryCatch(updateUserData(user.id, data));
     if (result.error) {
@@ -89,7 +94,7 @@ export function UserSettingsForm({ user, availableCountries }: UserSettingsFormP
 
         <FormField
           control={form.control}
-          name="residenceCountyCode"
+          name="countryCode"
           render={({ field }) => (
             <FormItem className="lg:col-span-full">
               <FormLabel>{tInput('residenceCountry.label')}</FormLabel>
@@ -132,7 +137,7 @@ export function UserSettingsForm({ user, availableCountries }: UserSettingsFormP
               <FormLabel>{tInput('phone.label')}</FormLabel>
               <FormControl>
                 <PhoneNumberInput
-                  value={field.value}
+                  value={field.value ?? '+33-'}
                   onChangeAction={field.onChange}
                   disabled={isLoading}
                   options={availableCountries?.map((item) => item.code as CountryCode)}
@@ -142,6 +147,10 @@ export function UserSettingsForm({ user, availableCountries }: UserSettingsFormP
             </FormItem>
           )}
         />
+
+        <Button type="submit" disabled={isLoading}>
+          {t('actions.save')}
+        </Button>
       </form>
     </Form>
   );

@@ -8,12 +8,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { PageContainer } from '@/components/layouts/page-container';
-import { getCountries } from '@/actions/countries';
+import { getActiveCountries } from '@/actions/countries';
 import { getCurrentUser } from '@/actions/user';
 import { UserSettingsForm } from './_utils/user-settings-form';
 import { getTranslations } from 'next-intl/server';
@@ -21,8 +20,10 @@ import { SessionUser } from '@/types/user';
 
 export default async function AccountPage() {
   const t = await getTranslations('account');
-  const countries = await getCountries();
+  const countries = await getActiveCountries();
   const user = await getCurrentUser();
+
+  console.log({ user });
 
   return (
     <PageContainer title={t('title')}>
@@ -59,7 +60,7 @@ export default async function AccountPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>{t('email_notifications')}</Label>
+                  <label>{t('email_notifications')}</label>
                   <p className="text-sm text-muted-foreground">
                     {t('email_notifications_description')}
                   </p>
@@ -68,7 +69,7 @@ export default async function AccountPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>{t('sms_notifications')}</Label>
+                  <label>{t('sms_notifications')}</label>
                   <p className="text-sm text-muted-foreground">
                     {t('sms_notifications_description')}
                   </p>
@@ -87,7 +88,7 @@ export default async function AccountPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>{t('two_factor_auth')}</Label>
+                <label>{t('two_factor_auth')}</label>
                 <p className="text-sm text-muted-foreground">
                   {t('two_factor_description')}
                 </p>

@@ -13,6 +13,7 @@ export default {
         passport: 'Passeport',
         birth_certificate: 'Acte de naissance',
         residence_permit: 'Titre de séjour',
+        proof_of_address: 'Preuve de domicile',
       },
       actions: {
         complete: 'Compléter mon profil',
