@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from '@prisma/client';
 import { logUserOut } from '@/actions/auth';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
@@ -21,8 +20,9 @@ import { ROUTES } from '@/schemas/routes';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { useRouter } from 'next/navigation';
 import { UserIcon, UsersIcon } from 'lucide-react';
+import { SessionUser } from '@/types';
 
-export function UserNav({ user }: { user: User }) {
+export function UserNav({ user }: { user: SessionUser }) {
   const router = useRouter();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
@@ -33,16 +33,14 @@ export function UserNav({ user }: { user: User }) {
         <Button variant="ghost" className="relative size-10 rounded-full">
           <Avatar className="size-8">
             <AvatarImage src="/images/avatar-placeholder.png" alt="@shadcn" />
-            <AvatarFallback>{user.firstName}</AvatarFallback>
+            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {user.firstName} {user.lastName?.charAt(0)}
-            </p>
+            <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>

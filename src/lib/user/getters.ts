@@ -2,17 +2,28 @@
 
 import { db } from '@/lib/prisma';
 import {
+  AdminSessionInclude,
+  AgentSessionInclude,
   FullProfile,
   FullProfileInclude,
   FullUser,
   FullUserInclude,
-  SessionUserInclude,
+  UserSessionInclude,
 } from '@/types';
+import { UserRole } from '@prisma/client';
 
-export async function getUserSession(id: string) {
+export async function getUserSession(id: string, roles: UserRole[]) {
+  const isSuperAdmin = roles.includes(UserRole.SUPER_ADMIN);
+  const isAdmin = roles.includes(UserRole.ADMIN);
+  const isAgent = roles.includes(UserRole.AGENT);
+  const isUser = roles.includes(UserRole.USER);
+
   return await db.user.findUnique({
     where: { id: id },
-    ...SessionUserInclude,
+    ...(isSuperAdmin && { ...UserSessionInclude }),
+    ...(isAdmin && { ...AdminSessionInclude }),
+    ...(isAgent && { ...AgentSessionInclude }),
+    ...(isUser && { ...UserSessionInclude }),
   });
 }
 

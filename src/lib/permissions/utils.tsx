@@ -1,10 +1,11 @@
-import { User, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { ROLES } from './roles';
 import { ResourceType } from './types';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { SessionUser } from '@/types';
 
 export function hasPermission<Resource extends keyof ResourceType>(
-  user: User,
+  user: SessionUser,
   resource: Resource,
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
@@ -20,7 +21,7 @@ export function hasPermission<Resource extends keyof ResourceType>(
 }
 
 export function assertPermission<Resource extends keyof ResourceType>(
-  user: User,
+  user: SessionUser,
   resource: Resource,
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
@@ -34,9 +35,12 @@ export function assertPermission<Resource extends keyof ResourceType>(
 export function withPermission<Resource extends keyof ResourceType, T>(
   resource: Resource,
   action: ResourceType[Resource]['action'],
-  callback: (user: User, data?: ResourceType[Resource]['dataType']) => Promise<T>,
+  callback: (user: SessionUser, data?: ResourceType[Resource]['dataType']) => Promise<T>,
 ) {
-  return async (user: User, data?: ResourceType[Resource]['dataType']): Promise<T> => {
+  return async (
+    user: SessionUser,
+    data?: ResourceType[Resource]['dataType'],
+  ): Promise<T> => {
     assertPermission(user, resource, action, data);
     return callback(user, data);
   };
@@ -44,7 +48,7 @@ export function withPermission<Resource extends keyof ResourceType, T>(
 
 // Hook pour les composants React
 export function usePermission<Resource extends keyof ResourceType>(
-  user: User,
+  user: SessionUser,
   resource: Resource,
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
@@ -53,18 +57,18 @@ export function usePermission<Resource extends keyof ResourceType>(
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a un rôle spécifique
-export function hasRole(user: User, role: UserRole): boolean {
+export function hasRole(user: SessionUser, role: UserRole): boolean {
   return user.roles.includes(role);
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a l'un des rôles spécifiés
-export function hasAnyRole(user: User, roles: UserRole[]): boolean {
+export function hasAnyRole(user: SessionUser, roles: UserRole[]): boolean {
   if (!user?.roles || !roles) return false;
   return user.roles.some((role) => roles.includes(role));
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a tous les rôles spécifiés
-export function hasAllRoles(user: User, roles: UserRole[]): boolean {
+export function hasAllRoles(user: SessionUser, roles: UserRole[]): boolean {
   return roles.every((role) => user.roles.includes(role));
 }
 
@@ -75,7 +79,7 @@ type Props = {
 };
 
 export function RoleGuard({ roles, children, fallback }: Readonly<Props>) {
-  const user = useCurrentUser();
+  const user = useCurrentUser() as SessionUser;
 
   if (!user) {
     return fallback ?? undefined;
@@ -90,7 +94,7 @@ export function RoleGuard({ roles, children, fallback }: Readonly<Props>) {
 
 type ServerRoleGuardProps = {
   roles: UserRole[];
-  user?: User;
+  user?: SessionUser;
   children: React.ReactNode;
   fallback?: React.ReactNode;
 };
@@ -113,7 +117,7 @@ export function ServerRoleGuard({
 }
 
 type PermissionGuardProps<Resource extends keyof ResourceType> = {
-  user: User;
+  user: SessionUser;
   resource: Resource;
   action: ResourceType[Resource]['action'];
   data?: ResourceType[Resource]['dataType'];

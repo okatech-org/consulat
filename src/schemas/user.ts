@@ -1,11 +1,6 @@
 import * as z from 'zod';
-import { ServiceCategory } from '@prisma/client';
-import {
-  EmailSchema,
-  NameSchema,
-  PhoneNumberSchema,
-  PhoneValueSchema,
-} from '@/schemas/inputs';
+import { ServiceCategory, UserRole } from '@prisma/client';
+import { DateSchema, EmailSchema, NameSchema, PhoneNumberSchema } from '@/schemas/inputs';
 
 export const LoginWithPhoneSchema = z.object({
   phoneNumber: PhoneNumberSchema,
@@ -39,3 +34,33 @@ export const AgentSchema = z.object({
 });
 
 export type AgentFormData = z.infer<typeof AgentSchema>;
+
+export const UserSettingsSchema = z.object({
+  id: z.string(),
+  email: EmailSchema.optional(),
+  phoneNumber: PhoneNumberSchema.optional(),
+  image: z.string().optional(),
+  roles: z.array(z.nativeEnum(UserRole)),
+  emailVerified: DateSchema.optional().nullable(),
+  phoneVerified: DateSchema.optional().nullable(),
+});
+
+export type UserSettings = z.infer<typeof UserSettingsSchema>;
+
+export const AgentSettingsSchema = UserSettingsSchema.extend({
+  linkedCountries: z.array(z.string()),
+  specializations: z.array(z.nativeEnum(ServiceCategory)),
+  maxActiveRequests: z.number().optional(),
+  availability: z.array(z.string()),
+  completedRequests: z.number().optional(),
+  averageProcessingTime: z.number().optional(),
+  assignedOrganizationId: z.string(),
+});
+
+export type AgentSettings = z.infer<typeof AgentSettingsSchema>;
+
+export const AdminSettingsSchema = UserSettingsSchema.extend({
+  organizationId: z.string(),
+});
+
+export type AdminSettings = z.infer<typeof AdminSettingsSchema>;

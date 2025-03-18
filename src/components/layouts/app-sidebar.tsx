@@ -24,12 +24,12 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { FullUser } from '@/types';
 import { UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
 import { NotificationBell } from '../notifications/notification-bell';
 import { CountryCode } from '@/lib/autocomplete-datas';
+import { SessionUser } from '@/types/user';
 
 const logo =
   process.env.NEXT_PUBLIC_LOGO_URL ||
@@ -39,7 +39,7 @@ export function AppSidebar({
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  user: FullUser;
+  user: SessionUser;
 }) {
   const t = useTranslations('navigation');
   const t_nav = useTranslations('user.nav');
@@ -174,14 +174,7 @@ export function AppSidebar({
         <NavMain items={filteredMenuItems} />
       </SidebarContent>
       <SidebarFooter className="py-6">
-        <NavUser
-          user={{
-            name: user.name ?? '',
-            email: user.email ?? user.phoneNumber ?? '',
-            avatar: user.image ?? '/images/avatar-placeholder.png',
-            roles: currentUserRoles,
-          }}
-        />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -4,13 +4,14 @@ import Credentials from 'next-auth/providers/credentials';
 import { db } from '@/lib/prisma';
 import { ROUTES } from '@/schemas/routes';
 import { getUserSession } from '@/lib/user/getters';
-import { SessionUser } from '@/types';
+import { AdminSession, AgentSession, SessionUser, UserSession } from '@/types';
 import { JWT } from 'next-auth/jwt';
 import { unstable_cache } from 'next/cache';
+import { UserRole } from '@prisma/client';
 
 declare module 'next-auth' {
   interface Session {
-    user: SessionUser;
+    user: UserSession | AgentSession | AdminSession;
   }
 }
 
@@ -62,8 +63,8 @@ export const {
 });
 
 const getCachedUserSession = unstable_cache(
-  async (userId: string) => {
-    return getUserSession(userId);
+  async (userId: string, roles: UserRole[]) => {
+    return getUserSession(userId, roles);
   },
   ['user-session'],
   {
@@ -98,7 +99,7 @@ async function handleAuthorize(credentials: unknown) {
 
 async function handleSession({ session, token }: { session: Session; token: JWT }) {
   if (token.sub && session.user) {
-    const existingUser = await getCachedUserSession(token.sub);
+    const existingUser = await getCachedUserSession(token.sub, token.roles as UserRole[]);
 
     if (existingUser) {
       session.user = existingUser;

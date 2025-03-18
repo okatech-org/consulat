@@ -78,6 +78,10 @@ export default {
     label: 'Pays de naissance',
     placeholder: 'Pays de naissance',
   },
+  residenceCountry: {
+    label: 'Pays de résidence',
+    placeholder: 'Votre pays de résidence',
+  },
   status: {
     label: 'Statut',
     placeholder: 'Statut',

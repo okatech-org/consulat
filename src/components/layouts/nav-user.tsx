@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  BadgeCheck,
-  ChevronsUpDown,
-  LogOut,
-  MoonIcon,
-  SunIcon,
-  UserIcon,
-} from 'lucide-react';
+import { ChevronsUpDown, LogOut, MoonIcon, SunIcon, UserIcon } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -31,19 +24,11 @@ import { logUserOut } from '@/actions/auth';
 import { useTheme } from 'next-themes';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
-import { User, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { useRouter } from 'next/navigation';
+import { SessionUser } from '@/types/user';
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email?: string;
-    avatar?: string;
-    roles: UserRole[];
-  };
-}) {
+export function NavUser({ user }: { user: SessionUser }) {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const { setTheme, resolvedTheme } = useTheme();
@@ -59,11 +44,11 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                {user.avatar ? (
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                {user.image ? (
+                  <AvatarImage src={user.image} alt={user.name ?? ''} />
                 ) : (
                   <AvatarFallback className="rounded-lg">
-                    {user.name.charAt(0)} {user.name.charAt(1)}
+                    {user.name?.slice(0, 2)}
                   </AvatarFallback>
                 )}
               </Avatar>
@@ -83,11 +68,11 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  {user.avatar ? (
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                  {user.image ? (
+                    <AvatarImage src={user.image} alt={user.name ?? ''} />
                   ) : (
                     <AvatarFallback className="rounded-lg">
-                      {user.name.charAt(0)} {user.name.charAt(1)}
+                      {user.name?.slice(0, 2)}
                     </AvatarFallback>
                   )}
                 </Avatar>
@@ -101,11 +86,11 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem
                 onClick={() => {
-                  if (hasAnyRole(user as User, [UserRole.SUPER_ADMIN, UserRole.ADMIN])) {
+                  if (hasAnyRole(user, [UserRole.SUPER_ADMIN, UserRole.ADMIN])) {
                     router.push(ROUTES.dashboard.account_settings);
                   }
 
-                  if (hasAnyRole(user as User, [UserRole.USER])) {
+                  if (hasAnyRole(user, [UserRole.USER])) {
                     router.push(ROUTES.user.account);
                   }
                 }}
