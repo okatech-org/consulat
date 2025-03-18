@@ -1,11 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  BasicInfoSchema,
-  DocumentsSchema,
-  BasicInfoFormData,
-} from '@/schemas/registration';
+import { BasicInfoSchema, BasicInfoFormData } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
 import { Gender, NationalityAcquisition } from '@prisma/client';
 import {
@@ -14,11 +10,14 @@ import {
   LinkFormData,
   LinkInfoSchema,
 } from '@/schemas/child-registration';
+import { UserDocumentSchema } from '@/schemas/inputs';
+import { z } from 'zod';
 
 export function useChildRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [profileId, setProfileId] = useState<string | undefined>();
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
 
   // Initialisation des formulaires avec les données sauvegardées
@@ -31,10 +30,11 @@ export function useChildRegistrationForm() {
     }),
     documents: useForm<ChildDocumentsFormData>({
       resolver: zodResolver(
-        DocumentsSchema.omit({
-          residencePermitFile: true,
-          passportFile: true,
-          addressProofFile: true,
+        z.object({
+          passport: UserDocumentSchema.optional(),
+          birthCertificate: UserDocumentSchema.optional(),
+          residencePermit: UserDocumentSchema.nullable().optional(),
+          addressProof: UserDocumentSchema.optional().nullable(),
         }),
       ),
       defaultValues: initialData?.documents,
@@ -77,5 +77,7 @@ export function useChildRegistrationForm() {
     forms,
     handleDataChange,
     clearData,
+    profileId,
+    setProfileId,
   };
 }

@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import { ParentalRole } from '@prisma/client';
 import { BasicInfoSchema, DocumentsSchema } from './registration';
+import { PhoneNumberSchema } from './inputs';
 
 export const LinkInfoSchema = z
   .object({
@@ -9,12 +10,7 @@ export const LinkInfoSchema = z
     otherParentFirstName: z.string().optional(),
     otherParentLastName: z.string().optional(),
     otherParentEmail: z.string().email().optional(),
-    otherParentPhone: z
-      .object({
-        countryCode: z.string(),
-        number: z.string(),
-      })
-      .optional(),
+    otherParentPhone: PhoneNumberSchema.optional(),
     otherParentRole: z.nativeEnum(ParentalRole).optional(),
   })
   .superRefine((data, ctx) => {

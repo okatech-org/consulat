@@ -10,7 +10,9 @@ type StepKey =
   | 'familyInfo'
   | 'contactInfo'
   | 'professionalInfo'
-  | 'review';
+  | 'review'
+  | 'link'
+  | 'identity';
 
 interface Step {
   key: StepKey;

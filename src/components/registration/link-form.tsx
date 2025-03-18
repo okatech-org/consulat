@@ -16,11 +16,11 @@ import { ParentalRole } from '@prisma/client';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
 import { Input } from '../ui/input';
-import { PhoneInput, PhoneValue } from '../ui/phone-input';
 import { Switch } from '../ui/switch';
 import { LinkFormData } from '@/schemas/child-registration';
 import { Separator } from '../ui/separator';
 import { CardTitle } from '../ui/card';
+import { PhoneNumberInput } from '../ui/phone-number';
 
 interface LinkFormProps {
   form: UseFormReturn<LinkFormData>;
@@ -129,14 +129,23 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 )}
               />
 
-              <FormItem>
-                <FormLabel>{tBase('inputs.phone.label')}</FormLabel>
-                <PhoneInput
-                  parentForm={form}
-                  fieldName="otherParentPhone"
-                  disabled={isLoading}
-                />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="otherParentPhone"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-1">
+                    <FormLabel>{tBase('inputs.phone.label')}</FormLabel>
+                    <FormControl>
+                      <PhoneNumberInput
+                        value={field.value ?? '+33-'}
+                        onChangeAction={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

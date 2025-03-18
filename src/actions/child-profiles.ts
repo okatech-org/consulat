@@ -1,6 +1,6 @@
 'use server';
 
-import { DocumentType, ParentalAuthority } from '@prisma/client';
+import { DocumentType, ParentalAuthority, Prisma } from '@prisma/client';
 import { LinkFormData } from '@/schemas/child-registration';
 import { checkAuth } from '@/lib/auth/action';
 import { processFileData } from './utils';
@@ -11,8 +11,164 @@ import {
   FullParentalAuthority,
   FullParentalAuthorityInclude,
 } from '@/types/parental-authority';
+import { getTranslations } from 'next-intl/server';
+import { FullProfileUpdateFormData } from '@/schemas/registration';
+import { FullProfileInclude } from '@/types';
 
-export async function createChildProfile(formData: FormData): Promise<string> {
+export async function createChildProfile(data: LinkFormData): Promise<{ id: string }> {
+  try {
+    const currentUser = await checkAuth();
+
+    // Create a basic profile first
+    const profile = await db.profile.create({
+      data: {
+        residenceCountyCode: currentUser.user.countryCode ?? '',
+        category: 'MINOR',
+      },
+    });
+
+    // Create the parental authority link
+    if (currentUser.user) {
+      await db.parentalAuthority.create({
+        data: {
+          profileId: profile.id,
+          parentUserId: currentUser.user.id,
+          role: data.parentRole,
+        },
+      });
+
+      // Handle other parent if needed
+      if (data.hasOtherParent && data.otherParentEmail && data.otherParentRole) {
+        const otherParentReq = [];
+
+        if (data.otherParentEmail) {
+          otherParentReq.push({
+            email: data.otherParentEmail,
+          });
+        }
+
+        if (data.otherParentPhone) {
+          // Handle phone as a string for the query
+          otherParentReq.push({
+            phoneNumber: data.otherParentPhone.number,
+          });
+        }
+
+        const otherParentUser = await db.user.findFirst({
+          where: {
+            OR: otherParentReq,
+          },
+        });
+
+        if (otherParentUser) {
+          await db.parentalAuthority.create({
+            data: {
+              profileId: profile.id,
+              parentUserId: otherParentUser.id,
+              role: data.otherParentRole,
+            },
+          });
+        }
+      }
+    }
+
+    return { id: profile.id };
+  } catch (error) {
+    console.error('Error creating child profile:', error);
+    throw error;
+  }
+}
+
+export async function updateChildProfile(
+  profileId: string,
+  data: Partial<FullProfileUpdateFormData>,
+): Promise<{ id: string }> {
+  const t = await getTranslations('messages.profile.errors');
+  const { user } = await checkAuth();
+
+  if (!user || !user?.id) {
+    throw new Error(t('unauthorized'));
+  }
+
+  const existingProfile = await db.profile.findUnique({
+    where: { id: profileId },
+  });
+
+  if (!existingProfile) {
+    throw new Error(t('profile_not_found'));
+  }
+
+  // Extract date fields for proper formatting
+  const { passportIssueDate, passportExpiryDate, birthDate, ...remain } = data;
+
+  const updateData: Prisma.ProfileUpdateInput = {
+    ...remain,
+    ...(birthDate && { birthDate: new Date(birthDate) }),
+    ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
+    ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
+  };
+
+  // Update the profile
+  const updatedProfile = await db.profile.update({
+    where: { id: profileId },
+    data: updateData,
+  });
+
+  return { id: updatedProfile.id };
+}
+
+export async function submitChildProfileForValidation(
+  profileId: string,
+): Promise<{ id: string }> {
+  const { user: currentUser } = await checkAuth();
+
+  if (!currentUser || !currentUser.countryCode) {
+    throw new Error('unauthorized');
+  }
+
+  // Verify profile exists and is complete
+  const profile = await db.profile.findUnique({
+    where: { id: profileId },
+    ...FullProfileInclude,
+  });
+
+  if (!profile) {
+    throw new Error('profile_not_found');
+  }
+
+  // Verify required documents and fields for a child profile
+  const requiredDocuments = [profile.birthCertificate, profile.identityPicture];
+
+  if (requiredDocuments.some((doc) => !doc)) {
+    throw new Error('missing_documents');
+  }
+
+  // Verify required fields for a child profile
+  const requiredFields = [
+    profile.firstName,
+    profile.lastName,
+    profile.birthDate,
+    profile.birthPlace,
+    profile.nationality,
+  ];
+
+  if (requiredFields.some((field) => !field)) {
+    throw new Error('missing_fields');
+  }
+
+  // Update status to submitted
+  const updatedProfile = await db.profile.update({
+    where: { id: profileId },
+    data: {
+      status: 'PENDING',
+      submittedAt: new Date(),
+    },
+  });
+
+  return { id: updatedProfile.id };
+}
+
+export async function createChildProfileWithFiles(formData: FormData): Promise<string> {
   const uploadedFiles: { key: string; url: string }[] = [];
 
   try {
@@ -250,7 +406,7 @@ export async function createChildProfile(formData: FormData): Promise<string> {
 
           if (linkInfo.otherParentPhone) {
             otherParentReq.push({
-              phoneNumber: linkInfo.otherParentPhone,
+              phoneNumber: linkInfo.otherParentPhone.number,
             });
           }
 

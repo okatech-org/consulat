@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import { FormNavigation } from './navigation';
 import { DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { StepIndicator } from './step-indicator';
@@ -11,103 +10,181 @@ import { MobileProgress } from './mobile-progress';
 import { handleFormError } from '@/lib/form/errors';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { tryCatch } from '@/lib/utils';
+import { tryCatch, filterUneditedKeys } from '@/lib/utils';
 import { useChildRegistrationForm } from '@/hooks/use-child-registration-form';
 import { LinkForm } from './link-form';
-import { ChildReviewForm } from './child-review-form';
-import { UseFormReturn } from 'react-hook-form';
-import { ChildCompleteFormData } from '@/schemas/child-registration';
-import { createChildProfile } from '@/actions/child-profiles';
+import {
+  createChildProfile,
+  updateChildProfile,
+  submitChildProfileForValidation,
+} from '@/actions/child-profiles';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
+import { ErrorCard } from '../ui/error-card';
+import { useTabs } from '@/hooks/use-tabs';
+import CardContainer from '../layouts/card-container';
+
+// Define subtypes of StepKey for this component
+type ChildSteps = 'link' | 'documents' | 'identity';
 
 export function ChildRegistrationForm() {
   const router = useRouter();
   const t = useTranslations('registration');
+  const t_errors = useTranslations('messages.errors');
 
   const {
-    currentStep,
-    setCurrentStep,
     isLoading,
     setIsLoading,
+    setError,
+    error,
     forms,
-    handleDataChange,
     clearData,
+    profileId,
+    setProfileId,
   } = useChildRegistrationForm();
 
-  const [steps, setSteps] = useState([
-    {
-      key: 'link',
-      title: t('steps.child_link'),
-      description: t('steps.child_link_description'),
-      isComplete: forms.link.formState.isValid,
-    },
-    {
-      key: 'documents',
-      title: t('steps.documents'),
-      description: t('steps.documents_description'),
-      isComplete: forms.documents.formState.isValid,
-    },
-    {
-      key: 'identity',
-      title: t('steps.identity'),
-      description: t('steps.identity_description'),
-      isComplete: forms.basicInfo.formState.isValid,
-    },
-    {
-      key: 'review',
-      title: t('steps.child_review'),
-      description: t('steps.child_review_description'),
-      isComplete: false,
-    },
-  ]);
+  const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
 
-  // Gestionnaire de navigation
+  const orderedSteps: ChildSteps[] = ['link', 'documents', 'identity'];
+
+  const { currentTab, handleTabChange } = useTabs<ChildSteps>('step', 'link');
+  const currentStepIndex = orderedSteps.indexOf(currentTab);
+  const totalSteps = orderedSteps.length;
+
+  // Handler for analysis
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleNext = async (stepData: any) => {
-    try {
-      handleDataChange(stepData);
+  const handleDocumentsAnalysis = async (data: any) => {
+    setIsLoading(true);
+    setError(undefined);
 
-      if (currentStep === steps.length - 1) {
-        await handleFinalSubmit();
-        return;
+    try {
+      // Just update basicInfo since that's all we need for child profiles
+      if (forms.basicInfo) {
+        const { firstName, lastName, birthDate, birthPlace, birthCountry, nationality } =
+          data;
+
+        if (firstName) forms.basicInfo.setValue('firstName', firstName);
+        if (lastName) forms.basicInfo.setValue('lastName', lastName);
+        if (birthDate) forms.basicInfo.setValue('birthDate', birthDate);
+        if (birthPlace) forms.basicInfo.setValue('birthPlace', birthPlace);
+        if (birthCountry) forms.basicInfo.setValue('birthCountry', birthCountry);
+        if (nationality) forms.basicInfo.setValue('nationality', nationality);
       }
 
-      setCurrentStep((prev) => prev + 1);
-      setSteps((prev) =>
-        prev.map((step, index) => ({
-          ...step,
-          isComplete: index <= currentStep,
-        })),
-      );
+      toast({
+        duration: 1000,
+        title: t('profile.analysis.success.title'),
+        description: (
+          <div className="space-y-2">
+            <p>{t('profile.analysis.success.description')}</p>
+            <Button onClick={handleNext} size="sm">
+              {t('profile.analysis.success.action')}
+            </Button>
+          </div>
+        ),
+        variant: 'success',
+      });
+
+      if (!displayAnalysisWarning) {
+        setDisplayAnalysisWarning(true);
+      }
     } catch (error) {
       const { title, description } = handleFormError(error, t);
       toast({ title, description, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handlePrevious = () => {
-    setCurrentStep((prev) => Math.max(0, prev - 1));
+  // Navigation handler
+  const handleNext = async () => {
+    setError(undefined);
+    setIsLoading(true);
+
+    if (currentTab === 'link') {
+      // First step - create the child profile
+      const linkData = forms.link.getValues();
+      const isStepValid = await forms.link.trigger();
+
+      if (!isStepValid) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: result, error } = await tryCatch(createChildProfile(linkData));
+
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      if (result) {
+        setProfileId(result.id);
+        const nextStep = orderedSteps[currentStepIndex + 1];
+        if (nextStep) {
+          handleTabChange(nextStep);
+        }
+      }
+    } else if (currentTab === 'identity' && profileId) {
+      // Handle identity step
+      const currentForm = forms.basicInfo;
+      const nextStep = orderedSteps[currentStepIndex + 1];
+
+      const isStepValid = await currentForm.trigger();
+
+      if (!isStepValid) {
+        setIsLoading(false);
+        return;
+      }
+
+      const stepData = currentForm.getValues();
+      const editedFields = filterUneditedKeys(
+        stepData,
+        currentForm.formState.dirtyFields,
+      );
+
+      if (editedFields) {
+        const { error } = await tryCatch(updateChildProfile(profileId, editedFields));
+
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (nextStep) {
+        handleTabChange(nextStep);
+      }
+    } else if (currentTab === 'documents') {
+      // Handle documents step - just navigate to next step
+      const isStepValid = await forms.documents.trigger();
+
+      if (!isStepValid) {
+        setIsLoading(false);
+        return;
+      }
+
+      await handleFinalSubmit();
+    }
+    setIsLoading(false);
   };
 
-  // Soumission finale
+  const handlePrevious = () => {
+    const previousStep = orderedSteps[currentStepIndex - 1];
+    if (previousStep) {
+      handleTabChange(previousStep);
+    }
+  };
+
+  // Final submission handler
   const handleFinalSubmit = async () => {
+    if (!profileId) return;
+
     setIsLoading(true);
-    const formDataToSend = new FormData();
 
-    // Ajouter les fichiers
-    const documents = {
-      ...forms.documents.getValues(),
-      identityPictureFile: forms.basicInfo.getValues().identityPicture,
-    };
-    Object.entries(documents).forEach(([key, file]) => {
-      if (file) formDataToSend.append(key, file as File);
-    });
-
-    // Ajouter les données JSON des formulaires
-    formDataToSend.append('linkInfo', JSON.stringify(forms.link.getValues()));
-    formDataToSend.append('basicInfo', JSON.stringify(forms.basicInfo.getValues()));
-    formDataToSend.append('documents', JSON.stringify(forms.documents.getValues()));
-
-    const result = await tryCatch(createChildProfile(formDataToSend));
+    const result = await tryCatch(submitChildProfileForValidation(profileId));
 
     setIsLoading(false);
 
@@ -117,7 +194,6 @@ export function ChildRegistrationForm() {
     }
 
     if (result.data) {
-      // Nettoyer les données du formulaire
       clearData();
 
       toast({
@@ -129,135 +205,142 @@ export function ChildRegistrationForm() {
     }
   };
 
-  // Rendu du formulaire actuel
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <LinkForm
-            form={forms.link}
-            onSubmit={() => handleNext(forms.link.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 1:
-        return (
-          <DocumentUploadSection
-            form={forms.documents}
-            handleSubmitAction={() => handleNext(forms.documents.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 2:
-        return (
-          <BasicInfoForm
-            form={forms.basicInfo}
-            onSubmit={() => handleNext(forms.basicInfo.getValues())}
-            isLoading={isLoading}
-          />
-        );
-      case 3:
-        return (
-          <ChildReviewForm
-            data={{
-              linkInfo: forms.link.getValues(),
-              basicInfo: forms.basicInfo.getValues(),
-              documents: forms.documents.getValues(),
-            }}
-            onEditAction={setCurrentStep}
-          />
-        );
+  // Get the correct translation key for the step
+  const getStepTranslation = (step: ChildSteps) => {
+    switch (step) {
+      case 'link':
+        return 'child_link';
+      case 'identity':
+        return 'basicInfo';
       default:
-        return null;
+        return step;
     }
   };
 
-  return (
-    <div className="mx-auto w-full max-w-3xl">
-      {/* En-tête avec progression */}
-      <div className="mb-8 space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold md:text-3xl">{t('header.title')}</h2>
-          <p className="mt-2 text-muted-foreground">{t('header.subtitle')}</p>
-        </div>
+  // Map of which form to use for each step
+  const stepFormMap = {
+    link: forms.link,
+    documents: forms.documents,
+    identity: forms.basicInfo,
+    review: forms.basicInfo, // For validation purposes
+  };
 
-        <StepIndicator
-          steps={steps}
-          currentStep={currentStep}
-          onChange={setCurrentStep}
-        />
-      </div>
-
-      {/* Contenu principal */}
-      <div className="pb-16">
-        {renderCurrentStep()}
-
-        <FormNavigation
-          currentStep={currentStep}
-          totalSteps={steps.length}
-          isLoading={isLoading}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          forms={forms as any}
-          validateStep={validateStep}
-        />
-      </div>
-
-      {/* Progression mobile */}
-      <MobileProgress
-        currentStep={currentStep}
-        totalSteps={steps.length}
-        stepTitle={steps[currentStep]?.title || ''}
-        isOptional={steps[currentStep]?.isComplete || false}
+  // Current step component render
+  const stepsComponents: Record<ChildSteps, React.ReactNode> = {
+    link: (
+      <LinkForm form={forms.link} onSubmit={() => handleNext()} isLoading={isLoading} />
+    ),
+    documents: (
+      <DocumentUploadSection
+        profileId={profileId}
+        form={forms.documents}
+        onAnalysisComplete={handleDocumentsAnalysis}
+        handleSubmitAction={() => handleNext()}
+        isLoading={isLoading}
       />
+    ),
+    identity: (
+      <BasicInfoForm
+        form={forms.basicInfo}
+        onSubmit={() => handleNext()}
+        isLoading={isLoading}
+        profileId={profileId}
+      />
+    ),
+  };
+
+  return (
+    <div className="w-full max-w-3xl min-h-full flex flex-col">
+      <header className="w-full border-b border-border pb-6">
+        <h1 className="text-2xl mb-4 font-bold">{t('header.title')}</h1>
+        <StepIndicator
+          steps={orderedSteps.map((step) => {
+            const stepIndex = orderedSteps.indexOf(step);
+            const currentIndex = orderedSteps.indexOf(currentTab);
+
+            return {
+              title: t(`steps.${getStepTranslation(step)}`),
+              key: step,
+              description: t(`steps.${getStepTranslation(step)}_description`),
+              isOptional: false,
+              isComplete: stepIndex < currentIndex,
+            };
+          })}
+          currentStep={currentTab}
+          onChange={(step) => {
+            // Cast the step to our ChildSteps type since we know it's one of our step types
+            handleTabChange(step as ChildSteps);
+          }}
+        />
+      </header>
+      <div className="w-full flex flex-col">
+        <div className="mx-auto w-full max-w-4xl">
+          {/* Main content */}
+          <div className="flex flex-col pb-24 md:pb-10 gap-4 justify-center">
+            {currentStepIndex > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
+            {stepsComponents[currentTab]}
+
+            {error && (
+              <ErrorCard
+                description={
+                  <p className="flex items-center gap-2">
+                    <Info className="size-icon" />
+                    {t_errors('invalid_step')}
+                  </p>
+                }
+              />
+            )}
+
+            <div className="flex justify-between gap-4">
+              <Button
+                onClick={handlePrevious}
+                variant="outline"
+                disabled={isLoading || currentStepIndex === 0}
+                className="gap-2"
+              >
+                <ArrowLeft className="size-4" />
+                {t('navigation.previous')}
+              </Button>
+
+              <Button
+                type="submit"
+                onClick={() => handleNext()}
+                disabled={isLoading || !stepFormMap[currentTab].formState.isValid}
+                className="ml-auto gap-2"
+              >
+                {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+                {currentStepIndex === totalSteps - 1
+                  ? t('navigation.submit')
+                  : t('navigation.next')}
+                {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
+              </Button>
+            </div>
+          </div>
+
+          {/* Mobile progress */}
+          <MobileProgress
+            currentStepIndex={currentStepIndex}
+            totalSteps={orderedSteps.length}
+            stepTitle={t(`steps.${getStepTranslation(currentTab)}`)}
+            isOptional={false}
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-async function validateStep(
-  step: number,
-  forms: {
-    link: UseFormReturn<ChildCompleteFormData['linkInfo']>;
-    documents: UseFormReturn<ChildCompleteFormData['documents']>;
-    basicInfo: UseFormReturn<ChildCompleteFormData['basicInfo']>;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<{ isValid: boolean; data?: any }> {
-  try {
-    switch (step) {
-      case 0: // Link
-        const isLinkValid = await forms.link.trigger();
-        if (!isLinkValid) return { isValid: false };
-        return {
-          isValid: true,
-          data: forms.link.getValues(),
-        };
-
-      case 1: // Documents
-        const isDocumentsValid = await forms.documents.trigger();
-        if (!isDocumentsValid) return { isValid: false };
-        return {
-          isValid: true,
-          data: forms.documents.getValues(),
-        };
-
-      case 2: // Basic Info
-        const isBasicInfoValid = await forms.basicInfo.trigger();
-        if (!isBasicInfoValid) return { isValid: false };
-        return {
-          isValid: true,
-          data: forms.basicInfo.getValues(),
-        };
-
-      case 3: // Review
-        return { isValid: true, data: {} };
-
-      default:
-        return { isValid: false };
-    }
-  } catch (error) {
-    console.error('Validation error:', error);
-    return { isValid: false };
-  }
+function AnalysisWarningBanner() {
+  const t = useTranslations('registration');
+  return (
+    <CardContainer
+      className="overflow-hidden"
+      contentClass="p-4 bg-blue-500/10 flex items-center gap-2"
+    >
+      <Info className="size-8 sm:size-5 text-blue-500" />
+      <p className="text-md font-medium text-blue-500">
+        {t('documents.analysis.warning')}
+      </p>
+    </CardContainer>
+  );
 }
