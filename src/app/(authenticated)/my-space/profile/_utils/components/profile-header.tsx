@@ -24,8 +24,12 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       firstName: profile.firstName,
       lastName: profile.lastName,
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: profile.phone
-        ? [{ value: `${profile.phone.countryCode}${profile.phone.number}` }]
+      phones: profile.user?.phoneNumber
+        ? [
+            {
+              value: `${profile.user.phoneNumber.countryCode}${profile.user.phoneNumber.number}`,
+            },
+          ]
         : [],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
     };
@@ -60,9 +64,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       firstName: profile.firstName,
       lastName: profile.lastName,
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: profile.phone
-        ? [{ value: `${profile.phone.countryCode}${profile.phone.number}` }]
-        : [],
+      phones: [profile.phoneNumber],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
     };
 

@@ -9,14 +9,12 @@ import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-import { useRouter } from 'next/navigation';
+
 type ProfileTabsProps = {
   profile: FullProfile;
 };
 
 export function ProfileTabs({ profile }: ProfileTabsProps) {
-  const router = useRouter();
-
   const t = useTranslations('profile');
   const profileTabs = [
     {

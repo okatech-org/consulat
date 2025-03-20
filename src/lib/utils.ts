@@ -19,7 +19,7 @@ type VCardData = {
   fullName?: string;
   title?: string;
   emails?: { value: string }[];
-  phones?: { value: string }[];
+  phones?: string[];
   addresses?: {
     firstLine: string;
     secondLine?: string | null;
@@ -57,7 +57,7 @@ export function generateVCardString(data: VCardData): string {
 
   if (data.phones) {
     data.phones.forEach((phone) => {
-      vCardString += `TEL;type=CELL;type=VOICE;type=pref:${phone.value}\n`;
+      vCardString += `TEL;type=CELL;type=VOICE;type=pref:${phone}\n`;
     });
   }
 

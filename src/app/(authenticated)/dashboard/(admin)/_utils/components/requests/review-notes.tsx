@@ -28,9 +28,7 @@ export const NoteItem = ({ note }: NoteItemProps) => {
           ) : (
             <MessageCircle className="size-4 text-muted-foreground" />
           )}
-          <span className="text-sm font-medium">
-            {note.author.firstName ?? ''} {note.author.lastName ?? ''}
-          </span>
+          <span className="text-sm font-medium">{note.author?.name ?? ''}</span>
         </div>
         <span className="text-xs text-muted-foreground">
           {formatDate(new Date(note.createdAt), 'dd/MM/yyyy')}

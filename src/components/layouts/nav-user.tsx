@@ -51,7 +51,7 @@ export function NavUser({
     <div className="flex flex-col gap-2">
       <SidebarMenu>
         {showFeedback && (
-          <SidebarMenuItem className="hidden sm:block">
+          <SidebarMenuItem className="hidden md:block">
             <SidebarMenuButton>
               <MessageSquare className="size-8" />
               <span>{t('common.actions.feedback')}</span>
