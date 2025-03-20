@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { MessageKeys, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { SendHorizonal, Loader2 } from 'lucide-react';
 import {
