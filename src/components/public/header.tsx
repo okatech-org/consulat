@@ -3,10 +3,10 @@ import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
 import { buttonVariants } from "@/components/ui/button"
 import { getCurrentUser } from "@/actions/user"
-import { UserNav } from "../layouts/user-nav"
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 import Image from 'next/image';
 import { SessionUser } from "@/types";
+import { NavUser } from "../layouts/nav-user"
 
 const logo = process.env.NEXT_PUBLIC_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
 const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
@@ -42,7 +42,7 @@ export async function PublicHeader() {
           <ThemeToggleSingle />
           {/* <LanguageSwitcherSingle /> */}
 
-          {isAuth ? <UserNav user={user as SessionUser} /> : ( <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base} className={buttonVariants({ 
+          {isAuth ? <NavUser showFeedback={false} user={user as SessionUser} /> : ( <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base} className={buttonVariants({ 
             variant: 'default', 
             className: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800' 
           })}>

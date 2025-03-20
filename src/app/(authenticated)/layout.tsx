@@ -4,10 +4,9 @@ import { ROUTES } from '@/schemas/routes';
 import { AppSidebar } from '@/components/layouts/app-sidebar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { BreadcrumbMenu } from '@/components/layouts/breadcrumb-menu';
-import { NavUser } from '@/components/layouts/nav-user';
 import { checkUserExist, getCurrentUser } from '@/actions/user';
 import { signOut } from 'next-auth/react';
-import { SessionUser } from '@/types/user';
+import { NavUser } from '@/components/layouts/nav-user';
 
 export default async function AuthenticatedLayout({
   children,
@@ -39,7 +38,7 @@ export default async function AuthenticatedLayout({
               <BreadcrumbMenu />
             </div>
             <div className="flex items-center gap-2">
-              <NavUser user={currentUser as SessionUser} />
+              <NavUser user={currentUser} />
             </div>
           </div>
         </header>

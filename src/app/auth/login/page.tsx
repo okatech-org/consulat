@@ -7,6 +7,7 @@ import { hasAnyRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import { BetaBanner } from '@/components/ui/beta-banner';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -58,6 +59,7 @@ export default async function LoginPage() {
             <p className="text-lg text-muted-foreground">
               {t('page.welcome_message', { appName: env.NEXT_PUBLIC_APP_NAME })}
             </p>
+            <BetaBanner className="mt-4" />
           </header>
           <div className="w-full">
             <LoginForm />

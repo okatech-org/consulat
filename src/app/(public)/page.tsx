@@ -13,7 +13,7 @@ const logo = process.env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function LandingPage() {
   // Utilisation de getTranslations pour les composants serveur
-  const l = await getTranslations('home.landing');
+  const t = await getTranslations();
 
   return (
     <div className="flex flex-col bg-[#f2f2f2] dark:bg-[#131313] text-neutral-900 dark:text-white antialiased w-full home-container">
@@ -36,14 +36,14 @@ export default async function LandingPage() {
             <AnimatedSection animation="fade-right" className="max-w-3xl">
               <h1 className="mb-6 font-bold tracking-tight flex flex-col">
                 <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-[#FEAA37] to-[#FEAA37] bg-clip-text text-transparent drop-shadow-sm">
-                  {l('hero.consulat_ga')}
+                  {t('home.landing.hero.consulat_ga')}
                 </span>
                 <span className="text-[calc(1rem*0.83*1.1)] sm:text-[calc(1.25rem*0.83*1.1)] md:text-[calc(1.5rem*0.83*1.1)] lg:text-[calc(1.875rem*0.83*1.1)] bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm dark:from-blue-400 dark:to-indigo-400 mt-2">
-                  {l('hero.subtitle')}
+                  {t('home.landing.hero.subtitle')}
                 </span>
               </h1>
               <p className="mb-8 text-lg sm:text-xl leading-relaxed text-gray-800 dark:text-gray-200 home-subtitle">
-                {l('hero.description')}
+                {t('home.landing.hero.description')}
               </p>
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
@@ -55,7 +55,7 @@ export default async function LandingPage() {
                       'gap-2 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white home-button-primary',
                   })}
                 >
-                  {l('hero.citizen_space')}
+                  {t('home.landing.hero.citizen_space')}
                   <ArrowRight className="size-4" />
                 </Link>
                 <Link
@@ -67,14 +67,14 @@ export default async function LandingPage() {
                       'gap-2 border-blue-300 bg-white hover:bg-gray-50 text-blue-700 dark:border-blue-700 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-blue-400 home-button-secondary',
                   })}
                 >
-                  {l('hero.government_space')}
+                  {t('home.landing.hero.government_space')}
                   <ArrowRight className="size-4" />
                 </Link>
               </div>
 
               <div className="mt-8 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
                 <Lock className="size-4" />
-                <span>{l('hero.secure_data')}</span>
+                <span>{t('home.landing.hero.secure_data')}</span>
               </div>
             </AnimatedSection>
 
@@ -82,7 +82,7 @@ export default async function LandingPage() {
               <div>
                 <div>
                   <h3 className="text-xl font-bold text-blue-700 dark:text-blue-500 mb-4">
-                    {l('consulat_digital.title')}
+                    {t('home.landing.consulat_digital.title')}
                   </h3>
 
                   {/* Intégration vidéo YouTube */}
@@ -96,7 +96,7 @@ export default async function LandingPage() {
                     />
                   </div>
                   <p className="mt-4 text-sm text-gray-800 dark:text-gray-200 text-center home-text">
-                    {l('consulat_digital.description')}
+                    {t('home.landing.consulat_digital.description')}
                   </p>
                 </div>
               </div>
@@ -107,9 +107,9 @@ export default async function LandingPage() {
 
       {/* Features Section with subtle gradient - Transformé en carousel sur mobile */}
       <MobileSectionCarousel
-        title={l('features.title')}
-        subtitle={l('features.subtitle')}
-        badgeText={l('features.badge')}
+        title={t('home.landing.features.title')}
+        subtitle={t('home.landing.features.subtitle')}
+        badgeText={t('home.landing.features.badge')}
         bgClassName="bg-gradient-to-b from-[#ffffff] to-[#f0f0f0] dark:from-[#242424] dark:to-[#2F2F2F] home-features"
       >
         {/* Card 1 - Participation */}
@@ -125,10 +125,10 @@ export default async function LandingPage() {
             />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
-            {l('features.participation.title')}
+            {t('home.landing.features.participation.title')}
           </h3>
           <p className="text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            {l('features.participation.description')}
+            {t('home.landing.features.participation.description')}
           </p>
         </div>
 
@@ -145,10 +145,10 @@ export default async function LandingPage() {
             />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
-            {l('features.digitalisation.title')}
+            {t('home.landing.features.digitalisation.title')}
           </h3>
           <p className="text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            {l('features.digitalisation.description')}
+            {t('home.landing.features.digitalisation.description')}
           </p>
         </div>
 
@@ -165,19 +165,19 @@ export default async function LandingPage() {
             />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
-            {l('features.tracking.title')}
+            {t('home.landing.features.tracking.title')}
           </h3>
           <p className="text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            {l('features.tracking.description')}
+            {t('home.landing.features.tracking.description')}
           </p>
         </div>
       </MobileSectionCarousel>
 
       {/* Main Features Section - Transformé en carousel sur mobile */}
       <MobileSectionCarousel
-        title={l('services.title')}
-        subtitle={l('services.subtitle')}
-        badgeText={l('services.badge')}
+        title={t('home.landing.services.title')}
+        subtitle={t('home.landing.services.subtitle')}
+        badgeText={t('home.landing.services.badge')}
         bgClassName="bg-gradient-to-b from-[#f9fafc] to-[#f4f5f9] dark:from-[#242424] dark:to-[#131313] relative overflow-hidden"
       >
         {/* Service Card 1 */}
@@ -186,30 +186,36 @@ export default async function LandingPage() {
             <Users className="h-6 w-6 text-blue-500 dark:text-blue-400" />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
-            {l('services.identity.title')}
+            {t('home.landing.services.identity.title')}
           </h3>
           <p className="mb-4 text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            {l('services.identity.description')}
+            {t('home.landing.services.identity.description')}
           </p>
           <ul className="mb-6 space-y-2 flex-1">
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">{l('services.identity.passports')}</span>
+              <span className="text-sm">
+                {t('home.landing.services.identity.passports')}
+              </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">{l('services.identity.consular_cards')}</span>
+              <span className="text-sm">
+                {t('home.landing.services.identity.consular_cards')}
+              </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">{l('services.identity.birth_certificates')}</span>
+              <span className="text-sm">
+                {t('home.landing.services.identity.birth_certificates')}
+              </span>
             </li>
           </ul>
           <Link
             href="/dashboard/identity"
             className="mt-auto inline-flex items-center justify-center rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors"
           >
-            {l('services.identity.learn_more')}
+            {t('home.landing.services.identity.learn_more')}
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
@@ -220,30 +226,36 @@ export default async function LandingPage() {
             <MessageSquare className="h-6 w-6 text-indigo-500 dark:text-indigo-400" />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
-            {l('services.assistance.title')}
+            {t('home.landing.services.assistance.title')}
           </h3>
           <p className="mb-4 text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            {l('services.assistance.description')}
+            {t('home.landing.services.assistance.description')}
           </p>
           <ul className="mb-6 space-y-2 flex-1">
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">{l('services.assistance.legal_assistance')}</span>
+              <span className="text-sm">
+                {t('home.landing.services.assistance.legal_assistance')}
+              </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">{l('services.assistance.emergency_help')}</span>
+              <span className="text-sm">
+                {t('home.landing.services.assistance.emergency_help')}
+              </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
-              <span className="text-sm">{l('services.assistance.travel_advice')}</span>
+              <span className="text-sm">
+                {t('home.landing.services.assistance.travel_advice')}
+              </span>
             </li>
           </ul>
           <Link
             href="/dashboard/assistance"
             className="mt-auto inline-flex items-center justify-center rounded-lg bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
           >
-            {l('services.assistance.learn_more')}
+            {t('home.landing.services.assistance.learn_more')}
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
@@ -254,28 +266,28 @@ export default async function LandingPage() {
             <Shield className="h-6 w-6 text-purple-500 dark:text-purple-400" />
           </div>
           <h3 className="mb-2 text-xl font-bold home-title">
-            {l('services.protection.title')}
+            {t('home.landing.services.protection.title')}
           </h3>
           <p className="mb-4 text-gray-700 dark:text-gray-300 home-text text-sm sm:text-base break-words">
-            {l('services.protection.description')}
+            {t('home.landing.services.protection.description')}
           </p>
           <ul className="mb-6 space-y-2 flex-1">
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
               <span className="text-sm">
-                {l('services.protection.incident_reporting')}
+                {t('home.landing.services.protection.incident_reporting')}
               </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
               <span className="text-sm">
-                {l('services.protection.consular_protection')}
+                {t('home.landing.services.protection.consular_protection')}
               </span>
             </li>
             <li className="flex items-center text-gray-700 dark:text-gray-300">
               <Check className="mr-2 h-5 w-5 text-green-500" />
               <span className="text-sm">
-                {l('services.protection.crisis_monitoring')}
+                {t('home.landing.services.protection.crisis_monitoring')}
               </span>
             </li>
           </ul>
@@ -305,10 +317,10 @@ export default async function LandingPage() {
                 className="mx-auto max-w-5xl text-center"
               >
                 <h2 className="mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm dark:from-blue-400 dark:to-indigo-400">
-                  {l('action.title')}
+                  {t('home.landing.action.title')}
                 </h2>
                 <p className="mx-auto mb-8 sm:mb-10 max-w-2xl text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {l('action.description')}
+                  {t('home.landing.action.description')}
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Link
@@ -319,7 +331,7 @@ export default async function LandingPage() {
                         'gap-2 group w-full sm:w-auto bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-lg font-medium text-white home-button-primary shadow-lg shadow-blue-400/10 dark:shadow-blue-900/20 transition-all',
                     })}
                   >
-                    {l('action.button')}
+                    {t('home.landing.action.button')}
                     <ArrowRight className="ml-2 size-5 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                   <Link
@@ -331,7 +343,7 @@ export default async function LandingPage() {
                         'w-full sm:w-auto border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 py-3 px-8 text-lg font-medium rounded-md text-gray-700 dark:text-gray-200 transition-all',
                     })}
                   >
-                    {l('action.login')}
+                    {t('home.landing.action.login')}
                     <ArrowRight className="ml-2 size-5 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                 </div>
@@ -365,16 +377,16 @@ export default async function LandingPage() {
                 </div>
                 <div>
                   <h2 className="text-2xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    {l('footer.title')}
+                    {t('home.landing.footer.title')}
                   </h2>
                   <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 font-medium">
-                    {l('footer.slogan')}
+                    {t('home.landing.footer.slogan')}
                   </p>
                 </div>
               </div>
 
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">
-                {l('footer.description')}
+                {t('home.landing.footer.description')}
               </p>
 
               <div className="flex items-center justify-center md:justify-start gap-4 mb-5">
@@ -442,25 +454,27 @@ export default async function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-3 tracking-tight">
-                  {l('footer.contactTitle')}
+                  {t('home.landing.footer.contactTitle')}
                 </h3>
 
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                  {l('footer.contactDescription')}
+                  {t('home.landing.footer.contactDescription')}
                 </p>
 
                 <Link
                   href="mailto:okatech@icloud.com"
                   className="relative group block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg text-base font-medium text-center shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10 transition-all duration-300 overflow-hidden"
                 >
-                  <span className="relative z-10">{l('footer.contactButton')}</span>
+                  <span className="relative z-10">
+                    {t('home.landing.footer.contactButton')}
+                  </span>
                   <div className="absolute inset-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="h-full aspect-square bg-white/10 -skew-x-12 translate-x-full group-hover:translate-x-1/2 transition-transform duration-500"></div>
                   </div>
                 </Link>
 
                 <p className="mt-3 text-xs text-center text-gray-500 dark:text-gray-400">
-                  {l('footer.contactNote')}
+                  {t('home.landing.footer.contactNote')}
                 </p>
               </AnimatedSection>
             </div>
@@ -483,28 +497,35 @@ export default async function LandingPage() {
             className="mt-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0"
           >
             <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 tracking-wide">
-              {l('footer.copyright', { year: new Date().getFullYear() })}
+              {t('home.landing.footer.copyright', { year: new Date().getFullYear() })}
             </p>
-            <div className="flex flex-wrap items-center justify-center md:justify-end gap-6">
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-4">
+              <Link
+                href="/feedback"
+                className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                <span>{t('common.actions.feedback')}</span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
+              </Link>
               <Link
                 href="/legal/privacy"
                 className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
               >
-                <span>{l('footer.privacyPolicy')}</span>
+                <span>{t('home.landing.footer.privacyPolicy')}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
               </Link>
               <Link
                 href="/legal/terms"
                 className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
               >
-                <span>{l('footer.termsOfUse')}</span>
+                <span>{t('home.landing.footer.termsOfUse')}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
               </Link>
               <Link
                 href="/legal/mentions"
                 className="group relative text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-400"
               >
-                <span>{l('footer.legalMentions')}</span>
+                <span>{t('home.landing.footer.legalMentions')}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 opacity-0 group-hover:w-full group-hover:opacity-100 transition-all duration-300"></span>
               </Link>
               <Link

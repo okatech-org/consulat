@@ -3,12 +3,13 @@
 import { auth } from '@/auth';
 import { db } from '@/lib/prisma';
 import { AgentSettings, AdminSettings, UserSettings } from '@/schemas/user';
+import { SessionUser } from '@/types';
 import { User } from '@prisma/client';
 
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (): Promise<SessionUser | null> => {
   const session = await auth();
 
-  return session?.user;
+  return session?.user as SessionUser;
 };
 
 export const checkUserExist = async (userId?: string) => {

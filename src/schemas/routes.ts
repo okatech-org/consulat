@@ -23,6 +23,7 @@ export const ROUTES = {
     appointments: '/dashboard/appointments' as Route<string>,
     settings: '/dashboard/settings' as Route<string>,
     services: '/dashboard/services' as Route<string>,
+    feedback: '/dashboard/feedback' as Route<string>,
     users: '/dashboard/users' as Route<string>,
     edit_service: (id: string) => `/dashboard/services/${id}/edit` as Route<string>,
     registrations_review: (id: string) =>
@@ -59,6 +60,7 @@ export const ROUTES = {
     new_child: '/my-space/children/new' as Route<string>,
     child_profile: (id: string) => `/my-space/children/${id}` as Route<string>,
     account: '/my-space/account' as Route<string>,
+    feedback: '/my-space/feedback' as Route<string>,
   },
 
   help: '/help' as Route<string>,

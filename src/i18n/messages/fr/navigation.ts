@@ -15,6 +15,7 @@ export default {
     account: 'Mon compte',
     documents: 'Mes documents',
     profile: 'Mon profil',
+    feedback: 'Retour utilisateur',
   },
   dashboard: {
     title: 'Tableau de bord',

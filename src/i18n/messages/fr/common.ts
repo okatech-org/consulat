@@ -1,5 +1,4 @@
 export default {
-  Required: 'Ce champ est requis',
   languages: {
     label: 'Langue',
     fr: 'Français',
@@ -351,6 +350,7 @@ export default {
   },
   search_country: 'Rechercher un pays',
   actions: {
+    feedback: 'Donner mon avis',
     edit_settings: 'Modifier les paramètres',
     edit: 'Modifier',
     delete: 'Supprimer',
