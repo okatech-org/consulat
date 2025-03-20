@@ -1,6 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export function useTabs<T extends string>(key: string, defaultValue: T) {
   const router = useRouter();
@@ -16,5 +17,25 @@ export function useTabs<T extends string>(key: string, defaultValue: T) {
   return {
     currentTab,
     handleTabChange,
+  };
+}
+
+export function useStoredTabs<T extends string>(key: string, defaultValue: T) {
+  const [currentTab, setCurrentTab] = useState<T>(defaultValue);
+
+  useEffect(() => {
+    const storedTab = sessionStorage.getItem(key);
+    if (storedTab) {
+      setCurrentTab(storedTab as T);
+    }
+  }, [key]);
+
+  useEffect(() => {
+    sessionStorage.setItem(key, currentTab);
+  }, [currentTab, key]);
+
+  return {
+    currentTab,
+    setCurrentTab,
   };
 }

@@ -9,6 +9,7 @@ import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
+import { useStoredTabs } from '@/hooks/use-tabs';
 
 type ProfileTabsProps = {
   profile: FullProfile;
@@ -16,6 +17,7 @@ type ProfileTabsProps = {
 
 export function ProfileTabs({ profile }: ProfileTabsProps) {
   const t = useTranslations('profile');
+
   const profileTabs = [
     {
       id: 'basic-info',
@@ -68,8 +70,16 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
     },
   ];
 
+  type Tab = (typeof profileTabs)[number]['id'];
+
+  const { currentTab, setCurrentTab } = useStoredTabs<Tab>('tab', 'basic-info');
+
   return (
-    <Tabs className={'col-span-full lg:col-span-6'} defaultValue="basic-info">
+    <Tabs
+      className={'col-span-full lg:col-span-6'}
+      value={currentTab}
+      onValueChange={setCurrentTab}
+    >
       <TabsList className="mb-2 w-full">
         <div className="carousel-zone flex items-center gap-2">
           {profileTabs.map((tab) => (

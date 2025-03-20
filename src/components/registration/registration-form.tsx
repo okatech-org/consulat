@@ -36,6 +36,7 @@ import { FullProfile } from '@/types';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import React from 'react';
+import { useStoredTabs } from '@/hooks/use-tabs';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -63,6 +64,7 @@ export function RegistrationForm({
   const t_errors = useTranslations('messages.errors');
   const [validationError, setValidationError] = useState<string | undefined>();
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
+
   type Step = keyof typeof forms;
 
   const orderedSteps: Step[] = [
@@ -73,7 +75,7 @@ export function RegistrationForm({
     'professionalInfo',
   ];
 
-  const [currentTab, setCurrentTab] = React.useState<Step>('documents');
+  const { currentTab, setCurrentTab } = useStoredTabs<Step>('tab', 'documents');
 
   const currentStepIndex = orderedSteps.indexOf(currentTab);
   const totalSteps = orderedSteps.length;

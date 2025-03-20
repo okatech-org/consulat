@@ -44,7 +44,6 @@ export function BasicInfoForm({
   banner,
   profileId,
 }: Readonly<BasicInfoFormProps>) {
-  const router = useRouter();
   const t_inputs = useTranslations('inputs');
 
   return (
@@ -70,11 +69,10 @@ export function BasicInfoForm({
                         profileId={profileId}
                         onUpload={(doc) => {
                           field.onChange(doc);
-                          router.refresh();
                         }}
                         onDelete={() => {
                           field.onChange(undefined);
-                          router.refresh();
+                          window.location.reload();
                         }}
                         accept="image/*"
                       />
