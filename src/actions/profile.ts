@@ -105,168 +105,174 @@ export async function updateProfile(
   profileId: string,
   data: Partial<FullProfileUpdateFormData>,
 ): Promise<Profile> {
-  const result = await tryCatch(
-    (async () => {
-      const t = await getTranslations('messages.profile.errors');
-      const { user } = await checkAuth();
+  const { user } = await checkAuth();
 
-      if (!user || !user?.id) {
-        throw new Error(t('unauthorized'));
-      }
-
-      const existingProfile = await db.profile.findUnique({
-        where: { id: profileId },
-      });
-
-      if (!existingProfile) {
-        throw new Error(t('profile_not_found'));
-      }
-
-      const {
-        passportIssueDate,
-        passportExpiryDate,
-        address,
-        residentContact,
-        homeLandContact,
-        passport,
-        birthCertificate,
-        residencePermit,
-        addressProof,
-        identityPicture,
-        birthDate,
-        ...remain
-      } = data;
-
-      // Create the update data object with proper types for Prisma
-      const updateData: Prisma.ProfileUpdateInput = {
-        ...remain,
-        ...(birthDate && { birthDate: new Date(birthDate) }),
-        ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
-        ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
-        ...(address && {
-          address: {
-            upsert: {
-              create: address,
-              update: address,
-            },
-          },
-        }),
-        ...(residentContact && {
-          residentContact: {
-            upsert: {
-              create: {
-                phoneNumber: residentContact.phoneNumber,
-                firstName: residentContact.firstName,
-                lastName: residentContact.lastName,
-                ...(residentContact.relationship && {
-                  relationship: residentContact.relationship,
-                }),
-                ...(residentContact.address && {
-                  address: {
-                    create: residentContact.address,
-                  },
-                }),
-              },
-              update: {
-                ...(residentContact.firstName && {
-                  firstName: residentContact.firstName,
-                }),
-                ...(residentContact.lastName && {
-                  lastName: residentContact.lastName,
-                }),
-                ...(residentContact.relationship && {
-                  relationship: residentContact.relationship,
-                }),
-                ...(residentContact.phoneNumber && {
-                  phoneNumber: residentContact.phoneNumber,
-                }),
-                ...(residentContact.address && {
-                  address: {
-                    upsert: {
-                      create: residentContact.address,
-                      update: residentContact.address,
-                    },
-                  },
-                }),
-              },
-            },
-          },
-        }),
-        ...(homeLandContact && {
-          homeLandContact: {
-            upsert: {
-              create: {
-                firstName: homeLandContact.firstName,
-                lastName: homeLandContact.lastName,
-                relationship: homeLandContact.relationship,
-                phoneNumber: homeLandContact.phoneNumber,
-                address: {
-                  create: homeLandContact.address,
-                },
-              },
-              update: {
-                firstName: homeLandContact.firstName,
-                lastName: homeLandContact.lastName,
-                relationship: homeLandContact.relationship,
-                phoneNumber: homeLandContact.phoneNumber,
-                address: {
-                  upsert: {
-                    create: homeLandContact.address,
-                    update: homeLandContact.address,
-                  },
-                },
-              },
-            },
-          },
-        }),
-      };
-
-      // Handle document connections by connecting to the IDs
-      if (identityPicture) {
-        updateData.identityPicture = { connect: { id: identityPicture.id } };
-      }
-
-      if (passport) {
-        updateData.passport = { connect: { id: passport.id } };
-      }
-
-      if (birthCertificate) {
-        updateData.birthCertificate = { connect: { id: birthCertificate.id } };
-      }
-
-      if (residencePermit) {
-        updateData.residencePermit = { connect: { id: residencePermit.id } };
-      }
-
-      if (addressProof) {
-        updateData.addressProof = { connect: { id: addressProof.id } };
-      }
-
-      // Update the profile
-      const updated = await db.profile.update({
-        where: { id: existingProfile.id },
-        data: updateData,
-        ...FullProfileInclude,
-      });
-
-      if (!updated) {
-        throw new Error(t('update_failed'));
-      }
-
-      return updated;
-    })(),
-  );
-
-  if (result.error) {
-    console.error('Profile update failed:', result.error);
-    throw result.error;
+  if (!user || !user?.id) {
+    throw new Error('unauthorized');
   }
 
-  if (!result.data) {
+  // Récupérer le profil existant avec toutes les relations nécessaires
+  const existingProfile = await db.profile.findUnique({
+    where: { id: profileId },
+    ...FullProfileInclude, // Utiliser l'include complet pour avoir toutes les données
+  });
+
+  if (!existingProfile) {
+    throw new Error('profile_not_found');
+  }
+
+  // Préparer les données déstructurées
+  const {
+    passportIssueDate,
+    passportExpiryDate,
+    address,
+    residentContact,
+    homeLandContact,
+    passport,
+    birthCertificate,
+    residencePermit,
+    addressProof,
+    identityPicture,
+    birthDate,
+    ...remain
+  } = data;
+
+  // Initialiser l'objet de mise à jour avec les propriétés de base
+  const updateData: Prisma.ProfileUpdateInput = {
+    ...remain,
+    ...(birthDate && { birthDate: new Date(birthDate) }),
+    ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
+    ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
+  };
+
+  // Gérer la mise à jour de l'adresse séparément si fournie
+  if (address) {
+    updateData.address = {
+      upsert: {
+        create: address,
+        update: address,
+      },
+    };
+  }
+
+  // Gérer la mise à jour du contact résident séparément si fournie
+  if (residentContact) {
+    // S'assurer que tous les champs requis sont présents
+    const safeResidentContact = {
+      firstName: residentContact.firstName || existingProfile.firstName || '',
+      lastName: residentContact.lastName || existingProfile.lastName || '',
+      relationship: residentContact.relationship || 'OTHER', // Valeur par défaut pour éviter null
+      phoneNumber: residentContact.phoneNumber,
+    };
+
+    updateData.residentContact = {
+      upsert: {
+        create: {
+          ...safeResidentContact,
+          ...(residentContact.address && {
+            address: {
+              create: residentContact.address,
+            },
+          }),
+        },
+        update: {
+          ...(residentContact.firstName && { firstName: residentContact.firstName }),
+          ...(residentContact.lastName && { lastName: residentContact.lastName }),
+          ...(residentContact.relationship && {
+            relationship: residentContact.relationship,
+          }),
+          ...(residentContact.phoneNumber && {
+            phoneNumber: residentContact.phoneNumber,
+          }),
+          ...(residentContact.address && {
+            address: {
+              upsert: {
+                create: residentContact.address,
+                update: residentContact.address,
+              },
+            },
+          }),
+        },
+      },
+    };
+  }
+
+  // Gérer la mise à jour du contact au pays d'origine séparément si fournie
+  if (homeLandContact) {
+    // S'assurer que tous les champs requis sont présents
+    const safeHomeLandContact = {
+      firstName: homeLandContact.firstName || existingProfile.firstName || '',
+      lastName: homeLandContact.lastName || existingProfile.lastName || '',
+      relationship: homeLandContact.relationship || 'OTHER', // Valeur par défaut pour éviter null
+      phoneNumber: homeLandContact.phoneNumber,
+    };
+
+    updateData.homeLandContact = {
+      upsert: {
+        create: {
+          ...safeHomeLandContact,
+          ...(homeLandContact.address && {
+            address: {
+              create: homeLandContact.address,
+            },
+          }),
+        },
+        update: {
+          ...(homeLandContact.firstName && { firstName: homeLandContact.firstName }),
+          ...(homeLandContact.lastName && { lastName: homeLandContact.lastName }),
+          ...(homeLandContact.relationship && {
+            relationship: homeLandContact.relationship,
+          }),
+          ...(homeLandContact.phoneNumber && {
+            phoneNumber: homeLandContact.phoneNumber,
+          }),
+          ...(homeLandContact.address && {
+            address: {
+              upsert: {
+                create: homeLandContact.address,
+                update: homeLandContact.address,
+              },
+            },
+          }),
+        },
+      },
+    };
+  }
+
+  // Gérer les connexions de documents avec connect
+  if (identityPicture && identityPicture.id) {
+    updateData.identityPicture = { connect: { id: identityPicture.id } };
+  }
+
+  if (passport && passport.id) {
+    updateData.passport = { connect: { id: passport.id } };
+  }
+
+  if (birthCertificate && birthCertificate.id) {
+    updateData.birthCertificate = { connect: { id: birthCertificate.id } };
+  }
+
+  if (residencePermit && residencePermit.id) {
+    updateData.residencePermit = { connect: { id: residencePermit.id } };
+  }
+
+  if (addressProof && addressProof.id) {
+    updateData.addressProof = { connect: { id: addressProof.id } };
+  }
+
+  const updateResult = await tryCatch(
+    db.profile.update({
+      where: { id: existingProfile.id },
+      data: updateData,
+      ...FullProfileInclude,
+    }),
+  );
+
+  if (updateResult.error || !updateResult.data) {
     throw new Error('profile_update_failed');
   }
 
-  return result.data;
+  return updateResult.data;
 }
 
 export async function submitProfileForValidation(

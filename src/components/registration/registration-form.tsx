@@ -57,7 +57,7 @@ export function RegistrationForm({
   const tInputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
-  type Step = keyof typeof forms | 'review';
+  type Step = keyof typeof forms;
 
   const orderedSteps: Step[] = [
     'documents',
@@ -278,7 +278,7 @@ export function RegistrationForm({
             };
           })}
           currentStep={currentTab}
-          onChange={handleTabChange}
+          onChange={(step) => handleTabChange(step as Step)}
         />
       </header>
       <div className="w-full flex flex-col">

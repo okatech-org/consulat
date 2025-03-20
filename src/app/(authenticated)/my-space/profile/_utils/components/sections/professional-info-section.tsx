@@ -19,9 +19,13 @@ import { InfoField } from '@/components/ui/info-field';
 
 interface ProfessionalInfoSectionProps {
   profile: Profile;
+  onSave: () => void;
 }
 
-export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProps) {
+export function ProfessionalInfoSection({
+  profile,
+  onSave,
+}: ProfessionalInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
@@ -67,6 +71,7 @@ export function ProfessionalInfoSection({ profile }: ProfessionalInfoSectionProp
       });
       setIsLoading(false);
       setIsEditing(false);
+      onSave();
     }
   };
 

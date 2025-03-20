@@ -20,13 +20,13 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import { BasicInfoForm } from '@/components/registration/basic-info';
 import { InfoField } from '@/components/ui/info-field';
 import { FullProfile } from '@/types';
-import { useRouter } from 'next/navigation';
 
 interface BasicInfoSectionProps {
   profile: FullProfile;
+  onSave: () => void;
 }
 
-export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
+export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
   const t_countries = useTranslations('countries');
@@ -37,7 +37,6 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
   const { formatDate } = useDateLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const basicInfo = extractFieldsFromObject(profile, [
     'firstName',
@@ -87,7 +86,7 @@ export function BasicInfoSection({ profile }: BasicInfoSectionProps) {
         variant: 'success',
       });
       setIsEditing(false);
-      router.refresh();
+      onSave();
     }
 
     setIsLoading(false);

@@ -23,8 +23,6 @@ export default async function AccountPage() {
   const countries = await getActiveCountries();
   const user = await getCurrentUser();
 
-  console.log({ user });
-
   return (
     <PageContainer title={t('title')}>
       <Tabs defaultValue="profile" className="space-y-4">

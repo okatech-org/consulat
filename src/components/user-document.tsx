@@ -83,17 +83,12 @@ export function UserDocument({
     const result = await tryCatch(deleteUserDocument(documentId));
 
     if (result.data) {
-      if (onDelete) {
-        onDelete();
-        router.refresh();
-      } else {
-        toast({
-          title: t_messages('success.update_title'),
-          description: t_messages('success.update_description'),
-          variant: 'success',
-        });
-        router.refresh();
-      }
+      onDelete?.();
+      toast({
+        title: t_messages('success.update_title'),
+        description: t_messages('success.update_description'),
+        variant: 'success',
+      });
     }
 
     if (result.error) {

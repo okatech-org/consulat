@@ -10,7 +10,6 @@ type StepKey =
   | 'familyInfo'
   | 'contactInfo'
   | 'professionalInfo'
-  | 'review'
   | 'link'
   | 'identity';
 

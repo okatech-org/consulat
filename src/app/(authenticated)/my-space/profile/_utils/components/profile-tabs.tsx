@@ -9,33 +9,37 @@ import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-
+import { useRouter } from 'next/navigation';
 type ProfileTabsProps = {
   profile: FullProfile;
 };
 
 export function ProfileTabs({ profile }: ProfileTabsProps) {
+  const router = useRouter();
+
   const t = useTranslations('profile');
   const profileTabs = [
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
-      content: <BasicInfoSection profile={profile} />,
+      content: <BasicInfoSection profile={profile} onSave={() => router.refresh()} />,
     },
     {
       id: 'contact-info',
       title: t('sections.contact_info'),
-      content: <ContactInfoSection profile={profile} />,
+      content: <ContactInfoSection profile={profile} onSave={() => router.refresh()} />,
     },
     {
       id: 'family-info',
       title: t('sections.family_info'),
-      content: <FamilyInfoSection profile={profile} />,
+      content: <FamilyInfoSection profile={profile} onSave={() => router.refresh()} />,
     },
     {
       id: 'professional-info',
       title: t('sections.professional_info'),
-      content: <ProfessionalInfoSection profile={profile} />,
+      content: (
+        <ProfessionalInfoSection profile={profile} onSave={() => router.refresh()} />
+      ),
     },
     {
       id: 'documents',
@@ -51,6 +55,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
           profileId={profile.id}
           profileStatus={profile.status}
           className="md:col-span-2"
+          onSave={() => router.refresh()}
         />
       ),
     },

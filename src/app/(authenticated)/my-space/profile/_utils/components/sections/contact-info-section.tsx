@@ -20,9 +20,10 @@ import { Address } from '@prisma/client';
 
 interface ContactInfoSectionProps {
   profile: FullProfile;
+  onSave: () => void;
 }
 
-export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
+export function ContactInfoSection({ profile, onSave }: ContactInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_countries = useTranslations('countries');
   const t = useTranslations('registration');
@@ -92,6 +93,7 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
       });
       setIsEditing(false);
       setIsLoading(false);
+      onSave();
     }
   };
 

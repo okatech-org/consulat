@@ -9,7 +9,6 @@ import {
 import { EditableSection } from '../editable-section';
 import { AppUserDocument } from '@/types';
 import { UserDocument } from '@/components/user-document';
-import { useRouter } from 'next/navigation';
 
 interface DocumentsSectionProps {
   documents: {
@@ -22,6 +21,7 @@ interface DocumentsSectionProps {
   profileId: string;
   className?: string;
   profileStatus: RequestStatus;
+  onSave: () => void;
 }
 
 export function DocumentsSection({
@@ -29,10 +29,10 @@ export function DocumentsSection({
   className,
   profileId,
   profileStatus,
+  onSave,
 }: DocumentsSectionProps) {
   const t = useTranslations('profile');
   const t_common = useTranslations('common');
-  const router = useRouter();
 
   const convertDocument = (
     doc: PrismaUserDocument | null | undefined,
@@ -63,8 +63,8 @@ export function DocumentsSection({
           allowEdit={true}
           required
           accept="image/*"
-          onDelete={() => router.refresh()}
-          onUpload={() => router.refresh()}
+          onDelete={onSave}
+          onUpload={onSave}
           noFormLabel={true}
         />
 
@@ -76,6 +76,9 @@ export function DocumentsSection({
           profileId={profileId}
           allowEdit={true}
           required
+          onDelete={onSave}
+          onUpload={onSave}
+          noFormLabel={true}
         />
 
         <UserDocument
@@ -86,6 +89,9 @@ export function DocumentsSection({
           profileId={profileId}
           allowEdit={true}
           required
+          onDelete={onSave}
+          onUpload={onSave}
+          noFormLabel={true}
         />
 
         <UserDocument
@@ -96,6 +102,9 @@ export function DocumentsSection({
           profileId={profileId}
           allowEdit={true}
           required
+          onDelete={onSave}
+          onUpload={onSave}
+          noFormLabel={true}
         />
 
         <UserDocument
@@ -106,6 +115,9 @@ export function DocumentsSection({
           profileId={profileId}
           allowEdit={true}
           required
+          onDelete={onSave}
+          onUpload={onSave}
+          noFormLabel={true}
         />
       </div>
     </EditableSection>

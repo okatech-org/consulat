@@ -10,15 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
 import { Users, User2 } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { extractFieldsFromObject, filterUneditedKeys, tryCatch } from '@/lib/utils';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { InfoField } from '@/components/ui/info-field';
 import { FamilyInfoForm } from '@/components/registration/family-info';
 
 interface FamilyInfoSectionProps {
   profile: FullProfile;
+  onSave: () => void;
 }
 
-export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
+export function FamilyInfoSection({ profile, onSave }: FamilyInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
@@ -61,6 +62,7 @@ export function FamilyInfoSection({ profile }: FamilyInfoSectionProps) {
       });
       setIsEditing(false);
       setIsLoading(false);
+      onSave();
     }
   };
 
