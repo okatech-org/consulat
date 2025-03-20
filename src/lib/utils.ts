@@ -528,6 +528,48 @@ export function getValuable<T extends object, V = Valuable<T>>(obj: T): V {
 }
 
 /**
+ * Retire les valeurs nulles ou undefined d'un objet et de ses sous-objets récursivement
+ * @param object Objet source
+ * @returns Nouvel objet sans les valeurs nulles ou undefined
+ */
+export function removeNullOrUndefined<T extends Record<string, unknown>>(
+  object: T,
+): Partial<T> {
+  const result = { ...object };
+
+  for (const key in result) {
+    if (result[key] === null || result[key] === undefined) {
+      // Use type assertion to handle the type compatibility issue
+      result[key] = undefined as unknown as T[Extract<keyof T, string>];
+    } else if (typeof result[key] === 'object' && result[key] !== null) {
+      // Skip Date objects
+      if (result[key] instanceof Date) {
+        continue;
+      }
+
+      const cleanedValue = removeNullOrUndefined(
+        result[key] as Record<string, unknown>,
+      ) as T[Extract<keyof T, string>];
+
+      // Check if the cleaned object is empty (has no properties)
+      if (
+        typeof cleanedValue === 'object' &&
+        cleanedValue !== null &&
+        !(cleanedValue instanceof Date) &&
+        Object.keys(cleanedValue as object).length === 0
+      ) {
+        // Use type assertion to handle the type compatibility issue
+        result[key] = undefined as unknown as T[Extract<keyof T, string>];
+      } else {
+        result[key] = cleanedValue;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
  * Retire récursivement les valeurs nulles ou undefined d'un objet et de ses sous-objets
  * @param object Objet source
  * @returns Nouvel objet sans les valeurs nulles ou undefined

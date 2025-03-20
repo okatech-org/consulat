@@ -90,7 +90,7 @@ export default {
     label: 'Reprendre mon inscription',
     placeholder: 'Identifier vous pour reprendre votre inscription précédente',
   },
-  phoneId: {
+  phoneNumber: {
     label: 'Numéro de téléphone',
     placeholder: 'Ex: 612345678',
     placeholder_local: 'Ex: 612345678',
@@ -233,7 +233,7 @@ export default {
     consulateId: 'Consulate ID',
     addressProofId: 'Address Proof ID',
     addressId: 'Address ID',
-    phoneId: 'Phone ID',
+    phoneNumber: 'Phone Number',
     passportId: 'Passport ID',
     activityInGabon: 'Activité au Gabon',
     fatherFullName: 'Nom complet du père',

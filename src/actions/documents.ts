@@ -20,6 +20,7 @@ import {
   FamilyInfoFormData,
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
+import { removeNullValues } from '@/lib/utils';
 
 // Types
 interface DocumentAnalysisResult {
@@ -346,13 +347,15 @@ export async function analyzeDocuments(
 
       if (!data) return;
 
+      const cleanedData = removeNullValues(data);
+
       // Copy data from each category
       Object.keys(mergedData).forEach((category) => {
         const key = category as keyof DocumentData;
-        if (data[key]) {
+        if (cleanedData[key]) {
           mergedData[key] = {
             ...mergedData[key],
-            ...data[key],
+            ...cleanedData[key],
           };
         }
       });

@@ -309,8 +309,7 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
     ],
     metadata: {
       createdBy: currentUser?.id,
-      createdByName:
-        `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim(),
+      createdByName: `${currentUser?.name || ''}`.trim(),
       specializations: serviceCategories,
       countries: countryNames,
       organization: organizationName,
@@ -324,19 +323,7 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
   try {
     await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-    const { countryIds, phone, ...rest } = data;
-
-    let phoneId: string | undefined;
-
-    if (phone) {
-      const newPhone = await db.phone.create({
-        data: {
-          number: phone.number,
-          countryCode: phone.countryCode,
-        },
-      });
-      phoneId = newPhone.id;
-    }
+    const { countryIds, ...rest } = data;
 
     const agent = await db.user.update({
       where: { id },
@@ -347,7 +334,6 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
             set: countryIds.map((id) => ({ id })),
           },
         }),
-        ...(phoneId && { phoneId }),
       },
     });
 

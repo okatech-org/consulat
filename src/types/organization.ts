@@ -8,7 +8,6 @@ import {
 } from '@prisma/client';
 import { ConsularServiceListingItem } from '@/types/consular-service';
 import { CountryListingItem } from '@/types/country';
-import { PhoneValue } from '@/components/ui/phone-input';
 
 export interface Organization {
   id: string;
@@ -47,7 +46,7 @@ export type OrganizationAgents = {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
-  phone: PhoneValue | null;
+  phoneNumber: string | null;
   linkedCountries: CountryListingItem[];
   serviceCategories: ServiceCategory[];
 };
@@ -77,12 +76,12 @@ export const FullOrganizationInclude = {
         isActive: true,
         organizationId: true,
         countryCode: true,
+        phoneNumber: true,
       },
     },
     agents: {
       include: {
         linkedCountries: true,
-        phone: true,
       },
     },
     adminUser: true,

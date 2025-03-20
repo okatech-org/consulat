@@ -17,7 +17,11 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
-import { ErrorMessageKey, extractFieldsFromObject, removeNullValues } from '@/lib/utils';
+import {
+  ErrorMessageKey,
+  extractFieldsFromObject,
+  removeNullOrUndefined,
+} from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
 import {
@@ -82,7 +86,7 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
   const [error, setError] = useState<ErrorMessageKey | undefined>();
   const defaultNumber = `${getCountryCode(profile?.residenceCountyCode as CountryCode)}-`;
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
-  const cleanedProfile = removeNullValues({ ...profile });
+  const cleanedProfile = removeNullOrUndefined({ ...profile });
 
   const documentsFormData = extractFieldsFromObject(
     cleanedProfile,
