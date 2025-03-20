@@ -20,6 +20,7 @@ import { createFormStorage } from '@/lib/form-storage';
 import {
   ErrorMessageKey,
   extractFieldsFromObject,
+  getValuable,
   removeNullOrUndefined,
 } from '@/lib/utils';
 import { FullProfile } from '@/types';
@@ -86,7 +87,7 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
   const [error, setError] = useState<ErrorMessageKey | undefined>();
   const defaultNumber = `${getCountryCode(profile?.residenceCountyCode as CountryCode)}-`;
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
-  const cleanedProfile = removeNullOrUndefined({ ...profile });
+  const cleanedProfile = getValuable({ ...profile });
 
   const documentsFormData = extractFieldsFromObject(
     cleanedProfile,

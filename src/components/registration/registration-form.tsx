@@ -23,7 +23,7 @@ import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { submitProfileForValidation, updateProfile } from '@/actions/profile';
-import { filterUneditedKeys, tryCatch } from '@/lib/utils';
+import { filterUneditedKeys, getValuable, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
@@ -78,6 +78,7 @@ export function RegistrationForm({
   const { currentTab, setCurrentTab } = useStoredTabs<Step>('tab', 'documents');
 
   const currentStepIndex = orderedSteps.indexOf(currentTab);
+  const currentStepValidity = forms[currentTab as keyof typeof forms].formState.isValid;
   const totalSteps = orderedSteps.length;
 
   // Gestionnaire d'analyse des components
@@ -90,10 +91,12 @@ export function RegistrationForm({
     setIsLoading(true);
     setError(undefined);
 
+    const cleanedData = getValuable(data);
+
     try {
       // Update each form with the data from the analysis
-      if (data.basicInfo && forms.basicInfo) {
-        Object.entries(data.basicInfo).forEach(([field, value]) => {
+      if (cleanedData.basicInfo && forms.basicInfo) {
+        Object.entries(cleanedData.basicInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
             forms.basicInfo.getValues()[field as keyof BasicInfoFormData] !== undefined
@@ -104,8 +107,8 @@ export function RegistrationForm({
         });
       }
 
-      if (data.contactInfo && forms.contactInfo) {
-        Object.entries(data.contactInfo).forEach(([field, value]) => {
+      if (cleanedData.contactInfo && forms.contactInfo) {
+        Object.entries(cleanedData.contactInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
             forms.contactInfo.getValues()[field as keyof ContactInfoFormData] !==
@@ -117,8 +120,8 @@ export function RegistrationForm({
         });
       }
 
-      if (data.familyInfo && forms.familyInfo) {
-        Object.entries(data.familyInfo).forEach(([field, value]) => {
+      if (cleanedData.familyInfo && forms.familyInfo) {
+        Object.entries(cleanedData.familyInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
             forms.familyInfo.getValues()[field as keyof FamilyInfoFormData] !== undefined
@@ -129,8 +132,8 @@ export function RegistrationForm({
         });
       }
 
-      if (data.professionalInfo && forms.professionalInfo) {
-        Object.entries(data.professionalInfo).forEach(([field, value]) => {
+      if (cleanedData.professionalInfo && forms.professionalInfo) {
+        Object.entries(cleanedData.professionalInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
             forms.professionalInfo.getValues()[
@@ -412,9 +415,7 @@ export function RegistrationForm({
               <Button
                 type="submit"
                 onClick={() => handleNext()}
-                disabled={
-                  isLoading || !forms[currentTab as keyof typeof forms].formState.isValid
-                }
+                disabled={isLoading || !currentStepValidity}
                 className="ml-auto gap-2"
               >
                 {isLoading ? <Loader className="size-4 animate-spin" /> : null}
@@ -424,6 +425,12 @@ export function RegistrationForm({
                 {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
               </Button>
             </div>
+            {!currentStepValidity && (
+              <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
+                <Info className="size-icon min-w-max text-blue-500" />
+                <span>{t('navigation.validityWarning')}</span>
+              </p>
+            )}
           </div>
 
           {/* Progression mobile */}

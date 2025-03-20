@@ -9,6 +9,8 @@ import { es, fr, enUS, Locale } from 'date-fns/locale';
 import { format } from 'date-fns';
 import messages from '@/i18n/messages/fr/messages';
 
+import { Primitive } from 'type-fest';
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -519,11 +521,46 @@ export function extractFieldsFromObject<T extends Record<string, unknown>>(
 type Valuable<T> = { [K in keyof T as T[K] extends null | undefined ? never : K]: T[K] };
 
 export function getValuable<T extends object, V = Valuable<T>>(obj: T): V {
+  if (!obj || typeof obj !== 'object') return {} as V;
+
   return Object.fromEntries(
-    Object.entries(obj).filter(
-      ([, v]) =>
-        !((typeof v === 'string' && !v.length) || v === null || typeof v === 'undefined'),
-    ),
+    Object.entries(obj)
+      .filter(([, v]) => {
+        // Filter out null, undefined, and empty strings
+        if (
+          v === null ||
+          typeof v === 'undefined' ||
+          (typeof v === 'string' && !v.length)
+        ) {
+          return false;
+        }
+
+        // Handle objects recursively (but not arrays or dates)
+        if (
+          typeof v === 'object' &&
+          v !== null &&
+          !Array.isArray(v) &&
+          !(v instanceof Date)
+        ) {
+          const cleanedObj = getValuable(v as object);
+          // Filter out empty objects
+          return Object.keys(cleanedObj).length > 0;
+        }
+
+        return true;
+      })
+      .map(([k, v]) => {
+        // Process nested objects recursively
+        if (
+          typeof v === 'object' &&
+          v !== null &&
+          !Array.isArray(v) &&
+          !(v instanceof Date)
+        ) {
+          return [k, getValuable(v as object)];
+        }
+        return [k, v];
+      }),
   ) as V;
 }
 
@@ -602,10 +639,6 @@ export function retrievePhoneNumber(phoneNumber: string): PhoneParts {
 
   return parts;
 }
-
-/* eslint-disable guard-for-in, @typescript-eslint/no-unsafe-return */
-
-import { Primitive } from 'type-fest';
 
 /*
  * [Generic way to convert all instances of null to undefined in TypeScript](https://stackoverflow.com/q/50374869)

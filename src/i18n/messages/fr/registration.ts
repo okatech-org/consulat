@@ -31,6 +31,8 @@ export default {
     previous: 'Précédent',
     next: 'Suivant',
     submit: 'Envoyer la demande',
+    validityWarning:
+      'Certaines informations obligatoires sont invalides ou manquantes, veuillez les corriger avant de continuer',
   },
   validation: {
     error: {

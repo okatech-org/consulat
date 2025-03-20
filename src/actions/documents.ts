@@ -347,15 +347,13 @@ export async function analyzeDocuments(
 
       if (!data) return;
 
-      const cleanedData = removeNullValues(data);
-
       // Copy data from each category
       Object.keys(mergedData).forEach((category) => {
         const key = category as keyof DocumentData;
-        if (cleanedData[key]) {
+        if (data[key]) {
           mergedData[key] = {
             ...mergedData[key],
-            ...cleanedData[key],
+            ...data[key],
           };
         }
       });
