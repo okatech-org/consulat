@@ -7,7 +7,6 @@ import CardContainer from '@/components/layouts/card-container';
 import { BasicInfoSection } from '../../profile/_utils/components/sections/basic-info-section';
 import { DocumentsSection } from '../../profile/_utils/components/sections/documents-section';
 import { LinkInfoSection } from './sections/link-info-section';
-import { useRouter } from 'next/navigation';
 
 type ProfileTabsProps = {
   profile: FullProfile;
@@ -15,7 +14,6 @@ type ProfileTabsProps = {
 
 export function ChildProfileTabs({ profile }: ProfileTabsProps) {
   const t = useTranslations('profile');
-  const router = useRouter();
 
   const profileTabs = [
     {
@@ -30,7 +28,7 @@ export function ChildProfileTabs({ profile }: ProfileTabsProps) {
         <BasicInfoSection
           profile={profile}
           onSave={() => {
-            router.refresh();
+            window.location.reload();
           }}
         />
       ),
@@ -51,7 +49,7 @@ export function ChildProfileTabs({ profile }: ProfileTabsProps) {
           profileStatus={profile.status}
           className="md:col-span-2"
           onSave={() => {
-            router.refresh();
+            window.location.reload();
           }}
         />
       ),

@@ -22,23 +22,32 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
-      content: <BasicInfoSection profile={profile} onSave={() => router.refresh()} />,
+      content: (
+        <BasicInfoSection profile={profile} onSave={() => window.location.reload()} />
+      ),
     },
     {
       id: 'contact-info',
       title: t('sections.contact_info'),
-      content: <ContactInfoSection profile={profile} onSave={() => router.refresh()} />,
+      content: (
+        <ContactInfoSection profile={profile} onSave={() => window.location.reload()} />
+      ),
     },
     {
       id: 'family-info',
       title: t('sections.family_info'),
-      content: <FamilyInfoSection profile={profile} onSave={() => router.refresh()} />,
+      content: (
+        <FamilyInfoSection profile={profile} onSave={() => window.location.reload()} />
+      ),
     },
     {
       id: 'professional-info',
       title: t('sections.professional_info'),
       content: (
-        <ProfessionalInfoSection profile={profile} onSave={() => router.refresh()} />
+        <ProfessionalInfoSection
+          profile={profile}
+          onSave={() => window.location.reload()}
+        />
       ),
     },
     {
@@ -55,7 +64,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
           profileId={profile.id}
           profileStatus={profile.status}
           className="md:col-span-2"
-          onSave={() => router.refresh()}
+          onSave={() => window.location.reload()}
         />
       ),
     },
