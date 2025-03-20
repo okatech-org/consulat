@@ -24,13 +24,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       firstName: profile.firstName,
       lastName: profile.lastName,
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: profile.user?.phoneNumber
-        ? [
-            {
-              value: `${profile.user.phoneNumber.countryCode}${profile.user.phoneNumber.number}`,
-            },
-          ]
-        : [],
+      phones: profile.user?.phoneNumber ? [profile.user.phoneNumber] : [],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
     };
 
