@@ -10,7 +10,7 @@ export function ChatToggle() {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTitle className="sr-only">Chat with an assistant</SheetTitle>
-      <SheetTrigger className="aspect-square size-20 rounded-full overflow-hidden">
+      <SheetTrigger className="aspect-square size-[4rem] md:size-20 rounded-full overflow-hidden">
         <IAstedButton />
       </SheetTrigger>
       <SheetContent side="right" className="w-full max-w-[700px] sm:w-[700px]">

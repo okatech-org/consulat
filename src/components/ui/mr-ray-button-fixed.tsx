@@ -132,7 +132,7 @@ const IAstedButton = () => {
           ref={buttonRef}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="relative size-16 rounded-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out overflow-hidden thick-matter-button living-matter"
+          className="relative size-14 rounded-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out overflow-hidden thick-matter-button living-matter"
         >
           {/* Indicateurs d'attention déplacés à l'intérieur */}
           <div className="absolute attention-indicator top-4 left-4 z-20"></div>
@@ -223,12 +223,13 @@ const IAstedButton = () => {
           <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-center z-10 pointer-events-none text-glow icon-container-wrapper">
             <div className="icon-container">
               <div className="alternating-element text-element">
-                <p className="text-md tracking-wide whitespace-nowrap">Mr Ray</p>
+                <p className="text-xs md:text-md  tracking-wide whitespace-nowrap">
+                  Mr Ray
+                </p>
               </div>
               <div className="alternating-element mic-element">
                 <svg
-                  width="40"
-                  height="40"
+                  className="size-5 md:size-8"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -245,8 +246,7 @@ const IAstedButton = () => {
               </div>
               <div className="alternating-element chat-element">
                 <svg
-                  width="40"
-                  height="40"
+                  className="size-5 md:size-8"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
