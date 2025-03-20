@@ -55,20 +55,6 @@ export function DocumentsSection({
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <UserDocument
-          label={t_common('documents.types.identity_photo')}
-          description={t_common('documents.descriptions.identity_photo')}
-          document={convertDocument(documents.identityPhoto)}
-          expectedType={DocumentType.IDENTITY_PHOTO}
-          profileId={profileId}
-          allowEdit={true}
-          required
-          accept="image/*"
-          onDelete={onSave}
-          onUpload={onSave}
-          noFormLabel={true}
-        />
-
-        <UserDocument
           label={t_common('documents.types.birth_certificate')}
           description={t_common('documents.descriptions.birth_certificate')}
           document={convertDocument(documents.birthCertificate)}
