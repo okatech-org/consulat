@@ -33,7 +33,6 @@ import Link from 'next/link';
 import { Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
 import { FullProfile } from '@/types';
-import { useTabs } from '@/hooks/use-tabs';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import React from 'react';
@@ -62,6 +61,7 @@ export function RegistrationForm({
   const t = useTranslations('registration');
   const tInputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
+  const [validationError, setValidationError] = useState<string | undefined>();
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
   type Step = keyof typeof forms;
 
@@ -173,63 +173,71 @@ export function RegistrationForm({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNext = async () => {
     setError(undefined);
+    setValidationError(undefined);
     setIsLoading(true);
 
     const stepForm = forms[currentTab as keyof typeof forms];
-    const stepData = stepForm?.getValues();
     const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
 
-    const isStepValid = await stepForm?.trigger();
+    try {
+      // Validate the current step
+      const isStepValid = await stepForm?.trigger();
 
-    if (!isStepValid) {
-      setIsLoading(false);
-      return;
-    }
+      if (!isStepValid) {
+        setValidationError('Please fix form errors to continue');
+        setIsLoading(false);
+        return;
+      }
 
-    if (currentTab === 'documents' && nextStep) {
-      setCurrentTab(nextStep);
-      setIsLoading(false);
-    }
+      // For document step, just navigate to next step
+      if (currentTab === 'documents' && nextStep) {
+        setCurrentTab(nextStep);
+        setIsLoading(false);
+        return;
+      }
 
-    if (stepForm) {
+      // Get the form data and check for changes
+      const stepData = stepForm?.getValues();
       const editedFields = filterUneditedKeys(stepData, stepForm.formState.dirtyFields);
 
-      console.log({ editedFields });
-
+      // If there are changes, save them
       if (editedFields && Object.keys(editedFields).length > 0) {
-        const { data: result, error } = await tryCatch(
-          updateProfile(profile.id, editedFields),
-        );
-
-        if (currentStepIndex === totalSteps - 1) {
-          if (profile.status !== 'DRAFT') {
-            toast({
-              title: t('submission.success.title'),
-              description: t('submission.success.description'),
-            });
-
-            router.push(ROUTES.user.profile);
-          } else {
-            await handleFinalSubmit();
-            return;
-          }
-        }
-
-        if (result && nextStep) {
-          setCurrentTab(nextStep);
-        }
+        const { error } = await tryCatch(updateProfile(profile.id, editedFields));
 
         if (error) {
-          setError(error.message);
-        }
-      } else {
-        if (nextStep) {
-          setCurrentTab(nextStep);
+          const { title, description } = handleFormError(error, t);
+          toast({ title, description, variant: 'destructive' });
           setIsLoading(false);
-        } else {
-          router.push(ROUTES.user.profile);
+          return;
         }
       }
+
+      // Handle final step logic
+      if (currentStepIndex === totalSteps - 1) {
+        if (profile.status !== 'DRAFT') {
+          toast({
+            title: t('submission.success.title'),
+            description: t('submission.success.description'),
+          });
+          router.push(ROUTES.user.profile);
+        } else {
+          await handleFinalSubmit();
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Navigate to next step if available
+      if (nextStep) {
+        setCurrentTab(nextStep);
+      } else {
+        router.push(ROUTES.user.profile);
+      }
+    } catch (err) {
+      const { title, description } = handleFormError(err, t);
+      toast({ title, description, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -372,6 +380,17 @@ export function RegistrationForm({
                   <p className="flex items-center gap-2">
                     <Info className="size-icon" />
                     {t_errors('invalid_step')}
+                  </p>
+                }
+              />
+            )}
+
+            {validationError && (
+              <ErrorCard
+                description={
+                  <p className="flex items-center gap-2">
+                    <Info className="size-icon" />
+                    {validationError}
                   </p>
                 }
               />

@@ -1,15 +1,14 @@
 'use server';
 
-import { getTranslations } from 'next-intl/server';
-import { checkAuth } from '@/lib/auth/action';
-import { ConsularService, Prisma, Profile, ServiceCategory } from '@prisma/client';
 import { db } from '@/lib/prisma';
-
-import { CreateProfileInput, FullProfileUpdateFormData } from '@/schemas/registration';
+import { ConsularService, Profile, ServiceCategory, Prisma } from '@prisma/client';
+import { checkAuth } from '@/lib/auth/action';
+import { FullProfileInclude } from '@/types';
+import { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
-import { CountryCode } from '@/lib/autocomplete-datas';
-import { FullProfileInclude } from '@/types';
+
+import { CreateProfileInput, FullProfileUpdateFormData } from '@/schemas/registration';
 import {
   NameSchema,
   CountryCodeSchema,
@@ -303,38 +302,60 @@ export async function submitProfileForValidation(
     throw new Error('profile_not_found');
   }
 
-  // Vérifier que tous les components requis sont présents
-  const requiredDocuments = [profile.birthCertificate];
-
-  if (!isChild) {
-    requiredDocuments.push(profile.passport);
-    requiredDocuments.push(profile.addressProof);
-  }
-
-  if (requiredDocuments.some((doc) => !doc)) {
-    throw new Error('missing_documents');
-  }
-
-  // Vérifier que toutes les informations requises sont présentes
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const requiredFields: any[] = [
-    profile.firstName,
-    profile.lastName,
-    profile.birthDate,
-    profile.birthPlace,
-    profile.nationality,
+  // Validate documents
+  const requiredDocuments = [
+    { name: 'birthCertificate', value: profile.birthCertificate },
   ];
 
   if (!isChild) {
-    requiredFields.push(
-      profile.address,
-      profile.phoneNumber,
-      profile.email,
-      profile.residentContact,
-      profile.homeLandContact,
+    requiredDocuments.push(
+      { name: 'passport', value: profile.passport },
+      { name: 'addressProof', value: profile.addressProof },
     );
   }
 
+  const missingDocuments = requiredDocuments
+    .filter((doc) => !doc.value)
+    .map((doc) => doc.name);
+  if (missingDocuments.length > 0) {
+    throw new Error(`missing_documents:${missingDocuments.join(',')}`);
+  }
+
+  // Basic information validation
+  const requiredBasicInfo = [
+    { name: 'firstName', value: profile.firstName },
+    { name: 'lastName', value: profile.lastName },
+    { name: 'birthDate', value: profile.birthDate },
+    { name: 'birthPlace', value: profile.birthPlace },
+    { name: 'nationality', value: profile.nationality },
+  ];
+
+  const missingBasicInfo = requiredBasicInfo
+    .filter((field) => !field.value)
+    .map((field) => field.name);
+  if (missingBasicInfo.length > 0) {
+    throw new Error(`missing_basic_info:${missingBasicInfo.join(',')}`);
+  }
+
+  // Contact info validation (not required for children)
+  if (!isChild) {
+    const requiredContactInfo = [
+      { name: 'address', value: profile.address },
+      { name: 'phoneNumber', value: profile.phoneNumber },
+      { name: 'email', value: profile.email },
+      { name: 'residentContact', value: profile.residentContact },
+      { name: 'homeLandContact', value: profile.homeLandContact },
+    ];
+
+    const missingContactInfo = requiredContactInfo
+      .filter((field) => !field.value)
+      .map((field) => field.name);
+    if (missingContactInfo.length > 0) {
+      throw new Error(`missing_contact_info:${missingContactInfo.join(',')}`);
+    }
+  }
+
+  // Create the service request
   const serviceRequest = await db.serviceRequest.create({
     data: {
       serviceCategory: ServiceCategory.REGISTRATION,
@@ -366,6 +387,7 @@ export async function submitProfileForValidation(
     },
   });
 
+  // Assign an agent to the request if possible
   if (registrationService.organizationId) {
     const { error } = await tryCatch(
       assignAgentToRequest(
@@ -377,11 +399,12 @@ export async function submitProfileForValidation(
     );
 
     if (error) {
-      throw error;
+      // Log the error but continue with profile update
+      console.error('Failed to assign agent:', error);
     }
   }
 
-  // Mettre à jour le statut du profil
+  // Update profile status and return
   return db.profile.update({
     where: { id: profileId },
     data: {

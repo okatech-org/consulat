@@ -7,6 +7,7 @@ import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import { env } from '@/lib/env/index';
 import { getCurrentUser } from '@/actions/user';
+import { SessionUser } from '@/types/user';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -46,7 +47,7 @@ export default async function RegistrationPage() {
     <div className="w-dvw relative bg-background h-dvh p-4 overflow-hidden flex items-center justify-center md:grid lg:grid-cols-12 lg:gap-4">
       <div className="min-h-full h-full w-full overflow-y-auto flex flex-col items-center justify-center md:col-span-7">
         <RouteAuthGuard
-          user={currentUser}
+          user={currentUser as SessionUser}
           fallbackComponent={<CreateProfileFormComponent />}
         >
           {profile ? (
