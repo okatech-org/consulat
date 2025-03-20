@@ -177,8 +177,7 @@ export function DocumentUploadSection({
                             profileId={profileId}
                             onUpload={field.onChange}
                             onDelete={() => {
-                              field.onChange(undefined);
-                              router.refresh();
+                              window.location.reload();
                             }}
                           />
                         </FormControl>

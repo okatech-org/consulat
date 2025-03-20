@@ -268,11 +268,12 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
 
   const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-  const { countryIds, serviceCategories, ...rest } = data;
+  const { countryIds, serviceCategories, firstName, lastName, ...rest } = data;
 
   const agent = await db.user.create({
     data: {
       ...rest,
+      name: `${firstName} ${lastName}`,
       roles: [UserRole.AGENT],
       specializations: serviceCategories,
       linkedCountries: {

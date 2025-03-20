@@ -45,7 +45,7 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
           countries={countries}
           onSuccess={() => {
             setOpen(false);
-            router.refresh();
+            window.location.reload();
           }}
         />
       </DialogContent>
