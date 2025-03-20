@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { FeedbackForm } from '@/components/ui/feedback-form';
+import { AlertTriangle, Link } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/schemas/routes';
 
 interface BetaBannerProps {
   className?: string;
@@ -14,7 +13,6 @@ interface BetaBannerProps {
 
 export function BetaBanner({ className, variant = 'default' }: BetaBannerProps) {
   const t = useTranslations('feedback');
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
   return (
     <>
@@ -34,20 +32,10 @@ export function BetaBanner({ className, variant = 'default' }: BetaBannerProps) 
             )}
           </span>
         </div>
-        <Button
-          variant="link"
-          size="sm"
-          onClick={() => setShowFeedbackForm(true)}
-          className={cn(
-            'text-primary hover:text-primary/80',
-            variant === 'compact' && 'text-xs',
-          )}
-        >
+        <Link href={ROUTES.feedback} className={cn(buttonVariants({ variant: 'link' }))}>
           {t('banner.openFeedback')}
-        </Button>
+        </Link>
       </div>
-
-      <FeedbackForm isOpen={showFeedbackForm} onOpenChange={setShowFeedbackForm} />
     </>
   );
 }

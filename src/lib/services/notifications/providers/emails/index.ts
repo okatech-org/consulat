@@ -6,6 +6,7 @@ import { env } from '@/lib/env/index';
 import { OTPEmailToHtml } from './components/OTPEmail';
 import { AdminWelcomeEmailToHtml } from './components/AdminWelcomeEmail';
 import { NotificationEmailToHtml } from './components/NotificationEmail';
+import { FeedbackEmailToHtml } from './components/FeedbackEmail';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const resend_sender = env.RESEND_SENDER;
@@ -122,5 +123,55 @@ export async function sendNotificationEmail({
   } catch (error) {
     console.error('Failed to send notification email:', error);
     throw new Error('Failed to send notification email');
+  }
+}
+
+interface SendFeedbackEmailParams {
+  to: string;
+  feedbackData: {
+    subject: string;
+    message: string;
+    category: string;
+    rating?: number;
+    email?: string;
+    userId?: string;
+    createdAt: Date;
+  };
+}
+
+export async function sendFeedbackEmail({ to, feedbackData }: SendFeedbackEmailParams) {
+  const t = await getTranslations('emails.feedback');
+
+  const emailHtml = await FeedbackEmailToHtml({
+    feedbackData,
+    content: {
+      subject: t('subject', { subject: feedbackData.subject }),
+      greeting: t('greeting'),
+      title: t('title'),
+      intro: t('intro'),
+      category_label: t('category_label'),
+      subject_label: t('subject_label'),
+      message_label: t('message_label'),
+      rating_label: t('rating_label'),
+      user_info_label: t('user_info_label'),
+      user_email_label: t('user_email_label'),
+      user_id_label: t('user_id_label'),
+      date_label: t('date_label'),
+      outro: t('outro'),
+      signature: t('signature', { appName }),
+    },
+  });
+
+  try {
+    await resend.emails.send({
+      from: `${appName} <${resend_sender}>`,
+      to,
+      subject: t('subject', { subject: feedbackData.subject }),
+      html: emailHtml,
+      tags: [{ name: 'category', value: 'feedback' }],
+    });
+  } catch (error) {
+    console.error('Failed to send feedback email:', error);
+    throw new Error('Failed to send feedback email');
   }
 }

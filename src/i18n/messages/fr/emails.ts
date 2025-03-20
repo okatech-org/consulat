@@ -41,4 +41,21 @@ export default {
     outro: "Pour plus d'informations, veuillez cliquer sur le lien ci-dessous :",
     signature: 'Cordialement, {appName}',
   },
+  feedback: {
+    subject: 'Nouveau retour utilisateur - {subject}',
+    greeting: 'Bonjour,',
+    title: 'Nouveau retour utilisateur',
+    intro: "Un utilisateur a envoyé un commentaire via l'application.",
+    category_label: 'Catégorie',
+    subject_label: 'Sujet',
+    message_label: 'Message',
+    rating_label: 'Note attribuée',
+    user_info_label: 'Informations utilisateur',
+    user_email_label: 'Email',
+    user_id_label: 'ID Utilisateur',
+    date_label: 'Date de soumission',
+    outro:
+      "Le retour a été enregistré dans la base de données. Vous pouvez y répondre directement à l'utilisateur par email si nécessaire.",
+    signature: "L'équipe {appName}",
+  },
 } as const;

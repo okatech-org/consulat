@@ -37,11 +37,11 @@ export default async function RegistrationPage() {
         <p className="text-md text-muted-foreground">
           {tInputs('newProfile.description')}
         </p>
-        <BetaBanner className="mt-4" />
       </header>
       <div className="w-full flex flex-col">
         <NewProfileForm availableCountries={countries} />
       </div>
+      <BetaBanner className="mt-4" />
     </div>
   );
 

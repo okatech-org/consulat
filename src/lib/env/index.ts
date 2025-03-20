@@ -21,6 +21,7 @@ export const env = createEnv({
     // Email configuration
     RESEND_API_KEY: z.string().startsWith('re_'),
     RESEND_SENDER: z.string().email(),
+    TECHNICAL_CONTACT_EMAIL: z.string().email().optional(),
 
     // SMS Provider configuration
     SMS_PROVIDER: z.enum(['twilio', 'vonage']),
@@ -68,6 +69,7 @@ export const env = createEnv({
     // Email configuration
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_SENDER: process.env.RESEND_SENDER,
+    TECHNICAL_CONTACT_EMAIL: process.env.TECHNICAL_CONTACT_EMAIL,
 
     // SMS Provider configuration
     SMS_PROVIDER: process.env.SMS_PROVIDER,
