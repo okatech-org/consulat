@@ -195,6 +195,14 @@ export const FullProfileUpdateSchema = z.object({
   ...BaseProfessionalInfoSchema.shape,
 });
 
+export const ProfileSectionSchema = z.object({
+  basicInfo: BasicInfoSchema.partial().optional(),
+  contactInfo: BaseContactInfoSchema.partial().optional(),
+  familyInfo: BaseFamilyInfoSchema.partial().optional(),
+  professionalInfo: BaseProfessionalInfoSchema.partial().optional(),
+  documents: DocumentsSchema.partial().optional(),
+});
+
 export type BasicInfoFormData = z.infer<typeof BasicInfoSchema>;
 export type ContactInfoFormData = z.infer<typeof ContactInfoSchema>;
 export type FamilyInfoFormData = z.infer<typeof FamilyInfoSchema>;

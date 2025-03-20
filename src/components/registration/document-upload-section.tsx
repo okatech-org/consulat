@@ -6,7 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoaderIcon, ScanBarcode } from 'lucide-react';
-import { DocumentsFormData } from '@/schemas/registration';
+import {
+  BasicInfoFormData,
+  ContactInfoFormData,
+  DocumentsFormData,
+  FamilyInfoFormData,
+  ProfessionalInfoFormData,
+} from '@/schemas/registration';
 import {
   Form,
   FormField,
@@ -16,7 +22,6 @@ import {
 } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 import { getFieldsForDocument } from '@/lib/document-fields';
-import { DocumentField } from '@/lib/utils';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';
@@ -28,8 +33,12 @@ import CardContainer from '../layouts/card-container';
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
   handleSubmitAction: (data: DocumentsFormData) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onAnalysisComplete?: (data: any) => void;
+  onAnalysisComplete?: (data: {
+    basicInfo?: Partial<BasicInfoFormData>;
+    contactInfo?: Partial<ContactInfoFormData>;
+    familyInfo?: Partial<FamilyInfoFormData>;
+    professionalInfo?: Partial<ProfessionalInfoFormData>;
+  }) => void;
   isLoading?: boolean;
   formRef?: React.RefObject<HTMLFormElement>;
   profileId?: string;
@@ -94,26 +103,20 @@ export function DocumentUploadSection({
   ] as const;
 
   const handleAnalysis = async () => {
-    const documentUrls: Record<string, string> = {};
-    const analysisFields: { key: keyof DocumentsFormData; fields: DocumentField[] }[] =
-      [];
+    const documentsToAnalyze: Partial<Record<DocumentType, string>> = {};
 
     // Collecter les URLs des documents et leurs champs d'analyse
     Object.entries(form.getValues()).forEach(([key, document]) => {
       const doc = requiredDocuments.find((d) => d.id === key);
       if (document && doc) {
         const userDoc = document as AppUserDocument;
-        if (userDoc.fileUrl) {
-          documentUrls[key] = userDoc.fileUrl;
-          analysisFields.push({
-            key: key as keyof DocumentsFormData,
-            fields: doc.analysisFields,
-          });
+        if (userDoc?.fileUrl) {
+          documentsToAnalyze[doc.expectedType] = userDoc.fileUrl;
         }
       }
     });
 
-    if (Object.keys(documentUrls).length === 0) {
+    if (Object.keys(documentsToAnalyze).length === 0) {
       toast({
         title: t('documents.analysis.error.title'),
         description: t('documents.analysis.error.no_documents'),
@@ -125,7 +128,7 @@ export function DocumentUploadSection({
     setIsAnalyzing(true);
 
     try {
-      const results = await analyzeDocuments(documentUrls, analysisFields);
+      const results = await analyzeDocuments(documentsToAnalyze);
 
       if (results.success && results.mergedData) {
         onAnalysisComplete?.(results.mergedData);

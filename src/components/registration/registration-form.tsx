@@ -4,6 +4,12 @@ import { useRegistrationForm } from '@/hooks/use-registration-form';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
+import {
+  BasicInfoFormData,
+  ContactInfoFormData,
+  FamilyInfoFormData,
+  ProfessionalInfoFormData,
+} from '@/schemas/registration';
 import { DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { FamilyInfoForm } from './family-info';
@@ -12,7 +18,6 @@ import { ProfessionalInfoForm } from './professional-info';
 import { ReviewForm } from './review';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
-import { updateFormsFromAnalysis } from '@/lib/form/update-helpers';
 import { handleFormError } from '@/lib/form/errors';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -31,6 +36,7 @@ import { FullProfile } from '@/types';
 import { useTabs } from '@/hooks/use-tabs';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
+import React from 'react';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -67,23 +73,76 @@ export function RegistrationForm({
     'professionalInfo',
   ];
 
-  const { currentTab, handleTabChange } = useTabs<Step>('step', 'documents');
+  const [currentTab, setCurrentTab] = React.useState<Step>('documents');
+
   const currentStepIndex = orderedSteps.indexOf(currentTab);
   const totalSteps = orderedSteps.length;
 
   // Gestionnaire d'analyse des components
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDocumentsAnalysis = async (data: any) => {
+  const handleDocumentsAnalysis = async (data: {
+    basicInfo?: Partial<BasicInfoFormData>;
+    contactInfo?: Partial<ContactInfoFormData>;
+    familyInfo?: Partial<FamilyInfoFormData>;
+    professionalInfo?: Partial<ProfessionalInfoFormData>;
+  }) => {
     setIsLoading(true);
     setError(undefined);
 
     try {
-      updateFormsFromAnalysis(data, {
-        basicInfo: forms.basicInfo,
-        contactInfo: forms.contactInfo,
-        familyInfo: forms.familyInfo,
-        professionalInfo: forms.professionalInfo,
-      });
+      // Update each form with the data from the analysis
+      if (data.basicInfo && forms.basicInfo) {
+        Object.entries(data.basicInfo).forEach(([field, value]) => {
+          if (
+            typeof field === 'string' &&
+            forms.basicInfo.getValues()[field as keyof BasicInfoFormData] !== undefined
+          ) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            forms.basicInfo.setValue(field as keyof BasicInfoFormData, value as any);
+          }
+        });
+      }
+
+      if (data.contactInfo && forms.contactInfo) {
+        Object.entries(data.contactInfo).forEach(([field, value]) => {
+          if (
+            typeof field === 'string' &&
+            forms.contactInfo.getValues()[field as keyof ContactInfoFormData] !==
+              undefined
+          ) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            forms.contactInfo.setValue(field as keyof ContactInfoFormData, value as any);
+          }
+        });
+      }
+
+      if (data.familyInfo && forms.familyInfo) {
+        Object.entries(data.familyInfo).forEach(([field, value]) => {
+          if (
+            typeof field === 'string' &&
+            forms.familyInfo.getValues()[field as keyof FamilyInfoFormData] !== undefined
+          ) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            forms.familyInfo.setValue(field as keyof FamilyInfoFormData, value as any);
+          }
+        });
+      }
+
+      if (data.professionalInfo && forms.professionalInfo) {
+        Object.entries(data.professionalInfo).forEach(([field, value]) => {
+          if (
+            typeof field === 'string' &&
+            forms.professionalInfo.getValues()[
+              field as keyof ProfessionalInfoFormData
+            ] !== undefined
+          ) {
+            forms.professionalInfo.setValue(
+              field as keyof ProfessionalInfoFormData,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              value as any,
+            );
+          }
+        });
+      }
 
       toast({
         duration: 1000,
@@ -128,40 +187,56 @@ export function RegistrationForm({
     }
 
     if (currentTab === 'documents' && nextStep) {
-      handleTabChange(nextStep);
+      setCurrentTab(nextStep);
       setIsLoading(false);
     }
 
     if (stepForm) {
       const editedFields = filterUneditedKeys(stepData, stepForm.formState.dirtyFields);
 
-      if (editedFields) {
+      console.log({ editedFields });
+
+      if (editedFields && Object.keys(editedFields).length > 0) {
         const { data: result, error } = await tryCatch(
           updateProfile(profile.id, editedFields),
         );
 
         if (currentStepIndex === totalSteps - 1) {
-          await handleFinalSubmit();
-          return;
+          if (profile.status !== 'DRAFT') {
+            toast({
+              title: t('submission.success.title'),
+              description: t('submission.success.description'),
+            });
+
+            router.push(ROUTES.user.profile);
+          } else {
+            await handleFinalSubmit();
+            return;
+          }
         }
 
         if (result && nextStep) {
-          handleTabChange(nextStep);
+          setCurrentTab(nextStep);
         }
 
         if (error) {
           setError(error.message);
         }
+      } else {
+        if (nextStep) {
+          setCurrentTab(nextStep);
+          setIsLoading(false);
+        } else {
+          router.push(ROUTES.user.profile);
+        }
       }
-
-      setIsLoading(false);
     }
   };
 
   const handlePrevious = () => {
     const previousStep = orderedSteps[orderedSteps.indexOf(currentTab) - 1];
     if (previousStep) {
-      handleTabChange(previousStep);
+      setCurrentTab(previousStep);
     }
   };
 
@@ -278,7 +353,7 @@ export function RegistrationForm({
             };
           })}
           currentStep={currentTab}
-          onChange={(step) => handleTabChange(step as Step)}
+          onChange={(step) => setCurrentTab(step as Step)}
         />
       </header>
       <div className="w-full flex flex-col">

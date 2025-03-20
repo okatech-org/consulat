@@ -19,8 +19,6 @@ export default async function RegistrationPage() {
 
   const profile = await getUserFullProfileById(currentUser?.profileId ?? '');
 
-  console.log({ profile });
-
   const CreateProfileFormComponent = () => (
     <div className="w-full h-full flex flex-col items-center justify-center max-w-lg mx-auto space-y-6">
       <header className="w-full border-b border-border pb-6">

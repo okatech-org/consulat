@@ -500,14 +500,18 @@ export function calculateAge(birthDate: string): number {
  * Extrait les champs spécifiés d'un objet
  * @param object Objet source
  * @param fields Liste des champs à extraire
- * @returns Objet contenant uniquement les champs spécifiés
+ * @returns Objet contenant uniquement les champs spécifiés et non null/undefined
  */
 export function extractFieldsFromObject<T extends Record<string, unknown>>(
-  object: T,
+  object: T | null | undefined,
   fields: (keyof T)[],
 ): Partial<T> {
+  if (!object) return {} as Partial<T>;
+
   return fields.reduce((acc, field) => {
-    acc[field] = object[field];
+    if (field in object && object[field] !== undefined && object[field] !== null) {
+      acc[field] = object[field];
+    }
     return acc;
   }, {} as Partial<T>);
 }
@@ -555,4 +559,152 @@ export function retrievePhoneNumber(phoneNumber: string): PhoneParts {
   const parts = phoneNumber.split('-') as [CountryIndicator, string];
 
   return parts;
+}
+
+/* eslint-disable guard-for-in, @typescript-eslint/no-unsafe-return */
+
+import { Primitive } from 'type-fest';
+
+/*
+ * [Generic way to convert all instances of null to undefined in TypeScript](https://stackoverflow.com/q/50374869)
+ *
+ * This only works with JS objects hence the file name *Object*Values
+ *
+ * ["I intend to stop using `null` in my JS code in favor of `undefined`"](https://github.com/sindresorhus/meta/discussions/7)
+ * [Proposal: NullToUndefined and UndefinedToNull](https://github.com/sindresorhus/type-fest/issues/603)
+ *
+ * Types implementation inspired by:
+ * - https://github.com/sindresorhus/type-fest/blob/v2.12.2/source/delimiter-cased-properties-deep.d.ts
+ * - https://github.com/sindresorhus/type-fest/blob/v2.12.2/source/readonly-deep.d.ts
+ *
+ * https://gist.github.com/tkrotoff/a6baf96eb6b61b445a9142e5555511a0
+ */
+
+export type NullToUndefined<T> = T extends null
+  ? undefined
+  : // eslint-disable-next-line
+    T extends Primitive | Function | Date | RegExp
+    ? T
+    : T extends (infer U)[]
+      ? NullToUndefined<U>[]
+      : T extends Map<infer K, infer V>
+        ? Map<K, NullToUndefined<V>>
+        : T extends Set<infer U>
+          ? Set<NullToUndefined<U>>
+          : T extends object
+            ? { [K in keyof T]: NullToUndefined<T[K]> }
+            : unknown;
+
+export type UndefinedToNull<T> = T extends undefined
+  ? null
+  : // eslint-disable-next-line
+    T extends Primitive | Function | Date | RegExp
+    ? T
+    : T extends (infer U)[]
+      ? UndefinedToNull<U>[]
+      : T extends Map<infer K, infer V>
+        ? Map<K, UndefinedToNull<V>>
+        : T extends Set<infer U>
+          ? Set<NullToUndefined<U>>
+          : T extends object
+            ? { [K in keyof T]: UndefinedToNull<T[K]> }
+            : unknown;
+
+function _nullToUndefined<T>(obj: T): NullToUndefined<T> {
+  if (obj === null) {
+    // eslint-disable-next-line
+    return undefined as any;
+  }
+
+  if (typeof obj === 'object') {
+    if (obj instanceof Map) {
+      obj.forEach((value, key) => obj.set(key, _nullToUndefined(value)));
+    } else {
+      for (const key in obj) {
+        // eslint-disable-next-line
+        obj[key] = _nullToUndefined(obj[key]) as any;
+      }
+    }
+  }
+
+  // eslint-disable-next-line
+  return obj as any;
+}
+
+/**
+ * Recursively converts all null values to undefined.
+ *
+ * @param obj object to convert
+ * @returns a copy of the object with all its null values converted to undefined
+ */
+export function nullToUndefined<
+  T,
+  // Can cause: "Type instantiation is excessively deep and possibly infinite."
+  //extends Jsonifiable
+>(obj: T) {
+  return _nullToUndefined(structuredClone(obj));
+}
+
+function _undefinedToNull<T>(obj: T): UndefinedToNull<T> {
+  if (obj === undefined) {
+    // eslint-disable-next-line
+    return null as any;
+  }
+
+  if (typeof obj === 'object') {
+    if (obj instanceof Map) {
+      obj.forEach((value, key) => obj.set(key, _undefinedToNull(value)));
+    } else {
+      for (const key in obj) {
+        // eslint-disable-next-line
+        obj[key] = _undefinedToNull(obj[key]) as any;
+      }
+    }
+  }
+
+  // eslint-disable-next-line
+  return obj as any;
+}
+
+/**
+ * Recursively converts all undefined values to null.
+ *
+ * @param obj object to convert
+ * @returns a copy of the object with all its undefined values converted to null
+ */
+export function undefinedToNull<T>(obj: T) {
+  return _undefinedToNull(structuredClone(obj));
+}
+
+/**
+ * Recursively remove all undefined values
+ *
+ * @param obj object to convert
+ * @returns a copy of the object with all its undefined values removed
+ */
+// eslint-disable-next-line
+export function removeUndefined<T extends Record<string, any>>(obj: T): T {
+  if (Array.isArray(obj)) {
+    return (
+      obj
+        // eslint-disable-next-line
+        .map((element) => removeUndefined<T>(element)) as unknown as T
+    );
+  }
+
+  // eslint-disable-next-line
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+
+  // eslint-disable-next-line
+  return Object.keys(obj).reduce((acc: any, key: string) => {
+    // eslint-disable-next-line
+    const value = obj[key];
+    if (value !== undefined) {
+      // eslint-disable-next-line
+      acc[key] = removeUndefined<T>(value);
+    }
+    return acc;
+  }, {});
 }
