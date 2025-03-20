@@ -1,0 +1,20 @@
+export default {
+  assistant_description: 'Votre assistant virtuel.',
+  assistant_name: 'Ray',
+  close_chat: 'Fermer le chat',
+  chat_with_ray: 'Discuter avec Ray',
+  welcome_title: 'Bienvenue sur le Chat du Consulat',
+  welcome_description:
+    'Je suis Ray, votre assistant virtuel. Je peux vous aider avec vos démarches consulaires. Commencez par me poser une question.',
+  input_placeholder: 'Tapez votre message ici...',
+  send_button: 'Envoyer',
+  typing_indicator: "Ray est en train d'écrire...",
+  error_message: 'Désolé, une erreur est survenue. Veuillez réessayer.',
+  load_conversation: 'Charger une conversation',
+  new_conversation: 'Nouvelle conversation',
+  save_conversation: 'Sauvegarder la conversation',
+  delete_conversation: 'Supprimer la conversation',
+  conversation_history: 'Historique des conversations',
+  no_conversations: 'Aucune conversation enregistrée',
+  disclaimer: ' ',
+} as const;

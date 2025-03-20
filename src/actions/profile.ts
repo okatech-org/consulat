@@ -344,7 +344,6 @@ export async function submitProfileForValidation(
       { name: 'phoneNumber', value: profile.phoneNumber },
       { name: 'email', value: profile.email },
       { name: 'residentContact', value: profile.residentContact },
-      { name: 'homeLandContact', value: profile.homeLandContact },
     ];
 
     const missingContactInfo = requiredContactInfo

@@ -28,6 +28,7 @@ import appointments from './appointments';
 import agent from './agent';
 import requests from './requests';
 import account from './account';
+import chat from './chat';
 
 const translations = {
   common,
@@ -60,6 +61,7 @@ const translations = {
   agent,
   requests,
   account,
+  chat,
 };
 
 export default translations;

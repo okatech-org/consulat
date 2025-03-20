@@ -12,6 +12,7 @@ import {
   SUPER_ADMIN_PROMPT,
 } from '@/lib/ai/prompts';
 import { FullProfileInclude, FullUserInclude } from '@/types';
+import { FullServiceRequestInclude } from '@/types/service-request';
 
 const openai = new OpenAI();
 
@@ -122,10 +123,10 @@ async function getUserContextDataForUser(
         ...FullProfileInclude,
       }),
       db.serviceRequest.findMany({
-        where: { userId },
+        where: { assignedToId: userId },
       }),
       db.appointment.findMany({
-        where: { userId },
+        where: { attendeeId: userId },
       }),
       db.notification.findMany({
         where: { userId },
@@ -136,10 +137,9 @@ async function getUserContextDataForUser(
     baseData.user = JSON.stringify({
       id: user.id,
       email: user.email,
-      phone: user.phone,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
+      phoneNumber: user.phoneNumber,
+      name: user.name,
+      role: user.roles,
     });
   }
 
@@ -233,18 +233,11 @@ async function getUserContextDataAgent(
     const [user, consularProfiles, notifications, appointments] = await Promise.all([
       db.user.findUnique({
         where: { id: userId },
+        ...FullUserInclude,
       }),
       db.profile.findMany({
         where: { userId },
-        include: {
-          identityPicture: true,
-          passport: true,
-          birthCertificate: true,
-          residencePermit: true,
-          addressProof: true,
-          address: true,
-          notifications: true,
-        },
+        ...FullProfileInclude,
       }),
       db.notification.findMany({
         where: { userId },
@@ -294,9 +287,11 @@ async function getUserContextDataAdmin(
     const [user, serviceRequests, consularStatistics] = await Promise.all([
       db.user.findUnique({
         where: { id: userId },
+        ...FullUserInclude,
       }),
       db.serviceRequest.findMany({
         where: { assignedToId: userId },
+        ...FullServiceRequestInclude,
       }),
       db.serviceRequest.groupBy({
         by: ['status'],

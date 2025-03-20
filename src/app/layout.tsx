@@ -11,6 +11,7 @@ import { ChatToggle } from '@/components/chat/chat-toggle';
 import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 import { env } from '@/lib/env/index';
+import { ChatProvider } from '@/contexts/chat-context';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -94,13 +95,15 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <SessionProvider session={session}>
-              {children}
-              <Toaster />
-              <div className="flex fixed flex-col p-2 items-center bottom-2 translate-x-1/2 sm:translate-x-0 right-[50%] rounded-full sm:bottom-4 sm:right-6">
-                <ChatToggle />
-              </div>
-            </SessionProvider>
+            <ChatProvider>
+              <SessionProvider session={session}>
+                {children}
+                <Toaster />
+                <div className="flex fixed flex-col p-2 items-center bottom-2 translate-x-1/2 sm:translate-x-0 right-[50%] rounded-full sm:bottom-4 sm:right-6">
+                  <ChatToggle />
+                </div>
+              </SessionProvider>
+            </ChatProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
