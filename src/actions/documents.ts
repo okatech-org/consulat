@@ -20,7 +20,6 @@ import {
   FamilyInfoFormData,
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
-import { removeNullValues } from '@/lib/utils';
 
 // Types
 interface DocumentAnalysisResult {

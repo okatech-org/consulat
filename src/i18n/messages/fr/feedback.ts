@@ -36,12 +36,13 @@ export default {
     email: 'Email (optionnel)',
     emailPlaceholder: 'Votre email si vous souhaitez être recontacté',
     submit: 'Envoyer',
+    close: 'Fermer',
     cancel: 'Annuler',
   },
   banner: {
-    betaVersion: 'Version Bêta',
-    feedbackWelcome: 'Vos retours sont les bienvenus',
-    openFeedback: 'Donner mon avis',
+    betaVersion: 'Version Bêta, ',
+    feedbackWelcome: 'vos retours sont les bienvenus',
+    openFeedback: '(Donner mon avis)',
   },
   confirmation: {
     title: 'Merci pour votre retour',

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
 import { FeedbackFormValues, feedbackSchema } from '@/schemas/feedback';
 import { submitFeedback } from '@/actions/feedback';
 
@@ -26,13 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 
 interface FeedbackFormProps {
   isOpen?: boolean;
@@ -43,7 +36,6 @@ interface FeedbackFormProps {
 export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
   const t = useTranslations('feedback');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
@@ -61,13 +53,23 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
 
       if (result.success) {
         form.reset();
-        setShowConfirmation(true);
+        toast({
+          variant: 'success',
+          title: t('confirmation.title'),
+          description: t('confirmation.message'),
+        });
         if (onSuccess) onSuccess();
       } else {
-        toast.error(t('error.unknown'));
+        toast({
+          variant: 'destructive',
+          title: t('error.unknown'),
+        });
       }
     } catch (error) {
-      toast.error(t('error.unknown'));
+      toast({
+        variant: 'destructive',
+        title: t('error.unknown'),
+      });
       console.error('Error submitting feedback:', error);
     } finally {
       setIsSubmitting(false);
@@ -168,25 +170,6 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
             {isSubmitting ? t('loading.submitting') : t('form.submit')}
           </Button>
         </div>
-
-        <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t('confirmation.title')}</DialogTitle>
-              <DialogDescription>{t('confirmation.message')}</DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-end">
-              <Button
-                onClick={() => {
-                  setShowConfirmation(false);
-                  if (onOpenChange) onOpenChange(false);
-                }}
-              >
-                {t('form.cancel')}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </form>
     </Form>
   );
