@@ -36,7 +36,19 @@ export function ContactInfoSection({ profile }: ContactInfoSectionProps) {
   const form = useForm<ContactInfoFormData>({
     resolver: zodResolver(ContactInfoSchema),
     // @ts-expect-error -- TODO: fic the don't accept null values
-    defaultValues: profile,
+    defaultValues: {
+      ...profile,
+      phoneNumber: profile.phoneNumber ?? '+33-',
+      address: { ...profile.address, country: profile.address?.country ?? 'FR' },
+      residentContact: {
+        ...profile.residentContact,
+        phoneNumber: profile.residentContact?.phoneNumber ?? '+33-',
+        address: {
+          ...profile.residentContact?.address,
+          country: profile.residentContact?.address?.country ?? 'FR',
+        },
+      },
+    },
   });
 
   const handleSave = async () => {

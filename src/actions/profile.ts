@@ -105,167 +105,168 @@ export async function updateProfile(
   profileId: string,
   data: Partial<FullProfileUpdateFormData>,
 ): Promise<Profile> {
-  const t = await getTranslations('messages.profile.errors');
-  const { user } = await checkAuth();
+  const result = await tryCatch(
+    (async () => {
+      const t = await getTranslations('messages.profile.errors');
+      const { user } = await checkAuth();
 
-  if (!user || !user?.id) {
-    throw new Error(t('unauthorized'));
-  }
+      if (!user || !user?.id) {
+        throw new Error(t('unauthorized'));
+      }
 
-  const existingProfile = await db.profile.findUnique({
-    where: { id: profileId },
-  });
+      const existingProfile = await db.profile.findUnique({
+        where: { id: profileId },
+      });
 
-  if (!existingProfile) {
-    throw new Error(t('profile_not_found'));
-  }
+      if (!existingProfile) {
+        throw new Error(t('profile_not_found'));
+      }
 
-  const {
-    passportIssueDate,
-    passportExpiryDate,
-    address,
-    residentContact,
-    homeLandContact,
-    passport,
-    birthCertificate,
-    residencePermit,
-    addressProof,
-    identityPicture,
-    birthDate,
-    ...remain
-  } = data;
+      const {
+        passportIssueDate,
+        passportExpiryDate,
+        address,
+        residentContact,
+        homeLandContact,
+        passport,
+        birthCertificate,
+        residencePermit,
+        addressProof,
+        identityPicture,
+        birthDate,
+        ...remain
+      } = data;
 
-  const updateData: Prisma.ProfileUpdateInput = {
-    ...remain,
-    ...(birthDate && { birthDate: new Date(birthDate) }),
-    ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
-    ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
-    ...(address && {
-      address: {
-        upsert: {
-          create: address,
-          update: address,
-        },
-      },
-    }),
-    ...(residentContact && {
-      residentContact: {
-        upsert: {
-          create: {
-            phoneNumber: residentContact.phoneNumber,
-            firstName: residentContact.firstName,
-            lastName: residentContact.lastName,
-            ...(residentContact.relationship && {
-              relationship: residentContact.relationship,
-            }),
-            ...(residentContact.address && {
-              address: {
-                create: residentContact.address,
-              },
-            }),
+      // Create the update data object with proper types for Prisma
+      const updateData: Prisma.ProfileUpdateInput = {
+        ...remain,
+        ...(birthDate && { birthDate: new Date(birthDate) }),
+        ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
+        ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
+        ...(address && {
+          address: {
+            upsert: {
+              create: address,
+              update: address,
+            },
           },
-          update: {
-            ...(residentContact.firstName && {
-              firstName: residentContact.firstName,
-            }),
-            ...(residentContact.lastName && {
-              lastName: residentContact.lastName,
-            }),
-            ...(residentContact.relationship && {
-              relationship: residentContact.relationship,
-            }),
-            ...(residentContact.phoneNumber && {
-              phoneNumber: residentContact.phoneNumber,
-            }),
-            ...(residentContact.address && {
-              address: {
-                upsert: {
-                  create: residentContact.address,
-                  update: residentContact.address,
+        }),
+        ...(residentContact && {
+          residentContact: {
+            upsert: {
+              create: {
+                phoneNumber: residentContact.phoneNumber,
+                firstName: residentContact.firstName,
+                lastName: residentContact.lastName,
+                ...(residentContact.relationship && {
+                  relationship: residentContact.relationship,
+                }),
+                ...(residentContact.address && {
+                  address: {
+                    create: residentContact.address,
+                  },
+                }),
+              },
+              update: {
+                ...(residentContact.firstName && {
+                  firstName: residentContact.firstName,
+                }),
+                ...(residentContact.lastName && {
+                  lastName: residentContact.lastName,
+                }),
+                ...(residentContact.relationship && {
+                  relationship: residentContact.relationship,
+                }),
+                ...(residentContact.phoneNumber && {
+                  phoneNumber: residentContact.phoneNumber,
+                }),
+                ...(residentContact.address && {
+                  address: {
+                    upsert: {
+                      create: residentContact.address,
+                      update: residentContact.address,
+                    },
+                  },
+                }),
+              },
+            },
+          },
+        }),
+        ...(homeLandContact && {
+          homeLandContact: {
+            upsert: {
+              create: {
+                firstName: homeLandContact.firstName,
+                lastName: homeLandContact.lastName,
+                relationship: homeLandContact.relationship,
+                phoneNumber: homeLandContact.phoneNumber,
+                address: {
+                  create: homeLandContact.address,
                 },
               },
-            }),
-          },
-        },
-      },
-    }),
-    ...(homeLandContact && {
-      homeLandContact: {
-        upsert: {
-          create: {
-            firstName: homeLandContact.firstName,
-            lastName: homeLandContact.lastName,
-            relationship: homeLandContact.relationship,
-            phoneNumber: homeLandContact.phoneNumber,
-            address: {
-              create: homeLandContact.address,
-            },
-          },
-          update: {
-            firstName: homeLandContact.firstName,
-            lastName: homeLandContact.lastName,
-            relationship: homeLandContact.relationship,
-            phoneNumber: homeLandContact.phoneNumber,
-            address: {
-              upsert: {
-                create: homeLandContact.address,
-                update: homeLandContact.address,
+              update: {
+                firstName: homeLandContact.firstName,
+                lastName: homeLandContact.lastName,
+                relationship: homeLandContact.relationship,
+                phoneNumber: homeLandContact.phoneNumber,
+                address: {
+                  upsert: {
+                    create: homeLandContact.address,
+                    update: homeLandContact.address,
+                  },
+                },
               },
             },
           },
-        },
-      },
-    }),
-    ...(identityPicture && {
-      identityPicture: {
-        upsert: {
-          create: identityPicture,
-          update: identityPicture,
-        },
-      },
-    }),
-    ...(passport && {
-      passport: {
-        upsert: {
-          create: passport,
-          update: passport,
-        },
-      },
-    }),
-    ...(birthCertificate && {
-      birthCertificate: {
-        upsert: {
-          create: birthCertificate,
-          update: birthCertificate,
-        },
-      },
-    }),
-    ...(residencePermit && {
-      residencePermit: {
-        upsert: {
-          create: residencePermit,
-          update: residencePermit,
-        },
-      },
-    }),
-    ...(addressProof && {
-      addressProof: {
-        upsert: {
-          create: addressProof,
-          update: addressProof,
-        },
-      },
-    }),
-  };
+        }),
+      };
 
-  // Mettre à jour le profil
-  const updatedProfile = await db.profile.update({
-    where: { id: existingProfile.id },
-    data: { ...updateData },
-    ...FullProfileInclude,
-  });
+      // Handle document connections by connecting to the IDs
+      if (identityPicture) {
+        updateData.identityPicture = { connect: { id: identityPicture.id } };
+      }
 
-  return updatedProfile;
+      if (passport) {
+        updateData.passport = { connect: { id: passport.id } };
+      }
+
+      if (birthCertificate) {
+        updateData.birthCertificate = { connect: { id: birthCertificate.id } };
+      }
+
+      if (residencePermit) {
+        updateData.residencePermit = { connect: { id: residencePermit.id } };
+      }
+
+      if (addressProof) {
+        updateData.addressProof = { connect: { id: addressProof.id } };
+      }
+
+      // Update the profile
+      const updated = await db.profile.update({
+        where: { id: existingProfile.id },
+        data: updateData,
+        ...FullProfileInclude,
+      });
+
+      if (!updated) {
+        throw new Error(t('update_failed'));
+      }
+
+      return updated;
+    })(),
+  );
+
+  if (result.error) {
+    console.error('Profile update failed:', result.error);
+    throw result.error;
+  }
+
+  if (!result.data) {
+    throw new Error('profile_update_failed');
+  }
+
+  return result.data;
 }
 
 export async function submitProfileForValidation(
@@ -321,7 +322,7 @@ export async function submitProfileForValidation(
   if (!isChild) {
     requiredFields.push(
       profile.address,
-      profile.phoneId,
+      profile.phoneNumber,
       profile.email,
       profile.residentContact,
       profile.homeLandContact,
