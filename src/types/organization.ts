@@ -76,7 +76,6 @@ export const FullOrganizationInclude = {
         isActive: true,
         organizationId: true,
         countryCode: true,
-        phoneNumber: true,
       },
     },
     agents: {
