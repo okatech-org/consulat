@@ -44,7 +44,7 @@ export function AppSidebar({
   const t = useTranslations('navigation');
   const t_nav = useTranslations('user.nav');
   const t_countries = useTranslations('countries');
-  const currentUserRoles = user.roles;
+  const currentUserRoles = user.roles ?? [];
 
   const AdminNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {

@@ -4,8 +4,7 @@ import { ROUTES } from '@/schemas/routes';
 import { AppSidebar } from '@/components/layouts/app-sidebar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { BreadcrumbMenu } from '@/components/layouts/breadcrumb-menu';
-import { checkUserExist, getCurrentUser } from '@/actions/user';
-import { signOut } from 'next-auth/react';
+import { getCurrentUser } from '@/actions/user';
 import { NavUser } from '@/components/layouts/nav-user';
 
 export default async function AuthenticatedLayout({
@@ -14,17 +13,12 @@ export default async function AuthenticatedLayout({
   children: React.ReactNode;
 }>) {
   const currentUser = await getCurrentUser();
-  const isUserExists = await checkUserExist(currentUser?.id ?? '');
   const headersList = await headers();
   const pathname = headersList.get('x-current-path') || '/';
   const fallbackUrl = `${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`;
 
   if (!currentUser) {
     redirect(fallbackUrl);
-  }
-
-  if (!isUserExists) {
-    await signOut({ redirectTo: fallbackUrl ?? ROUTES.auth.login });
   }
 
   return (

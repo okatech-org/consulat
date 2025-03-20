@@ -20,7 +20,6 @@ async function main() {
       prisma.serviceRequest.deleteMany(),
       prisma.consularService.deleteMany(),
       prisma.emergencyContact.deleteMany(),
-      prisma.phone.deleteMany(),
       prisma.address.deleteMany(),
       prisma.parentalAuthority.deleteMany(),
       prisma.profile.deleteMany(),
@@ -55,8 +54,7 @@ async function main() {
     console.log('Creating super admin user...');
     await prisma.user.create({
       data: {
-        firstName: 'Okatech',
-        lastName: 'SA',
+        name: 'Okatech Admin',
         id: 'user-super-admin',
         email: 'okatech@icloud.com',
         roles: [UserRole.SUPER_ADMIN],

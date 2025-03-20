@@ -2,38 +2,33 @@ import { LoginForm } from '../_utils/login-form';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
-import { auth } from '@/auth';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { BetaBanner } from '@/components/ui/beta-banner';
+import { getCurrentUser } from '@/actions/user';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function LoginPage() {
   const t = await getTranslations('auth.login');
-  const session = await auth();
+  const user = await getCurrentUser();
   const headersList = await headers();
   const searchParams = new URLSearchParams(headersList.get('x-params-string') ?? '');
   const callbackUrl = searchParams.get('callbackUrl');
 
-  if (session?.user) {
+  if (user) {
     if (callbackUrl) {
       redirect(callbackUrl);
     } else {
-      const isAdmin = hasAnyRole(session.user, [
-        'ADMIN',
-        'SUPER_ADMIN',
-        'AGENT',
-        'MANAGER',
-      ]);
+      const isAdmin = hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER']);
 
       if (isAdmin) {
         redirect(ROUTES.dashboard.base);
       }
 
-      if (hasAnyRole(session.user, ['USER'])) {
+      if (hasAnyRole(user, ['USER'])) {
         redirect(ROUTES.user.base);
       }
 
@@ -59,11 +54,11 @@ export default async function LoginPage() {
             <p className="text-lg text-muted-foreground">
               {t('page.welcome_message', { appName: env.NEXT_PUBLIC_APP_NAME })}
             </p>
-            <BetaBanner className="mt-4" />
           </header>
           <div className="w-full">
             <LoginForm />
           </div>
+          <BetaBanner className="mt-4" />
         </div>
       </div>
       <div className="w-full h-full overflow-hidden rounded-lg hidden md:block">

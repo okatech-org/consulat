@@ -43,3 +43,6 @@ next-env.d.ts
 # ai sum
 /ai-sum
 .code_base.md
+
+# backups
+/backups

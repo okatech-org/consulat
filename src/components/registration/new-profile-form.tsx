@@ -370,7 +370,7 @@ export function NewProfileForm({
             disabled={isLoading || !form.formState.isValid}
           >
             <span>
-              {showOTP ? "Obtenir un code d'accès" : 'Continuer mon inscription'}
+              {showOTP ? 'Continuer mon inscription' : "Obtenir un code d'accès"}
             </span>
             {!isLoading && <ArrowRight className="size-icon" />}
             {isLoading && <Loader2 className="size-icon animate-spin" />}
