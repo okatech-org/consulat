@@ -29,7 +29,7 @@ export default async function ChildrenPage() {
           <Button asChild size="sm">
             <Link href={ROUTES.user.new_child}>
               <Plus className="size-icon" />
-              {t('add_child')}
+              <span className={'ml-1 hidden sm:inline'}>{t('add_child')}</span>
             </Link>
           </Button>
         }

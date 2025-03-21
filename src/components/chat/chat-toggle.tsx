@@ -184,7 +184,7 @@ export function ChatToggle() {
           <ModernChatWindow
             className="h-full border-0 shadow-none rounded-none"
             botName="Ray"
-            botAvatarUrl="/images/avatar-placeholder.png"
+            botAvatarUrl="/avatar-placeholder.png"
             onSendMessage={handleSendMessage}
           />
         </div>

@@ -96,7 +96,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
           </Badge>
           <h3 className="font-semibold">
             {t('appointmentWith', {
-              name: `${appointment.attendee?.firstName ?? ''} ${appointment.attendee?.lastName ?? 'N/A'}`,
+              name: `${appointment.attendee?.name ?? 'N/A'}`,
             })}
           </h3>
           <p className="text-sm text-muted-foreground">
@@ -105,9 +105,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
           {appointment.attendee && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="size-4" />
-              <span>
-                {appointment.attendee.firstName} {appointment.attendee.lastName}
-              </span>
+              <span>{appointment.attendee.name}</span>
             </div>
           )}
         </div>

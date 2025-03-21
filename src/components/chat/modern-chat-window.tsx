@@ -45,7 +45,7 @@ export function ModernChatWindow({
   initialMessages = [],
   onSendMessage,
   botName = 'Ray',
-  botAvatarUrl = '/images/avatar-placeholder.png',
+  botAvatarUrl = '/avatar-placeholder.png',
 }: ModernChatWindowProps) {
   const t = useTranslations('chat');
   const { closeChat } = useChat();

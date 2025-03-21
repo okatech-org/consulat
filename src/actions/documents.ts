@@ -14,7 +14,6 @@ import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
 import { ROUTES } from '@/schemas/routes';
 import { documentSpecificFields } from '@/lib/document-fields';
-import { FullProfile } from '@/types/profile';
 
 import {
   BasicInfoFormData,

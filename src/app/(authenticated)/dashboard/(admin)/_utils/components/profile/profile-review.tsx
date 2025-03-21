@@ -116,16 +116,16 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                 label={t(`common.status.${request.status}`)}
               />
             </h2>
-            {profile.user?.email && (
+            {profile?.email && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                 <Mail className="size-4" />
-                {profile.user.email}
+                {profile.email}
               </div>
             )}
-            {profile.phone && (
+            {profile?.phoneNumber && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                 <Phone className="size-4" />
-                {profile.phone.number}
+                {profile.phoneNumber}
               </div>
             )}
             <div className="flex items-center gap-2">

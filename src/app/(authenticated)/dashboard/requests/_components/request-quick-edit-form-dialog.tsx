@@ -124,7 +124,7 @@ export function RequestQuickEditFormDialog({
                   <FormLabel>{t('inputs.agent.assigned_to')}</FormLabel>
                   <MultiSelect
                     options={agents.map((agent) => ({
-                      label: `${agent.firstName} ${agent.lastName}`,
+                      label: `${agent.name}`,
                       value: agent.id,
                     }))}
                     onChange={field.onChange}
@@ -143,8 +143,8 @@ export function RequestQuickEditFormDialog({
                   <FormLabel>{t('inputs.priority.label')}</FormLabel>
                   <MultiSelect<ServicePriority>
                     options={[
-                      { value: 'STANDARD', label: t('common.priority.standard') },
-                      { value: 'URGENT', label: t('common.priority.urgent') },
+                      { value: 'STANDARD', label: t('common.priority.STANDARD') },
+                      { value: 'URGENT', label: t('common.priority.URGENT') },
                     ]}
                     onChange={field.onChange}
                     selected={field.value}
@@ -162,23 +162,23 @@ export function RequestQuickEditFormDialog({
                   <FormLabel>{t('inputs.status.label')}</FormLabel>
                   <MultiSelect<RequestStatus>
                     options={[
-                      { value: 'SUBMITTED', label: t('common.status.submitted') },
-                      { value: 'PENDING', label: t('common.status.pending') },
+                      { value: 'SUBMITTED', label: t('common.status.SUBMITTED') },
+                      { value: 'PENDING', label: t('common.status.PENDING') },
                       {
                         value: 'PENDING_COMPLETION',
-                        label: t('common.status.pending_completion'),
+                        label: t('common.status.PENDING_COMPLETION'),
                       },
                       {
                         value: 'APPOINTMENT_SCHEDULED',
-                        label: t('common.status.appointment_scheduled'),
+                        label: t('common.status.APPOINTMENT_SCHEDULED'),
                       },
                       {
                         value: 'READY_FOR_PICKUP',
-                        label: t('common.status.ready_for_pickup'),
+                        label: t('common.status.READY_FOR_PICKUP'),
                       },
-                      { value: 'VALIDATED', label: t('common.status.validated') },
-                      { value: 'REJECTED', label: t('common.status.rejected') },
-                      { value: 'COMPLETED', label: t('common.status.completed') },
+                      { value: 'VALIDATED', label: t('common.status.VALIDATED') },
+                      { value: 'REJECTED', label: t('common.status.REJECTED') },
+                      { value: 'COMPLETED', label: t('common.status.COMPLETED') },
                     ]}
                     onChange={field.onChange}
                     selected={field.value}

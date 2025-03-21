@@ -37,7 +37,6 @@ import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import React from 'react';
 import { useStoredTabs } from '@/hooks/use-tabs';
-import { isFieldBlacklisted } from '@/lib/document-fields';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 

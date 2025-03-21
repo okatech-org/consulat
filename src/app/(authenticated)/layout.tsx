@@ -24,19 +24,17 @@ export default async function AuthenticatedLayout({
   return (
     <SidebarProvider>
       <AppSidebar user={currentUser} />
-      <SidebarInset className="w-dvwrelative overflow-x-hidden">
-        <header className="flex h-12 mb-4 bg-card shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex justify-between items-center border-b border-b-1 h-12 bg-card gap-2 px-4 min-w-full z-[9] fixed">
+      <SidebarInset className="overflow-x-hidden w-full">
+        <header className="w-full h-14 bg-card shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex h-full justify-between container items-center">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="-ml-1" />
               <BreadcrumbMenu />
             </div>
-            <div className="flex items-center gap-2">
-              <NavUser user={currentUser} />
-            </div>
+            <NavUser user={currentUser} showFeedback={false} />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        <div className="container py-4 sm:py-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

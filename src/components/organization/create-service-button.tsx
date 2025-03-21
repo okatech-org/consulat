@@ -59,8 +59,8 @@ export function CreateServiceButton({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="mr-2 size-4" />
-          <span className={'mobile-hide-inline'}>{t('actions.create')}</span>
+          <Plus className="mr-2 size-icon" />
+          <span className={'ml-1 hidden sm:inline'}>{t('actions.create')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px]">

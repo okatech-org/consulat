@@ -46,6 +46,7 @@ export const FullProfileInclude = {
             id: true,
             name: true,
             email: true,
+            phoneNumber: true,
             roles: true,
           },
         },

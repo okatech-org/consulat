@@ -1,7 +1,0 @@
-{
-    "name":"Consulat.ga",
-    "short_name":"CONSULAT",
-    "theme_color":"#043780",
-    "background_color":"#F1F5F9",
-    "icons":[{"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/android-chrome-512x512.png","sizes":"512x512","type":"image/png"}]
-}

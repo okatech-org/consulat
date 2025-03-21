@@ -106,7 +106,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
           </div>
           {appointment.agent && (
             <p className="text-sm text-muted-foreground">
-              {t('agent')}: {appointment.agent.firstName} {appointment.agent.lastName}
+              {t('agent')}: {appointment.agent.name}
             </p>
           )}
           {appointment.instructions && (

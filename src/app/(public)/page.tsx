@@ -92,6 +92,7 @@ export default async function LandingPage() {
                       alt="Consulat Digital - Présentation"
                       width={1000}
                       height={1000}
+                      priority
                       className="w-full h-full object-cover"
                     />
                   </div>

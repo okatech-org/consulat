@@ -23,9 +23,10 @@ import { User } from '@prisma/client';
 import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
+import { SessionUser } from '@/types';
 
 interface RequestsTableProps {
-  user: User;
+  user: SessionUser;
   filters: GetRequestsOptions;
   agents?: User[];
   availableServiceCategories: ServiceCategory[];
@@ -99,9 +100,33 @@ export function RequestsTable({
     [searchParams],
   );
 
+  const [pendingFilters, setPendingFilters] = React.useState<
+    Record<string, string | undefined>
+  >({});
+
+  React.useEffect(() => {
+    // Only execute if there are pending filters to apply
+    if (Object.keys(pendingFilters).length > 0) {
+      // Build the complete query string from all pending filters
+      let newQueryString = searchParams.toString();
+
+      // Apply each pending filter
+      for (const [name, value] of Object.entries(pendingFilters)) {
+        const updatedQueryString = createQueryString(name, value);
+        newQueryString = updatedQueryString;
+      }
+
+      // Navigate to the new URL
+      router.push(`${pathname}?${newQueryString}`);
+
+      // Clear pending filters after applying them
+      setPendingFilters({});
+    }
+  }, [pendingFilters, createQueryString, pathname, router, searchParams]);
+
   const handleFilterChange = (name: string, value: string | undefined) => {
-    const newQueryString = createQueryString(name, value);
-    router.push(`${pathname}?${newQueryString}`);
+    // Instead of directly updating the router, queue the change
+    setPendingFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const columns: ColumnDef<PaginatedServiceRequests['items'][number]>[] = [
@@ -142,8 +167,7 @@ export function RequestsTable({
         <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
       ),
       cell: ({ row }) => {
-        const fullName =
-          row.original.submittedBy.firstName + ' ' + row.original.submittedBy.lastName;
+        const fullName = row.original.submittedBy.name;
 
         return (
           <div className="flex space-x-2">
@@ -153,12 +177,12 @@ export function RequestsTable({
       },
     },
     {
-      accessorKey: 'submittedAt',
+      accessorKey: 'createdAt',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('requests.table.submitted_at')} />
       ),
       cell: ({ row }) => {
-        const date = row.original.submittedAt;
+        const date = row.original.createdAt;
         return date ? formatDate(date, 'dd/MM/yyyy') : '-';
       },
     },
@@ -250,7 +274,7 @@ export function RequestsTable({
       ),
       cell: ({ row }) => {
         const assignedTo = row.original.assignedTo;
-        return assignedTo ? assignedTo.firstName + ' ' + assignedTo.lastName : '-';
+        return assignedTo ? assignedTo.name : '-';
       },
     });
   }
@@ -319,8 +343,7 @@ export function RequestsTable({
       defaultValue: filters.priority?.toString().split(',') ?? undefined,
       options: Object.values(ServicePriority).map((priority) => ({
         value: priority,
-        // @ts-expect-error - translations are in lowercase
-        label: t('common.priority.' + priority.toLowerCase()),
+        label: t(`common.priority.${priority}`),
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {
@@ -355,7 +378,7 @@ export function RequestsTable({
       defaultValue: filters.assignedToId?.toString().split(',') ?? undefined,
       options: agents.map((agent) => ({
         value: agent.id,
-        label: agent.firstName + ' ' + agent.lastName,
+        label: agent.name || '-',
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {

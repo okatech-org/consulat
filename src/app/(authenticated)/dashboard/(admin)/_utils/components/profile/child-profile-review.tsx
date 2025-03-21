@@ -31,6 +31,7 @@ import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions'
 import { LinkInfoSection } from '@/app/(authenticated)/my-space/children/_components/sections/link-info-section';
 import { BasicInfoSection } from '@/app/(authenticated)/my-space/profile/_utils/components/sections/basic-info-section';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { useRouter } from 'next/navigation';
 
 interface ChildProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -44,6 +45,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
   const { formatDate } = useDateLocale();
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
   const [validationNotes, setValidationNotes] = useState('');
+  const router = useRouter();
 
   if (!profile || !user) {
     return null;
@@ -73,7 +75,14 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
     {
       value: 'identity',
       label: t('registration.steps.basicInfo'),
-      component: <BasicInfoSection profile={profile} />,
+      component: (
+        <BasicInfoSection
+          profile={profile}
+          onSave={() => {
+            router.refresh();
+          }}
+        />
+      ),
     },
   ];
 
@@ -110,10 +119,10 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
                 {profile.user.email}
               </div>
             )}
-            {profile.phone && (
+            {profile.user?.phoneNumber && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                 <Phone className="size-4" />
-                {profile.phone.number}
+                {profile.user.phoneNumber}
               </div>
             )}
             <div className="flex items-center gap-2">

@@ -11,6 +11,7 @@ import {
   User,
   Users,
   Baby,
+  BellIcon,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -50,44 +51,50 @@ export function AppSidebar({
     {
       title: t('super_admin.dashboard'),
       url: ROUTES.dashboard.base,
-      icon: LayoutDashboard,
+      icon: <LayoutDashboard className="size-icon" />,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT],
     },
     {
       title: t('super_admin.countries'),
       url: ROUTES.sa.countries,
-      icon: Globe,
+      icon: <Globe className="size-icon" />,
       roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('super_admin.organizations'),
       url: ROUTES.sa.organizations,
-      icon: Building2,
+      icon: <Building2 className="size-icon" />,
       roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('admin.requests'),
       url: ROUTES.dashboard.requests,
-      icon: FileText,
+      icon: <FileText className="size-icon" />,
+      roles: [UserRole.ADMIN, UserRole.AGENT],
+    },
+    {
+      title: t('admin.appointments'),
+      url: ROUTES.dashboard.appointments,
+      icon: <Calendar className="size-icon" />,
       roles: [UserRole.ADMIN, UserRole.AGENT],
     },
     {
       title: t('super_admin.users'),
       url: ROUTES.dashboard.users,
-      icon: Users,
+      icon: <Users className="size-icon" />,
       roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('admin.notifications'),
       url: ROUTES.dashboard.notifications,
-      iconComponent: <NotificationBell />,
+      icon: <NotificationBell />,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
     },
 
     {
       title: t('admin.settings'),
       url: ROUTES.dashboard.settings,
-      icon: Settings,
+      icon: <Settings className="size-icon" />,
       roles: [UserRole.ADMIN],
     },
   ];
@@ -96,31 +103,31 @@ export function AppSidebar({
     {
       title: t_nav('dashboard'),
       url: ROUTES.user.dashboard,
-      icon: LayoutDashboard,
+      icon: <LayoutDashboard className="size-icon" />,
       roles: [UserRole.USER],
     },
     {
       title: t_nav('profile'),
       url: ROUTES.user.profile,
-      icon: User,
+      icon: <User className="size-icon" />,
       roles: [UserRole.USER],
     },
     {
       title: t_nav('children'),
       url: ROUTES.user.children,
-      icon: Baby,
+      icon: <Baby className="size-icon" />,
       roles: [UserRole.USER],
     },
     {
       title: t_nav('appointments'),
       url: ROUTES.user.appointments,
-      icon: Calendar,
+      icon: <Calendar className="size-icon" />,
       roles: [UserRole.USER],
     },
     {
       title: t('notifications'),
       url: ROUTES.user.notifications,
-      iconComponent: <NotificationBell />,
+      icon: <NotificationBell />,
       roles: [UserRole.USER],
     },
   ];

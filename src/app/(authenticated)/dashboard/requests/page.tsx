@@ -1,7 +1,6 @@
 import CardContainer from '@/components/layouts/card-container';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
-import { auth } from '@/auth';
 import { hasAnyRole, hasPermission } from '@/lib/permissions/utils';
 import { GetRequestsOptions } from '@/actions/service-requests';
 import { RequestsTable } from './_components/requests-table';
@@ -11,25 +10,22 @@ import {
 } from '@/actions/organizations';
 import { PageContainer } from '@/components/layouts/page-container';
 import { tryCatch } from '@/lib/utils';
+import { getCurrentUser } from '@/actions/user';
 interface Props {
   searchParams: Record<keyof GetRequestsOptions, string | undefined>;
 }
 
 export default async function RequestsPage({ searchParams }: Props) {
-  const session = await auth();
+  const user = await getCurrentUser();
   const queryParams = await searchParams;
   const t = await getTranslations('requests');
 
-  const isAdmin = session?.user
-    ? hasAnyRole(session.user, ['ADMIN', 'SUPER_ADMIN'])
-    : false;
-  const isAgent = session?.user ? hasAnyRole(session.user, ['AGENT']) : false;
+  const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN']) : false;
+  const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
 
   const organization = isAdmin
     ? await tryCatch(
-        getOrganizationWithSpecificIncludes(session?.user.organizationId as string, [
-          'agents',
-        ]),
+        getOrganizationWithSpecificIncludes(user?.organizationId as string, ['agents']),
       )
     : undefined;
 
@@ -39,8 +35,8 @@ export default async function RequestsPage({ searchParams }: Props) {
     const serviceCategoriesResult = await tryCatch(
       getAvailableServiceCategories(
         isAgent
-          ? (session?.user.assignedOrganizationId as string)
-          : (session?.user.organizationId as string),
+          ? (user?.assignedOrganizationId as string)
+          : (user?.organizationId as string),
       ),
     );
 
@@ -64,18 +60,17 @@ export default async function RequestsPage({ searchParams }: Props) {
     sortOrder: queryParams.sortOrder as 'asc' | 'desc',
     startDate: queryParams.startDate ? new Date(queryParams.startDate) : undefined,
     endDate: queryParams.endDate ? new Date(queryParams.endDate) : undefined,
-    organizationId:
-      queryParams.organizationId ?? session?.user?.organizationId ?? undefined,
-    assignedToId: isAgent ? session?.user?.id : undefined,
+    organizationId: queryParams.organizationId ?? user?.organizationId ?? undefined,
+    assignedToId: isAgent ? user?.id : undefined,
   };
 
   return (
     <PageContainer title={t('title')}>
-      {session?.user && hasPermission(session.user, 'serviceRequests', 'list') && (
+      {user && hasPermission(user, 'serviceRequests', 'list') && (
         <>
           <CardContainer>
             <RequestsTable
-              user={session.user}
+              user={user}
               filters={formattedQueryParams}
               agents={(organization?.data?.agents as User[]) ?? []}
               availableServiceCategories={serviceCategories}

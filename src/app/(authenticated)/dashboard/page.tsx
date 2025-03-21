@@ -3,7 +3,6 @@ import SuperAdminDashboard from './_utils/components/superadmin';
 import { getCurrentUser } from '@/actions/user';
 import AgentDashboard from './_utils/components/agent';
 import AdminDashboard from './(admin)/_utils/dashboard';
-import { getTranslations } from 'next-intl/server';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();

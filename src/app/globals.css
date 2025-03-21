@@ -467,7 +467,7 @@ html {
   }
 
   .size-icon {
-    @apply !h-4 !w-4;
+    @apply !size-6;
   }
 
   .mobile-hide {

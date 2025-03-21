@@ -17,6 +17,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { getOrganisationCountryInfos } from '@/actions/organizations';
+import { PageContainer } from '@/components/layouts/page-container';
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -64,43 +65,52 @@ export default async function ProfilePage() {
   }
 
   return (
-    <Suspense fallback={<LoadingSkeleton />}>
-      <div className="flex flex-col gap-4">
-        <ProfileHeader profile={profile} />
-        <ProfileStatusAlert
-          status={profile.status}
-          notes={registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content}
-          organizationName={organisationInfos?.name}
-          organizationAddress={organisationInfos?.settings?.contact?.address}
-          requestId={registrationRequest?.id}
-        />
-      </div>
-      <div className="grid grid-cols-8 gap-4">
-        {profile && <ProfileTabs profile={profile} />}
-        <div className={'col-span-full flex flex-col gap-4 lg:col-span-2'}>
-          {registrationRequest?.notes && registrationRequest?.notes?.length > 0 && (
-            <NotesList
-              notes={registrationRequest.notes.filter((note) => note.type === 'FEEDBACK')}
-            />
-          )}
-          <ProfileCompletion completionRate={completionRate} fieldStatus={fieldStatus} />
-
-          {![
-            'SUBMITTED',
-            'PENDING',
-            'VALIDATED',
-            'READY_FOR_PICKUP',
-            'COMPLETED',
-          ].includes(profile.status) && (
-            <div className="flex flex-col items-center">
-              <SubmitProfileButton
-                canSubmit={completionRate === 100}
-                profileId={profile.id}
-              />
-            </div>
-          )}
+    <PageContainer>
+      <Suspense fallback={<LoadingSkeleton />}>
+        <div className="flex flex-col gap-4">
+          <ProfileHeader profile={profile} />
+          <ProfileStatusAlert
+            status={profile.status}
+            notes={
+              registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content
+            }
+            organizationName={organisationInfos?.name}
+            organizationAddress={organisationInfos?.settings?.contact?.address}
+            requestId={registrationRequest?.id}
+          />
         </div>
-      </div>
-    </Suspense>
+        <div className="grid grid-cols-8 gap-4">
+          {profile && <ProfileTabs profile={profile} />}
+          <div className={'col-span-full flex flex-col gap-4 lg:col-span-2'}>
+            {registrationRequest?.notes && registrationRequest?.notes?.length > 0 && (
+              <NotesList
+                notes={registrationRequest.notes.filter(
+                  (note) => note.type === 'FEEDBACK',
+                )}
+              />
+            )}
+            <ProfileCompletion
+              completionRate={completionRate}
+              fieldStatus={fieldStatus}
+            />
+
+            {![
+              'SUBMITTED',
+              'PENDING',
+              'VALIDATED',
+              'READY_FOR_PICKUP',
+              'COMPLETED',
+            ].includes(profile.status) && (
+              <div className="flex flex-col items-center">
+                <SubmitProfileButton
+                  canSubmit={completionRate === 100}
+                  profileId={profile.id}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </Suspense>
+    </PageContainer>
   );
 }

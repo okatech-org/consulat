@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSession } from 'next-auth/react';
-import { updateUserProfile } from '@/actions/user';
+import { updateUserData, updateUserProfile } from '@/actions/user';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -28,18 +28,19 @@ import {
 } from '@/components/ui/select';
 import { ServiceCategory } from '@prisma/client';
 import { PageContainer } from '@/components/layouts/page-container';
+import { UserSettings } from '@/schemas/user';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function AdminAccountPage() {
   const t = useTranslations('account');
-  const { data: session, update } = useSession();
-  const user = session?.user;
+  const user = useCurrentUser();
 
   if (!user) return null;
 
   const handleUpdateProfile = async (formData: FormData) => {
+    const data = Object.fromEntries(formData.entries()) as unknown as UserSettings;
     try {
-      await updateUserProfile(formData);
-      await update();
+      await updateUserData(user.id, data);
       toast({
         title: t('profile_updated'),
       });
@@ -94,16 +95,12 @@ export default function AdminAccountPage() {
                     <Input
                       id="firstName"
                       name="firstName"
-                      defaultValue={user.firstName || ''}
+                      defaultValue={user.name || ''}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">{t('last_name')}</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      defaultValue={user.lastName || ''}
-                    />
+                    <Input id="lastName" name="lastName" defaultValue={user.name || ''} />
                   </div>
                 </div>
 

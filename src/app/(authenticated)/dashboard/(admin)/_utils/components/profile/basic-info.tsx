@@ -28,12 +28,12 @@ export function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
     },
     {
       label: t_inputs('gender.label'),
-      value: t_inputs(`gender.options.${profile.gender}`),
+      value: profile.gender ? t_inputs(`gender.options.${profile.gender}`) : '-',
       isValid: !!profile.gender,
     },
     {
       label: t_inputs('birthDate.label'),
-      value: formatDate(profile.birthDate),
+      value: profile.birthDate ? formatDate(profile.birthDate) : '-',
       isValid: !!profile.birthDate,
     },
     {

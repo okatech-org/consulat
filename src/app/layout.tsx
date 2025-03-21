@@ -35,9 +35,28 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: APP_DEFAULT_TITLE,
+    startupImage: [
+      {
+        url: '/apple-touch-icon.png',
+        media:
+          '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
+      },
+    ],
   },
   formatDetection: {
     telephone: false,
+    email: false,
+    address: false,
+    date: false,
+    url: false,
+  },
+  keywords: ['consulat', 'gabon', 'diaspora', 'administration', 'services consulaires'],
+  category: 'government',
+  creator: 'Okatech',
+  publisher: 'Okatech',
+  robots: {
+    index: true,
+    follow: true,
   },
   openGraph: {
     type: 'website',
@@ -46,22 +65,48 @@ export const metadata: Metadata = {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
-    images:
-      'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOibxPJi1LYxGmEboytI3PS7QDKqgNOVFnvWRli',
+    images: [
+      {
+        url: '/cover-image-contact.ga.jpg',
+        width: 1280,
+        height: 720,
+        alt: 'Consulat.ga - Application consulaire de la République Gabonaise',
+      },
+    ],
     description: APP_DESCRIPTION,
+    locale: 'fr_FR',
   },
   twitter: {
-    card: 'summary',
-    images:
-      'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOibxPJi1LYxGmEboytI3PS7QDKqgNOVFnvWRli',
+    card: 'summary_large_image',
+    images: [
+      {
+        url: '/cover-image-contact.ga.jpg',
+        width: 1280,
+        height: 720,
+        alt: 'Consulat.ga - Application consulaire de la République Gabonaise',
+      },
+    ],
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
+    creator: '@RepubliqueGabonaise',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48', type: 'image/x-icon' },
+      { url: '/android-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    other: [
+      {
+        url: '/android-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        rel: 'apple-touch-startup-image',
+      },
+    ],
   },
 };
 
@@ -69,10 +114,10 @@ export const viewport: Viewport = {
   themeColor: '#17A34A',
   initialScale: 1,
   minimumScale: 1,
-  maximumScale: 1,
   width: 'device-width',
   userScalable: false,
   colorScheme: 'light dark',
+  viewportFit: 'cover',
 };
 
 const inter = Inter({ subsets: ['latin'] });

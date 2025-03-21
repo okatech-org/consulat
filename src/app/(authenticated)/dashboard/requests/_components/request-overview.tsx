@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Clock, User, Calendar, MapPin, ClipboardList } from 'lucide-react';
 import { FullServiceRequest } from '@/types/service-request';
-import { User as PrismaUser, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import { useDateLocale } from '@/lib/utils';
 import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
@@ -27,9 +27,11 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { CardTitle } from '@/components/ui/card';
+import { SessionUser } from '@/types';
+
 interface RequestOverviewProps {
   request: FullServiceRequest & { profile?: FullProfile | null };
-  user: PrismaUser;
+  user: SessionUser;
   agents: BaseAgent[];
 }
 
@@ -91,7 +93,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                 <Badge
                   variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}
                 >
-                  {t('common.priority.' + request.priority.toLowerCase())}
+                  {t(`common.priority.${request.priority}`)}
                 </Badge>
               </div>
             </div>
@@ -105,8 +107,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
               {request.assignedTo && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="size-4" />
-                  {t('requests.view.assigned_to')}: {request.assignedTo.firstName}{' '}
-                  {request.assignedTo.lastName}
+                  {t('requests.view.assigned_to')}: {request.assignedTo.name}
                 </div>
               )}
               {request.lastActionAt && (
@@ -122,9 +123,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             title={t('requests.view.requester_info')}
             contentClass="space-y-2"
           >
-            <h3 className="font-medium">
-              {request.submittedBy.firstName} {request.submittedBy.lastName}
-            </h3>
+            <h3 className="font-medium">{request.submittedBy.name}</h3>
             <p className="text-sm text-muted-foreground">{request.submittedBy.email}</p>
 
             {request.profile && (
@@ -161,9 +160,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                 {t('requests.view.actions.edit_assigned_agent')}
               </h4>
               {request.assignedTo && (
-                <p className="text-sm text-muted-foreground">
-                  {request.assignedTo.firstName} {request.assignedTo.lastName}
-                </p>
+                <p className="text-sm text-muted-foreground">{request.assignedTo.name}</p>
               )}
               <RequestQuickEditFormDialog request={request} agents={agents} />
               <Separator className="my-4" />
@@ -222,8 +219,10 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                     key={action.id}
                     icon={<ClipboardList className="size-4" />}
                     time={formatDate(action.createdAt, 'Pp')}
-                    title={t(`common.request.actions.${action.type.toLowerCase()}`)}
-                    description={action.data?.agentId}
+                    // @ts-expect-error - action.type is a string
+                    title={t(`common.request.actions.${action.type}`)}
+                    // @ts-expect-error - action.data.agentId is a string
+                    description={`${action.data?.agentId ?? '-'}`}
                   />
                 ))}
               </Timeline>

@@ -15,6 +15,11 @@ type knowledgeBas = {
   ressources_officielles: {
     name: string;
     url: string;
+    phone?: string;
+    phone_emergency?: string;
+    address?: string;
+    email?: string;
+    schedule?: string;
   }[];
 };
 
@@ -22,7 +27,7 @@ export const knowledgeBase = {
   description:
     'Base de connaissances complète pour un ChatBot Consulaire du Gabon en France',
   version: '1.1',
-  last_updated: '2023-10-25',
+  last_updated: '2025-03-21',
   categories: [
     {
       id: 1,
@@ -201,10 +206,18 @@ export const knowledgeBase = {
     {
       name: 'Site du Consulat du Gabon en France',
       url: 'https://consulatdugabon.fr/',
+      phone: '+33189719298',
+      phone_emergency: '+33189719299',
+      address: '26 Bis Avenue Raphael, 75016 Paris.',
+      email: 'contact@consulatdugabon.fr',
+      schedule: 'Lundi à Jeudi 9H00 à 16h30. Vendredi : 9H00 à 16h00',
     },
     {
       name: 'Ambassade de France au Gabon',
-      url: 'https://ga.ambafrance.org/',
+      url: 'https://ambassadedugabonenfrance.com/',
+      address: '26 Bis Avenue Raphael, 75016 Paris.',
+      phone: '+33142996868',
+      email: 'ambassade.gabonfrance@gmail.com',
     },
     {
       name: 'Ministère des Affaires Étrangères du Gabon',

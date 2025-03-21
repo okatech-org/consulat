@@ -26,13 +26,13 @@ export function StatsCard({
 }: StatsCardProps) {
   return (
     <Card className={cn('', className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0  p-4 sm:p-6 pb-0">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <div className={cn('p-2 rounded-md', iconClassName)}>
-          <Icon className="size-4" />
+          <Icon className="size-icon" />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         <div className="text-2xl font-bold">{value}</div>
         {(description || trend) && (
           <div className="flex items-center gap-2">

@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/use-notifications';
 
 const BellIcon = ({ animate, className }: { animate?: boolean; className?: string }) => (
@@ -35,9 +33,8 @@ export function NotificationBell({
   title = 'Notifications',
   className,
   bellClassName,
-  badgeClassName,
 }: NotificationBellProps) {
-  const { unreadCount, isRinging } = useNotifications();
+  const { unreadCount, isLoading } = useNotifications();
 
   return (
     <div className={cn('relative inline-block', className)}>
@@ -49,29 +46,13 @@ export function NotificationBell({
         tabIndex={0}
         className="rounded-full hover:bg-muted transition-colors"
       >
-        <BellIcon
-          animate={isRinging}
-          className={bellClassName + ' size-6 -translate-x-1'}
-        />
+        <BellIcon animate={isLoading} className={bellClassName + ' size-icon'} />
 
         <AnimatePresence>
           {unreadCount > 0 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
-              className="absolute -top-1 -right-[-5%]"
-            >
-              <Badge
-                variant="destructive"
-                className={cn(
-                  'size-4 !p-1 rounded-full flex items-center justify-center text-xs',
-                  badgeClassName,
-                )}
-              >
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Badge>
-            </motion.div>
+            <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-0 right-[1%]">
+              <span className="sr-only">{unreadCount}</span>
+            </div>
           )}
         </AnimatePresence>
       </motion.div>

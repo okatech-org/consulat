@@ -22,8 +22,8 @@ export default async function NewChildProfilePage() {
       action={
         <Button asChild variant="outline" size="sm">
           <Link href={ROUTES.user.children}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t_actions('back')}
+            <ArrowLeft className="size-icon" />
+            <span className={'ml-1 hidden sm:inline'}>{t_actions('back')}</span>
           </Link>
         </Button>
       }

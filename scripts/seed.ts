@@ -411,7 +411,7 @@ async function main() {
             create: {
               type: DocumentType.IDENTITY_PHOTO,
               status: DocumentStatus.VALIDATED,
-              fileUrl: '/images/avatar-placeholder.png',
+              fileUrl: '/avatar-placeholder.png',
               issuedAt: new Date('2024-04-15T09:00:00Z'),
               expiresAt: new Date('2029-04-15T09:00:00Z'),
               fileType: 'image/png',
@@ -542,7 +542,7 @@ async function main() {
             create: {
               type: DocumentType.IDENTITY_PHOTO,
               status: DocumentStatus.VALIDATED,
-              fileUrl: '/images/avatar-placeholder.png',
+              fileUrl: '/avatar-placeholder.png',
               issuedAt: new Date('2023-05-15T09:00:00Z'),
               expiresAt: new Date('2028-05-15T09:00:00Z'),
               fileType: 'image/*',
@@ -610,7 +610,7 @@ async function main() {
           create: {
             type: DocumentType.IDENTITY_PHOTO,
             status: DocumentStatus.VALIDATED,
-            fileUrl: '/images/avatar-placeholder.png',
+            fileUrl: '/avatar-placeholder.png',
             issuedAt: new Date('2024-01-01'),
             expiresAt: new Date('2029-01-01'),
             fileType: 'image/*',

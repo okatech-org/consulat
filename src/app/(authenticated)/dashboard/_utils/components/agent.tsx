@@ -60,14 +60,14 @@ export default async function AgentDashboard() {
     <PageContainer
       title={t('title')}
       description={t('welcome', {
-        name: currentUser.firstName || currentUser.name || '',
+        name: currentUser.name || '',
       })}
     >
       <CardContainer contentClass="space-y-8">
         {/* Overview Stats */}
         <section>
           <h2 className="text-xl font-semibold mb-4">{t('stats.overview')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
               title={t('stats.appointments')}
               value={appointments.upcoming.length}

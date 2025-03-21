@@ -73,7 +73,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
 
   const contactInfo: Partial<ContactInfoFormData> = extractFieldsFromObject(data, [
     'email',
-    'phone',
+    'phoneNumber',
     'address',
     'residentContact',
     'homeLandContact',
@@ -243,11 +243,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
           />
           <InfoField
             label={t_inputs('phone.label')}
-            value={
-              contactInfo.phone
-                ? `${contactInfo.phone.countryCode} ${contactInfo.phone.number}`
-                : undefined
-            }
+            value={contactInfo.phoneNumber}
             icon={<Phone className="size-4" />}
             required
           />
@@ -295,11 +291,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
               />
               <InfoField
                 label={t_inputs('phone.label')}
-                value={
-                  contactInfo.residentContact.phone
-                    ? `${contactInfo.residentContact.phone.countryCode} ${contactInfo.residentContact.phone.number}`
-                    : undefined
-                }
+                value={contactInfo.residentContact.phoneNumber}
                 icon={<Phone className="size-4" />}
               />
               {contactInfo.residentContact.email && (
@@ -363,11 +355,7 @@ export function ReviewFields({ data }: ReviewFieldsProps) {
               />
               <InfoField
                 label={t_inputs('phone.label')}
-                value={
-                  contactInfo.homeLandContact.phone
-                    ? `${contactInfo.homeLandContact.phone.countryCode} ${contactInfo.homeLandContact.phone.number}`
-                    : undefined
-                }
+                value={contactInfo.homeLandContact.phoneNumber}
                 icon={<Phone className="size-4" />}
               />
               {contactInfo.homeLandContact.email && (

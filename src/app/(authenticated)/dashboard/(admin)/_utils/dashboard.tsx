@@ -100,7 +100,7 @@ export default async function AdminDashboard() {
     <PageContainer
       title={t('title')}
       description={t('welcome', {
-        name: currentUser.firstName || currentUser.name || '',
+        name: currentUser.name || '',
       })}
     >
       <CardContainer contentClass="space-y-8">
@@ -165,9 +165,7 @@ export default async function AdminDashboard() {
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">
-                            {profile.user?.firstName} {profile.user?.lastName}
-                          </p>
+                          <p className="text-sm font-medium">{profile.user?.name}</p>
                           <Badge
                             variant={
                               profile.status === RequestStatus.COMPLETED
@@ -236,7 +234,7 @@ export default async function AdminDashboard() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {appointment.attendee.firstName} {appointment.attendee.lastName}
+                          {appointment.attendee.name}
                         </p>
                       </div>
                     </div>

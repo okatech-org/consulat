@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, MapPin, User } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import { cn } from '@/lib/utils';
+import { PageContainer } from '@/components/layouts/page-container';
 
 interface AppointmentPageProps {
   params: {
@@ -51,7 +52,10 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
   };
 
   return (
-    <div className="container py-8">
+    <PageContainer
+      title={t('details.title')}
+      description={t('details.subtitle', { id: appointment.id })}
+    >
       <div className="mb-8">
         <Button variant="ghost" size="sm" className="mb-4" asChild>
           <Link href={ROUTES.dashboard.appointments}>
@@ -112,9 +116,7 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
             <div className="flex items-center gap-4">
               <User className="size-4 text-muted-foreground" />
               <div>
-                <p className="font-medium">
-                  {appointment.attendee.firstName} {appointment.attendee.lastName}
-                </p>
+                <p className="font-medium">{appointment.attendee.name}</p>
               </div>
             </div>
           </CardContent>
@@ -155,6 +157,6 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageContainer>
   );
 }

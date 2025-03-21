@@ -41,13 +41,7 @@ export function LinkInfoSection({ profile }: LinkInfoSectionProps) {
             <div className="grid grid-cols-2 gap-4">
               <InfoField
                 label={t_registration('form.first_name')}
-                value={authority.parentUser.firstName}
-                required
-                className={'col-span-1'}
-              />
-              <InfoField
-                label={t_registration('form.last_name')}
-                value={authority.parentUser.lastName}
+                value={authority.parentUser.name}
                 required
                 className={'col-span-1'}
               />
@@ -63,10 +57,10 @@ export function LinkInfoSection({ profile }: LinkInfoSectionProps) {
                 required
                 className={'col-span-1'}
               />
-              {authority.parentUser.phone && (
+              {authority.parentUser.phoneNumber && (
                 <InfoField
                   label={t_registration('form.phone')}
-                  value={`${authority.parentUser.phone.countryCode} ${authority.parentUser.phone.number}`}
+                  value={authority.parentUser.phoneNumber}
                   required
                   className={'col-span-2'}
                 />

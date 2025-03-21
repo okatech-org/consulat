@@ -69,13 +69,13 @@ export function ServiceRequestReview({
 
       if (result.success) {
         toast({
-          title: t('update.success.title'),
-          description: t('update.success.description'),
+          title: 'Mise à jour réussie',
+          description: 'La demande a été mise à jour avec succès',
         });
       }
     } catch (error) {
       toast({
-        title: t('update.error.title'),
+        title: 'Erreur lors de la mise à jour',
         description: String(error),
         variant: 'destructive',
       });
@@ -92,7 +92,7 @@ export function ServiceRequestReview({
           <CardTitle>{t('service_request.title')}</CardTitle>
           <Badge variant="secondary">{t_common(`status.${request.status}`)}</Badge>
           <Badge variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}>
-            {t_common(`priority.${request.priority.toLowerCase()}`)}
+            {t_common(`priority.${request.priority}`)}
           </Badge>
         </div>
         <div className="flex gap-2">
@@ -158,14 +158,14 @@ export function ServiceRequestReview({
                   <Clock className="size-4 text-muted-foreground" />
                   <span>
                     {t('service_request.processing_mode')}:{' '}
-                    {t(`processing_mode.${request.chosenProcessingMode.toLowerCase()}`)}
+                    {t(`processing_mode.${request.chosenProcessingMode}`)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Truck className="size-4 text-muted-foreground" />
                   <span>
                     {t('service_request.delivery_mode')}:{' '}
-                    {t(`delivery_mode.${request.chosenDeliveryMode.toLowerCase()}`)}
+                    {t(`delivery_mode.${request.chosenDeliveryMode}`)}
                   </span>
                 </div>
                 {request.deadline && (
@@ -239,8 +239,8 @@ export function ServiceRequestReview({
             <MultiSelect<ServicePriority>
               type="single"
               options={[
-                { value: 'STANDARD', label: t_common('priority.standard') },
-                { value: 'URGENT', label: t_common('priority.urgent') },
+                { value: 'STANDARD', label: t_common('priority.STANDARD') },
+                { value: 'URGENT', label: t_common('priority.URGENT') },
               ]}
               selected={request.priority}
               onChange={async (value) => {
@@ -263,7 +263,7 @@ export function ServiceRequestReview({
                 type="single"
                 options={agents.map((agent) => ({
                   value: agent.id,
-                  label: `${agent.firstName} ${agent.lastName}`,
+                  label: `${agent.name}`,
                 }))}
                 selected={request.assignedToId ?? undefined}
                 onChange={async (value) => {

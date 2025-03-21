@@ -29,7 +29,7 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
         <div className="flex items-center gap-3">
           <div className="relative h-14 w-14 rounded-full overflow-hidden border">
             <Image
-              src={profile?.user?.image || '/images/avatar-placeholder.png'}
+              src={profile?.user?.image || '/avatar-placeholder.png'}
               alt={`${profile?.firstName || ''} ${profile?.lastName || ''}`}
               fill
               className="object-cover"

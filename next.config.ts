@@ -70,10 +70,6 @@ const nextConfig: NextConfig = {
         source: '/manifest.json',
         destination: '/api/manifest',
       },
-      {
-        source: '/favicon.ico',
-        destination: '/favicon.ico',
-      },
     ];
   },
 };

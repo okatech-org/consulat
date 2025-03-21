@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 import {
   Collapsible,
@@ -26,9 +26,8 @@ import { usePathname } from 'next/navigation';
 export type NavMainItem = {
   title: string;
   url: Route<string>;
-  icon?: LucideIcon;
+  icon?: React.ReactNode;
   isActive?: boolean;
-  iconComponent?: React.ReactNode;
   items?: Pick<NavMainItem, 'title' | 'url'>[];
 };
 
@@ -54,12 +53,13 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title} isActive={item.isActive}>
-                      {item.icon && <item.icon />}
-                      {item.iconComponent && item.iconComponent}
-                      <span className={item.iconComponent ? '-ml-2' : ''}>
-                        {item.title}
-                      </span>
+                    <SidebarMenuButton
+                      size="md"
+                      tooltip={item.title}
+                      isActive={item.isActive}
+                    >
+                      {item.icon}
+                      <span className={item.icon ? '-ml-1' : ''}>{item.title}</span>
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -67,7 +67,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
+                          <SidebarMenuSubButton size="md" asChild>
                             <Link prefetch={true} href={subItem.url}>
                               <span>{subItem.title}</span>
                             </Link>
@@ -81,6 +81,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
             ) : (
               <SidebarMenuItem>
                 <SidebarMenuButton
+                  size="md"
                   tooltip={item.title}
                   asChild
                   isActive={
@@ -90,11 +91,8 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                   }
                 >
                   <Link prefetch={true} href={item.url}>
-                    {item.icon && <item.icon />}
-                    {item.iconComponent && item.iconComponent}
-                    <span className={item.iconComponent ? '-ml-2' : ''}>
-                      {item.title}
-                    </span>
+                    {item.icon}
+                    <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

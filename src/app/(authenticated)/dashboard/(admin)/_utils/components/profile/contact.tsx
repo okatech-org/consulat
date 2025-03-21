@@ -17,13 +17,11 @@ export function ProfileContact({ profile }: ProfileContactProps) {
   const t_inputs = useTranslations('inputs');
 
   const mainAddress = profile.address;
-  // @ts-expect-error - Propriété peut ne pas exister sur tous les profils
-  const gabonAddress = profile.addressInGabon;
   const residentContact = profile.residentContact;
   const homeLandContact = profile.homeLandContact;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-300px)]">
       {/* Coordonnées principales */}
       <CardContainer title={t('sections.contact')} contentClass="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
@@ -44,13 +42,9 @@ export function ProfileContact({ profile }: ProfileContactProps) {
             <Phone className="size-5 text-muted-foreground" />
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">{t_inputs('phone.label')}</p>
-              <p className="font-medium">
-                {profile.phone
-                  ? `${profile.phone.countryCode} ${profile.phone.number}`
-                  : '-'}
-              </p>
+              <p className="font-medium">{profile?.phoneNumber ?? '-'}</p>
             </div>
-            {profile.phone ? (
+            {profile.phoneNumber ? (
               <CheckCircle2 className="text-success size-5" />
             ) : (
               <XCircle className="size-5 text-destructive" />
@@ -77,23 +71,6 @@ export function ProfileContact({ profile }: ProfileContactProps) {
           )}
         </div>
       </CardContainer>
-
-      {/* Adresse au Gabon */}
-      {gabonAddress && (
-        <CardContainer title={t('sections.gabon_address')}>
-          <div className="flex items-start gap-3">
-            <MapPin className="mt-1 size-5 text-muted-foreground" />
-            <div className="flex-1">
-              <div className="space-y-1">
-                <p>{gabonAddress.address}</p>
-                <p>{gabonAddress.district}</p>
-                <p className="font-medium">{gabonAddress.city}</p>
-              </div>
-            </div>
-            <CheckCircle2 className="text-success size-5" />
-          </div>
-        </CardContainer>
-      )}
 
       {/* Contact d'urgence résident */}
       {residentContact && (
@@ -142,22 +119,19 @@ export function ProfileContact({ profile }: ProfileContactProps) {
               )}
             </div>
 
-            {residentContact.phone && (
+            {residentContact.phoneNumber && (
               <div className="flex items-center gap-3">
                 <Phone className="size-5 text-muted-foreground" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">
                     {t_inputs('phone.label')}
                   </p>
-                  <p className="font-medium">
-                    {`${residentContact.phone.countryCode} ${residentContact.phone.number}`}
-                  </p>
+                  <p className="font-medium">{residentContact.phoneNumber}</p>
                 </div>
                 <CheckCircle2 className="text-success size-5" />
               </div>
             )}
 
-            {/* @ts-expect-error - Propriété peut ne pas exister sur tous les contacts d'urgence */}
             {residentContact.email && (
               <div className="flex items-center gap-3">
                 <Mail className="size-5 text-muted-foreground" />
@@ -165,7 +139,6 @@ export function ProfileContact({ profile }: ProfileContactProps) {
                   <p className="text-sm text-muted-foreground">
                     {t_inputs('email.label')}
                   </p>
-                  {/* @ts-expect-error - Propriété peut ne pas exister sur tous les contacts d'urgence */}
                   <p className="font-medium">{residentContact.email}</p>
                 </div>
                 <CheckCircle2 className="text-success size-5" />
@@ -235,22 +208,19 @@ export function ProfileContact({ profile }: ProfileContactProps) {
               )}
             </div>
 
-            {homeLandContact.phone && (
+            {homeLandContact.phoneNumber && (
               <div className="flex items-center gap-3">
                 <Phone className="size-5 text-muted-foreground" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">
                     {t_inputs('phone.label')}
                   </p>
-                  <p className="font-medium">
-                    {`${homeLandContact.phone.countryCode} ${homeLandContact.phone.number}`}
-                  </p>
+                  <p className="font-medium">{homeLandContact.phoneNumber}</p>
                 </div>
                 <CheckCircle2 className="text-success size-5" />
               </div>
             )}
 
-            {/* @ts-expect-error - Propriété peut ne pas exister sur tous les contacts d'urgence */}
             {homeLandContact.email && (
               <div className="flex items-center gap-3">
                 <Mail className="size-5 text-muted-foreground" />
@@ -258,7 +228,6 @@ export function ProfileContact({ profile }: ProfileContactProps) {
                   <p className="text-sm text-muted-foreground">
                     {t_inputs('email.label')}
                   </p>
-                  {/* @ts-expect-error - Propriété peut ne pas exister sur tous les contacts d'urgence */}
                   <p className="font-medium">{homeLandContact.email}</p>
                 </div>
                 <CheckCircle2 className="text-success size-5" />

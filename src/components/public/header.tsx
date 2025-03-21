@@ -30,6 +30,7 @@ export async function PublicHeader() {
             width={60}
             height={60}
             alt="Consulat.ga"
+            priority
             className="relative h-8 w-8 rounded-md transition-transform duration-500 group-hover:scale-105"
           />
           </div>

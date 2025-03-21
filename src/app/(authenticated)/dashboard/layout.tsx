@@ -18,7 +18,7 @@ export default async function DashboardLayout({
       roles={['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']}
       fallbackUrl={isUser ? ROUTES.user.base : undefined}
     >
-      <div className="flex flex-col gap-4">{children}</div>
+      {children}
     </RouteAuthGuard>
   );
 }
