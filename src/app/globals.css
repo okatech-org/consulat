@@ -130,44 +130,6 @@
   }
 }
 
-/* Personnalisation de la barre de défilement */
-
-/* Pour Webkit (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background-color: hsl(var(--muted));
-  border-radius: 100px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--primary) / 0.5);
-  border-radius: 100px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--primary) / 0.7);
-}
-
-::-webkit-scrollbar-corner {
-  background-color: transparent;
-}
-
-/* Pour Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--primary) / 0.5) hsl(var(--muted));
-}
-
-/* Pour les éléments avec défilement personnalisé */
-.custom-scroll {
-  scrollbar-gutter: stable;
-  overflow-y: auto;
-}
-
 /* Animation subtile lors du défilement */
 @media (prefers-reduced-motion: no-preference) {
   html {
