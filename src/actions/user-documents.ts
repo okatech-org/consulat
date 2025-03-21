@@ -93,6 +93,7 @@ export async function createUserDocument(data: {
   userId: string;
   profileId?: string;
 }): Promise<AppUserDocument | null> {
+  console.log('createUserDocument', { data });
   // @ts-expect-error - We don't need to define the type for the typesMap
   const typesMap: Record<
     DocumentType,

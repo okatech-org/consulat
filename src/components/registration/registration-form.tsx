@@ -84,8 +84,6 @@ export function RegistrationForm({
   const currentStepErrors = forms[currentTab as keyof typeof forms].formState.errors;
   const totalSteps = orderedSteps.length;
 
-  console.log({ currentStepErrors });
-
   // Gestionnaire d'analyse des components
   const handleDocumentsAnalysis = async (data: {
     basicInfo?: Partial<BasicInfoFormData>;
@@ -98,43 +96,13 @@ export function RegistrationForm({
 
     const cleanedData = getValuable(data);
 
-    // Helper function to set a nested field value
-    const setNestedFieldValue = (form: any, fieldPath: string, value: any) => {
-      const fields = fieldPath.split('.');
-      if (fields.length === 1) {
-        // Simple field, use setValue directly
-        form.setValue(fieldPath, value);
-      } else {
-        // For nested fields, get the current value, update it, then set the parent
-        const rootField = fields[0];
-        const currentValue = form.getValues(rootField) || {};
-
-        // Navigate to the nested property and update it
-        let current = currentValue;
-        const lastIndex = fields.length - 1;
-
-        for (let i = 1; i < lastIndex; i++) {
-          const field = fields[i];
-          if (!current[field]) current[field] = {};
-          current = current[field];
-        }
-
-        // Set the value on the deepest level
-        current[fields[lastIndex]] = value;
-
-        // Update the root object
-        form.setValue(rootField, currentValue);
-      }
-    };
-
     try {
       // Update each form with the data from the analysis
       if (cleanedData.basicInfo && forms.basicInfo) {
         Object.entries(cleanedData.basicInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
-            forms.basicInfo.getValues()[field as keyof BasicInfoFormData] !== undefined &&
-            !isFieldBlacklisted('basicInfo', field)
+            forms.basicInfo.getValues()[field as keyof BasicInfoFormData] !== undefined
           ) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             forms.basicInfo.setValue(field as keyof BasicInfoFormData, value as any);
@@ -144,32 +112,13 @@ export function RegistrationForm({
 
       if (cleanedData.contactInfo && forms.contactInfo) {
         Object.entries(cleanedData.contactInfo).forEach(([field, value]) => {
-          // Handle both simple fields and nested objects
-          if (typeof field === 'string' && !isFieldBlacklisted('contactInfo', field)) {
-            // For non-nested fields, check if it exists in the form
-            if (
-              field.indexOf('.') === -1 &&
-              forms.contactInfo.getValues()[field as keyof ContactInfoFormData] !==
-                undefined
-            ) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              forms.contactInfo.setValue(
-                field as keyof ContactInfoFormData,
-                value as any,
-              );
-            }
-            // For nested fields, set them using our helper
-            else if (field.indexOf('.') > -1) {
-              // Check if the root object exists
-              const rootField = field.split('.')[0];
-              if (
-                forms.contactInfo.getValues()[rootField as keyof ContactInfoFormData] !==
-                undefined
-              ) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setNestedFieldValue(forms.contactInfo, field, value);
-              }
-            }
+          if (
+            typeof field === 'string' &&
+            forms.contactInfo.getValues()[field as keyof ContactInfoFormData] !==
+              undefined
+          ) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            forms.contactInfo.setValue(field as keyof ContactInfoFormData, value as any);
           }
         });
       }
@@ -178,9 +127,7 @@ export function RegistrationForm({
         Object.entries(cleanedData.familyInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
-            forms.familyInfo.getValues()[field as keyof FamilyInfoFormData] !==
-              undefined &&
-            !isFieldBlacklisted('familyInfo', field)
+            forms.familyInfo.getValues()[field as keyof FamilyInfoFormData] !== undefined
           ) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             forms.familyInfo.setValue(field as keyof FamilyInfoFormData, value as any);
@@ -194,8 +141,7 @@ export function RegistrationForm({
             typeof field === 'string' &&
             forms.professionalInfo.getValues()[
               field as keyof ProfessionalInfoFormData
-            ] !== undefined &&
-            !isFieldBlacklisted('professionalInfo', field)
+            ] !== undefined
           ) {
             forms.professionalInfo.setValue(
               field as keyof ProfessionalInfoFormData,

@@ -130,14 +130,34 @@ export type FormSection = 'basicInfo' | 'contactInfo' | 'familyInfo' | 'professi
  * You can use dot notation for nested fields, such as 'residentContact.address.country'
  */
 export const blacklistedAnalysisFields: Record<FormSection, string[]> = {
-  basicInfo: ['residenceCountyCode'],
+  basicInfo: [
+    'residentContact.address.country',
+    'homeLandContact.address.country',
+    'residenceCountyCode',
+    'email',
+    'phoneNumber',
+  ],
   contactInfo: [
     'residentContact.address.country',
     'homeLandContact.address.country',
-    'residentContact.address.country',
+    'residenceCountyCode',
+    'email',
+    'phoneNumber',
   ],
-  familyInfo: [],
-  professionalInfo: ['activityInGabon'],
+  familyInfo: [
+    'residentContact.address.country',
+    'homeLandContact.address.country',
+    'residenceCountyCode',
+    'email',
+    'phoneNumber',
+  ],
+  professionalInfo: [
+    'residentContact.address.country',
+    'homeLandContact.address.country',
+    'residenceCountyCode',
+    'email',
+    'phoneNumber',
+  ],
 };
 
 /**
