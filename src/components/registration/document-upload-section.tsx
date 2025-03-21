@@ -175,7 +175,7 @@ export function DocumentUploadSection({
                             profileId={profileId}
                             onUpload={field.onChange}
                             onDelete={() => {
-                              field.onChange(undefined);
+                              field.onChange(null);
                             }}
                           />
                         </FormControl>

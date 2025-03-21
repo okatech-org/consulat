@@ -1,9 +1,11 @@
 export default {
   errors: {
+    invalid_document: 'Un document valide est requis',
     profile_update_failed: 'Échec de la mise à jour du profil',
     email_user_email_already_exists: 'Un utilisateur avec cet email existe déjà',
     code_not_sent_otp: "Le code n'a pas été envoyé, veuillez réessayer",
     document_not_found: 'Document non trouvé, veuillez réessayer ou actualiser la page',
+    document_already_deleted: 'Ce document a déjà été supprimé',
     auth_error:
       "Erreur de connexion, veuillez réessayer. Si le problème persiste, contactez l'assistance.",
     no_user_found_with_email: "Nous n'avons pas trouvé d'utilisateur avec cet email",

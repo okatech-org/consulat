@@ -44,6 +44,23 @@ export async function updateUserDocument(
   };
 }
 
+export async function checkDocumentExists(documentId: string): Promise<boolean> {
+  await checkAuth();
+
+  const { data: document, error } = await tryCatch(
+    db.userDocument.findUnique({
+      where: { id: documentId },
+    }),
+  );
+
+  if (error) {
+    console.error('Error checking document existence:', error);
+    throw new Error('check_document_failed');
+  }
+
+  return !!document;
+}
+
 export async function deleteUserDocument(documentId: string): Promise<boolean> {
   await checkAuth();
 

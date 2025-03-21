@@ -169,6 +169,7 @@ export default {
     EDITED: 'Modifié',
     DEADLINE: 'Date limite dépassée',
     EXPIRING: 'Expire bientôt',
+    DELETED: 'Supprimé',
   },
   confirm: {
     title: 'Confirmation',

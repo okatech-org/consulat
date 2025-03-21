@@ -10,6 +10,7 @@ import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
 import { useStoredTabs } from '@/hooks/use-tabs';
+import { useRouter } from 'next/navigation';
 
 type ProfileTabsProps = {
   profile: FullProfile;
@@ -17,6 +18,7 @@ type ProfileTabsProps = {
 
 export function ProfileTabs({ profile }: ProfileTabsProps) {
   const t = useTranslations('profile');
+  const router = useRouter();
 
   const profileTabs = [
     {
@@ -64,7 +66,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
           profileId={profile.id}
           profileStatus={profile.status}
           className="md:col-span-2"
-          onSave={() => window.location.reload()}
+          onSave={() => router.refresh()}
         />
       ),
     },

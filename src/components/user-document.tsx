@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { X, PenIcon, Trash } from 'lucide-react';
+import { PenIcon, Trash } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,7 @@ import {
   createUserDocument,
   deleteUserDocument,
   updateUserDocument,
+  checkDocumentExists,
 } from '@/actions/user-documents';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -80,27 +81,41 @@ export function UserDocument({
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
-    const result = await tryCatch(deleteUserDocument(documentId));
 
-    if (result.data) {
-      onDelete?.();
-      toast({
-        title: t_messages('success.update_title'),
-        description: t_messages('success.update_description'),
-        variant: 'success',
-      });
-    }
+    try {
+      // Vérifier d'abord si le document existe
+      const documentExists = await checkDocumentExists(documentId);
+      if (!documentExists) {
+        // Mettre à jour l'interface sans appeler l'API
+        onDelete?.();
+        toast({
+          title: t_common('status.DELETED'),
+          description: t_errors('document_already_deleted'),
+          variant: 'default',
+        });
+        setIsLoading(false);
+        return;
+      }
 
-    if (result.error) {
+      // Si le document existe, procéder à la suppression
+      const result = await tryCatch(deleteUserDocument(documentId));
+
+      if (result.data) {
+        onDelete?.();
+      }
+
+      if (result.error) {
+        window.location.reload();
+      }
+    } catch (error) {
       toast({
         title: t_messages('errors.update_failed'),
-        description: result.error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
-      router.refresh();
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

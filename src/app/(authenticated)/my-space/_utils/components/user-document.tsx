@@ -26,6 +26,7 @@ import {
   createUserDocument,
   deleteUserDocument,
   updateUserDocument,
+  checkDocumentExists,
 } from '@/actions/user-documents';
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -73,27 +74,51 @@ export function UserDocument({
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
-    const result = await tryCatch(deleteUserDocument(documentId));
 
-    if (result.error) {
-      console.error('Delete error:', result.error);
+    try {
+      // Vérifier d'abord si le document existe
+      const documentExists = await checkDocumentExists(documentId);
+      if (!documentExists) {
+        // Mettre à jour l'interface sans appeler l'API
+        toast({
+          title: t_messages('document_already_deleted'),
+          description: t_messages('errors.document_not_found'),
+          variant: 'default',
+        });
+        router.refresh();
+        return;
+      }
+
+      // Si le document existe, procéder à la suppression
+      const result = await tryCatch(deleteUserDocument(documentId));
+
+      if (result.error) {
+        console.error('Delete error:', result.error);
+        toast({
+          title: t_messages('errors.update_failed'),
+          description: result.error.message,
+          variant: 'destructive',
+        });
+      }
+
+      if (result.data) {
+        toast({
+          title: t_messages('success.update'),
+          variant: 'success',
+        });
+
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
       toast({
         title: t_messages('errors.update_failed'),
-        description: result.error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
-
-    if (result.data) {
-      toast({
-        title: t_messages('success.update'),
-        variant: 'success',
-      });
-
-      router.refresh();
-    }
-
-    setIsLoading(false);
   };
 
   const handleUpload = useCallback(

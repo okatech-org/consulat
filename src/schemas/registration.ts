@@ -166,7 +166,7 @@ export const DocumentsSchema = z.object({
         ...UserDocumentSchema.shape,
       },
       {
-        invalid_type_error: 'messages.errors.invalid_field',
+        invalid_type_error: 'messages.errors.invalid_document',
       },
     )
     .nullable()
@@ -176,7 +176,7 @@ export const DocumentsSchema = z.object({
       ...UserDocumentSchema.shape,
     },
     {
-      invalid_type_error: 'messages.errors.invalid_field',
+      invalid_type_error: 'messages.errors.invalid_document',
       required_error: 'messages.errors.doc_required',
     },
   ),
@@ -186,7 +186,7 @@ export const DocumentsSchema = z.object({
         ...UserDocumentSchema.shape,
       },
       {
-        invalid_type_error: 'messages.errors.invalid_field',
+        invalid_type_error: 'messages.errors.invalid_document',
       },
     )
     .nullable()
@@ -197,7 +197,7 @@ export const DocumentsSchema = z.object({
     },
     {
       required_error: 'messages.errors.doc_required',
-      invalid_type_error: 'messages.errors.invalid_field',
+      invalid_type_error: 'messages.errors.invalid_document',
     },
   ),
 });
