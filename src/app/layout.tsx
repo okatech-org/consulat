@@ -12,6 +12,7 @@ import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 import { env } from '@/lib/env/index';
 import { ChatProvider } from '@/contexts/chat-context';
+import { Analytics } from '@vercel/analytics/react';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -88,6 +89,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={inter.className + ' bg-muted'}>
+        <Analytics />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"

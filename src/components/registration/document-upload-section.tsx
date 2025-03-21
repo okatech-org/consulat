@@ -65,7 +65,7 @@ export function DocumentUploadSection({
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
-      analysisFields: getFieldsForDocument('passportFile'),
+      analysisFields: getFieldsForDocument(DocumentType.PASSPORT),
       expectedType: DocumentType.PASSPORT,
     },
     {
@@ -75,7 +75,7 @@ export function DocumentUploadSection({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument('birthCertificateFile'),
+      analysisFields: getFieldsForDocument(DocumentType.BIRTH_CERTIFICATE),
       expectedType: DocumentType.BIRTH_CERTIFICATE,
     },
     {
@@ -85,7 +85,7 @@ export function DocumentUploadSection({
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument('residencePermitFile'),
+      analysisFields: getFieldsForDocument(DocumentType.RESIDENCE_PERMIT),
       expectedType: DocumentType.RESIDENCE_PERMIT,
     },
     {
@@ -95,7 +95,7 @@ export function DocumentUploadSection({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument('addressProofFile'),
+      analysisFields: getFieldsForDocument(DocumentType.PROOF_OF_ADDRESS),
       expectedType: DocumentType.PROOF_OF_ADDRESS,
     },
   ] as const;

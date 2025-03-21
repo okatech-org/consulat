@@ -128,11 +128,20 @@ export const weekDays = [
 ];
 
 export interface DocumentField {
-  name: string;
+  name: keyof FullProfile;
   description: string;
   required?: boolean;
   type?: 'string' | 'date' | 'address';
 }
+
+export type AnalysisField = {
+  type: 'string' | 'date' | 'object' | 'array' | 'boolean';
+  description?: string;
+  enum?: string[];
+  properties?: AnalysisFieldItem[];
+};
+
+export type AnalysisFieldItem = Record<string, AnalysisField>;
 
 const STORAGE_KEY = 'consular_form_data';
 
