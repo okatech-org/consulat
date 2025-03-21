@@ -62,9 +62,24 @@ export function ModernChatWindow({
 
   // load chat history from session storage
   useEffect(() => {
-    const chatHistory = sessionStorage.getItem('chatHistory');
+    const chatHistory = localStorage.getItem('chatHistory');
     if (chatHistory) {
-      setChatState((prev) => ({ ...prev, messages: JSON.parse(chatHistory) }));
+      try {
+        // Parse the messages and ensure timestamps are Date objects
+        const parsedMessages = JSON.parse(chatHistory);
+        const messagesWithDates = parsedMessages.map(
+          (msg: Omit<Message, 'timestamp'> & { timestamp: string }) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+          }),
+        );
+
+        setChatState((prev) => ({ ...prev, messages: messagesWithDates }));
+      } catch (error) {
+        console.error('Failed to parse chat history:', error);
+        // Clear potentially corrupted storage
+        localStorage.removeItem('chatHistory');
+      }
     }
   }, []);
 
@@ -111,14 +126,14 @@ export function ModernChatWindow({
       timestamp: new Date(),
     };
 
-    const newMessages = [...chatState.messages, newMessage];
+    // Create a new array with existing messages plus the new one
 
-    sessionStorage.setItem('chatHistory', JSON.stringify(newMessages));
-
-    setChatState((prev) => ({
-      ...prev,
-      messages: newMessages,
-    }));
+    // Update state first to ensure UI reflects changes
+    setChatState((prev) => {
+      const newMessages = [...prev.messages, newMessage];
+      localStorage.setItem('chatHistory', JSON.stringify(newMessages));
+      return { ...prev, messages: newMessages };
+    });
   };
 
   const handleSendMessage = async () => {
@@ -131,10 +146,12 @@ export function ModernChatWindow({
     addMessage(userMessage, 'user');
 
     if (onSendMessage) {
+      // Mark as loading without modifying messages
       setChatState((prev) => ({ ...prev, isLoading: true }));
 
       try {
         const response = await onSendMessage(userMessage);
+        // Add bot response without losing previous messages
         addMessage(response, 'bot');
       } catch (error) {
         console.error("Erreur lors de l'envoi du message:", error);
@@ -211,7 +228,7 @@ export function ModernChatWindow({
   function handleChatClear() {
     setInputValue('');
     setChatState((prev) => ({ ...prev, messages: [] }));
-    sessionStorage.removeItem('chatHistory');
+    localStorage.removeItem('chatHistory');
   }
 
   return (

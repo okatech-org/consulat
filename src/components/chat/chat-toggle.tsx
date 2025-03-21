@@ -26,6 +26,14 @@ export function ChatToggle() {
   const { width, height } = useWindowDimensions();
   const currentUser = useCurrentUser();
   const locale = useLocale();
+  const [userContext, setUserContext] = useState<string | null>(null);
+
+  // Reset context when chat is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setUserContext(null);
+    }
+  }, [isOpen]);
 
   // Animation de pulsation (simplifiée car Mr Ray a déjà ses propres animations)
   useEffect(() => {
@@ -102,20 +110,31 @@ export function ChatToggle() {
   // Cette fonction gère l'envoi de messages au chatbot
   const handleSendMessage = async (message: string): Promise<string> => {
     try {
-      // Récupérer le contexte de l'utilisateur
-      const contextData = await getUserContextData(
-        locale,
-        currentUser?.id,
-        currentUser?.roles ? currentUser.roles[0] : undefined,
-      );
-      const context = ContextBuilder.buildContext(contextData);
+      // Get or initialize context
+      if (!userContext) {
+        // Only fetch context data the first time
+        const contextData = await getUserContextData(
+          locale,
+          currentUser?.id,
+          currentUser?.roles ? currentUser.roles[0] : undefined,
+        );
+        const context = ContextBuilder.buildContext(contextData);
+        setUserContext(context);
 
-      // Envoyer le message au chatbot
-      const aiResponse = await getChatCompletion(message, context, [
-        { role: 'user', content: message },
-      ]);
+        // Envoyer le message au chatbot
+        const aiResponse = await getChatCompletion(message, context, [
+          { role: 'user', content: message },
+        ]);
 
-      return aiResponse || 'Désolé, une erreur est survenue. Veuillez réessayer.';
+        return aiResponse || 'Désolé, une erreur est survenue. Veuillez réessayer.';
+      } else {
+        // Reuse existing context for subsequent messages
+        const aiResponse = await getChatCompletion(message, userContext, [
+          { role: 'user', content: message },
+        ]);
+
+        return aiResponse || 'Désolé, une erreur est survenue. Veuillez réessayer.';
+      }
     } catch (error) {
       console.error("Erreur lors de l'envoi du message:", error);
       return 'Désolé, une erreur est survenue. Veuillez réessayer.';
@@ -129,8 +148,8 @@ export function ChatToggle() {
       <motion.div
         className="fixed flex items-center justify-center z-50"
         style={{
-          bottom: '20px',
-          right: '20px',
+          bottom: '50%',
+          right: '50%',
           touchAction: 'none',
         }}
         animate={{

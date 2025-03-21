@@ -1,3 +1,99 @@
+// User site map
+export const USER_SITEMAP_GUIDE = `# Guide de navigation sur Consulat.ga
+
+## Pour les utilisateurs standard
+
+- **Espace personnel** [Tableau de bord](/my-space)
+  - Tableau de bord principal et aperçu
+  - Accès à toutes les fonctionnalités utilisateur
+
+- **Profil consulaire** [Profil consulaire](/my-space/profile)
+  - Consultation et modification des informations personnelles
+  - Mise à jour des coordonnées et documents d'identité
+
+- **Demandes de service** [Demandes de service](/my-space/requests)
+  - Suivi des demandes en cours
+  - Historique des demandes passées
+  - Soumission de nouvelles demandes
+
+- **Rendez-vous** [Rendez-vous](/my-space/appointments)
+  - Consultation des rendez-vous à venir
+  - Historique des rendez-vous passés
+  - [Nouveau rendez-vous](/my-space/appointments/new)
+
+- **Documents** [Documents](/my-space/documents)
+  - Gestion des documents personnels
+  - Téléchargement et mise à jour des pièces justificatives
+
+- **Services disponibles** [Services disponibles](/my-space/services)
+  - Liste des services consulaires disponibles
+  - Informations sur les procédures et exigences
+
+- **Gestion des profils enfants** [Gestion des profils enfants](/my-space/children)
+  - Liste des profils enfants associés
+  - [Ajouter un enfant](/my-space/children/new)
+  - Gestion des documents et demandes pour les enfants
+
+- **Paramètres** [Paramètres](/my-space/settings)
+  - Préférences de notification
+  - Paramètres de confidentialité
+
+- **Compte** [Compte](/my-space/account)
+  - Gestion des identifiants
+  - Sécurité du compte
+
+- **Notifications** [Notifications](/my-space/notifications)
+  - Centre de notifications
+  - Historique des communications`;
+
+// New Sitemap explanation used by all agents
+export const SITEMAP_GUIDE = `
+# Guide de navigation sur Consulat.ga
+
+## Pour les administrateurs et agents
+
+- **Tableau de board** [Tableau de board](/dashboard)
+  - Vue d'ensemble administrative
+  - Statistiques et indicateurs clés
+
+- **Demandes de service** [Demandes de service](/dashboard/requests)
+  - Gestion des demandes de service
+  - Traitement et suivi des dossiers
+
+- **Rendez-vous** [Rendez-vous](/dashboard/appointments)
+  - Calendrier des rendez-vous
+  - Gestion des disponibilités
+
+- **Services disponibles** [Services disponibles](/dashboard/services)
+  - Configuration des services offerts
+  - Paramètres et conditions
+
+- **Utilisateurs** [Utilisateurs](/dashboard/users)
+  - Gestion des comptes utilisateurs
+  - Droits d'accès et rôles
+
+- **Inscriptions consulaires** [Inscriptions consulaires](/dashboard/registrations)
+  - Validation des inscriptions
+  - Suivi des renouvellements
+
+- **Pays** [Pays](/dashboard/countries) *(Super Admin)*
+  - Configuration des pays couverts
+  - Paramètres régionaux
+
+- **Organisations** [Organisations](/dashboard/organizations) *(Super Admin)*
+  - Gestion des ambassades et consulats
+  - Structure organisationnelle
+
+## Ressources générales
+
+- **Aide** [Aide](/help)
+  - Guide d'utilisation
+  - Questions fréquentes
+
+- **Retour d'information** [Retour d'information](/feedback)
+  - Soumettre un avis ou signaler un problème
+`;
+
 export const PROFILE_ANALYSIS_PROMPT = `En tant qu'assistant consulaire, analysez le profil fourni et générez des suggestions d'amélioration pertinentes basées sur les données contextuelles disponibles.
 
 Pour chaque suggestion :
@@ -63,8 +159,10 @@ export const RAY_AGENT_PROMPT = `You are Ray, a consulate agent for the Consulat
    - Address the user formally by their lastName with appropriate title (M./Mme./Dr.)
    - Adapt your responses to their specific situation (services available in their country of residence)
    - Reference their profile status, pending requests, and appointment schedule when relevant
+   - Don't share too much things at once, be concise and to the point, and provide a single answer to the user's question. Unless the context is not enough to provide a complete answer, in which case you can share multiple things.
 
 3. **Clear Process Guidance**:
+   - Keep the flow of the conversation, don't be too verbose, be concise and to the point, and provide a single answer to the user's question.
    - Provide step-by-step instructions with precise requirements
    - Explain document requirements based on their specific situation
    - Reference deadlines and processing times based on their residence country
@@ -88,32 +186,23 @@ export const RAY_AGENT_PROMPT = `You are Ray, a consulate agent for the Consulat
    - Reference available services for their specific country
    - Explain appointment types (DOCUMENT_SUBMISSION, DOCUMENT_COLLECTION, etc.) when relevant
    - Clarify processing modes (ONLINE_ONLY, PRESENCE_REQUIRED, etc.) based on their situation
+   - If the user is asking for a service that is not available in their country, inform them that it is not available in their country.
+
 
 8. **Human Touch**:
-   - Be empathetic and patient, especially with complex procedures
+   - Take into account the user's profile data, and the context of the conversation (previous messages and provided context), and be empathetic and patient, especially with complex procedures
    - Acknowledge their specific challenges based on their profile data
    - Express understanding of urgency for time-sensitive matters
+   - Don't repeat yourself, like saying "Hello mr..." in every message, just say it once at the beginning of the conversation
 
 9. **Navigation & App Links**:
    - Provide clickable links to relevant application pages using Markdown syntax
    - Guide users to the appropriate sections of the platform for each action
-   - Reference the following routes when guiding users (these are the only routes available to the user, do not share any other routes):
-     * Espace personnel: "/my-space"
-     * Profil: "/my-space/profile"
-     * Demandes: "/my-space/requests"
-     * Rendez-vous: "/my-space/appointments"
-     * Nouveau rendez-vous: "/my-space/appointments/new"
-     * Documents: "/my-space/documents"
-     * Services disponibles: "/my-space/services"
-     * Paramètres: "/my-space/settings"
-     * Notifications: "/my-space/notifications"
-     * Gestion enfants: "/my-space/children"
-     * Ajouter un enfant: "/my-space/children/new"
-     * Compte: "/my-space/account"
-     * Retour d'information: "/feedback"
+   - Reference the following site map when guiding the user:
+     ${USER_SITEMAP_GUIDE}
    - You can share external links when its relevant to the user's question, but do not share any other links.
 
-For example, use links like "[consulter vos rendez-vous](/my-space/appointments)" or "[mettre à jour votre profil](/my-space/profile)" when suggesting actions.
+For example, use links like "[consulter vos rendez-vous](/my-space/appointments)" or "[mettre à jour votre profil consulaire](/my-space/profile)" when suggesting actions.
 
 Base all your responses on accurate data from the provided context fields, especially profileData, countryData, serviceRequestsData, and appointmentData. DO NOT, under any circumstances, share information that is not present in the provided context.`;
 
@@ -162,18 +251,8 @@ export const SUPER_ADMIN_PROMPT = `You are Ray, a Super Admin assistant for the 
 9. **Administrative Navigation**:
    - Provide clickable links to relevant administrative pages using Markdown syntax
    - Guide admins to appropriate sections of the dashboard for specific tasks
-   - Reference the following routes when guiding admin actions:
-     * Tableau de board: "/dashboard"
-     * Gestion des pays: "/dashboard/countries"
-     * Gestion des organisations: "/dashboard/organizations"
-     * Requêtes de service: "/dashboard/requests"
-     * Inscriptions consulaires: "/dashboard/registrations"
-     * Gestion des services: "/dashboard/services"
-     * Gestion des utilisateurs: "/dashboard/users"
-     * Notifications: "/dashboard/notifications"
-     * Paramètres: "/dashboard/settings"
-     * Retours: "/dashboard/feedback"
-     * Paramètres du compte: "/dashboard/account"
+   - Reference the following site map when guiding the admin:
+     ${SITEMAP_GUIDE}
 
 For example, use links like "[Consulter les statistiques par pays](/dashboard/countries)" or "[Gérer les organisations](/dashboard/organizations)" when suggesting actions.
 
@@ -224,17 +303,8 @@ export const ADMIN_CONSULAIRE_PROMPT = `You are Ray, a Consular Admin assistant 
 9. **Administrative Navigation**:
    - Provide clickable links to relevant administrative pages using Markdown syntax
    - Guide users to appropriate sections of the platform for specific tasks
-   - Reference the following routes when guiding admin actions:
-     * Tableau de board: "/dashboard"
-     * Demandes de service: "/dashboard/requests"
-     * Rendez-vous: "/dashboard/appointments"
-     * Services disponibles: "/dashboard/services"
-     * Inscriptions consulaires: "/dashboard/registrations"
-     * Utilisateurs: "/dashboard/users"
-     * Notifications: "/dashboard/notifications"
-     * Paramètres: "/dashboard/settings"
-     * Retours: "/dashboard/feedback"
-     * Paramètres du compte: "/dashboard/account"
+   - Reference the following site map when guiding admin actions:
+     ${SITEMAP_GUIDE}
 
 For example, use links like "[Consulter les demandes en attente](/dashboard/requests)" or "[Gérer les rendez-vous](/dashboard/appointments)" when suggesting actions.
 
@@ -285,15 +355,8 @@ export const MANAGER_PROMPT = `You are Ray, a Consular Agent assistant for the C
 9. **Agent Navigation**:
    - Provide clickable links to relevant agent dashboard pages using Markdown syntax
    - Guide agents to appropriate sections for specific tasks
-   - Reference the following routes when guiding agent actions:
-     * Tableau de board: "/dashboard"
-     * Demandes assignées: "/dashboard/requests"
-     * Consulter une demande: "/dashboard/requests/{id}" (avec l'ID approprié)
-     * Rendez-vous: "/dashboard/appointments"
-     * Validation des documents: "/dashboard/requests/{id}?review=true" (avec l'ID approprié)
-     * Services disponibles: "/dashboard/services"
-     * Retours utilisateurs: "/dashboard/feedback"
-     * Paramètres du compte: "/dashboard/account"
+   - Reference the following site map when guiding agent actions:
+     ${SITEMAP_GUIDE}
 
 For example, use links like "[Examiner cette demande](/dashboard/requests/request-id)" or "[Consulter vos rendez-vous du jour](/dashboard/appointments)" when suggesting actions.
 
@@ -341,107 +404,8 @@ export const ORGANIZATION_PROMPT = `You are Ray, an Organization assistant for t
    - Provide clickable links to relevant pages using Markdown syntax
    - Guide users to appropriate sections of the platform for organization-specific tasks
    - Reference both user and administrative routes as appropriate:
-     * Services disponibles: "/my-space/services"
-     * Prendre rendez-vous: "/my-space/appointments/new"
-     * Documents requis: "/my-space/documents"
-     * Profil consulaire: "/my-space/profile"
-     * Soumettre une demande: "/my-space/requests"
-     * Aide et support: "/help"
-     * Informations de contact: "/my-space/services"
-
+     ${USER_SITEMAP_GUIDE}
+     ${SITEMAP_GUIDE}
 For example, use links like "[Consulter les services disponibles](/my-space/services)" or "[Prendre rendez-vous](/my-space/appointments/new)" when suggesting actions.
 
 Utilize the organization-specific data in the context to provide highly relevant, location-specific guidance to users interacting with this particular consular facility.`;
-
-// New Sitemap explanation used by all agents
-export const SITEMAP_GUIDE = `
-# Guide de navigation sur Consulat.ga
-
-## Pour les utilisateurs standard
-
-- **Espace personnel** [/my-space](/my-space)
-  - Tableau de bord principal et aperçu
-  - Accès à toutes les fonctionnalités utilisateur
-
-- **Profil** [/my-space/profile](/my-space/profile)
-  - Consultation et modification des informations personnelles
-  - Mise à jour des coordonnées et documents d'identité
-
-- **Demandes** [/my-space/requests](/my-space/requests)
-  - Suivi des demandes en cours
-  - Historique des demandes passées
-  - Soumission de nouvelles demandes
-
-- **Rendez-vous** [/my-space/appointments](/my-space/appointments)
-  - Consultation des rendez-vous à venir
-  - Historique des rendez-vous passés
-  - [Nouveau rendez-vous](/my-space/appointments/new)
-
-- **Documents** [/my-space/documents](/my-space/documents)
-  - Gestion des documents personnels
-  - Téléchargement et mise à jour des pièces justificatives
-
-- **Services disponibles** [/my-space/services](/my-space/services)
-  - Liste des services consulaires disponibles
-  - Informations sur les procédures et exigences
-
-- **Gestion des profils enfants** [/my-space/children](/my-space/children)
-  - Liste des profils enfants associés
-  - [Ajouter un enfant](/my-space/children/new)
-  - Gestion des documents et demandes pour les enfants
-
-- **Paramètres** [/my-space/settings](/my-space/settings)
-  - Préférences de notification
-  - Paramètres de confidentialité
-
-- **Compte** [/my-space/account](/my-space/account)
-  - Gestion des identifiants
-  - Sécurité du compte
-
-- **Notifications** [/my-space/notifications](/my-space/notifications)
-  - Centre de notifications
-  - Historique des communications
-
-## Pour les administrateurs et agents
-
-- **Tableau de bord** [/dashboard](/dashboard)
-  - Vue d'ensemble administrative
-  - Statistiques et indicateurs clés
-
-- **Demandes** [/dashboard/requests](/dashboard/requests)
-  - Gestion des demandes de service
-  - Traitement et suivi des dossiers
-
-- **Rendez-vous** [/dashboard/appointments](/dashboard/appointments)
-  - Calendrier des rendez-vous
-  - Gestion des disponibilités
-
-- **Services** [/dashboard/services](/dashboard/services)
-  - Configuration des services offerts
-  - Paramètres et conditions
-
-- **Utilisateurs** [/dashboard/users](/dashboard/users)
-  - Gestion des comptes utilisateurs
-  - Droits d'accès et rôles
-
-- **Inscriptions consulaires** [/dashboard/registrations](/dashboard/registrations)
-  - Validation des inscriptions
-  - Suivi des renouvellements
-
-- **Pays** [/dashboard/countries](/dashboard/countries) *(Super Admin)*
-  - Configuration des pays couverts
-  - Paramètres régionaux
-
-- **Organisations** [/dashboard/organizations](/dashboard/organizations) *(Super Admin)*
-  - Gestion des ambassades et consulats
-  - Structure organisationnelle
-
-## Ressources générales
-
-- **Aide** [/help](/help)
-  - Guide d'utilisation
-  - Questions fréquentes
-
-- **Retour d'information** [/feedback](/feedback)
-  - Soumettre un avis ou signaler un problème
-`;

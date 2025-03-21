@@ -56,11 +56,27 @@ export async function getChatCompletion(
   }
 }
 
+// Cache for user context data - keys are locale:userId:userRole
+const contextCache: Record<string, { data: ContextData; timestamp: number }> = {};
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
 export async function getUserContextData(
   locale: string,
   userId?: string,
   userRole?: UserRole,
 ): Promise<ContextData> {
+  // Create a cache key using the input parameters
+  const cacheKey = `${locale}:${userId || 'anonymous'}:${userRole || 'none'}`;
+
+  // Check if we have a valid cached response
+  const cachedData = contextCache[cacheKey];
+  const now = Date.now();
+
+  if (cachedData && now - cachedData.timestamp < CACHE_TTL) {
+    // Use cached data if still valid
+    return cachedData.data;
+  }
+
   const defaultContext: ContextData = {
     user: 'No connected user',
     assistantPrompt: RAY_AGENT_PROMPT,
@@ -69,24 +85,38 @@ export async function getUserContextData(
   };
 
   if (!userId || !userRole) {
+    // Cache and return the default context
+    contextCache[cacheKey] = { data: defaultContext, timestamp: now };
     return defaultContext;
   }
 
   try {
+    let contextData: ContextData;
+
     switch (userRole) {
       case 'USER':
-        return getUserContextDataForUser(userId, locale);
+        contextData = await getUserContextDataForUser(userId, locale);
+        break;
       case 'SUPER_ADMIN':
-        return getUserContextDataSuperAdmin(userId, locale);
+        contextData = await getUserContextDataSuperAdmin(userId, locale);
+        break;
       case 'AGENT':
-        return getUserContextDataAgent(userId, locale);
+        contextData = await getUserContextDataAgent(userId, locale);
+        break;
       case 'ADMIN':
-        return getUserContextDataAdmin(userId, locale);
+        contextData = await getUserContextDataAdmin(userId, locale);
+        break;
       default:
-        return defaultContext;
+        contextData = defaultContext;
     }
+
+    // Store the result in cache
+    contextCache[cacheKey] = { data: contextData, timestamp: now };
+    return contextData;
   } catch (error) {
     console.error('Error fetching user context data:', error);
+    // Cache the error response as well to prevent repeated failed requests
+    contextCache[cacheKey] = { data: defaultContext, timestamp: now };
     return defaultContext;
   }
 }
