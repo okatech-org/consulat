@@ -148,8 +148,8 @@ export function ChatToggle() {
       <motion.div
         className="fixed flex items-center justify-center z-50"
         style={{
-          bottom: '50%',
-          right: '50%',
+          bottom: '20px',
+          right: '20px',
           touchAction: 'none',
         }}
         animate={{
