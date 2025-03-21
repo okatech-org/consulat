@@ -52,7 +52,15 @@ export const BasicInfoSchema = z.object({
     required_error: 'messages.errors.field_required',
   }),
 
-  identityPicture: UserDocumentSchema,
+  identityPicture: z.object(
+    {
+      ...UserDocumentSchema.shape,
+    },
+    {
+      required_error: 'messages.errors.doc_required',
+      invalid_type_error: 'messages.errors.invalid_field',
+    },
+  ),
 
   passportNumber: z
     .string({
@@ -152,10 +160,46 @@ export const ProfessionalInfoSchema = BaseProfessionalInfoSchema.superRefine(
 );
 
 export const DocumentsSchema = z.object({
-  passport: UserDocumentSchema.optional(),
-  birthCertificate: UserDocumentSchema,
-  residencePermit: UserDocumentSchema.nullable().optional(),
-  addressProof: UserDocumentSchema,
+  passport: z
+    .object(
+      {
+        ...UserDocumentSchema.shape,
+      },
+      {
+        invalid_type_error: 'messages.errors.invalid_field',
+      },
+    )
+    .nullable()
+    .optional(),
+  birthCertificate: z.object(
+    {
+      ...UserDocumentSchema.shape,
+    },
+    {
+      invalid_type_error: 'messages.errors.invalid_field',
+      required_error: 'messages.errors.doc_required',
+    },
+  ),
+  residencePermit: z
+    .object(
+      {
+        ...UserDocumentSchema.shape,
+      },
+      {
+        invalid_type_error: 'messages.errors.invalid_field',
+      },
+    )
+    .nullable()
+    .optional(),
+  addressProof: z.object(
+    {
+      ...UserDocumentSchema.shape,
+    },
+    {
+      required_error: 'messages.errors.doc_required',
+      invalid_type_error: 'messages.errors.invalid_field',
+    },
+  ),
 });
 
 export const DocumentsSchemaRefined = z

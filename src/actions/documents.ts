@@ -89,10 +89,6 @@ function createStructuredOutputSchema() {
                 type: 'string',
                 description: 'Country of birth (e.g. GA, FR)',
               },
-              nationality: {
-                type: 'string',
-                description: 'Nationality of the person (e.g. GA, FR)',
-              },
               passportNumber: {
                 type: 'string',
                 description: 'Passport number as shown on document',
@@ -115,14 +111,6 @@ function createStructuredOutputSchema() {
           contactInfo: {
             type: 'object',
             properties: {
-              email: {
-                type: 'string',
-                description: 'Email address of the person',
-              },
-              phoneNumber: {
-                type: 'string',
-                description: 'Phone number including country code (e.g. +33-620230494)',
-              },
               address: {
                 type: 'object',
                 properties: {
@@ -141,10 +129,6 @@ function createStructuredOutputSchema() {
                   zipCode: {
                     type: 'string',
                     description: 'Postal/ZIP code',
-                  },
-                  country: {
-                    type: 'string',
-                    description: 'Country code (e.g. GA, FR)',
                   },
                 },
                 additionalProperties: false,

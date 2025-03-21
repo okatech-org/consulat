@@ -23,6 +23,7 @@ import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { ErrorCard } from '../ui/error-card';
 import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '../layouts/card-container';
+import { isFieldBlacklisted } from '@/lib/document-fields';
 
 // Define subtypes of StepKey for this component
 type ChildSteps = 'link' | 'documents' | 'identity';
@@ -63,12 +64,19 @@ export function ChildRegistrationForm() {
         const { firstName, lastName, birthDate, birthPlace, birthCountry, nationality } =
           data;
 
-        if (firstName) forms.basicInfo.setValue('firstName', firstName);
-        if (lastName) forms.basicInfo.setValue('lastName', lastName);
-        if (birthDate) forms.basicInfo.setValue('birthDate', birthDate);
-        if (birthPlace) forms.basicInfo.setValue('birthPlace', birthPlace);
-        if (birthCountry) forms.basicInfo.setValue('birthCountry', birthCountry);
-        if (nationality) forms.basicInfo.setValue('nationality', nationality);
+        // Only update non-blacklisted fields
+        if (firstName && !isFieldBlacklisted('basicInfo', 'firstName'))
+          forms.basicInfo.setValue('firstName', firstName);
+        if (lastName && !isFieldBlacklisted('basicInfo', 'lastName'))
+          forms.basicInfo.setValue('lastName', lastName);
+        if (birthDate && !isFieldBlacklisted('basicInfo', 'birthDate'))
+          forms.basicInfo.setValue('birthDate', birthDate);
+        if (birthPlace && !isFieldBlacklisted('basicInfo', 'birthPlace'))
+          forms.basicInfo.setValue('birthPlace', birthPlace);
+        if (birthCountry && !isFieldBlacklisted('basicInfo', 'birthCountry'))
+          forms.basicInfo.setValue('birthCountry', birthCountry);
+        if (nationality && !isFieldBlacklisted('basicInfo', 'nationality'))
+          forms.basicInfo.setValue('nationality', nationality);
       }
 
       toast({

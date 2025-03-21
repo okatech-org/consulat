@@ -27,7 +27,6 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../user-document';
 import { AppUserDocument } from '@/types';
-import { useRouter } from 'next/navigation';
 import CardContainer from '../layouts/card-container';
 
 interface DocumentUploadSectionProps {
@@ -52,7 +51,6 @@ export function DocumentUploadSection({
   formRef,
   profileId,
 }: DocumentUploadSectionProps) {
-  const router = useRouter();
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
@@ -64,7 +62,7 @@ export function DocumentUploadSection({
       id: 'passport' as const,
       label: t_inputs('passport.label'),
       description: t_inputs('passport.help'),
-      required: true,
+      required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
       analysisFields: getFieldsForDocument('passportFile'),
@@ -177,7 +175,7 @@ export function DocumentUploadSection({
                             profileId={profileId}
                             onUpload={field.onChange}
                             onDelete={() => {
-                              window.location.reload();
+                              field.onChange(undefined);
                             }}
                           />
                         </FormControl>

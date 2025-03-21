@@ -23,7 +23,7 @@ import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { submitProfileForValidation, updateProfile } from '@/actions/profile';
-import { filterUneditedKeys, getValuable, tryCatch } from '@/lib/utils';
+import { ErrorMessageKey, filterUneditedKeys, getValuable, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
@@ -37,6 +37,7 @@ import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import React from 'react';
 import { useStoredTabs } from '@/hooks/use-tabs';
+import { isFieldBlacklisted } from '@/lib/document-fields';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -62,6 +63,7 @@ export function RegistrationForm({
   const t = useTranslations('registration');
   const tInputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
+  const t_base = useTranslations();
   const [validationError, setValidationError] = useState<string | undefined>();
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
 
@@ -79,7 +81,10 @@ export function RegistrationForm({
 
   const currentStepIndex = orderedSteps.indexOf(currentTab);
   const currentStepValidity = forms[currentTab as keyof typeof forms].formState.isValid;
+  const currentStepErrors = forms[currentTab as keyof typeof forms].formState.errors;
   const totalSteps = orderedSteps.length;
+
+  console.log({ currentStepErrors });
 
   // Gestionnaire d'analyse des components
   const handleDocumentsAnalysis = async (data: {
@@ -93,13 +98,43 @@ export function RegistrationForm({
 
     const cleanedData = getValuable(data);
 
+    // Helper function to set a nested field value
+    const setNestedFieldValue = (form: any, fieldPath: string, value: any) => {
+      const fields = fieldPath.split('.');
+      if (fields.length === 1) {
+        // Simple field, use setValue directly
+        form.setValue(fieldPath, value);
+      } else {
+        // For nested fields, get the current value, update it, then set the parent
+        const rootField = fields[0];
+        const currentValue = form.getValues(rootField) || {};
+
+        // Navigate to the nested property and update it
+        let current = currentValue;
+        const lastIndex = fields.length - 1;
+
+        for (let i = 1; i < lastIndex; i++) {
+          const field = fields[i];
+          if (!current[field]) current[field] = {};
+          current = current[field];
+        }
+
+        // Set the value on the deepest level
+        current[fields[lastIndex]] = value;
+
+        // Update the root object
+        form.setValue(rootField, currentValue);
+      }
+    };
+
     try {
       // Update each form with the data from the analysis
       if (cleanedData.basicInfo && forms.basicInfo) {
         Object.entries(cleanedData.basicInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
-            forms.basicInfo.getValues()[field as keyof BasicInfoFormData] !== undefined
+            forms.basicInfo.getValues()[field as keyof BasicInfoFormData] !== undefined &&
+            !isFieldBlacklisted('basicInfo', field)
           ) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             forms.basicInfo.setValue(field as keyof BasicInfoFormData, value as any);
@@ -109,13 +144,32 @@ export function RegistrationForm({
 
       if (cleanedData.contactInfo && forms.contactInfo) {
         Object.entries(cleanedData.contactInfo).forEach(([field, value]) => {
-          if (
-            typeof field === 'string' &&
-            forms.contactInfo.getValues()[field as keyof ContactInfoFormData] !==
-              undefined
-          ) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            forms.contactInfo.setValue(field as keyof ContactInfoFormData, value as any);
+          // Handle both simple fields and nested objects
+          if (typeof field === 'string' && !isFieldBlacklisted('contactInfo', field)) {
+            // For non-nested fields, check if it exists in the form
+            if (
+              field.indexOf('.') === -1 &&
+              forms.contactInfo.getValues()[field as keyof ContactInfoFormData] !==
+                undefined
+            ) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              forms.contactInfo.setValue(
+                field as keyof ContactInfoFormData,
+                value as any,
+              );
+            }
+            // For nested fields, set them using our helper
+            else if (field.indexOf('.') > -1) {
+              // Check if the root object exists
+              const rootField = field.split('.')[0];
+              if (
+                forms.contactInfo.getValues()[rootField as keyof ContactInfoFormData] !==
+                undefined
+              ) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setNestedFieldValue(forms.contactInfo, field, value);
+              }
+            }
           }
         });
       }
@@ -124,7 +178,9 @@ export function RegistrationForm({
         Object.entries(cleanedData.familyInfo).forEach(([field, value]) => {
           if (
             typeof field === 'string' &&
-            forms.familyInfo.getValues()[field as keyof FamilyInfoFormData] !== undefined
+            forms.familyInfo.getValues()[field as keyof FamilyInfoFormData] !==
+              undefined &&
+            !isFieldBlacklisted('familyInfo', field)
           ) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             forms.familyInfo.setValue(field as keyof FamilyInfoFormData, value as any);
@@ -138,7 +194,8 @@ export function RegistrationForm({
             typeof field === 'string' &&
             forms.professionalInfo.getValues()[
               field as keyof ProfessionalInfoFormData
-            ] !== undefined
+            ] !== undefined &&
+            !isFieldBlacklisted('professionalInfo', field)
           ) {
             forms.professionalInfo.setValue(
               field as keyof ProfessionalInfoFormData,
@@ -189,7 +246,7 @@ export function RegistrationForm({
       const isStepValid = await stepForm?.trigger();
 
       if (!isStepValid) {
-        setValidationError('Please fix form errors to continue');
+        setValidationError(t_errors('invalid_step'));
         setIsLoading(false);
         return;
       }
@@ -426,10 +483,27 @@ export function RegistrationForm({
               </Button>
             </div>
             {!currentStepValidity && (
-              <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
-                <Info className="size-icon min-w-max text-blue-500" />
-                <span>{t('navigation.validityWarning')}</span>
-              </p>
+              <div className="errors flex flex-col gap-2">
+                <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
+                  <Info className="size-icon min-w-max text-blue-500" />
+                  <span>{t('navigation.validityWarning')}</span>
+                </p>
+                <ul className="flex flex-col items-center gap-2">
+                  {Object.entries(currentStepErrors).map(([error, value]) => (
+                    <li key={error} className="text-red-500 list-disc">
+                      <span className="font-medium text-sm">
+                        {/**
+                         * @ts-expect-error - This is a workaround to get the error message key*/}
+                        {tInputs(`${error}.label`)}
+                      </span>
+                      {': '}
+                      {/**
+                       * @ts-expect-error - we use the error message key*/}
+                      <span>{t_base(value.message as ErrorMessageKey)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 
