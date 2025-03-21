@@ -4,11 +4,21 @@ import { useRef, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2, ChevronDown, X } from 'lucide-react';
+import { Send, Loader2, ChevronDown, X, TrashIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 import { useTranslations } from 'next-intl';
 import { useChat } from '@/contexts/chat-context';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '../ui/dialog';
 
 export interface Message {
   id: string;
@@ -198,6 +208,12 @@ export function ModernChatWindow({
     });
   };
 
+  function handleChatClear() {
+    setInputValue('');
+    setChatState((prev) => ({ ...prev, messages: [] }));
+    sessionStorage.removeItem('chatHistory');
+  }
+
   return (
     <div
       className={cn(
@@ -333,7 +349,7 @@ export function ModernChatWindow({
 
       {/* Saisie de message */}
       <div className="p-4 border-t bg-background">
-        <div className="relative flex items-end max-w-3xl mx-auto rounded-lg border bg-background overflow-hidden">
+        <div className="relative flex items-end max-w-3xl mx-auto rounded-lg border bg-background">
           <Textarea
             ref={textareaRef}
             value={inputValue}
@@ -348,7 +364,7 @@ export function ModernChatWindow({
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || chatState.isLoading}
             size="icon"
-            className="absolute bottom-1.5 right-1.5 h-8 w-8 rounded-full"
+            className="absolute top-1/2 -translate-y-1/2 right-2 h-8 w-8 rounded-full"
           >
             {chatState.isLoading ? (
               <Loader2 className="size-icon animate-spin" />
@@ -356,6 +372,45 @@ export function ModernChatWindow({
               <Send className="size-icon" />
             )}
           </Button>
+          <div className="absolute top-1/2 -translate-y-[200%] right-2 h-8 w-8 rounded-full">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="rounded-full aspect-square"
+                  size="icon"
+                >
+                  <TrashIcon className="size-icon" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{'Effacer la conversation'}</DialogTitle>
+                </DialogHeader>
+                <DialogDescription>
+                  {
+                    'Voulez-vous vraiment effacer la conversation et recommencer une nouvelle ?'
+                  }
+                </DialogDescription>
+                <DialogFooter className="flex gap-4">
+                  <DialogClose asChild>
+                    <Button variant="outline" className="w-full">
+                      {'Annuler'}
+                    </Button>
+                  </DialogClose>
+                  <DialogClose asChild>
+                    <Button
+                      variant="default"
+                      onClick={handleChatClear}
+                      className="w-full"
+                    >
+                      {'Effacer'}
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         <p className="text-xs text-center text-muted-foreground mt-2 px-2">
           {t('disclaimer') ||

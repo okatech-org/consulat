@@ -129,8 +129,8 @@ export function ChatToggle() {
       <motion.div
         className="fixed flex items-center justify-center z-50"
         style={{
-          bottom: '50%',
-          right: '50%',
+          bottom: '20px',
+          right: '20px',
           touchAction: 'none',
         }}
         animate={{
@@ -151,7 +151,7 @@ export function ChatToggle() {
                 toggleChat();
               }
             }}
-            className="aspect-square size-[4rem] md:size-20 rounded-full overflow-hidden cursor-pointer"
+            className="aspect-square size-[4rem] relative md:size-20 rounded-full overflow-hidden cursor-pointer"
             whileTap={{ scale: 0.95 }}
             animate={controls}
           >
