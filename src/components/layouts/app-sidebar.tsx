@@ -142,7 +142,7 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="border-b border-border">
         <TeamSwitcher
           teams={[
             {

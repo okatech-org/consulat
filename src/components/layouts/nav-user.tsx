@@ -159,6 +159,19 @@ export function NavUser({
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                   <SidebarMenuButton
+                    tooltip={t('navigation.my_space')}
+                    size="md"
+                    className="flex items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    asChild
+                  >
+                    <Link href={isAdmin ? ROUTES.dashboard.base : ROUTES.user.base}>
+                      <UserIcon className="size-icon" />
+                      {t('navigation.my_space')}
+                    </Link>
+                  </SidebarMenuButton>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <SidebarMenuButton
                     tooltip={t('navigation.my_account')}
                     size="md"
                     className="flex items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
