@@ -258,9 +258,8 @@ export function ChildRegistrationForm() {
   };
 
   return (
-    <div className="w-full max-w-3xl min-h-full flex flex-col">
-      <header className="w-full border-b border-border pb-6">
-        <h1 className="text-2xl mb-4 font-bold">{t('header.title')}</h1>
+    <div className="w-full max-w-3xl mx-auto min-h-full flex flex-col">
+      <header className="w-full pb-4">
         <StepIndicator
           steps={orderedSteps.map((step) => {
             const stepIndex = orderedSteps.indexOf(step);

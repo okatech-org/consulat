@@ -32,7 +32,7 @@ export function StepIndicator({ steps, currentStep, onChange }: StepIndicatorPro
   const currentStepIndex = steps.findIndex((step) => step.key === currentStep) ?? 0;
 
   return (
-    <div className="relative ">
+    <div className="relative">
       {/* Barre de progression */}
       <div className="absolute left-0 top-[15px] h-[2px] w-full bg-muted">
         <motion.div

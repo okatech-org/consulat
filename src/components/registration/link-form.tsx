@@ -151,7 +151,7 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                 control={form.control}
                 name="otherParentRole"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col gap-2">
                     <FormLabel>{tBase('inputs.parentalRole.label')}</FormLabel>
                     <FormControl>
                       <MultiSelect<ParentalRole>
