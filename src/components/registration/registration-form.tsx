@@ -415,7 +415,7 @@ export function RegistrationForm({
               <Button
                 type="submit"
                 onClick={() => handleNext()}
-                disabled={isLoading || !currentStepValidity}
+                disabled={isLoading}
                 className="ml-auto gap-2"
               >
                 {isLoading ? <Loader className="size-4 animate-spin" /> : null}
