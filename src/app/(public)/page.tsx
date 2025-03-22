@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { ArrowRight, Check, Lock, Users, MessageSquare, Shield } from 'lucide-react';
 import React from 'react';
 import { getTranslations } from 'next-intl/server';
@@ -52,7 +52,7 @@ export default async function LandingPage() {
                   className={buttonVariants({
                     size: 'lg',
                     className:
-                      'gap-2 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white home-button-primary',
+                      'relative group block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg text-base font-medium text-center shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10 transition-all duration-300 overflow-hidden',
                   })}
                 >
                   {t('home.landing.hero.citizen_space')}
@@ -212,13 +212,14 @@ export default async function LandingPage() {
               </span>
             </li>
           </ul>
-          <Link
-            href="/dashboard/identity"
+          <Button
+            disabled={true}
+            variant="outline"
             className="mt-auto inline-flex items-center justify-center rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors"
           >
-            {t('home.landing.services.identity.learn_more')}
+            {t('home.landing.services.soon_available')} ⏲︎
             <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
+          </Button>
         </div>
 
         {/* Service Card 2 */}
@@ -252,13 +253,14 @@ export default async function LandingPage() {
               </span>
             </li>
           </ul>
-          <Link
-            href="/dashboard/assistance"
+          <Button
+            disabled={true}
+            variant="outline"
             className="mt-auto inline-flex items-center justify-center rounded-lg bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
           >
-            {t('home.landing.services.assistance.learn_more')}
+            {t('home.landing.services.soon_available')} ⏲︎
             <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
+          </Button>
         </div>
 
         {/* Service Card 3 */}
@@ -292,13 +294,14 @@ export default async function LandingPage() {
               </span>
             </li>
           </ul>
-          <Link
-            href="/dashboard/protection"
+          <Button
+            disabled={true}
+            variant="outline"
             className="mt-auto inline-flex items-center justify-center rounded-lg bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30 transition-colors"
           >
-            En savoir plus
+            {t('home.landing.services.soon_available')} ⏲︎
             <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
+          </Button>
         </div>
       </MobileSectionCarousel>
 

@@ -30,53 +30,53 @@
 
 ### 2.1 Cartes et Conteneurs
 
-- [ ] Optimiser les paddings et marges pour les écrans mobiles
-- [ ] Ajouter des animations tactiles pour le feedback sur interaction
+- [x] Optimiser les paddings et marges pour les écrans mobiles
+- [x] Ajouter des animations tactiles pour le feedback sur interaction
 
 ### 2.2 Boutons et Actions
 
-- [ ] Augmenter la taille des zones tactiles (min 44x44px)
-- [ ] Améliorer le feedback visuel et tactile des boutons
+- [x] Augmenter la taille des zones tactiles (min 44x44px)
+- [x] Améliorer le feedback visuel et tactile des boutons
 
 ### 2.3 Formulaires et Inputs
 
-- [ ] Optimiser la taille et l'espacement des champs de formulaire
-- [ ] Améliorer l'expérience mobile des éléments de sélection et date
+- [x] Optimiser la taille et l'espacement des champs de formulaire
+- [x] Améliorer l'expérience mobile des éléments de sélection et date
 
 ### 2.4 Navigation et Tabs
 
-- [ ] Développer une barre de navigation inférieure (`BottomNavigation`)
-- [ ] Créer un composant d'en-tête mobile avec boutons de retour
-- [ ] Optimiser le comportement des tabs sur mobile
+- [x] Développer une barre de navigation inférieure (`BottomNavigation`)
+- [x] Créer un composant d'en-tête mobile avec boutons de retour
+- [x] Optimiser le comportement des tabs sur mobile
 
 ## 3. Layouts et Structures de Page
 
 ### 3.1 Layouts de Base Mobile
 
-- [ ] Créer un composant `MobileLayout` avec en-tête et pied de page
-- [ ] Implémenter des solutions pour la "safe area" sur iOS
-- [ ] Gérer le comportement du clavier virtuel
+- [x] Créer un composant `MobileLayout` avec en-tête et pied de page
+- [x] Implémenter des solutions pour la "safe area" sur iOS
+- [x] Gérer le comportement du clavier virtuel
 
 ### 3.3 Composants de Navigation
 
-- [ ] Implémenter des tiroirs latéraux optimisés pour mobile
-- [ ] Créer un composant de navigation par étapes pour processus complexes
-- [ ] Améliorer la navigation hiérarchique
+- [x] Implémenter des tiroirs latéraux optimisés pour mobile
+- [x] Créer un composant de navigation par étapes pour processus complexes
+- [x] Améliorer la navigation hiérarchique
 
 ### 4.1 Gestes Tactiles
 
-- [ ] Implémenter un composant de vues glissables (swipeable views)
+- [x] Implémenter un composant de vues glissables (swipeable views) - _Nécessite d'installer les dépendances `@use-gesture/react` et `framer-motion`_
 
 ### 4.2 Feedback et Microinteractions
 
-- [ ] Améliorer le feedback visuel pour les actions utilisateur
-- [ ] Créer des transitions et animations optimisées pour mobile
-- [ ] Implémenter un feedback haptique (lorsque supporté)
+- [x] Améliorer le feedback visuel pour les actions utilisateur
+- [x] Créer des transitions et animations optimisées pour mobile
+- [x] Implémenter un feedback haptique (lorsque supporté) - _Utilise l'API Vibration pour les appareils compatibles_
 
 ### 4.3 États Vides et Chargement
 
-- [ ] Créer un composant d'état vide optimisé pour mobile
-- [ ] Améliorer les indicateurs de chargement et squelettes
+- [x] Créer un composant d'état vide optimisé pour mobile
+- [x] Améliorer les indicateurs de chargement et squelettes
 
 ### 5.1 Authentification
 
@@ -102,7 +102,7 @@
 
 ### 6.2 Accessibilité Mobile
 
-- [ ] Vérifier les tailles de zones tactiles (44x44px minimum)
+- [x] Vérifier les tailles de zones tactiles (44x44px minimum)
 
 ### 8.1 Ordre d'Implémentation Recommandé
 

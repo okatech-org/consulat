@@ -7,7 +7,9 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        'rounded-lg border bg-card text-card-foreground shadow-sm',
+        'rounded-lg border bg-card text-card-foreground shadow-low transition-all',
+        'hover:shadow-medium focus:shadow-medium active:shadow-low',
+        'touch-manipulation',
         className,
       )}
       {...props}
@@ -20,7 +22,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('flex flex-col space-y-1.5 p-6', className)}
+      className={cn('flex flex-col space-y-1.5 p-4 sm:p-6', className)}
       {...props}
     />
   ),
@@ -33,7 +35,10 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+    className={cn(
+      'text-xl sm:text-2xl font-semibold leading-tight tracking-tight',
+      className,
+    )}
     {...props}
   />
 ));
@@ -51,15 +56,46 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+  <div ref={ref} className={cn('p-4 pt-0 sm:p-6', className)} {...props} />
 ));
 CardContent.displayName = 'CardContent';
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
+    <div
+      ref={ref}
+      className={cn('flex items-center p-4 pt-0 sm:p-6', className)}
+      {...props}
+    />
   ),
 );
 CardFooter.displayName = 'CardFooter';
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+// Interactive card with touch animations
+const InteractiveCard = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      'rounded-lg border bg-card text-card-foreground shadow-interactive',
+      'transform transition-all duration-200 active:scale-[0.98]',
+      'hover:shadow-interactive-hover active:shadow-interactive-active',
+      'cursor-pointer touch-manipulation',
+      className,
+    )}
+    {...props}
+  />
+));
+InteractiveCard.displayName = 'InteractiveCard';
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  InteractiveCard,
+};
