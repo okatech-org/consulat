@@ -32,6 +32,7 @@ import { FullServiceRequest } from '@/types/service-request';
 import { ROUTES } from '@/schemas/routes';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageContainer } from '@/components/layouts/page-container';
 
 // Status config for display
 const statusConfig: Record<
@@ -209,29 +210,24 @@ export default function ServicesPage() {
   const stats = getRequestStats();
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <div className="flex flex-col space-y-3 md:flex-row md:justify-between md:items-center">
-        <div>
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
-          <p className="text-muted-foreground mt-1">
-            Gérez vos demandes de services consulaires et découvrez les services
-            disponibles
-          </p>
-        </div>
+    <PageContainer
+      title={t('title')}
+      description={t('description')}
+      action={
         <div className="flex space-x-2">
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            {t('actions.refresh')}
+            <RefreshCw className="size-icon" />
+            <span className="hidden md:inline">{t('actions.refresh')}</span>
           </Button>
-          <Link href={ROUTES.user.services + '/available'}>
+          <Link href={ROUTES.user.service_available}>
             <Button size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              {t('myRequests.startNew')}
+              <Plus className="size-icon" />
+              <span className="hidden md:inline">{t('myRequests.startNew')}</span>
             </Button>
           </Link>
         </div>
-      </div>
-
+      }
+    >
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList className="grid w-full md:w-[500px] grid-cols-2">
           <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
@@ -241,45 +237,6 @@ export default function ServicesPage() {
         </TabsList>
 
         <TabsContent value="dashboard" className="mt-6 space-y-6">
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Total des demandes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.total}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">En cours</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-amber-500">{stats.ongoing}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Complétées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-500">{stats.completed}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Rejetées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-red-500">{stats.rejected}</div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Recent Requests */}
           <Card>
             <CardHeader>
@@ -377,6 +334,44 @@ export default function ServicesPage() {
               </CardFooter>
             )}
           </Card>
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total des demandes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{stats.total}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">En cours</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-amber-500">{stats.ongoing}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Complétées</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-500">{stats.completed}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Rejetées</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-500">{stats.rejected}</div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Action Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -577,6 +572,6 @@ export default function ServicesPage() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

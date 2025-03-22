@@ -8,7 +8,6 @@ import {
   Filter,
   ArrowLeft,
   X,
-  Check,
   LayoutGrid,
   LayoutList,
   SlidersHorizontal,
@@ -46,6 +45,7 @@ import {
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageContainer } from '@/components/layouts/page-container';
 
 type ConsularServiceWithOrganization = {
   id: string;
@@ -194,22 +194,21 @@ export default function AvailableServicesPage() {
     searchQuery.trim() !== '';
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center space-x-2">
-        <Link href={ROUTES.user.services}>
-          <Button variant="outline" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold">Services consulaires disponibles</h1>
-      </div>
-
-      <div className="text-muted-foreground">
-        <p>
-          Découvrez les services consulaires disponibles et démarrez une nouvelle demande.
-        </p>
-      </div>
-
+    <PageContainer
+      title={'Services consulaires disponibles'}
+      description={
+        'Découvrez les services consulaires disponibles et démarrez une nouvelle demande.'
+      }
+      action={
+        <div className="flex space-x-2">
+          <Link href={ROUTES.user.services}>
+            <Button variant="outline" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      }
+    >
       {/* Search and filters bar */}
       <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:items-center">
         <div className="relative flex-1">
@@ -240,7 +239,7 @@ export default function AvailableServicesPage() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Filtrer par catégorie</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {Object.entries(categoryMap).map(([category, { label, icon }]) => (
+              {Object.entries(categoryMap).map(([category, { label }]) => (
                 <DropdownMenuCheckboxItem
                   key={category}
                   checked={selectedCategories.includes(category as ServiceCategory)}
@@ -248,7 +247,6 @@ export default function AvailableServicesPage() {
                     handleCategorySelect(category as ServiceCategory)
                   }
                 >
-                  <span className="mr-2">{icon}</span>
                   {label}
                 </DropdownMenuCheckboxItem>
               ))}
@@ -316,7 +314,6 @@ export default function AvailableServicesPage() {
                         className="w-full justify-start"
                         onClick={() => handleCategorySelect(category as ServiceCategory)}
                       >
-                        <span className="mr-2">{icon}</span>
                         {label}
                       </Button>
                     ))}
@@ -493,7 +490,6 @@ export default function AvailableServicesPage() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <span className="text-2xl mr-2">{icon}</span>
                             <CardTitle>{service.name}</CardTitle>
                           </div>
                           <Badge variant="outline">
@@ -537,7 +533,6 @@ export default function AvailableServicesPage() {
                     >
                       <div className="space-y-1 mb-4 sm:mb-0">
                         <div className="flex items-center">
-                          <span className="text-lg mr-2">{icon}</span>
                           <h3 className="font-medium">{service.name}</h3>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-y-1 sm:gap-x-4 text-sm text-muted-foreground">
@@ -604,9 +599,6 @@ export default function AvailableServicesPage() {
                     services.length > 0 && (
                       <div key={category} className="space-y-4">
                         <div className="flex items-center">
-                          <span className="text-2xl mr-2">
-                            {categoryMap[category as ServiceCategory].icon}
-                          </span>
                           <h2 className="text-xl font-semibold">
                             {categoryMap[category as ServiceCategory].label}
                           </h2>
@@ -674,6 +666,6 @@ export default function AvailableServicesPage() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }
