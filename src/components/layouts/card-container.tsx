@@ -17,7 +17,7 @@ export default function CardContainer({
   subtitle,
   children,
   className,
-  contentClass,
+  contentClass = 'pt-6',
   footerContent,
   headerClass,
 }: Readonly<CardContainerProps>) {
@@ -38,9 +38,7 @@ export default function CardContainer({
           {action && <div className="ml-auto">{action}</div>}
         </Card.CardHeader>
       )}
-      <Card.CardContent className={`${title || subtitle ? '' : 'pt-6'} ${contentClass}`}>
-        {children}
-      </Card.CardContent>
+      <Card.CardContent className={`${contentClass}`}>{children}</Card.CardContent>
       {footerContent && <Card.CardFooter>{footerContent}</Card.CardFooter>}
     </Card.Card>
   );

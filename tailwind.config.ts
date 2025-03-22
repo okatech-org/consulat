@@ -24,6 +24,29 @@ export default {
       },
     },
     extend: {
+      fontSize: {
+        xs: 'var(--font-size-xs)',
+        sm: 'var(--font-size-sm)',
+        base: 'var(--font-size-base)',
+        lg: 'var(--font-size-lg)',
+        xl: 'var(--font-size-xl)',
+        '2xl': 'var(--font-size-2xl)',
+        '3xl': 'var(--font-size-3xl)',
+        '4xl': 'var(--font-size-4xl)',
+      },
+      lineHeight: {
+        tight: 'var(--line-height-tight)',
+        snug: 'var(--line-height-snug)',
+        normal: 'var(--line-height-normal)',
+        relaxed: 'var(--line-height-relaxed)',
+        loose: 'var(--line-height-loose)',
+      },
+      fontWeight: {
+        normal: 'var(--font-weight-normal)',
+        medium: 'var(--font-weight-medium)',
+        semibold: 'var(--font-weight-semibold)',
+        bold: 'var(--font-weight-bold)',
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -83,6 +106,19 @@ export default {
           DEFAULT: 'hsl(var(--gold))',
           foreground: 'hsl(var(--gold-foreground))',
         },
+        // Status colors
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -117,6 +153,9 @@ export default {
           900: 'hsl(270, 95%, 15%)',
           950: 'hsl(270, 95%, 10%)',
         },
+      },
+      borderColor: {
+        DEFAULT: 'hsl(var(--border))',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -213,6 +252,15 @@ export default {
           'linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px)',
       },
       boxShadow: {
+        // Mobile-optimized shadows
+        low: 'var(--shadow-elevation-low)',
+        medium: 'var(--shadow-elevation-medium)',
+        high: 'var(--shadow-elevation-high)',
+        modal: 'var(--shadow-elevation-modal)',
+        interactive: 'var(--shadow-interactive-rest)',
+        'interactive-hover': 'var(--shadow-interactive-hover)',
+        'interactive-active': 'var(--shadow-interactive-active)',
+        // Legacy shadows
         'blue-sm':
           '0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06)',
         'blue-md':

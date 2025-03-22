@@ -124,6 +124,7 @@ export default {
       subtitle:
         "Tous vos services consulaires accessibles en quelques clics, sans file d'attente ni déplacement.",
       badge: 'Services',
+      soon_available: 'Bientôt disponible',
       identity: {
         title: 'Identité et État Civil',
         description: "Documents d'identité en quelques clics.",

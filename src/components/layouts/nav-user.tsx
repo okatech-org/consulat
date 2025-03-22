@@ -7,6 +7,7 @@ import {
   SunIcon,
   UserIcon,
   MessageSquare,
+  LayoutDashboard,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -165,7 +166,7 @@ export function NavUser({
                     asChild
                   >
                     <Link href={isAdmin ? ROUTES.dashboard.base : ROUTES.user.base}>
-                      <UserIcon className="size-icon" />
+                      <LayoutDashboard className="size-icon" />
                       {t('navigation.my_space')}
                     </Link>
                   </SidebarMenuButton>

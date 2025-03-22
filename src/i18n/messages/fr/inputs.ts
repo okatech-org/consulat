@@ -46,6 +46,10 @@ export default {
       placeholder: 'Nom complet du conjoint',
     },
   },
+  passportIssueAuthority: {
+    label: "Autorité d'émission du passeport",
+    placeholder: "Autorité d'émission",
+  },
   father: {
     fullName: {
       label: 'Nom complet du père',
