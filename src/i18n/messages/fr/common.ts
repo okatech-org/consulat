@@ -183,6 +183,9 @@ export default {
     DEADLINE: 'Date limite dépassée',
     EXPIRING: 'Expire bientôt',
     DELETED: 'Supprimé',
+    PENDING_DOCUMENTS: 'Documents en attente',
+    PENDING_DELIVERY: 'Livraison en attente',
+    ON_HOLD: 'En attente',
   },
   confirm: {
     title: 'Confirmation',
