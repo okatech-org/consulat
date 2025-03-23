@@ -156,8 +156,8 @@ export function NavUser({
                   </div>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
+              <DropdownMenuSeparator className="hidden sm:block" />
+              <DropdownMenuGroup className="hidden sm:block">
                 <DropdownMenuItem asChild>
                   <SidebarMenuButton
                     tooltip={t('navigation.my_space')}
@@ -235,8 +235,9 @@ export function NavUser({
                   </SidebarMenuButton>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="hidden sm:block" />
               <DropdownMenuItem
+                className="hidden sm:block"
                 onClick={async () => {
                   await logUserOut();
                 }}

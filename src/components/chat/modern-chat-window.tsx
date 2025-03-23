@@ -389,7 +389,7 @@ export function ModernChatWindow({
               <Send className="size-icon" />
             )}
           </Button>
-          <div className="absolute top-1/2 -translate-y-[200%] right-2 h-8 w-8 rounded-full">
+          <div className="absolute top-1/2 -translate-y-[250%] right-5 h-8 w-8 rounded-full">
             <Dialog>
               <DialogTrigger asChild>
                 <Button

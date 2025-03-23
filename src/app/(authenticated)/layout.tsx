@@ -6,6 +6,9 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { BreadcrumbMenu } from '@/components/layouts/breadcrumb-menu';
 import { getCurrentUser } from '@/actions/user';
 import { NavUser } from '@/components/layouts/nav-user';
+import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export default async function AuthenticatedLayout({
   children,
@@ -14,6 +17,7 @@ export default async function AuthenticatedLayout({
 }>) {
   const currentUser = await getCurrentUser();
   const headersList = await headers();
+  const isMobile = headersList.get('x-is-mobile') === 'true';
   const pathname = headersList.get('x-current-path') || '/';
   const fallbackUrl = `${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`;
 
@@ -28,13 +32,18 @@ export default async function AuthenticatedLayout({
         <header className="w-full h-14 bg-card shrink-0 border-b border-border items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex h-full justify-between container items-center">
             <div className="flex items-center gap-2 w-full max-w-[calc(100%-100px)]">
-              <SidebarTrigger />
+              <Button disabled={isMobile} variant="ghost" className="!p-0" asChild>
+                <SidebarTrigger />
+              </Button>
               <BreadcrumbMenu />
             </div>
             <NavUser user={currentUser} showFeedback={false} />
           </div>
         </header>
-        <div className="container py-4 sm:py-8">{children}</div>
+        <div className={cn('container py-4 sm:py-8', isMobile && 'pb-16')}>
+          {children}
+        </div>
+        <BottomNavigation user={currentUser} />
       </SidebarInset>
     </SidebarProvider>
   );

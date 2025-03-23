@@ -1,20 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Building2,
-  Calendar,
-  FileText,
-  Globe,
-  LayoutDashboard,
-  Settings,
-  User,
-  Users,
-  Baby,
-} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { NavMain, NavMainItem } from '@/components/layouts/nav-main';
+import { NavMain } from '@/components/layouts/nav-main';
 import { NavUser } from '@/components/layouts/nav-user';
 import { TeamSwitcher } from '@/components/layouts/team-switcher';
 import {
@@ -24,12 +13,11 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import { NotificationBell } from '../notifications/notification-bell';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { SessionUser } from '@/types/user';
+import { useNavigation } from '@/hooks/use-navigation';
 
 const logo =
   process.env.NEXT_PUBLIC_LOGO_URL ||
@@ -41,104 +29,8 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & {
   user: SessionUser;
 }) {
-  const t = useTranslations('navigation');
-  const t_nav = useTranslations('user.nav');
   const t_countries = useTranslations('countries');
-  const currentUserRoles = user.roles ?? [];
-
-  const AdminNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
-    {
-      title: t('super_admin.dashboard'),
-      url: ROUTES.dashboard.base,
-      icon: <LayoutDashboard className="size-icon" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT],
-    },
-    {
-      title: t('super_admin.countries'),
-      url: ROUTES.sa.countries,
-      icon: <Globe className="size-icon" />,
-      roles: [UserRole.SUPER_ADMIN],
-    },
-    {
-      title: t('super_admin.organizations'),
-      url: ROUTES.sa.organizations,
-      icon: <Building2 className="size-icon" />,
-      roles: [UserRole.SUPER_ADMIN],
-    },
-    {
-      title: t('admin.requests'),
-      url: ROUTES.dashboard.requests,
-      icon: <FileText className="size-icon" />,
-      roles: [UserRole.ADMIN, UserRole.AGENT],
-    },
-    {
-      title: t('admin.appointments'),
-      url: ROUTES.dashboard.appointments,
-      icon: <Calendar className="size-icon" />,
-      roles: [UserRole.ADMIN, UserRole.AGENT],
-    },
-    {
-      title: t('super_admin.users'),
-      url: ROUTES.dashboard.users,
-      icon: <Users className="size-icon" />,
-      roles: [UserRole.SUPER_ADMIN],
-    },
-    {
-      title: t('admin.notifications'),
-      url: ROUTES.dashboard.notifications,
-      icon: <NotificationBell />,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
-    },
-
-    {
-      title: t('admin.settings'),
-      url: ROUTES.dashboard.settings,
-      icon: <Settings className="size-icon" />,
-      roles: [UserRole.ADMIN],
-    },
-  ];
-
-  const UserNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
-    {
-      title: t_nav('dashboard'),
-      url: ROUTES.user.dashboard,
-      icon: <LayoutDashboard className="size-icon" />,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t_nav('profile'),
-      url: ROUTES.user.profile,
-      icon: <User className="size-icon" />,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t_nav('children'),
-      url: ROUTES.user.children,
-      icon: <Baby className="size-icon" />,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t_nav('appointments'),
-      url: ROUTES.user.appointments,
-      icon: <Calendar className="size-icon" />,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('notifications'),
-      url: ROUTES.user.notifications,
-      icon: <NotificationBell />,
-      roles: [UserRole.USER],
-    },
-  ];
-
-  const menuItems: Array<NavMainItem & { roles: UserRole[] }> = [
-    ...UserNavigation,
-    ...AdminNavigation,
-  ];
-
-  const filteredMenuItems = menuItems.filter((item) => {
-    return item.roles.some((role) => currentUserRoles.includes(role));
-  });
+  const { menu } = useNavigation(user);
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -177,7 +69,7 @@ export function AppSidebar({
         />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={filteredMenuItems} />
+        <NavMain items={menu} />
       </SidebarContent>
       <SidebarFooter className="py-6">
         <NavUser user={user} />

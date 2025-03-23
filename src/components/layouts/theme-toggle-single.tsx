@@ -2,20 +2,17 @@
 
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
+import { MoonIcon, SunIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
 export interface ThemeToggleSingleProps {
   className?: string;
 }
 
 export function ThemeToggleSingle({ className }: ThemeToggleSingleProps) {
-  const isMobile = useMediaQuery('(max-width: 640px)');
-  const size = isMobile ? 'sm' : 'md';
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Éviter les problèmes d'hydratation
@@ -27,20 +24,7 @@ export function ThemeToggleSingle({ className }: ThemeToggleSingleProps) {
     return null;
   }
 
-  // Tailles des icônes selon la prop size
-  const iconSizes = {
-    sm: 'size-4',
-    md: 'size-5',
-    lg: 'size-6',
-  };
-
-  const buttonSizes = {
-    sm: 'h-8 w-8',
-    md: 'h-10 w-10',
-    lg: 'h-12 w-12',
-  };
-
-  const isDark = theme === 'dark';
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <Button
@@ -48,7 +32,6 @@ export function ThemeToggleSingle({ className }: ThemeToggleSingleProps) {
       size="icon"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
-        buttonSizes[size],
         'relative rounded-full border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700',
         className,
       )}
@@ -56,21 +39,25 @@ export function ThemeToggleSingle({ className }: ThemeToggleSingleProps) {
     >
       <motion.div
         initial={false}
-        animate={{ rotate: isDark ? 0 : 180, opacity: 1 }}
+        animate={{ rotate: isDark ? 0 : 180 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ opacity: isDark ? 1 : 0 }}
+        className={cn(
+          'absolute inset-0 flex items-center justify-center',
+          isDark ? 'opacity-0' : 'opacity-100',
+        )}
       >
-        <MoonIcon className={iconSizes[size]} />
+        <MoonIcon className={'size-icon'} />
       </motion.div>
       <motion.div
         initial={false}
-        animate={{ rotate: isDark ? -180 : 0, opacity: 1 }}
+        animate={{ rotate: isDark ? -180 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ opacity: isDark ? 0 : 1 }}
+        className={cn(
+          'absolute inset-0 flex items-center justify-center',
+          isDark ? 'opacity-100' : 'opacity-0',
+        )}
       >
-        <SunIcon className={iconSizes[size]} />
+        <SunIcon className={'size-icon'} />
       </motion.div>
     </Button>
   );
