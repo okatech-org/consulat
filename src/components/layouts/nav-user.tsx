@@ -76,7 +76,7 @@ export function NavUser({
         )}
         <SidebarMenuItem>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild className="hidden md:flex">
               <SidebarMenuButton
                 tooltip={'Mon compte'}
                 size="md"
@@ -139,25 +139,7 @@ export function NavUser({
               align="end"
               sideOffset={4}
             >
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    {user.image ? (
-                      <AvatarImage src={user.image} alt={user.name ?? ''} />
-                    ) : (
-                      <AvatarFallback className="rounded-lg">
-                        {user.name?.slice(0, 2)}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user.name}</span>
-                    {user.email && <span className="truncate text-xs">{user.email}</span>}
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="hidden sm:block" />
-              <DropdownMenuGroup className="hidden sm:block">
+              <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                   <SidebarMenuButton
                     tooltip={t('navigation.my_space')}
@@ -171,11 +153,11 @@ export function NavUser({
                     </Link>
                   </SidebarMenuButton>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="hidden md:flex">
                   <SidebarMenuButton
                     tooltip={t('navigation.my_account')}
                     size="md"
-                    className="flex items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     asChild
                   >
                     <Link
@@ -188,11 +170,11 @@ export function NavUser({
                     </Link>
                   </SidebarMenuButton>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="hidden md:flex">
                   <SidebarMenuButton
-                    tooltip={t('navigation.my_account')}
+                    tooltip={'Dark mode'}
                     size="md"
-                    className="flex items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     onClick={() => {
                       if (resolvedTheme === 'dark') {
                         setTheme('light');
@@ -215,11 +197,11 @@ export function NavUser({
                   </SidebarMenuButton>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="hidden md:flex">
                   <SidebarMenuButton
                     tooltip={t('common.actions.feedback')}
                     size="md"
-                    className="flex items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     asChild
                   >
                     <Link
@@ -235,9 +217,8 @@ export function NavUser({
                   </SidebarMenuButton>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator className="hidden sm:block" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="hidden sm:flex"
                 onClick={async () => {
                   await logUserOut();
                 }}
