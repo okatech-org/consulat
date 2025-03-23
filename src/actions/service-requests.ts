@@ -429,8 +429,9 @@ export async function addServiceRequestNote(input: AddNoteInput) {
       include: {
         author: {
           select: {
-            firstName: true,
-            lastName: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
           },
         },
       },

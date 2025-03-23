@@ -62,25 +62,25 @@ Ce plan détaille l'implémentation des composants de chargement (loading skelet
   - [x] Créer `loading.tsx` avec skeleton pour la liste des notifications
   - [x] Skeleton adapté aux différents types de notifications
 
-- [ ] Feedback (`/dashboard/feedback`)
-  - [ ] Créer `loading.tsx` avec skeleton pour les formulaires de feedback
-  - [ ] Skeleton pour la visualisation des feedbacks reçus
+- [x] Feedback (`/dashboard/feedback`)
+  - [x] Créer `loading.tsx` avec skeleton pour les formulaires de feedback
+  - [x] Skeleton pour la visualisation des feedbacks reçus
 
 ### 2.5 Routes d'administration
 
-- [ ] Settings (`/dashboard/settings`)
+- [x] Settings (`/dashboard/settings`)
 
-  - [ ] Créer `loading.tsx` avec skeleton pour les options de configuration
-  - [ ] Adapter pour les différentes sections de paramètres
+  - [x] Créer `loading.tsx` avec skeleton pour les options de configuration
+  - [x] Adapter pour les différentes sections de paramètres
 
-- [ ] Superadmin (`/dashboard/(superadmin)`)
+- [x] Superadmin (`/dashboard/(superadmin)`)
 
-  - [ ] Créer `loading.tsx` avec skeleton pour l'interface superadmin
-  - [ ] Skeleton pour les tableaux et graphiques d'analyse
+  - [x] Créer `loading.tsx` avec skeleton pour l'interface superadmin
+  - [x] Skeleton pour les tableaux et graphiques d'analyse
 
-- [ ] Admin (`/dashboard/(admin)`)
-  - [ ] Créer `loading.tsx` avec skeleton pour l'interface admin
-  - [ ] Skeleton pour les outils d'administration
+- [x] Admin (`/dashboard/(admin)`)
+  - [x] Créer `loading.tsx` avec skeleton pour l'interface admin
+  - [x] Skeleton pour les outils d'administration
 
 ## 3. Implémentation pour @my-space
 
@@ -106,9 +106,9 @@ Ce plan détaille l'implémentation des composants de chargement (loading skelet
   - [x] Créer `loading.tsx` avec skeleton pour les paramètres du compte
   - [x] Skeleton pour les formulaires de modification
 
-- [ ] Children (`/my-space/children`)
-  - [ ] Créer `loading.tsx` avec skeleton pour la liste des enfants
-  - [ ] Skeleton pour les cartes d'information des enfants
+- [x] Children (`/my-space/children`)
+  - [x] Créer `loading.tsx` avec skeleton pour la liste des enfants
+  - [x] Skeleton pour les cartes d'information des enfants
 
 ### 3.3 Routes de services
 
@@ -133,9 +133,9 @@ Ce plan détaille l'implémentation des composants de chargement (loading skelet
   - [x] Créer `loading.tsx` avec skeleton pour le centre de notifications
   - [x] Adapter pour différents types de notifications
 
-- [ ] Feedback (`/my-space/feedback`)
-  - [ ] Créer `loading.tsx` avec skeleton pour les formulaires de feedback
-  - [ ] Skeleton pour l'historique des feedbacks envoyés
+- [x] Feedback (`/my-space/feedback`)
+  - [x] Créer `loading.tsx` avec skeleton pour les formulaires de feedback
+  - [x] Skeleton pour l'historique des feedbacks envoyés
 
 ## 4. Optimisations et tests
 
