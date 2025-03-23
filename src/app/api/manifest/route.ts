@@ -4,13 +4,14 @@ export async function GET() {
   return NextResponse.json({
     name: 'Consulat.ga',
     short_name: 'CONSULAT',
-    description: 'Application consulaire de la République Gabonaise',
-    start_url: '/',
+    description:
+      'Consulat.ga transforme la relation administrative entre le Gabon et ses citoyens en France.',
+    start_url: '/my-space',
     display: 'standalone',
     display_override: ['window-controls-overlay', 'minimal-ui'],
     orientation: 'portrait',
-    background_color: '#ffffff',
-    theme_color: '#17A34A',
+    background_color: '#FAFAFA',
+    theme_color: '#0F428A',
     categories: ['government', 'utilities', 'productivity'],
     dir: 'ltr',
     lang: 'fr',
