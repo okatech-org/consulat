@@ -510,4 +510,30 @@ export default {
   spouseFullName: {
     label: 'Nom complet du conjoint',
   },
+  profileCategory: {
+    label: 'Type de profil',
+    options: {
+      ADULT: 'Adulte',
+      MINOR: 'Enfant',
+    },
+  },
+  cardNumber: {
+    label: 'Carte N°',
+  },
+  requestStatus: {
+    label: 'Statut de la demande',
+    options: {
+      DRAFT: 'Brouillon',
+      SUBMITTED: 'Soumis',
+      PENDING: 'En traitement',
+      PENDING_COMPLETION: 'Documents/Informations manquants',
+      VALIDATED: 'Dossier validé',
+      REJECTED: 'Rejeté',
+      CARD_IN_PRODUCTION: 'Carte en cours de production',
+      READY_FOR_PICKUP: 'Prêt pour retrait',
+      APPOINTMENT_SCHEDULED: 'RDV de retrait/entretien programmé',
+      COMPLETED: 'Carte remise après entretien',
+      EDITED: 'Modifiée',
+    },
+  },
 } as const;

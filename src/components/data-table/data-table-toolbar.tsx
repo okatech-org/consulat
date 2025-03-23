@@ -8,30 +8,56 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options';
 import { useTranslations } from 'next-intl';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { debounce } from 'lodash';
+
+// eslint-disable-next-line
+export interface BaseFilterOption<TData = Record<string, any>> {
+  property?: string;
+  isDisabled?: boolean;
+  label: string;
+}
+
+export interface SearchFilterOption<TData = unknown> extends BaseFilterOption<TData> {
+  type: 'search';
+  defaultValue: string;
+  onChange: (value: string) => void;
+  debounce?: number;
+}
+
+export interface RadioFilterOption<TData = unknown> extends BaseFilterOption<TData> {
+  type: 'radio';
+  defaultValue: string;
+  onChange: (value: string) => void;
+  options: {
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }[];
+}
+
+export interface CheckboxFilterOption<TData = unknown> extends BaseFilterOption<TData> {
+  type: 'checkbox';
+  defaultValue: string[];
+  onChange: (value: string[]) => void;
+  options: {
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }[];
+}
+
+export type FilterOption<TData = unknown> =
+  | SearchFilterOption<TData>
+  | RadioFilterOption<TData>
+  | CheckboxFilterOption<TData>;
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filters?: FilterOption<TData>[];
   isLoading?: boolean;
 }
-
-export type FilterOption<TData = unknown> = {
-  type: 'search' | 'radio' | 'checkbox';
-  label: string;
-  property?: keyof TData & string;
-  defaultValue?: string | string[];
-  onChange?: (value: string | string[]) => void;
-  filterFn?: (row: TData) => boolean;
-  filterKeys?: (keyof TData)[];
-  options?: {
-    label: string;
-    value: string;
-    icon?: React.ComponentType<{ className?: string }>;
-  }[];
-  isDisabled?: boolean;
-};
 
 export function DataTableToolbar<TData>({
   table,
@@ -40,50 +66,59 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const t = useTranslations('common.data_table');
   const isFiltered = false;
+  const [searchValue, setSearchValue] = useState('');
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <div className="flex flex-1 items-center space-x-2">
         <div
           className={`flex items-center flex-wrap gap-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
         >
-          {filters?.map((filter) => (
-            <Fragment key={filter.type + filter.property}>
+          {filters?.map((filter, index) => (
+            <Fragment key={filter.type + index + filter.property}>
               {filter.type === 'search' && (
                 <Input
                   disabled={filter.isDisabled}
                   placeholder={filter.label}
                   defaultValue={filter.defaultValue}
-                  value={
-                    filter.property
-                      ? (table.getColumn(filter.property)?.getFilterValue() as string)
-                      : ''
-                  }
+                  value={searchValue}
                   onChange={(event) => {
                     const value = (event.target as HTMLInputElement).value;
-                    if (filter.onChange) {
+                    setSearchValue(value);
+                    const debouncedSearch = debounce((value: string) => {
                       filter.onChange(value);
-                    } else if (filter.property) {
-                      table.getColumn(filter.property)?.setFilterValue(value);
-                    }
+                    }, filter.debounce ?? 300);
+                    debouncedSearch(value);
                   }}
-                  className="h-8 w-[150px] lg:w-[250px]"
+                  containerClassName="w-[150px] lg:w-[250px] max-w-max"
                 />
               )}
 
-              {(filter.type === 'checkbox' || filter.type === 'radio') &&
-                filter.options && (
-                  <DataTableFacetedFilter
-                    isDisabled={filter.isDisabled}
-                    type={filter.type}
-                    key={filter.property}
-                    column={table.getColumn(filter.property ?? '')}
-                    title={filter.label}
-                    options={filter.options}
-                    onChange={filter.onChange}
-                    defaultValue={filter.defaultValue}
-                  />
-                )}
+              {filter.type === 'checkbox' && filter.options && (
+                <DataTableFacetedFilter
+                  isDisabled={filter.isDisabled}
+                  type={filter.type}
+                  key={filter.property}
+                  column={table.getColumn(filter.property ?? '')}
+                  title={filter.label}
+                  options={filter.options}
+                  onChange={(value) => filter.onChange(value as string[])}
+                  defaultValue={filter.defaultValue}
+                />
+              )}
+
+              {filter.type === 'radio' && filter.options && (
+                <DataTableFacetedFilter
+                  isDisabled={filter.isDisabled}
+                  type={filter.type}
+                  key={filter.property}
+                  column={table.getColumn(filter.property ?? '')}
+                  title={filter.label}
+                  options={filter.options}
+                  onChange={(value) => filter.onChange(value as string)}
+                  defaultValue={filter.defaultValue}
+                />
+              )}
             </Fragment>
           ))}
         </div>
