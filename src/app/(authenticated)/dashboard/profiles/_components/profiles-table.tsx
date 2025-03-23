@@ -13,26 +13,26 @@ import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import {
+  Country,
   Gender,
   MaritalStatus,
   ProfileCategory,
   RequestStatus,
   WorkStatus,
 } from '@prisma/client';
-import { User } from '@prisma/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { SessionUser } from '@/types';
 import { format as formatDate } from 'date-fns';
 import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface ProfilesTableProps {
-  user: SessionUser;
   filters: GetProfilesOptions;
-  agents?: User[];
+  countries: Country[];
 }
 
-export function ProfilesTable({ filters }: ProfilesTableProps) {
+export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -100,7 +100,25 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     label: t(`inputs.workStatus.options.${status}`),
   }));
 
-  const columns: ColumnDef<PaginatedProfiles['items'][number]>[] = [
+  const processedData: (PaginatedProfiles['items'][number] & {
+    identityPictureUrl?: string;
+    fullName?: string;
+  })[] = React.useMemo(() => {
+    if (!result?.items) return [];
+
+    return result.items.map((item) => ({
+      ...item,
+      identityPictureUrl: item.identityPicture?.fileUrl || '',
+      fullName: `${item.firstName} ${item.lastName}`.trim(),
+    }));
+  }, [result?.items]);
+
+  const columns: ColumnDef<
+    PaginatedProfiles['items'][number] & {
+      identityPictureUrl?: string;
+      fullName?: string;
+    }
+  >[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -127,12 +145,26 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     },
     {
       accessorKey: 'cardNumber',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.cardNumber.label')} />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
       cell: ({ row }) => <div>{row.getValue('cardNumber') || '-'}</div>,
       enableSorting: false,
       enableHiding: false,
+    },
+    {
+      accessorKey: 'identityPictureUrl',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Photo d'identité" />
+      ),
+      cell: ({ row }) => {
+        const url = row.getValue('identityPictureUrl') as string;
+        return url ? (
+          <Avatar>
+            <AvatarImage src={url} />
+          </Avatar>
+        ) : (
+          '-'
+        );
+      },
     },
     {
       accessorKey: 'fullName',
@@ -140,20 +172,23 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
       ),
       cell: ({ row }) => {
-        const firstName = row.original.firstName || '';
-        const lastName = row.original.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
-
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[250px] truncate font-medium">{fullName || '-'}</span>
+            <span className="max-w-[250px] truncate font-medium">
+              {row.original.fullName || '-'}
+            </span>
           </div>
         );
       },
     },
     {
       accessorKey: 'category',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('inputs.profileCategory.label')}
+        />
+      ),
       cell: ({ row }) => {
         const category = categories.find((cat) => cat.value === row.getValue('category'));
 
@@ -207,9 +242,67 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       },
     },
     {
+      accessorKey: 'cardPin',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.cardPin.label')} />
+      ),
+    },
+    {
+      accessorKey: 'gender',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.gender.label')} />
+      ),
+      cell: ({ row }) => {
+        const gender = genders.find((g) => g.value === row.getValue('gender'));
+        return gender ? <Badge variant={'outline'}>{gender.label}</Badge> : '-';
+      },
+    },
+    {
+      accessorKey: 'maritalStatus',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.maritalStatus.label')} />
+      ),
+      cell: ({ row }) => {
+        const status = maritalStatuses.find(
+          (s) => s.value === row.getValue('maritalStatus'),
+        );
+        return status ? <Badge variant={'outline'}>{status.label}</Badge> : '-';
+      },
+    },
+    {
+      accessorKey: 'workStatus',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.workStatus.label')} />
+      ),
+      cell: ({ row }) => {
+        const status = workStatuses.find((s) => s.value === row.getValue('workStatus'));
+        return status ? <Badge variant={'outline'}>{status.label}</Badge> : '-';
+      },
+    },
+    {
+      accessorKey: 'cardIssuedAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.cardIssuedAt.label')} />
+      ),
+      cell: ({ row }) => {
+        const date = row.original.cardIssuedAt;
+        return date ? formatDate(date, 'dd/MM/yyyy') : '-';
+      },
+    },
+    {
+      accessorKey: 'cardExpiresAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.cardExpiresAt.label')} />
+      ),
+      cell: ({ row }) => {
+        const date = row.original.cardExpiresAt;
+        return date ? formatDate(date, 'dd/MM/yyyy') : '-';
+      },
+    },
+    {
       accessorKey: 'createdAt',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Created At" />
+        <DataTableColumnHeader column={column} title={t('inputs.createdAt.label')} />
       ),
       cell: ({ row }) => {
         const date = row.original.createdAt;
@@ -245,6 +338,21 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       label: t('common.data_table.search'),
       defaultValue: filters.search ?? '',
       onChange: (value) => handleFilterChange('search', value),
+    },
+    {
+      type: 'checkbox',
+      property: 'residenceCountyCode',
+      label: t('inputs.residenceCountyCode.label'),
+      defaultValue: filters.residenceCountyCode?.toString().split(',') ?? [],
+      options: countries.map((country) => ({
+        value: country.code,
+        label: t(`countries.${country.code as CountryCode}`),
+      })),
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('residenceCountyCode', value.join('_'));
+        }
+      },
     },
     {
       type: 'checkbox',
@@ -312,7 +420,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     <DataTable
       isLoading={isLoading}
       columns={columns}
-      data={result?.items ?? []}
+      data={processedData}
       filters={localFilters}
       totalCount={result?.total ?? 0}
       pageIndex={filters?.page}
@@ -326,6 +434,14 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       enableExport={true}
       exportSelectedOnly={true}
       exportFilename="profiles"
+      hiddenColumns={[
+        'cardPin',
+        'cardIssuedAt',
+        'cardExpiresAt',
+        'maritalStatus',
+        'workStatus',
+        'email',
+      ]}
     />
   );
 }

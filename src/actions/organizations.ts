@@ -212,7 +212,7 @@ export async function getOrganizationById(id: string): Promise<{
 
 export async function getOrganizationWithSpecificIncludes<
   T extends keyof typeof FullOrganizationInclude.include,
->(id: string, includes: T[]): Promise<OrganizationWithIncludes<T>> {
+>(id: string, includes: T[]): Promise<OrganizationWithIncludes<T> | null> {
   await checkAuth();
   const organization = await db.organization.findUnique({
     where: { id },
@@ -220,7 +220,7 @@ export async function getOrganizationWithSpecificIncludes<
   });
 
   if (!organization) {
-    throw new Error('messages.error.not_found', { cause: 'ORGANIZATION_NOT_FOUND' });
+    return null;
   }
 
   return {

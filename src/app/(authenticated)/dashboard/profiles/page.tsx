@@ -13,7 +13,13 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { tryCatch } from '@/lib/utils';
 import { getCurrentUser } from '@/actions/user';
 import { ProfilesTable } from './_components/profiles-table';
-import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
+import {
+  getOrganizationById,
+  getOrganizationWithSpecificIncludes,
+} from '@/actions/organizations';
+import { CountryCode } from '@/lib/autocomplete-datas';
+import countries from '@/i18n/messages/fr/countries';
+import { getCountries } from '@/actions/countries';
 
 interface GetProfilesOptions {
   search?: string;
@@ -29,6 +35,7 @@ interface GetProfilesOptions {
   startDate?: Date;
   endDate?: Date;
   organizationId?: string;
+  residenceCountyCode?: CountryCode;
 }
 
 interface Props {
@@ -39,14 +46,28 @@ export default async function ProfilesPage({ searchParams }: Props) {
   const user = await getCurrentUser();
   const queryParams = await searchParams;
   const t = await getTranslations('requests');
+  const isAgent = user?.roles.includes('AGENT');
+  const isAdmin = user?.roles.includes('ADMIN');
+  const isSuperAdmin = user?.roles.includes('SUPER_ADMIN');
 
-  const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN']) : false;
+  const getOrganizationId = () => {
+    switch (true) {
+      case isAgent:
+        return user?.assignedOrganizationId;
+      case isAdmin:
+        return user?.organizationId;
+      case isSuperAdmin:
+        return '';
+      default:
+        return '';
+    }
+  };
 
-  const organization = isAdmin
-    ? await tryCatch(
-        getOrganizationWithSpecificIncludes(user?.organizationId as string, ['agents']),
-      )
-    : undefined;
+  const organizationId = getOrganizationId() ?? '';
+
+  const organization = await getOrganizationWithSpecificIncludes(organizationId, [
+    'countries',
+  ]);
 
   const formattedQueryParams: GetProfilesOptions = {
     ...queryParams,
@@ -66,6 +87,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
     startDate: queryParams.startDate ? new Date(queryParams.startDate) : undefined,
     endDate: queryParams.endDate ? new Date(queryParams.endDate) : undefined,
     organizationId: queryParams.organizationId ?? user?.organizationId ?? undefined,
+    residenceCountyCode: queryParams.residenceCountyCode as CountryCode | undefined,
   };
 
   return (
@@ -74,9 +96,8 @@ export default async function ProfilesPage({ searchParams }: Props) {
         <>
           <CardContainer>
             <ProfilesTable
-              user={user}
               filters={formattedQueryParams}
-              agents={(organization?.data?.agents as User[]) ?? []}
+              countries={organization?.countries ?? []}
             />
           </CardContainer>
         </>

@@ -44,6 +44,7 @@ interface DataTableProps<TData, TValue> {
   enableExport?: boolean;
   exportFilename?: string;
   exportSelectedOnly?: boolean;
+  hiddenColumns?: string[];
 }
 
 export function DataTable<TData, TValue>({
@@ -60,10 +61,19 @@ export function DataTable<TData, TValue>({
   enableExport = false,
   exportFilename,
   exportSelectedOnly = false,
+  hiddenColumns = [],
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
+
+  const initialColumnVisibility: VisibilityState = {};
+  hiddenColumns.forEach((columnId) => {
+    initialColumnVisibility[columnId] = false;
+  });
+
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
+    initialColumnVisibility,
+  );
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState({

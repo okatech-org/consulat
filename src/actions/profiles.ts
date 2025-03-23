@@ -8,6 +8,7 @@ import {
   ProfileCategory,
   RequestStatus,
   WorkStatus,
+  UserDocument,
 } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { tryCatch } from '@/lib/utils';
@@ -27,10 +28,13 @@ export interface GetProfilesOptions {
   startDate?: Date;
   endDate?: Date;
   organizationId?: string;
+  residenceCountyCode?: string;
 }
 
 export interface PaginatedProfiles {
-  items: Profile[];
+  items: (Profile & {
+    identityPicture: UserDocument | null;
+  })[];
   total: number;
 }
 
@@ -55,6 +59,7 @@ export async function getProfiles(
     startDate,
     endDate,
     organizationId,
+    residenceCountyCode,
   } = options;
 
   const where: Prisma.ProfileWhereInput = {};
@@ -89,6 +94,10 @@ export async function getProfiles(
     where.workStatus = { in: workStatus };
   }
 
+  if (residenceCountyCode && residenceCountyCode.length > 0) {
+    where.residenceCountyCode = { in: residenceCountyCode };
+  }
+
   if (startDate && endDate) {
     where.createdAt = {
       gte: startDate,
@@ -118,6 +127,7 @@ export async function getProfiles(
               email: true,
             },
           },
+          identityPicture: true,
         },
         skip: (page - 1) * limit,
         take: limit,
