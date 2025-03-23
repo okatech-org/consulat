@@ -1,0 +1,331 @@
+'use client';
+
+import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
+import { ColumnDef } from '@tanstack/react-table';
+import { FileText } from 'lucide-react';
+import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { DataTable } from '@/components/data-table/data-table';
+import { useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import {
+  Gender,
+  MaritalStatus,
+  ProfileCategory,
+  RequestStatus,
+  WorkStatus,
+} from '@prisma/client';
+import { User } from '@prisma/client';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
+import { SessionUser } from '@/types';
+import { format as formatDate } from 'date-fns';
+import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
+
+interface ProfilesTableProps {
+  user: SessionUser;
+  filters: GetProfilesOptions;
+  agents?: User[];
+}
+
+export function ProfilesTable({ filters }: ProfilesTableProps) {
+  const t = useTranslations();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<PaginatedProfiles | null>(null);
+
+  const handleFilterChange = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams?.toString());
+
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+
+    // Reset page when filter changes
+    if (key !== 'page') {
+      params.set('page', '1');
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const fetchProfiles = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      const data = await getProfiles(filters);
+      setResult(data);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      setResult({ items: [], total: 0 });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
+
+  const statuses = Object.values(RequestStatus).map((status) => ({
+    value: status,
+    label: t(`inputs.requestStatus.options.${status}`),
+  }));
+
+  const categories = Object.values(ProfileCategory).map((category) => ({
+    value: category,
+    label: t(`inputs.profileCategory.options.${category}`),
+  }));
+
+  const genders = Object.values(Gender).map((gender) => ({
+    value: gender,
+    label: t(`inputs.gender.options.${gender}`),
+  }));
+
+  const maritalStatuses = Object.values(MaritalStatus).map((status) => ({
+    value: status,
+    label: t(`inputs.maritalStatus.options.${status}`),
+  }));
+
+  const workStatuses = Object.values(WorkStatus).map((status) => ({
+    value: status,
+    label: t(`inputs.workStatus.options.${status}`),
+  }));
+
+  const columns: ColumnDef<PaginatedProfiles['items'][number]>[] = [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="translate-y-[2px]"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-[2px]"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'cardNumber',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.cardNumber.label')} />
+      ),
+      cell: ({ row }) => <div>{row.getValue('cardNumber') || '-'}</div>,
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'fullName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
+      ),
+      cell: ({ row }) => {
+        const firstName = row.original.firstName || '';
+        const lastName = row.original.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[250px] truncate font-medium">{fullName || '-'}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'category',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
+      cell: ({ row }) => {
+        const category = categories.find((cat) => cat.value === row.getValue('category'));
+
+        if (!category) {
+          return null;
+        }
+
+        return (
+          <div className="flex items-center">
+            <Badge variant={'outline'}>{category.label}</Badge>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
+      ),
+      cell: ({ row }) => {
+        const status = statuses.find((status) => status.value === row.getValue('status'));
+
+        if (!status) {
+          return null;
+        }
+
+        return (
+          <div className="flex min-w-max items-center">
+            <Badge variant={'outline'}>{status.label}</Badge>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: 'email',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.email.label')} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center">
+            <span className="max-w-[200px] truncate">{row.getValue('email') || '-'}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created At" />
+      ),
+      cell: ({ row }) => {
+        const date = row.original.createdAt;
+        return date ? formatDate(date, 'dd/MM/yyyy') : '-';
+      },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => (
+        <DataTableRowActions
+          actions={[
+            {
+              component: (
+                <Link
+                  onClick={(e) => e.stopPropagation()}
+                  href={`/dashboard/profiles/${row.original.id}`}
+                >
+                  <FileText className="mr-1 size-icon" />
+                  {t('common.actions.consult')}
+                </Link>
+              ),
+            },
+          ]}
+          row={row}
+        />
+      ),
+    },
+  ];
+
+  const localFilters: FilterOption<PaginatedProfiles['items'][number]>[] = [
+    {
+      type: 'search',
+      label: t('common.data_table.search'),
+      defaultValue: filters.search ?? '',
+      onChange: (value) => handleFilterChange('search', value),
+    },
+    {
+      type: 'checkbox',
+      property: 'status',
+      label: t('inputs.status.label'),
+      defaultValue: filters.status?.toString().split(',') ?? [],
+      options: statuses,
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('status', value.join('_'));
+        }
+      },
+    },
+    {
+      type: 'checkbox',
+      property: 'category',
+      label: t('inputs.profileCategory.label'),
+      defaultValue: filters.category?.toString().split(',') ?? [],
+      options: categories,
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('category', value.join('_'));
+        }
+      },
+    },
+    {
+      type: 'checkbox',
+      property: 'gender',
+      label: t('inputs.gender.label'),
+      defaultValue: filters.gender?.toString().split(',') ?? [],
+      options: genders,
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('gender', value.join('_'));
+        }
+      },
+    },
+    {
+      type: 'checkbox',
+      property: 'maritalStatus',
+      label: t('inputs.maritalStatus.label'),
+      defaultValue: filters.maritalStatus?.toString().split(',') ?? [],
+      options: maritalStatuses,
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('maritalStatus', value.join('_'));
+        }
+      },
+    },
+    {
+      type: 'checkbox',
+      property: 'workStatus',
+      label: t('inputs.workStatus.label'),
+      defaultValue: filters.workStatus?.toString().split(',') ?? [],
+      options: workStatuses,
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('workStatus', value.join('_'));
+        }
+      },
+    },
+  ];
+
+  return (
+    <DataTable
+      isLoading={isLoading}
+      columns={columns}
+      data={result?.items ?? []}
+      filters={localFilters}
+      totalCount={result?.total ?? 0}
+      pageIndex={filters?.page}
+      pageSize={filters?.limit}
+      onPageChange={(page) => {
+        handleFilterChange('page', page.toString());
+      }}
+      onLimitChange={(limit) => {
+        handleFilterChange('limit', limit.toString());
+      }}
+      enableExport={true}
+      exportSelectedOnly={true}
+      exportFilename="profiles"
+    />
+  );
+}

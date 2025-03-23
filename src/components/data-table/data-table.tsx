@@ -19,6 +19,7 @@ import {
 
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar, FilterOption } from './data-table-toolbar';
+import { DataTableExport } from './data-table-export';
 import {
   Table,
   TableBody,
@@ -40,6 +41,9 @@ interface DataTableProps<TData, TValue> {
   pageIndex?: number;
   onPageChange?: (pageIndex: number) => void;
   onLimitChange?: (pageSize: number) => void;
+  enableExport?: boolean;
+  exportFilename?: string;
+  exportSelectedOnly?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -53,6 +57,9 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   onPageChange,
   onLimitChange,
+  enableExport = false,
+  exportFilename,
+  exportSelectedOnly = false,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
   const [rowSelection, setRowSelection] = React.useState({});
@@ -106,7 +113,28 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {filters?.length ? (
-        <DataTableToolbar isLoading={isLoading} filters={filters} table={table} />
+        <div className="flex items-center justify-between gap-2">
+          <DataTableToolbar isLoading={isLoading} filters={filters} table={table} />
+          {enableExport && (
+            <DataTableExport
+              columns={columns}
+              data={data}
+              filename={exportFilename}
+              selectedRows={rowSelection}
+              disableWhenNoSelection={exportSelectedOnly}
+            />
+          )}
+        </div>
+      ) : enableExport ? (
+        <div className="flex items-center justify-end">
+          <DataTableExport
+            columns={columns}
+            data={data}
+            filename={exportFilename}
+            selectedRows={rowSelection}
+            disableWhenNoSelection={exportSelectedOnly}
+          />
+        </div>
       ) : null}
 
       <div className="rounded-md border">

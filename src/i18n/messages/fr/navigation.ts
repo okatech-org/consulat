@@ -20,6 +20,7 @@ export default {
     my_requests: 'Mes demandes',
     new_request: 'Nouvelle demande',
     available: 'Services consulaires disponibles',
+    profiles: 'Profils consulaires',
   },
   dashboard: {
     title: 'Tableau de bord',

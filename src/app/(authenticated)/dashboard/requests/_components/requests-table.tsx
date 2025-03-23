@@ -313,22 +313,14 @@ export function RequestsTable({
     {
       type: 'search',
       label: t('requests.filters.search'),
-      defaultValue: filters.search,
-      onChange: (value) => {
-        if (typeof value === 'string') {
-          const debouncedFilter = debounce(
-            () => handleFilterChange('search', value),
-            300,
-          );
-          debouncedFilter();
-        }
-      },
+      defaultValue: filters.search ?? '',
+      onChange: (value) => handleFilterChange('search', value),
     },
     {
       type: 'checkbox',
       property: 'status',
       label: t('requests.filters.status'),
-      defaultValue: filters.status?.toString().split(',') ?? undefined,
+      defaultValue: filters.status?.toString().split(',') ?? [],
       options: statuses,
       onChange: (value) => {
         if (Array.isArray(value)) {
@@ -340,7 +332,7 @@ export function RequestsTable({
       type: 'checkbox',
       property: 'priority',
       label: t('requests.filters.priority'),
-      defaultValue: filters.priority?.toString().split(',') ?? undefined,
+      defaultValue: filters.priority?.toString().split(',') ?? [],
       options: Object.values(ServicePriority).map((priority) => ({
         value: priority,
         label: t(`common.priority.${priority}`),
@@ -355,7 +347,7 @@ export function RequestsTable({
       type: 'checkbox',
       property: 'serviceCategory',
       label: t('requests.filters.service_category'),
-      defaultValue: filters.serviceCategory?.toString().split(',') ?? undefined,
+      defaultValue: filters.serviceCategory?.toString().split(',') ?? [],
       options: availableServiceCategories.map((category) => ({
         value: category,
         // @ts-expect-error - translations are in lowercase
@@ -375,7 +367,7 @@ export function RequestsTable({
       type: 'checkbox',
       property: 'assignedTo',
       label: t('requests.filters.assigned_to'),
-      defaultValue: filters.assignedToId?.toString().split(',') ?? undefined,
+      defaultValue: filters.assignedToId?.toString().split(',') ?? [],
       options: agents.map((agent) => ({
         value: agent.id,
         label: agent.name || '-',
