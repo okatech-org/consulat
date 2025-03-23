@@ -520,6 +520,9 @@ export default {
   createdAt: {
     label: 'Créé le',
   },
+  residenceCountyCode: {
+    label: 'Pays de résidence',
+  },
   updatedAt: {
     label: 'Mis à jour le',
   },

@@ -13,27 +13,26 @@ import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import {
+  Country,
   Gender,
   MaritalStatus,
   ProfileCategory,
   RequestStatus,
   WorkStatus,
 } from '@prisma/client';
-import { User } from '@prisma/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { SessionUser } from '@/types';
 import { format as formatDate } from 'date-fns';
 import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface ProfilesTableProps {
-  user: SessionUser;
   filters: GetProfilesOptions;
-  agents?: User[];
+  countries: Country[];
 }
 
-export function ProfilesTable({ filters }: ProfilesTableProps) {
+export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -339,6 +338,21 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       label: t('common.data_table.search'),
       defaultValue: filters.search ?? '',
       onChange: (value) => handleFilterChange('search', value),
+    },
+    {
+      type: 'checkbox',
+      property: 'residenceCountyCode',
+      label: t('inputs.residenceCountyCode.label'),
+      defaultValue: filters.residenceCountyCode?.toString().split(',') ?? [],
+      options: countries.map((country) => ({
+        value: country.code,
+        label: t(`countries.${country.code as CountryCode}`),
+      })),
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('residenceCountyCode', value.join('_'));
+        }
+      },
     },
     {
       type: 'checkbox',
