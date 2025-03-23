@@ -63,7 +63,7 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
     const renderItems = (items: NavMainItem[], level = 0) => {
       return items.map((item, index) => (
         <React.Fragment key={index}>
-          <div className={cn(index > 0 && 'border-b rounded-b-md')}>
+          <div className={cn(index > 0 && 'border-b')}>
             <SheetClose asChild={closeTriggerOnSelect}>
               <Link
                 href={item.url ? item.url : '#'}
