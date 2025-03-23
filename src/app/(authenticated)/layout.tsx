@@ -40,7 +40,7 @@ export default async function AuthenticatedLayout({
             <NavUser user={currentUser} showFeedback={false} />
           </div>
         </header>
-        <div className={cn('container py-4 sm:py-8', isMobile && 'pb-16')}>
+        <div className={cn('container py-4 sm:py-8', isMobile && 'pb-safe')}>
           {children}
         </div>
         <BottomNavigation user={currentUser} />

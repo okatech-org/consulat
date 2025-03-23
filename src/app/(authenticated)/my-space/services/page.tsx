@@ -33,6 +33,7 @@ import { ROUTES } from '@/schemas/routes';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageContainer } from '@/components/layouts/page-container';
+import { ChatToggle } from '@/components/chat/chat-toggle';
 
 // Status config for display
 const statusConfig: Record<
@@ -375,7 +376,7 @@ export default function ServicesPage() {
 
           {/* Action Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <Card className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm">
               <CardHeader>
                 <CardTitle>Nouvelle demande</CardTitle>
                 <CardDescription>
@@ -390,14 +391,14 @@ export default function ServicesPage() {
               <CardFooter>
                 <Link href={ROUTES.user.services + '/available'}>
                   <Button className="w-full">
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="size-icon" />
                     Découvrir les services
                   </Button>
                 </Link>
               </CardFooter>
             </Card>
 
-            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+            <Card className="bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm">
               <CardHeader>
                 <CardTitle>Besoin d'aide ?</CardTitle>
                 <CardDescription>Assistance pour vos demandes</CardDescription>
@@ -409,10 +410,11 @@ export default function ServicesPage() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Link href={ROUTES.help}>
+                <Link href={'#'}>
                   <Button variant="outline" className="w-full">
-                    Obtenir de l'aide
+                    Obtenir de l&apos;aide
                   </Button>
+                  <ChatToggle />
                 </Link>
               </CardFooter>
             </Card>
