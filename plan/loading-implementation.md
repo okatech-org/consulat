@@ -34,9 +34,9 @@ Ce plan détaille l'implémentation des composants de chargement (loading skelet
   - [x] Créer `loading.tsx` avec skeleton pour la liste des profils
   - [x] Ajouter skeletons pour les cartes de profil
 
-- [ ] Account (`/dashboard/account`)
-  - [ ] Créer `loading.tsx` avec skeleton pour les informations du compte
-  - [ ] Adapter les champs de formulaire en mode skeleton
+- [x] Account (`/dashboard/account`)
+  - [x] Créer `loading.tsx` avec skeleton pour les informations du compte
+  - [x] Adapter les champs de formulaire en mode skeleton
 
 ### 2.3 Routes de gestion
 
@@ -50,16 +50,17 @@ Ce plan détaille l'implémentation des composants de chargement (loading skelet
   - [x] Créer `loading.tsx` avec skeleton adapté aux services
   - [x] Skeletons pour les cartes de service
 
-- [ ] Appointments (`/dashboard/appointments`)
-  - [ ] Créer `loading.tsx` avec skeleton pour le calendrier/liste des rendez-vous
-  - [ ] Skeleton adapté à l'affichage mobile des rendez-vous
+- [x] Appointments (`/dashboard/appointments`)
+
+  - [x] Créer `loading.tsx` avec skeleton pour le calendrier/liste des rendez-vous
+  - [x] Skeleton adapté à l'affichage mobile des rendez-vous
 
 ### 2.4 Routes de communication
 
-- [ ] Notifications (`/dashboard/notifications`)
+- [x] Notifications (`/dashboard/notifications`)
 
-  - [ ] Créer `loading.tsx` avec skeleton pour la liste des notifications
-  - [ ] Skeleton adapté aux différents types de notifications
+  - [x] Créer `loading.tsx` avec skeleton pour la liste des notifications
+  - [x] Skeleton adapté aux différents types de notifications
 
 - [ ] Feedback (`/dashboard/feedback`)
   - [ ] Créer `loading.tsx` avec skeleton pour les formulaires de feedback
@@ -100,10 +101,10 @@ Ce plan détaille l'implémentation des composants de chargement (loading skelet
   - [x] Créer `loading.tsx` avec skeleton pour le profil utilisateur
   - [x] Skeleton pour les différentes sections du profil
 
-- [ ] Account (`/my-space/account`)
+- [x] Account (`/my-space/account`)
 
-  - [ ] Créer `loading.tsx` avec skeleton pour les paramètres du compte
-  - [ ] Skeleton pour les formulaires de modification
+  - [x] Créer `loading.tsx` avec skeleton pour les paramètres du compte
+  - [x] Skeleton pour les formulaires de modification
 
 - [ ] Children (`/my-space/children`)
   - [ ] Créer `loading.tsx` avec skeleton pour la liste des enfants
@@ -116,21 +117,21 @@ Ce plan détaille l'implémentation des composants de chargement (loading skelet
   - [x] Créer `loading.tsx` avec skeleton pour la liste des services disponibles
   - [x] Skeleton pour les détails de service
 
-- [ ] Appointments (`/my-space/appointments`)
+- [x] Appointments (`/my-space/appointments`)
 
-  - [ ] Créer `loading.tsx` avec skeleton pour les rendez-vous de l'utilisateur
-  - [ ] Skeleton adapté au format mobile pour le calendrier/liste
+  - [x] Créer `loading.tsx` avec skeleton pour les rendez-vous de l'utilisateur
+  - [x] Skeleton adapté au format mobile pour le calendrier/liste
 
-- [ ] Documents (`/my-space/documents`)
-  - [ ] Créer `loading.tsx` avec skeleton pour la bibliothèque de documents
-  - [ ] Skeleton pour les vignettes et listes de documents
+- [x] Documents (`/my-space/documents`)
+  - [x] Créer `loading.tsx` avec skeleton pour la bibliothèque de documents
+  - [x] Skeleton pour les vignettes et listes de documents
 
 ### 3.4 Routes de communication
 
-- [ ] Notifications (`/my-space/notifications`)
+- [x] Notifications (`/my-space/notifications`)
 
-  - [ ] Créer `loading.tsx` avec skeleton pour le centre de notifications
-  - [ ] Adapter pour différents types de notifications
+  - [x] Créer `loading.tsx` avec skeleton pour le centre de notifications
+  - [x] Adapter pour différents types de notifications
 
 - [ ] Feedback (`/my-space/feedback`)
   - [ ] Créer `loading.tsx` avec skeleton pour les formulaires de feedback
