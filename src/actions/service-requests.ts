@@ -84,8 +84,7 @@ export async function getServiceRequests(
     // Recherche
     ...(search && {
       OR: [
-        { submittedBy: { firstName: { contains: search, mode: 'insensitive' } } },
-        { submittedBy: { lastName: { contains: search, mode: 'insensitive' } } },
+        { submittedBy: { name: { contains: search, mode: 'insensitive' } } },
         { submittedBy: { email: { contains: search, mode: 'insensitive' } } },
         { service: { name: { contains: search, mode: 'insensitive' } } },
       ],
@@ -97,6 +96,10 @@ export async function getServiceRequests(
         { assignedToId: authResult.user.id },
         { assignedToId: null, organizationId: authResult.user.assignedOrganizationId },
       ],
+    }),
+
+    ...(authResult.user.roles.includes(UserRole.ADMIN) && {
+      organizationId: authResult.user.organizationId,
     }),
   };
 
@@ -426,8 +429,9 @@ export async function addServiceRequestNote(input: AddNoteInput) {
       include: {
         author: {
           select: {
-            firstName: true,
-            lastName: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
           },
         },
       },

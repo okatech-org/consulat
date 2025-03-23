@@ -11,13 +11,18 @@ import {
   UserSessionInclude,
 } from '@/types';
 import { UserRole } from '@prisma/client';
+import { SessionUser } from '@/types/user';
 
-export async function getUserSession(id: string, roles: UserRole[]) {
+export async function getUserSession(
+  id: string,
+  roles: UserRole[],
+): Promise<SessionUser | null> {
   const isSuperAdmin = roles.includes(UserRole.SUPER_ADMIN);
   const isAdmin = roles.includes(UserRole.ADMIN);
   const isAgent = roles.includes(UserRole.AGENT);
   const isUser = roles.includes(UserRole.USER);
 
+  // @ts-expect-error - We need to handle the case where the user is not in any role
   return await db.user.findUnique({
     where: { id: id },
     ...(isSuperAdmin && { ...UserSessionInclude }),
