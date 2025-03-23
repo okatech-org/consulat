@@ -38,7 +38,7 @@ export async function sendOTP(identifier: string, type: AuthType) {
     const notificationResult = await tryCatch(
       notifyValidationCode(generatedOTP, {
         ...(type === 'EMAIL' && { email: identifier }),
-        ...(type === 'PHONE' && { phoneNumber: identifier }),
+        ...(type === 'PHONE' && { phoneNumber: identifier.replaceAll('-', '') }),
       }),
     );
 

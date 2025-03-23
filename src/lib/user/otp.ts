@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/prisma';
 import { customAlphabet } from 'nanoid';
-import { tryCatch } from '@/lib/utils';
+
 export const generateOTP = async () => {
   const nanoid = customAlphabet('0123456789', 6);
   return nanoid();

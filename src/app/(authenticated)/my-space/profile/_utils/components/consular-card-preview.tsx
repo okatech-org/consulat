@@ -126,8 +126,8 @@ export function ConsularCardPreview({
                             : '-'}
                         </p>
                         <p className="text-[0.5em]/3 sm:text-[0.8em]/4 text-[#383838] font-bold">
-                          {profile.birthDate
-                            ? formatDate(profile.birthDate, 'dd/MM/yyyy')
+                          {profile.cardExpiresAt
+                            ? formatDate(profile.cardExpiresAt, 'dd/MM/yyyy')
                             : '-'}
                         </p>
                       </div>

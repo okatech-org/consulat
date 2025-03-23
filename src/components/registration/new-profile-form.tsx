@@ -30,7 +30,7 @@ import { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { sendOTP, isUserExists } from '@/actions/auth';
-import { ErrorMessageKey, retrievePhoneNumber, tryCatch } from '@/lib/utils';
+import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ErrorCard } from '../ui/error-card';
 import { toast } from '@/hooks/use-toast';
 import { signIn } from 'next-auth/react';
@@ -108,8 +108,7 @@ export function NewProfileForm({
     if (resendCooldown > 0) return;
 
     const data = form.getValues();
-    const identifier =
-      data.type === 'EMAIL' ? data.email : retrievePhoneNumber(data.phoneNumber).join('');
+    const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
     setIsLoading(true);
     const { error: sendOTPError, data: sendOTPData } = await tryCatch(
