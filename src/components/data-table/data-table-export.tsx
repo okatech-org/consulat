@@ -26,6 +26,8 @@ interface DataTableExportProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filename?: string;
+  selectedRows?: Record<string, boolean>;
+  disableWhenNoSelection?: boolean;
 }
 
 /**
@@ -40,6 +42,8 @@ export function DataTableExport<TData, TValue = unknown>({
   columns,
   data,
   filename = 'export',
+  selectedRows = {},
+  disableWhenNoSelection = false,
 }: DataTableExportProps<TData, TValue>) {
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>({});
   const [open, setOpen] = useState(false);
@@ -67,8 +71,23 @@ export function DataTableExport<TData, TValue = unknown>({
     setOpen(newOpen);
   };
 
+  // Check if any rows are selected
+  const hasSelectedRows = Object.keys(selectedRows).length > 0;
+  const isExportDisabled = disableWhenNoSelection && !hasSelectedRows;
+
+  // Filter data to only include selected rows if there are any
+  const getExportData = () => {
+    if (hasSelectedRows) {
+      return data.filter((_, index) => selectedRows[index] === true);
+    }
+    return data;
+  };
+
   // Convertir les données en CSV
   const convertToCSV = () => {
+    // Get the filter data (only selected rows if any are selected)
+    const exportData = getExportData();
+
     // Filtrer les colonnes sélectionnées
     const exportColumns = columns.filter((column) => {
       // accessorKey n'est pas garantie d'être présente sur tous les types de colonnes
@@ -82,7 +101,7 @@ export function DataTableExport<TData, TValue = unknown>({
       );
     });
 
-    if (exportColumns.length === 0 || data.length === 0) return '';
+    if (exportColumns.length === 0 || exportData.length === 0) return '';
 
     // Créer les en-têtes
     const headers = exportColumns.map((column) => {
@@ -100,7 +119,7 @@ export function DataTableExport<TData, TValue = unknown>({
     });
 
     // Créer les lignes de données
-    const rows = data.map((row) => {
+    const rows = exportData.map((row) => {
       return exportColumns
         .map((column) => {
           let value = '';
@@ -142,12 +161,15 @@ export function DataTableExport<TData, TValue = unknown>({
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
+
+    // Format date and time for filename
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+    const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-'); // HH-MM-SS
+
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute(
-      'download',
-      `${filename}-${new Date().toISOString().slice(0, 10)}.csv`,
-    );
+    link.setAttribute('download', `${filename}-${dateStr}_${timeStr}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -196,15 +218,26 @@ export function DataTableExport<TData, TValue = unknown>({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="min-w-max gap-1">
-                <Download className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only">Exporter</span>
-              </Button>
-            </DialogTrigger>
+            <div>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-w-max gap-1"
+                  disabled={isExportDisabled}
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only">Exporter</span>
+                </Button>
+              </DialogTrigger>
+            </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Exporter les données en CSV</p>
+            <p>
+              {isExportDisabled
+                ? 'Sélectionnez au moins une ligne pour exporter'
+                : 'Exporter les données en CSV'}
+            </p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

@@ -324,6 +324,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         handleFilterChange('limit', limit.toString());
       }}
       enableExport={true}
+      exportSelectedOnly={true}
       exportFilename="profiles"
     />
   );
