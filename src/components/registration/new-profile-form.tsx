@@ -292,7 +292,7 @@ export function NewProfileForm({
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem className="col-span-full">
+                  <FormItem>
                     <FormLabel>{t('email.label')}</FormLabel>
                     <FormControl>
                       <Input
@@ -310,7 +310,7 @@ export function NewProfileForm({
                 control={form.control}
                 name="phoneNumber"
                 render={({ field }) => (
-                  <FormItem className="sm:col-span-1">
+                  <FormItem className="w-full">
                     <FormLabel>{t('phone.label')}</FormLabel>
                     <FormControl>
                       <PhoneNumberInput

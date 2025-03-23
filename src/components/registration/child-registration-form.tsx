@@ -283,7 +283,7 @@ export function ChildRegistrationForm() {
       <div className="w-full flex flex-col">
         <div className="mx-auto w-full max-w-4xl">
           {/* Main content */}
-          <div className="flex flex-col pb-24 md:pb-10 gap-4 justify-center">
+          <div className="flex flex-col md:pb-10 gap-4 justify-center">
             {currentStepIndex > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
             {stepsComponents[currentTab]}
 

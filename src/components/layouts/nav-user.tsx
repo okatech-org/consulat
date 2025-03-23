@@ -237,14 +237,13 @@ export function NavUser({
               </DropdownMenuGroup>
               <DropdownMenuSeparator className="hidden sm:block" />
               <DropdownMenuItem
-                className="hidden sm:block"
+                className="hidden sm:flex"
                 onClick={async () => {
                   await logUserOut();
                 }}
               >
                 <LogOut className="size-icon" />
                 {t('auth.actions.logout')}
-                <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

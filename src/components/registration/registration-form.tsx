@@ -79,8 +79,8 @@ export function RegistrationForm({
   const { currentTab, setCurrentTab } = useStoredTabs<Step>('tab', 'documents');
 
   const currentStepIndex = orderedSteps.indexOf(currentTab);
-  const currentStepValidity = forms[currentTab as keyof typeof forms].formState.isValid;
-  const currentStepErrors = forms[currentTab as keyof typeof forms].formState.errors;
+  const currentStepValidity = forms[currentTab as keyof typeof forms]?.formState.isValid;
+  const currentStepErrors = forms[currentTab as keyof typeof forms]?.formState.errors;
   const totalSteps = orderedSteps.length;
 
   // Gestionnaire d'analyse des components
@@ -342,7 +342,7 @@ export function RegistrationForm({
   };
 
   return (
-    <div className="w-full max-w-3xl min-h-full flex flex-col">
+    <div className="w-full overflow-x-hidden max-w-3xl mx-auto flex flex-col pb-safe md:pb-0">
       <header className="w-full border-b border-border pb-6">
         <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
           <Image
@@ -377,7 +377,7 @@ export function RegistrationForm({
           <div className="mb-8 space-y-6"></div>
 
           {/* Contenu principal */}
-          <div className="flex flex-col pb-24 md:pb-10 gap-4 justify-center">
+          <div className="flex flex-col md:pb-10 gap-4 justify-center">
             {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
             {renderCurrentStep()}
 

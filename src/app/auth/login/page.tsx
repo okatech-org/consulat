@@ -37,8 +37,8 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="w-dvw bg-background h-dvh p-4 overflow-hidden flex items-center justify-center md:grid md:grid-cols-2">
-      <div className="w-full p-4 flex flex-col items-center justify-center">
+    <div className="w-dvw bg-background h-dvh pt-8 p-6 md:pt-6 min-h-max overflow-x-hidden md:overflow-hidden flex items-center justify-center md:grid md:grid-cols-2">
+      <div className="w-full h-full min-h-max overflow-y-auto flex flex-col items-center justify-center">
         <div className="max-w-lg space-y-8">
           <header className="w-full border-b border-border pb-8">
             <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
