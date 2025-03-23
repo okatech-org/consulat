@@ -100,16 +100,6 @@ export function useNavigation(user: SessionUser) {
       url: ROUTES.user.services,
       icon: <FileText className="size-icon" />,
       roles: [UserRole.USER],
-      items: [
-        {
-          title: t('my_requests'),
-          url: ROUTES.user.services,
-        },
-        {
-          title: t('new_request'),
-          url: ROUTES.user.new_service_request(),
-        },
-      ],
     },
     {
       title: t('children'),
