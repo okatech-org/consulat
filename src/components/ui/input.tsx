@@ -9,7 +9,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, containerClassName, ...props }, ref) => {
     return (
-      <div className={cn('relative', containerClassName)}>
+      <div className={cn('relative w-full', containerClassName)}>
         <input
           type={type}
           className={cn(

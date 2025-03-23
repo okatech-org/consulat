@@ -22,7 +22,7 @@ export default async function RegistrationPage() {
   const profile = await getUserFullProfileById(currentUser?.profileId ?? '');
 
   const CreateProfileFormComponent = () => (
-    <div className="w-full h-full flex flex-col items-center justify-center max-w-lg mx-auto space-y-6">
+    <div className="w-full h-full flex flex-col items-center justify-center max-w-2xl mx-auto space-y-6">
       <header className="w-full border-b border-border pb-6">
         <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
           <Image
@@ -46,8 +46,8 @@ export default async function RegistrationPage() {
   );
 
   return (
-    <div className="w-dvw relative bg-background h-dvh p-4 overflow-hidden flex items-center justify-center md:grid lg:grid-cols-12 lg:gap-4">
-      <div className="min-h-full h-full w-full overflow-y-auto flex flex-col items-center justify-center md:col-span-7">
+    <div className="w-dvw min-h-dvh overflow-x-hidden relative bg-background flex items-center justify-center">
+      <div className="container w-full overflow-x-hidden py-6">
         <RouteAuthGuard
           user={currentUser as SessionUser}
           fallbackComponent={<CreateProfileFormComponent />}
@@ -58,15 +58,6 @@ export default async function RegistrationPage() {
             <CreateProfileFormComponent />
           )}
         </RouteAuthGuard>
-      </div>
-      <div className="w-full h-full overflow-hidden rounded-lg hidden lg:block lg:col-span-5">
-        <Image
-          src={'https://utfs.io/f/yMD4lMLsSKvz349tIYw9oyDVxmdLHiTXuO0SKbeYqQUlPghR'}
-          alt={t('page.hero_image_alt')}
-          className="h-full w-full object-cover"
-          width={800}
-          height={800}
-        />
       </div>
     </div>
   );

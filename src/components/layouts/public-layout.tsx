@@ -9,7 +9,7 @@ export function PublicLayout({ children }: BaseLayoutProps) {
   return (
     <SidebarProvider>
       <PublicHeader />
-      <SidebarInset className="w-dvw relative overflow-x-hidden">
+      <SidebarInset className="w-dvw min-h-dvh relative overflow-x-hidden">
         <main className={'pt-16 flex size-full grow'}>{children}</main>
 
         <PublicFooter />

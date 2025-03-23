@@ -447,7 +447,7 @@ p,
 
   /* Assurer que le contenu ne passe pas sous la navigation mobile */
   .pb-safe {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
   }
 
   .btn-mobile {

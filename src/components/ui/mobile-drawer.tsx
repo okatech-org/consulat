@@ -102,14 +102,18 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
             {triggerChildren || <Menu className="size-icon" />}
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" size="sm" className={cn('flex flex-col', className)}>
+        <SheetContent
+          side="bottom"
+          size="sm"
+          className={cn('flex flex-col max-h-[70dvh]', className)}
+        >
           <SheetHeader className="text-left border-b pb-4 mb-4">
             <SheetTitle>{title}</SheetTitle>
           </SheetHeader>
           <nav className="flex-1 overflow-auto -mx-4 px-4 space-y-2" ref={ref} {...props}>
             {renderItems(items)}
           </nav>
-          <div className="flex w-full mt-2 items-center justify-between py-4">
+          <div className="flex w-full items-center justify-between pt-4">
             <ThemeToggleSingle />
             <Button
               variant="ghost"

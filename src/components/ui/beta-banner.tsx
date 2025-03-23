@@ -19,7 +19,7 @@ export function BetaBanner({ className, variant = 'default' }: BetaBannerProps) 
     <>
       <div
         className={cn(
-          'flex items-center justify-between bg-primary/10 rounded-md text-primary px-3 py-1.5 text-sm',
+          'flex items-center flex-wrap justify-between bg-primary/10 rounded-md text-primary px-3 py-1.5 text-sm',
           className,
         )}
       >
@@ -34,7 +34,10 @@ export function BetaBanner({ className, variant = 'default' }: BetaBannerProps) 
         </div>
         <Link
           href={ROUTES.feedback}
-          className={cn(buttonVariants({ variant: 'link' }), 'px-1 text-sm underline')}
+          className={cn(
+            buttonVariants({ variant: 'link' }),
+            'px-1 text-sm underline ml-auto',
+          )}
         >
           {t('banner.openFeedback')}
         </Link>
