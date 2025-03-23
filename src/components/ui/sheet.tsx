@@ -45,19 +45,19 @@ const sheetVariants = cva(
     variants: {
       side: {
         top: [
-          'inset-x-0 top-0 border-b pt-safe',
+          'inset-x-0 top-0 border-b',
           'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top',
         ].join(' '),
         bottom: [
-          'inset-x-0 bottom-0 border-t pb-safe',
+          'inset-x-0 bottom-0 border-t',
           'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
         ].join(' '),
         left: [
-          'inset-y-0 left-0 h-full w-full border-r pt-safe sm:max-w-sm',
+          'inset-y-0 left-0 h-full w-full border-r sm:max-w-sm',
           'data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left',
         ].join(' '),
         right: [
-          'inset-y-0 right-0 h-full w-full border-l pt-safe sm:max-w-sm',
+          'inset-y-0 right-0 h-full w-full border-l sm:max-w-sm',
           'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
         ].join(' '),
       },
@@ -105,7 +105,7 @@ const SheetContent = React.forwardRef<
       >
         {showCloseButton && (
           <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-            <X className="h-5 w-5" />
+            <X className="size-icon" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}

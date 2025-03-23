@@ -20,11 +20,26 @@ export default auth((req) => {
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
   const searchParams = request.nextUrl.searchParams.toString();
+
+  // Check for viewport cookie - prioritize it over User-Agent detection
+  const viewportCookie = request.cookies.get('x-is-mobile');
+
+  // Set mobile flag based on cookie or User-Agent as fallback
+  let isMobile = false;
+
+  if (viewportCookie) {
+    // Use the cookie value if it exists
+    isMobile = viewportCookie.value === 'true';
+  }
+
+  // Set headers
+  response.headers.set('x-is-mobile', isMobile ? 'true' : 'false');
   response.headers.set(
     'x-current-path',
     request.nextUrl.pathname + (searchParams ? `?${searchParams}` : ''),
   );
   response.headers.set('x-params-string', request.nextUrl.searchParams.toString());
+
   return response;
 }
 

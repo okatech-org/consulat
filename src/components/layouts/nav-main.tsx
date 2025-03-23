@@ -36,11 +36,11 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
   const isSubPath = (url: string) => {
     return url.split('/').length > 2;
   };
-  const t = useTranslations('navigation');
+  const t = useTranslations('navigation.menu');
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{t('menu')}</SidebarGroupLabel>
+      <SidebarGroupLabel>{t('title')}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Fragment key={item.title}>

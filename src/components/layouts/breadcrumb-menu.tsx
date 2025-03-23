@@ -18,7 +18,7 @@ export function BreadcrumbMenu() {
   const isMobile = useMediaQuery('(max-width: 468px)');
   const pathname = usePathname();
   const pathnameParts = pathname.split('/').filter(Boolean) as Array<keyof typeof ROUTES>;
-  const t = useTranslations('navigation.breadcrumb');
+  const t = useTranslations('navigation.menu');
 
   return (
     <Breadcrumb className="w-full flex-nowrap text-nowrap truncate text-ellipsis overflow-hidden">

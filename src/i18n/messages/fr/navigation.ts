@@ -1,5 +1,6 @@
 export default {
-  breadcrumb: {
+  menu: {
+    title: 'Menu principal',
     dashboard: 'Tableau de bord',
     countries: 'Pays',
     organizations: 'Organismes',
@@ -11,7 +12,7 @@ export default {
     notifications: 'Notifications',
     settings: 'Paramètres',
     'my-space': 'Mon espace',
-    children: 'Mes enfants',
+    children: 'Profils enfants',
     account: 'Mon compte',
     documents: 'Mes documents',
     profile: 'Mon profil',
@@ -59,7 +60,6 @@ export default {
   my_applications: 'Mes demandes',
   settings: 'Paramètres',
   help: 'Aide',
-  menu: 'Menu principal',
   logout: 'Se déconnecter',
   back: 'Retour',
   home: 'Accueil',

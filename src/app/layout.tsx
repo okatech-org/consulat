@@ -13,6 +13,7 @@ import { auth } from '@/auth';
 import { env } from '@/lib/env/index';
 import { ChatProvider } from '@/contexts/chat-context';
 import { Analytics } from '@vercel/analytics/react';
+import { ViewportDetector } from '@/components/layouts/viewport-detector';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -144,6 +145,7 @@ export default async function RootLayout({
           >
             <ChatProvider>
               <SessionProvider session={session}>
+                <ViewportDetector />
                 {children}
                 <Toaster />
                 <div className="flex fixed flex-col p-2 items-center bottom-2 translate-x-1/2 sm:translate-x-0 right-[50%] rounded-full sm:bottom-4 sm:right-6">
