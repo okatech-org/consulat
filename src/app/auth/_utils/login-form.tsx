@@ -26,7 +26,7 @@ import { isUserExists, sendOTP } from '@/actions/auth';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ErrorMessageKey, retrievePhoneNumber, tryCatch } from '@/lib/utils';
+import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -111,7 +111,7 @@ export function LoginForm() {
 
     setIsLoading(true);
     const { error: sendOTPError, data: sendOTPData } = await tryCatch(
-      sendOTP(identifier ?? '', data.type),
+      sendOTP(identifier, data.type),
     );
 
     if (sendOTPError) {
@@ -161,10 +161,7 @@ export function LoginForm() {
     if (!displayOTP) {
       // Envoyer l'OTP
       const { error: sendOTPError, data: sendOTPData } = await tryCatch(
-        sendOTP(
-          data.type === 'EMAIL' ? identifier : retrievePhoneNumber(identifier).join(''),
-          data.type,
-        ),
+        sendOTP(identifier, data.type),
       );
 
       if (sendOTPError) {
@@ -190,10 +187,7 @@ export function LoginForm() {
 
     if (displayOTP) {
       const isOTPValid = await validateOTP({
-        identifier:
-          data.type === 'EMAIL'
-            ? data.email
-            : retrievePhoneNumber(data.phoneNumber).join(''),
+        identifier: data.type === 'EMAIL' ? data.email : data.phoneNumber,
         otp: data.otp ?? '',
         type: data.type,
       });
@@ -287,9 +281,6 @@ export function LoginForm() {
                     </FormItem>
                   )}
                 />
-                <FormItem>
-                  <FormLabel>{t('inputs.phone.label')}</FormLabel>
-                </FormItem>
               </TabsContent>
             </Tabs>
           )}
