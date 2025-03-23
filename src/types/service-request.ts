@@ -69,9 +69,6 @@ export const FullServiceRequestInclude = {
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc' as Prisma.SortOrder,
-      },
     },
     notes: {
       include: {
@@ -82,9 +79,6 @@ export const FullServiceRequestInclude = {
             name: true,
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc' as const,
       },
     },
     messages: {
@@ -97,9 +91,6 @@ export const FullServiceRequestInclude = {
             roles: true,
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc' as const,
       },
     },
     appointment: {
@@ -124,9 +115,6 @@ export const FullServiceRequestInclude = {
             roles: true,
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc' as const,
       },
     },
   },

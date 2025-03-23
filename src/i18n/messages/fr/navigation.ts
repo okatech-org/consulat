@@ -4,7 +4,7 @@ export default {
     dashboard: 'Tableau de bord',
     countries: 'Pays',
     organizations: 'Organismes',
-    services: 'Services',
+    services: 'Services & Démarches',
     users: 'Utilisateurs',
     requests: 'Demandes',
     appointments: 'Rendez-vous',
@@ -17,6 +17,9 @@ export default {
     documents: 'Mes documents',
     profile: 'Mon profil',
     feedback: 'Retour utilisateur',
+    my_requests: 'Mes demandes',
+    new_request: 'Nouvelle demande',
+    available: 'Services consulaires disponibles',
   },
   dashboard: {
     title: 'Tableau de bord',
