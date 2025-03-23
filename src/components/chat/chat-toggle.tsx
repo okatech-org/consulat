@@ -11,6 +11,8 @@ import { getChatCompletion, getUserContextData } from '@/lib/ai/actions';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useLocale } from 'next-intl';
 import { ContextBuilder } from '@/lib/ai/context-builder';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 // Constantes pour la gestion de la position
 const STORAGE_KEY = 'ray-chatbot-position';
@@ -19,6 +21,7 @@ const BUTTON_SIZE = 80; // taille du bouton en pixels (ajustée pour Mr Ray)
 const PADDING = 20; // espace de padding pour les limites
 
 export function ChatToggle() {
+  const isMobile = useIsMobile();
   const { isOpen, toggleChat } = useChat();
   const controls = useAnimation();
   const [position, setPosition] = useState(DEFAULT_POSITION);
@@ -179,7 +182,13 @@ export function ChatToggle() {
         </AnimatePresence>
       </motion.div>
 
-      <SheetContent side="right" className="w-full max-w-[700px] sm:w-[700px] p-0">
+      <SheetContent
+        side={isMobile ? 'bottom' : 'right'}
+        className={cn(
+          'w-full max-w-[700px] sm:w-[700px] p-0',
+          isMobile && 'h-full max-h-[600px]',
+        )}
+      >
         <div className="h-full overflow-hidden">
           <ModernChatWindow
             className="h-full border-0 shadow-none rounded-none"
