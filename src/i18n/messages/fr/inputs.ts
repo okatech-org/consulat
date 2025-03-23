@@ -517,8 +517,26 @@ export default {
       MINOR: 'Enfant',
     },
   },
+  createdAt: {
+    label: 'Créé le',
+  },
+  updatedAt: {
+    label: 'Mis à jour le',
+  },
+  submittedAt: {
+    label: 'Soumis le',
+  },
   cardNumber: {
     label: 'Carte N°',
+  },
+  cardIssuedAt: {
+    label: "Date d'émission",
+  },
+  cardExpiresAt: {
+    label: "Date d'expiration",
+  },
+  cardPin: {
+    label: 'Numéro NIP',
   },
   requestStatus: {
     label: 'Statut de la demande',
