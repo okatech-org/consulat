@@ -46,6 +46,9 @@ export function NewServiceForm({
   const t = useTranslations('services');
   const t_common = useTranslations('common');
 
+  // Check if a category is pre-selected
+  const isCategoryPreSelected = initialData?.category !== undefined;
+
   const form = useForm<NewServiceSchemaInput>({
     resolver: zodResolver(NewServiceSchema),
     defaultValues: {
@@ -103,20 +106,26 @@ export function NewServiceForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('form.category.label')}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('form.category.placeholder')} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(ServiceCategory).map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {t_common(`service_categories.${category}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isCategoryPreSelected ? (
+                <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  <span>{t_common(`service_categories.${field.value}`)}</span>
+                </div>
+              ) : (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('form.category.placeholder')} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Object.values(ServiceCategory).map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {t_common(`service_categories.${category}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <TradFormMessage />
             </FormItem>
           )}

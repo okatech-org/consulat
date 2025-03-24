@@ -369,4 +369,19 @@ export default {
     comingSoon: 'Le formulaire de demande sera bientôt disponible. Revenez plus tard.',
     backToServices: 'Retourner aux services',
   },
+  category_selector: {
+    title: 'Sélectionnez une catégorie',
+    subtitle: 'Choisissez le type de service que vous souhaitez créer',
+    select: 'Sélectionner',
+    selected: 'Sélectionné',
+  },
+  creation_flow: {
+    steps: {
+      select_category: 'Choisir une catégorie',
+      select_category_description: 'Sélectionnez le type de service',
+      fill_details: 'Remplir les détails',
+      fill_details_description: 'Complétez les informations du service',
+    },
+    back_to_categories: 'Retour à la sélection de catégorie',
+  },
 } as const;
