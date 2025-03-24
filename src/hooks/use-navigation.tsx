@@ -56,6 +56,12 @@ export function useNavigation(user: SessionUser) {
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN],
     },
     {
+      title: t('services'),
+      url: ROUTES.dashboard.services,
+      icon: <FileText className="size-icon" />,
+      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+    },
+    {
       title: t('profiles'),
       url: ROUTES.dashboard.profiles,
       icon: <Users className="size-icon" />,

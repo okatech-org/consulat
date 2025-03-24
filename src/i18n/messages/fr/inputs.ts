@@ -65,6 +65,15 @@ export default {
   serviceCategory: {
     label: 'Catégorie de service',
     placeholder: 'Catégorie de service',
+    options: {
+      IDENTITY: 'Identité et passeport',
+      CIVIL_STATUS: 'Statut civil et mariage',
+      VISA: 'Visa et permis de séjour',
+      CERTIFICATION: 'Certification et légalisation',
+      TRANSCRIPT: 'Transcription de documents',
+      REGISTRATION: 'Inscription consulaire',
+      OTHER: 'Autre',
+    },
   },
   lastName: {
     label: 'Nom',

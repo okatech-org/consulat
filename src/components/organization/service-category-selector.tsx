@@ -11,7 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { Check, FileText, Globe } from 'lucide-react';
+import { IdCardIcon } from '@radix-ui/react-icons';
+import CardContainer from '../layouts/card-container';
+import { MultiSelect } from '../ui/multi-select';
 
 interface ServiceCategorySelectorProps {
   onCategorySelect: (category: ServiceCategory) => void;
@@ -22,86 +25,59 @@ export function ServiceCategorySelector({
   onCategorySelect,
   selectedCategory,
 }: ServiceCategorySelectorProps) {
-  const t = useTranslations('common');
   const tServices = useTranslations('services');
-
+  const t_inputs = useTranslations('inputs');
   // Category icons and descriptions
-  const categoryInfo = {
+  const categoryInfo: Record<
+    ServiceCategory,
+    { icon: React.ReactNode; description: string }
+  > = {
+    [ServiceCategory.TRANSCRIPT]: {
+      icon: <FileText className="size-icon" />,
+      description: t_inputs('serviceCategory.options.TRANSCRIPT'),
+    },
     [ServiceCategory.IDENTITY]: {
-      icon: '🪪',
-      description: "Services liés aux documents d'identité",
+      icon: <IdCardIcon className="size-icon" />,
+      description: t_inputs('serviceCategory.options.IDENTITY'),
     },
     [ServiceCategory.CIVIL_STATUS]: {
-      icon: '📝',
-      description: "Services liés à l'état civil",
+      icon: <FileText className="size-icon" />,
+      description: t_inputs('serviceCategory.options.CIVIL_STATUS'),
     },
     [ServiceCategory.VISA]: {
-      icon: '🛂',
-      description: 'Services liés aux visas et permis de séjour',
+      icon: <Globe className="size-icon" />,
+      description: t_inputs('serviceCategory.options.VISA'),
     },
     [ServiceCategory.CERTIFICATION]: {
-      icon: '📜',
-      description: 'Services de certification et légalisation',
+      icon: <FileText className="size-icon" />,
+      description: t_inputs('serviceCategory.options.CERTIFICATION'),
     },
     [ServiceCategory.REGISTRATION]: {
-      icon: '📋',
-      description: "Services d'inscription consulaire",
+      icon: <FileText className="size-icon" />,
+      description: t_inputs('serviceCategory.options.REGISTRATION'),
     },
     [ServiceCategory.OTHER]: {
-      icon: '📌',
-      description: 'Autres services consulaires',
+      icon: <FileText className="size-icon" />,
+      description: t_inputs('serviceCategory.options.OTHER'),
     },
   };
 
   return (
-    <div className="flex flex-col space-y-4">
-      <h2 className="text-xl font-semibold">
-        {tServices('category_selector.title') || 'Sélectionnez une catégorie'}
-      </h2>
-      <p className="text-muted-foreground">
-        {tServices('category_selector.subtitle') ||
-          'Choisissez le type de service que vous souhaitez créer'}
-      </p>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {Object.values(ServiceCategory).map((category) => (
-          <Card
-            key={category}
-            className={`cursor-pointer transition-all hover:border-primary hover:shadow-md ${
-              selectedCategory === category ? 'border-2 border-primary' : ''
-            }`}
-            onClick={() => onCategorySelect(category)}
-          >
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <div className="text-2xl">{categoryInfo[category].icon}</div>
-                {selectedCategory === category && (
-                  <Check className="h-5 w-5 text-primary" />
-                )}
-              </div>
-              <CardTitle className="text-lg">
-                {t(`service_categories.${category}`)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="min-h-[60px]">
-                {categoryInfo[category].description}
-              </CardDescription>
-            </CardContent>
-            <CardFooter>
-              <Button
-                variant={selectedCategory === category ? 'default' : 'outline'}
-                className="w-full"
-                onClick={() => onCategorySelect(category)}
-              >
-                {selectedCategory === category
-                  ? tServices('category_selector.selected') || 'Sélectionné'
-                  : tServices('category_selector.select') || 'Sélectionner'}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+    <CardContainer
+      title={tServices('category_selector.title')}
+      subtitle={tServices('category_selector.subtitle')}
+    >
+      <div className="flex justify-center items-center space-y-4">
+        <MultiSelect<ServiceCategory>
+          options={Object.values(ServiceCategory).map((category) => ({
+            label: t_inputs(`serviceCategory.options.${category}`),
+            value: category,
+          }))}
+          onChange={(value) => onCategorySelect(value)}
+          type="single"
+          className="w-full"
+        />
       </div>
-    </div>
+    </CardContainer>
   );
 }

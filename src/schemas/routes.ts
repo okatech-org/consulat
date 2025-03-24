@@ -1,3 +1,4 @@
+import { ServiceCategory } from '@prisma/client';
 import { Route } from 'next';
 
 export const ROUTES = {
@@ -26,6 +27,9 @@ export const ROUTES = {
     feedback: '/dashboard/feedback' as Route<string>,
     users: '/dashboard/users' as Route<string>,
     edit_service: (id: string) => `/dashboard/services/${id}/edit` as Route<string>,
+    new_service: (category: ServiceCategory) =>
+      `/dashboard/services/new?category=${category}` as Route<string>,
+    services_new: '/dashboard/services/new' as Route<string>,
     registrations_review: (id: string) =>
       `/dashboard/registrations/${id}` as Route<string>,
     service_requests: (id: string) => `/dashboard/requests/${id}` as Route<string>,

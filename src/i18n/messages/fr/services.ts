@@ -28,6 +28,7 @@ export default {
     startProcess: 'Démarrer la démarche',
     viewDetails: 'Voir les détails',
     backToServices: 'Retour aux services',
+    backToCategorySelector: 'Retour à la sélection de catégorie',
   },
   tabs: {
     general: 'Informations générales',
