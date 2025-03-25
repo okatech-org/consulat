@@ -40,10 +40,9 @@ export async function getRegistrationRequestDetailsById(
       include: {
         submittedBy: {
           select: {
-            firstName: true,
-            lastName: true,
+            name: true,
             email: true,
-            phone: true,
+            phoneNumber: true,
             profile: FullProfileInclude,
           },
         },

@@ -3,6 +3,14 @@
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
+import { tryCatch } from '@/lib/utils';
+import {
+  DeliveryMode,
+  ProcessingMode,
+  Prisma,
+  ServiceRequest,
+  UserDocument,
+} from '@prisma/client';
 
 /**
  * Get all active consular services available for the user based on their country
@@ -124,4 +132,67 @@ export async function getConsularServiceDetails(serviceId: string) {
     console.error('Error fetching consular service details:', error);
     throw new Error('Failed to fetch consular service details');
   }
+}
+
+export async function getConsularService(id: string) {
+  const service = await db.consularService.findUnique({
+    where: { id },
+    include: {
+      steps: true,
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+        },
+      },
+    },
+  });
+
+  if (!service) {
+    throw new Error("Nous n'avons pas pu trouver le service");
+  }
+
+  return {
+    ...service,
+    steps: service.steps.map((step) => ({
+      ...step,
+      fields: JSON.parse(step.fields as string),
+      validations: JSON.parse(step.validations as string),
+    })),
+  };
+}
+
+export async function submitServiceRequest(
+  data: ServiceRequest & { requiredDocuments?: UserDocument[] },
+) {
+  const service = await db.consularService.findUnique({
+    where: { id: data.serviceId },
+    include: {
+      organization: true,
+    },
+  });
+
+  if (!service) {
+    throw new Error('Service not found');
+  }
+
+  // Créer la demande
+  const request = await db.serviceRequest.create({
+    data: {
+      serviceId: data.serviceId,
+      submittedById: data.submittedById,
+      requestedForId: data.requestedForId,
+      organizationId: data.organizationId,
+      countryCode: data.countryCode,
+      serviceCategory: data.serviceCategory,
+      status: 'SUBMITTED',
+      formData: data.formData as Prisma.JsonObject,
+      requiredDocuments: {
+        connect: data.requiredDocuments?.map((doc) => ({ id: doc.id })) || [],
+      },
+    },
+  });
+
+  return request;
 }

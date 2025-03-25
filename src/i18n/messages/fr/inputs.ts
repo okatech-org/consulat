@@ -28,6 +28,10 @@ export default {
       URGENT: 'Urgent',
     },
   },
+  organization: {
+    label: 'Organisme',
+    placeholder: 'Sélectionner un organisme',
+  },
   firstName: {
     label: 'Prénom',
     placeholder: 'Prénom',

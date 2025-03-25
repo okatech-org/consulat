@@ -23,7 +23,6 @@ import { CountrySelect } from '@/components/ui/country-select';
 import { AppUserDocument } from '@/types';
 import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../user-document';
-import { useRouter } from 'next/navigation';
 
 type BasicInfoFormProps = {
   form: UseFormReturn<BasicInfoFormData>;

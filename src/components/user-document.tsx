@@ -38,6 +38,7 @@ interface UserDocumentProps {
   document?: AppUserDocument | null;
   expectedType?: DocumentType;
   profileId?: string;
+  userId?: string;
   label: string;
   description?: string;
   required?: boolean;
@@ -62,6 +63,7 @@ export function UserDocument({
   label,
   description,
   profileId,
+  userId,
   expectedType = DocumentType.IDENTITY_PHOTO,
   required = false,
   disabled = false,
@@ -174,7 +176,7 @@ export function UserDocument({
       type: expectedType,
       fileUrl: fileData.serverData.fileUrl,
       fileType: fileData.type,
-      userId: fileData.serverData.userId,
+      userId: userId ?? fileData.serverData.userId,
       ...(profileId && {
         profileId,
       }),
