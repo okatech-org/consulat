@@ -38,24 +38,17 @@ export async function getServices(): Promise<ConsularServiceListingItem[]> {
 export async function createService(data: NewServiceSchemaInput) {
   await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-  try {
-    // Créer le service avec ses étapes
-    const service = await db.consularService.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        category: data.category,
-        countryCode: data.countryCode,
-        organizationId: data.organizationId,
-      },
-    });
+  const service = await db.consularService.create({
+    data: {
+      name: data.name,
+      description: data.description,
+      category: data.category,
+      countryCode: data.countryCode,
+      organizationId: data.organizationId,
+    },
+  });
 
-    revalidatePath(ROUTES.dashboard.services);
-    return { data: service };
-  } catch (error) {
-    console.error('Error creating service:', error);
-    return { error: 'Failed to create service' };
-  }
+  return service;
 }
 
 /**
@@ -238,7 +231,7 @@ export async function unassignServiceFromOrganization(
  * Récupérer un service par son ID
  */
 export async function getFullService(id: string): Promise<ConsularServiceItem> {
-  await checkAuth([UserRole.SUPER_ADMIN]);
+  await checkAuth();
 
   const service = await db.consularService.findUnique({
     where: { id },

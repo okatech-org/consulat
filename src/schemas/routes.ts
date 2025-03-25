@@ -59,6 +59,10 @@ export const ROUTES = {
     new_appointment: '/my-space/appointments/new' as Route<string>,
     documents: '/my-space/documents' as Route<string>,
     services: '/my-space/services' as Route<string>,
+    service_submit: (serviceId?: string) =>
+      serviceId
+        ? `/my-space/services/submit?serviceId=${serviceId}`
+        : ('/my-space/services/submit' as Route<string>),
     new_service_request: (serviceId?: string) =>
       serviceId
         ? `/my-space/services/new?serviceId=${serviceId}`

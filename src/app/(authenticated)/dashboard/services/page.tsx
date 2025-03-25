@@ -1,12 +1,15 @@
 import { getTranslations } from 'next-intl/server';
 import CardContainer from '@/components/layouts/card-container';
 import { getOrganizations } from '@/actions/organizations';
-import { CreateServiceButton } from '@/components/organization/create-service-button';
 import { ServicesTable } from '@/components/organization/services-table';
 import { getServices } from '../(superadmin)/_utils/actions/services';
 import { PageContainer } from '@/components/layouts/page-container';
 import { tryCatch } from '@/lib/utils';
 import { getCountries } from '@/actions/countries';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
 
 export default async function ServicesPage() {
   const [
@@ -24,7 +27,14 @@ export default async function ServicesPage() {
   return (
     <PageContainer
       title={t('title')}
-      action={<CreateServiceButton countries={countries ?? []} />}
+      action={
+        <Link href={ROUTES.dashboard.services_new} asChild>
+          <Button>
+            <Plus className="size-icon" />
+            <span className={'hidden sm:inline'}>{t('actions.create')}</span>
+          </Button>
+        </Link>
+      }
     >
       <CardContainer>
         {servicesError || organizationsError || countriesError ? (

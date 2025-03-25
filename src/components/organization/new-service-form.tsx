@@ -14,37 +14,35 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Country, ServiceCategory } from '@prisma/client';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Country, Organization, ServiceCategory } from '@prisma/client';
 import { Loader2 } from 'lucide-react';
 import { ConsularServiceListingItem } from '@/types/consular-service';
 import { NewServiceSchema, NewServiceSchemaInput } from '@/schemas/consular-service';
-import { InfoField } from '@/components/ui/info-field';
 import { CountrySelect } from '../ui/country-select';
 import { CountryCode } from '@/lib/autocomplete-datas';
-
+import { useState } from 'react';
+import { tryCatch } from '@/lib/utils';
+import { createService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
+import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/schemas/routes';
+import { ErrorCard } from '../ui/error-card';
 interface ServiceFormProps {
   initialData?: Partial<ConsularServiceListingItem>;
-  handleSubmit: (data: NewServiceSchemaInput) => Promise<void>;
-  isLoading?: boolean;
   countries: Country[];
+  organizations: Organization[];
 }
 
 export function NewServiceForm({
   initialData,
-  handleSubmit,
-  isLoading,
   countries,
+  organizations,
 }: ServiceFormProps) {
+  const router = useRouter();
   const tInputs = useTranslations('inputs');
   const t = useTranslations('services');
-  const t_common = useTranslations('common');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Check if a category is pre-selected
   const isCategoryPreSelected = initialData?.category !== undefined;
@@ -60,6 +58,21 @@ export function NewServiceForm({
       countryCode: initialData?.countryCode ?? '',
     },
   });
+
+  const handleSubmit = async (data: NewServiceSchemaInput) => {
+    setIsLoading(true);
+    setError(null);
+
+    const result = await tryCatch(createService(data));
+
+    if (result.error) {
+      setError(result.error.message);
+    }
+
+    if (result.data) {
+      router.push(ROUTES.dashboard.edit_service(result.data.id));
+    }
+  };
 
   return (
     <Form {...form}>
@@ -104,28 +117,40 @@ export function NewServiceForm({
           control={form.control}
           name="category"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.category.label')}</FormLabel>
-              {isCategoryPreSelected ? (
-                <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <span>{t_common(`service_categories.${field.value}`)}</span>
-                </div>
-              ) : (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('form.category.placeholder')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.values(ServiceCategory).map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {t_common(`service_categories.${category}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+            <FormItem className="w-full flex flex-col gap-2">
+              <FormLabel>{tInputs('serviceCategory.label')}</FormLabel>
+              <MultiSelect<ServiceCategory>
+                type="single"
+                options={Object.values(ServiceCategory).map((category) => ({
+                  label: tInputs(`serviceCategory.options.${category}`),
+                  value: category,
+                }))}
+                onChange={field.onChange}
+                selected={field.value}
+                disabled={isLoading || isCategoryPreSelected}
+              />
+              <TradFormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="organizationId"
+          render={({ field }) => (
+            <FormItem className="w-full flex flex-col gap-2">
+              <FormLabel>{tInputs('organization.label')}</FormLabel>
+              <MultiSelect<string>
+                type="single"
+                options={organizations?.map((organization) => ({
+                  label: organization.name,
+                  value: organization.id,
+                }))}
+                onChange={field.onChange}
+                selected={field.value}
+                disabled={isLoading || Boolean(initialData?.organizationId)}
+                className="min-w-max"
+              />
               <TradFormMessage />
             </FormItem>
           )}
@@ -150,19 +175,13 @@ export function NewServiceForm({
           )}
         />
 
-        {initialData?.organizationId && (
-          <InfoField
-            label={t('form.organizationId.label')}
-            value={initialData.organizationId}
-          />
-        )}
-
         <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading || !form.formState.isValid}>
             {isLoading && <Loader2 className="size-icon animate-spin" />}
             {initialData ? t('actions.update') : t('actions.create')}
           </Button>
         </div>
+        {error && <ErrorCard title={t('messages.error.create')} description={error} />}
       </form>
     </Form>
   );

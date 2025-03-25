@@ -206,7 +206,7 @@ export default {
       description:
         'Définissez les frais de service pour ce service ou laissez le champ vide pour un service gratuit',
       price: {
-        label: 'Prix',
+        label: 'Prix : {price} {currency}',
         placeholder: '0.00',
       },
       currency: {
@@ -272,6 +272,14 @@ export default {
         appointment: 'Rendez-vous',
         payment: 'Paiement',
         review: 'Révision',
+      },
+      documents: {
+        title: 'Documents',
+        description: 'Téléchargez les documents requis',
+      },
+      payment: {
+        title: 'Paiement',
+        description: 'Procédez au paiement',
       },
     },
   },
@@ -384,5 +392,63 @@ export default {
       fill_details_description: 'Complétez les informations du service',
     },
     back_to_categories: 'Retour à la sélection de catégorie',
+  },
+  transcript: {
+    sections: {
+      document: {
+        title: 'Informations sur le document',
+      },
+      requester: {
+        title: 'Informations sur le demandeur',
+      },
+      documents: {
+        title: 'Documents requis',
+      },
+      notes: {
+        title: 'Notes additionnelles',
+      },
+    },
+    fields: {
+      documentType: 'Type de document',
+      documentDate: 'Date du document',
+      issuingCountry: "Pays d'émission",
+      issuingAuthority: 'Autorité émettrice',
+      originalLanguage: 'Langue originale',
+      requesterName: 'Nom complet',
+      birthDate: 'Date de naissance',
+      birthPlace: 'Lieu de naissance',
+      relationship: 'Lien avec la personne concernée',
+      useProfile: 'Utiliser les informations du profil',
+    },
+    documentTypes: {
+      birth_certificate: 'Acte de naissance',
+      marriage_certificate: 'Acte de mariage',
+      death_certificate: 'Acte de décès',
+    },
+    placeholders: {
+      selectDocumentType: 'Sélectionnez le type de document',
+      selectDate: 'Sélectionnez une date',
+      selectCountry: 'Sélectionnez un pays',
+      enterAuthority: 'Ex: Mairie de Paris',
+      enterLanguage: 'Ex: Français',
+      enterName: 'Entrez votre nom complet',
+      enterBirthPlace: 'Ex: Paris, France',
+      enterRelationship: 'Ex: Parent, Conjoint',
+      additionalNotes: 'Ajoutez des informations complémentaires si nécessaire',
+    },
+    descriptions: {
+      relationship: 'Précisez votre lien avec la personne concernée par le document',
+      requiredDocuments:
+        'Veuillez fournir les documents originaux et leurs traductions si nécessaire',
+    },
+    messages: {
+      success: 'Demande de transcription soumise avec succès',
+      error: 'Erreur lors de la soumission de la demande',
+      profileLinkAvailable:
+        'Vous pouvez utiliser les informations de votre profil consulaire',
+    },
+    actions: {
+      submit: 'Soumettre la demande',
+    },
   },
 } as const;

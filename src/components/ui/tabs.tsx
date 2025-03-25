@@ -37,13 +37,6 @@ const TabsList = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const isMobile = useIsMobile();
 
-  // Debug in dev mode
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Tabs isMobile:', isMobile);
-    }
-  }, [isMobile]);
-
   return (
     <>
       {isMobile && <ScrollbarStylesProvider />}

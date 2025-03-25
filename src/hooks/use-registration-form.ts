@@ -17,12 +17,7 @@ import {
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
-import {
-  ErrorMessageKey,
-  extractFieldsFromObject,
-  getValuable,
-  removeNullOrUndefined,
-} from '@/lib/utils';
+import { ErrorMessageKey, extractFieldsFromObject, getValuable } from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
 import {

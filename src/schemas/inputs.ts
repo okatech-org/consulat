@@ -163,6 +163,11 @@ export const TextareaSchema = z
   .min(1, 'messages.errors.field_required')
   .max(1000, 'messages.errors.field_too_long');
 
+export const TextSchema = z
+  .string()
+  .min(1, 'messages.errors.field_required')
+  .max(100, 'messages.errors.field_too_long');
+
 export const SelectSchema = z
   .string()
   .min(1, 'messages.errors.field_required')
