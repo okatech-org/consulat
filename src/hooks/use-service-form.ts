@@ -47,8 +47,6 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
     'consular_form_data' + service.id,
   );
   const tInputs = useTranslations('inputs');
-  const { currentTab: currentStep, setCurrentTab: setCurrentStep } =
-    useStoredTabs<string>('service-step' + service.id, 'documents');
   const [formData, setFormData] = useState<Record<string, StepFormValues>>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -398,6 +396,11 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       },
     });
   }
+
+  const steps = service.steps.map((step) => step.id).filter((step) => step);
+
+  const { currentTab: currentStep, setCurrentTab: setCurrentStep } =
+    useStoredTabs<string>('service-step' + service.id, steps[0] ?? '');
 
   // Créer un formulaire pour chaque étape de service
   const updateFormData = (stepId: string, data: StepFormValues) => {
