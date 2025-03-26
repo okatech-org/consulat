@@ -29,6 +29,7 @@ interface AppointmentCardProps {
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const t = useTranslations('appointments');
   const t_common = useTranslations('common');
+  const t_inputs = useTranslations('inputs');
   const { formatDate } = useDateLocale();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -77,8 +78,8 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
               {appointment.request?.service.name ?? t('type.options.OTHER')}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {t_common(
-                `service_categories.${appointment.request?.service.category ?? 'OTHER'}`,
+              {t_inputs(
+                `serviceCategory.options.${appointment.request?.service.category ?? 'OTHER'}`,
               )}
             </p>
           </div>

@@ -38,6 +38,7 @@ interface UserDocumentProps {
   document?: AppUserDocument | null;
   expectedType?: DocumentType;
   profileId?: string;
+  userId?: string;
   label: string;
   description?: string;
   required?: boolean;
@@ -62,6 +63,7 @@ export function UserDocument({
   label,
   description,
   profileId,
+  userId,
   expectedType = DocumentType.IDENTITY_PHOTO,
   required = false,
   disabled = false,
@@ -174,7 +176,7 @@ export function UserDocument({
       type: expectedType,
       fileUrl: fileData.serverData.fileUrl,
       fileType: fileData.type,
-      userId: fileData.serverData.userId,
+      userId: userId ?? fileData.serverData.userId,
       ...(profileId && {
         profileId,
       }),
@@ -261,13 +263,13 @@ export function UserDocument({
   return (
     <div className="mb-2 space-y-4 relative w-full h-auto overflow-hidden">
       <div className="flex flex-col gap-1">
-        <h3 className="font-medium text-normal mb-1">
+        <div className="font-medium text-normal mb-1">
           <span>
             {label}
             {required && <span className="ml-1 text-destructive">*</span>}
           </span>
           {document?.status && getStatusBadge(document.status)}
-        </h3>
+        </div>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 

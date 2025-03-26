@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   ServiceCategory,
   DocumentType,
-  ProcessingMode,
   DeliveryMode,
   ServiceStepType,
 } from '@prisma/client';
@@ -32,26 +31,26 @@ import {
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { CountrySelect } from '@/components/ui/country-select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
 import { profileFields } from '@/types/profile';
 import { Separator } from '@/components/ui/separator';
 import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
 import { filterUneditedKeys } from '@/lib/utils';
+import { Country } from '@/types/country';
 
 interface ServiceFormProps {
   organizations: OrganizationListingItem[];
-  service: ConsularServiceItem;
+  countries: Country[];
+  service: Partial<ConsularServiceItem>;
 }
 
-export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
+export function ConsularServiceForm({
+  organizations,
+  service,
+  countries,
+}: ServiceFormProps) {
   const t = useTranslations('services');
   const t_inputs = useTranslations('inputs');
   const [isLoading, setIsLoading] = useState(false);
@@ -61,33 +60,16 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
   const form = useForm<typeof ServiceSchema>({
     resolver: zodResolver(ServiceSchema),
     defaultValues: {
-      id: service.id,
-      name: service.name,
-      description: service.description,
-      category: service.category,
-      requiredDocuments: service.requiredDocuments || [],
-      optionalDocuments: service.optionalDocuments || [],
-      requiresAppointment: service.requiresAppointment || false,
-      appointmentDuration: service.appointmentDuration || 15,
-      appointmentInstructions: service.appointmentInstructions || '',
-      deliveryAppointment: service.deliveryAppointment || false,
-      deliveryAppointmentDuration: service.deliveryAppointmentDuration || 15,
-      deliveryAppointmentDesc: service.deliveryAppointmentDesc || '',
-      organizationId: service.organizationId || '',
-      processingMode: service.processingMode || ProcessingMode.PRESENCE_REQUIRED,
-      deliveryMode: service.deliveryMode || [],
-      proxyRequirements: service.proxyRequirements || '',
-      isFree: service.isFree || true,
-      price: service.price || 0,
-      currency: service.currency || 'EUR',
-      steps: service.steps,
+      ...service,
     },
   });
 
   const handleSubmit = async (data: ServiceSchemaInput) => {
     setIsLoading(true);
     try {
-      filterUneditedKeys(data, form.formState.dirtyFields, ['id']);
+      if (service.id) {
+        filterUneditedKeys(data, form.formState.dirtyFields, ['id']);
+      }
 
       const result = await updateService(data);
       if (result.error) {
@@ -128,6 +110,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
 
           <TabsContent value="general" className={'space-y-6'}>
             {/* Informations générales */}
+
             <FormField
               control={form.control}
               name="name"
@@ -137,7 +120,7 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={t('name.placeholder')}
+                      placeholder={t('form.name.placeholder')}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -168,22 +151,18 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
               control={form.control}
               name="category"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.category.label')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('form.category.placeholder')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(ServiceCategory).map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {t(`categories.${category.toLowerCase()}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="w-full flex flex-col gap-2">
+                  <FormLabel>{t_inputs('serviceCategory.label')}</FormLabel>
+                  <MultiSelect<ServiceCategory>
+                    type="single"
+                    options={Object.values(ServiceCategory).map((category) => ({
+                      label: t_inputs(`serviceCategory.options.${category}`),
+                      value: category,
+                    }))}
+                    onChange={field.onChange}
+                    selected={field.value}
+                    disabled={isLoading}
+                  />
                   <TradFormMessage />
                 </FormItem>
               )}
@@ -193,17 +172,38 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
               control={form.control}
               name="organizationId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.organization.label')}</FormLabel>
+                <FormItem className="w-full flex flex-col gap-2">
+                  <FormLabel>{t_inputs('organization.label')}</FormLabel>
                   <MultiSelect<string>
-                    options={organizations.map((org) => ({
-                      label: org.name,
-                      value: org.id,
+                    type="single"
+                    options={organizations?.map((organization) => ({
+                      label: organization.name,
+                      value: organization.id,
                     }))}
-                    selected={field.value}
                     onChange={field.onChange}
-                    type={'single'}
+                    selected={field.value}
+                    disabled={isLoading || Boolean(service?.organizationId)}
+                    className="min-w-max"
                   />
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="countryCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t_inputs('country.label')}</FormLabel>
+                  <FormControl>
+                    <CountrySelect
+                      type="single"
+                      selected={field.value as CountryCode}
+                      onChange={(value) => field.onChange(value)}
+                      options={countries?.map((item) => item.code as CountryCode)}
+                    />
+                  </FormControl>
                   <TradFormMessage />
                 </FormItem>
               )}
@@ -348,7 +348,6 @@ export function ServiceEditForm({ organizations, service }: ServiceFormProps) {
                         label: t(`form.delivery.modes.options.${mode.toLowerCase()}`),
                         value: mode,
                       }))}
-                      xzxz
                       selected={field.value}
                       onChange={(value) => {
                         field.onChange(value);

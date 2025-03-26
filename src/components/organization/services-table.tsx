@@ -39,6 +39,7 @@ export function ServicesTable({
   columns?: ColumnDef<ConsularServiceListingItem>[];
   countries: Country[];
 }) {
+  const t_inputs = useTranslations('inputs');
   const t = useTranslations('services');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
@@ -151,9 +152,12 @@ export function ServicesTable({
     {
       accessorKey: 'category',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('table.category')} />
+        <DataTableColumnHeader
+          column={column}
+          title={t_inputs('serviceCategory.label')}
+        />
       ),
-      cell: ({ row }) => t_common(`service_categories.${row.original.category}`),
+      cell: ({ row }) => t_inputs(`serviceCategory.options.${row.original.category}`),
       filterFn: 'arrIncludesSome',
     },
     {
@@ -249,6 +253,10 @@ export function ServicesTable({
       type: 'search',
       property: 'name',
       label: t('table.name'),
+      defaultValue: '',
+      onChange: (value) => {
+        console.log(value);
+      },
     },
     {
       type: 'checkbox',
@@ -256,8 +264,12 @@ export function ServicesTable({
       label: t('table.category'),
       options: Object.values(ServiceCategory).map((category) => ({
         value: category,
-        label: t_common(`service_categories.${category}`),
+        label: t_inputs(`serviceCategory.options.${category}`),
       })),
+      defaultValue: [],
+      onChange: (value) => {
+        console.log(value);
+      },
     },
     {
       type: 'checkbox',
@@ -267,6 +279,10 @@ export function ServicesTable({
         { value: true, label: t_common('status.ACTIVE') },
         { value: false, label: t_common('status.INACTIVE') },
       ],
+      defaultValue: [],
+      onChange: (value) => {
+        console.log(value);
+      },
     },
   ];
 

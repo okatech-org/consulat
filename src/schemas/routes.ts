@@ -1,3 +1,4 @@
+import { ServiceCategory } from '@prisma/client';
 import { Route } from 'next';
 
 export const ROUTES = {
@@ -26,6 +27,9 @@ export const ROUTES = {
     feedback: '/dashboard/feedback' as Route<string>,
     users: '/dashboard/users' as Route<string>,
     edit_service: (id: string) => `/dashboard/services/${id}/edit` as Route<string>,
+    new_service: (category: ServiceCategory) =>
+      `/dashboard/services/new?category=${category}` as Route<string>,
+    services_new: '/dashboard/services/new' as Route<string>,
     registrations_review: (id: string) =>
       `/dashboard/registrations/${id}` as Route<string>,
     service_requests: (id: string) => `/dashboard/requests/${id}` as Route<string>,
@@ -55,6 +59,10 @@ export const ROUTES = {
     new_appointment: '/my-space/appointments/new' as Route<string>,
     documents: '/my-space/documents' as Route<string>,
     services: '/my-space/services' as Route<string>,
+    service_submit: (serviceId?: string) =>
+      serviceId
+        ? `/my-space/services/submit?serviceId=${serviceId}`
+        : ('/my-space/services/submit' as Route<string>),
     new_service_request: (serviceId?: string) =>
       serviceId
         ? `/my-space/services/new?serviceId=${serviceId}`
@@ -69,6 +77,17 @@ export const ROUTES = {
     child_profile: (id: string) => `/my-space/children/${id}` as Route<string>,
     account: '/my-space/account' as Route<string>,
     feedback: '/my-space/feedback' as Route<string>,
+  },
+
+  listing: {
+    profiles: '/listing/profiles' as Route<string>,
+    profile: (id: string) => `/listing/profiles/${id}` as Route<string>,
+    services: '/listing/services' as Route<string>,
+    service: (id: string) => `/listing/services/${id}` as Route<string>,
+    organizations: '/listing/organizations' as Route<string>,
+    organization: (id: string) => `/listing/organizations/${id}` as Route<string>,
+    countries: '/listing/countries' as Route<string>,
+    country: (id: string) => `/listing/countries/${id}` as Route<string>,
   },
 
   help: '/help' as Route<string>,

@@ -14,9 +14,9 @@ import {
 import { createService } from '../../app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { NewServiceForm } from '@/components/organization/new-service-form';
 import { NewServiceSchemaInput } from '@/schemas/consular-service';
 import { Country } from '@prisma/client';
+import { ServiceCreationFlow } from '@/components/organization/service-creation-flow';
 
 export function CreateServiceButton({
   initialData,
@@ -59,15 +59,15 @@ export function CreateServiceButton({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="mr-2 size-icon" />
-          <span className={'ml-1 hidden sm:inline'}>{t('actions.create')}</span>
+          <Plus className="size-icon" />
+          <span className={'hidden sm:inline'}>{t('actions.create')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>{t('form.create_title')}</DialogTitle>
         </DialogHeader>
-        <NewServiceForm
+        <ServiceCreationFlow
           countries={countries}
           handleSubmit={handleSubmit}
           isLoading={isLoading}

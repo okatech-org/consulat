@@ -5,10 +5,93 @@ import {
   Organization,
   ServiceRequest,
   RequestStatus,
-  Phone,
+  UserDocument,
+  DocumentType,
 } from '@prisma/client';
-import { FullProfile, ProfileKey } from '@/types/profile';
+import { FullProfile } from '@/types/profile';
 import { CountryCode } from '@/lib/autocomplete-datas';
+
+export type BasicField = {
+  name: string;
+  label: string;
+  required: boolean;
+  description?: string;
+  autoComplete?: string;
+};
+
+export type NumberField = BasicField & {
+  type: 'number';
+  min?: number;
+  max?: number;
+  autocomplete?: string;
+};
+
+export type TextField = BasicField & {
+  type: 'text';
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+};
+
+export type EmailField = BasicField & {
+  type: 'email';
+};
+
+export type PhoneField = BasicField & {
+  type: 'phone';
+};
+
+export type DateField = BasicField & {
+  type: 'date';
+  minDate?: string;
+  maxDate?: string;
+};
+
+export type SelectField = BasicField & {
+  type: 'select';
+  selectType: 'single' | 'multiple';
+  options: Array<{ label: string; value: string }>;
+};
+
+export type AddressField = BasicField & {
+  type: 'address';
+  countries: Array<CountryCode>;
+};
+
+export type FileField = BasicField & {
+  type: 'file';
+  accept?: string;
+  maxSize?: number;
+  multiple?: boolean;
+};
+
+export type CheckboxField = BasicField & {
+  type: 'checkbox';
+  options?: Array<{ label: string; value: string }>;
+};
+
+export type RadioField = BasicField & {
+  type: 'radio';
+  options: Array<{ label: string; value: string }>;
+};
+
+export type TextareaField = BasicField & {
+  type: 'textarea';
+  minLength?: number;
+  maxLength?: number;
+};
+
+export type DocumentField = BasicField & {
+  type: 'document';
+  documentType: DocumentType;
+  accept?: 'image/*' | 'application/pdf' | 'image/*,application/pdf';
+};
+
+export type PhotoField = BasicField & {
+  type: 'photo';
+  maxSize?: number;
+  accept?: 'image/*';
+};
 
 export const fieldTypes = [
   'text',
@@ -22,33 +105,27 @@ export const fieldTypes = [
   'radio',
   'textarea',
   'number',
+  'document',
+  'photo',
 ] as const;
 
 export type ServiceFieldType = (typeof fieldTypes)[number];
 
 // Types pour les champs de formulaire dynamiques
-export interface ServiceField {
-  name: string;
-  type: ServiceFieldType;
-  label: string;
-  required?: boolean;
-  description?: string;
-  placeholder?: string;
-  defaultValue?: unknown;
-  profileField?: ProfileKey;
-  options?: Array<{
-    value: string;
-    label: string;
-  }>;
-  validation?: {
-    min?: number;
-    max?: number;
-    minLength?: number;
-    maxLength?: number;
-    pattern?: string;
-    customValidation?: string;
-  };
-}
+export type ServiceField =
+  | TextField
+  | EmailField
+  | PhoneField
+  | DateField
+  | SelectField
+  | AddressField
+  | FileField
+  | CheckboxField
+  | RadioField
+  | TextareaField
+  | NumberField
+  | DocumentField
+  | PhotoField;
 
 export interface ServiceStep {
   id: string | null;
@@ -72,19 +149,6 @@ export interface ProfileFieldMapping {
   [formField: string]: string;
 }
 
-export interface ServiceStore {
-  services: ConsularServiceItem[];
-  selectedService: ConsularServiceItem | null;
-  isLoading: boolean;
-  error: string | null;
-
-  // Actions
-  setServices: (services: ConsularServiceItem[]) => void;
-  setSelectedService: (service: ConsularServiceItem | null) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-}
-
 export interface ConsularServiceListingItem {
   id: string;
   name: string;
@@ -101,13 +165,10 @@ export type RegistrationListingItem = {
   submittedAt: string | Date | null;
   updatedAt: string | Date | null;
   submittedBy: {
-    firstName: string | null;
-    lastName: string | null;
+    name: string | null;
     email: string | null;
     nationality: string | null;
-    phone: {
-      number: string | null;
-    } | null;
+    phoneNumber: string | null;
     profile: {
       status: RequestStatus | null;
     } | null;
@@ -116,11 +177,19 @@ export type RegistrationListingItem = {
 
 export type RegistrationRequestDetails = ServiceRequest & {
   submittedBy: {
-    firstName: string | null;
-    lastName: string | null;
+    name: string | null;
     email: string | null;
-    phone: Phone | null;
+    phoneNumber: string | null;
     profile: FullProfile | null;
+    documents: UserDocument[];
   };
   service: ConsularService;
 };
+
+export const documentTypeToField: Partial<Record<DocumentType, string>> = {
+  [DocumentType.PASSPORT]: 'passport',
+  [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificate',
+  [DocumentType.RESIDENCE_PERMIT]: 'residencePermit',
+  [DocumentType.PROOF_OF_ADDRESS]: 'addressProof',
+  [DocumentType.IDENTITY_PHOTO]: 'identityPicture',
+} as const;

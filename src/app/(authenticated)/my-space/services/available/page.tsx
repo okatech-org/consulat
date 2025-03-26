@@ -12,7 +12,7 @@ import {
   LayoutList,
   SlidersHorizontal,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -46,6 +46,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageContainer } from '@/components/layouts/page-container';
+import { cn } from '@/lib/utils';
 
 type ConsularServiceWithOrganization = {
   id: string;
@@ -61,36 +62,9 @@ type ConsularServiceWithOrganization = {
   countryCode: string | null;
 };
 
-// Category mapping
-const categoryMap: Record<ServiceCategory, { label: string; icon: React.ReactNode }> = {
-  IDENTITY: {
-    label: "Documents d'identité",
-    icon: '🪪',
-  },
-  CIVIL_STATUS: {
-    label: 'État civil',
-    icon: '📝',
-  },
-  VISA: {
-    label: 'Visas',
-    icon: '🛂',
-  },
-  CERTIFICATION: {
-    label: 'Certification',
-    icon: '📜',
-  },
-  REGISTRATION: {
-    label: 'Inscription consulaire',
-    icon: '📋',
-  },
-  OTHER: {
-    label: 'Autre',
-    icon: '📄',
-  },
-};
-
 export default function AvailableServicesPage() {
   const t = useTranslations('services');
+  const tInputs = useTranslations('inputs');
   const [availableServices, setAvailableServices] = useState<
     ConsularServiceWithOrganization[]
   >([]);
@@ -107,7 +81,10 @@ export default function AvailableServicesPage() {
       try {
         setLoading(true);
         const services = await getAvailableConsularServices();
-        setAvailableServices(services || []);
+        const filteredServices = services?.filter(
+          (service) => service.category !== ServiceCategory.REGISTRATION,
+        );
+        setAvailableServices(filteredServices || []);
       } catch (error) {
         console.error('Error fetching services:', error);
       } finally {
@@ -239,15 +216,15 @@ export default function AvailableServicesPage() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Filtrer par catégorie</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {Object.entries(categoryMap).map(([category, { label }]) => (
+              {Object.values(ServiceCategory).map((category) => (
                 <DropdownMenuCheckboxItem
-                  key={category}
+                  key={`category-${category}`}
                   checked={selectedCategories.includes(category as ServiceCategory)}
                   onCheckedChange={() =>
                     handleCategorySelect(category as ServiceCategory)
                   }
                 >
-                  {label}
+                  {tInputs(`serviceCategory.options.${category}`)}
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
@@ -303,7 +280,7 @@ export default function AvailableServicesPage() {
                 <div className="space-y-3">
                   <h3 className="text-sm font-medium">Catégories</h3>
                   <div className="space-y-1.5">
-                    {Object.entries(categoryMap).map(([category, { label, icon }]) => (
+                    {Object.values(ServiceCategory).map((category) => (
                       <Button
                         key={category}
                         variant={
@@ -314,7 +291,7 @@ export default function AvailableServicesPage() {
                         className="w-full justify-start"
                         onClick={() => handleCategorySelect(category as ServiceCategory)}
                       >
-                        {label}
+                        {tInputs(`serviceCategory.options.${category}`)}
                       </Button>
                     ))}
                   </div>
@@ -393,7 +370,7 @@ export default function AvailableServicesPage() {
         <div className="flex flex-wrap gap-2">
           {selectedCategories.map((category) => (
             <Badge key={category} variant="secondary" className="py-1 px-2">
-              {categoryMap[category].icon} {categoryMap[category].label}
+              {tInputs(`serviceCategory.options.${category}`)}
               <Button
                 variant="ghost"
                 size="icon"
@@ -480,8 +457,6 @@ export default function AvailableServicesPage() {
             view === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredServices.map((service) => {
-                  const { icon } = categoryMap[service.category];
-
                   return (
                     <Card
                       key={service.id}
@@ -493,7 +468,7 @@ export default function AvailableServicesPage() {
                             <CardTitle>{service.name}</CardTitle>
                           </div>
                           <Badge variant="outline">
-                            {categoryMap[service.category].label}
+                            {tInputs(`serviceCategory.options.${service.category}`)}
                           </Badge>
                         </div>
                         <CardDescription>
@@ -508,13 +483,14 @@ export default function AvailableServicesPage() {
                       </CardContent>
                       <CardFooter>
                         <Link
-                          href={ROUTES.user.new_service_request(service.id)}
-                          className="w-full"
+                          href={ROUTES.user.service_submit(service.id)}
+                          className={cn(
+                            buttonVariants({ variant: 'secondary' }),
+                            'w-full',
+                          )}
                         >
-                          <Button className="w-full">
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t('actions.startProcess')}
-                          </Button>
+                          <Plus className="size-icon" />
+                          {t('actions.startProcess')}
                         </Link>
                       </CardFooter>
                     </Card>
@@ -524,8 +500,6 @@ export default function AvailableServicesPage() {
             ) : (
               <div className="space-y-3">
                 {filteredServices.map((service) => {
-                  const { icon } = categoryMap[service.category];
-
                   return (
                     <div
                       key={service.id}
@@ -541,7 +515,7 @@ export default function AvailableServicesPage() {
                               t('availableServices.consulateService')}
                           </span>
                           <Badge variant="outline" className="w-fit">
-                            {categoryMap[service.category].label}
+                            {tInputs(`serviceCategory.options.${service.category}`)}
                           </Badge>
                         </div>
                         {service.description && (
@@ -594,13 +568,14 @@ export default function AvailableServicesPage() {
               </div>
             ) : (
               <div className="space-y-8">
-                {Object.entries(servicesByCategory).map(
-                  ([category, services]) =>
-                    services.length > 0 && (
-                      <div key={category} className="space-y-4">
+                {Object.values(servicesByCategory).map(
+                  (services) =>
+                    services.length > 0 &&
+                    services[0]?.category && (
+                      <div key={services[0].category} className="space-y-4">
                         <div className="flex items-center">
                           <h2 className="text-xl font-semibold">
-                            {categoryMap[category as ServiceCategory].label}
+                            {tInputs(`serviceCategory.options.${services[0].category}`)}
                           </h2>
                           <Badge className="ml-2" variant="outline">
                             {services.length}

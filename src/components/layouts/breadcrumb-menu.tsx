@@ -13,6 +13,7 @@ import { Fragment } from 'react';
 import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import Link from 'next/link';
 
 export function BreadcrumbMenu() {
   const isMobile = useMediaQuery('(max-width: 468px)');
@@ -27,9 +28,11 @@ export function BreadcrumbMenu() {
           <Fragment key={index}>
             <BreadcrumbItem key={index} className="">
               {index !== pathnameParts.length - 1 ? (
-                <BreadcrumbLink href={`/${pathnameParts.slice(0, index + 1).join('/')}`}>
-                  {/* @ts-expect-error - part is not a valid key */}
-                  {isMobile ? '...' : index <= 1 ? t(part) : part}
+                <BreadcrumbLink asChild>
+                  <Link href={`/${pathnameParts.slice(0, index + 1).join('/')}`}>
+                    {/* @ts-expect-error - part is not a valid key */}
+                    {isMobile ? '...' : index <= 1 ? t(part) : part}
+                  </Link>
                 </BreadcrumbLink>
               ) : (
                 <BreadcrumbPage>

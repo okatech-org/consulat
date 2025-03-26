@@ -32,6 +32,7 @@ interface MultiSelectMultipleProps<T> {
   type: 'multiple';
   disabled?: boolean;
   autoComplete?: string;
+  className?: string;
 }
 
 interface MultiSelectSingleProps<T> {
@@ -44,6 +45,7 @@ interface MultiSelectSingleProps<T> {
   type: 'single';
   disabled?: boolean;
   autoComplete?: string;
+  className?: string;
 }
 
 export function MultiSelect<T>({
@@ -56,6 +58,7 @@ export function MultiSelect<T>({
   type = 'multiple',
   disabled = false,
   autoComplete = 'off',
+  className = '',
 }: MultiSelectMultipleProps<T> | MultiSelectSingleProps<T>) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
@@ -100,7 +103,7 @@ export function MultiSelect<T>({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="min-w-fit w-max justify-between px-2"
+            className={cn('min-w-max justify-between px-2', className)}
             disabled={disabled}
           >
             <div className="flex flex-wrap gap-1">
