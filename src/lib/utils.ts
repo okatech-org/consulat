@@ -430,15 +430,28 @@ export function useDateLocale() {
   const locale = useLocale();
 
   function formatDate(
-    date: Date | string,
+    date: Date | string | null | undefined,
     formatStr?: string,
     locale?: Locale,
     options?: DateTimeFormatOptions,
   ) {
-    return format(new Date(date), formatStr ?? 'PPP', {
-      locale: locale ?? fr,
-      ...options,
-    });
+    // Handle null, undefined, or empty string values
+    if (!date) return '-';
+
+    // Try to create a valid date
+    try {
+      const dateObj = new Date(date);
+      // Check if the date is valid
+      if (isNaN(dateObj.getTime())) return '-';
+
+      return format(dateObj, formatStr ?? 'PPP', {
+        locale: locale ?? fr,
+        ...options,
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '-';
+    }
   }
 
   return {
