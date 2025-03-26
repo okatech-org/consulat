@@ -120,15 +120,6 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                   )}
                 </div>
               )}
-              {validation.errors.length > 0 && (
-                <div className="mt-2">
-                  {validation.errors.map((error, index) => (
-                    <p key={index} className="text-sm text-destructive">
-                      {t_errors(error)}
-                    </p>
-                  ))}
-                </div>
-              )}
               {!document && validation.errors.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   {t_errors('not_provided')}
