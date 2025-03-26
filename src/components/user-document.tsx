@@ -176,7 +176,7 @@ export function UserDocument({
       type: expectedType,
       fileUrl: fileData.serverData.fileUrl,
       fileType: fileData.type,
-      userId: userId ?? fileData.serverData.userId,
+      userId: userId ?? '',
       ...(profileId && {
         profileId,
       }),
