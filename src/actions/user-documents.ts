@@ -78,7 +78,7 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
   const { error: deleteErrorFile } = await tryCatch(deleteFiles([documentId]));
 
   if (deleteErrorFile) {
-    console.error('delete_file_failed', deleteErrorFile);
+    console.log('deleteErrorFile', { ...deleteErrorFile });
   }
 
   return true;
@@ -144,6 +144,6 @@ export async function createUserDocument(data: {
   return {
     ...document,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: document.metadata as Record<string, any>,
+    metadata: JSON.parse(document?.metadata as string) as Record<string, any>,
   };
 }

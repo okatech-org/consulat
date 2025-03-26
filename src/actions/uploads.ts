@@ -55,8 +55,9 @@ export const uploadFileFromServer = async (fd: FormData) => {
 };
 
 export async function deleteFiles(keys: string[]) {
+  console.log('deleteFiles', keys);
   try {
-    await Promise.all(keys.map((key) => utapi.deleteFiles(key)));
+    await utapi.deleteFiles(keys);
   } catch (error) {
     console.error('Delete error:', error);
     return {
