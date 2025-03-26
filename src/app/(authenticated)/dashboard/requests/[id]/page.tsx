@@ -32,6 +32,11 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     ? await getUserFullProfileById(request.requestedForId)
     : await getUserFullProfile(user.id);
 
+  console.log({
+    request,
+    profile,
+  });
+
   if (!hasPermission(user, 'serviceRequests', 'view', request)) {
     return notFound();
   }

@@ -99,8 +99,6 @@ export async function createUserDocument(data: {
     throw new Error('Vous devez être connecté pour créer un document');
   }
 
-  console.log('authResult', authResult);
-
   // @ts-expect-error - We don't need to define the type for the typesMap
   const typesMap: Record<
     DocumentType,
@@ -116,8 +114,6 @@ export async function createUserDocument(data: {
     [DocumentType.RESIDENCE_PERMIT]: 'residencePermitProfile',
     [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
   } as const;
-
-  console.log('createUserDocument', { data });
 
   const { data: document, error: documentError } = await tryCatch(
     db.userDocument.create({

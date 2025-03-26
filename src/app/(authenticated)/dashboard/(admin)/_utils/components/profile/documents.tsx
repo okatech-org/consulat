@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
-import { CheckCircle2, AlertCircle, Shield } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Shield } from 'lucide-react';
 import { useDateLocale } from '@/lib/utils';
 import { Badge, BadgeVariant } from '@/components/ui/badge';
 import { DocumentPreview } from '@/components/ui/document-preview';
@@ -120,15 +120,6 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                   )}
                 </div>
               )}
-              {validation.errors.length > 0 && (
-                <div className="mt-2">
-                  {validation.errors.map((error, index) => (
-                    <p key={index} className="text-sm text-destructive">
-                      {t_errors(error)}
-                    </p>
-                  ))}
-                </div>
-              )}
               {!document && validation.errors.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   {t_errors('not_provided')}
@@ -166,7 +157,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                       {validation.isValid ? (
                         <CheckCircle2 className="text-success size-5" />
                       ) : (
-                        <AlertCircle className="size-5 text-destructive" />
+                        <AlertTriangle className="size-5 text-warning" />
                       )}
                     </TooltipTrigger>
                     <TooltipContent>

@@ -20,12 +20,7 @@ import { createFormStorage } from '@/lib/form-storage';
 import { ErrorMessageKey, extractFieldsFromObject, getValuable } from '@/lib/utils';
 import { FullProfile } from '@/types';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
-import {
-  Gender,
-  MaritalStatus,
-  NationalityAcquisition,
-  WorkStatus,
-} from '@prisma/client';
+import { MaritalStatus, NationalityAcquisition, WorkStatus } from '@prisma/client';
 
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 

@@ -64,7 +64,7 @@ export function UserDocument({
   description,
   profileId,
   userId,
-  expectedType = DocumentType.IDENTITY_PHOTO,
+  expectedType = DocumentType.OTHER,
   required = false,
   disabled = false,
   allowEdit = true,
