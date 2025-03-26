@@ -295,6 +295,7 @@ export default {
     VISA: 'Visa',
     CERTIFICATION: 'Certification',
     REGISTRATION: 'Inscription',
+    TRANSCRIPT: 'Transcription',
     OTHER: 'Autre',
   },
   documents: {
