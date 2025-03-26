@@ -122,7 +122,7 @@ export function ServiceSubmissionForm({
       if (!formData) return undefined;
       return (
         <ServiceDocumentSection
-          userId={userProfile.userId ?? ''}
+          userId={userProfile.user?.id ?? ''}
           formData={formData}
           onNext={handleNext}
           onPrevious={() => {

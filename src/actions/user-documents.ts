@@ -6,6 +6,7 @@ import { DocumentStatus, DocumentType } from '@prisma/client';
 import { deleteFiles } from '@/actions/uploads';
 import { tryCatch } from '@/lib/utils';
 import { AppUserDocument } from '@/types';
+import { auth } from '@/auth';
 
 interface UpdateDocumentData {
   issuedAt?: string;
@@ -89,9 +90,17 @@ export async function createUserDocument(data: {
   type: DocumentType;
   fileUrl: string;
   fileType: string;
-  userId: string;
+  userId?: string;
   profileId?: string;
 }): Promise<AppUserDocument | null> {
+  const authResult = await auth();
+
+  if (!authResult?.user) {
+    throw new Error('Vous devez être connecté pour créer un document');
+  }
+
+  console.log('authResult', authResult);
+
   // @ts-expect-error - We don't need to define the type for the typesMap
   const typesMap: Record<
     DocumentType,
@@ -108,6 +117,8 @@ export async function createUserDocument(data: {
     [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
   } as const;
 
+  console.log('createUserDocument', { data });
+
   const { data: document, error: documentError } = await tryCatch(
     db.userDocument.create({
       data: {
@@ -116,16 +127,12 @@ export async function createUserDocument(data: {
         fileUrl: data.fileUrl,
         status: DocumentStatus.PENDING,
         fileType: data.fileType,
-        user: {
-          connect: {
-            id: data.userId,
-          },
-        },
+        userId: data.userId && data.userId !== '' ? data.userId : authResult.user.id,
         ...(data.profileId && {
           ...(typesMap[data.type] && {
             [typesMap[data.type]]: {
               connect: {
-                id: data.profileId,
+                id: data.profileId ?? authResult.user.profileId,
               },
             },
           }),
@@ -138,11 +145,15 @@ export async function createUserDocument(data: {
     if (data.id) {
       await deleteFiles([data.id]);
     }
+    throw new Error('Failed to create document');
   }
 
   return {
     ...document,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: JSON.parse(document?.metadata ?? '{}') as Record<string, any>,
+    metadata:
+      typeof document.metadata === 'string'
+        ? (JSON.parse(document.metadata || '{}') as Record<string, unknown>)
+        : (document.metadata as Record<string, unknown>) || {},
   };
 }
