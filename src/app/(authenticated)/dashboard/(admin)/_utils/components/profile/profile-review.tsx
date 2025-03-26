@@ -235,6 +235,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                         validateConsularRegistration(
                           request.id,
                           profile.id,
+                          profile.residenceCountyCode,
                           'VALIDATED',
                           1,
                           validationNotes,
