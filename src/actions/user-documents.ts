@@ -92,7 +92,6 @@ export async function createUserDocument(data: {
   userId: string;
   profileId?: string;
 }): Promise<AppUserDocument | null> {
-  console.log('createUserDocument', { data });
   // @ts-expect-error - We don't need to define the type for the typesMap
   const typesMap: Record<
     DocumentType,
@@ -144,6 +143,6 @@ export async function createUserDocument(data: {
   return {
     ...document,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: JSON.parse(document?.metadata as string) as Record<string, any>,
+    metadata: JSON.parse(document?.metadata ?? '{}') as Record<string, any>,
   };
 }
