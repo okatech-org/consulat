@@ -1,7 +1,7 @@
 'use client';
 
 import { ServiceField } from '@/types/consular-service';
-import { ControllerRenderProps, useForm } from 'react-hook-form';
+import { ControllerRenderProps, useForm, UseFormReturn } from 'react-hook-form';
 import {
   FormField,
   FormItem,
@@ -23,6 +23,8 @@ import { ServiceForm } from '@/hooks/use-service-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/hooks/use-toast';
 import { MobileProgress } from '../registration/mobile-progress';
+import CardContainer from '../layouts/card-container';
+import { AddressField } from '../ui/address-field';
 
 interface DynamicFormProps {
   formData: ServiceForm;
@@ -47,6 +49,7 @@ export function DynamicForm({
     resolver: zodResolver(formData.schema),
     defaultValues: formData.defaultValues,
   });
+
   const currentStepValidity = form.formState.isValid;
   const currentStepErrors = form.formState.errors;
 
@@ -70,7 +73,7 @@ export function DynamicForm({
         render={({ field: formField }) => (
           <FormItem>
             <FormLabel>{field.label}</FormLabel>
-            <FormControl>{getFieldComponent(field, formField, userId)}</FormControl>
+            <FormControl>{getFieldComponent(form, field, formField, userId)}</FormControl>
             {field.description && <FormDescription>{field.description}</FormDescription>}
             <FormMessage />
           </FormItem>
@@ -80,66 +83,64 @@ export function DynamicForm({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">{formData.title}</h3>
-          {formData.description && (
-            <p className="text-muted-foreground">{formData.description}</p>
-          )}
-        </div>
+    <CardContainer title={formData.title} subtitle={formData.description}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="space-y-4">{formData.stepData?.fields.map(renderField)}</div>
 
-        <div className="space-y-4">{formData.stepData?.fields.map(renderField)}</div>
+          <div className="flex justify-between gap-4">
+            <Button
+              type="button"
+              onClick={onPrevious}
+              variant="outline"
+              disabled={isLoading || currentStepIndex === 0}
+              className="gap-2"
+            >
+              <ArrowLeft className="size-4" />
+              {'Retour'}
+            </Button>
 
-        <div className="flex justify-between gap-4">
-          <Button
-            type="button"
-            onClick={onPrevious}
-            variant="outline"
-            disabled={isLoading || currentStepIndex === 0}
-            className="gap-2"
-          >
-            <ArrowLeft className="size-4" />
-            {'Retour'}
-          </Button>
-
-          <Button
-            type="submit"
-            disabled={isLoading || !currentStepValidity}
-            className="ml-auto gap-2"
-          >
-            {isLoading ? <Loader className="size-4 animate-spin" /> : null}
-            {currentStepIndex === totalSteps - 1 ? 'Soumettre ma demande' : 'Suivant'}
-            {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
-          </Button>
-        </div>
-        {!currentStepValidity && (
-          <div className="errors flex flex-col gap-2">
-            <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
-              <Info className="size-icon min-w-max text-blue-500" />
-              <span>Veuillez vérifier que tous les champs sont correctement remplis</span>
-            </p>
-            <ul className="flex flex-col items-center gap-2">
-              {Object.entries(currentStepErrors).map(([error]) => (
-                <li key={error} className="text-red-500 list-disc">
-                  <span className="font-medium text-sm">{error}</span>
-                </li>
-              ))}
-            </ul>
+            <Button
+              type="submit"
+              disabled={isLoading || !currentStepValidity}
+              className="ml-auto gap-2"
+            >
+              {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+              {currentStepIndex === totalSteps - 1 ? 'Soumettre ma demande' : 'Suivant'}
+              {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
+            </Button>
           </div>
-        )}
-        <MobileProgress
-          currentStepIndex={currentStepIndex}
-          totalSteps={totalSteps}
-          stepTitle={formData.title}
-          isOptional={false}
-        />
-      </form>
-    </Form>
+          {!currentStepValidity && (
+            <div className="errors flex flex-col gap-2">
+              <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
+                <Info className="size-icon min-w-max text-blue-500" />
+                <span>
+                  Veuillez vérifier que tous les champs sont correctement remplis
+                </span>
+              </p>
+              <ul className="flex flex-col items-center gap-2">
+                {Object.entries(currentStepErrors).map(([error]) => (
+                  <li key={error} className="text-red-500 list-disc">
+                    <span className="font-medium text-sm">{error}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <MobileProgress
+            currentStepIndex={currentStepIndex}
+            totalSteps={totalSteps}
+            stepTitle={formData.title}
+            isOptional={false}
+          />
+        </form>
+      </Form>
+    </CardContainer>
   );
 }
 
 function getFieldComponent(
+  form: UseFormReturn<Record<string, unknown>>,
   field: ServiceField,
   formField: ControllerRenderProps<Record<string, unknown>, string>,
   userId?: string,
@@ -150,7 +151,7 @@ function getFieldComponent(
         <UserDocument
           document={formField.value as AppUserDocument}
           description={field.description}
-          label={field.label}
+          label={''}
           onUpload={formField.onChange}
           onDelete={() => formField.onChange(null)}
           accept={field.accept}
@@ -162,7 +163,7 @@ function getFieldComponent(
         <UserDocument
           document={formField.value as AppUserDocument}
           description={field.description}
-          label={field.label}
+          label={''}
           onUpload={formField.onChange}
           onDelete={() => formField.onChange(null)}
           accept={field.accept}
@@ -174,7 +175,7 @@ function getFieldComponent(
         <UserDocument
           document={formField.value as AppUserDocument}
           description={field.description}
-          label={field.label}
+          label={''}
           onUpload={formField.onChange}
           onDelete={() => formField.onChange(null)}
           accept={field.accept}
@@ -229,10 +230,16 @@ function getFieldComponent(
       );
     case 'address':
       return (
-        <Input
-          onChange={formField.onChange}
-          value={formField.value as string}
-          type="text"
+        <AddressField
+          form={form}
+          fields={{
+            firstLine: `${field.name}.firstLine`,
+            secondLine: `${field.name}.secondLine`,
+            city: `${field.name}.city`,
+            postalCode: `${field.name}.postalCode`,
+            country: `${field.name}.country`,
+          }}
+          countries={field.countries}
         />
       );
     case 'textarea':

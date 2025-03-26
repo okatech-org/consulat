@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { z, ZodSchema } from 'zod';
 import { DeliveryMode, DocumentType } from '@prisma/client';
 import { ConsularServiceItem, ServiceField, ServiceStep } from '@/types/consular-service';
@@ -19,6 +19,8 @@ import {
 import { FullProfile } from '@/types/profile';
 import { createFormStorage } from '@/lib/form-storage';
 import { useStoredTabs } from './use-tabs';
+import { useTranslations } from 'next-intl';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 type StepFormValues = Record<string, unknown>;
 
@@ -41,14 +43,22 @@ export type ServiceForm = {
   stepData?: ServiceStep;
 };
 export function useServiceForm(service: ConsularServiceItem, userProfile: FullProfile) {
-  const { saveData, loadSavedData, clearData } = createFormStorage(
+  const { loadSavedData, clearData, saveData } = createFormStorage(
     'consular_form_data' + service.id,
   );
+  const tInputs = useTranslations('inputs');
   const { currentTab: currentStep, setCurrentTab: setCurrentStep } =
-    useStoredTabs<string>('service-step' + service.id, '');
+    useStoredTabs<string>('service-step' + service.id, 'documents');
   const [formData, setFormData] = useState<Record<string, StepFormValues>>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const savedData = loadSavedData();
+    if (savedData) {
+      setFormData(savedData);
+    }
+  }, [loadSavedData]);
 
   // Fonction pour créer un schéma dynamique basé sur les champs du formulaire
   const createDynamicSchema = useMemo(() => {
@@ -217,6 +227,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
 
   // Générer les valeurs par défaut pour le formulaire de documents
   const documentsDefaultValues = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaults: Record<string, any> = {};
 
     // Initialiser tous les champs de documents à undefined
@@ -245,14 +256,17 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       description:
         'Veuillez joindre les documents de votre profil requis pour la démarche',
       schema: documentsSchema,
-      defaultValues: documentsDefaultValues,
+      defaultValues: {
+        ...documentsDefaultValues,
+        ...(formData?.documents ?? {}),
+      },
       stepData: {
         id: 'documents',
         title: 'Documents',
         fields: service.requiredDocuments.map((docType) => ({
           name: documentTypeToField[docType] ?? docType,
           type: 'document',
-          label: 'messages.documents.required',
+          label: tInputs(`userDocument.options.${docType}`),
           required: true,
           documentType: docType,
         })),
@@ -271,7 +285,9 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       id: step.id ?? undefined,
       title: step.title,
       schema: createDynamicSchema(step.fields),
-      defaultValues: {},
+      defaultValues: {
+        ...(step.id && formData?.[step.id] ? formData?.[step.id] : {}),
+      },
       stepData: step,
     });
   });
@@ -289,6 +305,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       }),
       defaultValues: {
         appointmentDuration: service.appointmentDuration,
+        ...(formData?.appointment ?? {}),
       },
       stepData: {
         id: 'appointment',
@@ -332,6 +349,26 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       description: `Veuillez choisir une adresse de livraison${
         service.deliveryMode.length > 1 ? ' si vous le souhaitez' : ''
       }`,
+      stepData: {
+        id: 'delivery',
+        title: 'Adresse de livraison',
+        fields: [
+          {
+            name: 'deliveryAddress',
+            type: 'address',
+            label: 'Votre adresse de livraison',
+            required: true,
+            countries: [userProfile.residenceCountyCode as CountryCode],
+          },
+        ],
+        order: 1,
+        description: `Veuillez choisir une adresse de livraison${
+          service.deliveryMode.length > 1 ? ' si vous le souhaitez' : ''
+        }`,
+        type: 'DELIVERY',
+        isRequired: true,
+        validations: {},
+      },
       schema: z.object({
         deliveryAddress:
           service.deliveryMode.length === 1
@@ -357,29 +394,17 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       }),
       defaultValues: {
         deliveryAddress: userProfile.address,
+        ...(formData?.delivery ?? {}),
       },
     });
   }
 
   // Créer un formulaire pour chaque étape de service
   const updateFormData = (stepId: string, data: StepFormValues) => {
-    setFormData((prev) => ({ ...prev, [stepId]: data }));
+    const newData = { ...formData, [stepId]: data };
+    setFormData(newData);
+    saveData(newData);
   };
-
-  // Sauvegarde automatique des données
-  const handleDataChange = useCallback(
-    (data: Record<string, unknown>) => {
-      const currentData = loadSavedData();
-
-      saveData({
-        ...currentData,
-        ...data,
-      });
-    },
-    [saveData, loadSavedData],
-  );
-
-  setCurrentStep(forms[0]?.id ?? '');
 
   return {
     currentStep,
@@ -391,7 +416,6 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
     setError,
     isLoading,
     setIsLoading,
-    handleDataChange,
     clearData,
   };
 }

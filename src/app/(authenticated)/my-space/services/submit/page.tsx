@@ -24,10 +24,6 @@ export default async function ServiceSubmissionPage({
 
   const { data: serviceDetails, error } = await tryCatch(getFullService(serviceId));
 
-  console.log({ serviceDetails });
-
-  console.log({ serviceDetails, userProfile, error });
-
   if (!serviceDetails || !userProfile || error) {
     return (
       <div className="container mx-auto py-6">
@@ -42,9 +38,5 @@ export default async function ServiceSubmissionPage({
     );
   }
 
-  return (
-    <div className="container mx-auto py-6 space-y-6">
-      <ServiceSubmissionForm service={serviceDetails} userProfile={userProfile} />
-    </div>
-  );
+  return <ServiceSubmissionForm service={serviceDetails} userProfile={userProfile} />;
 }

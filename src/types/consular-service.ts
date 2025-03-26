@@ -9,6 +9,7 @@ import {
   DocumentType,
 } from '@prisma/client';
 import { FullProfile } from '@/types/profile';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 export type BasicField = {
   name: string;
@@ -54,6 +55,7 @@ export type SelectField = BasicField & {
 
 export type AddressField = BasicField & {
   type: 'address';
+  countries: Array<CountryCode>;
 };
 
 export type FileField = BasicField & {
