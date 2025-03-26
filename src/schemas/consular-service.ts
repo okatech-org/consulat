@@ -7,10 +7,11 @@ import {
   DeliveryMode,
 } from '@prisma/client';
 import { CountryCodeSchema } from './inputs';
+import { fieldTypes } from '@/types/consular-service';
 
 export const ServiceFieldSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
-  type: z.enum(['text', 'email', 'phone', 'date', 'select', 'file', 'number', 'address']),
+  type: z.enum(fieldTypes),
   label: z.string().min(1, 'Le label est requis'),
   required: z.boolean().optional(),
   description: z.string().optional().nullable(),

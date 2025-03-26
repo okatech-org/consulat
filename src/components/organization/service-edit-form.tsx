@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -39,6 +40,7 @@ import { Separator } from '@/components/ui/separator';
 import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
 import { filterUneditedKeys } from '@/lib/utils';
 import { Country } from '@/types/country';
+import { getValuable } from '@/lib/utils';
 
 interface ServiceFormProps {
   organizations: OrganizationListingItem[];
@@ -57,19 +59,25 @@ export function ConsularServiceForm({
   const { toast } = useToast();
   const router = useRouter();
 
+  const cleanedService = getValuable(service);
+
   const form = useForm<typeof ServiceSchema>({
     resolver: zodResolver(ServiceSchema),
+    // eslint-disable-next-line
     defaultValues: {
-      ...service,
+      ...cleanedService,
     },
   });
 
   const handleSubmit = async (data: ServiceSchemaInput) => {
     setIsLoading(true);
     try {
+      console.log('service', service, 'data', data);
       if (service.id) {
-        filterUneditedKeys(data, form.formState.dirtyFields, ['id']);
+        filterUneditedKeys(data, form.formState.dirtyFields, ['id', 'steps']);
       }
+
+      console.log('data', { data });
 
       const result = await updateService(data);
       if (result.error) {
@@ -93,6 +101,12 @@ export function ConsularServiceForm({
 
   const serviceSteps: ServiceStep[] = form.watch('steps');
 
+  useEffect(() => {
+    console.log({
+      values: form.getValues(),
+      dirtyFields: form.formState.dirtyFields,
+    });
+  }, [form.formState.dirtyFields]);
   return (
     <Form {...form}>
       <form

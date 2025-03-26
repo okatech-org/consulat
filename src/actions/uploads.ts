@@ -5,7 +5,6 @@ import { UTApi } from 'uploadthing/server';
 
 const utapi = new UTApi({
   token: process.env.UPLOADTHING_SECRET,
-  apiUrl: 'api/uploadthing',
 });
 
 export async function uploadFiles(fd: FormData) {
@@ -56,9 +55,12 @@ export const uploadFileFromServer = async (fd: FormData) => {
 
 export async function deleteFiles(keys: string[]) {
   try {
-    await Promise.all(keys.map((key) => utapi.deleteFiles(key)));
+    await utapi.deleteFiles(keys);
   } catch (error) {
-    console.error('Delete error:', error);
-    throw new Error('Error deleting files');
+    console.error('Delete error:', { ...error });
+    return {
+      success: false,
+      error: 'messages.errors.delete_file_failed',
+    };
   }
 }
