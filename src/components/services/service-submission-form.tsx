@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { toast } from '@/hooks/use-toast';
-import { ServiceRequest, UserDocument } from '@prisma/client';
+import { Address, DeliveryMode, ServiceRequest, UserDocument } from '@prisma/client';
 import { Info } from 'lucide-react';
 import { ErrorCard } from '@/components/ui/error-card';
 import { useRouter } from 'next/navigation';
@@ -68,11 +68,15 @@ export function ServiceSubmissionForm({
     setIsLoading(false);
   };
 
+  function getDeliveryAddress(address: Address) {
+    return `${address.firstLine ?? ''}, ${address.secondLine ?? ''}, ${address.city ?? ''}, ${address.zipCode ?? ''}, ${address.country ?? ''}`;
+  }
+
   const handleFinalSubmit = async () => {
     setIsLoading(true);
     setError(null);
 
-    const { documents, appointment, ...rest } = formData;
+    const { documents, appointment, delivery, ...rest } = formData;
 
     const requestData: ServiceRequest = {
       serviceId: service.id,
@@ -88,6 +92,14 @@ export function ServiceSubmissionForm({
       ...(appointment && {
         appointmentDuration: appointment.duration,
         appointmentTime: appointment.time,
+      }),
+      ...(delivery && {
+        chosenDeliveryMode: delivery.deliveryMode,
+        ...(delivery.deliveryMode === DeliveryMode.POSTAL && {
+          deliveryAddress: getDeliveryAddress(
+            (delivery.deliveryAddress ?? '') as Address,
+          ),
+        }),
       }),
       formData: JSON.stringify(rest),
     };

@@ -26,6 +26,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { InfoField } from '@/components/ui/info-field';
 
 export type ServiceReviewTab = {
   value: string;
@@ -94,78 +95,28 @@ type StepReviewProps = {
 function StepReview({ fields }: StepReviewProps) {
   const { formatDate } = useDateLocale();
 
-  const renderFieldValue = (field: ReviewStepField) => {
-    const { type, value } = field;
-
-    if (value === null || value === undefined) {
-      return '-';
-    }
-
-    switch (type) {
+  function renderFieldValue(field: ReviewStepField) {
+    switch (field.type) {
       case 'date':
-        return value ? formatDate(value, 'PPP') : '-';
-      case 'select':
-      case 'radio':
-        // For single select or radio
-        if (typeof value === 'string' && field.options) {
-          const option = field.options.find((opt) => opt.value === value);
-          return option ? option.label : value;
-        }
-        // For multiple select
-        if (Array.isArray(value) && field.options) {
-          return value
-            .map((v) => {
-              const option = field.options?.find((opt) => opt.value === v);
-              return option ? option.label : v;
-            })
-            .join(', ');
-        }
-        return String(value);
-      case 'checkbox':
-        if (typeof value === 'boolean') {
-          return value ? 'Oui' : 'Non';
-        }
-        if (Array.isArray(value) && field.options) {
-          return value
-            .map((v) => {
-              const option = field.options?.find((opt) => opt.value === v);
-              return option ? option.label : v;
-            })
-            .join(', ');
-        }
-        return String(value);
-      case 'address':
-        return value ? (
-          <div>
-            <p>{value.firstLine}</p>
-            {value.secondLine && <p>{value.secondLine}</p>}
-            <p>
-              {value.city}, {value.zipCode}
-            </p>
-            <p>{value.country}</p>
-          </div>
-        ) : (
-          '-'
+        return (
+          <InfoField
+            label={field.label}
+            value={formatDate(field.value, 'PPP')}
+            required={field.required}
+          />
         );
-      case 'file':
+      case 'address':
+        return <DisplayAddress address={field.value} title={field.label} />;
       case 'document':
       case 'photo':
-        return value ? (
-          <a
-            href={value}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline"
-          >
-            Voir le fichier
-          </a>
-        ) : (
-          '-'
-        );
+      case 'file':
+        return <DocumentReview document={field.value} />;
       default:
-        return String(value);
+        return (
+          <InfoField label={field.label} value={field.value} required={field.required} />
+        );
     }
-  };
+  }
 
   return (
     <CardContainer
@@ -286,27 +237,7 @@ type DeliveryReviewProps = {
 };
 
 function DeliveryReview({ request }: DeliveryReviewProps) {
-  const getDeliveryModeLabel = (mode: DeliveryMode): string => {
-    const modes: Record<DeliveryMode, string> = {
-      IN_PERSON: 'En personne',
-      POSTAL: 'Par voie postale',
-      ELECTRONIC: 'Électronique',
-      BY_PROXY: 'Par procuration',
-    };
-
-    return modes[mode] || mode;
-  };
-
-  const getProcessingModeLabel = (mode: string): string => {
-    const modes: Record<string, string> = {
-      ONLINE_ONLY: 'En ligne uniquement',
-      PRESENCE_REQUIRED: 'Présence requise',
-      HYBRID: 'Hybride',
-      BY_PROXY: 'Par procuration',
-    };
-
-    return modes[mode] || mode;
-  };
+  const t_inputs = useTranslations('inputs');
 
   const getDeliveryModeIcon = (mode: DeliveryMode) => {
     switch (mode) {
@@ -330,7 +261,7 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
         <div className="flex-1">
           <p className="text-sm text-muted-foreground">Mode de livraison</p>
           <p className="font-medium">
-            {getDeliveryModeLabel(request.chosenDeliveryMode)}
+            {t_inputs(`deliveryMode.options.${request.chosenDeliveryMode}`)}
           </p>
         </div>
         <CheckCircle2 className="text-success size-5" />
@@ -416,7 +347,7 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
       <div className="pt-2 border-t">
         <p className="text-sm font-medium">Mode de traitement</p>
         <p className="text-sm text-muted-foreground">
-          {getProcessingModeLabel(request.chosenProcessingMode)}
+          {t_inputs(`processingMode.options.${request.chosenProcessingMode}`)}
         </p>
       </div>
     </CardContainer>
@@ -428,13 +359,15 @@ function getStepFieldsValue(
   stepId: string,
 ): ReviewStepField[] {
   const step = request.service.steps.find((step) => step.id === stepId);
-  if (!step || !step.fields || !Array.isArray(step.fields)) return [];
+  if (!step || !step.fields) return [];
 
-  const formattedFormData = JSON.parse(JSON.stringify(request.formData));
+  const formattedFormData = JSON.parse(request.formData as string);
+
   const stepFormData = formattedFormData[stepId] as Record<string, unknown> | undefined;
+
   if (!stepFormData) return [];
 
-  const fields = JSON.parse(JSON.stringify(step.fields)) as ServiceField[];
+  const fields = JSON.parse(`${step.fields ?? '[]'}`) as ServiceField[];
 
   return fields.map((field) => {
     const fieldId = field.name;
@@ -589,5 +522,130 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
         />
       )}
     </CardContainer>
+  );
+}
+
+export function DocumentReview({ document }: { document: UserDocument }) {
+  const validation = validateDocument(document, true);
+
+  const t_inputs = useTranslations('inputs');
+  const t_review = useTranslations('admin.registrations.review');
+  const t = useTranslations('common');
+  const t_errors = useTranslations('messages.errors');
+  const { formatDate } = useDateLocale();
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
+
+  return (
+    <div
+      key={document.id}
+      className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
+    >
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <p className="font-medium">
+            {t_inputs(`userDocument.options.${document.type}`)}
+          </p>
+
+          {documentValidations?.[document?.type as DocumentType]?.required && (
+            <Badge variant="outline">{t_review('documents.required')}</Badge>
+          )}
+          {document?.status && (
+            <Badge variant={document.status.toLowerCase() as BadgeVariant}>
+              {t(`status.${document.status}`)}
+            </Badge>
+          )}
+        </div>
+        {document && (
+          <div className="space-y-1 text-sm text-muted-foreground">
+            {document.issuedAt && (
+              <p>
+                {t_review('documents.issued_at')}: {formatDate(document.issuedAt, 'PPP')}
+              </p>
+            )}
+            {document.expiresAt && (
+              <p>
+                {t_review('documents.expires_at')}:{' '}
+                {formatDate(document.expiresAt, 'PPP')}
+              </p>
+            )}
+          </div>
+        )}
+        {!document && validation.errors.length === 0 && (
+          <p className="text-sm text-muted-foreground">{t_errors('not_provided')}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {document && (
+          <>
+            <DocumentPreview
+              url={document.fileUrl}
+              title={t_inputs(`userDocument.options.${document.type}`)}
+              type={document.type}
+              onDownload={() =>
+                handleDownload(
+                  document.fileUrl,
+                  `${document.type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
+                )
+              }
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setSelectedDocument({
+                  id: document.id,
+                  type: document.type,
+                })
+              }
+            >
+              <Shield className="size-4" />
+              <span className="text-sm">Valider</span>
+            </Button>
+            <Tooltip>
+              <TooltipTrigger>
+                {validation.isValid ? (
+                  <CheckCircle2 className="text-success size-5" />
+                ) : (
+                  <AlertTriangle className="size-5 text-warning" />
+                )}
+              </TooltipTrigger>
+              <TooltipContent>
+                {validation.isValid
+                  ? t_review('documents.valid')
+                  : validation.errors.join(', ')}
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
+      </div>
+      <DocumentValidationDialog
+        documentId={document.id}
+        documentType={document.type}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onValidated={() => {
+          setOpen(false);
+          router.refresh();
+        }}
+      />
+    </div>
   );
 }

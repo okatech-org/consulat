@@ -11,6 +11,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { useDateLocale } from '@/lib/utils';
 import { FullServiceRequest } from '@/types/service-request';
 import { addServiceRequestNote } from '@/actions/service-requests';
+import { Profile } from '@prisma/client';
 
 interface NoteItemProps {
   note: FullServiceRequest['notes'][number];

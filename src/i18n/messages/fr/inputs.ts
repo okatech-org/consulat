@@ -22,6 +22,24 @@ export default {
     pdfNotSupported: 'Votre navigateur ne prend pas en charge la visualisation des PDF',
     downloadPdf: 'Télécharger le PDF',
   },
+  deliveryMode: {
+    label: 'Mode de délivrance',
+    options: {
+      IN_PERSON: 'En personne',
+      POSTAL: 'Par voie postale',
+      ELECTRONIC: 'Électronique',
+      BY_PROXY: 'Par procuration',
+    },
+  },
+  processingMode: {
+    label: 'Mode de traitement',
+    options: {
+      ONLINE_ONLY: 'En ligne uniquement',
+      PRESENCE_REQUIRED: 'Présence requise',
+      HYBRID: 'Hybride',
+      BY_PROXY: 'Par procuration',
+    },
+  },
   priority: {
     label: 'Priorité',
     options: {

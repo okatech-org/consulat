@@ -340,62 +340,73 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
     });
   }
 
-  if (service.deliveryMode.includes(DeliveryMode.POSTAL)) {
-    forms.push({
+  forms.push({
+    id: 'delivery',
+    title: 'Adresse de livraison',
+    description: `Veuillez choisir une adresse de livraison${
+      service.deliveryMode.length > 1 ? ' si vous le souhaitez' : ''
+    }`,
+    stepData: {
       id: 'delivery',
       title: 'Adresse de livraison',
-      description: `Veuillez choisir une adresse de livraison${
-        service.deliveryMode.length > 1 ? ' si vous le souhaitez' : ''
-      }`,
-      stepData: {
-        id: 'delivery',
-        title: 'Adresse de livraison',
-        fields: [
-          {
-            name: 'deliveryAddress',
-            type: 'address',
-            label: 'Votre adresse de livraison',
-            required: true,
-            countries: [userProfile.residenceCountyCode as CountryCode],
-          },
-        ],
-        order: 1,
-        description: `Veuillez choisir une adresse de livraison${
-          service.deliveryMode.length > 1 ? ' si vous le souhaitez' : ''
-        }`,
-        type: 'DELIVERY',
-        isRequired: true,
-        validations: {},
+      fields: [
+        {
+          name: 'deliveryMode',
+          type: 'select',
+          label: 'Mode de délivrance',
+          description: 'Veuillez choisir le mode de délivrance de votre demande',
+          required: true,
+          options: service.deliveryMode.map((mode) => ({
+            value: mode,
+            label: tInputs(`deliveryMode.options.${mode}`),
+          })),
+          selectType: 'single',
+        },
+        {
+          name: 'deliveryAddress',
+          type: 'address',
+          label: 'Votre adresse de livraison',
+          required: false,
+          countries: [userProfile.residenceCountyCode as CountryCode],
+        },
+      ],
+      order: 1,
+      description:
+        'Attention à bien renseignez les infos en fonction du mode de délivrance',
+      type: 'DELIVERY',
+      isRequired: true,
+      validations: {
+        ...userProfile.address,
       },
-      schema: z.object({
-        deliveryAddress:
-          service.deliveryMode.length === 1
-            ? z.object(
+    },
+    schema: z.object({
+      deliveryAddress:
+        service.deliveryMode.length === 1
+          ? z.object(
+              {
+                ...AddressSchema.shape,
+              },
+              {
+                required_error: 'messages.errors.field_required',
+                invalid_type_error: 'messages.errors.invalid_field',
+              },
+            )
+          : z
+              .object(
                 {
                   ...AddressSchema.shape,
                 },
                 {
-                  required_error: 'messages.errors.field_required',
                   invalid_type_error: 'messages.errors.invalid_field',
                 },
               )
-            : z
-                .object(
-                  {
-                    ...AddressSchema.shape,
-                  },
-                  {
-                    invalid_type_error: 'messages.errors.invalid_field',
-                  },
-                )
-                .optional(),
-      }),
-      defaultValues: {
-        deliveryAddress: userProfile.address,
-        ...(formData?.delivery ?? {}),
-      },
-    });
-  }
+              .optional(),
+    }),
+    defaultValues: {
+      deliveryAddress: userProfile.address,
+      ...(formData?.delivery ?? {}),
+    },
+  });
 
   const steps = service.steps.map((step) => step.id).filter((step) => step);
 
