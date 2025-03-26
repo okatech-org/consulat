@@ -1,4 +1,8 @@
 export default {
+  qrCodeUrl: {
+    label: 'URL QRCode',
+    link: 'Lien QRCode',
+  },
   fileInput: {
     label: 'Télécharger votre fichier',
     placeholder: 'Sélectionner un fichier',

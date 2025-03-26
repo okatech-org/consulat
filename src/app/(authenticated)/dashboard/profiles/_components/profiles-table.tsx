@@ -27,6 +27,7 @@ import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/pr
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { ROUTES } from '@/schemas/routes';
+import { Button } from '@/components/ui/button';
 
 interface ProfilesTableProps {
   filters: GetProfilesOptions;
@@ -111,6 +112,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       ...item,
       identityPictureUrl: item.identityPicture?.fileUrl || '',
       fullName: `${item.firstName} ${item.lastName}`.trim(),
+      qrCodeUrl: `${ROUTES.listing.profile(item.id)}`,
     }));
   }, [result?.items]);
 
@@ -311,6 +313,22 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       },
     },
     {
+      accessorKey: 'qrCodeUrl',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.qrCodeUrl.label')} />
+      ),
+      cell: ({ row }) => {
+        const url = row.getValue('qrCodeUrl') as string;
+        return url ? (
+          <Button variant={'link'} asChild>
+            <Link href={url}>{t('inputs.qrCodeUrl.link')}</Link>
+          </Button>
+        ) : (
+          '-'
+        );
+      },
+    },
+    {
       id: 'actions',
       cell: ({ row }) => (
         <DataTableRowActions
@@ -442,6 +460,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
         'maritalStatus',
         'workStatus',
         'email',
+        'qrCodeUrl',
       ]}
     />
   );
