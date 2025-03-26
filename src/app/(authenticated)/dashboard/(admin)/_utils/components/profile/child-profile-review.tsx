@@ -232,6 +232,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
                         validateConsularRegistration(
                           request.id,
                           profile.id,
+                          profile.residenceCountyCode,
                           'VALIDATED',
                           1,
                           validationNotes,
