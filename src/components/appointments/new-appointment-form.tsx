@@ -67,6 +67,7 @@ export function NewAppointmentForm({
   preselectedData,
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
+  const t_inputs = useTranslations('inputs');
   const router = useRouter();
   const [step, setStep] = useState<Step>(preselectedData ? 'slot' : 'service');
   const [isLoading, setIsLoading] = useState(false);
@@ -260,7 +261,7 @@ export function NewAppointmentForm({
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <Badge variant="outline">
-            {t(`service_categories.${selectedService.category}`)}
+            {t_inputs(`serviceCategory.options.${selectedService.category}`)}
           </Badge>
         </div>
       </div>
