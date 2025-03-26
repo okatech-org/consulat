@@ -179,6 +179,7 @@ export async function submitServiceRequest(
       requiredDocuments: {
         connect: data.requiredDocuments?.map((doc) => ({ id: doc.id })) || [],
       },
+      submittedAt: new Date(),
     },
   });
 
