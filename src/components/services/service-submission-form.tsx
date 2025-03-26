@@ -16,6 +16,7 @@ import { NewAppointmentForm } from '../appointments/new-appointment-form';
 import { tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import { StepIndicator } from '../registration/step-indicator';
+import { useEffect } from 'react';
 
 type ServiceWithSteps = ConsularServiceItem;
 
@@ -29,8 +30,6 @@ export function ServiceSubmissionForm({
   const t = useTranslations();
   const router = useRouter();
 
-  console.log({ service, userProfile });
-
   // Utiliser notre hook personnalisé
   const {
     currentStep,
@@ -42,9 +41,8 @@ export function ServiceSubmissionForm({
     setError,
     isLoading,
     setIsLoading,
+    clearData,
   } = useServiceForm(service, userProfile);
-
-  console.log({ forms });
 
   type StepKey = keyof (typeof forms)[number]['id'];
 
@@ -58,6 +56,7 @@ export function ServiceSubmissionForm({
 
     if (currentStepIndex === totalSteps - 1) {
       await handleFinalSubmit();
+      setIsLoading(false);
       return;
     }
 
@@ -66,6 +65,7 @@ export function ServiceSubmissionForm({
     if (nextStep?.id) {
       setCurrentStep(nextStep.id);
     }
+    setIsLoading(false);
   };
 
   const handleFinalSubmit = async () => {
@@ -131,6 +131,8 @@ export function ServiceSubmissionForm({
               setCurrentStep(previousStep.id);
             }
           }}
+          currentStepIndex={currentStepIndex}
+          totalSteps={totalSteps}
           isLoading={isLoading}
         />
       );
@@ -172,6 +174,12 @@ export function ServiceSubmissionForm({
       />
     );
   };
+
+  useEffect(() => {
+    return () => {
+      clearData();
+    };
+  }, [clearData]);
 
   return (
     <div className="w-full overflow-x-hidden max-w-4xl mx-auto flex flex-col pb-safe md:pb-0">

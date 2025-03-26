@@ -263,13 +263,13 @@ export function UserDocument({
   return (
     <div className="mb-2 space-y-4 relative w-full h-auto overflow-hidden">
       <div className="flex flex-col gap-1">
-        <h3 className="font-medium text-normal mb-1">
+        <div className="font-medium text-normal mb-1">
           <span>
             {label}
             {required && <span className="ml-1 text-destructive">*</span>}
           </span>
           {document?.status && getStatusBadge(document.status)}
-        </h3>
+        </div>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 

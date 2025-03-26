@@ -256,8 +256,7 @@ model Profile {
   parentAuthorities ParentalAuthority[]
 
   // Relation pour les demandes effectuées pour ce profil
-  requestsFor    ServiceRequest? @relation("RequestedFor")
-  requestedForId String?         @unique
+  requestsFor ServiceRequest[]
 
   // Informations personnelles
   firstName              String?
@@ -513,6 +512,7 @@ enum ServiceStepType {
   APPOINTMENT // Prise de rendez-vous
   PAYMENT // Paiement
   REVIEW // Revue finale
+  DELIVERY // Livraison
 }
 
 // Modèle pour les demandes de démarches
@@ -529,8 +529,8 @@ model ServiceRequest {
   serviceCategory ServiceCategory
 
   // Nouveau champ pour identifier pour qui la demande est faite
-  requestedFor   Profile? @relation("RequestedFor", fields: [requestedForId], references: [id])
-  requestedForId String?  @unique
+  requestedFor   Profile? @relation(fields: [requestedForId], references: [id])
+  requestedForId String?
 
   // Relation pour partager avec d'autres parents
   sharedWith ParentalAuthority[] @relation("SharedWithParents")

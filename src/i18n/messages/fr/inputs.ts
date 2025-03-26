@@ -236,6 +236,18 @@ export default {
       already_have_account: "J'ai déjà un compte",
     },
   },
+  passportNumber: {
+    label: 'Numéro de passeport',
+    placeholder: 'Numéro de passeport',
+  },
+  passportIssueDate: {
+    label: "Date d'émission",
+    placeholder: "Date d'émission",
+  },
+  passportExpiryDate: {
+    label: "Date d'expiration",
+    placeholder: "Date d'expiration",
+  },
   profile: {
     id: 'ID',
     userId: 'User ID',
@@ -568,6 +580,27 @@ export default {
       APPOINTMENT_SCHEDULED: 'RDV de retrait/entretien programmé',
       COMPLETED: 'Carte remise après entretien',
       EDITED: 'Modifiée',
+    },
+  },
+  userDocument: {
+    required: 'Documents requis',
+    optional: 'Documents optionnels',
+    options: {
+      PASSPORT: 'Passeport',
+      IDENTITY_CARD: "Carte d'identité",
+      BIRTH_CERTIFICATE: 'Acte de naissance',
+      RESIDENCE_PERMIT: 'Titre de séjour',
+      PROOF_OF_ADDRESS: 'Justificatif de domicile',
+      MARRIAGE_CERTIFICATE: 'Certificat de mariage',
+      DEATH_CERTIFICATE: 'Certificat de décès',
+      DIVORCE_DECREE: 'Décret de divorce',
+      NATIONALITY_CERTIFICATE: 'Certificat de nationalité',
+      OTHER: 'Autre',
+      VISA_PAGES: 'Pages de visa',
+      EMPLOYMENT_PROOF: 'Justificatif de travail',
+      NATURALIZATION_DECREE: 'Décret de naturalisation',
+      IDENTITY_PHOTO: "Photo d'identité",
+      CONSULAR_CARD: 'Carte consulaire',
     },
   },
 } as const;

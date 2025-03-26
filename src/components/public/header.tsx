@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
-import { buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { getCurrentUser } from "@/actions/user"
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 import Image from 'next/image';
@@ -43,12 +43,11 @@ export async function PublicHeader() {
           <ThemeToggleSingle />
           {/* <LanguageSwitcherSingle /> */}
 
-          {isAuth ? <NavUser showFeedback={false} user={user as SessionUser} /> : ( <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base} className={buttonVariants({ 
-            variant: 'default', 
-            className: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800' 
-          })}>
-            {t('nav.login')}
-          </Link>)}
+          {isAuth ? <NavUser showFeedback={false} user={user as SessionUser} /> : (<Button variant="default" asChild>
+            <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base}>
+              {t('nav.login')}
+            </Link>
+          </Button>)}
         </div>
       </div>
     </header>

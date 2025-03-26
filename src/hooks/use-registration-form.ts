@@ -123,7 +123,7 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
         ...basicInfoFormData,
         birthCountry: basicInfoFormData?.birthCountry ?? homeLandCountry,
         nationality: basicInfoFormData?.nationality ?? homeLandCountry,
-        gender: basicInfoFormData?.gender ?? Gender.MALE,
+        gender: basicInfoFormData?.gender,
         acquisitionMode:
           basicInfoFormData?.acquisitionMode ?? NationalityAcquisition.BIRTH,
       },

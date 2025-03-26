@@ -166,17 +166,6 @@ export async function getConsularService(id: string) {
 export async function submitServiceRequest(
   data: ServiceRequest & { requiredDocuments?: UserDocument[] },
 ) {
-  const service = await db.consularService.findUnique({
-    where: { id: data.serviceId },
-    include: {
-      organization: true,
-    },
-  });
-
-  if (!service) {
-    throw new Error('Service not found');
-  }
-
   // Créer la demande
   const request = await db.serviceRequest.create({
     data: {
