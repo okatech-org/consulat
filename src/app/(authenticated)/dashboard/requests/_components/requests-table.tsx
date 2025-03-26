@@ -228,8 +228,7 @@ export function RequestsTable({
         return (
           <div className="flex items-center">
             <Badge variant={'outline'}>
-              {/* @ts-expect-error - translations are in lowercase */}
-              {t('common.service_categories.' + serviceCategory)}
+              {t(`inputs.serviceCategory.options.${serviceCategory}`)}
             </Badge>
           </div>
         );
@@ -350,8 +349,7 @@ export function RequestsTable({
       defaultValue: filters.serviceCategory?.toString().split(',') ?? [],
       options: availableServiceCategories.map((category) => ({
         value: category,
-        // @ts-expect-error - translations are in lowercase
-        label: t('common.service_categories.' + category),
+        label: t(`inputs.serviceCategory.options.${category}`),
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {

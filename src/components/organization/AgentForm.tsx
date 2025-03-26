@@ -34,7 +34,6 @@ interface AgentFormProps {
 }
 
 export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps) {
-  const t = useTranslations('organization.settings.agents');
   const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
@@ -173,12 +172,12 @@ export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps)
           name="serviceCategories"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('service_categories')}</FormLabel>
+              <FormLabel>{t_inputs('serviceCategory.label')}</FormLabel>
               <FormControl>
                 <MultiSelect<ServiceCategory>
                   placeholder="Sélectionner les catégories"
                   options={Object.values(ServiceCategory).map((cat) => ({
-                    label: t_common(`service_categories.${cat}`),
+                    label: t_inputs(`serviceCategory.options.${cat}`),
                     value: cat,
                   }))}
                   selected={field.value}

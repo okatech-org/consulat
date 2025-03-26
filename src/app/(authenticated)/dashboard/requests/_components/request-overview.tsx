@@ -176,7 +176,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
               </p>
             </div>
             <Badge variant="outline">
-              {t(`common.service_categories.${request.serviceCategory}`)}
+              {t(`inputs.serviceCategory.options.${request.serviceCategory}`)}
             </Badge>
             <Separator className="my-4" />
           </div>
