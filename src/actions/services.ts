@@ -11,6 +11,8 @@ import {
   ServiceRequest,
   UserDocument,
 } from '@prisma/client';
+import { assignAgentToRequest } from './agents';
+import { CountryCode } from '@/lib/autocomplete-datas';
 
 /**
  * Get all active consular services available for the user based on their country
@@ -182,6 +184,22 @@ export async function submitServiceRequest(
       },
     },
   });
+
+  if (request.organizationId) {
+    const { error } = await tryCatch(
+      assignAgentToRequest(
+        request.id,
+        request.organizationId,
+        request.countryCode as CountryCode,
+        db,
+      ),
+    );
+
+    if (error) {
+      // Log the error but continue with profile update
+      console.error('Failed to assign agent:', error);
+    }
+  }
 
   return request;
 }

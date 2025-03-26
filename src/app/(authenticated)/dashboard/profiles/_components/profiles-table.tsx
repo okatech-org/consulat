@@ -26,6 +26,7 @@ import { format as formatDate } from 'date-fns';
 import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { CountryCode } from '@/lib/autocomplete-datas';
+import { ROUTES } from '@/schemas/routes';
 
 interface ProfilesTableProps {
   filters: GetProfilesOptions;
@@ -318,7 +319,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
               component: (
                 <Link
                   onClick={(e) => e.stopPropagation()}
-                  href={`/dashboard/profiles/${row.original.id}`}
+                  href={ROUTES.listing.profile(row.original.id)}
                 >
                   <FileText className="mr-1 size-icon" />
                   {t('common.actions.consult')}

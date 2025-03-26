@@ -256,7 +256,8 @@ model Profile {
   parentAuthorities ParentalAuthority[]
 
   // Relation pour les demandes effectuées pour ce profil
-  requestsFor ServiceRequest[]
+  requestsFor         ServiceRequest[]
+  validationRequestId String?
 
   // Informations personnelles
   firstName              String?

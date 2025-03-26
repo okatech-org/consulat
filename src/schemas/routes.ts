@@ -79,6 +79,17 @@ export const ROUTES = {
     feedback: '/my-space/feedback' as Route<string>,
   },
 
+  listing: {
+    profiles: '/listing/profiles' as Route<string>,
+    profile: (id: string) => `/listing/profiles/${id}` as Route<string>,
+    services: '/listing/services' as Route<string>,
+    service: (id: string) => `/listing/services/${id}` as Route<string>,
+    organizations: '/listing/organizations' as Route<string>,
+    organization: (id: string) => `/listing/organizations/${id}` as Route<string>,
+    countries: '/listing/countries' as Route<string>,
+    country: (id: string) => `/listing/countries/${id}` as Route<string>,
+  },
+
   help: '/help' as Route<string>,
   feedback: '/feedback' as Route<string>,
 
