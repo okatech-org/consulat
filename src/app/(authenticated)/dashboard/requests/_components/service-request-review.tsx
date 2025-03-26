@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { tryCatch, useDateLocale } from '@/lib/utils';
+import { DocumentsList } from '@/components/documents-list';
 import {
   Calendar,
   Clock,
@@ -20,7 +21,7 @@ import {
 import { UserProfile } from '@/components/profile/user-profile';
 import CardContainer from '@/components/layouts/card-container';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { RequestStatus, ServicePriority, User as DbUser } from '@prisma/client';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -43,7 +44,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusTimeline } from '@/components/consular/status-timeline';
 import { Label } from '@/components/ui/label';
 import { ReviewNotes } from '../../(admin)/_utils/components/requests/review-notes';
-import useServiceReview from '@/hooks/use-service-review';
 
 interface ServiceRequestReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -60,13 +60,163 @@ export function ServiceRequestReview({
   const t_common = useTranslations('common');
   const [notes, setNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [currentTab, setCurrentTab] = useState('basic');
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
 
-  // Use the service review hook for handling tabs
-  const { currentTab, setCurrentTab, tabs } = useServiceReview({
-    request,
-    profile: request.profile as FullProfile,
-  });
+  // Parse the form data to determine the steps
+  const formData = useMemo(() => {
+    if (!request.formData) return {};
+    try {
+      return JSON.parse(request.formData as string);
+    } catch (error) {
+      console.error('Error parsing form data:', error);
+      return {};
+    }
+  }, [request.formData]);
+
+  // Determine what tabs to show based on the request
+  const serviceTabs = useMemo(() => {
+    const tabs = [
+      {
+        value: 'basic',
+        label: 'Informations générales',
+        component: (
+          <div className="space-y-4">
+            <CardContainer>
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Service Info */}
+                <div>
+                  <h3 className="font-medium">Informations sur le service</h3>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <p>{request.service.name}</p>
+                    <p className="text-muted-foreground">{request.service.description}</p>
+                  </div>
+                </div>
+
+                {/* Submission Info */}
+                <div>
+                  <h3 className="font-medium">Informations de soumission</h3>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="size-4 text-muted-foreground" />
+                      <span>Soumis le {formatDate(request?.submittedAt ?? '')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="size-4 text-muted-foreground" />
+                      <span>
+                        Mode de traitement:{' '}
+                        {t(`processing_mode.${request.chosenProcessingMode}`)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Truck className="size-4 text-muted-foreground" />
+                      <span>
+                        Mode de livraison:{' '}
+                        {t(`delivery_mode.${request.chosenDeliveryMode}`)}
+                      </span>
+                    </div>
+                    {request.deadline && (
+                      <div className="flex items-center gap-2">
+                        <CalendarClock className="size-4 text-muted-foreground" />
+                        <span>Date limite: {formatDate(request.deadline)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContainer>
+          </div>
+        ),
+      },
+    ];
+
+    // Add documents tab if there are documents
+    if (request.requiredDocuments && request.requiredDocuments.length > 0) {
+      tabs.push({
+        value: 'documents',
+        label: 'Documents',
+        component: (
+          <CardContainer>
+            <DocumentsList documents={request.requiredDocuments} />
+          </CardContainer>
+        ),
+      });
+    }
+
+    // Add appointment tab if there is an appointment
+    if (request.appointment) {
+      tabs.push({
+        value: 'appointment',
+        label: 'Rendez-vous',
+        component: (
+          <CardContainer>
+            <div className="space-y-2">
+              <h3 className="font-medium">Rendez-vous</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Date</Label>
+                  <p>{formatDate(request.appointment.date)}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Durée</Label>
+                  <p>{request.appointment.duration} minutes</p>
+                </div>
+              </div>
+            </div>
+          </CardContainer>
+        ),
+      });
+    }
+
+    // Add delivery tab if delivery info exists
+    if (formData.delivery) {
+      tabs.push({
+        value: 'delivery',
+        label: 'Livraison',
+        component: (
+          <CardContainer>
+            <div className="space-y-2">
+              <h3 className="font-medium">Adresse de livraison</h3>
+              {formData.delivery.deliveryAddress && (
+                <div className="space-y-2">
+                  <Label>Adresse</Label>
+                  <p>
+                    {formData.delivery.deliveryAddress.street},{' '}
+                    {formData.delivery.deliveryAddress.postalCode}{' '}
+                    {formData.delivery.deliveryAddress.city},{' '}
+                    {formData.delivery.deliveryAddress.country}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContainer>
+        ),
+      });
+    }
+
+    // Add form data tab if there is form data
+    if (Object.keys(formData).length > 0) {
+      // Handle dynamic steps from the form
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key !== 'documents' && key !== 'delivery' && key !== 'appointment') {
+          tabs.push({
+            value: key,
+            // Try to capitalize the first letter of the key for a nicer label
+            label: key.charAt(0).toUpperCase() + key.slice(1),
+            component: (
+              <CardContainer title={key.charAt(0).toUpperCase() + key.slice(1)}>
+                <pre className="whitespace-pre-wrap rounded-lg bg-muted p-4 text-sm">
+                  {JSON.stringify(value, null, 2)}
+                </pre>
+              </CardContainer>
+            ),
+          });
+        }
+      });
+    }
+
+    return tabs;
+  }, [request, formData, t, formatDate]);
 
   const handleStatusUpdate = async (newStatus: RequestStatus) => {
     setIsUpdating(true);
@@ -178,69 +328,26 @@ export function ServiceRequestReview({
       {/* Contenu principal */}
       <div className="grid gap-6 md:grid-cols-3">
         <div className="space-y-6 md:col-span-2">
-          {/* Basic info card that's always shown */}
-          <CardContainer>
-            <div className="grid gap-4 md:grid-cols-2">
-              {/* Service Info */}
-              <div>
-                <h3 className="font-medium">Informations sur le service</h3>
-                <div className="mt-2 space-y-1 text-sm">
-                  <p>{request.service.name}</p>
-                  <p className="text-muted-foreground">{request.service.description}</p>
-                </div>
-              </div>
-
-              {/* Submission Info */}
-              <div>
-                <h3 className="font-medium">Informations de soumission</h3>
-                <div className="mt-2 space-y-1 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="size-4 text-muted-foreground" />
-                    <span>Soumis le {formatDate(request?.submittedAt ?? '')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="size-4 text-muted-foreground" />
-                    <span>
-                      Mode de traitement:{' '}
-                      {t(`processing_mode.${request.chosenProcessingMode}`)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Truck className="size-4 text-muted-foreground" />
-                    <span>
-                      Mode de livraison:{' '}
-                      {t(`delivery_mode.${request.chosenDeliveryMode}`)}
-                    </span>
-                  </div>
-                  {request.deadline && (
-                    <div className="flex items-center gap-2">
-                      <CalendarClock className="size-4 text-muted-foreground" />
-                      <span>Date limite: {formatDate(request.deadline)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContainer>
-
-          {/* Service review tabs */}
-          {tabs.length > 0 && (
-            <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4">
-              <TabsList className="w-full">
-                {tabs.map((tab) => (
-                  <TabsTrigger key={tab.value} value={tab.value} className="flex-1">
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {tabs.map((tab) => (
-                <TabsContent key={tab.value} value={tab.value} className="space-y-4">
-                  {tab.component}
-                </TabsContent>
+          <Tabs
+            defaultValue="basic"
+            className="space-y-4"
+            value={currentTab}
+            onValueChange={setCurrentTab}
+          >
+            <TabsList className="w-full">
+              {serviceTabs.map((tab) => (
+                <TabsTrigger key={tab.value} value={tab.value} className="flex-1">
+                  {tab.label}
+                </TabsTrigger>
               ))}
-            </Tabs>
-          )}
+            </TabsList>
+
+            {serviceTabs.map((tab) => (
+              <TabsContent key={tab.value} value={tab.value} className="space-y-4">
+                {tab.component}
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
 
         {/* Panneau latéral pour les actions et validations */}
