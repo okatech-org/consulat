@@ -5,16 +5,11 @@ import { RequestStatus } from '@prisma/client';
 
 interface ProfileStatusBadgeProps {
   status: RequestStatus;
-  label?: string;
   className?: string;
 }
 
-export function ProfileStatusBadge({
-  status,
-  className,
-  label,
-}: ProfileStatusBadgeProps) {
-  const t = useTranslations('profile.status');
+export function ProfileStatusBadge({ status, className }: ProfileStatusBadgeProps) {
+  const t = useTranslations('inputs');
 
   const getStatusStyles = (status: RequestStatus) => {
     switch (status) {
@@ -36,7 +31,7 @@ export function ProfileStatusBadge({
       variant="secondary"
       className={cn('font-medium', getStatusStyles(status), className)}
     >
-      {label ?? t(status.toLowerCase())}
+      {status ? t(`profileStatus.options.${status}`) : ''}
     </Badge>
   );
 }

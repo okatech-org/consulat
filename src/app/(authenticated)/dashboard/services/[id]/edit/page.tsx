@@ -15,6 +15,7 @@ import { getCountries } from '@/actions/countries';
 import { getCurrentUser } from '@/actions/user';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { getValuable } from '@/lib/utils';
+
 export default async function EditServicePage({ params }: { params: { id: string } }) {
   const awaitedParams = await params;
   const t = await getTranslations('services');
@@ -36,8 +37,6 @@ export default async function EditServicePage({ params }: { params: { id: string
   if (!service) {
     return <NotFound />;
   }
-
-  console.log(JSON.stringify(cleanedService, null, 2));
 
   return (
     <PageContainer title={service.name} description={t('edit_title')}>

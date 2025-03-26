@@ -41,9 +41,10 @@ export function DynamicFieldsEditor({
   onChange,
   profileFields,
 }: DynamicFieldsEditorProps) {
+  const t_inputs = useTranslations('inputs');
   const t = useTranslations('services');
   const t_common = useTranslations('common');
-  const t_inputs = useTranslations('inputs.profile');
+
   const [showFieldDialog, setShowFieldDialog] = useState(false);
   const [editingFieldIndex, setEditingFieldIndex] = useState(-1);
   const formRef = useRef<HTMLFormElement>(null);
@@ -90,11 +91,11 @@ export function DynamicFieldsEditor({
             <div>
               <h4 className="font-medium">{field.label}</h4>
               <p className="text-sm text-muted-foreground">
-                {t_common(`field_types.${field.type as ServiceFieldType}`)}
+                {t_inputs(`serviceFieldType.options.${field.type}`)}
                 {field.required && ' • ' + t('form.steps.step.fields.required')}
                 {field.profileField &&
                   ` • ${t('form.steps.step.fields.mapped_to', {
-                    field: t_inputs(`${field.profileField}`),
+                    field: t_inputs(`profile.${field.profileField}`),
                   })}`}
               </p>
             </div>
@@ -148,7 +149,7 @@ export function DynamicFieldsEditor({
                       <MultiSelect<string>
                         options={profileFields.map((f) => ({
                           value: f.key,
-                          label: t_inputs(f.key),
+                          label: t_inputs(`profile.${f.key}`),
                         }))}
                         selected={field.value}
                         onChange={(value) => {
@@ -158,7 +159,10 @@ export function DynamicFieldsEditor({
 
                           if (pField) {
                             fieldForm.setValue('name', pField.key);
-                            fieldForm.setValue('label', t_inputs(pField?.key));
+                            fieldForm.setValue(
+                              'label',
+                              t_inputs(`profile.${pField?.key}`),
+                            );
                             fieldForm.setValue('type', pField.type);
                             fieldForm.setValue('required', pField?.required);
                           }
@@ -216,7 +220,7 @@ export function DynamicFieldsEditor({
                           disabled={fieldForm.watch('profileField') !== undefined}
                           options={fieldTypes.map((type) => ({
                             value: type,
-                            label: t_common(`field_types.${type}`),
+                            label: t_inputs(`serviceFieldType.options.${type}`),
                           }))}
                           selected={field.value}
                           onChange={(value) => {
@@ -228,7 +232,7 @@ export function DynamicFieldsEditor({
                       <SelectContent>
                         {fieldTypes.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {t_common(`field_types.${type}`)}
+                            {t_inputs(`serviceFieldType.options.${type}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
