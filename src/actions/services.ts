@@ -4,13 +4,7 @@ import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
 import { tryCatch } from '@/lib/utils';
-import {
-  DeliveryMode,
-  ProcessingMode,
-  Prisma,
-  ServiceRequest,
-  UserDocument,
-} from '@prisma/client';
+import { Prisma, ServiceRequest, UserDocument } from '@prisma/client';
 import { assignAgentToRequest } from './agents';
 import { CountryCode } from '@/lib/autocomplete-datas';
 
@@ -168,11 +162,14 @@ export async function getConsularService(id: string) {
 export async function submitServiceRequest(
   data: ServiceRequest & { requiredDocuments?: UserDocument[] },
 ) {
+  // Ensure user is authenticated
+  const authResult = await checkAuth();
+
   // Créer la demande
   const request = await db.serviceRequest.create({
     data: {
       serviceId: data.serviceId,
-      submittedById: data.submittedById,
+      submittedById: data.submittedById || authResult.user.id,
       requestedForId: data.requestedForId,
       organizationId: data.organizationId,
       countryCode: data.countryCode,
