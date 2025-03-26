@@ -151,6 +151,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                     }
                   >
                     <Shield className="size-4" />
+                    <span className="text-sm">Valider</span>
                   </Button>
                   <Tooltip>
                     <TooltipTrigger>

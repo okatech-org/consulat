@@ -1,9 +1,8 @@
-import { FullProfile } from '@/types/profile';
 import { FullServiceRequest } from '@/types/service-request';
 import { useStoredTabs } from './use-tabs';
 import { ServiceField } from '@/types/consular-service';
 import CardContainer from '@/components/layouts/card-container';
-import { DocumentType, DeliveryMode } from '@prisma/client';
+import { DocumentType, DeliveryMode, UserDocument } from '@prisma/client';
 import { useDateLocale } from '@/lib/utils';
 import {
   CheckCircle2,
@@ -14,16 +13,19 @@ import {
   Package,
   Truck,
   UserCheck,
+  AlertTriangle,
+  Shield,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeVariant } from '@/components/ui/badge';
 import { DisplayAddress } from '@/components/ui/display-address';
 import { DocumentPreview } from '@/components/ui/document-preview';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-interface ServiceReviewProps {
-  request: FullServiceRequest;
-  profile: FullProfile;
-}
+import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
+import { documentValidations, validateDocument } from '@/lib/document-validation';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 export type ServiceReviewTab = {
   value: string;
@@ -36,7 +38,7 @@ export type ReviewStepField = ServiceField & {
   value: any;
 };
 
-export default function useServiceReview({ request }: ServiceReviewProps) {
+export default function useServiceReview(request: FullServiceRequest) {
   const service = request.service;
   const tabs: ServiceReviewTab[] = [];
 
@@ -44,7 +46,7 @@ export default function useServiceReview({ request }: ServiceReviewProps) {
     tabs.push({
       value: 'documents',
       label: 'Documents',
-      component: <DocumentsReview request={request} />,
+      component: <ServiceRequestDocuments request={request} />,
     });
   }
 
@@ -82,170 +84,6 @@ export default function useServiceReview({ request }: ServiceReviewProps) {
     setCurrentTab,
     tabs,
   };
-}
-
-type DocumentsReviewProps = {
-  request: FullServiceRequest;
-};
-
-function DocumentsReview({ request }: DocumentsReviewProps) {
-  const { formatDate } = useDateLocale();
-
-  const handleDownload = async (url: string, filename: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Error downloading document:', error);
-    }
-  };
-
-  const getDocumentLabel = (type: DocumentType): string => {
-    const labels: Record<DocumentType, string> = {
-      PASSPORT: 'Passeport',
-      IDENTITY_CARD: 'Carte d&apos;identité',
-      BIRTH_CERTIFICATE: 'Extrait de naissance',
-      RESIDENCE_PERMIT: 'Titre de séjour',
-      PROOF_OF_ADDRESS: 'Justificatif de domicile',
-      MARRIAGE_CERTIFICATE: 'Acte de mariage',
-      DEATH_CERTIFICATE: 'Acte de décès',
-      DIVORCE_DECREE: 'Jugement de divorce',
-      NATIONALITY_CERTIFICATE: 'Certificat de nationalité',
-      OTHER: 'Autre document',
-      VISA_PAGES: 'Pages de visa',
-      EMPLOYMENT_PROOF: 'Attestation d&apos;emploi',
-      NATURALIZATION_DECREE: 'Décret de naturalisation',
-      IDENTITY_PHOTO: 'Photo d&apos;identité',
-      CONSULAR_CARD: 'Carte consulaire',
-    };
-
-    return labels[type] || type;
-  };
-
-  const requiredDocuments = request.service.requiredDocuments.map((type) => {
-    const document = request.requiredDocuments.find((doc) => doc.type === type);
-    return {
-      type,
-      label: getDocumentLabel(type),
-      document,
-      required: true,
-    };
-  });
-
-  const optionalDocuments = request.service.optionalDocuments.map((type) => {
-    const document = request.requiredDocuments.find((doc) => doc.type === type);
-    return {
-      type,
-      label: getDocumentLabel(type),
-      document,
-      required: false,
-    };
-  });
-
-  const allDocuments = [...requiredDocuments, ...optionalDocuments];
-
-  const getStatusLabel = (status: string): string => {
-    const statuses: Record<string, string> = {
-      PENDING: 'En attente',
-      VALIDATED: 'Validé',
-      REJECTED: 'Rejeté',
-      EXPIRED: 'Expiré',
-      EXPIRING: 'Bientôt expiré',
-    };
-
-    return statuses[status] || status;
-  };
-
-  return (
-    <CardContainer title="Documents" contentClass="grid sm:grid-cols-2 gap-4 sm:gap-6">
-      {allDocuments.length > 0 ? (
-        allDocuments.map(({ type, label, document, required }) => (
-          <div
-            key={type}
-            className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <p className="font-medium">{label}</p>
-                {required && <Badge variant="outline">Obligatoire</Badge>}
-                {document?.status && (
-                  <Badge
-                    variant={
-                      document.status.toLowerCase() as
-                        | 'default'
-                        | 'destructive'
-                        | 'outline'
-                        | 'secondary'
-                        | 'success'
-                    }
-                  >
-                    {getStatusLabel(document.status)}
-                  </Badge>
-                )}
-              </div>
-              {document && (
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  {document.issuedAt && (
-                    <p>Date d&apos;émission: {formatDate(document.issuedAt, 'PPP')}</p>
-                  )}
-                  {document.expiresAt && (
-                    <p>Date d&apos;expiration: {formatDate(document.expiresAt, 'PPP')}</p>
-                  )}
-                </div>
-              )}
-              {!document && required && (
-                <p className="text-sm text-muted-foreground">Non fourni</p>
-              )}
-              {!document && !required && (
-                <p className="text-sm text-muted-foreground">Non fourni (optionnel)</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {document && (
-                <>
-                  <DocumentPreview
-                    url={document.fileUrl}
-                    title={label}
-                    type={type as DocumentType}
-                    onDownload={() =>
-                      handleDownload(
-                        document.fileUrl,
-                        `${type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
-                      )
-                    }
-                  />
-                  <Tooltip>
-                    <TooltipTrigger>
-                      {document.status === 'VALIDATED' ? (
-                        <CheckCircle2 className="text-success size-5" />
-                      ) : (
-                        <XCircle className="size-5 text-destructive" />
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {document.status === 'VALIDATED'
-                        ? 'Document validé'
-                        : 'Document non validé'}
-                    </TooltipContent>
-                  </Tooltip>
-                </>
-              )}
-            </div>
-          </div>
-        ))
-      ) : (
-        <p className="text-muted-foreground col-span-2">Aucun document requis</p>
-      )}
-    </CardContainer>
-  );
 }
 
 type StepReviewProps = {
@@ -604,4 +442,152 @@ function getStepFieldsValue(
 
     return { ...field, value };
   });
+}
+
+interface ServiceRequestDocumentsProps {
+  request: FullServiceRequest;
+}
+
+export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProps) {
+  const documents = request.requiredDocuments;
+  const t_inputs = useTranslations('inputs');
+  const t = useTranslations('common');
+  const t_errors = useTranslations('messages.errors');
+  const t_review = useTranslations('admin.registrations.review');
+  const router = useRouter();
+  const { formatDate } = useDateLocale();
+
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
+
+  const [selectedDocument, setSelectedDocument] = useState<{
+    id: string;
+    type: string;
+  } | null>(null);
+
+  return (
+    <CardContainer
+      title={t_review('sections.documents')}
+      contentClass="grid sm:grid-cols-2 gap-4 sm:gap-6"
+    >
+      {documents.map((document) => {
+        const validation = validateDocument(document, true);
+
+        return (
+          <div
+            key={document.id}
+            className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <p className="font-medium">
+                  {t_inputs(`userDocument.options.${document.type}`)}
+                </p>
+
+                {documentValidations?.[document?.type as DocumentType]?.required && (
+                  <Badge variant="outline">{t_review('documents.required')}</Badge>
+                )}
+                {document?.status && (
+                  <Badge variant={document.status.toLowerCase() as BadgeVariant}>
+                    {t(`status.${document.status}`)}
+                  </Badge>
+                )}
+              </div>
+              {document && (
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  {document.issuedAt && (
+                    <p>
+                      {t_review('documents.issued_at')}:{' '}
+                      {formatDate(document.issuedAt, 'PPP')}
+                    </p>
+                  )}
+                  {document.expiresAt && (
+                    <p>
+                      {t_review('documents.expires_at')}:{' '}
+                      {formatDate(document.expiresAt, 'PPP')}
+                    </p>
+                  )}
+                </div>
+              )}
+              {!document && validation.errors.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {t_errors('not_provided')}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {document && (
+                <>
+                  <DocumentPreview
+                    url={document.fileUrl}
+                    title={t_inputs(`userDocument.options.${document.type}`)}
+                    type={document.type}
+                    onDownload={() =>
+                      handleDownload(
+                        document.fileUrl,
+                        `${document.type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
+                      )
+                    }
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setSelectedDocument({
+                        id: document.id,
+                        type: document.type,
+                      })
+                    }
+                  >
+                    <Shield className="size-4" />
+                    <span className="text-sm">Valider</span>
+                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      {validation.isValid ? (
+                        <CheckCircle2 className="text-success size-5" />
+                      ) : (
+                        <AlertTriangle className="size-5 text-warning" />
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {validation.isValid
+                        ? t_review('documents.valid')
+                        : validation.errors.join(', ')}
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {selectedDocument && (
+        <DocumentValidationDialog
+          documentId={selectedDocument.id}
+          documentType={selectedDocument.type}
+          isOpen={!!selectedDocument}
+          onClose={() => setSelectedDocument(null)}
+          onValidated={() => {
+            router.refresh();
+          }}
+        />
+      )}
+    </CardContainer>
+  );
 }

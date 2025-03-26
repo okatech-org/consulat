@@ -111,7 +111,6 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
     return result.items.map((item) => ({
       ...item,
       identityPictureUrl: item.identityPicture?.fileUrl || '',
-      fullName: `${item.firstName} ${item.lastName}`.trim(),
       qrCodeUrl: `${ROUTES.listing.profile(item.id)}`,
     }));
   }, [result?.items]);
@@ -119,7 +118,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
   const columns: ColumnDef<
     PaginatedProfiles['items'][number] & {
       identityPictureUrl?: string;
-      fullName?: string;
+      qrCodeUrl?: string;
     }
   >[] = [
     {
@@ -170,15 +169,30 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       },
     },
     {
-      accessorKey: 'fullName',
+      accessorKey: 'firstName',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
+        <DataTableColumnHeader column={column} title={t('inputs.firstName.label')} />
       ),
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[250px] truncate font-medium">
-              {row.original.fullName || '-'}
+              {row.original.firstName || '-'}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'lastName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.lastName.label')} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[250px] truncate font-medium">
+              {row.original.lastName || '-'}
             </span>
           </div>
         );
@@ -357,21 +371,6 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       label: t('common.data_table.search'),
       defaultValue: filters.search ?? '',
       onChange: (value) => handleFilterChange('search', value),
-    },
-    {
-      type: 'checkbox',
-      property: 'residenceCountyCode',
-      label: t('inputs.residenceCountyCode.label'),
-      defaultValue: filters.residenceCountyCode?.toString().split(',') ?? [],
-      options: countries.map((country) => ({
-        value: country.code,
-        label: t(`countries.${country.code as CountryCode}`),
-      })),
-      onChange: (value) => {
-        if (Array.isArray(value)) {
-          handleFilterChange('residenceCountyCode', value.join('_'));
-        }
-      },
     },
     {
       type: 'checkbox',

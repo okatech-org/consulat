@@ -13,7 +13,6 @@ import { useDateLocale } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { debounce } from 'lodash';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
 import { GetRequestsOptions, getServiceRequests } from '@/actions/service-requests';
@@ -323,7 +322,7 @@ export function RequestsTable({
       options: statuses,
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('status', value.join('_'));
+          handleFilterChange('status', value.join(','));
         }
       },
     },
@@ -338,7 +337,7 @@ export function RequestsTable({
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('priority', value.join('_'));
+          handleFilterChange('priority', value.join(','));
         }
       },
     },
@@ -353,7 +352,7 @@ export function RequestsTable({
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('serviceCategory', value.join('_'));
+          handleFilterChange('serviceCategory', value.join(','));
         }
       },
       isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT', 'SUPER_ADMIN']),
@@ -372,7 +371,7 @@ export function RequestsTable({
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('assignedToId', value.join('_'));
+          handleFilterChange('assignedToId', value.join(','));
         }
       },
     });

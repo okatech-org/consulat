@@ -31,7 +31,7 @@ export function StatusTimeline({
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
 
   return (
-    <div className={cn('relative w-full overflow-x-auto px-2 pb-2', className)}>
+    <div className={cn('relative w-full overflow-x-auto', className)}>
       <div className="min-w-[600px] md:min-w-full">
         {/* Ligne de connexion */}
         <div className="absolute left-0 right-0 top-5 h-[2px] bg-border" />

@@ -25,7 +25,6 @@ export const BaseServiceRequestInclude = {
         id: true,
         name: true,
         category: true,
-        type: true,
         description: true,
         requiredDocuments: true,
         requiresAppointment: true,

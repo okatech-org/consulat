@@ -153,7 +153,7 @@ export default {
         save: 'Sauvegarder les notes',
         tabs: {
           internal: 'Notes internes',
-          feedback: 'Retours utilisateur',
+          feedback: "Messages à l'utilisateur",
         },
         notification: {
           title: 'Retour administratif',
