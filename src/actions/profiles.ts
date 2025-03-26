@@ -95,7 +95,7 @@ export async function getProfiles(
   }
 
   if (residenceCountyCode && residenceCountyCode.length > 0) {
-    where.residenceCountyCode = { in: residenceCountyCode };
+    where.residenceCountyCode = { in: [residenceCountyCode] };
   }
 
   if (startDate && endDate) {

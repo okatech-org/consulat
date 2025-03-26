@@ -29,22 +29,6 @@ export default async function RequestsPage({ searchParams }: Props) {
       )
     : undefined;
 
-  let serviceCategories: ServiceCategory[] = [];
-
-  if (isAgent || isAdmin) {
-    const serviceCategoriesResult = await tryCatch(
-      getAvailableServiceCategories(
-        isAgent
-          ? (user?.assignedOrganizationId as string)
-          : (user?.organizationId as string),
-      ),
-    );
-
-    if (serviceCategoriesResult.data) {
-      serviceCategories = serviceCategoriesResult.data;
-    }
-  }
-
   const formattedQueryParams: GetRequestsOptions = {
     ...queryParams,
     status: queryParams.status?.split('_').map((status) => status as RequestStatus),
@@ -73,7 +57,7 @@ export default async function RequestsPage({ searchParams }: Props) {
               user={user}
               filters={formattedQueryParams}
               agents={(organization?.data?.agents as User[]) ?? []}
-              availableServiceCategories={serviceCategories}
+              availableServiceCategories={Object.values(ServiceCategory)}
             />
           </CardContainer>
         </>

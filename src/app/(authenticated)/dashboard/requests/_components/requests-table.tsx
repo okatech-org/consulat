@@ -356,7 +356,7 @@ export function RequestsTable({
           handleFilterChange('serviceCategory', value.join('_'));
         }
       },
-      isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT']),
+      isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT', 'SUPER_ADMIN']),
     },
   ];
 
