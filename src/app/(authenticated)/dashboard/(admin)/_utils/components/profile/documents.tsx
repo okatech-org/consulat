@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
-import { CheckCircle2, AlertCircle, Shield } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Shield } from 'lucide-react';
 import { useDateLocale } from '@/lib/utils';
 import { Badge, BadgeVariant } from '@/components/ui/badge';
 import { DocumentPreview } from '@/components/ui/document-preview';
@@ -157,7 +157,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                       {validation.isValid ? (
                         <CheckCircle2 className="text-success size-5" />
                       ) : (
-                        <AlertCircle className="size-5 text-destructive" />
+                        <AlertTriangle className="size-5 text-warning" />
                       )}
                     </TooltipTrigger>
                     <TooltipContent>
