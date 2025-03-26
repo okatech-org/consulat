@@ -13,6 +13,7 @@ import {
 import { checkAuth } from '@/lib/auth/action';
 import { tryCatch } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
+import { FullProfile } from '@/types/profile';
 
 export interface GetProfilesOptions {
   search?: string;
@@ -153,4 +154,158 @@ export async function getProfiles(
     items,
     total,
   };
+}
+
+/**
+ * Get a list of profiles with basic public information
+ */
+export async function getPublicProfiles(): Promise<FullProfile[]> {
+  try {
+    const profiles = await db.profile.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        birthDate: true,
+        residenceCountyCode: true,
+        identityPicture: {
+          select: {
+            fileUrl: true,
+          },
+        },
+      },
+      where: {
+        firstName: {
+          not: null,
+        },
+        lastName: {
+          not: null,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return profiles as FullProfile[];
+  } catch (error) {
+    console.error('Error fetching profiles:', error);
+    return [];
+  }
+}
+
+/**
+ * Get a single profile by ID with different levels of information based on user role
+ */
+export async function getProfileById(
+  profileId: string,
+  userId?: string,
+  userRoles?: string[],
+): Promise<FullProfile | null> {
+  try {
+    // Basic profile query with limited public information
+    const profileQuery = {
+      id: true,
+      firstName: true,
+      lastName: true,
+      birthDate: true,
+      residenceCountyCode: true,
+      identityPicture: {
+        select: {
+          fileUrl: true,
+        },
+      },
+    };
+
+    // For authenticated users, include contact information
+    if (userId) {
+      Object.assign(profileQuery, {
+        email: true,
+        phoneNumber: true,
+      });
+    }
+
+    // For admin users and country managers
+    if (
+      userRoles &&
+      (userRoles.includes('ADMIN') ||
+        userRoles.includes('MANAGER') ||
+        userRoles.includes('AGENT'))
+    ) {
+      // Get the user to check country assignment
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { countryCode: true, roles: true },
+      });
+
+      // For country-specific admins, check if the profile is in their country
+      const isCountryMatch =
+        user?.countryCode &&
+        user.countryCode === (await getProfileCountryCode(profileId));
+
+      // If country match or super admin, include all profile data
+      if (isCountryMatch || userRoles.includes('SUPER_ADMIN')) {
+        Object.assign(profileQuery, {
+          // Additional personal information
+          gender: true,
+          birthPlace: true,
+          birthCountry: true,
+          nationality: true,
+          maritalStatus: true,
+          workStatus: true,
+          acquisitionMode: true,
+
+          // Documents
+          passport: true,
+          birthCertificate: true,
+          residencePermit: true,
+          addressProof: true,
+
+          // Contact information
+          address: true,
+
+          // Family information
+          fatherFullName: true,
+          motherFullName: true,
+          spouseFullName: true,
+
+          // Professional information
+          profession: true,
+          employer: true,
+          employerAddress: true,
+
+          // Metadata
+          createdAt: true,
+          updatedAt: true,
+        });
+      }
+    }
+
+    const profile = await db.profile.findUnique({
+      where: { id: profileId },
+      select: profileQuery,
+    });
+
+    return profile as FullProfile;
+  } catch (error) {
+    console.error(`Error fetching profile ${profileId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Helper function to get a profile's country code
+ */
+async function getProfileCountryCode(profileId: string): Promise<string | null> {
+  try {
+    const profile = await db.profile.findUnique({
+      where: { id: profileId },
+      select: { residenceCountyCode: true },
+    });
+
+    return profile?.residenceCountyCode || null;
+  } catch (error) {
+    console.error(`Error getting profile country code for ${profileId}:`, error);
+    return null;
+  }
 }

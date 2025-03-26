@@ -55,7 +55,6 @@ export async function checkDocumentExists(documentId: string): Promise<boolean> 
 
   if (error) {
     console.error('Error checking document existence:', error);
-    throw new Error('check_document_failed');
   }
 
   return !!document;
@@ -72,7 +71,7 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
   );
 
   if (deleteError) {
-    throw new Error('messages.errors.delete_document_failed');
+    console.error('delete_document_failed', deleteError);
   }
 
   // Supprimer le fichier si c'est un fichier uploadthing
@@ -140,7 +139,6 @@ export async function createUserDocument(data: {
     if (data.id) {
       await deleteFiles([data.id]);
     }
-    throw new Error('document_creation_failed');
   }
 
   return {

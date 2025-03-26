@@ -4,21 +4,18 @@ import { FullProfile } from '@/types';
 import { ProfileCard } from './profile-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Users } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 
 interface ProfilesListProps {
   profiles: FullProfile[];
 }
 
 export function ProfilesList({ profiles }: ProfilesListProps) {
-  const t = useTranslations('admin.profile');
-
   if (profiles.length === 0) {
     return (
       <EmptyState
         icon={Users}
-        title={t('empty.title')}
-        description={t('empty.description')}
+        title={'Pas de profile'}
+        description={"Il n'y a pas de profile consulaires enregistrés"}
       />
     );
   }

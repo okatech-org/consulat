@@ -81,7 +81,10 @@ export default function AvailableServicesPage() {
       try {
         setLoading(true);
         const services = await getAvailableConsularServices();
-        setAvailableServices(services || []);
+        const filteredServices = services?.filter(
+          (service) => service.category !== ServiceCategory.REGISTRATION,
+        );
+        setAvailableServices(filteredServices || []);
       } catch (error) {
         console.error('Error fetching services:', error);
       } finally {
