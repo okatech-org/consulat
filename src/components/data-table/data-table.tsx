@@ -44,6 +44,7 @@ interface DataTableProps<TData, TValue> {
   enableExport?: boolean;
   exportFilename?: string;
   exportSelectedOnly?: boolean;
+  onExport?: (data: TData[]) => void;
   hiddenColumns?: string[];
 }
 
@@ -62,6 +63,7 @@ export function DataTable<TData, TValue>({
   exportFilename,
   exportSelectedOnly = false,
   hiddenColumns = [],
+  onExport,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
 
@@ -132,6 +134,7 @@ export function DataTable<TData, TValue>({
               filename={exportFilename}
               selectedRows={rowSelection}
               disableWhenNoSelection={exportSelectedOnly}
+              onExport={onExport}
             />
           )}
         </div>
@@ -143,6 +146,7 @@ export function DataTable<TData, TValue>({
             filename={exportFilename}
             selectedRows={rowSelection}
             disableWhenNoSelection={exportSelectedOnly}
+            onExport={onExport}
           />
         </div>
       ) : null}
