@@ -33,6 +33,7 @@ import {
 import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -60,34 +61,6 @@ export function ProfileReview({ request }: ProfileReviewProps) {
       label: t(`common.status.${item}`),
     };
   });
-
-  const profileTabs = [
-    {
-      value: 'basic',
-      label: t('admin.registrations.review.tabs.basic'),
-      component: <ProfileBasicInfo profile={profile} />,
-    },
-    {
-      value: 'documents',
-      label: t('admin.registrations.review.tabs.documents'),
-      component: <ProfileDocuments profile={profile} />,
-    },
-    {
-      value: 'contact',
-      label: t('admin.registrations.review.tabs.contact'),
-      component: <ProfileContact profile={profile} />,
-    },
-    {
-      value: 'family',
-      label: t('admin.registrations.review.tabs.family'),
-      component: <ProfileFamily profile={profile} />,
-    },
-    {
-      value: 'professional',
-      label: t('admin.registrations.review.tabs.professional'),
-      component: <ProfileProfessional profile={profile} />,
-    },
-  ];
 
   function isStatusCompleted(status: RequestStatus) {
     return STATUS_ORDER.indexOf(status) <= STATUS_ORDER.indexOf(request.status);
@@ -162,21 +135,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </div>
             </CardContainer>
           )}
-          <Tabs defaultValue="basic" className="space-y-4">
-            <TabsList>
-              {profileTabs.map((tab) => (
-                <TabsTrigger key={tab.value} value={tab.value}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {profileTabs.map((tab) => (
-              <TabsContent key={tab.value} value={tab.value} className="space-y-4">
-                {tab.component}
-              </TabsContent>
-            ))}
-          </Tabs>
+          <ProfileTabs profile={profile} />
         </div>
 
         {/* Panneau latéral pour les notes et validations */}
