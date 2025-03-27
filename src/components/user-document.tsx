@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { PenIcon, Trash } from 'lucide-react';
+import { PenIcon, Trash, Shield, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +35,8 @@ import { FileInput } from './ui/file-input';
 import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
 import { ImageCropper } from './ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
+import { validateDocument } from '@/lib/document-validation';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -89,8 +91,26 @@ export function UserDocument({
   const [isLoading, setIsLoading] = React.useState(false);
   const [cropperOpen, setCropperOpen] = React.useState(false);
   const [tempImageUrl, setTempImageUrl] = React.useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
   const { formatDate } = useDateLocale();
+
+  // Check if user has admin role
+  const hasAdminRole = React.useMemo(() => {
+    const adminRoles = ['ADMIN', 'AGENT', 'SUPER_ADMIN'];
+    return user?.roles?.some((role) => adminRoles.includes(role));
+  }, [user]);
+
+  // Validate document
+  const validation = React.useMemo(() => {
+    if (!document) {
+      return {
+        isValid: !required,
+        errors: required ? ['required_document'] : [],
+      };
+    }
+    return validateDocument(document, required);
+  }, [document, required]);
 
   // Parse the aspectRatio prop to a number
   const aspectRatioNumber = React.useMemo(() => {
@@ -347,6 +367,18 @@ export function UserDocument({
                 <PenIcon className="size-4" />
               </Button>
             )}
+            {hasAdminRole && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDialogOpen(true)}
+                disabled={disabled || isLoading}
+              >
+                <CheckCircle2 className="size-4" />
+                <span className="sr-only">Valider</span>
+              </Button>
+            )}
             <Button
               type="button"
               variant="destructive"
@@ -359,7 +391,7 @@ export function UserDocument({
           </div>
         )}
 
-        {document && document.metadata && (
+        {document && (
           <div className="flex flex-1 flex-col justify-end space-y-1 pt-4 text-sm text-muted-foreground">
             {(document.issuedAt || document.expiresAt) && (
               <p>
@@ -369,13 +401,29 @@ export function UserDocument({
                 })}
               </p>
             )}
-            <div>
-              {Object.entries(document.metadata).map(([key, value]) => (
-                <p key={key}>
-                  {/** @ts-expect-error - key is a string */}
-                  {t(`metadata.${key}`)}: {`${value}`}
-                </p>
-              ))}
+            {document.metadata && (
+              <div>
+                {Object.entries(document.metadata).map(([key, value]) => (
+                  <p key={key}>
+                    {/** @ts-expect-error - key is a string */}
+                    {t(`metadata.${key}`)}: {`${value}`}
+                  </p>
+                ))}
+              </div>
+            )}
+            {/* Display validation status for all users */}
+            <div className="flex items-center gap-2 mt-2">
+              {validation.isValid ? (
+                <span className="text-success flex items-center gap-1">
+                  <CheckCircle2 className="size-4" />
+                  {t_common('status.VALIDATED')}
+                </span>
+              ) : (
+                <span className="text-warning flex items-center gap-1">
+                  <AlertTriangle className="size-4" />
+                  {validation.errors.join(', ')}
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -461,6 +509,19 @@ export function UserDocument({
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      {/* Document Validation Dialog */}
+      {isDialogOpen && document && (
+        <DocumentValidationDialog
+          documentId={document?.id}
+          documentType={label}
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onValidated={() => {
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

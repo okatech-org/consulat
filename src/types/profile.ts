@@ -1,5 +1,4 @@
 import { Prisma, UserDocument } from '@prisma/client';
-import { FullServiceRequestInclude } from './service-request';
 
 // Base includes pour un profil
 export const BaseProfileInclude = {
@@ -36,9 +35,7 @@ export const FullProfileInclude = {
     residencePermit: true,
     addressProof: true,
     identityPicture: true,
-    requestsFor: {
-      ...FullServiceRequestInclude,
-    },
+    requestsFor: true,
     parentAuthorities: {
       include: {
         parentUser: {

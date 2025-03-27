@@ -372,7 +372,7 @@ export function RequestsTable({
       data={result?.items ?? []}
       filters={localFilters}
       totalCount={result?.total ?? 0}
-      pageIndex={filters?.page}
+      pageIndex={Math.max(1, filters?.page || 1)}
       pageSize={filters?.limit}
       onPageChange={(page) => {
         handleFilterChange('page', page.toString());
