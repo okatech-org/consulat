@@ -1,7 +1,13 @@
 'use server';
 
 import { db } from '@/lib/prisma';
-import { ConsularService, Profile, ServiceCategory, Prisma } from '@prisma/client';
+import {
+  ConsularService,
+  Profile,
+  ServiceCategory,
+  Prisma,
+  RequestActionType,
+} from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { FullProfileInclude } from '@/types';
 import { CountryCode } from '@/lib/autocomplete-datas';
@@ -103,6 +109,7 @@ export async function createUserWithProfile(input: CreateProfileInput) {
 export async function updateProfile(
   profileId: string,
   data: Partial<FullProfileUpdateFormData>,
+  requestId?: string,
 ): Promise<Profile> {
   const { user } = await checkAuth();
 
@@ -263,12 +270,38 @@ export async function updateProfile(
     db.profile.update({
       where: { id: existingProfile.id },
       data: updateData,
-      ...FullProfileInclude,
     }),
   );
 
   if (updateResult.error || !updateResult.data) {
     throw new Error('profile_update_failed');
+  }
+
+  if (requestId) {
+    const { error } = await tryCatch(
+      db.serviceRequest.update({
+        where: { id: requestId },
+        data: {
+          lastActionAt: new Date(),
+          lastActionBy: user.id,
+          actions: {
+            create: {
+              type: RequestActionType.PROFILE_UPDATE,
+              userId: user.id,
+              data: {
+                profileId: profileId,
+                action: 'update',
+                name: `${user.name}`,
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    if (error) {
+      console.error('Failed to update service request:', error);
+    }
   }
 
   return updateResult.data;

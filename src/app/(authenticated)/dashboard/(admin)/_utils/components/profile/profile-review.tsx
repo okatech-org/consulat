@@ -1,12 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProfileBasicInfo } from './basic-info';
-import { ProfileDocuments } from './documents';
-import { ProfileContact } from './contact';
-import { ProfileFamily } from './family';
-import { ProfileProfessional } from './professional';
 import React, { useState } from 'react';
 import { RequestStatus } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
@@ -135,7 +129,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </div>
             </CardContainer>
           )}
-          <ProfileTabs profile={profile} />
+          <ProfileTabs profile={profile} requestId={request.id} />
         </div>
 
         {/* Panneau latéral pour les notes et validations */}

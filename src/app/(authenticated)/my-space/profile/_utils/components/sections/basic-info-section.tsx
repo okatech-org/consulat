@@ -25,9 +25,10 @@ import Image from 'next/image';
 interface BasicInfoSectionProps {
   profile: FullProfile;
   onSave: () => void;
+  requestId?: string;
 }
 
-export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
+export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
   const t_countries = useTranslations('countries');
@@ -70,7 +71,9 @@ export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
 
     filterUneditedKeys<BasicInfoFormData>(data, form.formState.dirtyFields);
 
-    const { data: result, error } = await tryCatch(updateProfile(profile.id, data));
+    const { data: result, error } = await tryCatch(
+      updateProfile(profile.id, data, requestId),
+    );
 
     if (error) {
       toast({

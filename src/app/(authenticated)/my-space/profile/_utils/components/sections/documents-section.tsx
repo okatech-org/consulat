@@ -22,6 +22,7 @@ interface DocumentsSectionProps {
   className?: string;
   profileStatus: RequestStatus;
   onSave: () => void;
+  requestId?: string;
 }
 
 export function DocumentsSection({
@@ -30,6 +31,7 @@ export function DocumentsSection({
   profileId,
   profileStatus,
   onSave,
+  requestId,
 }: DocumentsSectionProps) {
   const t = useTranslations('profile');
   const t_common = useTranslations('common');
@@ -65,6 +67,7 @@ export function DocumentsSection({
           onDelete={onSave}
           onUpload={onSave}
           noFormLabel={true}
+          requestId={requestId}
         />
 
         <UserDocument
@@ -78,6 +81,7 @@ export function DocumentsSection({
           onDelete={onSave}
           onUpload={onSave}
           noFormLabel={true}
+          requestId={requestId}
         />
 
         <UserDocument
@@ -91,6 +95,7 @@ export function DocumentsSection({
           onDelete={onSave}
           onUpload={onSave}
           noFormLabel={true}
+          requestId={requestId}
         />
 
         <UserDocument
@@ -104,6 +109,7 @@ export function DocumentsSection({
           onDelete={onSave}
           onUpload={onSave}
           noFormLabel={true}
+          requestId={requestId}
         />
       </div>
     </EditableSection>

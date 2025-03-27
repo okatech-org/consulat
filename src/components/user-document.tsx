@@ -34,6 +34,7 @@ import { toast } from '@/hooks/use-toast';
 import { FileInput } from './ui/file-input';
 import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
 import { ImageCropper } from './ui/image-cropper';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -51,6 +52,7 @@ interface UserDocumentProps {
   noFormLabel?: boolean;
   enableEditor?: boolean;
   aspectRatio?: string;
+  requestId?: string;
 }
 
 const updateDocumentSchema = z.object({
@@ -76,7 +78,9 @@ export function UserDocument({
   onUpload,
   enableEditor = false,
   aspectRatio = '1',
+  requestId,
 }: UserDocumentProps) {
+  const user = useCurrentUser();
   const t_errors = useTranslations('messages.errors');
   const t = useTranslations('common.documents');
   const t_common = useTranslations('common');
@@ -114,7 +118,7 @@ export function UserDocument({
       }
 
       // Si le document existe, procéder à la suppression
-      const result = await tryCatch(deleteUserDocument(documentId));
+      const result = await tryCatch(deleteUserDocument(documentId, requestId));
 
       if (result.data) {
         onDelete?.();
@@ -191,6 +195,7 @@ export function UserDocument({
       fileUrl: fileData.serverData.fileUrl,
       fileType: fileData.type,
       userId: userId ?? '',
+      requestId,
       ...(profileId && {
         profileId,
       }),

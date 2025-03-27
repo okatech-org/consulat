@@ -20,11 +20,13 @@ import { InfoField } from '@/components/ui/info-field';
 interface ProfessionalInfoSectionProps {
   profile: Profile;
   onSave: () => void;
+  requestId?: string;
 }
 
 export function ProfessionalInfoSection({
   profile,
   onSave,
+  requestId,
 }: ProfessionalInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
@@ -51,7 +53,7 @@ export function ProfessionalInfoSection({
 
     filterUneditedKeys<ProfessionalInfoFormData>(data, form.formState.dirtyFields);
 
-    const result = await tryCatch(updateProfile(profile.id, data));
+    const result = await tryCatch(updateProfile(profile.id, data, requestId));
 
     if (result.error) {
       toast({

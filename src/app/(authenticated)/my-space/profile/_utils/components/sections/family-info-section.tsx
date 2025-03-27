@@ -17,9 +17,14 @@ import { FamilyInfoForm } from '@/components/registration/family-info';
 interface FamilyInfoSectionProps {
   profile: FullProfile;
   onSave: () => void;
+  requestId?: string;
 }
 
-export function FamilyInfoSection({ profile, onSave }: FamilyInfoSectionProps) {
+export function FamilyInfoSection({
+  profile,
+  onSave,
+  requestId,
+}: FamilyInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
@@ -42,7 +47,7 @@ export function FamilyInfoSection({ profile, onSave }: FamilyInfoSectionProps) {
 
     filterUneditedKeys<FamilyInfoFormData>(data, form.formState.dirtyFields);
 
-    const result = await tryCatch(updateProfile(profile.id, data));
+    const result = await tryCatch(updateProfile(profile.id, data, requestId));
 
     if (result.error) {
       toast({
