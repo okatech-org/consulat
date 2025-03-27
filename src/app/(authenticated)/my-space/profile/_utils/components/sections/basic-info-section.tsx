@@ -120,7 +120,7 @@ export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
           {/* Informations d'identité */}
           <div className="grid grid-cols-2 gap-4">
             <InfoField
-              label={t_inputs('identityPicture.label')}
+              label={`${t_inputs('identityPicture.label')} - ${profile.identityPicture?.status ? t_inputs(`documentStatus.options.${profile.identityPicture?.status}`) : ''}`}
               value={
                 <Image
                   src={profile.identityPicture?.fileUrl || ''}
@@ -130,7 +130,7 @@ export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
                   className="rounded-full w-20 h-20 overflow-hidden aspect-square object-cover"
                 />
               }
-              className={'col-span-1'}
+              className={'col-span-full'}
             />
 
             <InfoField

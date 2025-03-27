@@ -611,6 +611,16 @@ export default {
   cardPin: {
     label: 'Numéro NIP',
   },
+  documentStatus: {
+    label: 'Statut du document',
+    options: {
+      PENDING: 'En vérification',
+      VALIDATED: 'Validé',
+      REJECTED: 'Rejeté',
+      EXPIRED: 'Expiré',
+      EXPIRING: 'Expire bientôt',
+    },
+  },
   profileStatus: {
     label: 'Statut du profile',
     options: {
