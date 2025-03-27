@@ -31,7 +31,7 @@ export const ContentSecurityPolicy = `
   base-uri 'self';
   form-action 'self';
   manifest-src 'self';
-  worker-src blob:;
+  worker-src 'self' blob:;
   upgrade-insecure-requests;
 `;
 

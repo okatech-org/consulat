@@ -46,3 +46,9 @@ next-env.d.ts
 
 # backups
 /backups
+
+# Serwist
+public/sw*
+public/swe-worker*
+
+certificates
