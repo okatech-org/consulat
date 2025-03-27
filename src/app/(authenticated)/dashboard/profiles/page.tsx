@@ -7,7 +7,7 @@ import {
   WorkStatus,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
-import { hasPermission } from '@/lib/permissions/utils';
+import { hasAnyRole } from '@/lib/permissions/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getCurrentUser } from '@/actions/user';
 import { ProfilesTable } from './_components/profiles-table';
@@ -85,7 +85,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
 
   return (
     <PageContainer title={t('title')}>
-      {user && hasPermission(user, 'profiles', 'view') && (
+      {user && hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'AGENT']) && (
         <>
           <CardContainer>
             <ProfilesTable

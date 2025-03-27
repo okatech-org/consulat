@@ -1,4 +1,20 @@
 export default {
+  requestAction: {
+    label: 'Action sur la demande',
+    options: {
+      ASSIGNMENT: 'Assignement',
+      STATUS_CHANGE: 'Changement de statut',
+      NOTE_ADDED: 'Ajout de note',
+      DOCUMENT_ADDED: 'Ajout de document',
+      DOCUMENT_VALIDATED: 'Validation de document',
+      APPOINTMENT_SCHEDULED: 'RDV programmé',
+      PAYMENT_RECEIVED: 'Paiement reçu',
+      COMPLETED: 'Terminé',
+      PROFILE_UPDATE: 'Mise à jour du profile',
+      DOCUMENT_UPDATED: 'Mise à jour du document',
+      DOCUMENT_DELETED: 'Suppression du document',
+    },
+  },
   qrCodeUrl: {
     label: 'URL QRCode',
     link: 'Lien QRCode',
@@ -610,6 +626,16 @@ export default {
   },
   cardPin: {
     label: 'Numéro NIP',
+  },
+  documentStatus: {
+    label: 'Statut du document',
+    options: {
+      PENDING: 'En vérification',
+      VALIDATED: 'Validé',
+      REJECTED: 'Rejeté',
+      EXPIRED: 'Expiré',
+      EXPIRING: 'Expire bientôt',
+    },
   },
   profileStatus: {
     label: 'Statut du profile',

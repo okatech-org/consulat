@@ -43,6 +43,7 @@ export async function getRegistrationRequestDetailsById(
             name: true,
             email: true,
             phoneNumber: true,
+            documents: true,
             profile: FullProfileInclude,
           },
         },

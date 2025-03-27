@@ -21,9 +21,14 @@ import { Address } from '@prisma/client';
 interface ContactInfoSectionProps {
   profile: FullProfile;
   onSave: () => void;
+  requestId?: string;
 }
 
-export function ContactInfoSection({ profile, onSave }: ContactInfoSectionProps) {
+export function ContactInfoSection({
+  profile,
+  onSave,
+  requestId,
+}: ContactInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t_countries = useTranslations('countries');
   const t = useTranslations('registration');
@@ -73,7 +78,7 @@ export function ContactInfoSection({ profile, onSave }: ContactInfoSectionProps)
       );
     }
 
-    const result = await tryCatch(updateProfile(profile.id, data));
+    const result = await tryCatch(updateProfile(profile.id, data, requestId));
 
     if (result.error) {
       toast({

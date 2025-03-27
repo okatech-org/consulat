@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { PenIcon, Trash } from 'lucide-react';
+import { PenIcon, Trash, CheckCircle2, Download } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +33,11 @@ import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
 import { FileInput } from './ui/file-input';
 import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
+import { ImageCropper } from './ui/image-cropper';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
+import { validateDocument } from '@/lib/document-validation';
+import Link from 'next/link';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -48,6 +53,9 @@ interface UserDocumentProps {
   onUpload?: (doc: AppUserDocument) => void;
   onDelete?: () => void;
   noFormLabel?: boolean;
+  enableEditor?: boolean;
+  aspectRatio?: string;
+  requestId?: string;
 }
 
 const updateDocumentSchema = z.object({
@@ -71,15 +79,68 @@ export function UserDocument({
   accept = 'image/*,application/pdf',
   onDelete,
   onUpload,
+  enableEditor = false,
+  aspectRatio = '1',
+  requestId,
 }: UserDocumentProps) {
+  const user = useCurrentUser();
   const t_errors = useTranslations('messages.errors');
   const t = useTranslations('common.documents');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages.profile');
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [cropperOpen, setCropperOpen] = React.useState(false);
+  const [tempImageUrl, setTempImageUrl] = React.useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
   const { formatDate } = useDateLocale();
+
+  const handleDownload = async () => {
+    if (!document) return;
+
+    try {
+      const response = await fetch(document.fileUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${document.type.toLowerCase()}.${extension}`;
+      window.document.body.appendChild(a);
+      a.click();
+      window.document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
+
+  // Check if user has admin role
+  const hasAdminRole = React.useMemo(() => {
+    const adminRoles = ['ADMIN', 'AGENT', 'SUPER_ADMIN'];
+    return user?.roles?.some((role) => adminRoles.includes(role));
+  }, [user]);
+
+  // Validate document
+  const validation = React.useMemo(() => {
+    if (!document) {
+      return {
+        isValid: !required,
+        errors: required ? ['required_document'] : [],
+      };
+    }
+    return validateDocument(document, required);
+  }, [document, required]);
+
+  // Parse the aspectRatio prop to a number
+  const aspectRatioNumber = React.useMemo(() => {
+    if (!aspectRatio) return 1;
+    const [width, height] = aspectRatio.split(':');
+    return width && height ? parseFloat(width) / parseFloat(height) : 1;
+  }, [aspectRatio]);
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
@@ -100,7 +161,7 @@ export function UserDocument({
       }
 
       // Si le document existe, procéder à la suppression
-      const result = await tryCatch(deleteUserDocument(documentId));
+      const result = await tryCatch(deleteUserDocument(documentId, requestId));
 
       if (result.data) {
         onDelete?.();
@@ -177,6 +238,7 @@ export function UserDocument({
       fileUrl: fileData.serverData.fileUrl,
       fileType: fileData.type,
       userId: userId ?? '',
+      requestId,
       ...(profileId && {
         profileId,
       }),
@@ -212,6 +274,18 @@ export function UserDocument({
     setIsLoading(false);
   };
 
+  const handleFileSelection = async (file: File) => {
+    // If image editor is not enabled, proceed with direct upload
+    if (!enableEditor || !file.type.startsWith('image/')) {
+      await handleFileUpload(file);
+      return;
+    }
+
+    // For images when editor is enabled, prepare for cropping
+    setTempImageUrl(URL.createObjectURL(file));
+    setCropperOpen(true);
+  };
+
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
 
@@ -228,6 +302,25 @@ export function UserDocument({
 
     if (uploadResult.data) {
       await handleFileChange(uploadResult.data[0] as FileUploadResponse);
+    }
+  };
+
+  const handleCropComplete = async (croppedFile: File) => {
+    setCropperOpen(false);
+
+    if (tempImageUrl) {
+      URL.revokeObjectURL(tempImageUrl);
+      setTempImageUrl(null);
+    }
+
+    await handleFileUpload(croppedFile);
+  };
+
+  const handleCropCancel = () => {
+    setCropperOpen(false);
+    if (tempImageUrl) {
+      URL.revokeObjectURL(tempImageUrl);
+      setTempImageUrl(null);
     }
   };
 
@@ -275,7 +368,7 @@ export function UserDocument({
 
       <div className={cn('relative', 'w-full')}>
         <FileInput
-          onChangeAction={handleFileUpload}
+          onChangeAction={handleFileSelection}
           accept={accept}
           disabled={isLoading}
           loading={isLoading}
@@ -288,28 +381,27 @@ export function UserDocument({
           <div className="absolute right-1 top-1 flex items-center gap-2">
             {allowEdit && (
               <Button
-                type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsUpdating(true)}
                 disabled={disabled || isLoading}
               >
-                <PenIcon className="size-4" />
+                <PenIcon className="size-icon" />
               </Button>
             )}
             <Button
-              type="button"
-              variant="destructive"
-              size="sm"
+              variant="outline"
+              className="text-destructive"
               onClick={() => handleDelete(document.id)}
               disabled={disabled || isLoading}
             >
+              <span className="sr-only">Supprimer</span>
               <Trash className="size-icon" />
             </Button>
           </div>
         )}
 
-        {document && document.metadata && (
+        {document && (
           <div className="flex flex-1 flex-col justify-end space-y-1 pt-4 text-sm text-muted-foreground">
             {(document.issuedAt || document.expiresAt) && (
               <p>
@@ -319,17 +411,58 @@ export function UserDocument({
                 })}
               </p>
             )}
-            <div>
-              {Object.entries(document.metadata).map(([key, value]) => (
-                <p key={key}>
-                  {/** @ts-expect-error - key is a string */}
-                  {t(`metadata.${key}`)}: {`${value}`}
-                </p>
-              ))}
+            {document.metadata && (
+              <div>
+                {Object.entries(document.metadata).map(([key, value]) => (
+                  <p key={key}>
+                    {/** @ts-expect-error - key is a string */}
+                    {t(`metadata.${key}`)}: {`${value}`}
+                  </p>
+                ))}
+              </div>
+            )}
+            {/* Display validation status for all users */}
+            <div className="flex items-center gap-2 mt-2">
+              {validation.isValid && (
+                <span className="text-success flex items-center gap-1">
+                  <CheckCircle2 className="size-icon" />
+                  {t_common('status.VALIDATED')}
+                </span>
+              )}
             </div>
           </div>
         )}
+
+        {hasAdminRole && document && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDialogOpen(true)}
+              disabled={disabled || isLoading}
+            >
+              <CheckCircle2 className="size-icon" />
+              <span>Validation</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <span>Télécharger</span>
+              <Download className="size-icon" />
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Image Cropper Dialog */}
+      {tempImageUrl && (
+        <ImageCropper
+          imageUrl={tempImageUrl}
+          aspectRatio={aspectRatioNumber}
+          circularCrop={true}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          open={cropperOpen}
+        />
+      )}
 
       {/* Dialog de mise à jour */}
       <Dialog open={isUpdating} onOpenChange={setIsUpdating}>
@@ -399,6 +532,19 @@ export function UserDocument({
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      {/* Document Validation Dialog */}
+      {isDialogOpen && document && (
+        <DocumentValidationDialog
+          documentId={document?.id}
+          documentType={label}
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onValidated={() => {
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

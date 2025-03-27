@@ -214,17 +214,19 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             <h4 className="font-medium mb-3">{t('requests.view.history')}</h4>
             <ScrollArea className="h-full pr-4">
               <Timeline>
-                {request.actions.map((action) => (
-                  <Timeline.Item
-                    key={action.id}
-                    icon={<ClipboardList className="size-4" />}
-                    time={formatDate(action.createdAt, 'Pp')}
-                    // @ts-expect-error - action.type is a string
-                    title={t(`common.request.actions.${action.type}`)}
-                    // @ts-expect-error - action.data.agentId is a string
-                    description={`${action.data?.agentId ?? '-'}`}
-                  />
-                ))}
+                {request.actions
+                  .reverse()
+                  .slice(0, 6)
+                  .map((action) => (
+                    <Timeline.Item
+                      key={action.id}
+                      icon={<ClipboardList className="size-4" />}
+                      time={formatDate(action.createdAt, 'Pp')}
+                      title={t(`inputs.requestAction.options.${action.type}`)}
+                      // @ts-expect-error - action.data.agentId is a string
+                      description={`De ${action.data?.name ?? action.data?.agentId ?? '-'}`}
+                    />
+                  ))}
               </Timeline>
             </ScrollArea>
           </div>

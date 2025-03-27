@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
-import { DocumentStatus, DocumentType } from '@prisma/client';
+import { DocumentStatus, DocumentType, RequestActionType } from '@prisma/client';
 import { deleteFiles } from '@/actions/uploads';
 import { tryCatch } from '@/lib/utils';
 import { AppUserDocument } from '@/types';
@@ -61,8 +61,11 @@ export async function checkDocumentExists(documentId: string): Promise<boolean> 
   return !!document;
 }
 
-export async function deleteUserDocument(documentId: string): Promise<boolean> {
-  await checkAuth();
+export async function deleteUserDocument(
+  documentId: string,
+  requestId?: string,
+): Promise<boolean> {
+  const authResult = await checkAuth();
 
   // Supprimer le document
   const { error: deleteError } = await tryCatch(
@@ -79,7 +82,30 @@ export async function deleteUserDocument(documentId: string): Promise<boolean> {
   const { error: deleteErrorFile } = await tryCatch(deleteFiles([documentId]));
 
   if (deleteErrorFile) {
-    console.log('deleteErrorFile', { ...deleteErrorFile });
+    console.error({ ...deleteErrorFile });
+  }
+
+  if (requestId) {
+    const { error: updateError } = await tryCatch(
+      db.serviceRequest.update({
+        where: { id: requestId },
+        data: {
+          lastActionAt: new Date(),
+          lastActionBy: authResult.user.id,
+          actions: {
+            create: {
+              type: RequestActionType.DOCUMENT_DELETED,
+              userId: authResult.user.id,
+              data: { documentId, name: authResult.user.name },
+            },
+          },
+        },
+      }),
+    );
+
+    if (updateError) {
+      console.error('update_document_failed', updateError);
+    }
   }
 
   return true;
@@ -92,6 +118,7 @@ export async function createUserDocument(data: {
   fileType: string;
   userId?: string;
   profileId?: string;
+  requestId?: string;
 }): Promise<AppUserDocument | null> {
   const authResult = await auth();
 
@@ -142,6 +169,29 @@ export async function createUserDocument(data: {
       await deleteFiles([data.id]);
     }
     throw new Error('Failed to create document');
+  }
+
+  if (data.requestId) {
+    const { error: updateError } = await tryCatch(
+      db.serviceRequest.update({
+        where: { id: data.requestId },
+        data: {
+          lastActionAt: new Date(),
+          lastActionBy: authResult.user.id,
+          actions: {
+            create: {
+              type: RequestActionType.DOCUMENT_UPDATED,
+              userId: authResult.user.id,
+              data: { documentId: data.id },
+            },
+          },
+        },
+      }),
+    );
+
+    if (updateError) {
+      console.error('update_document_failed', updateError);
+    }
   }
 
   return {

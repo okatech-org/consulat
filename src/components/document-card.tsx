@@ -48,7 +48,10 @@ export function DocumentCard({ document }: DocumentCardProps) {
       const url = URL.createObjectURL(blob);
       const a = window.document.createElement('a');
       a.href = url;
-      a.download = `${document.type.toLowerCase()}.${document.fileUrl.split('.').pop()}`;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${document.type.toLowerCase()}.${extension}`;
       window.document.body.appendChild(a);
       a.click();
       window.document.body.removeChild(a);

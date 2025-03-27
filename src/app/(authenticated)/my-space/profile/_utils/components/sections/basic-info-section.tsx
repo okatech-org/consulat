@@ -20,13 +20,15 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import { BasicInfoForm } from '@/components/registration/basic-info';
 import { InfoField } from '@/components/ui/info-field';
 import { FullProfile } from '@/types';
+import Image from 'next/image';
 
 interface BasicInfoSectionProps {
   profile: FullProfile;
   onSave: () => void;
+  requestId?: string;
 }
 
-export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
+export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectionProps) {
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
   const t_countries = useTranslations('countries');
@@ -69,7 +71,9 @@ export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
 
     filterUneditedKeys<BasicInfoFormData>(data, form.formState.dirtyFields);
 
-    const { data: result, error } = await tryCatch(updateProfile(profile.id, data));
+    const { data: result, error } = await tryCatch(
+      updateProfile(profile.id, data, requestId),
+    );
 
     if (error) {
       toast({
@@ -118,6 +122,20 @@ export function BasicInfoSection({ profile, onSave }: BasicInfoSectionProps) {
         <div className="space-y-6">
           {/* Informations d'identité */}
           <div className="grid grid-cols-2 gap-4">
+            <InfoField
+              label={`${t_inputs('identityPicture.label')} - ${profile.identityPicture?.status ? t_inputs(`documentStatus.options.${profile.identityPicture?.status}`) : ''}`}
+              value={
+                <Image
+                  src={profile.identityPicture?.fileUrl || ''}
+                  alt={profile.firstName || ''}
+                  width={100}
+                  height={100}
+                  className="rounded-full w-20 h-20 overflow-hidden aspect-square object-cover"
+                />
+              }
+              className={'col-span-full'}
+            />
+
             <InfoField
               label={t_inputs('firstName.label')}
               value={profile.firstName}

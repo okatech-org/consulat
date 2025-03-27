@@ -38,7 +38,7 @@ export function UserProfile({ profile }: UserProfileProps) {
             <h2 className="text-2xl font-semibold">
               {profile.firstName} {profile.lastName}
             </h2>
-            {profile.user.email && (
+            {profile.user?.email && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="size-4" />
                 {profile.user.email}

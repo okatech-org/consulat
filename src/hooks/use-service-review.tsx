@@ -397,7 +397,10 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = filename;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${filename}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -525,8 +528,8 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
   );
 }
 
-export function DocumentReview({ document }: { document: UserDocument }) {
-  const validation = validateDocument(document, true);
+export function DocumentReview({ document: localDocument }: { document: UserDocument }) {
+  const validation = validateDocument(localDocument, true);
 
   const t_inputs = useTranslations('inputs');
   const t_review = useTranslations('admin.registrations.review');
@@ -543,7 +546,10 @@ export function DocumentReview({ document }: { document: UserDocument }) {
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = filename;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${filename}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -555,54 +561,55 @@ export function DocumentReview({ document }: { document: UserDocument }) {
 
   return (
     <div
-      key={document.id}
+      key={localDocument.id}
       className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
     >
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <p className="font-medium">
-            {t_inputs(`userDocument.options.${document.type}`)}
+            {t_inputs(`userDocument.options.${localDocument.type}`)}
           </p>
 
-          {documentValidations?.[document?.type as DocumentType]?.required && (
+          {documentValidations?.[localDocument?.type as DocumentType]?.required && (
             <Badge variant="outline">{t_review('documents.required')}</Badge>
           )}
-          {document?.status && (
-            <Badge variant={document.status.toLowerCase() as BadgeVariant}>
-              {t(`status.${document.status}`)}
+          {localDocument?.status && (
+            <Badge variant={localDocument.status.toLowerCase() as BadgeVariant}>
+              {t(`status.${localDocument.status}`)}
             </Badge>
           )}
         </div>
-        {document && (
+        {localDocument && (
           <div className="space-y-1 text-sm text-muted-foreground">
-            {document.issuedAt && (
+            {localDocument.issuedAt && (
               <p>
-                {t_review('documents.issued_at')}: {formatDate(document.issuedAt, 'PPP')}
+                {t_review('documents.issued_at')}:{' '}
+                {formatDate(localDocument.issuedAt, 'PPP')}
               </p>
             )}
-            {document.expiresAt && (
+            {localDocument.expiresAt && (
               <p>
                 {t_review('documents.expires_at')}:{' '}
-                {formatDate(document.expiresAt, 'PPP')}
+                {formatDate(localDocument.expiresAt, 'PPP')}
               </p>
             )}
           </div>
         )}
-        {!document && validation.errors.length === 0 && (
+        {!localDocument && validation.errors.length === 0 && (
           <p className="text-sm text-muted-foreground">{t_errors('not_provided')}</p>
         )}
       </div>
       <div className="flex items-center gap-2">
-        {document && (
+        {localDocument && (
           <>
             <DocumentPreview
-              url={document.fileUrl}
-              title={t_inputs(`userDocument.options.${document.type}`)}
-              type={document.type}
+              url={localDocument.fileUrl}
+              title={t_inputs(`userDocument.options.${localDocument.type}`)}
+              type={localDocument.type}
               onDownload={() =>
                 handleDownload(
-                  document.fileUrl,
-                  `${document.type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
+                  localDocument.fileUrl,
+                  `${localDocument.type.toLowerCase()}.${localDocument.fileUrl.split('.').pop()}`,
                 )
               }
             />
@@ -628,8 +635,8 @@ export function DocumentReview({ document }: { document: UserDocument }) {
         )}
       </div>
       <DocumentValidationDialog
-        documentId={document.id}
-        documentType={document.type}
+        documentId={localDocument.id}
+        documentType={localDocument.type}
         isOpen={open}
         onClose={() => setOpen(false)}
         onValidated={() => {

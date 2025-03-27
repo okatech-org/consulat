@@ -507,6 +507,13 @@ export default {
     start_date: 'Date de début',
     end_date: 'Date de fin',
   },
+  cropper: {
+    title: "Éditer l'image",
+    zoom: 'Zoom',
+    cancel: 'Annuler',
+    apply: 'Appliquer',
+    processing: 'Traitement...',
+  },
   chatbot: {
     chat_with_ray: 'Discuter avec Ray',
     clear: 'Effacer',

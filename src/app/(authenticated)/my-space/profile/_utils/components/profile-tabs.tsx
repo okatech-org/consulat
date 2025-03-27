@@ -14,9 +14,10 @@ import { useRouter } from 'next/navigation';
 
 type ProfileTabsProps = {
   profile: FullProfile;
+  requestId?: string;
 };
 
-export function ProfileTabs({ profile }: ProfileTabsProps) {
+export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
   const t = useTranslations('profile');
   const router = useRouter();
 
@@ -25,21 +26,33 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
       id: 'basic-info',
       title: t('sections.basic_info'),
       content: (
-        <BasicInfoSection profile={profile} onSave={() => window.location.reload()} />
+        <BasicInfoSection
+          profile={profile}
+          onSave={() => window.location.reload()}
+          requestId={requestId}
+        />
       ),
     },
     {
       id: 'contact-info',
       title: t('sections.contact_info'),
       content: (
-        <ContactInfoSection profile={profile} onSave={() => window.location.reload()} />
+        <ContactInfoSection
+          profile={profile}
+          onSave={() => window.location.reload()}
+          requestId={requestId}
+        />
       ),
     },
     {
       id: 'family-info',
       title: t('sections.family_info'),
       content: (
-        <FamilyInfoSection profile={profile} onSave={() => window.location.reload()} />
+        <FamilyInfoSection
+          profile={profile}
+          onSave={() => window.location.reload()}
+          requestId={requestId}
+        />
       ),
     },
     {
@@ -49,6 +62,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
         <ProfessionalInfoSection
           profile={profile}
           onSave={() => window.location.reload()}
+          requestId={requestId}
         />
       ),
     },
@@ -67,6 +81,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
           profileStatus={profile.status}
           className="md:col-span-2"
           onSave={() => router.refresh()}
+          requestId={requestId}
         />
       ),
     },
