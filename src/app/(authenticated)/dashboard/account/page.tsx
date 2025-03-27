@@ -33,6 +33,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function AdminAccountPage() {
   const t = useTranslations('account');
+  const t_inputs = useTranslations('inputs');
   const user = useCurrentUser();
 
   if (!user) return null;
@@ -124,7 +125,7 @@ export default function AdminAccountPage() {
                     <SelectContent>
                       {Object.values(ServiceCategory).map((category) => (
                         <SelectItem key={category} value={category}>
-                          {t(`service_category.${category}`)}
+                          {t_inputs(`serviceCategory.options.${category}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
