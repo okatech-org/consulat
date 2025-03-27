@@ -33,6 +33,7 @@ import { MetadataForm } from '@/components/metadata-form';
 import { toast } from '@/hooks/use-toast';
 import { FileInput } from './ui/file-input';
 import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
+import { ImageCropper } from './ui/image-cropper';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -73,6 +74,8 @@ export function UserDocument({
   accept = 'image/*,application/pdf',
   onDelete,
   onUpload,
+  enableEditor = false,
+  aspectRatio = '1',
 }: UserDocumentProps) {
   const t_errors = useTranslations('messages.errors');
   const t = useTranslations('common.documents');
@@ -80,8 +83,17 @@ export function UserDocument({
   const t_messages = useTranslations('messages.profile');
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [cropperOpen, setCropperOpen] = React.useState(false);
+  const [tempImageUrl, setTempImageUrl] = React.useState<string | null>(null);
   const router = useRouter();
   const { formatDate } = useDateLocale();
+
+  // Parse the aspectRatio prop to a number
+  const aspectRatioNumber = React.useMemo(() => {
+    if (!aspectRatio) return 1;
+    const [width, height] = aspectRatio.split(':');
+    return width && height ? parseFloat(width) / parseFloat(height) : 1;
+  }, [aspectRatio]);
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
@@ -214,6 +226,18 @@ export function UserDocument({
     setIsLoading(false);
   };
 
+  const handleFileSelection = async (file: File) => {
+    // If image editor is not enabled, proceed with direct upload
+    if (!enableEditor || !file.type.startsWith('image/')) {
+      await handleFileUpload(file);
+      return;
+    }
+
+    // For images when editor is enabled, prepare for cropping
+    setTempImageUrl(URL.createObjectURL(file));
+    setCropperOpen(true);
+  };
+
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
 
@@ -230,6 +254,25 @@ export function UserDocument({
 
     if (uploadResult.data) {
       await handleFileChange(uploadResult.data[0] as FileUploadResponse);
+    }
+  };
+
+  const handleCropComplete = async (croppedFile: File) => {
+    setCropperOpen(false);
+
+    if (tempImageUrl) {
+      URL.revokeObjectURL(tempImageUrl);
+      setTempImageUrl(null);
+    }
+
+    await handleFileUpload(croppedFile);
+  };
+
+  const handleCropCancel = () => {
+    setCropperOpen(false);
+    if (tempImageUrl) {
+      URL.revokeObjectURL(tempImageUrl);
+      setTempImageUrl(null);
     }
   };
 
@@ -277,7 +320,7 @@ export function UserDocument({
 
       <div className={cn('relative', 'w-full')}>
         <FileInput
-          onChangeAction={handleFileUpload}
+          onChangeAction={handleFileSelection}
           accept={accept}
           disabled={isLoading}
           loading={isLoading}
@@ -332,6 +375,18 @@ export function UserDocument({
           </div>
         )}
       </div>
+
+      {/* Image Cropper Dialog */}
+      {tempImageUrl && (
+        <ImageCropper
+          imageUrl={tempImageUrl}
+          aspectRatio={aspectRatioNumber}
+          circularCrop={true}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          open={cropperOpen}
+        />
+      )}
 
       {/* Dialog de mise à jour */}
       <Dialog open={isUpdating} onOpenChange={setIsUpdating}>
