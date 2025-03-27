@@ -99,6 +99,8 @@ export default {
       TRANSCRIPT: 'Transcription de documents',
       REGISTRATION: 'Inscription consulaire',
       OTHER: 'Autre',
+      ASSISTANCE: 'Assistance consulaire',
+      TRAVEL_DOCUMENT: 'Documents de voyage',
     },
   },
   serviceFieldType: {
