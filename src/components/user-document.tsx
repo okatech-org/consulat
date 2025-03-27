@@ -48,6 +48,8 @@ interface UserDocumentProps {
   onUpload?: (doc: AppUserDocument) => void;
   onDelete?: () => void;
   noFormLabel?: boolean;
+  enableEditor?: boolean;
+  aspectRatio?: string;
 }
 
 const updateDocumentSchema = z.object({

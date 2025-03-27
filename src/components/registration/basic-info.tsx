@@ -74,6 +74,8 @@ export function BasicInfoForm({
                           window.location.reload();
                         }}
                         accept="image/*"
+                        enableEditor={true}
+                        aspectRatio="1/1"
                       />
                     </FormControl>
                     <TradFormMessage />
