@@ -31,6 +31,8 @@ interface ProfilesTableProps {
   filters: GetProfilesOptions;
 }
 
+const appUrl = process.env.NEXT_PUBLIC_URL;
+
 export function ProfilesTable({ filters }: ProfilesTableProps) {
   const t = useTranslations();
   const searchParams = useSearchParams();
@@ -116,7 +118,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     return result.items.map((item) => ({
       ...item,
       identityPictureUrl: item.identityPicture?.fileUrl || '',
-      qrCodeUrl: `${ROUTES.listing.profile(item.id)}`,
+      qrCodeUrl: `${appUrl}${ROUTES.listing.profile(item.id)}`,
     }));
   }, [result?.items]);
 
