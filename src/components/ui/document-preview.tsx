@@ -28,6 +28,7 @@ export function DocumentPreview({ url, title, onDownload }: DocumentPreviewProps
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
         <Maximize2 className="size-4" />
+        <span className="text-sm">Voir</span>
       </Button>
       <DialogContent className="h-[90vh] max-w-4xl">
         <DialogHeader>

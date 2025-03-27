@@ -21,6 +21,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
+import * as XLSX from 'xlsx';
 
 interface DataTableExportProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -28,15 +29,12 @@ interface DataTableExportProps<TData, TValue = unknown> {
   filename?: string;
   selectedRows?: Record<string, boolean>;
   disableWhenNoSelection?: boolean;
+  onExport?: (exportedData: TData[]) => void;
+  exportFormat?: 'xlsx' | 'csv';
 }
 
 /**
- * Composant pour exporter les données d'une table en CSV.
- *
- * Note: L'utilisation de `any` pour l'accès à `accessorKey` est nécessaire
- * car TanStack Table a plusieurs types de colonnes (AccessorColumn, GroupColumn, etc.)
- * avec des structures différentes, ce qui rend difficile la création d'un type unique
- * satisfaisant le linter sans compromettre la compatibilité.
+ * Composant pour exporter les données d'une table en XLSX ou CSV.
  */
 export function DataTableExport<TData, TValue = unknown>({
   columns,
@@ -44,6 +42,8 @@ export function DataTableExport<TData, TValue = unknown>({
   filename = 'export',
   selectedRows = {},
   disableWhenNoSelection = false,
+  onExport,
+  exportFormat = 'xlsx',
 }: DataTableExportProps<TData, TValue>) {
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>({});
   const [open, setOpen] = useState(false);
@@ -77,20 +77,21 @@ export function DataTableExport<TData, TValue = unknown>({
 
   // Filter data to only include selected rows if there are any
   const getExportData = () => {
-    if (hasSelectedRows) {
-      return data.filter((_, index) => selectedRows[index] === true);
+    const exportData = hasSelectedRows
+      ? data.filter((_, index) => selectedRows[index] === true)
+      : data;
+
+    // Call the callback if provided
+    if (onExport && exportData.length > 0) {
+      onExport(exportData);
     }
-    return data;
+
+    return exportData;
   };
 
-  // Convertir les données en CSV
-  const convertToCSV = () => {
-    // Get the filter data (only selected rows if any are selected)
-    const exportData = getExportData();
-
-    // Filtrer les colonnes sélectionnées
-    const exportColumns = columns.filter((column) => {
-      // accessorKey n'est pas garantie d'être présente sur tous les types de colonnes
+  // Get filtered columns
+  const getExportColumns = () => {
+    return columns.filter((column) => {
       const columnId = column.id || (column as any).accessorKey || undefined;
 
       return (
@@ -100,17 +101,21 @@ export function DataTableExport<TData, TValue = unknown>({
         columnId !== 'actions'
       );
     });
+  };
+
+  // Convert data to CSV format
+  const convertToCSV = () => {
+    const exportData = getExportData();
+    const exportColumns = getExportColumns();
 
     if (exportColumns.length === 0 || exportData.length === 0) return '';
 
-    // Créer les en-têtes
+    // Create headers
     const headers = exportColumns.map((column) => {
-      // Obtenir le titre de la colonne
       let title = '';
       if (typeof column.header === 'string') {
         title = column.header;
       } else if ((column as any).accessorKey) {
-        // Utilisation de "any" nécessaire pour les colonnes de type AccessorColumn
         title = (column as any).accessorKey;
       } else if (column.id) {
         title = column.id;
@@ -118,15 +123,13 @@ export function DataTableExport<TData, TValue = unknown>({
       return `"${title.replace(/"/g, '""')}"`;
     });
 
-    // Créer les lignes de données
+    // Create data rows
     const rows = exportData.map((row) => {
       return exportColumns
         .map((column) => {
           let value = '';
 
           if ((column as any).accessorKey) {
-            // Utilisation de type indexé pour éviter l'erreur de typage
-            // Certaines colonnes utilisent accessorKey pour accéder aux données
             const rowAsRecord = row as Record<string, unknown>;
             const cellValue = rowAsRecord[(column as any).accessorKey];
 
@@ -138,48 +141,105 @@ export function DataTableExport<TData, TValue = unknown>({
               value = String(cellValue);
             }
           } else if (column.id) {
-            // Pour les colonnes calculées, utiliser l'id comme fallback
             const rowAsRecord = row as Record<string, unknown>;
             const cellValue = rowAsRecord[column.id];
             value = cellValue ? String(cellValue) : '';
           }
 
-          // Échapper les doubles quotes et entourer de quotes si nécessaire
           return `"${value.replace(/"/g, '""')}"`;
         })
         .join(',');
     });
 
-    // Assembler le CSV
     return [headers.join(','), ...rows].join('\n');
   };
 
-  // Télécharger le CSV
-  const downloadCSV = () => {
-    const csv = convertToCSV();
-    if (!csv) return;
+  // Prepare data for XLSX format
+  const prepareForXLSX = () => {
+    const exportData = getExportData();
+    const exportColumns = getExportColumns();
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    if (exportColumns.length === 0 || exportData.length === 0) return null;
 
+    // Create headers
+    const headers = exportColumns.map((column) => {
+      let title = '';
+      if (typeof column.header === 'string') {
+        title = column.header;
+      } else if ((column as any).accessorKey) {
+        title = (column as any).accessorKey;
+      } else if (column.id) {
+        title = column.id;
+      }
+      return title;
+    });
+
+    // Create data rows
+    const rows = exportData.map((row) => {
+      return exportColumns.map((column) => {
+        if ((column as any).accessorKey) {
+          const rowAsRecord = row as Record<string, unknown>;
+          const cellValue = rowAsRecord[(column as any).accessorKey];
+
+          if (cellValue === null || cellValue === undefined) {
+            return '';
+          } else if (typeof cellValue === 'object') {
+            return JSON.stringify(cellValue);
+          } else {
+            return cellValue;
+          }
+        } else if (column.id) {
+          const rowAsRecord = row as Record<string, unknown>;
+          const cellValue = rowAsRecord[column.id];
+          return cellValue !== null && cellValue !== undefined ? cellValue : '';
+        }
+        return '';
+      });
+    });
+
+    return [headers, ...rows];
+  };
+
+  // Download the file in selected format
+  const downloadFile = () => {
     // Format date and time for filename
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
     const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-'); // HH-MM-SS
+    const formattedFilename = `${filename}-${dateStr}_${timeStr}`;
 
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}-${dateStr}_${timeStr}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (exportFormat === 'xlsx') {
+      const data = prepareForXLSX();
+      if (!data) return;
+
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+
+      // Generate XLSX
+      XLSX.writeFile(workbook, `${formattedFilename}.xlsx`);
+    } else {
+      const csv = convertToCSV();
+      if (!csv) return;
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${formattedFilename}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
     setOpen(false);
   };
 
-  // Render un nom de colonne lisible
+  // Render column name
   const renderColumnName = (column: ColumnDef<TData, TValue>) => {
-    // Utilisation de "any" nécessaire car la structure de column varie selon le type
     const columnId = column.id || (column as any).accessorKey || undefined;
 
     if (!columnId || columnId === 'select' || columnId === 'actions') {
@@ -190,7 +250,6 @@ export function DataTableExport<TData, TValue = unknown>({
     if (typeof column.header === 'string') {
       columnName = column.header;
     } else if ((column as any).accessorKey) {
-      // accessorKey peut être utilisé comme titre de colonne si header n'est pas disponible
       columnName = (column as any).accessorKey;
     } else {
       columnName = String(columnId);
@@ -227,7 +286,9 @@ export function DataTableExport<TData, TValue = unknown>({
                   disabled={isExportDisabled}
                 >
                   <Download className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only">Exporter</span>
+                  <span className="sr-only sm:not-sr-only">
+                    Exporter {exportFormat === 'xlsx' ? 'XLSX' : 'CSV'}
+                  </span>
                 </Button>
               </DialogTrigger>
             </div>
@@ -236,7 +297,7 @@ export function DataTableExport<TData, TValue = unknown>({
             <p>
               {isExportDisabled
                 ? 'Sélectionnez au moins une ligne pour exporter'
-                : 'Exporter les données en CSV'}
+                : `Exporter les données en ${exportFormat === 'xlsx' ? 'Excel' : 'CSV'}`}
             </p>
           </TooltipContent>
         </Tooltip>
@@ -246,7 +307,8 @@ export function DataTableExport<TData, TValue = unknown>({
         <DialogHeader>
           <DialogTitle>Exporter les données</DialogTitle>
           <DialogDescription>
-            Sélectionnez les colonnes à inclure dans l&apos;export CSV
+            Sélectionnez les colonnes à inclure dans l&apos;export{' '}
+            {exportFormat === 'xlsx' ? 'Excel' : 'CSV'}
           </DialogDescription>
         </DialogHeader>
 
@@ -260,7 +322,7 @@ export function DataTableExport<TData, TValue = unknown>({
           <Button variant="outline" onClick={() => setOpen(false)}>
             Annuler
           </Button>
-          <Button type="submit" onClick={downloadCSV}>
+          <Button type="submit" onClick={downloadFile}>
             Télécharger
           </Button>
         </DialogFooter>

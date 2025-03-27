@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { toast } from '@/hooks/use-toast';
-import { ServiceRequest, UserDocument } from '@prisma/client';
+import { Address, DeliveryMode, ServiceRequest, UserDocument } from '@prisma/client';
 import { Info } from 'lucide-react';
 import { ErrorCard } from '@/components/ui/error-card';
 import { useRouter } from 'next/navigation';
@@ -16,7 +16,6 @@ import { NewAppointmentForm } from '../appointments/new-appointment-form';
 import { tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import { StepIndicator } from '../registration/step-indicator';
-import { useEffect } from 'react';
 
 type ServiceWithSteps = ConsularServiceItem;
 
@@ -41,7 +40,6 @@ export function ServiceSubmissionForm({
     setError,
     isLoading,
     setIsLoading,
-    clearData,
   } = useServiceForm(service, userProfile);
 
   type StepKey = keyof (typeof forms)[number]['id'];
@@ -68,11 +66,15 @@ export function ServiceSubmissionForm({
     setIsLoading(false);
   };
 
+  function getDeliveryAddress(address: Address) {
+    return `${address.firstLine ?? ''}, ${address.secondLine ?? ''}, ${address.city ?? ''}, ${address.zipCode ?? ''}, ${address.country ?? ''}`;
+  }
+
   const handleFinalSubmit = async () => {
     setIsLoading(true);
     setError(null);
 
-    const { documents, appointment, ...rest } = formData;
+    const { documents, appointment, delivery, ...rest } = formData;
 
     const requestData: ServiceRequest = {
       serviceId: service.id,
@@ -88,6 +90,14 @@ export function ServiceSubmissionForm({
       ...(appointment && {
         appointmentDuration: appointment.duration,
         appointmentTime: appointment.time,
+      }),
+      ...(delivery && {
+        chosenDeliveryMode: delivery.deliveryMode,
+        ...(delivery.deliveryMode === DeliveryMode.POSTAL && {
+          deliveryAddress: getDeliveryAddress(
+            (delivery.deliveryAddress ?? '') as Address,
+          ),
+        }),
       }),
       formData: JSON.stringify(rest),
     };
@@ -174,12 +184,6 @@ export function ServiceSubmissionForm({
       />
     );
   };
-
-  useEffect(() => {
-    return () => {
-      clearData();
-    };
-  }, [clearData]);
 
   return (
     <div className="w-full overflow-x-hidden max-w-4xl mx-auto flex flex-col pb-safe md:pb-0">

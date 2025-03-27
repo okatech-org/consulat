@@ -442,11 +442,18 @@ export async function addServiceRequestNote(input: AddNoteInput) {
       await notify({
         userId: request.submittedById,
         type: NotificationType.FEEDBACK,
-        title: t('notification.title'),
-        message: input.content,
-        channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+        title: `Nouveau message du service consulaire`,
+        message: `Bonjour ${request.submittedBy.name}, vous avez reçu un nouveau message : \n\n ${input.content}`,
+        channels: [
+          NotificationChannel.APP,
+          NotificationChannel.EMAIL,
+          NotificationChannel.SMS,
+        ],
         // Ajouter l'email si disponible
         ...(request.submittedBy.email && { email: request.submittedBy.email }),
+        ...(request.submittedBy.phoneNumber && {
+          phoneNumber: request.submittedBy.phoneNumber,
+        }),
         // Ajouter des actions si nécessaire
         actions: [
           {

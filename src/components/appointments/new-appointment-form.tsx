@@ -237,7 +237,13 @@ export function NewAppointmentForm({
     label: service.name,
   }));
 
-  const appointmentTypeOptions = Object.values(AppointmentType).map((type) => ({
+  const appointmentTypeOptions = Object.values([
+    'DOCUMENT_SUBMISSION',
+    'DOCUMENT_COLLECTION',
+    'INTERVIEW',
+    'EMERGENCY',
+    'OTHER',
+  ] as const).map((type) => ({
     value: type,
     label: t(`type.options.${type}`),
   }));

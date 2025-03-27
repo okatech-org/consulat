@@ -8,8 +8,8 @@ import {
   FormLabel,
   FormControl,
   FormDescription,
-  FormMessage,
   Form,
+  TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -75,7 +75,7 @@ export function DynamicForm({
             <FormLabel>{field.label}</FormLabel>
             <FormControl>{getFieldComponent(form, field, formField, userId)}</FormControl>
             {field.description && <FormDescription>{field.description}</FormDescription>}
-            <FormMessage />
+            <TradFormMessage />
           </FormItem>
         )}
       />
@@ -100,11 +100,7 @@ export function DynamicForm({
               {'Retour'}
             </Button>
 
-            <Button
-              type="submit"
-              disabled={isLoading || !currentStepValidity}
-              className="ml-auto gap-2"
-            >
+            <Button type="submit" disabled={isLoading} className="ml-auto gap-2">
               {isLoading ? <Loader className="size-4 animate-spin" /> : null}
               {currentStepIndex === totalSteps - 1 ? 'Soumettre ma demande' : 'Suivant'}
               {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}

@@ -13,7 +13,6 @@ import { useDateLocale } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { debounce } from 'lodash';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
 import { GetRequestsOptions, getServiceRequests } from '@/actions/service-requests';
@@ -85,21 +84,6 @@ export function RequestsTable({
     fetchData().finally(() => setIsLoading(false));
   }, [filters]);
 
-  // Créez une fonction pour mettre à jour l'URL avec les filtres
-  const createQueryString = React.useCallback(
-    (name: string, value: string | undefined) => {
-      const params = new URLSearchParams(searchParams.toString());
-
-      if (value) {
-        params.set(name, value);
-      } else {
-        params.delete(name);
-      }
-      return params.toString();
-    },
-    [searchParams],
-  );
-
   const [pendingFilters, setPendingFilters] = React.useState<
     Record<string, string | undefined>
   >({});
@@ -107,22 +91,25 @@ export function RequestsTable({
   React.useEffect(() => {
     // Only execute if there are pending filters to apply
     if (Object.keys(pendingFilters).length > 0) {
-      // Build the complete query string from all pending filters
-      let newQueryString = searchParams.toString();
+      // Start with the current search params
+      const params = new URLSearchParams(searchParams.toString());
 
       // Apply each pending filter
       for (const [name, value] of Object.entries(pendingFilters)) {
-        const updatedQueryString = createQueryString(name, value);
-        newQueryString = updatedQueryString;
+        if (value) {
+          params.set(name, value);
+        } else {
+          params.delete(name);
+        }
       }
 
       // Navigate to the new URL
-      router.push(`${pathname}?${newQueryString}`);
+      router.push(`${pathname}?${params.toString()}`);
 
       // Clear pending filters after applying them
       setPendingFilters({});
     }
-  }, [pendingFilters, createQueryString, pathname, router, searchParams]);
+  }, [pendingFilters, pathname, router, searchParams]);
 
   const handleFilterChange = (name: string, value: string | undefined) => {
     // Instead of directly updating the router, queue the change
@@ -323,7 +310,7 @@ export function RequestsTable({
       options: statuses,
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('status', value.join('_'));
+          handleFilterChange('status', value.join(','));
         }
       },
     },
@@ -338,7 +325,7 @@ export function RequestsTable({
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('priority', value.join('_'));
+          handleFilterChange('priority', value.join(','));
         }
       },
     },
@@ -353,7 +340,7 @@ export function RequestsTable({
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('serviceCategory', value.join('_'));
+          handleFilterChange('serviceCategory', value.join(','));
         }
       },
       isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT', 'SUPER_ADMIN']),
@@ -372,7 +359,7 @@ export function RequestsTable({
       })),
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('assignedToId', value.join('_'));
+          handleFilterChange('assignedToId', value.join(','));
         }
       },
     });

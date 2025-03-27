@@ -4,19 +4,16 @@ import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
-import { ConsularServiceListingItem, UpdateServiceInput } from '@/types/consular-service';
+import { ConsularServiceListingItem } from '@/types/consular-service';
 import { Country, ServiceCategory } from '@prisma/client';
 import { OrganizationListingItem } from '@/types/organization';
 import {
   deleteService,
   duplicateService,
-  updateService,
   updateServiceStatus,
 } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
-import { NewServiceForm } from '@/components/organization/new-service-form';
 import { useRouter } from 'next/navigation';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import { ROUTES } from '@/schemas/routes';
@@ -91,30 +88,6 @@ export function ServicesTable({
         description: `${error}`,
       });
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleServiceUpdate = async (data: UpdateServiceInput) => {
-    setIsLoading(true);
-    try {
-      const result = await updateService(data);
-
-      if (result.error) throw new Error(result.error);
-
-      toast({
-        title: t_messages('success.update'),
-        variant: 'success',
-      });
-    } catch (error) {
-      toast({
-        title: t_messages('errors.update'),
-        variant: 'destructive',
-        description: `${error}`,
-      });
-    } finally {
-      setSelectedService(null);
-      setShowEditDialog(false);
       setIsLoading(false);
     }
   };
@@ -297,23 +270,6 @@ export function ServicesTable({
           setShowEditDialog(true);
         }}
       />
-
-      {/* Dialog de modification */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[800px]">
-          <DialogHeader>
-            <DialogTitle>{t('form.edit_title')}</DialogTitle>
-          </DialogHeader>
-          {selectedService && (
-            <NewServiceForm
-              initialData={selectedService}
-              handleSubmit={(data) => handleServiceUpdate(data)}
-              isLoading={isLoading}
-              countries={countries}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {selectedService && (
         <ConfirmDialog

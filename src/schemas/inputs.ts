@@ -127,6 +127,33 @@ export const AddressSchema = z.object({
   country: CountryCodeSchema,
 });
 
+export const BasicAddressSchema = z.object({
+  firstLine: z
+    .string({
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
+    .optional(),
+  secondLine: z
+    .string({
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
+    .optional(),
+
+  city: z
+    .string({
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
+    .optional(),
+
+  zipCode: z
+    .string({
+      invalid_type_error: 'messages.errors.invalid_field',
+    })
+    .optional(),
+
+  country: z.string().optional(),
+});
+
 export const PhoneNumberSchema = z
   .string({ required_error: 'messages.errors.field_required' })
   .regex(/^\+[1-9]\d{1,3}-[1-9]\d{7,14}$/, 'messages.errors.invalid_phone_number');

@@ -95,48 +95,54 @@ export function ProfileReview({ request }: ProfileReviewProps) {
 
   return (
     <div className="space-y-6">
-      {/* En-tête avec statut et actions */}
-      <CardContainer>
-        <div className="flex items-start gap-4">
-          <Avatar className="size-14 md:size-24">
-            <AvatarImage
-              src={profile.identityPicture?.fileUrl ?? ''}
-              alt={profile.firstName ?? ''}
-            />
-            <AvatarFallback>
-              {profile.firstName?.[0]}
-              {profile.lastName?.[0]}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-1">
-            <h2 className="text-xl md:text-2xl flex items-center gap-2 font-semibold">
-              {profile.firstName} {profile.lastName}{' '}
-              <ProfileStatusBadge
-                status={request.status}
-                label={t(`common.status.${request.status}`)}
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-6">
+        <CardContainer className="col-span-4">
+          <div className="flex items-start gap-4">
+            <Avatar className="size-14 md:size-24">
+              <AvatarImage
+                src={profile.identityPicture?.fileUrl ?? ''}
+                alt={profile.firstName ?? ''}
               />
-            </h2>
-            {profile?.email && (
-              <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
-                <Mail className="size-4" />
-                {profile.email}
+              <AvatarFallback>
+                {profile.firstName?.[0]}
+                {profile.lastName?.[0]}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 space-y-1">
+              <h2 className="text-xl md:text-2xl flex items-center gap-2 font-semibold">
+                {profile.firstName} {profile.lastName}{' '}
+                <ProfileStatusBadge
+                  status={request.status}
+                  label={t(`common.status.${request.status}`)}
+                />
+              </h2>
+              {profile?.email && (
+                <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
+                  <Mail className="size-4" />
+                  {profile.email}
+                </div>
+              )}
+              {profile?.phoneNumber && (
+                <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
+                  <Phone className="size-4" />
+                  {profile.phoneNumber}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {t('admin.registrations.review.submitted_on')}:{' '}
+                  {formatDate(request.createdAt ?? '')}
+                </span>
               </div>
-            )}
-            {profile?.phoneNumber && (
-              <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
-                <Phone className="size-4" />
-                {profile.phoneNumber}
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {t('admin.registrations.review.submitted_on')}:{' '}
-                {formatDate(request.createdAt ?? '')}
-              </span>
             </div>
           </div>
+        </CardContainer>
+        <div className="col-span-2">
+          <ProfileCompletion completionRate={completionRate} fieldStatus={fieldStatus} />
         </div>
-      </CardContainer>
+      </div>
+      {/* En-tête avec statut et actions */}
+
       <CardContainer>
         <StatusTimeline
           currentStatus={request.status}
@@ -175,7 +181,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
 
         {/* Panneau latéral pour les notes et validations */}
         <div className="space-y-4 col-span-1">
-          <ProfileCompletion completionRate={completionRate} fieldStatus={fieldStatus} />
+          <ReviewNotes requestId={request.id} notes={request.notes} />
           <CardContainer
             title={t('admin.registrations.review.validation.title')}
             contentClass="space-y-4"
@@ -266,7 +272,6 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </Button>
             )}
           </CardContainer>
-          <ReviewNotes requestId={request.id} notes={request.notes} />
         </div>
       </div>
     </div>

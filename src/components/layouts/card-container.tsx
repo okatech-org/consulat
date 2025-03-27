@@ -38,7 +38,11 @@ export default function CardContainer({
           {action && <div className="ml-auto">{action}</div>}
         </Card.CardHeader>
       )}
-      <Card.CardContent className={`${contentClass}`}>{children}</Card.CardContent>
+      <Card.CardContent
+        className={`${contentClass} ${title || subtitle || action ? '!pt-0' : ''}`}
+      >
+        {children}
+      </Card.CardContent>
       {footerContent && <Card.CardFooter>{footerContent}</Card.CardFooter>}
     </Card.Card>
   );

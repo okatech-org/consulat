@@ -4,10 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { hasAnyRole, hasPermission } from '@/lib/permissions/utils';
 import { GetRequestsOptions } from '@/actions/service-requests';
 import { RequestsTable } from './_components/requests-table';
-import {
-  getAvailableServiceCategories,
-  getOrganizationWithSpecificIncludes,
-} from '@/actions/organizations';
+import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import { PageContainer } from '@/components/layouts/page-container';
 import { tryCatch } from '@/lib/utils';
 import { getCurrentUser } from '@/actions/user';
@@ -31,12 +28,12 @@ export default async function RequestsPage({ searchParams }: Props) {
 
   const formattedQueryParams: GetRequestsOptions = {
     ...queryParams,
-    status: queryParams.status?.split('_').map((status) => status as RequestStatus),
+    status: queryParams.status?.split(',').map((status) => status as RequestStatus),
     priority: queryParams.priority
-      ?.split('_')
+      ?.split(',')
       .map((priority) => priority as ServicePriority),
     serviceCategory: queryParams.serviceCategory
-      ?.split('_')
+      ?.split(',')
       .map((category) => category as ServiceCategory),
     page: Number(queryParams.page || '1'),
     limit: Number(queryParams.limit || '10'),

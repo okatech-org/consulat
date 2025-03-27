@@ -48,6 +48,7 @@ async function createConsularNotification({
           label: t('actions.view_request'),
           url: `${ROUTES.user.profile}`,
         },
+        channels: [NotificationChannel.EMAIL, NotificationChannel.APP],
       };
       break;
     case 'VALIDATED':
@@ -59,6 +60,11 @@ async function createConsularNotification({
           label: t('actions.view_profile'),
           url: `${ROUTES.user.profile}`,
         },
+        channels: [
+          NotificationChannel.SMS,
+          NotificationChannel.EMAIL,
+          NotificationChannel.APP,
+        ],
       };
       break;
     case 'REJECTED':
@@ -70,6 +76,11 @@ async function createConsularNotification({
           label: t('actions.view_request'),
           url: `${ROUTES.user.profile}`,
         },
+        channels: [
+          NotificationChannel.SMS,
+          NotificationChannel.EMAIL,
+          NotificationChannel.APP,
+        ],
       };
       break;
     case 'READY_FOR_PICKUP':
@@ -81,7 +92,11 @@ async function createConsularNotification({
           label: t('actions.schedule_pickup'),
           url: `${ROUTES.user.new_appointment}?serviceRequestId=${requestId}&type=DOCUMENT_COLLECTION`,
         },
-        channels: [NotificationChannel.SMS, NotificationChannel.EMAIL],
+        channels: [
+          NotificationChannel.SMS,
+          NotificationChannel.EMAIL,
+          NotificationChannel.APP,
+        ],
       };
       break;
     case 'COMPLETED':
@@ -108,11 +123,9 @@ async function createConsularNotification({
       type: notificationData.type,
       title: notificationData.title,
       message: notificationData.message,
-      channels: notificationData.channels || [
-        NotificationChannel.APP,
-        NotificationChannel.EMAIL,
-      ],
+      channels: notificationData.channels || [NotificationChannel.APP],
       email: user?.email || undefined,
+      phoneNumber: user?.phoneNumber || undefined,
       priority: 'normal',
       actions: notificationData.actions
         ? [

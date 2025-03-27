@@ -13,7 +13,6 @@ import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import {
-  Country,
   Gender,
   MaritalStatus,
   ProfileCategory,
@@ -25,39 +24,45 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 import { format as formatDate } from 'date-fns';
 import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { CountryCode } from '@/lib/autocomplete-datas';
 import { ROUTES } from '@/schemas/routes';
 import { Button } from '@/components/ui/button';
 
 interface ProfilesTableProps {
   filters: GetProfilesOptions;
-  countries: Country[];
 }
 
-export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
+export function ProfilesTable({ filters }: ProfilesTableProps) {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PaginatedProfiles | null>(null);
+  const [pendingFilters, setPendingFilters] = useState<Record<string, string> | null>(
+    null,
+  );
 
-  const handleFilterChange = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams?.toString());
+  const handleFilterChange = useCallback((key: string, value: string) => {
+    console.log('handleFilterChange', key, value);
+    setPendingFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
+  useEffect(() => {
+    if (pendingFilters) {
+      const params = new URLSearchParams(searchParams?.toString());
+
+      Object.entries(pendingFilters).forEach(([key, value]) => {
+        if (value) {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
+
+      router.push(`${pathname}?${params.toString()}`);
+      setPendingFilters(null);
     }
-
-    // Reset page when filter changes
-    if (key !== 'page') {
-      params.set('page', '1');
-    }
-
-    router.push(`${pathname}?${params.toString()}`);
-  };
+  }, [pendingFilters, router, searchParams, pathname]);
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -111,7 +116,6 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
     return result.items.map((item) => ({
       ...item,
       identityPictureUrl: item.identityPicture?.fileUrl || '',
-      fullName: `${item.firstName} ${item.lastName}`.trim(),
       qrCodeUrl: `${ROUTES.listing.profile(item.id)}`,
     }));
   }, [result?.items]);
@@ -119,7 +123,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
   const columns: ColumnDef<
     PaginatedProfiles['items'][number] & {
       identityPictureUrl?: string;
-      fullName?: string;
+      qrCodeUrl?: string;
     }
   >[] = [
     {
@@ -170,15 +174,30 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       },
     },
     {
-      accessorKey: 'fullName',
+      accessorKey: 'firstName',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
+        <DataTableColumnHeader column={column} title={t('inputs.firstName.label')} />
       ),
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[250px] truncate font-medium">
-              {row.original.fullName || '-'}
+              {row.original.firstName || '-'}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'lastName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.lastName.label')} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[250px] truncate font-medium">
+              {row.original.lastName || '-'}
             </span>
           </div>
         );
@@ -360,28 +379,13 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
     },
     {
       type: 'checkbox',
-      property: 'residenceCountyCode',
-      label: t('inputs.residenceCountyCode.label'),
-      defaultValue: filters.residenceCountyCode?.toString().split(',') ?? [],
-      options: countries.map((country) => ({
-        value: country.code,
-        label: t(`countries.${country.code as CountryCode}`),
-      })),
-      onChange: (value) => {
-        if (Array.isArray(value)) {
-          handleFilterChange('residenceCountyCode', value.join('_'));
-        }
-      },
-    },
-    {
-      type: 'checkbox',
       property: 'status',
       label: t('inputs.status.label'),
       defaultValue: filters.status?.toString().split(',') ?? [],
       options: statuses,
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('status', value.join('_'));
+          handleFilterChange('status', value.join(','));
         }
       },
     },
@@ -393,7 +397,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       options: categories,
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('category', value.join('_'));
+          handleFilterChange('category', value.join(','));
         }
       },
     },
@@ -405,7 +409,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       options: genders,
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('gender', value.join('_'));
+          handleFilterChange('gender', value.join(','));
         }
       },
     },
@@ -417,7 +421,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       options: maritalStatuses,
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('maritalStatus', value.join('_'));
+          handleFilterChange('maritalStatus', value.join(','));
         }
       },
     },
@@ -429,7 +433,7 @@ export function ProfilesTable({ filters, countries }: ProfilesTableProps) {
       options: workStatuses,
       onChange: (value) => {
         if (Array.isArray(value)) {
-          handleFilterChange('workStatus', value.join('_'));
+          handleFilterChange('workStatus', value.join(','));
         }
       },
     },
