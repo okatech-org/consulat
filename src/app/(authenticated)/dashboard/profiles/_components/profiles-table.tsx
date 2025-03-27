@@ -110,8 +110,9 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
   }));
 
   const processedData: (PaginatedProfiles['items'][number] & {
-    identityPictureUrl?: string;
-    fullName?: string;
+    identityPictureUrl: string;
+    qrCodeUrl: string;
+    fileName: string;
   })[] = React.useMemo(() => {
     if (!result?.items) return [];
 
@@ -119,6 +120,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       ...item,
       identityPictureUrl: item.identityPicture?.fileUrl || '',
       qrCodeUrl: `${appUrl}${ROUTES.listing.profile(item.id)}`,
+      fileName: `${item.firstName?.replace(' ', '_')}_${item.lastName?.replace(' ', '_')}_${item.cardNumber}`,
     }));
   }, [result?.items]);
 
@@ -126,6 +128,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     PaginatedProfiles['items'][number] & {
       identityPictureUrl?: string;
       qrCodeUrl?: string;
+      fileName?: string;
     }
   >[] = [
     {
@@ -155,7 +158,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     {
       accessorKey: 'cardNumber',
       header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
-      cell: ({ row }) => <div>{row.getValue('cardNumber') || '-'}</div>,
+      cell: ({ row }) => <div>{row.original.cardNumber || '-'}</div>,
       enableSorting: false,
       enableHiding: false,
     },
@@ -165,7 +168,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title="Photo d'identité" />
       ),
       cell: ({ row }) => {
-        const url = row.getValue('identityPictureUrl') as string;
+        const url = row.original.identityPictureUrl as string;
         return url ? (
           <Avatar>
             <AvatarImage src={url} />
@@ -214,7 +217,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         />
       ),
       cell: ({ row }) => {
-        const category = categories.find((cat) => cat.value === row.getValue('category'));
+        const category = categories.find((cat) => cat.value === row.original.category);
 
         if (!category) {
           return null;
@@ -227,7 +230,20 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         );
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
+        return value.includes(row.original.category);
+      },
+    },
+    {
+      accessorKey: 'fileName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={'Nom du fichier'} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center">
+            <span className="max-w-[200px] truncate">{row.original.fileName || '-'}</span>
+          </div>
+        );
       },
     },
     {
@@ -236,7 +252,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
       ),
       cell: ({ row }) => {
-        const status = statuses.find((status) => status.value === row.getValue('status'));
+        const status = statuses.find((status) => status.value === row.original.status);
 
         if (!status) {
           return null;
@@ -249,7 +265,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         );
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
+        return value.includes(row.original.status);
       },
     },
     {
@@ -467,6 +483,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         'workStatus',
         'email',
         'qrCodeUrl',
+        'fileName',
       ]}
     />
   );
