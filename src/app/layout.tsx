@@ -150,9 +150,6 @@ export default async function RootLayout({
                 <ViewportDetector />
                 {children}
                 <Toaster />
-                <div className="flex fixed flex-col p-2 items-center bottom-2 translate-x-1/2 sm:translate-x-0 right-[50%] rounded-full sm:bottom-4 sm:right-6">
-                  <ChatToggle />
-                </div>
               </SessionProvider>
             </ChatProvider>
           </ThemeProvider>

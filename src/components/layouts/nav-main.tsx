@@ -29,6 +29,7 @@ export type NavMainItem = {
   icon?: React.ReactNode;
   isActive?: boolean;
   items?: Pick<NavMainItem, 'title' | 'url'>[];
+  component?: React.ReactNode;
 };
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
