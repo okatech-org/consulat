@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import type { MetadataRoute } from 'next';
 
-export async function GET() {
-  return NextResponse.json({
+export default function manifest(): MetadataRoute.Manifest {
+  return {
     name: 'Consulat.ga',
     short_name: 'CONSULAT',
     description:
@@ -11,7 +11,7 @@ export async function GET() {
     display_override: ['window-controls-overlay', 'minimal-ui'],
     orientation: 'portrait',
     background_color: '#FAFAFA',
-    theme_color: '#0F428A',
+    theme_color: '#04367D',
     categories: ['government', 'utilities', 'productivity'],
     dir: 'ltr',
     lang: 'fr',
@@ -30,7 +30,7 @@ export async function GET() {
         src: '/android-192x192.png',
         sizes: '192x192',
         type: 'image/png',
-        purpose: 'any maskable',
+        purpose: 'any',
       },
       {
         src: '/android-512x512.png',
@@ -62,5 +62,5 @@ export async function GET() {
         description: 'Envoyer un feedback',
       },
     ],
-  });
+  };
 }

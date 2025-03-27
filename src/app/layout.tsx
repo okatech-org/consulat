@@ -4,7 +4,7 @@ import { ThemeProvider } from '@/components/layouts/theme-provider';
 import React from 'react';
 import { Inter } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
-import { NextIntlClientProvider } from 'next-intl';
+import { AbstractIntlMessages, NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
 import { ChatToggle } from '@/components/chat/chat-toggle';
@@ -14,6 +14,8 @@ import { env } from '@/lib/env/index';
 import { ChatProvider } from '@/contexts/chat-context';
 import { Analytics } from '@vercel/analytics/react';
 import { ViewportDetector } from '@/components/layouts/viewport-detector';
+import { tryCatch } from '@/lib/utils';
+import { Session } from 'next-auth';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -112,7 +114,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#17A34A',
+  themeColor: '#04367D',
   initialScale: 1,
   minimumScale: 1,
   width: 'device-width',
@@ -128,15 +130,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-  const messages = await getMessages();
-  const session = await auth();
+  const promises = [getLocale(), getMessages(), auth()];
+
+  const [locale, messages, session] = await Promise.all(promises);
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale as string} suppressHydrationWarning dir="ltr">
       <body className={inter.className + ' bg-muted'}>
         <Analytics />
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
@@ -144,7 +146,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <ChatProvider>
-              <SessionProvider session={session}>
+              <SessionProvider session={session as Session}>
                 <ViewportDetector />
                 {children}
                 <Toaster />
