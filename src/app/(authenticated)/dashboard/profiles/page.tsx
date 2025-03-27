@@ -4,22 +4,15 @@ import {
   MaritalStatus,
   ProfileCategory,
   RequestStatus,
-  User,
   WorkStatus,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
-import { hasAnyRole, hasPermission } from '@/lib/permissions/utils';
+import { hasPermission } from '@/lib/permissions/utils';
 import { PageContainer } from '@/components/layouts/page-container';
-import { tryCatch } from '@/lib/utils';
 import { getCurrentUser } from '@/actions/user';
 import { ProfilesTable } from './_components/profiles-table';
-import {
-  getOrganizationById,
-  getOrganizationWithSpecificIncludes,
-} from '@/actions/organizations';
+import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import { CountryCode } from '@/lib/autocomplete-datas';
-import countries from '@/i18n/messages/fr/countries';
-import { getCountries } from '@/actions/countries';
 
 interface GetProfilesOptions {
   search?: string;
@@ -71,15 +64,15 @@ export default async function ProfilesPage({ searchParams }: Props) {
 
   const formattedQueryParams: GetProfilesOptions = {
     ...queryParams,
-    status: queryParams.status?.split('_').map((status) => status as RequestStatus),
+    status: queryParams.status?.split(',').map((status) => status as RequestStatus),
     category: queryParams.category
-      ?.split('_')
+      ?.split(',')
       .map((category) => category as ProfileCategory),
-    gender: queryParams.gender?.split('_').map((gender) => gender as Gender),
+    gender: queryParams.gender?.split(',').map((gender) => gender as Gender),
     maritalStatus: queryParams.maritalStatus
-      ?.split('_')
+      ?.split(',')
       .map((status) => status as MaritalStatus),
-    workStatus: queryParams.workStatus?.split('_').map((status) => status as WorkStatus),
+    workStatus: queryParams.workStatus?.split(',').map((status) => status as WorkStatus),
     page: Number(queryParams.page || '1'),
     limit: Number(queryParams.limit || '10'),
     sortBy: queryParams.sortBy || 'createdAt',

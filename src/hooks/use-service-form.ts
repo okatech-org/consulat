@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { z, ZodSchema } from 'zod';
-import { DeliveryMode, DocumentType } from '@prisma/client';
+import { DocumentType } from '@prisma/client';
 import { ConsularServiceItem, ServiceField, ServiceStep } from '@/types/consular-service';
 import {
   DateSchema,
@@ -15,6 +15,7 @@ import {
   SelectSchema,
   TextareaSchema,
   PictureFileSchema,
+  BasicAddressSchema,
 } from '@/schemas/inputs';
 import { FullProfile } from '@/types/profile';
 import { createFormStorage } from '@/lib/form-storage';
@@ -105,7 +106,26 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                 : PhoneNumberSchema.optional();
               break;
             case 'address':
-              acc[field.name] = field.required ? AddressSchema : AddressSchema.optional();
+              acc[field.name] = field.required
+                ? z.object(
+                    {
+                      ...AddressSchema.shape,
+                    },
+                    {
+                      required_error: 'messages.errors.doc_required',
+                      invalid_type_error: 'messages.errors.invalid_field',
+                    },
+                  )
+                : z
+                    .object(
+                      {
+                        ...BasicAddressSchema.shape,
+                      },
+                      {
+                        invalid_type_error: 'messages.errors.invalid_field',
+                      },
+                    )
+                    .optional();
               break;
             case 'select':
               if (field.options && field.options.length > 0) {
@@ -265,7 +285,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
           name: documentTypeToField[docType] ?? docType,
           type: 'document',
           label: tInputs(`userDocument.options.${docType}`),
-          required: true,
+          required: false,
           documentType: docType,
         })),
         order: 0,
@@ -343,9 +363,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
   forms.push({
     id: 'delivery',
     title: 'Adresse de livraison',
-    description: `Veuillez choisir une adresse de livraison${
-      service.deliveryMode.length > 1 ? ' si vous le souhaitez' : ''
-    }`,
+    description: `Assurez-vous de renseigner les informations en fonction du mode de délivrance (adresse nécessaire pour le mode postal)`,
     stepData: {
       id: 'delivery',
       title: 'Adresse de livraison',
@@ -374,36 +392,16 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       description:
         'Attention à bien renseignez les infos en fonction du mode de délivrance',
       type: 'DELIVERY',
-      isRequired: true,
-      validations: {
-        ...userProfile.address,
-      },
+      isRequired: false,
+      validations: {},
     },
     schema: z.object({
-      deliveryAddress:
-        service.deliveryMode.length === 1
-          ? z.object(
-              {
-                ...AddressSchema.shape,
-              },
-              {
-                required_error: 'messages.errors.field_required',
-                invalid_type_error: 'messages.errors.invalid_field',
-              },
-            )
-          : z
-              .object(
-                {
-                  ...AddressSchema.shape,
-                },
-                {
-                  invalid_type_error: 'messages.errors.invalid_field',
-                },
-              )
-              .optional(),
+      deliveryAddress: BasicAddressSchema,
+      deliveryMode: z.string({
+        required_error: 'messages.errors.field_required',
+      }),
     }),
     defaultValues: {
-      deliveryAddress: userProfile.address,
       ...(formData?.delivery ?? {}),
     },
   });

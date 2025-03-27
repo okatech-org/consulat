@@ -16,7 +16,6 @@ import { NewAppointmentForm } from '../appointments/new-appointment-form';
 import { tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import { StepIndicator } from '../registration/step-indicator';
-import { useEffect } from 'react';
 
 type ServiceWithSteps = ConsularServiceItem;
 
@@ -41,7 +40,6 @@ export function ServiceSubmissionForm({
     setError,
     isLoading,
     setIsLoading,
-    clearData,
   } = useServiceForm(service, userProfile);
 
   type StepKey = keyof (typeof forms)[number]['id'];
@@ -186,12 +184,6 @@ export function ServiceSubmissionForm({
       />
     );
   };
-
-  useEffect(() => {
-    return () => {
-      clearData();
-    };
-  }, [clearData]);
 
   return (
     <div className="w-full overflow-x-hidden max-w-4xl mx-auto flex flex-col pb-safe md:pb-0">

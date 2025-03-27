@@ -606,16 +606,7 @@ export function DocumentReview({ document }: { document: UserDocument }) {
                 )
               }
             />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setSelectedDocument({
-                  id: document.id,
-                  type: document.type,
-                })
-              }
-            >
+            <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
               <Shield className="size-4" />
               <span className="text-sm">Valider</span>
             </Button>
