@@ -83,6 +83,7 @@ export function DataTableExport<TData, TValue = unknown>({
 
     // Call the callback if provided
     if (onExport && exportData.length > 0) {
+      console.log('onExport', exportData);
       onExport(exportData);
     }
 

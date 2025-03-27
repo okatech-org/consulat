@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
-import { FileText } from 'lucide-react';
+import { FileText, Download } from 'lucide-react';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -26,10 +26,22 @@ import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/pr
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { ROUTES } from '@/schemas/routes';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import JSZip from 'jszip';
+import { toast } from '@/hooks/use-toast';
 
 interface ProfilesTableProps {
   filters: GetProfilesOptions;
 }
+
+const appUrl = process.env.NEXT_PUBLIC_URL;
 
 export function ProfilesTable({ filters }: ProfilesTableProps) {
   const t = useTranslations();
@@ -41,6 +53,9 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
   const [pendingFilters, setPendingFilters] = useState<Record<string, string> | null>(
     null,
   );
+  const [showDownloadDialog, setShowDownloadDialog] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<PaginatedProfiles['items']>([]);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleFilterChange = useCallback((key: string, value: string) => {
     console.log('handleFilterChange', key, value);
@@ -108,15 +123,17 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
   }));
 
   const processedData: (PaginatedProfiles['items'][number] & {
-    identityPictureUrl?: string;
-    fullName?: string;
+    identityPictureUrl: string;
+    qrCodeUrl: string;
+    fileName: string;
   })[] = React.useMemo(() => {
     if (!result?.items) return [];
 
     return result.items.map((item) => ({
       ...item,
       identityPictureUrl: item.identityPicture?.fileUrl || '',
-      qrCodeUrl: `${ROUTES.listing.profile(item.id)}`,
+      qrCodeUrl: `${appUrl}${ROUTES.listing.profile(item.id)}`,
+      fileName: `${item.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${item.lastName?.trim()?.replace(' ', '_') || 'unknown'}_${item.cardNumber || 'unassigned'}`,
     }));
   }, [result?.items]);
 
@@ -124,6 +141,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     PaginatedProfiles['items'][number] & {
       identityPictureUrl?: string;
       qrCodeUrl?: string;
+      fileName?: string;
     }
   >[] = [
     {
@@ -153,7 +171,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     {
       accessorKey: 'cardNumber',
       header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
-      cell: ({ row }) => <div>{row.getValue('cardNumber') || '-'}</div>,
+      cell: ({ row }) => <div>{row.original.cardNumber || '-'}</div>,
       enableSorting: false,
       enableHiding: false,
     },
@@ -163,7 +181,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title="Photo d'identité" />
       ),
       cell: ({ row }) => {
-        const url = row.getValue('identityPictureUrl') as string;
+        const url = row.original.identityPictureUrl as string;
         return url ? (
           <Avatar>
             <AvatarImage src={url} />
@@ -212,7 +230,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         />
       ),
       cell: ({ row }) => {
-        const category = categories.find((cat) => cat.value === row.getValue('category'));
+        const category = categories.find((cat) => cat.value === row.original.category);
 
         if (!category) {
           return null;
@@ -225,7 +243,20 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         );
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
+        return value.includes(row.original.category);
+      },
+    },
+    {
+      accessorKey: 'fileName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={'Nom du fichier'} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center">
+            <span className="max-w-[200px] truncate">{row.original.fileName || '-'}</span>
+          </div>
+        );
       },
     },
     {
@@ -234,7 +265,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
       ),
       cell: ({ row }) => {
-        const status = statuses.find((status) => status.value === row.getValue('status'));
+        const status = statuses.find((status) => status.value === row.original.status);
 
         if (!status) {
           return null;
@@ -247,7 +278,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         );
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
+        return value.includes(row.original.status);
       },
     },
     {
@@ -439,33 +470,231 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     },
   ];
 
+  const downloadPhotos = async () => {
+    if (!selectedRows.length) return;
+
+    setIsDownloading(true);
+    const zip = new JSZip();
+
+    try {
+      // Create an array of promises for fetching images
+      const photoPromises = selectedRows
+        .filter((profile) => {
+          const hasPhoto = !!profile.identityPicture?.fileUrl;
+          if (!hasPhoto) {
+            console.log(
+              'Profile without photo:',
+              profile.id,
+              profile.firstName,
+              profile.lastName,
+            );
+          }
+          return hasPhoto;
+        })
+        .map(async (profile) => {
+          const url = profile.identityPicture?.fileUrl;
+          if (!url) return null;
+
+          const fileName = `${profile.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${profile.lastName?.trim()?.replace(' ', '_') || 'unknown'}_${profile.cardNumber || 'unassigned'}`;
+
+          try {
+            const response = await fetch(url, {
+              method: 'GET',
+              credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+              console.error(
+                `Error fetching ${url}: ${response.status} ${response.statusText}`,
+              );
+              return null;
+            }
+
+            const blob = await response.blob();
+
+            if (blob.size === 0) {
+              console.error('Empty blob received for:', fileName);
+              return null;
+            }
+
+            // Determine file extension based on blob type
+            let extension = '.jpg'; // Default
+            if (blob.type) {
+              const mimeType = blob.type.toLowerCase();
+              if (mimeType.includes('png')) {
+                extension = '.png';
+              } else if (mimeType.includes('gif')) {
+                extension = '.gif';
+              } else if (mimeType.includes('webp')) {
+                extension = '.webp';
+              } else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+                extension = '.jpg';
+              } else if (mimeType.includes('svg')) {
+                extension = '.svg';
+              } else if (mimeType.includes('bmp')) {
+                extension = '.bmp';
+              }
+              // Add more types as needed
+            }
+
+            const fileNameWithExt = `${profile.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${profile.lastName?.trim()?.replace(' ', '_') || 'unknown'}_${profile.cardNumber || 'unassigned'}${extension}`;
+
+            return { fileName: fileNameWithExt, blob };
+          } catch (error) {
+            console.error(`Error downloading ${url}:`, error);
+            return null;
+          }
+        });
+
+      const photos = (await Promise.all(photoPromises)).filter(Boolean);
+
+      if (photos.length === 0) {
+        toast({
+          variant: 'destructive',
+          title: 'Aucune photo disponible',
+          description: "Aucune photo n'a été trouvée pour les profils sélectionnés.",
+        });
+        setIsDownloading(false);
+        setShowDownloadDialog(false);
+        return;
+      }
+
+      // Add each photo to the zip file
+      photos.forEach((photo) => {
+        if (photo) {
+          console.log('Adding to zip:', photo.fileName, 'Size:', photo.blob.size);
+          zip.file(photo.fileName, photo.blob);
+        }
+      });
+
+      // Generate the zip file
+      console.log('Generating zip...');
+      const content = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 },
+      });
+
+      console.log('Zip generated, size:', content.size);
+
+      if (content.size < 100) {
+        console.error('ZIP file is too small, might be empty. Size:', content.size);
+        toast({
+          variant: 'destructive',
+          title: 'Erreur de génération',
+          description: 'Le fichier ZIP généré semble vide. Veuillez réessayer.',
+        });
+        setIsDownloading(false);
+        setShowDownloadDialog(false);
+        return;
+      }
+
+      // Create a download link and trigger the download
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `profile-photos-${dateStr}_${timeStr}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: 'Téléchargement réussi',
+        description: `${photos.length} photos téléchargées avec succès.`,
+      });
+    } catch (error) {
+      console.error('Error creating zip file:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur de téléchargement',
+        description: "Une erreur s'est produite lors du téléchargement des photos.",
+      });
+    } finally {
+      setIsDownloading(false);
+      setShowDownloadDialog(false);
+    }
+  };
+
   return (
-    <DataTable
-      isLoading={isLoading}
-      columns={columns}
-      data={processedData}
-      filters={localFilters}
-      totalCount={result?.total ?? 0}
-      pageIndex={filters?.page}
-      pageSize={filters?.limit}
-      onPageChange={(page) => {
-        handleFilterChange('page', page.toString());
-      }}
-      onLimitChange={(limit) => {
-        handleFilterChange('limit', limit.toString());
-      }}
-      enableExport={true}
-      exportSelectedOnly={true}
-      exportFilename="profiles"
-      hiddenColumns={[
-        'cardPin',
-        'cardIssuedAt',
-        'cardExpiresAt',
-        'maritalStatus',
-        'workStatus',
-        'email',
-        'qrCodeUrl',
-      ]}
-    />
+    <>
+      <DataTable
+        isLoading={isLoading}
+        columns={columns}
+        data={processedData}
+        filters={localFilters}
+        totalCount={result?.total ?? 0}
+        pageIndex={filters?.page}
+        pageSize={filters?.limit}
+        onExport={(data) => {
+          setSelectedRows(data);
+          setShowDownloadDialog(true);
+        }}
+        onPageChange={(page) => {
+          handleFilterChange('page', page.toString());
+        }}
+        onLimitChange={(limit) => {
+          handleFilterChange('limit', limit.toString());
+        }}
+        enableExport={true}
+        exportSelectedOnly={true}
+        exportFilename="profiles"
+        hiddenColumns={[
+          'cardPin',
+          'cardIssuedAt',
+          'cardExpiresAt',
+          'maritalStatus',
+          'workStatus',
+          'email',
+          'qrCodeUrl',
+          'fileName',
+        ]}
+      />
+
+      <Dialog open={showDownloadDialog} onOpenChange={setShowDownloadDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Télécharger les photos</DialogTitle>
+            <DialogDescription>
+              Voulez-vous télécharger les photos d&apos;identité des profils sélectionnés
+              ({selectedRows.length}) ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDownloadDialog(false)}>
+              Annuler
+            </Button>
+            <Button onClick={downloadPhotos} disabled={isDownloading} className="gap-2">
+              {isDownloading && (
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              )}
+              <Download className="h-4 w-4" />
+              Télécharger
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

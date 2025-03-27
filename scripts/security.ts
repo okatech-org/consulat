@@ -23,6 +23,8 @@ export const ContentSecurityPolicy = `
     https://*.vercel-scripts.com
     https://*.vercel-insights.com
     https://*.vercel-analytics.com
+    https://rbvj2i3urx.ufs.sh
+    https://qld7pfnhxe.ufs.sh
     ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''}
     wss://*.uploadthing.com;
   frame-ancestors 'none';
