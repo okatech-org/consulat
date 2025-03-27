@@ -421,7 +421,7 @@ p,
   }
 
   .size-icon {
-    @apply !size-6;
+    @apply !size-6 sm:!size-5;
   }
 
   .mobile-hide {

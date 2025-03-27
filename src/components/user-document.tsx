@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { PenIcon, Trash, Shield, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { PenIcon, Trash, CheckCircle2, Download } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,6 +37,7 @@ import { ImageCropper } from './ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
 import { validateDocument } from '@/lib/document-validation';
+import Link from 'next/link';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -94,6 +95,28 @@ export function UserDocument({
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
   const { formatDate } = useDateLocale();
+
+  const handleDownload = async () => {
+    if (!document) return;
+
+    try {
+      const response = await fetch(document.fileUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${document.type.toLowerCase()}.${extension}`;
+      window.document.body.appendChild(a);
+      a.click();
+      window.document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
 
   // Check if user has admin role
   const hasAdminRole = React.useMemo(() => {
@@ -358,34 +381,21 @@ export function UserDocument({
           <div className="absolute right-1 top-1 flex items-center gap-2">
             {allowEdit && (
               <Button
-                type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsUpdating(true)}
                 disabled={disabled || isLoading}
               >
-                <PenIcon className="size-4" />
-              </Button>
-            )}
-            {hasAdminRole && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setIsDialogOpen(true)}
-                disabled={disabled || isLoading}
-              >
-                <CheckCircle2 className="size-4" />
-                <span className="sr-only">Valider</span>
+                <PenIcon className="size-icon" />
               </Button>
             )}
             <Button
-              type="button"
-              variant="destructive"
-              size="sm"
+              variant="outline"
+              className="text-destructive"
               onClick={() => handleDelete(document.id)}
               disabled={disabled || isLoading}
             >
+              <span className="sr-only">Supprimer</span>
               <Trash className="size-icon" />
             </Button>
           </div>
@@ -413,18 +423,31 @@ export function UserDocument({
             )}
             {/* Display validation status for all users */}
             <div className="flex items-center gap-2 mt-2">
-              {validation.isValid ? (
+              {validation.isValid && (
                 <span className="text-success flex items-center gap-1">
-                  <CheckCircle2 className="size-4" />
+                  <CheckCircle2 className="size-icon" />
                   {t_common('status.VALIDATED')}
-                </span>
-              ) : (
-                <span className="text-warning flex items-center gap-1">
-                  <AlertTriangle className="size-4" />
-                  {validation.errors.join(', ')}
                 </span>
               )}
             </div>
+          </div>
+        )}
+
+        {hasAdminRole && document && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDialogOpen(true)}
+              disabled={disabled || isLoading}
+            >
+              <CheckCircle2 className="size-icon" />
+              <span>Validation</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <span>Télécharger</span>
+              <Download className="size-icon" />
+            </Button>
           </div>
         )}
       </div>

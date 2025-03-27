@@ -31,7 +31,10 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = filename;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${filename}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
