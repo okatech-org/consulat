@@ -74,9 +74,11 @@ export function ChatToggle() {
 
   return (
     <Sheet open={isOpen} onOpenChange={toggleChat}>
-      <SheetTitle className="sr-only">Chat with an assistant</SheetTitle>
+      <SheetTitle className="sr-only" asChild>
+        <span className="text-sm font-medium">Chat</span>
+      </SheetTitle>
 
-      <SheetTrigger>
+      <SheetTrigger className="p-0">
         <IAstedButton />
       </SheetTrigger>
 

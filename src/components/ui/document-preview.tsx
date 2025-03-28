@@ -27,26 +27,26 @@ export function DocumentPreview({ url, title, onDownload }: DocumentPreviewProps
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
-        <Maximize2 className="size-4" />
-        <span className="text-sm">Voir</span>
+        <ZoomIn className="size-icon" />
+        <span className="sr-only">Voir</span>
       </Button>
       <DialogContent className="h-[90vh] max-w-4xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleZoomOut}>
-              <ZoomOut className="size-4" />
+              <ZoomOut className="size-icon" />
             </Button>
             <span className="text-sm">{Math.round(zoom * 100)}%</span>
             <Button variant="outline" size="sm" onClick={handleZoomIn}>
-              <ZoomIn className="size-4" />
+              <ZoomIn className="size-icon" />
             </Button>
             <Button variant="outline" size="sm" onClick={handleRotate}>
-              <RotateCw className="size-4" />
+              <RotateCw className="size-icon" />
             </Button>
             {onDownload && (
               <Button variant="outline" size="sm" onClick={onDownload}>
-                <Download className="size-4" />
+                <Download className="size-icon" />
               </Button>
             )}
           </div>

@@ -3,6 +3,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/use-notifications';
+import { SheetTrigger, SheetContent, SheetHeader, SheetTitle, Sheet } from '../ui/sheet';
+import { NotificationsListing } from './notifications-listing';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const BellIcon = ({ animate, className }: { animate?: boolean; className?: string }) => (
   <svg
@@ -34,28 +37,45 @@ export function NotificationBell({
   className,
   bellClassName,
 }: NotificationBellProps) {
-  const { unreadCount, isLoading } = useNotifications();
+  const isMobile = useIsMobile();
 
+  const { unreadCount, isLoading } = useNotifications();
   return (
     <div className={cn('relative inline-block', className)}>
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        role="button"
-        aria-label={title}
-        tabIndex={0}
-        className="rounded-full hover:bg-muted transition-colors"
-      >
-        <BellIcon animate={isLoading} className={bellClassName + ' size-icon'} />
+      <Sheet>
+        <SheetTrigger asChild>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            role="button"
+            aria-label={title}
+            tabIndex={0}
+            className="rounded-full hover:bg-muted transition-colors"
+          >
+            <BellIcon animate={isLoading} className={bellClassName + ' size-icon'} />
 
-        <AnimatePresence>
-          {unreadCount > 0 && (
-            <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-0 right-[1%]">
-              <span className="sr-only">{unreadCount}</span>
-            </div>
+            <AnimatePresence>
+              {unreadCount > 0 && (
+                <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-0 right-[1%]">
+                  <span className="sr-only">{unreadCount}</span>
+                </div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </SheetTrigger>
+        <SheetContent
+          side={isMobile ? 'bottom' : 'right'}
+          className={cn(
+            'flex flex-col w-full max-w-[700px] overflow-y-auto h-full',
+            isMobile && 'max-h-[70dvh]',
           )}
-        </AnimatePresence>
-      </motion.div>
+        >
+          <SheetHeader className="text-left border-b pb-4 mb-4">
+            <SheetTitle>Notifications</SheetTitle>
+          </SheetHeader>
+          <NotificationsListing />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

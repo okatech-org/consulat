@@ -1,0 +1,1175 @@
+/* Styling de base avec perspective améliorée */
+.perspective-container {
+  perspective: 1500px;
+}
+
+.perspective {
+  perspective: 1200px;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* Style pour le bouton avec matière épaisse */
+.thick-matter-button {
+  transform-style: preserve-3d;
+  border-radius: 50%;
+  will-change: transform, box-shadow;
+  transition: transform 0.3s ease-out;
+
+  /* Ombre initiale pour effet 3D épais */
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.5),
+    0 6px 6px rgba(0, 0, 0, 0.3),
+    inset 0 -5px 15px rgba(0, 0, 0, 0.3),
+    inset 0 5px 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Couche de profondeur pour effet 3D épais */
+.depth-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(0, 0, 0, 0.4) 80%
+  );
+  filter: blur(2px);
+  opacity: 0.6;
+  transform: translateZ(-10px);
+}
+
+/* Couche de brillance et reflets pour effet 3D */
+.highlight-layer {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 55%,
+    transparent 70%
+  );
+  transform: translateZ(15px) rotate(45deg);
+  opacity: 0.6;
+  filter: blur(3px);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Animation de la couche de réfraction */
+@keyframes refraction-shift {
+  0%,
+  100% {
+    transform: translateZ(8px) scale(1) rotate(0deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateZ(8px) scale(1.05) rotate(10deg);
+    opacity: 0.7;
+  }
+}
+
+/* Petite sphère satellite - basée sur l'image 2 */
+.satellite-particle {
+  width: 10px;
+  height: 10px;
+  top: 5px;
+  left: 0;
+  border-radius: 50%;
+  background: rgba(0, 170, 255, 0.9);
+  box-shadow:
+    0 0 8px rgba(0, 170, 255, 0.8),
+    0 0 12px rgba(0, 170, 255, 0.4),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.3),
+    inset 0 2px 3px rgba(255, 255, 255, 0.5);
+  z-index: 20;
+  position: absolute;
+  animation: orbit-close 4s linear infinite;
+  transform-style: preserve-3d;
+  transform: translateZ(30px);
+}
+
+@keyframes orbit-close {
+  0% {
+    transform: translateZ(30px) rotate(0deg) translateX(20px) rotate(0deg);
+  }
+  100% {
+    transform: translateZ(30px) rotate(360deg) translateX(20px) rotate(-360deg);
+  }
+}
+
+/* Émissions d'ondes synchronisées avec effet de volume */
+@keyframes wave-emission-3d {
+  0% {
+    transform: scale3d(0.9, 0.9, 1) translateZ(0px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale3d(1.5, 1.5, 1.2) translateZ(5px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale3d(1.8, 1.8, 1.4) translateZ(10px);
+    opacity: 0;
+  }
+}
+
+/* CORRECTION: Positionnement fixe des émissions d'ondes */
+.wave-emission {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  transform: scale3d(0.9, 0.9, 1);
+  opacity: 0;
+  transform-style: preserve-3d;
+}
+
+.wave-1 {
+  animation: wave-emission-3d 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.wave-2 {
+  animation: wave-emission-3d 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  animation-delay: 0.55s;
+}
+
+.wave-3 {
+  animation: wave-emission-3d 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  animation-delay: 1.1s;
+}
+
+.wave-4 {
+  animation: wave-emission-3d 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  animation-delay: 1.65s;
+}
+
+/* Effet de mélange de fluides colorés avec aspects 3D et viscosité - effet de vie plus intense */
+@keyframes fluid-mix-3d-alive {
+  0% {
+    background-position: 0% 0%;
+    filter: hue-rotate(0deg) brightness(1);
+    border-radius: 70% 30% 40% 60% / 60% 40% 70% 30%;
+    transform: translateZ(0px) rotate(0deg);
+  }
+  20% {
+    background-position: 100% 30%;
+    filter: hue-rotate(60deg) brightness(1.2);
+    border-radius: 30% 70% 60% 40% / 40% 50% 50% 60%;
+    transform: translateZ(7px) rotate(72deg);
+  }
+  40% {
+    background-position: 60% 100%;
+    filter: hue-rotate(120deg) brightness(1.4);
+    border-radius: 50% 50% 30% 70% / 40% 60% 30% 70%;
+    transform: translateZ(10px) rotate(144deg);
+  }
+  60% {
+    background-position: 20% 50%;
+    filter: hue-rotate(180deg) brightness(1.3);
+    border-radius: 65% 35% 20% 80% / 40% 60% 35% 65%;
+    transform: translateZ(5px) rotate(216deg);
+  }
+  80% {
+    background-position: 70% 30%;
+    filter: hue-rotate(240deg) brightness(1.1);
+    border-radius: 35% 65% 75% 25% / 70% 20% 80% 30%;
+    transform: translateZ(8px) rotate(288deg);
+  }
+  100% {
+    background-position: 0% 0%;
+    filter: hue-rotate(360deg) brightness(1);
+    border-radius: 70% 30% 40% 60% / 60% 40% 70% 30%;
+    transform: translateZ(0px) rotate(360deg);
+  }
+}
+
+.morphing-bg {
+  background: linear-gradient(
+    135deg,
+    #0066ff 0%,
+    #00aaff 15%,
+    #00ffff 30%,
+    #4400ff 45%,
+    #ff00ff 60%,
+    #ffcc00 75%,
+    #ffc125 90%,
+    #0066ff 100%
+  );
+  background-size: 400% 400%;
+  animation: fluid-mix-3d-alive 15s ease-in-out infinite;
+  filter: saturate(1.7) brightness(1.1);
+  mix-blend-mode: lighten;
+  box-shadow:
+    inset 0 0 30px rgba(255, 255, 255, 0.2),
+    inset 0 0 60px rgba(0, 170, 255, 0.2),
+    inset 0 0 90px rgba(255, 204, 0, 0.1);
+  transform-style: preserve-3d;
+}
+
+/* Effet de substance épaisse */
+.substance-effect {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 -10px 20px rgba(0, 0, 0, 0.3);
+  opacity: 0.4;
+  background: radial-gradient(
+    circle at 50% 120%,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(0, 0, 0, 0.2) 80%
+  );
+  transform-style: preserve-3d;
+  animation: inner-fluid-movement 8s ease-in-out infinite alternate;
+}
+
+@keyframes inner-fluid-movement {
+  0% {
+    border-radius: 40% 60% 70% 30% / 40% 40% 60% 60%;
+    opacity: 0.3;
+    transform: translateZ(5px) rotate(0deg);
+  }
+  50% {
+    border-radius: 60% 40% 30% 70% / 70% 50% 50% 30%;
+    opacity: 0.5;
+    transform: translateZ(15px) rotate(180deg);
+  }
+  100% {
+    border-radius: 50% 50% 40% 60% / 30% 60% 40% 70%;
+    opacity: 0.3;
+    transform: translateZ(5px) rotate(360deg);
+  }
+}
+
+/* Noyau interne avec effet de fluide coloré en 3D - battements plus intenses */
+@keyframes fluid-core-colors-3d-intense {
+  0% {
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 215, 0, 0.5) 30%,
+      rgba(0, 102, 255, 0.4) 60%,
+      rgba(100, 0, 255, 0.1) 100%
+    );
+    box-shadow:
+      0 0 20px rgba(255, 255, 255, 0.7),
+      0 0 40px rgba(0, 102, 255, 0.5),
+      inset 0 2px 5px rgba(255, 255, 255, 0.5),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    transform: translateZ(25px) scale3d(1, 1, 1) rotate(0deg);
+  }
+  25% {
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(0, 102, 255, 0.5) 30%,
+      rgba(255, 215, 0, 0.4) 60%,
+      rgba(255, 0, 127, 0.1) 100%
+    );
+    box-shadow:
+      0 0 30px rgba(255, 255, 255, 0.8),
+      0 0 60px rgba(255, 215, 0, 0.6),
+      inset 0 3px 6px rgba(255, 255, 255, 0.6),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+    transform: translateZ(35px) scale3d(1.3, 1.3, 1.5) rotate(90deg);
+  }
+  50% {
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(0, 170, 255, 0.5) 30%,
+      rgba(255, 193, 37, 0.4) 60%,
+      rgba(0, 255, 127, 0.1) 100%
+    );
+    box-shadow:
+      0 0 25px rgba(255, 255, 255, 0.7),
+      0 0 50px rgba(0, 170, 255, 0.5),
+      inset 0 2px 5px rgba(255, 255, 255, 0.5),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    transform: translateZ(30px) scale3d(1.1, 1.1, 1.2) rotate(180deg);
+  }
+  75% {
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 128, 0, 0.5) 30%,
+      rgba(0, 128, 255, 0.4) 60%,
+      rgba(128, 0, 255, 0.1) 100%
+    );
+    box-shadow:
+      0 0 30px rgba(255, 255, 255, 0.8),
+      0 0 60px rgba(0, 128, 255, 0.6),
+      inset 0 3px 6px rgba(255, 255, 255, 0.6),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+    transform: translateZ(35px) scale3d(1.3, 1.3, 1.5) rotate(270deg);
+  }
+  100% {
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 215, 0, 0.5) 30%,
+      rgba(0, 102, 255, 0.4) 60%,
+      rgba(100, 0, 255, 0.1) 100%
+    );
+    box-shadow:
+      0 0 20px rgba(255, 255, 255, 0.7),
+      0 0 40px rgba(0, 102, 255, 0.5),
+      inset 0 2px 5px rgba(255, 255, 255, 0.5),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    transform: translateZ(25px) scale3d(1, 1, 1) rotate(360deg);
+  }
+}
+
+/* Animation du noyau interne avec déformation organique en 3D - plus intense */
+@keyframes core-pulse-3d-heartbeat {
+  0%,
+  100% {
+    transform: translateZ(25px) scale3d(0.9, 0.9, 0.9) rotate(0deg);
+    filter: brightness(0.8);
+    border-radius: 50%;
+  }
+  10% {
+    transform: translateZ(30px) scale3d(1.1, 1.1, 1.3) rotate(10deg);
+    filter: brightness(1.2);
+    border-radius: 45% 55% 52% 48% / 48% 52% 48% 52%;
+  }
+  15% {
+    transform: translateZ(25px) scale3d(0.95, 0.95, 0.9) rotate(15deg);
+    filter: brightness(0.9);
+    border-radius: 50%;
+  }
+  25% {
+    transform: translateZ(38px) scale3d(1.4, 1.4, 1.6) rotate(25deg);
+    filter: brightness(1.5);
+    border-radius: 52% 48% 45% 55% / 55% 45% 55% 45%;
+  }
+  35% {
+    transform: translateZ(25px) scale3d(0.9, 0.9, 0.8) rotate(35deg);
+    filter: brightness(0.8);
+    border-radius: 50%;
+  }
+  65% {
+    transform: translateZ(28px) scale3d(1, 1, 1) rotate(65deg);
+    filter: brightness(1);
+    border-radius: 49% 51% 51% 49% / 49% 51% 49% 51%;
+  }
+  80% {
+    transform: translateZ(35px) scale3d(1.3, 1.3, 1.5) rotate(80deg);
+    filter: brightness(1.4);
+    border-radius: 54% 46% 48% 52% / 46% 54% 46% 54%;
+  }
+  85% {
+    transform: translateZ(25px) scale3d(0.9, 0.9, 0.9) rotate(85deg);
+    filter: brightness(0.8);
+    border-radius: 50%;
+  }
+}
+
+.inner-core {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  animation:
+    core-pulse-3d-heartbeat 1s cubic-bezier(0.215, 0.61, 0.355, 1) infinite,
+    fluid-core-colors-3d-intense 8s linear infinite;
+  filter: contrast(1.2);
+  background-blend-mode: overlay;
+  transform-style: preserve-3d;
+  transform: translateZ(25px);
+}
+
+/* Effet de sphère 3D avec ombres et reflets */
+.core-highlight {
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.8) 0%,
+    transparent 50%
+  );
+  opacity: 0.5;
+  animation: core-highlight-pulse 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+/* Ajouter un halo lumineux pulsant */
+.core-halo {
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(0, 170, 255, 0.2) 30%,
+    rgba(255, 204, 0, 0.1) 60%,
+    transparent 100%
+  );
+  filter: blur(5px);
+  animation: halo-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes core-highlight-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes halo-pulse {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+/* Système orbital avec ratio d'or et effet 3D */
+.orbital-system {
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: orbit-system-tilt 15s ease-in-out infinite alternate;
+}
+
+@keyframes orbit-system-tilt {
+  0%,
+  100% {
+    transform: rotateX(5deg) rotateY(-5deg);
+  }
+  50% {
+    transform: rotateX(-5deg) rotateY(5deg);
+  }
+}
+
+@keyframes orbital-rotation-1-3d {
+  0% {
+    transform: translateZ(10px) rotateZ(0deg) rotateX(60deg) rotateY(0deg);
+  }
+  100% {
+    transform: translateZ(10px) rotateZ(360deg) rotateX(60deg) rotateY(0deg);
+  }
+}
+
+@keyframes orbital-rotation-2-3d {
+  0% {
+    transform: translateZ(5px) rotateZ(0deg) rotateX(0deg) rotateY(60deg);
+  }
+  100% {
+    transform: translateZ(5px) rotateZ(360deg) rotateX(0deg) rotateY(60deg);
+  }
+}
+
+@keyframes orbital-rotation-3-3d {
+  0% {
+    transform: translateZ(15px) rotateZ(90deg) rotateX(30deg) rotateY(30deg);
+  }
+  100% {
+    transform: translateZ(15px) rotateZ(450deg) rotateX(30deg) rotateY(30deg);
+  }
+}
+
+.orbital-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  transform-style: preserve-3d;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.orbital-ring-1 {
+  border-top: 1.5px solid rgba(0, 102, 255, 0.9);
+  border-bottom: 1.5px solid rgba(0, 102, 255, 0.3);
+  animation: orbital-rotation-1-3d 8s linear infinite;
+}
+
+.orbital-ring-2 {
+  border-left: 1.5px solid rgba(255, 204, 0, 0.9);
+  border-right: 1.5px solid rgba(255, 204, 0, 0.3);
+  animation: orbital-rotation-2-3d 12s linear infinite;
+}
+
+.orbital-ring-3 {
+  border-top: 1.5px solid rgba(0, 170, 255, 0.9);
+  border-bottom: 1.5px solid rgba(0, 170, 255, 0.3);
+  animation: orbital-rotation-3-3d 10s linear infinite;
+}
+
+/* Particules avec timing selon la séquence de Fibonacci et changement de couleur en 3D */
+@keyframes particle-orbit-3d-dynamic {
+  0% {
+    transform: rotateZ(var(--start-deg)) translateX(var(--orbit-radius))
+      translateZ(var(--z-offset)) scale3d(0.8, 0.8, 1);
+    opacity: 0.4;
+    filter: hue-rotate(0deg) brightness(1);
+    box-shadow:
+      0 0 var(--glow-size) var(--color),
+      0 0 calc(var(--glow-size) * 2) var(--color-transparent);
+  }
+  25% {
+    transform: rotateZ(calc(var(--start-deg) + 90deg))
+      translateX(calc(var(--orbit-radius) + 5px)) translateZ(calc(var(--z-offset) + 8px))
+      scale3d(1.3, 1.3, 1.5);
+    opacity: 1;
+    filter: hue-rotate(90deg) brightness(1.3);
+    box-shadow:
+      0 0 calc(var(--glow-size) * 2) var(--color),
+      0 0 calc(var(--glow-size) * 4) var(--color-transparent);
+  }
+  50% {
+    transform: rotateZ(calc(var(--start-deg) + 180deg)) translateX(var(--orbit-radius))
+      translateZ(var(--z-offset)) scale3d(0.6, 0.6, 0.8);
+    opacity: 0.3;
+    filter: hue-rotate(180deg) brightness(0.9);
+    box-shadow:
+      0 0 var(--glow-size) var(--color),
+      0 0 calc(var(--glow-size) * 1.5) var(--color-transparent);
+  }
+  75% {
+    transform: rotateZ(calc(var(--start-deg) + 270deg))
+      translateX(calc(var(--orbit-radius) + 8px)) translateZ(calc(var(--z-offset) - 5px))
+      scale3d(1.4, 1.4, 1.7);
+    opacity: 1;
+    filter: hue-rotate(270deg) brightness(1.5);
+    box-shadow:
+      0 0 calc(var(--glow-size) * 2.5) var(--color),
+      0 0 calc(var(--glow-size) * 5) var(--color-transparent);
+  }
+  100% {
+    transform: rotateZ(calc(var(--start-deg) + 360deg)) translateX(var(--orbit-radius))
+      translateZ(var(--z-offset)) scale3d(0.8, 0.8, 1);
+    opacity: 0.4;
+    filter: hue-rotate(360deg) brightness(1);
+    box-shadow:
+      0 0 var(--glow-size) var(--color),
+      0 0 calc(var(--glow-size) * 2) var(--color-transparent);
+  }
+}
+
+.particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  filter: blur(0.5px);
+  transform-origin: center;
+  transform-style: preserve-3d;
+  animation-name: particle-orbit-3d-dynamic;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Effet de gel pour les particules */
+.particle-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(2px);
+  opacity: 0.5;
+  transform: translateZ(-1px);
+}
+
+.particle-1 {
+  --start-deg: 0deg;
+  --orbit-radius: 45px;
+  --z-offset: 20px;
+  --color: #0066ff;
+  --color-transparent: rgba(0, 102, 255, 0.5);
+  --glow-size: 10px;
+  background: #0066ff;
+  box-shadow:
+    0 0 10px #0066ff,
+    0 0 20px rgba(0, 102, 255, 0.5);
+  animation: particle-orbit-3d-dynamic 5s linear infinite;
+}
+
+.particle-2 {
+  --start-deg: 60deg;
+  --orbit-radius: 42px;
+  --z-offset: 15px;
+  --color: #ffcc00;
+  --color-transparent: rgba(255, 204, 0, 0.5);
+  --glow-size: 10px;
+  background: #ffcc00;
+  box-shadow:
+    0 0 10px #ffcc00,
+    0 0 20px rgba(255, 204, 0, 0.5);
+  animation: particle-orbit-3d-dynamic 8s linear infinite;
+}
+
+.particle-3 {
+  --start-deg: 120deg;
+  --orbit-radius: 48px;
+  --z-offset: 10px;
+  --color: #00aaff;
+  --color-transparent: rgba(0, 170, 255, 0.5);
+  --glow-size: 10px;
+  background: #00aaff;
+  box-shadow:
+    0 0 10px #00aaff,
+    0 0 20px rgba(0, 170, 255, 0.5);
+  animation: particle-orbit-3d-dynamic 13s linear infinite;
+}
+
+.particle-4 {
+  --start-deg: 180deg;
+  --orbit-radius: 38px;
+  --z-offset: 25px;
+  --color: #ffd700;
+  --color-transparent: rgba(255, 215, 0, 0.5);
+  --glow-size: 10px;
+  background: #ffd700;
+  box-shadow:
+    0 0 10px #ffd700,
+    0 0 20px rgba(255, 215, 0, 0.5);
+  animation: particle-orbit-3d-dynamic 21s linear infinite;
+}
+
+.particle-5 {
+  --start-deg: 240deg;
+  --orbit-radius: 52px;
+  --z-offset: 12px;
+  --color: #1e90ff;
+  --color-transparent: rgba(30, 144, 255, 0.5);
+  --glow-size: 10px;
+  background: #1e90ff;
+  box-shadow:
+    0 0 10px #1e90ff,
+    0 0 20px rgba(30, 144, 255, 0.5);
+  animation: particle-orbit-3d-dynamic 34s linear infinite;
+}
+
+.particle-6 {
+  --start-deg: 300deg;
+  --orbit-radius: 46px;
+  --z-offset: 18px;
+  --color: #ffc125;
+  --color-transparent: rgba(255, 193, 37, 0.5);
+  --glow-size: 10px;
+  background: #ffc125;
+  box-shadow:
+    0 0 10px #ffc125,
+    0 0 20px rgba(255, 193, 37, 0.5);
+  animation: particle-orbit-3d-dynamic 18s linear infinite;
+}
+
+/* Animation de la pulsation cardiaque avec déformations organiques plus intenses */
+@keyframes heartbeat-intense {
+  0% {
+    transform: scale3d(1, 1, 1);
+    opacity: 0.2;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.2);
+  }
+  10% {
+    transform: scale3d(1.08, 1.08, 1.2);
+    opacity: 0.4;
+    border-radius: 48% 52% 55% 45% / 52% 48% 52% 48%;
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.3);
+  }
+  20% {
+    transform: scale3d(0.95, 0.95, 0.9);
+    opacity: 0.2;
+    border-radius: 51% 49% 47% 53% / 47% 53% 47% 53%;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.2);
+  }
+  30% {
+    transform: scale3d(1.1, 1.1, 1.3);
+    opacity: 0.5;
+    border-radius: 45% 55% 60% 40% / 55% 45% 60% 40%;
+    box-shadow: 0 0 30px rgba(0, 102, 255, 0.4);
+  }
+  45% {
+    transform: scale3d(0.9, 0.9, 0.8);
+    opacity: 0.2;
+    border-radius: 50% 50% 48% 52% / 52% 48% 50% 50%;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.2);
+  }
+  60% {
+    transform: scale3d(1, 1, 1);
+    opacity: 0.3;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(0, 102, 255, 0.25);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+    opacity: 0.2;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.2);
+  }
+}
+
+.heartbeat-pulse {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: heartbeat-intense 1s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  transform-style: preserve-3d;
+}
+
+/* Classe générale pour la matière vivante */
+.living-matter {
+  animation:
+    living-matter-float 10s ease-in-out infinite alternate,
+    living-matter-rotate 30s linear infinite;
+}
+
+@keyframes living-matter-float {
+  0% {
+    transform: translateY(0px) translateX(0px);
+  }
+  100% {
+    transform: translateY(-10px) translateX(5px);
+  }
+}
+
+@keyframes living-matter-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Couches de fluide interne */
+.inner-fluid-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.4;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.layer-1 {
+  background: radial-gradient(
+    circle at 30% 40%,
+    rgba(0, 102, 255, 0.2) 0%,
+    rgba(255, 204, 0, 0.1) 50%,
+    transparent 80%
+  );
+  animation: fluid-layer-1 8s ease-in-out infinite alternate;
+  filter: blur(2px);
+  transform: translateZ(10px);
+}
+
+.layer-2 {
+  background: radial-gradient(
+    circle at 70% 30%,
+    rgba(255, 204, 0, 0.2) 0%,
+    rgba(0, 170, 255, 0.1) 50%,
+    transparent 80%
+  );
+  animation: fluid-layer-2 12s ease-in-out infinite alternate-reverse;
+  filter: blur(3px);
+  transform: translateZ(15px);
+}
+
+.layer-3 {
+  background: radial-gradient(
+    circle at 50% 60%,
+    rgba(0, 170, 255, 0.2) 0%,
+    rgba(255, 215, 0, 0.1) 50%,
+    transparent 80%
+  );
+  animation: fluid-layer-3 10s ease-in-out infinite alternate;
+  filter: blur(4px);
+  transform: translateZ(20px);
+}
+
+@keyframes fluid-layer-1 {
+  0% {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    transform: translateZ(10px) rotate(0deg);
+  }
+  100% {
+    border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+    transform: translateZ(15px) rotate(60deg);
+  }
+}
+
+@keyframes fluid-layer-2 {
+  0% {
+    border-radius: 70% 30% 50% 50% / 30% 50% 50% 70%;
+    transform: translateZ(15px) rotate(0deg);
+  }
+  100% {
+    border-radius: 50% 50% 70% 30% / 50% 70% 30% 50%;
+    transform: translateZ(20px) rotate(-90deg);
+  }
+}
+
+@keyframes fluid-layer-3 {
+  0% {
+    border-radius: 50% 50% 30% 70% / 60% 40% 60% 40%;
+    transform: translateZ(20px) rotate(0deg);
+  }
+  100% {
+    border-radius: 40% 60% 60% 40% / 30% 60% 40% 70%;
+    transform: translateZ(25px) rotate(120deg);
+  }
+}
+
+/* Effet de tourbillons pour simuler des courants internes */
+.vortex-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  opacity: 0.4;
+}
+
+.vortex {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  opacity: 0.25;
+  filter: blur(3px);
+}
+
+.vortex-1 {
+  background: conic-gradient(
+    from 0deg,
+    rgba(0, 102, 255, 0) 0%,
+    rgba(0, 102, 255, 0.2) 25%,
+    rgba(255, 204, 0, 0.3) 50%,
+    rgba(0, 170, 255, 0.2) 75%,
+    rgba(0, 102, 255, 0) 100%
+  );
+  animation: vortex-spin-1 15s linear infinite;
+  transform: translateZ(8px);
+}
+
+.vortex-2 {
+  background: conic-gradient(
+    from 180deg,
+    rgba(255, 204, 0, 0) 0%,
+    rgba(255, 204, 0, 0.2) 25%,
+    rgba(0, 102, 255, 0.3) 50%,
+    rgba(255, 215, 0, 0.2) 75%,
+    rgba(255, 204, 0, 0) 100%
+  );
+  animation: vortex-spin-2 10s linear infinite;
+  transform: translateZ(12px);
+}
+
+@keyframes vortex-spin-1 {
+  0% {
+    transform: translateZ(8px) rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateZ(10px) rotate(180deg);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateZ(8px) rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
+@keyframes vortex-spin-2 {
+  0% {
+    transform: translateZ(12px) rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateZ(14px) rotate(-180deg);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateZ(12px) rotate(-360deg);
+    opacity: 0.2;
+  }
+}
+
+/* Conteneur du noyau avec animation */
+.nucleus-container {
+  animation: nucleus-orbit 12s ease-in-out infinite alternate;
+  transform-style: preserve-3d;
+}
+
+@keyframes nucleus-orbit {
+  0% {
+    transform: translateX(-2px) translateY(-2px) rotate(0deg);
+  }
+  33% {
+    transform: translateX(3px) translateY(1px) rotate(120deg);
+  }
+  66% {
+    transform: translateX(-1px) translateY(3px) rotate(240deg);
+  }
+  100% {
+    transform: translateX(2px) translateY(-3px) rotate(360deg);
+  }
+}
+
+/* Effet d'ondulation au clic avec variations de couleurs */
+@keyframes ripple {
+  0% {
+    transform: scale(0.1);
+    opacity: 1;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(0, 102, 255, 0.5) 50%,
+      rgba(255, 204, 0, 0.2) 70%
+    );
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.8;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(0, 170, 255, 0.4) 40%,
+      rgba(255, 215, 0, 0.3) 70%
+    );
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(30, 144, 255, 0.2) 40%,
+      rgba(255, 193, 37, 0.1) 70%
+    );
+  }
+}
+
+.ripple-effect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.1);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.1) 70%
+  );
+  animation: ripple 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  mix-blend-mode: screen;
+}
+
+/* Effet de changement de couleur au clic */
+@keyframes color-shift-animation {
+  0% {
+    filter: hue-rotate(0deg) saturate(1.5);
+  }
+  50% {
+    filter: hue-rotate(180deg) saturate(2.5);
+  }
+  100% {
+    filter: hue-rotate(0deg) saturate(1.5);
+  }
+}
+
+.color-shift {
+  animation: color-shift-animation 1s ease-in-out;
+}
+
+/* Indicateurs d'attention subtils */
+@keyframes attention-pulse {
+  0%,
+  100% {
+    transform: scale(0.9) translate(-16px, -16px);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.1) translate(-16px, -16px);
+    opacity: 0.5;
+  }
+}
+
+.attention-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0066ff;
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.7);
+  animation: attention-pulse 3s ease-in-out infinite;
+}
+
+.attention-indicator:nth-child(2) {
+  animation-delay: 1.5s;
+  background: #ffcc00;
+  box-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+}
+
+/* Effet de lueur du texte */
+@keyframes text-glow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 5px rgba(255, 255, 255, 0.7),
+      0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    text-shadow:
+      0 0 8px rgba(255, 255, 255, 0.9),
+      0 0 15px rgba(255, 255, 255, 0.7),
+      0 0 20px rgba(0, 102, 255, 0.5);
+  }
+}
+
+.text-glow {
+  animation: text-glow 3s ease-in-out infinite;
+  letter-spacing: 1px;
+}
+
+/* Animation des éléments alternants avec contre-rotation et mouvements indépendants */
+.icon-container-wrapper {
+  /* Appliquer une contre-rotation pour neutraliser la rotation du bouton principal */
+  animation: counter-rotate 30s linear infinite;
+  transform-style: preserve-3d;
+  z-index: 30;
+}
+
+@keyframes counter-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+.icon-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Animations indépendantes pour le conteneur d'icônes */
+  animation: icon-container-float 7s ease-in-out infinite alternate;
+}
+
+@keyframes icon-container-float {
+  0% {
+    transform: translateY(-2px) scale(0.98);
+  }
+  50% {
+    transform: translateY(3px) scale(1.02) rotate(5deg);
+  }
+  100% {
+    transform: translateY(1px) scale(1) rotate(-5deg);
+  }
+}
+
+.alternating-element {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+  /* Ajout d'un effet de flottement indépendant */
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+}
+
+/* Animation de fade-in-out pour les éléments alternants */
+@keyframes fade-in-out {
+  0%,
+  33%,
+  100% {
+    opacity: 0;
+  }
+  5%,
+  28% {
+    opacity: 1;
+  }
+}
+
+@keyframes text-float-animation {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-3px) scale(1.05) rotate(1deg);
+  }
+  50% {
+    transform: translateY(2px) scale(0.98) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(-1px) scale(1.02) rotate(2deg);
+  }
+}
+
+@keyframes mic-float-animation {
+  0%,
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  30% {
+    transform: translateY(2px) scale(1.03) rotate(5deg);
+  }
+  70% {
+    transform: translateY(-3px) scale(0.97) rotate(-3deg);
+  }
+}
+
+@keyframes chat-float-animation {
+  0%,
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  40% {
+    transform: translateY(-2px) scale(1.05) rotate(-4deg);
+  }
+  80% {
+    transform: translateY(3px) scale(0.98) rotate(2deg);
+  }
+}
+
+.text-element {
+  animation:
+    fade-in-out 9s cubic-bezier(0.25, 0.1, 0.25, 1) infinite,
+    text-float-animation 4s ease-in-out infinite;
+}
+
+.mic-element {
+  animation:
+    fade-in-out 9s cubic-bezier(0.25, 0.1, 0.25, 1) infinite,
+    mic-float-animation 5s ease-in-out infinite;
+  animation-delay: 3s, 0s;
+}
+
+.chat-element {
+  animation:
+    fade-in-out 9s cubic-bezier(0.25, 0.1, 0.25, 1) infinite,
+    chat-float-animation 6s ease-in-out infinite;
+  animation-delay: 6s, 0s;
+}

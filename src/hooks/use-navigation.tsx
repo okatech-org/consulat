@@ -17,7 +17,6 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { NotificationBell } from '@/components/notifications/notification-bell';
 import { hasAnyRole } from '@/lib/permissions/utils';
 
 export function useNavigation(user: SessionUser) {
@@ -80,13 +79,6 @@ export function useNavigation(user: SessionUser) {
       roles: [UserRole.SUPER_ADMIN],
     },
     {
-      title: t('notifications'),
-      url: ROUTES.dashboard.notifications,
-      icon: <NotificationBell />,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
-    },
-
-    {
       title: t('settings'),
       url: ROUTES.dashboard.settings,
       icon: <Settings className="size-icon" />,
@@ -123,12 +115,6 @@ export function useNavigation(user: SessionUser) {
       title: t('appointments'),
       url: ROUTES.user.appointments,
       icon: <Calendar className="size-icon" />,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('notifications'),
-      url: ROUTES.user.notifications,
-      icon: <NotificationBell />,
       roles: [UserRole.USER],
     },
   ];

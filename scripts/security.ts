@@ -6,6 +6,7 @@ export const ContentSecurityPolicy = `
   style-src 'self' 'unsafe-inline';
   font-src 'self' data:;
   img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io https://rbvj2i3urx.ufs.sh https://qld7pfnhxe.ufs.sh https://i.ytimg.com blob: data:;
+  object-src 'self' data:;
   media-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
   connect-src 'self'
     https://api.openai.com
