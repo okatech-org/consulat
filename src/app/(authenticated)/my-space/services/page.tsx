@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
   CardContent,
   CardDescription,
   CardFooter,
@@ -33,7 +32,8 @@ import { ROUTES } from '@/schemas/routes';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageContainer } from '@/components/layouts/page-container';
-import { ChatToggle } from '@/components/chat/chat-toggle';
+import { useChat } from '@/contexts/chat-context';
+import CardContainer from '@/components/layouts/card-container';
 
 // Status config for display
 const statusConfig: Record<
@@ -122,6 +122,7 @@ const getProgressPercentage = (status: RequestStatus): number => {
 };
 
 export default function ServicesPage() {
+  const { toggleChat } = useChat();
   const t = useTranslations('services');
   const [serviceRequests, setServiceRequests] = useState<FullServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -239,185 +240,149 @@ export default function ServicesPage() {
 
         <TabsContent value="dashboard" className="mt-6 space-y-6">
           {/* Recent Requests */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Demandes récentes</CardTitle>
-              <CardDescription>
-                Vos 5 dernières demandes de services consulaires
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between border-b pb-4"
+          <CardContainer
+            title="Demandes récentes"
+            subtitle="Vos 5 dernières demandes de services consulaires"
+            footerContent={
+              <>
+                {serviceRequests.length > 5 && (
+                  <Link href="#my-requests">
+                    <Button
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => {
+                        const element = document.querySelector(
+                          '[data-value="my-requests"]',
+                        );
+                        if (element instanceof HTMLElement) {
+                          element.click();
+                        }
+                      }}
                     >
-                      <div className="space-y-1">
-                        <Skeleton className="h-5 w-40" />
-                        <Skeleton className="h-4 w-24" />
-                      </div>
-                      <Skeleton className="h-8 w-24 rounded-full" />
-                    </div>
-                  ))}
-                </div>
-              ) : serviceRequests.length > 0 ? (
-                <div className="space-y-4">
-                  {serviceRequests.slice(0, 5).map((request) => {
-                    const status = request.status as RequestStatus;
-                    const statusInfo = statusConfig[status];
-                    const progress = getProgressPercentage(status);
-
-                    return (
-                      <Link
-                        href={ROUTES.user.service_request_details(request.id)}
-                        key={request.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 hover:bg-muted/30 rounded-lg p-2 transition-colors"
-                      >
-                        <div className="space-y-1">
-                          <div className="font-medium">{request.service?.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(request.updatedAt), {
-                              addSuffix: true,
-                              locale: fr,
-                            })}
-                          </div>
-                        </div>
-                        <div className="flex flex-col sm:items-end mt-2 sm:mt-0 space-y-2">
-                          <Badge
-                            className={`${statusInfo.color} flex items-center gap-1`}
-                          >
-                            {statusInfo.icon}
-                            {statusInfo.label}
-                          </Badge>
-                          {status !== 'REJECTED' && (
-                            <div className="w-full sm:w-24">
-                              <Progress value={progress} className="h-2" />
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <p className="text-muted-foreground mb-4">{t('myRequests.empty')}</p>
-                  <Link href={ROUTES.user.services + '/available'}>
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      {t('myRequests.startNew')}
+                      Voir toutes mes demandes
+                      <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                </div>
-              )}
-            </CardContent>
-            {serviceRequests.length > 5 && (
-              <CardFooter>
-                <Link href="#my-requests">
-                  <Button
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => {
-                      const element = document.querySelector(
-                        '[data-value="my-requests"]',
-                      );
-                      if (element instanceof HTMLElement) {
-                        element.click();
-                      }
-                    }}
+                )}
+              </>
+            }
+          >
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between border-b pb-4"
                   >
-                    Voir toutes mes demandes
-                    <ChevronRight className="ml-2 h-4 w-4" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-5 w-40" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <Skeleton className="h-8 w-24 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            ) : serviceRequests.length > 0 ? (
+              <div className="space-y-4">
+                {serviceRequests.slice(0, 5).map((request) => {
+                  const status = request.status as RequestStatus;
+                  const statusInfo = statusConfig[status];
+                  const progress = getProgressPercentage(status);
+
+                  return (
+                    <Link
+                      href={ROUTES.user.service_request_details(request.id)}
+                      key={request.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 hover:bg-muted/30 rounded-lg p-2 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <div className="font-medium">{request.service?.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(request.updatedAt), {
+                            addSuffix: true,
+                            locale: fr,
+                          })}
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:items-end mt-2 sm:mt-0 space-y-2">
+                        <Badge className={`${statusInfo.color} flex items-center gap-1`}>
+                          {statusInfo.icon}
+                          {statusInfo.label}
+                        </Badge>
+                        {status !== 'REJECTED' && (
+                          <div className="w-full sm:w-24">
+                            <Progress value={progress} className="h-2" />
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-muted-foreground mb-4">{t('myRequests.empty')}</p>
+                <Link href={ROUTES.user.services + '/available'}>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('myRequests.startNew')}
                   </Button>
                 </Link>
-              </CardFooter>
+              </div>
             )}
-          </Card>
+          </CardContainer>
           {/* Statistics Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Total des demandes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.total}</div>
-              </CardContent>
-            </Card>
+            <CardContainer title="Total des demandes">
+              <div className="text-3xl font-bold">{stats.total}</div>
+            </CardContainer>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">En cours</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-amber-500">{stats.ongoing}</div>
-              </CardContent>
-            </Card>
+            <CardContainer title="En cours">
+              <div className="text-3xl font-bold text-amber-500">{stats.ongoing}</div>
+            </CardContainer>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Complétées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-500">{stats.completed}</div>
-              </CardContent>
-            </Card>
+            <CardContainer title="Complétées">
+              <div className="text-3xl font-bold text-green-500">{stats.completed}</div>
+            </CardContainer>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Rejetées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-red-500">{stats.rejected}</div>
-              </CardContent>
-            </Card>
+            <CardContainer title="Rejetées">
+              <div className="text-3xl font-bold text-red-500">{stats.rejected}</div>
+            </CardContainer>
           </div>
 
           {/* Action Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm">
-              <CardHeader>
-                <CardTitle>Nouvelle demande</CardTitle>
-                <CardDescription>
-                  Démarrez une nouvelle demande de service consulaire
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">
-                  Accédez à tous les services disponibles proposés par votre consulat.
-                </p>
-              </CardContent>
-              <CardFooter>
+            <CardContainer
+              title="Nouvelle demande"
+              subtitle="Démarrez une nouvelle demande de service consulaire"
+              footerContent={
                 <Link href={ROUTES.user.services + '/available'}>
                   <Button className="w-full">
                     <Plus className="size-icon" />
                     Découvrir les services
                   </Button>
                 </Link>
-              </CardFooter>
-            </Card>
+              }
+            >
+              <p className="mb-4">
+                Accédez à tous les services disponibles proposés par votre consulat.
+              </p>
+            </CardContainer>
 
-            <Card className="bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm">
-              <CardHeader>
-                <CardTitle>Besoin d'aide ?</CardTitle>
-                <CardDescription>Assistance pour vos demandes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">
-                  Si vous avez des questions sur vos demandes ou les services disponibles,
-                  contactez-nous.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <Link href={'#'}>
-                  <Button variant="outline" className="w-full">
-                    Obtenir de l&apos;aide
-                  </Button>
-                  <ChatToggle />
-                </Link>
-              </CardFooter>
-            </Card>
+            <CardContainer
+              title="Besoin d'aide ?"
+              subtitle="Assistance pour vos demandes"
+              footerContent={
+                <Button variant="outline" className="w-full" onClick={toggleChat}>
+                  Obtenir de l&apos;aide
+                </Button>
+              }
+            >
+              <p className="mb-4">
+                Si vous avez des questions sur vos demandes ou les services disponibles,
+                contactez-nous.
+              </p>
+            </CardContainer>
           </div>
         </TabsContent>
 
@@ -470,23 +435,15 @@ export default function ServicesPage() {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between">
-                      <Skeleton className="h-6 w-32" />
-                      <Skeleton className="h-6 w-24 rounded-full" />
-                    </div>
-                    <Skeleton className="h-4 w-40 mt-2" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Skeleton className="h-2 w-24" />
-                    <Skeleton className="h-9 w-32" />
-                  </CardFooter>
-                </Card>
+                <CardContainer
+                  key={i}
+                  className="overflow-hidden"
+                  title={<Skeleton className="h-6 w-32" />}
+                  footerContent={<Skeleton className="h-6 w-32" />}
+                >
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContainer>
               ))}
             </div>
           ) : filteredRequests.length > 0 ? (
@@ -497,61 +454,52 @@ export default function ServicesPage() {
                 const progress = getProgressPercentage(status);
 
                 return (
-                  <Link
-                    href={ROUTES.user.service_request_details(request.id)}
+                  <CardContainer
+                    title={request.service?.name}
+                    subtitle={`Soumise le ${new Date(request.createdAt).toLocaleDateString()}`}
+                    className="h-full flex flex-col"
                     key={request.id}
-                    className="block transition-transform hover:scale-[1.01]"
-                  >
-                    <Card className="h-full flex flex-col">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">
-                            {request.service?.name}
-                          </CardTitle>
-                          <Badge
-                            className={`${statusInfo.color} flex items-center gap-1`}
-                          >
-                            {statusInfo.icon}
-                            {statusInfo.label}
-                          </Badge>
-                        </div>
-                        <CardDescription>
-                          Soumise le {new Date(request.createdAt).toLocaleDateString()}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pb-2 flex-grow">
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">
-                            Dernière mise à jour:{' '}
-                            {formatDistanceToNow(new Date(request.updatedAt), {
-                              addSuffix: true,
-                              locale: fr,
-                            })}
-                          </p>
-                          {request.assignedTo && (
-                            <p className="text-sm">
-                              Assignée à: {request.assignedTo.name}
-                            </p>
-                          )}
-
-                          {status !== 'REJECTED' && (
-                            <div className="pt-2">
-                              <div className="flex justify-between text-xs mb-1">
-                                <span>Progression</span>
-                                <span>{progress}%</span>
-                              </div>
-                              <Progress value={progress} className="h-2" />
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-2">
-                        <Button variant="outline" size="sm" className="w-full">
+                    action={
+                      <Badge className={`${statusInfo.color} flex items-center gap-1`}>
+                        {statusInfo.icon}
+                        {statusInfo.label}
+                      </Badge>
+                    }
+                    footerContent={
+                      <Button variant="outline" size="sm" className="w-full" asChild>
+                        <Link
+                          href={ROUTES.user.service_request_details(request.id)}
+                          key={request.id}
+                          className="block transition-transform hover:scale-[1.01]"
+                        >
                           {t('actions.viewDetails')}
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </Link>
+                        </Link>
+                      </Button>
+                    }
+                  >
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Dernière mise à jour:{' '}
+                        {formatDistanceToNow(new Date(request.updatedAt), {
+                          addSuffix: true,
+                          locale: fr,
+                        })}
+                      </p>
+                      {request.assignedTo && (
+                        <p className="text-sm">Assignée à: {request.assignedTo.name}</p>
+                      )}
+
+                      {status !== 'REJECTED' && (
+                        <div className="pt-2">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span>Progression</span>
+                            <span>{progress}%</span>
+                          </div>
+                          <Progress value={progress} className="h-2" />
+                        </div>
+                      )}
+                    </div>
+                  </CardContainer>
                 );
               })}
             </div>

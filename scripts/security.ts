@@ -15,6 +15,7 @@ export const ContentSecurityPolicy = `
     https://uploadthing.com
     https://*.uploadthing.com
     https://utfs.io
+    https://utfs.io/f/*
     https://api.twilio.com
     https://lottie.host
     https://player.vimeo.com
@@ -24,8 +25,8 @@ export const ContentSecurityPolicy = `
     https://*.vercel-scripts.com
     https://*.vercel-insights.com
     https://*.vercel-analytics.com
-    https://rbvj2i3urx.ufs.sh
-    https://qld7pfnhxe.ufs.sh
+    https://*.ufs.sh
+    https://*.ufs.sh/f/*
     ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''}
     wss://*.uploadthing.com;
   frame-ancestors 'none';

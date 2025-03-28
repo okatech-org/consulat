@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { getUserFullProfile } from '@/lib/user/getters';
+import { getProfileRegistrationRequest, getUserFullProfile } from '@/lib/user/getters';
 import { getCurrentUser } from '@/actions/user';
 import { ROUTES } from '@/schemas/routes';
 
@@ -26,7 +26,11 @@ export default async function ProfilePage() {
   if (!user) return undefined;
 
   const profile = await getUserFullProfile(user.id);
-  const registrationRequest = await profile?.requestsFor;
+
+  if (!profile) return undefined;
+
+  const registrationRequest = await getProfileRegistrationRequest(profile.id);
+
   const organisationInfos =
     registrationRequest?.organizationId && user.countryCode
       ? await getOrganisationCountryInfos(

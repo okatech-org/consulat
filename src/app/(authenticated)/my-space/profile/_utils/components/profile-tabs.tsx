@@ -28,7 +28,7 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
       content: (
         <BasicInfoSection
           profile={profile}
-          onSave={() => window.location.reload()}
+          onSave={() => router.refresh()}
           requestId={requestId}
         />
       ),
@@ -39,7 +39,7 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
       content: (
         <ContactInfoSection
           profile={profile}
-          onSave={() => window.location.reload()}
+          onSave={() => router.refresh()}
           requestId={requestId}
         />
       ),
@@ -50,7 +50,7 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
       content: (
         <FamilyInfoSection
           profile={profile}
-          onSave={() => window.location.reload()}
+          onSave={() => router.refresh()}
           requestId={requestId}
         />
       ),
@@ -61,7 +61,7 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
       content: (
         <ProfessionalInfoSection
           profile={profile}
-          onSave={() => window.location.reload()}
+          onSave={() => router.refresh()}
           requestId={requestId}
         />
       ),
@@ -97,8 +97,8 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
       value={currentTab}
       onValueChange={setCurrentTab}
     >
-      <TabsList className="mb-2 w-full">
-        <div className="carousel-zone flex items-center gap-2">
+      <TabsList className="mb-2 w-full px-0">
+        <div className="carousel-zone flex items-center px-0">
           {profileTabs.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id}>
               {tab.title}

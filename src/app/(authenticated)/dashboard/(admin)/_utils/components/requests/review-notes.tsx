@@ -11,7 +11,6 @@ import CardContainer from '@/components/layouts/card-container';
 import { useDateLocale } from '@/lib/utils';
 import { FullServiceRequest } from '@/types/service-request';
 import { addServiceRequestNote } from '@/actions/service-requests';
-import { Profile } from '@prisma/client';
 
 interface NoteItemProps {
   note: FullServiceRequest['notes'][number];
@@ -21,7 +20,7 @@ export const NoteItem = ({ note }: NoteItemProps) => {
   const { formatDate } = useDateLocale();
 
   return (
-    <div className="border-b py-4 last:border-0">
+    <div className="border-b last:border-0">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {note.type === 'INTERNAL' ? (

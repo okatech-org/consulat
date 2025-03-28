@@ -72,12 +72,9 @@ export function ConsularServiceForm({
   const handleSubmit = async (data: ServiceSchemaInput) => {
     setIsLoading(true);
     try {
-      console.log('service', service, 'data', data);
       if (service.id) {
         filterUneditedKeys(data, form.formState.dirtyFields, ['id', 'steps']);
       }
-
-      console.log('data', { data });
 
       const result = await updateService(data);
       if (result.error) {
@@ -101,12 +98,6 @@ export function ConsularServiceForm({
 
   const serviceSteps: ServiceStep[] = form.watch('steps');
 
-  useEffect(() => {
-    console.log({
-      values: form.getValues(),
-      dirtyFields: form.formState.dirtyFields,
-    });
-  }, [form.formState.dirtyFields]);
   return (
     <Form {...form}>
       <form
