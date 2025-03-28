@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { , AlertTitle } from '@/components/ui/alert';
 import { buttonVariants } from '@/components/ui/button';
 import { RequestStatus } from '@prisma/client';
 import {
@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { cn } from '@/lib/utils';
 import { OrganizationMetadataAddress } from '@/schemas/organization';
+import CardContainer from '@/components/layouts/card-container';
 
 type AlertVariant = 'default' | 'destructive' | 'secondary';
 
@@ -129,11 +130,13 @@ export function ProfileStatusAlert({
   const Icon = config.icon;
 
   return (
-    <Alert variant={config.variant} className="bg-card">
-      <Icon className={cn('size-4', config.icon === Loader2 && 'animate-spin')} />
-      <AlertTitle>{config.title}</AlertTitle>
-      <AlertDescription>{config.description}</AlertDescription>
-      {config.action}
-    </Alert>
+    <CardContainer contentClass="flex flex-col gap-2 justify-start">
+      <div className="flex items-center gap-2">
+        <Icon className={cn('size-4', config.icon === Loader2 && 'animate-spin')} />
+        <AlertTitle>{config.title}</AlertTitle>
+      </div>
+      <p>{config.description}</p>
+      <div className="w-max">{config.action}</div>
+    </CardContainer>
   );
 }

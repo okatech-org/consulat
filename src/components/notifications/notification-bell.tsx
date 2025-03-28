@@ -50,13 +50,13 @@ export function NotificationBell({
             role="button"
             aria-label={title}
             tabIndex={0}
-            className="rounded-full hover:bg-muted transition-colors"
+            className="rounded-full aspect-square p-2 hover:bg-muted transition-colors"
           >
             <BellIcon animate={isLoading} className={bellClassName + ' size-icon'} />
 
             <AnimatePresence>
               {unreadCount > 0 && (
-                <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-0 right-[1%]">
+                <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-0 right-0 translate-x-[1rem] translate-y-[1rem]">
                   <span className="sr-only">{unreadCount}</span>
                 </div>
               )}

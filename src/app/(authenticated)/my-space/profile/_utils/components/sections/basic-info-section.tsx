@@ -20,8 +20,7 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import { BasicInfoForm } from '@/components/registration/basic-info';
 import { InfoField } from '@/components/ui/info-field';
 import { FullProfile } from '@/types';
-import Image from 'next/image';
-import { DocumentPreview } from '@/components/ui/document-preview';
+import { UserDocument } from '@/components/user-document';
 
 interface BasicInfoSectionProps {
   profile: FullProfile;
@@ -63,6 +62,21 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
     // @ts-expect-error - we rely on the nullifyUndefined function to handle null values
     defaultValues: {
       ...basicInfo,
+      ...(basicInfo.birthDate && {
+        birthDate: formatDate(new Date(basicInfo.birthDate), 'yyyy-MM-dd'),
+      }),
+      ...(basicInfo.passportIssueDate && {
+        passportIssueDate: formatDate(
+          new Date(basicInfo.passportIssueDate),
+          'yyyy-MM-dd',
+        ),
+      }),
+      ...(basicInfo.passportExpiryDate && {
+        passportExpiryDate: formatDate(
+          new Date(basicInfo.passportExpiryDate),
+          'yyyy-MM-dd',
+        ),
+      }),
     },
   });
 
@@ -97,28 +111,6 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
     setIsLoading(false);
   };
 
-  const handleDownload = async () => {
-    if (!profile.identityPicture) return;
-
-    try {
-      const response = await fetch(profile.identityPicture.fileUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = window.document.createElement('a');
-      a.href = url;
-      // Get file extension from content type
-      const contentType = response.headers.get('content-type');
-      const extension = contentType?.split('/')[1] || 'pdf';
-      a.download = `${profile.identityPicture.type.toLowerCase()}.${extension}`;
-      window.document.body.appendChild(a);
-      a.click();
-      window.document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading document:', error);
-    }
-  };
-
   const handleCancel = () => {
     form.reset();
     setIsEditing(false);
@@ -145,30 +137,34 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
         <div className="space-y-6">
           {/* Informations d'identité */}
           <div className="grid grid-cols-2 gap-4">
-            <InfoField
-              label={`${t_inputs('identityPicture.label')} - ${profile.identityPicture?.status ? t_inputs(`documentStatus.options.${profile.identityPicture?.status}`) : ''}`}
-              value={
-                <div className="flex flex-col justify-center gap-2 w-24 h-24 relative">
-                  <Image
-                    src={profile.identityPicture?.fileUrl || ''}
-                    alt={profile.firstName || ''}
-                    width={100}
-                    height={100}
-                    className="rounded-full w-24 h-24 overflow-hidden aspect-square object-cover"
+            <div className="col-span-full flex justify-start">
+              {profile.identityPicture ? (
+                <div>
+                  <UserDocument
+                    document={{
+                      ...profile.identityPicture,
+                      metadata: profile.identityPicture.metadata
+                        ? ((typeof profile.identityPicture.metadata === 'string'
+                            ? JSON.parse(profile.identityPicture.metadata)
+                            : profile.identityPicture.metadata) as Record<
+                            string,
+                            unknown
+                          >)
+                        : null,
+                    }}
+                    label={t_inputs('identityPicture.label')}
+                    profileId={profile.id}
+                    requestId={requestId}
                   />
-
-                  <div className="absolute top-0 right-0">
-                    <DocumentPreview
-                      url={profile.identityPicture?.fileUrl || ''}
-                      title={t_inputs('identityPicture.label')}
-                      type={profile.identityPicture?.fileType || ''}
-                      onDownload={handleDownload}
-                    />
-                  </div>
                 </div>
-              }
-              className={'col-span-full'}
-            />
+              ) : (
+                <InfoField
+                  label={`${t_inputs('identityPicture.label')}`}
+                  value={undefined}
+                  className={'col-span-full'}
+                />
+              )}
+            </div>
 
             <InfoField
               label={t_inputs('firstName.label')}
