@@ -16,9 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -35,6 +33,7 @@ import { ROUTES } from '@/schemas/routes';
 import { UserRole } from '@prisma/client';
 import { SessionUser } from '@/types/user';
 import Link from 'next/link';
+import { NotificationBell } from '../notifications/notification-bell';
 
 export function NavUser({
   user,
@@ -54,7 +53,7 @@ export function NavUser({
 
   return (
     <div className="flex flex-col gap-2">
-      <SidebarMenu>
+      <SidebarMenu className={!showFeedback ? 'flex flex-row items-center gap-2' : ''}>
         {showFeedback && (
           <SidebarMenuButton
             tooltip={t('common.actions.feedback')}
@@ -73,6 +72,17 @@ export function NavUser({
               <span>{t('common.actions.feedback')}</span>
             </Link>
           </SidebarMenuButton>
+        )}
+        {!showFeedback && (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={'Notifications'}
+              size="md"
+              className="flex w-full items-center gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <NotificationBell />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         )}
         <SidebarMenuItem>
           <DropdownMenu>

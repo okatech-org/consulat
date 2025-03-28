@@ -37,7 +37,7 @@ import { ImageCropper } from './ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
 import { validateDocument } from '@/lib/document-validation';
-import Link from 'next/link';
+import { DocumentPreview } from './ui/document-preview';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -421,6 +421,11 @@ export function UserDocument({
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {hasAdminRole && document && (
+          <div className="flex gap-2">
             {/* Display validation status for all users */}
             <div className="flex items-center gap-2 mt-2">
               {validation.isValid && (
@@ -430,11 +435,6 @@ export function UserDocument({
                 </span>
               )}
             </div>
-          </div>
-        )}
-
-        {hasAdminRole && document && (
-          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -444,10 +444,12 @@ export function UserDocument({
               <CheckCircle2 className="size-icon" />
               <span>Validation</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <span>Télécharger</span>
-              <Download className="size-icon" />
-            </Button>
+            <DocumentPreview
+              url={document.fileUrl}
+              title={label}
+              type={document.fileType}
+              onDownload={handleDownload}
+            />
           </div>
         )}
       </div>

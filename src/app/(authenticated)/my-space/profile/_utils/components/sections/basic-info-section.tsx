@@ -21,6 +21,7 @@ import { BasicInfoForm } from '@/components/registration/basic-info';
 import { InfoField } from '@/components/ui/info-field';
 import { FullProfile } from '@/types';
 import Image from 'next/image';
+import { DocumentPreview } from '@/components/ui/document-preview';
 
 interface BasicInfoSectionProps {
   profile: FullProfile;
@@ -96,6 +97,28 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
     setIsLoading(false);
   };
 
+  const handleDownload = async () => {
+    if (!profile.identityPicture) return;
+
+    try {
+      const response = await fetch(profile.identityPicture.fileUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${profile.identityPicture.type.toLowerCase()}.${extension}`;
+      window.document.body.appendChild(a);
+      a.click();
+      window.document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
+
   const handleCancel = () => {
     form.reset();
     setIsEditing(false);
@@ -125,13 +148,24 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
             <InfoField
               label={`${t_inputs('identityPicture.label')} - ${profile.identityPicture?.status ? t_inputs(`documentStatus.options.${profile.identityPicture?.status}`) : ''}`}
               value={
-                <Image
-                  src={profile.identityPicture?.fileUrl || ''}
-                  alt={profile.firstName || ''}
-                  width={100}
-                  height={100}
-                  className="rounded-full w-20 h-20 overflow-hidden aspect-square object-cover"
-                />
+                <div className="flex flex-col justify-center gap-2 w-24 h-24 relative">
+                  <Image
+                    src={profile.identityPicture?.fileUrl || ''}
+                    alt={profile.firstName || ''}
+                    width={100}
+                    height={100}
+                    className="rounded-full w-24 h-24 overflow-hidden aspect-square object-cover"
+                  />
+
+                  <div className="absolute top-0 right-0">
+                    <DocumentPreview
+                      url={profile.identityPicture?.fileUrl || ''}
+                      title={t_inputs('identityPicture.label')}
+                      type={profile.identityPicture?.fileType || ''}
+                      onDownload={handleDownload}
+                    />
+                  </div>
+                </div>
               }
               className={'col-span-full'}
             />
