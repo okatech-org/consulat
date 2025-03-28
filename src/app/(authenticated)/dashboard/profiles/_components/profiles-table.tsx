@@ -58,7 +58,6 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleFilterChange = useCallback((key: string, value: string) => {
-    console.log('handleFilterChange', key, value);
     setPendingFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
