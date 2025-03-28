@@ -17,7 +17,7 @@ export default function CardContainer({
   subtitle,
   children,
   className,
-  contentClass = 'pt-6',
+  contentClass = 'pt-4',
   footerContent,
   headerClass,
 }: Readonly<CardContainerProps>) {
@@ -25,7 +25,7 @@ export default function CardContainer({
     <Card.Card className={'flex flex-col ' + className}>
       {(title || subtitle || action) && (
         <Card.CardHeader
-          className={`flex-row space-y-0 mb-4 pb-4 border-b border-border ${headerClass}`}
+          className={`flex-row space-y-0 pb-4 mb-4 border-b border-border ${headerClass}`}
         >
           <div>
             {title && (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { , AlertTitle } from '@/components/ui/alert';
+import { AlertTitle } from '@/components/ui/alert';
 import { buttonVariants } from '@/components/ui/button';
 import { RequestStatus } from '@prisma/client';
 import {

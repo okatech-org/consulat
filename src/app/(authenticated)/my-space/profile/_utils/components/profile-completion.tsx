@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertCircle, CheckCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { cn, ProfileFieldStatus } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import CardContainer from '@/components/layouts/card-container';
 
 interface ProfileCompletionProps {
   completionRate: number;
@@ -28,45 +28,40 @@ export function ProfileCompletion({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle>{t('completion.title')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Barre de progression globale */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              {t('completion.progress')}
-            </span>
-            <span className={`font-medium ${getCompletionColor(completionRate)}`}>
-              {completionRate}%
-            </span>
-          </div>
-          <Progress value={completionRate} />
+    <CardContainer title={t('completion.title')}>
+      {/* Barre de progression globale */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {t('completion.progress')}
+          </span>
+          <span className={`font-medium ${getCompletionColor(completionRate)}`}>
+            {completionRate}%
+          </span>
         </div>
+        <Progress value={completionRate} />
+      </div>
 
-        {/* Informations requises */}
+      {/* Informations requises */}
+      <FieldsSection
+        title={t('completion.required_information')}
+        fields={fieldStatus.required.fields.filter((f) => !f.completed)}
+        completed={fieldStatus.required.completed}
+        total={fieldStatus.required.total}
+        type="required"
+      />
+
+      {/* Informations optionnelles */}
+      {fieldStatus.optional.total > 0 && (
         <FieldsSection
-          title={t('completion.required_information')}
-          fields={fieldStatus.required.fields.filter((f) => !f.completed)}
-          completed={fieldStatus.required.completed}
-          total={fieldStatus.required.total}
-          type="required"
+          title={t('completion.optional_information')}
+          fields={fieldStatus.optional.fields}
+          completed={fieldStatus.optional.completed}
+          total={fieldStatus.optional.total}
+          type="optional"
         />
-
-        {/* Informations optionnelles */}
-        {fieldStatus.optional.total > 0 && (
-          <FieldsSection
-            title={t('completion.optional_information')}
-            fields={fieldStatus.optional.fields}
-            completed={fieldStatus.optional.completed}
-            total={fieldStatus.optional.total}
-            type="optional"
-          />
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </CardContainer>
   );
 }
 
@@ -82,7 +77,6 @@ const FieldsList = ({
   type: 'required' | 'optional';
 }) => {
   const t_inputs = useTranslations('inputs');
-  const t = useTranslations('profile');
   const visibleFields = isExpanded ? fields : fields.slice(0, toShowCount);
 
   return (

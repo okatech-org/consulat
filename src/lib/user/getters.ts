@@ -10,8 +10,9 @@ import {
   FullUserInclude,
   UserSessionInclude,
 } from '@/types';
-import { UserRole } from '@prisma/client';
+import { ServiceCategory, UserRole } from '@prisma/client';
 import { SessionUser } from '@/types/user';
+import { FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
 
 export async function getUserSession(
   id: string,
@@ -61,6 +62,15 @@ export async function getUserFullProfile(id: string): Promise<FullProfile | null
     console.error(e);
     return null;
   }
+}
+
+export async function getProfileRegistrationRequest(
+  profileId: string,
+): Promise<FullServiceRequest | null> {
+  return db.serviceRequest.findFirst({
+    where: { requestedForId: profileId, serviceCategory: ServiceCategory.REGISTRATION },
+    ...FullServiceRequestInclude,
+  }) as unknown as FullServiceRequest | null;
 }
 
 export async function getUserFullProfileById(id: string): Promise<FullProfile | null> {
