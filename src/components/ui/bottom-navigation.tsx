@@ -64,7 +64,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
           }
           return (
             <Link
-              key={index}
+              key={index + item.title}
               href={item.url ? item.url : '#'}
               className={cn(
                 'flex items-center justify-center flex-col text-center aspect-square p-2',
