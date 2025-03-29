@@ -41,22 +41,22 @@ export default async function ProfilesPage({ searchParams }: Props) {
   const t = await getTranslations('requests');
   const isAgent = user?.roles.includes('AGENT');
   const isAdmin = user?.roles.includes('ADMIN');
-  const isSuperAdmin = user?.roles.includes('SUPER_ADMIN');
 
-  const getOrganizationId = () => {
-    switch (true) {
-      case isAgent:
-        return user?.assignedOrganizationId;
-      case isAdmin:
-        return user?.organizationId;
-      case isSuperAdmin:
-        return '';
-      default:
-        return '';
+  const getOrganizationId = (): string => {
+    if (!user) return '';
+
+    if (isAgent) {
+      return user.assignedOrganizationId ?? '';
     }
+
+    if (isAdmin) {
+      return user.organizationId ?? '';
+    }
+
+    return '';
   };
 
-  const organizationId = getOrganizationId() ?? '';
+  const organizationId = getOrganizationId();
 
   const organization = await getOrganizationWithSpecificIncludes(organizationId, [
     'countries',
@@ -88,10 +88,7 @@ export default async function ProfilesPage({ searchParams }: Props) {
       {user && hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'AGENT']) && (
         <>
           <CardContainer>
-            <ProfilesTable
-              filters={formattedQueryParams}
-              countries={organization?.countries ?? []}
-            />
+            <ProfilesTable filters={formattedQueryParams} />
           </CardContainer>
         </>
       )}
