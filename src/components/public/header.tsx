@@ -7,6 +7,7 @@ import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 import Image from 'next/image';
 import { SessionUser } from "@/types";
 import { NavUser } from "../layouts/nav-user"
+import { ChatToggle } from "../chat/chat-toggle"
 
 const logo = process.env.NEXT_PUBLIC_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
 const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
@@ -40,6 +41,8 @@ export async function PublicHeader() {
         </Link>
         
         <div className="flex items-center gap-3">
+          <ChatToggle />
+          
           <ThemeToggleSingle />
           {/* <LanguageSwitcherSingle /> */}
 

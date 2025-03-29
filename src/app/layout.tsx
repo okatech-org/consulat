@@ -7,7 +7,6 @@ import type { Metadata, Viewport } from 'next';
 import { AbstractIntlMessages, NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
-import { ChatToggle } from '@/components/chat/chat-toggle';
 import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
 import { env } from '@/lib/env/index';
@@ -15,7 +14,6 @@ import { ChatProvider } from '@/contexts/chat-context';
 import { Analytics } from '@vercel/analytics/react';
 import { ViewportDetector } from '@/components/layouts/viewport-detector';
 import { Session } from 'next-auth';
-import { headers } from 'next/headers';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -125,23 +123,14 @@ export const viewport: Viewport = {
 
 const inter = Inter({ subsets: ['latin'] });
 
-const hideChatToggle = (pathname: string) => {
-  if (pathname.includes('/my-space') || pathname.includes('/dashboard')) {
-    return true;
-  }
-
-  return false;
-};
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const promises = [getLocale(), getMessages(), auth(), headers()];
+  const promises = [getLocale(), getMessages(), auth()];
 
-  const [locale, messages, session, headersList] = await Promise.all(promises);
-  const pathname = (headersList as Headers).get('x-current-path') || '/';
+  const [locale, messages, session] = await Promise.all(promises);
 
   return (
     <html lang={locale as string} suppressHydrationWarning dir="ltr">
@@ -158,11 +147,6 @@ export default async function RootLayout({
               <SessionProvider session={session as Session}>
                 <ViewportDetector />
                 {children}
-                <div
-                  className={`fixed right-1/2 bottom-0 sm:right-6 sm:bottom-6 translate-x-1/2 sm:translate-x-0 translate-y-[-5px] sm:translate-y-0 ${hideChatToggle(pathname) ? 'hidden md:block' : ''}`}
-                >
-                  <ChatToggle />
-                </div>
                 <Toaster />
               </SessionProvider>
             </ChatProvider>
