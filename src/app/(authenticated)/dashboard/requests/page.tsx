@@ -55,7 +55,15 @@ export default async function RequestsPage({ searchParams }: Props) {
     limit: formattedQueryParams.limit || 10,
   };
 
-  requestsData = await getServiceRequests(formattedQueryParams);
+  if (user) {
+    const result = await tryCatch(getServiceRequests(formattedQueryParams));
+
+    if (result.data) {
+      requestsData = result.data;
+    } else if (result.error) {
+      console.error('Error fetching service requests:', result.error);
+    }
+  }
 
   return (
     <PageContainer title={t('title')}>
