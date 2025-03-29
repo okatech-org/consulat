@@ -23,6 +23,7 @@ export function ProfileDetailsView({
         <div className="mt-8">
           <ProfileContactForm
             profileId={profile.id}
+            recipientEmail={profile.user?.email ?? ''}
             recipientName={`${profile.firstName} ${profile.lastName}`}
           />
         </div>

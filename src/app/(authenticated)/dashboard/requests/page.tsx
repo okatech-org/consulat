@@ -2,12 +2,14 @@ import CardContainer from '@/components/layouts/card-container';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { hasAnyRole, hasPermission } from '@/lib/permissions/utils';
-import { GetRequestsOptions } from '@/actions/service-requests';
+import { GetRequestsOptions, getServiceRequests } from '@/actions/service-requests';
 import { RequestsTable } from './_components/requests-table';
 import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import { PageContainer } from '@/components/layouts/page-container';
 import { tryCatch } from '@/lib/utils';
 import { getCurrentUser } from '@/actions/user';
+import { PaginatedServiceRequests } from '@/types/service-request';
+
 interface Props {
   searchParams: Record<keyof GetRequestsOptions, string | undefined>;
 }
@@ -45,6 +47,16 @@ export default async function RequestsPage({ searchParams }: Props) {
     assignedToId: isAgent ? user?.id : undefined,
   };
 
+  // Fetch service requests data
+  let requestsData: PaginatedServiceRequests = {
+    items: [],
+    total: 0,
+    page: formattedQueryParams.page || 1,
+    limit: formattedQueryParams.limit || 10,
+  };
+
+  requestsData = await getServiceRequests(formattedQueryParams);
+
   return (
     <PageContainer title={t('title')}>
       {user && hasPermission(user, 'serviceRequests', 'list') && (
@@ -55,6 +67,7 @@ export default async function RequestsPage({ searchParams }: Props) {
               filters={formattedQueryParams}
               agents={(organization?.data?.agents as User[]) ?? []}
               availableServiceCategories={Object.values(ServiceCategory)}
+              initialData={requestsData}
             />
           </CardContainer>
         </>

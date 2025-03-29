@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
@@ -15,11 +14,10 @@ import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
-import { GetRequestsOptions, getServiceRequests } from '@/actions/service-requests';
+import { GetRequestsOptions } from '@/actions/service-requests';
 import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { User } from '@prisma/client';
-import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { SessionUser } from '@/types';
@@ -31,6 +29,7 @@ interface RequestsTableProps {
   filters: GetRequestsOptions;
   agents?: User[];
   availableServiceCategories: ServiceCategory[];
+  initialData: PaginatedServiceRequests;
 }
 
 export function RequestsTable({
@@ -38,6 +37,7 @@ export function RequestsTable({
   filters,
   agents,
   availableServiceCategories = [],
+  initialData,
 }: RequestsTableProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
@@ -45,9 +45,6 @@ export function RequestsTable({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [result, setResult] = React.useState<PaginatedServiceRequests | null>(null);
 
   const statuses: {
     value: RequestStatus;
@@ -88,46 +85,19 @@ export function RequestsTable({
     },
   ];
 
-  React.useEffect(() => {
-    setIsLoading(true);
-    const fetchData = async () => {
-      const result = await getServiceRequests(filters);
-      setResult(result);
-      setIsLoading(false);
-    };
-    fetchData().finally(() => setIsLoading(false));
-  }, [filters]);
-
-  const [pendingFilters, setPendingFilters] = React.useState<
-    Record<string, string | undefined>
-  >({});
-
-  React.useEffect(() => {
-    // Only execute if there are pending filters to apply
-    if (Object.keys(pendingFilters).length > 0) {
-      // Start with the current search params
-      const params = new URLSearchParams(searchParams.toString());
-
-      // Apply each pending filter
-      for (const [name, value] of Object.entries(pendingFilters)) {
-        if (value) {
-          params.set(name, value);
-        } else {
-          params.delete(name);
-        }
-      }
-
-      // Navigate to the new URL
-      router.push(`${pathname}?${params.toString()}`);
-
-      // Clear pending filters after applying them
-      setPendingFilters({});
-    }
-  }, [pendingFilters, pathname, router, searchParams]);
-
   const handleFilterChange = (name: string, value: string | undefined) => {
-    // Instead of directly updating the router, queue the change
-    setPendingFilters((prev) => ({ ...prev, [name]: value }));
+    // Create a new URLSearchParams instance with the current search params
+    const params = new URLSearchParams(searchParams.toString());
+
+    // Update or remove the filter parameter
+    if (value) {
+      params.set(name, value);
+    } else {
+      params.delete(name);
+    }
+
+    // Navigate to the updated URL
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const columns: ColumnDef<PaginatedServiceRequests['items'][number]>[] = [
@@ -398,11 +368,11 @@ export function RequestsTable({
 
   return (
     <DataTable
-      isLoading={isLoading}
+      isLoading={false}
       columns={columns}
-      data={result?.items ?? []}
+      data={initialData?.items ?? []}
       filters={localFilters}
-      totalCount={result?.total ?? 0}
+      totalCount={initialData?.total ?? 0}
       pageIndex={Number(filters?.page) || 1}
       pageSize={Number(filters?.limit) || 10}
       onPageChange={(page) => {
