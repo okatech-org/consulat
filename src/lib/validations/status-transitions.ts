@@ -12,7 +12,10 @@ export function canSwitchTo(
   targetStatus: RequestStatus,
   request: FullServiceRequest,
   profile: FullProfile,
+  allow: boolean = false,
 ): TransitionCheck {
+  if (allow) return { can: true };
+
   const completionRate =
     profile.category === ProfileCategory.MINOR
       ? calculateChildProfileCompletion(profile)

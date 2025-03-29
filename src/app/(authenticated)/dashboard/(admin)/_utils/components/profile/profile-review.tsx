@@ -28,12 +28,17 @@ import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { hasAnyRole } from '@/lib/permissions/utils';
+import { SessionUser } from '@/types';
 
 interface ProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
 }
 
 export function ProfileReview({ request }: ProfileReviewProps) {
+  const currentUser = useCurrentUser();
+  const isAdmin = hasAnyRole(currentUser as SessionUser, ['ADMIN', 'SUPER_ADMIN']);
   const t = useTranslations();
   const profile = request?.profile;
   const user = request.submittedBy;
@@ -151,6 +156,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                     option.value as RequestStatus,
                     request,
                     profile,
+                    isAdmin,
                   );
 
                   const isCompleted = isStatusCompleted(option.value as RequestStatus);
