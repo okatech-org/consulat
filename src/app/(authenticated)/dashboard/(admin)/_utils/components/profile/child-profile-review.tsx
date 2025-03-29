@@ -189,6 +189,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
                     option.value as RequestStatus,
                     request,
                     profile,
+                    true,
                   );
 
                   const isCompleted = isStatusCompleted(option.value as RequestStatus);
@@ -205,7 +206,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
                   return {
                     value: option.value,
                     label: label,
-                    disabled: isCompleted || !can,
+                    disabled: !can,
                   };
                 })}
               />
