@@ -25,6 +25,7 @@ import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
+import { AppUserDocument } from '@/types/profile';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -113,7 +114,7 @@ export async function getServiceRequests(
         where,
         ...FullServiceRequestInclude,
         orderBy: { [sortBy]: sortOrder },
-        skip: safePage * safeLimit,
+        skip: (safePage - 1) * safeLimit,
         take: safeLimit,
       }),
       db.serviceRequest.count({ where }),
@@ -393,8 +394,8 @@ export async function getServiceRequest(id: string): Promise<FullServiceRequest>
     ...request,
     requiredDocuments: request.requiredDocuments.map((document) => ({
       ...document,
-      metadata: JSON.parse(document.metadata as string) as Record<string, unknown>,
-    })),
+      metadata: JSON.parse(document.metadata as string) as Prisma.JsonValue,
+    })) as unknown as AppUserDocument[],
   };
 }
 

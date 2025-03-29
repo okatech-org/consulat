@@ -34,6 +34,7 @@ import { UserRole } from '@prisma/client';
 import { SessionUser } from '@/types/user';
 import Link from 'next/link';
 import { NotificationBell } from '../notifications/notification-bell';
+import { ChatToggle } from '../chat/chat-toggle';
 
 export function NavUser({
   user,
@@ -72,6 +73,11 @@ export function NavUser({
               <span>{t('common.actions.feedback')}</span>
             </Link>
           </SidebarMenuButton>
+        )}
+        {!showFeedback && (
+          <SidebarMenuItem className="hidden md:block">
+            <ChatToggle />
+          </SidebarMenuItem>
         )}
         {!showFeedback && (
           <SidebarMenuItem>

@@ -41,10 +41,7 @@ export async function generateConsularCardNumber(
   // Trouver la dernière carte générée pour ce pays cette année
   const latestCard = await db.profile.findFirst({
     where: {
-      AND: [
-        { cardNumber: { not: null } },
-        { cardNumber: { startsWith: `${countryCode}${startYear}` } },
-      ],
+      AND: [{ cardNumber: { not: null } }],
     },
     orderBy: {
       cardNumber: 'desc',
