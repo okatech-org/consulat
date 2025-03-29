@@ -20,7 +20,7 @@ export async function PublicHeader() {
 
 
   return (
-    <header className="fixed top-0 z-50 border-b border-neutral-200 bg-white/80 py-4 backdrop-blur-md dark:border-neutral-800 dark:bg-black/80 w-full">
+    <header className="fixed top-0 z-50 border-b border-neutral-200 bg-white/80 py-2 backdrop-blur-md dark:border-neutral-800 dark:bg-black/80 w-full">
       <div className="container mx-auto flex items-center justify-between max-w-screen-xl px-4 sm:px-6 lg:px-8">
         <Link href={ROUTES.base} className="flex items-center gap-2 transition-transform duration-300 hover:scale-105">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">

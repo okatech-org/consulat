@@ -167,7 +167,7 @@ export function RequestsTable({
         <DataTableColumnHeader column={column} title="Photo d'identité" />
       ),
       cell: ({ row }) => {
-        const url = row.original.submittedBy.identityPictureUrl as string;
+        const url = row.original.requestedFor?.identityPicture?.fileUrl as string;
         return url ? (
           <Avatar>
             <AvatarImage src={url} />
@@ -178,16 +178,31 @@ export function RequestsTable({
       },
     },
     {
-      accessorKey: 'fullName',
+      accessorKey: 'firstName',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
       ),
       cell: ({ row }) => {
-        const fullName = row.original.submittedBy.name;
-
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">{fullName}</span>
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.requestedFor?.firstName}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'lastName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.lastName.label')} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.requestedFor?.lastName}
+            </span>
           </div>
         );
       },
