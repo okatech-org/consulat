@@ -137,10 +137,10 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       qrCodeUrl: `${appUrl}${ROUTES.listing.profile(item.id)}`,
       fileName: `${item.lastName?.trim()?.replace(' ', '_').toUpperCase() || 'unknown'}_${item.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${item.cardNumber || 'unassigned'}`,
       ...(item.cardIssuedAt && {
-        cardIssuedAt: formatDate(item.cardIssuedAt, 'dd/mm/YYYY') as unknown as Date,
+        cardIssuedAt: formatDate(item.cardIssuedAt, 'dd/mm/yyyy') as unknown as Date,
       }),
       ...(item.cardExpiresAt && {
-        cardExpiresAt: formatDate(item.cardExpiresAt, 'dd/mm/YYYY') as unknown as Date,
+        cardExpiresAt: formatDate(item.cardExpiresAt, 'dd/mm/yyyy') as unknown as Date,
       }),
     }));
   }, [result?.items]);
@@ -346,10 +346,9 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('inputs.cardIssuedAt.label')} />
       ),
-      cell: ({ row }) => {
-        const date = row.original.cardIssuedAt;
-        return date ? formatDate(date, 'dd/MM/yyyy') : '-';
-      },
+      cell: ({ row }) => (
+        <span className="max-w-[200px] truncate">{row.original?.cardIssuedAt}</span>
+      ),
     },
     {
       accessorKey: 'cardExpiresAt',
@@ -357,8 +356,9 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title={t('inputs.cardExpiresAt.label')} />
       ),
       cell: ({ row }) => {
-        const date = row.original.cardExpiresAt;
-        return date ? formatDate(date, 'dd/MM/yyyy') : '-';
+        return (
+          <span className="max-w-[200px] truncate">{row.original?.cardExpiresAt}</span>
+        );
       },
     },
     {
@@ -642,7 +642,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
           setShowDownloadDialog(true);
         }}
         onPageChange={(page) => {
-          handleFilterChange('page', page.toString);
+          handleFilterChange('page', page.toString());
         }}
         onLimitChange={(limit) => {
           handleFilterChange('limit', limit.toString());

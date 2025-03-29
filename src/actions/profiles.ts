@@ -134,7 +134,7 @@ export async function getProfiles(
           },
           identityPicture: true,
         },
-        skip: safePage * safeLimit,
+        skip: (safePage - 1) * safeLimit,
         take: safeLimit,
         orderBy: {
           [sortBy]: sortOrder,
