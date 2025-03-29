@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Download } from 'lucide-react';
@@ -22,7 +22,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { format as formatDate } from 'date-fns';
-import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
+import { GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { ROUTES } from '@/schemas/routes';
 import { Button } from '@/components/ui/button';
@@ -36,67 +36,80 @@ import {
 } from '@/components/ui/dialog';
 import JSZip from 'jszip';
 import { toast } from '@/hooks/use-toast';
-import { tryCatch } from '@/lib/utils';
 
 interface ProfilesTableProps {
   filters: GetProfilesOptions;
+  initialData: PaginatedProfiles;
 }
 
 const appUrl = process.env.NEXT_PUBLIC_URL;
 
-export function ProfilesTable({ filters }: ProfilesTableProps) {
+export function ProfilesTable({ filters, initialData }: ProfilesTableProps) {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<PaginatedProfiles | null>(null);
-  const [pendingFilters, setPendingFilters] = useState<Record<string, string> | null>(
-    null,
-  );
+  const [result] = useState<PaginatedProfiles>(initialData);
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [selectedRows, setSelectedRows] = useState<PaginatedProfiles['items']>([]);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleFilterChange = useCallback((key: string, value: string) => {
-    setPendingFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  // Navigation function that's not called during render
+  const navigateWithParams = React.useCallback(
+    (params: URLSearchParams) => {
+      const url = `${pathname}?${params.toString()}`;
+      router.push(url);
+    },
+    [pathname, router],
+  );
 
-  useEffect(() => {
-    if (pendingFilters) {
+  // Handle filter changes outside of render
+  const handleFilterChange = React.useCallback(
+    (key: string, value: string) => {
       const params = new URLSearchParams(searchParams?.toString());
 
-      Object.entries(pendingFilters).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value);
-        } else {
-          params.delete(key);
-        }
-      });
-
-      router.push(`${pathname}?${params.toString()}`);
-      setPendingFilters(null);
-    }
-  }, [pendingFilters, router, searchParams, pathname]);
-
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      setIsLoading(true);
-      const result = await tryCatch(getProfiles(filters));
-
-      if (result.error) {
-        console.error('Error fetching profiles:', result.error.message);
+      // Update params
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
       }
 
-      if (result.data) {
-        setResult(result.data);
-      }
+      // Use a timeout to avoid React update during render errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
 
-      setIsLoading(false);
-    };
+  // Handle page change
+  const handlePageChange = React.useCallback(
+    (newPage: number) => {
+      // Convert 0-based index to 1-based for URL
+      const pageParam = String(newPage + 1);
 
-    fetchProfiles();
-  }, [filters]);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('page', pageParam);
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
+
+  // Handle page size change
+  const handleLimitChange = React.useCallback(
+    (newLimit: number) => {
+      const limitParam = String(newLimit);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('limit', limitParam);
+      params.set('page', '1'); // Reset to first page when changing limit
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
 
   const statuses = Object.values(RequestStatus).map((status) => ({
     value: status,
@@ -127,6 +140,8 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     identityPictureUrl: string;
     qrCodeUrl: string;
     fileName: string;
+    formattedCardIssuedAt?: string;
+    formattedCardExpiresAt?: string;
   })[] = React.useMemo(() => {
     if (!result?.items) return [];
 
@@ -136,12 +151,12 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       identityPictureUrl: item.identityPicture?.fileUrl || '',
       qrCodeUrl: `${appUrl}${ROUTES.listing.profile(item.id)}`,
       fileName: `${item.lastName?.trim()?.replace(' ', '_').toUpperCase() || 'unknown'}_${item.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${item.cardNumber || 'unassigned'}`,
-      ...(item.cardIssuedAt && {
-        cardIssuedAt: formatDate(item.cardIssuedAt, 'dd/mm/YYYY') as unknown as Date,
-      }),
-      ...(item.cardExpiresAt && {
-        cardExpiresAt: formatDate(item.cardExpiresAt, 'dd/mm/YYYY') as unknown as Date,
-      }),
+      formattedCardIssuedAt: item.cardIssuedAt
+        ? formatDate(item.cardIssuedAt, 'dd/MM/yyyy')
+        : '-',
+      formattedCardExpiresAt: item.cardExpiresAt
+        ? formatDate(item.cardExpiresAt, 'dd/MM/yyyy')
+        : '-',
     }));
   }, [result?.items]);
 
@@ -150,6 +165,8 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       identityPictureUrl?: string;
       qrCodeUrl?: string;
       fileName?: string;
+      formattedCardIssuedAt?: string;
+      formattedCardExpiresAt?: string;
     }
   >[] = [
     {
@@ -346,10 +363,11 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('inputs.cardIssuedAt.label')} />
       ),
-      cell: ({ row }) => {
-        const date = row.original.cardIssuedAt;
-        return date ? formatDate(date, 'dd/MM/yyyy') : '-';
-      },
+      cell: ({ row }) => (
+        <span className="max-w-[200px] truncate">
+          {row.original.formattedCardIssuedAt}
+        </span>
+      ),
     },
     {
       accessorKey: 'cardExpiresAt',
@@ -357,8 +375,11 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title={t('inputs.cardExpiresAt.label')} />
       ),
       cell: ({ row }) => {
-        const date = row.original.cardExpiresAt;
-        return date ? formatDate(date, 'dd/MM/yyyy') : '-';
+        return (
+          <span className="max-w-[200px] truncate">
+            {row.original.formattedCardExpiresAt}
+          </span>
+        );
       },
     },
     {
@@ -630,23 +651,19 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
   return (
     <>
       <DataTable
-        isLoading={isLoading}
+        isLoading={false}
         columns={columns}
         data={processedData}
         filters={localFilters}
         totalCount={result?.total ?? 0}
         pageIndex={filters?.page}
-        pageSize={filters?.limit}
+        pageSize={Number(filters?.limit) || 10}
         onExport={(data) => {
           setSelectedRows(data);
           setShowDownloadDialog(true);
         }}
-        onPageChange={(page) => {
-          handleFilterChange('page', page.toString);
-        }}
-        onLimitChange={(limit) => {
-          handleFilterChange('limit', limit.toString());
-        }}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
         enableExport={true}
         exportSelectedOnly={true}
         exportFilename="profiles"

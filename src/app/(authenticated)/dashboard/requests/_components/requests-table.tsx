@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
@@ -15,21 +14,22 @@ import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
-import { GetRequestsOptions, getServiceRequests } from '@/actions/service-requests';
+import { GetRequestsOptions } from '@/actions/service-requests';
 import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { User } from '@prisma/client';
-import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { SessionUser } from '@/types';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 interface RequestsTableProps {
   user: SessionUser;
   filters: GetRequestsOptions;
   agents?: User[];
   availableServiceCategories: ServiceCategory[];
+  initialData: PaginatedServiceRequests;
 }
 
 export function RequestsTable({
@@ -37,6 +37,7 @@ export function RequestsTable({
   filters,
   agents,
   availableServiceCategories = [],
+  initialData,
 }: RequestsTableProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
@@ -45,8 +46,62 @@ export function RequestsTable({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [result, setResult] = React.useState<PaginatedServiceRequests | null>(null);
+  // Navigation function that's not called during render
+  const navigateWithParams = React.useCallback(
+    (params: URLSearchParams) => {
+      const url = `${pathname}?${params.toString()}`;
+      router.push(url);
+    },
+    [pathname, router],
+  );
+
+  // Handle filter changes outside of render
+  const handleFilterChange = React.useCallback(
+    (name: string, value: string | undefined) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      // Update params
+      if (value) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+
+      // Use a timeout to avoid React update during render errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
+
+  // Handle page change
+  const handlePageChange = React.useCallback(
+    (newPage: number) => {
+      // Convert 0-based index to 1-based for URL
+      const pageParam = String(newPage + 1);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('page', pageParam);
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
+
+  // Handle page size change
+  const handleLimitChange = React.useCallback(
+    (newLimit: number) => {
+      const limitParam = String(newLimit);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('limit', limitParam);
+      params.set('page', '1'); // Reset to first page when changing limit
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
 
   const statuses: {
     value: RequestStatus;
@@ -87,48 +142,6 @@ export function RequestsTable({
     },
   ];
 
-  React.useEffect(() => {
-    setIsLoading(true);
-    const fetchData = async () => {
-      const result = await getServiceRequests(filters);
-      setResult(result);
-      setIsLoading(false);
-    };
-    fetchData().finally(() => setIsLoading(false));
-  }, [filters]);
-
-  const [pendingFilters, setPendingFilters] = React.useState<
-    Record<string, string | undefined>
-  >({});
-
-  React.useEffect(() => {
-    // Only execute if there are pending filters to apply
-    if (Object.keys(pendingFilters).length > 0) {
-      // Start with the current search params
-      const params = new URLSearchParams(searchParams.toString());
-
-      // Apply each pending filter
-      for (const [name, value] of Object.entries(pendingFilters)) {
-        if (value) {
-          params.set(name, value);
-        } else {
-          params.delete(name);
-        }
-      }
-
-      // Navigate to the new URL
-      router.push(`${pathname}?${params.toString()}`);
-
-      // Clear pending filters after applying them
-      setPendingFilters({});
-    }
-  }, [pendingFilters, pathname, router, searchParams]);
-
-  const handleFilterChange = (name: string, value: string | undefined) => {
-    // Instead of directly updating the router, queue the change
-    setPendingFilters((prev) => ({ ...prev, [name]: value }));
-  };
-
   const columns: ColumnDef<PaginatedServiceRequests['items'][number]>[] = [
     {
       id: 'select',
@@ -167,7 +180,7 @@ export function RequestsTable({
         <DataTableColumnHeader column={column} title="Photo d'identité" />
       ),
       cell: ({ row }) => {
-        const url = row.original.submittedBy.identityPictureUrl as string;
+        const url = row.original.requestedFor?.identityPicture?.fileUrl as string;
         return url ? (
           <Avatar>
             <AvatarImage src={url} />
@@ -178,16 +191,31 @@ export function RequestsTable({
       },
     },
     {
-      accessorKey: 'fullName',
+      accessorKey: 'firstName',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
+        <DataTableColumnHeader column={column} title={t('inputs.firstName.label')} />
       ),
       cell: ({ row }) => {
-        const fullName = row.original.submittedBy.name;
-
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">{fullName}</span>
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.requestedFor?.firstName}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'lastName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.lastName.label')} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.requestedFor?.lastName}
+            </span>
           </div>
         );
       },
@@ -297,30 +325,16 @@ export function RequestsTable({
   columns.push({
     id: 'actions',
     cell: ({ row }) => (
-      <DataTableRowActions
-        actions={[
-          {
-            component: (
-              <Link
-                onClick={(e) => e.stopPropagation()}
-                href={ROUTES.dashboard.service_requests(row.original.id)}
-              >
-                <FileText className="mr-1 size-icon" />
-                {t('common.actions.consult')}
-              </Link>
-            ),
-          },
-          {
-            component: hasAnyRole(user, ['ADMIN', 'MANAGER']) ? (
-              <RequestQuickEditFormDialog
-                agents={agents as User[]}
-                request={row.original}
-              />
-            ) : undefined,
-          },
-        ]}
-        row={row}
-      />
+      <Button variant={'outline'} asChild>
+        <Link
+          target="_blank"
+          onClick={(e) => e.stopPropagation()}
+          href={ROUTES.dashboard.service_requests(row.original.id)}
+        >
+          <FileText className="size-icon" />
+          {t('common.actions.consult')}
+        </Link>
+      </Button>
     ),
   });
 
@@ -396,19 +410,15 @@ export function RequestsTable({
 
   return (
     <DataTable
-      isLoading={isLoading}
+      isLoading={false}
       columns={columns}
-      data={result?.items ?? []}
+      data={initialData?.items ?? []}
       filters={localFilters}
-      totalCount={result?.total ?? 0}
-      pageIndex={Math.max(1, filters?.page || 1)}
-      pageSize={filters?.limit}
-      onPageChange={(page) => {
-        handleFilterChange('page', page.toString());
-      }}
-      onLimitChange={(limit) => {
-        handleFilterChange('limit', limit.toString());
-      }}
+      totalCount={initialData?.total ?? 0}
+      pageIndex={filters?.page}
+      pageSize={Number(filters?.limit || 10)}
+      onPageChange={handlePageChange}
+      onLimitChange={handleLimitChange}
       hiddenColumns={['id', 'priority', 'assignedTo']}
     />
   );

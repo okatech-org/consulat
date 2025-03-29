@@ -10,6 +10,7 @@ import { SessionUser } from '@/types/user';
 import { MobileDrawer } from './mobile-drawer';
 import { ChatToggle } from '../chat/chat-toggle';
 import { NavMainItem } from '../layouts/nav-main';
+import { Fragment } from 'react';
 
 export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
   user: SessionUser;
@@ -60,7 +61,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       >
         {menu.slice(0, 4).map((item, index) => {
           if (item.component) {
-            return item.component;
+            return <Fragment key={index + item.title}>{item.component}</Fragment>;
           }
           return (
             <Link

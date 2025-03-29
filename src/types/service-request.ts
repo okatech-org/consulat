@@ -7,7 +7,7 @@ import {
   ConsularService,
   User,
 } from '@prisma/client';
-import { AppUserDocument } from './profile';
+import { AppUserDocument, FullProfileInclude } from './profile';
 
 // Base includes pour une demande de service
 export const BaseServiceRequestInclude = {
@@ -128,6 +128,11 @@ export const FullServiceRequestInclude = {
             roles: true,
           },
         },
+      },
+    },
+    requestedFor: {
+      include: {
+        identityPicture: true,
       },
     },
   },

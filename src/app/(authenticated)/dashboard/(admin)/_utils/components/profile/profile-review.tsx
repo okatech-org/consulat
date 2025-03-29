@@ -173,7 +173,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                   return {
                     value: option.value,
                     label: label,
-                    disabled: isCompleted || !can,
+                    disabled: !can,
                   };
                 })}
               />

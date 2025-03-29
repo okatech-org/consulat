@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { PenIcon, Trash, CheckCircle2, Download } from 'lucide-react';
+import { PenIcon, Trash, CheckCircle2 } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -410,16 +410,6 @@ export function UserDocument({
                   end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
                 })}
               </p>
-            )}
-            {document.metadata && (
-              <div>
-                {Object.entries(document.metadata).map(([key, value]) => (
-                  <p key={key}>
-                    {/** @ts-expect-error - key is a string */}
-                    {t(`metadata.${key}`)}: {`${value}`}
-                  </p>
-                ))}
-              </div>
             )}
           </div>
         )}

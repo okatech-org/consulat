@@ -25,6 +25,7 @@ import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
+import { AppUserDocument } from '@/types/profile';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -74,38 +75,38 @@ export async function getServiceRequests(
   const safePage = Math.max(1, Number(page));
   const safeLimit = Math.max(1, Number(limit));
 
-  // Construire la requête where
-  const where: Prisma.ServiceRequestWhereInput = {
-    // Filtres de base
-    ...(status && { status: { in: status } }),
-    ...(priority && { priority: { in: priority } }),
-    ...(serviceCategory && { service: { category: { in: serviceCategory } } }),
-    ...(assignedToId && { assignedToId }),
-    ...(organizationId && { organizationId }),
-    ...(startDate && { createdAt: { gte: startDate } }),
-    ...(endDate && { createdAt: { lte: endDate } }),
+  const where: Prisma.ServiceRequestWhereInput = {};
 
-    // Recherche
-    ...(search && {
-      OR: [
-        { submittedBy: { name: { contains: search, mode: 'insensitive' } } },
-        { submittedBy: { email: { contains: search, mode: 'insensitive' } } },
-        { service: { name: { contains: search, mode: 'insensitive' } } },
-      ],
-    }),
+  if (status) where.status = { in: status };
+  if (priority) where.priority = { in: priority };
+  if (serviceCategory) where.service = { category: { in: serviceCategory } };
+  if (assignedToId) where.assignedToId = assignedToId ?? '';
+  if (organizationId) where.organizationId = organizationId ?? '';
+  if (startDate) where.createdAt = { gte: startDate };
+  if (endDate) where.createdAt = { lte: endDate };
 
-    // Filtres selon le rôle
-    ...(authResult.user.roles.includes(UserRole.AGENT) && {
-      OR: [
-        { assignedToId: authResult.user.id },
-        { assignedToId: null, organizationId: authResult.user.assignedOrganizationId },
-      ],
-    }),
+  if (search) {
+    where.OR = [
+      { requestedFor: { firstName: { contains: search, mode: 'insensitive' } } },
+      { requestedFor: { lastName: { contains: search, mode: 'insensitive' } } },
+      { requestedFor: { email: { contains: search, mode: 'insensitive' } } },
+      { service: { name: { contains: search, mode: 'insensitive' } } },
+    ];
+  }
 
-    ...(authResult.user.roles.includes(UserRole.ADMIN) && {
-      organizationId: authResult.user.organizationId,
-    }),
-  };
+  if (authResult.user.roles.includes(UserRole.AGENT)) {
+    where.OR = [
+      { assignedToId: authResult.user.id },
+      {
+        assignedToId: null,
+        organizationId: authResult.user.assignedOrganizationId ?? '',
+      },
+    ];
+  }
+
+  if (authResult.user.roles.includes(UserRole.ADMIN)) {
+    where.organizationId = authResult.user.organizationId ?? '';
+  }
 
   try {
     const [requests, total] = await Promise.all([
@@ -393,8 +394,8 @@ export async function getServiceRequest(id: string): Promise<FullServiceRequest>
     ...request,
     requiredDocuments: request.requiredDocuments.map((document) => ({
       ...document,
-      metadata: JSON.parse(document.metadata as string) as Record<string, unknown>,
-    })),
+      metadata: JSON.parse(document.metadata as string) as Prisma.JsonValue,
+    })) as unknown as AppUserDocument[],
   };
 }
 

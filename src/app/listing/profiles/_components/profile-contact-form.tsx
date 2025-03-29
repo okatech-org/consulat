@@ -27,6 +27,9 @@ import {
 import { sendProfileMessage } from '../_actions/contact';
 
 const contactFormSchema = z.object({
+  subject: z.string().min(1, 'Le sujet est obligatoire'),
+  email: z.string().email('Adresse email invalide').optional(),
+  phone: z.string().optional(),
   message: z
     .string()
     .min(10, 'Le message doit contenir au moins 10 caractères')
@@ -38,11 +41,13 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 interface ProfileContactFormProps {
   profileId: string;
   recipientName: string;
+  recipientEmail: string;
 }
 
 export function ProfileContactForm({
   profileId,
   recipientName,
+  recipientEmail,
 }: ProfileContactFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,6 +55,9 @@ export function ProfileContactForm({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       message: '',
+      subject: '',
+      email: '',
+      phone: '',
     },
   });
 
@@ -57,7 +65,7 @@ export function ProfileContactForm({
     setIsSubmitting(true);
 
     try {
-      await sendProfileMessage(profileId, data.message);
+      await sendProfileMessage(profileId, data.message, recipientEmail);
 
       toast({
         title: 'Message envoyé',
