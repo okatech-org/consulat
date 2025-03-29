@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Download } from 'lucide-react';
@@ -22,7 +22,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { format as formatDate } from 'date-fns';
-import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
+import { GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { ROUTES } from '@/schemas/routes';
 import { Button } from '@/components/ui/button';
@@ -36,67 +36,41 @@ import {
 } from '@/components/ui/dialog';
 import JSZip from 'jszip';
 import { toast } from '@/hooks/use-toast';
-import { tryCatch } from '@/lib/utils';
 
 interface ProfilesTableProps {
   filters: GetProfilesOptions;
+  initialData: PaginatedProfiles;
 }
 
 const appUrl = process.env.NEXT_PUBLIC_URL;
 
-export function ProfilesTable({ filters }: ProfilesTableProps) {
+export function ProfilesTable({ filters, initialData }: ProfilesTableProps) {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<PaginatedProfiles | null>(null);
-  const [pendingFilters, setPendingFilters] = useState<Record<string, string> | null>(
-    null,
-  );
+  const [result] = useState<PaginatedProfiles>(initialData);
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [selectedRows, setSelectedRows] = useState<PaginatedProfiles['items']>([]);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleFilterChange = useCallback((key: string, value: string) => {
-    setPendingFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  useEffect(() => {
-    if (pendingFilters) {
+  const handleFilterChange = useCallback(
+    (key: string, value: string) => {
+      // Create a new URLSearchParams instance with the current search params
       const params = new URLSearchParams(searchParams?.toString());
 
-      Object.entries(pendingFilters).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value);
-        } else {
-          params.delete(key);
-        }
-      });
+      // Update or remove the filter parameter
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
 
+      // Navigate to the updated URL
       router.push(`${pathname}?${params.toString()}`);
-      setPendingFilters(null);
-    }
-  }, [pendingFilters, router, searchParams, pathname]);
-
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      setIsLoading(true);
-      const result = await tryCatch(getProfiles(filters));
-
-      if (result.error) {
-        console.error('Error fetching profiles:', result.error.message);
-      }
-
-      if (result.data) {
-        setResult(result.data);
-      }
-
-      setIsLoading(false);
-    };
-
-    fetchProfiles();
-  }, [filters]);
+    },
+    [router, searchParams, pathname],
+  );
 
   const statuses = Object.values(RequestStatus).map((status) => ({
     value: status,
@@ -127,6 +101,8 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     identityPictureUrl: string;
     qrCodeUrl: string;
     fileName: string;
+    formattedCardIssuedAt?: string;
+    formattedCardExpiresAt?: string;
   })[] = React.useMemo(() => {
     if (!result?.items) return [];
 
@@ -136,12 +112,12 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       identityPictureUrl: item.identityPicture?.fileUrl || '',
       qrCodeUrl: `${appUrl}${ROUTES.listing.profile(item.id)}`,
       fileName: `${item.lastName?.trim()?.replace(' ', '_').toUpperCase() || 'unknown'}_${item.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${item.cardNumber || 'unassigned'}`,
-      ...(item.cardIssuedAt && {
-        cardIssuedAt: formatDate(item.cardIssuedAt, 'dd/mm/yyyy') as unknown as Date,
-      }),
-      ...(item.cardExpiresAt && {
-        cardExpiresAt: formatDate(item.cardExpiresAt, 'dd/mm/yyyy') as unknown as Date,
-      }),
+      formattedCardIssuedAt: item.cardIssuedAt
+        ? formatDate(item.cardIssuedAt, 'dd/MM/yyyy')
+        : '-',
+      formattedCardExpiresAt: item.cardExpiresAt
+        ? formatDate(item.cardExpiresAt, 'dd/MM/yyyy')
+        : '-',
     }));
   }, [result?.items]);
 
@@ -150,6 +126,8 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       identityPictureUrl?: string;
       qrCodeUrl?: string;
       fileName?: string;
+      formattedCardIssuedAt?: string;
+      formattedCardExpiresAt?: string;
     }
   >[] = [
     {
@@ -347,7 +325,9 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         <DataTableColumnHeader column={column} title={t('inputs.cardIssuedAt.label')} />
       ),
       cell: ({ row }) => (
-        <span className="max-w-[200px] truncate">{row.original?.cardIssuedAt}</span>
+        <span className="max-w-[200px] truncate">
+          {row.original.formattedCardIssuedAt}
+        </span>
       ),
     },
     {
@@ -357,7 +337,9 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       ),
       cell: ({ row }) => {
         return (
-          <span className="max-w-[200px] truncate">{row.original?.cardExpiresAt}</span>
+          <span className="max-w-[200px] truncate">
+            {row.original.formattedCardExpiresAt}
+          </span>
         );
       },
     },
@@ -630,7 +612,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
   return (
     <>
       <DataTable
-        isLoading={isLoading}
+        isLoading={false}
         columns={columns}
         data={processedData}
         filters={localFilters}

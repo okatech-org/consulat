@@ -12,23 +12,8 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { getCurrentUser } from '@/actions/user';
 import { ProfilesTable } from './_components/profiles-table';
 import { CountryCode } from '@/lib/autocomplete-datas';
-
-interface GetProfilesOptions {
-  search?: string;
-  status?: RequestStatus[];
-  category?: ProfileCategory[];
-  gender?: Gender[];
-  maritalStatus?: MaritalStatus[];
-  workStatus?: WorkStatus[];
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  startDate?: Date;
-  endDate?: Date;
-  organizationId?: string;
-  residenceCountyCode?: CountryCode;
-}
+import { getProfiles, GetProfilesOptions, PaginatedProfiles } from '@/actions/profiles';
+import { tryCatch } from '@/lib/utils';
 
 interface Props {
   searchParams: Record<keyof GetProfilesOptions, string | undefined>;
@@ -60,12 +45,21 @@ export default async function ProfilesPage({ searchParams }: Props) {
     residenceCountyCode: queryParams.residenceCountyCode as CountryCode | undefined,
   };
 
+  const result = await tryCatch(getProfiles(formattedQueryParams));
+
+  let profilesData: PaginatedProfiles = { items: [], total: 0 };
+  if (result.data) {
+    profilesData = result.data;
+  } else if (result.error) {
+    console.error('Error fetching profiles:', result.error.message);
+  }
+
   return (
     <PageContainer title={t('title')}>
       {user && hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'AGENT']) && (
         <>
           <CardContainer>
-            <ProfilesTable filters={formattedQueryParams} />
+            <ProfilesTable filters={formattedQueryParams} initialData={profilesData} />
           </CardContainer>
         </>
       )}
