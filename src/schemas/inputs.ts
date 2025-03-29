@@ -39,7 +39,7 @@ export const DocumentFileSchema = z
         if (!files) return false;
         const file = files instanceof FileList ? files[0] : files;
         if (!file) return false;
-        return file.size <= 10 * 1024 * 1024; // 10MB
+        return file.size <= 100 * 1024 * 1024; // 10MB
       },
       { message: 'messages.errors.doc_size_10' },
     ).refine(
