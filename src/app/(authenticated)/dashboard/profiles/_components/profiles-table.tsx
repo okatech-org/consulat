@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import JSZip from 'jszip';
 import { toast } from '@/hooks/use-toast';
+import { tryCatch } from '@/lib/utils';
 
 interface ProfilesTableProps {
   filters: GetProfilesOptions;
@@ -78,23 +79,24 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
     }
   }, [pendingFilters, router, searchParams, pathname]);
 
-  const fetchProfiles = useCallback(async () => {
-    setIsLoading(true);
-
-    try {
-      const data = await getProfiles(filters);
-      setResult(data);
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
-      setResult({ items: [], total: 0 });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filters]);
-
   useEffect(() => {
+    const fetchProfiles = async () => {
+      setIsLoading(true);
+      const result = await tryCatch(getProfiles(filters));
+
+      if (result.error) {
+        console.error('Error fetching profiles:', result.error.message);
+      }
+
+      if (result.data) {
+        setResult(result.data);
+      }
+
+      setIsLoading(false);
+    };
+
     fetchProfiles();
-  }, [fetchProfiles]);
+  }, [filters]);
 
   const statuses = Object.values(RequestStatus).map((status) => ({
     value: status,
@@ -130,9 +132,16 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
 
     return result.items.map((item) => ({
       ...item,
+      lastName: item.lastName?.toUpperCase() ?? '',
       identityPictureUrl: item.identityPicture?.fileUrl || '',
       qrCodeUrl: `${appUrl}${ROUTES.listing.profile(item.id)}`,
-      fileName: `${item.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${item.lastName?.trim()?.replace(' ', '_') || 'unknown'}_${item.cardNumber || 'unassigned'}`,
+      fileName: `${item.lastName?.trim()?.replace(' ', '_').toUpperCase() || 'unknown'}_${item.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${item.cardNumber || 'unassigned'}`,
+      ...(item.cardIssuedAt && {
+        cardIssuedAt: formatDate(item.cardIssuedAt, 'dd/mm/YYYY') as unknown as Date,
+      }),
+      ...(item.cardExpiresAt && {
+        cardExpiresAt: formatDate(item.cardExpiresAt, 'dd/mm/YYYY') as unknown as Date,
+      }),
     }));
   }, [result?.items]);
 
@@ -191,21 +200,6 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
       },
     },
     {
-      accessorKey: 'firstName',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.firstName.label')} />
-      ),
-      cell: ({ row }) => {
-        return (
-          <div className="flex space-x-2">
-            <span className="max-w-[250px] truncate font-medium">
-              {row.original.firstName || '-'}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: 'lastName',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('inputs.lastName.label')} />
@@ -220,6 +214,22 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         );
       },
     },
+    {
+      accessorKey: 'firstName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('inputs.firstName.label')} />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[250px] truncate font-medium">
+              {row.original.firstName || '-'}
+            </span>
+          </div>
+        );
+      },
+    },
+
     {
       accessorKey: 'category',
       header: ({ column }) => (
@@ -536,7 +546,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
               // Add more types as needed
             }
 
-            const fileNameWithExt = `${profile.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${profile.lastName?.trim()?.replace(' ', '_') || 'unknown'}_${profile.cardNumber || 'unassigned'}${extension}`;
+            const fileNameWithExt = `${profile.lastName?.trim()?.replace(' ', '_').toUpperCase() || 'unknown'}_${profile.firstName?.trim()?.replace(' ', '_') || 'unknown'}_${profile.cardNumber || 'unassigned'}${extension}`;
 
             return { fileName: fileNameWithExt, blob };
           } catch (error) {
@@ -632,7 +642,7 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
           setShowDownloadDialog(true);
         }}
         onPageChange={(page) => {
-          handleFilterChange('page', page.toString());
+          handleFilterChange('page', page.toString);
         }}
         onLimitChange={(limit) => {
           handleFilterChange('limit', limit.toString());
@@ -642,13 +652,12 @@ export function ProfilesTable({ filters }: ProfilesTableProps) {
         exportFilename="profiles"
         hiddenColumns={[
           'cardPin',
-          'cardIssuedAt',
-          'cardExpiresAt',
           'maritalStatus',
           'workStatus',
           'email',
           'qrCodeUrl',
           'fileName',
+          'createdAt',
         ]}
       />
 

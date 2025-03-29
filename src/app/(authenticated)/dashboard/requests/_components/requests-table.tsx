@@ -23,6 +23,7 @@ import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { SessionUser } from '@/types';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 interface RequestsTableProps {
   user: SessionUser;
@@ -52,6 +53,10 @@ export function RequestsTable({
     label: string;
   }[] = [
     {
+      value: RequestStatus.DRAFT,
+      label: t(`common.status.${RequestStatus.DRAFT}`),
+    },
+    {
       value: RequestStatus.SUBMITTED,
       label: t(`common.status.${RequestStatus.SUBMITTED}`),
     },
@@ -59,6 +64,14 @@ export function RequestsTable({
     {
       value: RequestStatus.PENDING_COMPLETION,
       label: t(`common.status.${RequestStatus.PENDING_COMPLETION}`),
+    },
+    {
+      value: RequestStatus.APPOINTMENT_SCHEDULED,
+      label: t(`common.status.${RequestStatus.APPOINTMENT_SCHEDULED}`),
+    },
+    {
+      value: RequestStatus.READY_FOR_PICKUP,
+      label: t(`common.status.${RequestStatus.READY_FOR_PICKUP}`),
     },
     {
       value: RequestStatus.VALIDATED,
@@ -147,6 +160,22 @@ export function RequestsTable({
       cell: ({ row }) => <div className="w-[80px] truncate">{row.getValue('id')}</div>,
       enableSorting: false,
       enableHiding: false,
+    },
+    {
+      accessorKey: 'identityPictureUrl',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Photo d'identité" />
+      ),
+      cell: ({ row }) => {
+        const url = row.original.submittedBy.identityPictureUrl as string;
+        return url ? (
+          <Avatar>
+            <AvatarImage src={url} />
+          </Avatar>
+        ) : (
+          '-'
+        );
+      },
     },
     {
       accessorKey: 'fullName',
@@ -250,7 +279,7 @@ export function RequestsTable({
     },
   ];
 
-  const isAdmin = hasAnyRole(user, ['ADMIN', 'MANAGER']);
+  const isAdmin = hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']);
 
   if (isAdmin) {
     columns.push({
@@ -304,6 +333,22 @@ export function RequestsTable({
     },
     {
       type: 'checkbox',
+      property: 'serviceCategory',
+      label: t('requests.filters.service_category'),
+      defaultValue: filters.serviceCategory?.toString().split(',') ?? [],
+      options: availableServiceCategories.map((category) => ({
+        value: category,
+        label: t(`inputs.serviceCategory.options.${category}`),
+      })),
+      onChange: (value) => {
+        if (Array.isArray(value)) {
+          handleFilterChange('serviceCategory', value.join(','));
+        }
+      },
+      isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT', 'SUPER_ADMIN']),
+    },
+    {
+      type: 'checkbox',
       property: 'status',
       label: t('requests.filters.status'),
       defaultValue: filters.status?.toString().split(',') ?? [],
@@ -328,22 +373,6 @@ export function RequestsTable({
           handleFilterChange('priority', value.join(','));
         }
       },
-    },
-    {
-      type: 'checkbox',
-      property: 'serviceCategory',
-      label: t('requests.filters.service_category'),
-      defaultValue: filters.serviceCategory?.toString().split(',') ?? [],
-      options: availableServiceCategories.map((category) => ({
-        value: category,
-        label: t(`inputs.serviceCategory.options.${category}`),
-      })),
-      onChange: (value) => {
-        if (Array.isArray(value)) {
-          handleFilterChange('serviceCategory', value.join(','));
-        }
-      },
-      isDisabled: !hasAnyRole(user, ['ADMIN', 'MANAGER', 'AGENT', 'SUPER_ADMIN']),
     },
   ];
 
@@ -380,6 +409,7 @@ export function RequestsTable({
       onLimitChange={(limit) => {
         handleFilterChange('limit', limit.toString());
       }}
+      hiddenColumns={['id', 'priority', 'assignedTo']}
     />
   );
 }

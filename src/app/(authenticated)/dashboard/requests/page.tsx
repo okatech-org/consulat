@@ -17,7 +17,7 @@ export default async function RequestsPage({ searchParams }: Props) {
   const queryParams = await searchParams;
   const t = await getTranslations('requests');
 
-  const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN']) : false;
+  const isAdmin = user ? hasAnyRole(user, ['ADMIN']) : false;
   const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
 
   const organization = isAdmin
