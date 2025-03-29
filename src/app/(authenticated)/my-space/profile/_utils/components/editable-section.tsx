@@ -40,8 +40,7 @@ export function EditableSection({
   ]);
   const t = useTranslations('profile');
 
-  const canEdit =
-    isAdmin || ['DRAFT', 'REJECTED', 'EDITED', 'SUBMITTED'].includes(profileStatus);
+  const canEdit = isAdmin || !['COMPLETED'].includes(profileStatus);
 
   return (
     <div className={cn('relative', className)}>

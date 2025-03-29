@@ -56,7 +56,9 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
           <Button
             variant="outline"
             className="hidden size-8 p-0 lg:flex"
-            onClick={() => table.firstPage()}
+            onClick={() => {
+              table.setPageIndex(table.getPageCount() - (table.getPageCount() - 1));
+            }}
             disabled={
               !table.getCanPreviousPage() || table.getState().pagination.pageIndex === 1
             }
@@ -90,7 +92,9 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
           <Button
             variant="outline"
             className="hidden size-8 p-0 lg:flex"
-            onClick={() => table.lastPage()}
+            onClick={() => {
+              table.setPageIndex(table.getPageCount() - 1);
+            }}
             disabled={
               !table.getCanNextPage() ||
               table.getState().pagination.pageIndex === table.getPageCount()

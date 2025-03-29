@@ -24,6 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { SessionUser } from '@/types';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 interface RequestsTableProps {
   user: SessionUser;
@@ -180,7 +181,7 @@ export function RequestsTable({
     {
       accessorKey: 'firstName',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.fullName.label')} />
+        <DataTableColumnHeader column={column} title={t('inputs.firstName.label')} />
       ),
       cell: ({ row }) => {
         return (
@@ -312,30 +313,16 @@ export function RequestsTable({
   columns.push({
     id: 'actions',
     cell: ({ row }) => (
-      <DataTableRowActions
-        actions={[
-          {
-            component: (
-              <Link
-                onClick={(e) => e.stopPropagation()}
-                href={ROUTES.dashboard.service_requests(row.original.id)}
-              >
-                <FileText className="mr-1 size-icon" />
-                {t('common.actions.consult')}
-              </Link>
-            ),
-          },
-          {
-            component: hasAnyRole(user, ['ADMIN', 'MANAGER']) ? (
-              <RequestQuickEditFormDialog
-                agents={agents as User[]}
-                request={row.original}
-              />
-            ) : undefined,
-          },
-        ]}
-        row={row}
-      />
+      <Button variant={'outline'} asChild>
+        <Link
+          target="_blank"
+          onClick={(e) => e.stopPropagation()}
+          href={ROUTES.dashboard.service_requests(row.original.id)}
+        >
+          <FileText className="size-icon" />
+          {t('common.actions.consult')}
+        </Link>
+      </Button>
     ),
   });
 
@@ -416,8 +403,8 @@ export function RequestsTable({
       data={result?.items ?? []}
       filters={localFilters}
       totalCount={result?.total ?? 0}
-      pageIndex={Math.max(1, filters?.page || 1)}
-      pageSize={filters?.limit}
+      pageIndex={Number(filters?.page) || 1}
+      pageSize={Number(filters?.limit) || 10}
       onPageChange={(page) => {
         handleFilterChange('page', page.toString());
       }}
