@@ -46,6 +46,63 @@ export function RequestsTable({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Navigation function that's not called during render
+  const navigateWithParams = React.useCallback(
+    (params: URLSearchParams) => {
+      const url = `${pathname}?${params.toString()}`;
+      router.push(url);
+    },
+    [pathname, router],
+  );
+
+  // Handle filter changes outside of render
+  const handleFilterChange = React.useCallback(
+    (name: string, value: string | undefined) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      // Update params
+      if (value) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+
+      // Use a timeout to avoid React update during render errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
+
+  // Handle page change
+  const handlePageChange = React.useCallback(
+    (newPage: number) => {
+      // Convert 0-based index to 1-based for URL
+      const pageParam = String(newPage + 1);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('page', pageParam);
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
+
+  // Handle page size change
+  const handleLimitChange = React.useCallback(
+    (newLimit: number) => {
+      const limitParam = String(newLimit);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('limit', limitParam);
+      params.set('page', '1'); // Reset to first page when changing limit
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
+
   const statuses: {
     value: RequestStatus;
     label: string;
@@ -84,21 +141,6 @@ export function RequestsTable({
       label: t(`common.status.${RequestStatus.COMPLETED}`),
     },
   ];
-
-  const handleFilterChange = (name: string, value: string | undefined) => {
-    // Create a new URLSearchParams instance with the current search params
-    const params = new URLSearchParams(searchParams.toString());
-
-    // Update or remove the filter parameter
-    if (value) {
-      params.set(name, value);
-    } else {
-      params.delete(name);
-    }
-
-    // Navigate to the updated URL
-    router.push(`${pathname}?${params.toString()}`);
-  };
 
   const columns: ColumnDef<PaginatedServiceRequests['items'][number]>[] = [
     {
@@ -373,14 +415,10 @@ export function RequestsTable({
       data={initialData?.items ?? []}
       filters={localFilters}
       totalCount={initialData?.total ?? 0}
-      pageIndex={Number(filters?.page) || 1}
-      pageSize={Number(filters?.limit) || 10}
-      onPageChange={(page) => {
-        handleFilterChange('page', page.toString());
-      }}
-      onLimitChange={(limit) => {
-        handleFilterChange('limit', limit.toString());
-      }}
+      pageIndex={filters?.page}
+      pageSize={Number(filters?.limit || 10)}
+      onPageChange={handlePageChange}
+      onLimitChange={handleLimitChange}
       hiddenColumns={['id', 'priority', 'assignedTo']}
     />
   );

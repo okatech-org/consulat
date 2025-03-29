@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Download } from 'lucide-react';
@@ -54,22 +54,61 @@ export function ProfilesTable({ filters, initialData }: ProfilesTableProps) {
   const [selectedRows, setSelectedRows] = useState<PaginatedProfiles['items']>([]);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleFilterChange = useCallback(
+  // Navigation function that's not called during render
+  const navigateWithParams = React.useCallback(
+    (params: URLSearchParams) => {
+      const url = `${pathname}?${params.toString()}`;
+      router.push(url);
+    },
+    [pathname, router],
+  );
+
+  // Handle filter changes outside of render
+  const handleFilterChange = React.useCallback(
     (key: string, value: string) => {
-      // Create a new URLSearchParams instance with the current search params
       const params = new URLSearchParams(searchParams?.toString());
 
-      // Update or remove the filter parameter
+      // Update params
       if (value) {
         params.set(key, value);
       } else {
         params.delete(key);
       }
 
-      // Navigate to the updated URL
-      router.push(`${pathname}?${params.toString()}`);
+      // Use a timeout to avoid React update during render errors
+      setTimeout(() => navigateWithParams(params), 0);
     },
-    [router, searchParams, pathname],
+    [searchParams, navigateWithParams],
+  );
+
+  // Handle page change
+  const handlePageChange = React.useCallback(
+    (newPage: number) => {
+      // Convert 0-based index to 1-based for URL
+      const pageParam = String(newPage + 1);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('page', pageParam);
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
+  );
+
+  // Handle page size change
+  const handleLimitChange = React.useCallback(
+    (newLimit: number) => {
+      const limitParam = String(newLimit);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('limit', limitParam);
+      params.set('page', '1'); // Reset to first page when changing limit
+
+      // Use setTimeout to avoid React errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [searchParams, navigateWithParams],
   );
 
   const statuses = Object.values(RequestStatus).map((status) => ({
@@ -618,17 +657,13 @@ export function ProfilesTable({ filters, initialData }: ProfilesTableProps) {
         filters={localFilters}
         totalCount={result?.total ?? 0}
         pageIndex={filters?.page}
-        pageSize={filters?.limit}
+        pageSize={Number(filters?.limit) || 10}
         onExport={(data) => {
           setSelectedRows(data);
           setShowDownloadDialog(true);
         }}
-        onPageChange={(page) => {
-          handleFilterChange('page', page.toString());
-        }}
-        onLimitChange={(limit) => {
-          handleFilterChange('limit', limit.toString());
-        }}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
         enableExport={true}
         exportSelectedOnly={true}
         exportFilename="profiles"
