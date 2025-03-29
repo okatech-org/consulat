@@ -70,6 +70,10 @@ export async function getServiceRequests(
     sortOrder = 'desc',
   } = options || {};
 
+  // Ensure page is a positive number
+  const safePage = Math.max(1, Number(page));
+  const safeLimit = Math.max(1, Number(limit));
+
   // Construire la requête where
   const where: Prisma.ServiceRequestWhereInput = {
     // Filtres de base
@@ -109,8 +113,8 @@ export async function getServiceRequests(
         where,
         ...FullServiceRequestInclude,
         orderBy: { [sortBy]: sortOrder },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
       }),
       db.serviceRequest.count({ where }),
     ]);
@@ -118,8 +122,8 @@ export async function getServiceRequests(
     return {
       items: requests as FullServiceRequest[],
       total,
-      page,
-      limit,
+      page: safePage,
+      limit: safeLimit,
     };
   } catch (error) {
     console.error('Error fetching service requests:', error);

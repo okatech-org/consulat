@@ -5,6 +5,9 @@ import { Pencil, X, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { RequestStatus } from '@prisma/client';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { SessionUser } from '@/types';
+import { hasAnyRole } from '@/lib/permissions/utils';
 
 interface EditableSectionProps {
   title: string;
@@ -29,9 +32,16 @@ export function EditableSection({
   isLoading = false,
   profileStatus = 'DRAFT',
 }: EditableSectionProps) {
+  const currentUser = useCurrentUser();
+  const isAdmin = hasAnyRole(currentUser as SessionUser, [
+    'ADMIN',
+    'SUPER_ADMIN',
+    'AGENT',
+  ]);
   const t = useTranslations('profile');
 
-  const canEdit = ['DRAFT', 'REJECTED', 'EDITED', 'SUBMITTED'].includes(profileStatus);
+  const canEdit =
+    isAdmin || ['DRAFT', 'REJECTED', 'EDITED', 'SUBMITTED'].includes(profileStatus);
 
   return (
     <div className={cn('relative', className)}>
