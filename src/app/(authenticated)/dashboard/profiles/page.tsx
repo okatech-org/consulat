@@ -11,7 +11,6 @@ import { hasAnyRole } from '@/lib/permissions/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getCurrentUser } from '@/actions/user';
 import { ProfilesTable } from './_components/profiles-table';
-import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import { CountryCode } from '@/lib/autocomplete-datas';
 
 interface GetProfilesOptions {
@@ -39,28 +38,6 @@ export default async function ProfilesPage({ searchParams }: Props) {
   const user = await getCurrentUser();
   const queryParams = await searchParams;
   const t = await getTranslations('requests');
-  const isAgent = user?.roles.includes('AGENT');
-  const isAdmin = user?.roles.includes('ADMIN');
-
-  const getOrganizationId = (): string => {
-    if (!user) return '';
-
-    if (isAgent) {
-      return user.assignedOrganizationId ?? '';
-    }
-
-    if (isAdmin) {
-      return user.organizationId ?? '';
-    }
-
-    return '';
-  };
-
-  const organizationId = getOrganizationId();
-
-  const organization = await getOrganizationWithSpecificIncludes(organizationId, [
-    'countries',
-  ]);
 
   const formattedQueryParams: GetProfilesOptions = {
     ...queryParams,
@@ -73,8 +50,8 @@ export default async function ProfilesPage({ searchParams }: Props) {
       ?.split(',')
       .map((status) => status as MaritalStatus),
     workStatus: queryParams.workStatus?.split(',').map((status) => status as WorkStatus),
-    page: Number(queryParams.page || '1'),
-    limit: Number(queryParams.limit || '10'),
+    page: Math.max(1, Number(queryParams.page || '1')),
+    limit: Math.max(1, Number(queryParams.limit || '10')),
     sortBy: queryParams.sortBy || 'createdAt',
     sortOrder: queryParams.sortOrder as 'asc' | 'desc',
     startDate: queryParams.startDate ? new Date(queryParams.startDate) : undefined,

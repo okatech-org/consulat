@@ -63,6 +63,10 @@ export async function getProfiles(
     residenceCountyCode,
   } = options;
 
+  // Ensure page is a positive number
+  const safePage = Math.max(1, Number(page));
+  const safeLimit = Math.max(1, Number(limit));
+
   const where: Prisma.ProfileWhereInput = {};
 
   // Apply filters
@@ -130,8 +134,8 @@ export async function getProfiles(
           },
           identityPicture: true,
         },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
         orderBy: {
           [sortBy]: sortOrder,
         },
