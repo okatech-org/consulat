@@ -54,9 +54,9 @@ export async function generateConsularCardNumber(
   // Extraire le dernier numéro de séquence ou commencer à 1
   let sequence = 1;
   if (latestCard?.cardNumber) {
-    const match = latestCard.cardNumber.match(/-(\d{5})$/);
-    if (match?.[1]) {
-      sequence = parseInt(match[1]) + 1;
+    const match = latestCard.cardNumber.split('-')[1];
+    if (match) {
+      sequence = parseInt(match) + 1;
     }
   }
 

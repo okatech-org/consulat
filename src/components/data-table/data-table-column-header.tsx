@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl';
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
+  sortHandler?: (direction: 'asc' | 'desc') => void;
   title: string;
 }
 
@@ -21,6 +22,7 @@ export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
   className,
+  sortHandler,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   const t = useTranslations();
   if (!column.getCanSort()) {
@@ -47,11 +49,21 @@ export function DataTableColumnHeader<TData, TValue>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+          <DropdownMenuItem
+            onClick={() => {
+              sortHandler?.('asc');
+              column.toggleSorting(false);
+            }}
+          >
             <ArrowUp className="size-3.5 text-muted-foreground/70" />
             {t('common.data_table.asc')}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+          <DropdownMenuItem
+            onClick={() => {
+              sortHandler?.('desc');
+              column.toggleSorting(true);
+            }}
+          >
             <ArrowDown className="size-3.5 text-muted-foreground/70" />
             {t('common.data_table.desc')}
           </DropdownMenuItem>

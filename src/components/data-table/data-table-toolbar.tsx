@@ -80,7 +80,6 @@ export function DataTableToolbar<TData>({
                 <Input
                   disabled={filter.isDisabled}
                   placeholder={filter.label}
-                  defaultValue={filter.defaultValue}
                   value={searchValue}
                   onChange={(event) => {
                     const value = (event.target as HTMLInputElement).value;
