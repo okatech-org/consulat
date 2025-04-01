@@ -132,11 +132,11 @@ export function DataTableToolbar<TData>({
             <X />
           </Button>
         )}
-        {isLoading && <Loader2 className="animate-spin ml-2 h-4 w-4" />}
       </div>
       <div className={isLoading ? 'opacity-50 pointer-events-none' : ''}>
         <DataTableViewOptions table={table} />
       </div>
+      {isLoading && <Loader2 className="animate-spin ml-2 h-4 w-4" />}
     </div>
   );
 }

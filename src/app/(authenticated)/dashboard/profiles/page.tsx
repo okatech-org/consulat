@@ -9,7 +9,7 @@ import {
 } from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adaptSearchParams } from '@/components/profile/adapters';
 import { getProfiles } from '@/components/profile/actions';
 import { DataTable } from '@/components/data-table/data-table';
@@ -33,380 +33,446 @@ export default function ProfilesPage() {
   const router = useRouter();
   const pathname = usePathname();
   const queryParams = useSearchParams();
-  const formattedQueryParams = adaptSearchParams(queryParams);
+  const formattedQueryParams = useMemo(
+    () => adaptSearchParams(queryParams),
+    [queryParams],
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<PaginatedProfiles>({
     items: [],
     total: 0,
   });
 
-  function handleParamsChange(option: ArrayOption) {
-    const params = new URLSearchParams(queryParams?.toString());
+  const navigateWithParams = useCallback(
+    (params: URLSearchParams) => {
+      const url = `${pathname}?${params.toString()}`;
+      router.push(url);
+    },
+    [pathname, router],
+  );
 
-    if (option.type === 'filter') {
-      if (option.value) {
-        params.set(option.name, option.value.toString());
+  const handleParamsChange = useCallback(
+    (option: ArrayOption) => {
+      const params = new URLSearchParams(queryParams?.toString());
+
+      if (option.type === 'filter') {
+        if (option.value) {
+          params.set(option.name, option.value.toString());
+        } else {
+          params.delete(option.name);
+        }
       } else {
-        params.delete(option.name);
+        if (option.value) {
+          params.set(option.type, option.value.toString());
+        } else {
+          params.delete(option.type);
+        }
       }
-    } else {
-      if (option.value) {
-        params.set(option.type, option.value.toString());
-      } else {
-        params.delete(option.type);
-      }
-    }
 
-    router.push(`${pathname}?${params.toString()}`);
-  }
+      // Use setTimeout to avoid React update during render errors
+      setTimeout(() => navigateWithParams(params), 0);
+    },
+    [queryParams, navigateWithParams],
+  );
 
-  useEffect(() => {
-    async function fetchProfiles() {
-      const params = adaptSearchParams(queryParams);
-      setIsLoading(true);
+  const fetchProfiles = useCallback(async () => {
+    const params = adaptSearchParams(queryParams);
+    setIsLoading(true);
+    try {
       const profiles = await getProfiles(params);
       setResults(profiles);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+    } finally {
       setIsLoading(false);
     }
-    fetchProfiles();
   }, [queryParams]);
 
-  const statuses = Object.values(RequestStatus).map((status) => ({
-    value: status,
-    label: t(`inputs.requestStatus.options.${status}`),
-  }));
+  useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
 
-  const categories = Object.values(ProfileCategory).map((category) => ({
-    value: category,
-    label: t(`inputs.profileCategory.options.${category}`),
-  }));
+  const statuses = useMemo(
+    () =>
+      Object.values(RequestStatus).map((status) => ({
+        value: status,
+        label: t(`inputs.requestStatus.options.${status}`),
+      })),
+    [t],
+  );
 
-  const genders = Object.values(Gender).map((gender) => ({
-    value: gender,
-    label: t(`inputs.gender.options.${gender}`),
-  }));
+  const categories = useMemo(
+    () =>
+      Object.values(ProfileCategory).map((category) => ({
+        value: category,
+        label: t(`inputs.profileCategory.options.${category}`),
+      })),
+    [t],
+  );
 
-  const columns: ColumnDef<ProfilesArrayItem>[] = [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
+  const genders = useMemo(
+    () =>
+      Object.values(Gender).map((gender) => ({
+        value: gender,
+        label: t(`inputs.gender.options.${gender}`),
+      })),
+    [t],
+  );
+
+  const handleSortChange = useCallback(
+    (dir: string) => {
+      handleParamsChange({ type: 'sort', value: dir });
+    },
+    [handleParamsChange],
+  );
+
+  const handlePageChange = useCallback(
+    (pageIndex: number) => {
+      handleParamsChange({ type: 'page', value: pageIndex });
+    },
+    [handleParamsChange],
+  );
+
+  const handleLimitChange = useCallback(
+    (limit: number) => {
+      handleParamsChange({ type: 'limit', value: limit });
+    },
+    [handleParamsChange],
+  );
+
+  const handleExport = useCallback((data: ProfilesArrayItem[]) => {
+    const itemsToDownload = data
+      .filter((item) => item.IDPictureUrl)
+      .map((item) => ({
+        url: item.IDPictureUrl as string,
+        name: item.IDPictureFileName,
+      }));
+
+    downloadPhotos(itemsToDownload, setIsLoading);
+  }, []);
+
+  const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            className="translate-y-[2px]"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'cardNumber',
+        header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
+        cell: ({ row }) => <div>{row.original.cardNumber || '-'}</div>,
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'identityPictureUrl',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
+        cell: ({ row }) => {
+          const url = row.original.IDPictureUrl as string;
+          return url ? (
+            <Avatar>
+              <AvatarImage src={url} className="h-10 w-10 rounded-full object-cover" />
+            </Avatar>
+          ) : (
+            '-'
+          );
+        },
+      },
+      {
+        accessorKey: 'lastName',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.lastName.label')}
+            sortHandler={handleSortChange}
+          />
+        ),
+        cell: ({ row }) => {
+          return (
+            <div className="flex space-x-2">
+              <span className="max-w-[250px] truncate font-medium">
+                {row.original.lastName || '-'}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'firstName',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.firstName.label')}
+            sortHandler={handleSortChange}
+          />
+        ),
+        cell: ({ row }) => {
+          return (
+            <div className="flex space-x-2">
+              <span className="max-w-[250px] truncate font-medium">
+                {row.original.firstName || '-'}
+              </span>
+            </div>
+          );
+        },
+      },
+
+      {
+        accessorKey: 'category',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.profileCategory.label')}
+            sortHandler={handleSortChange}
+          />
+        ),
+        cell: ({ row }) => {
+          const category = categories.find((cat) => cat.value === row.original.category);
+
+          if (!category) {
+            return null;
           }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="translate-y-[2px]"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="translate-y-[2px]"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: 'cardNumber',
-      header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
-      cell: ({ row }) => <div>{row.original.cardNumber || '-'}</div>,
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: 'identityPictureUrl',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
-      cell: ({ row }) => {
-        const url = row.original.IDPictureUrl as string;
-        return url ? (
-          <Avatar>
-            <AvatarImage src={url} className="h-10 w-10 rounded-full object-cover" />
-          </Avatar>
-        ) : (
-          '-'
-        );
-      },
-    },
-    {
-      accessorKey: 'lastName',
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title={t('inputs.lastName.label')}
-          sortHandler={(dir) => {
-            handleParamsChange({ type: 'sort', value: dir });
-          }}
-        />
-      ),
-      cell: ({ row }) => {
-        return (
-          <div className="flex space-x-2">
-            <span className="max-w-[250px] truncate font-medium">
-              {row.original.lastName || '-'}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'firstName',
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title={t('inputs.firstName.label')}
-          sortHandler={(dir) => {
-            handleParamsChange({ type: 'sort', value: dir });
-          }}
-        />
-      ),
-      cell: ({ row }) => {
-        return (
-          <div className="flex space-x-2">
-            <span className="max-w-[250px] truncate font-medium">
-              {row.original.firstName || '-'}
-            </span>
-          </div>
-        );
-      },
-    },
 
-    {
-      accessorKey: 'category',
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title={t('inputs.profileCategory.label')}
-          sortHandler={(dir) => {
-            handleParamsChange({ type: 'sort', value: dir });
-          }}
-        />
-      ),
-      cell: ({ row }) => {
-        const category = categories.find((cat) => cat.value === row.original.category);
+          return (
+            <div className="flex items-center">
+              <Badge variant={'outline'}>{category.label}</Badge>
+            </div>
+          );
+        },
+        filterFn: (row, id, value) => {
+          return value.includes(row.original.category);
+        },
+      },
+      {
+        accessorKey: 'IDPictureFileName',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={'Nom du fichier'} />
+        ),
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center">
+              <span className="max-w-[200px] truncate">
+                {row.original.IDPictureFileName || '-'}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'status',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
+        ),
+        cell: ({ row }) => {
+          const status = statuses.find((status) => status.value === row.original.status);
 
-        if (!category) {
-          return null;
-        }
+          if (!status) {
+            return null;
+          }
 
-        return (
-          <div className="flex items-center">
-            <Badge variant={'outline'}>{category.label}</Badge>
-          </div>
-        );
+          return (
+            <div className="flex min-w-max items-center">
+              <Badge variant={'outline'}>{status.label}</Badge>
+            </div>
+          );
+        },
+        filterFn: (row, id, value) => {
+          return value.includes(row.original.status);
+        },
       },
-      filterFn: (row, id, value) => {
-        return value.includes(row.original.category);
+      {
+        accessorKey: 'email',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('inputs.email.label')} />
+        ),
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center">
+              <span className="max-w-[200px] truncate">
+                {row.getValue('email') || '-'}
+              </span>
+            </div>
+          );
+        },
       },
-    },
-    {
-      accessorKey: 'IDPictureFileName',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={'Nom du fichier'} />
-      ),
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center">
-            <span className="max-w-[200px] truncate">
-              {row.original.IDPictureFileName || '-'}
-            </span>
-          </div>
-        );
+      {
+        accessorKey: 'cardPin',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('inputs.cardPin.label')} />
+        ),
       },
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
-      ),
-      cell: ({ row }) => {
-        const status = statuses.find((status) => status.value === row.original.status);
-
-        if (!status) {
-          return null;
-        }
-
-        return (
-          <div className="flex min-w-max items-center">
-            <Badge variant={'outline'}>{status.label}</Badge>
-          </div>
-        );
+      {
+        accessorKey: 'gender',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('inputs.gender.label')} />
+        ),
+        cell: ({ row }) => {
+          const gender = genders.find((g) => g.value === row.getValue('gender'));
+          return gender ? <Badge variant={'outline'}>{gender.label}</Badge> : '-';
+        },
       },
-      filterFn: (row, id, value) => {
-        return value.includes(row.original.status);
-      },
-    },
-    {
-      accessorKey: 'email',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.email.label')} />
-      ),
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center">
-            <span className="max-w-[200px] truncate">{row.getValue('email') || '-'}</span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'cardPin',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.cardPin.label')} />
-      ),
-    },
-    {
-      accessorKey: 'gender',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.gender.label')} />
-      ),
-      cell: ({ row }) => {
-        const gender = genders.find((g) => g.value === row.getValue('gender'));
-        return gender ? <Badge variant={'outline'}>{gender.label}</Badge> : '-';
-      },
-    },
-    {
-      accessorKey: 'cardIssuedAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.cardIssuedAt.label')} />
-      ),
-      cell: ({ row }) => (
-        <span className="max-w-[200px] truncate">
-          {row.original.cardIssuedAt ? row.original.cardIssuedAt : '-'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'cardExpiresAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.cardExpiresAt.label')} />
-      ),
-      cell: ({ row }) => {
-        return (
+      {
+        accessorKey: 'cardIssuedAt',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('inputs.cardIssuedAt.label')} />
+        ),
+        cell: ({ row }) => (
           <span className="max-w-[200px] truncate">
-            {row.original.cardExpiresAt ? row.original.cardExpiresAt : '-'}
+            {row.original.cardIssuedAt ? row.original.cardIssuedAt : '-'}
           </span>
-        );
+        ),
       },
-    },
-    {
-      accessorKey: 'createdAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.createdAt.label')} />
-      ),
-      cell: ({ row }) => {
-        const date = row.original.createdAt;
-        return date ? `${date.toLocaleString()}` : '-';
+      {
+        accessorKey: 'cardExpiresAt',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.cardExpiresAt.label')}
+          />
+        ),
+        cell: ({ row }) => {
+          return (
+            <span className="max-w-[200px] truncate">
+              {row.original.cardExpiresAt ? row.original.cardExpiresAt : '-'}
+            </span>
+          );
+        },
       },
-    },
-    {
-      accessorKey: 'qrCodeUrl',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('inputs.qrCodeUrl.label')} />
-      ),
-      cell: ({ row }) => {
-        const url = row.getValue('qrCodeUrl') as string;
-        return url ? (
-          <Button variant={'link'} asChild>
-            <Link href={url}>{t('inputs.qrCodeUrl.link')}</Link>
-          </Button>
-        ) : (
-          '-'
-        );
+      {
+        accessorKey: 'createdAt',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('inputs.createdAt.label')} />
+        ),
+        cell: ({ row }) => {
+          const date = row.original.createdAt;
+          return date ? `${date.toLocaleString()}` : '-';
+        },
       },
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => (
-        <DataTableRowActions
-          actions={[
-            {
-              component: (
-                <Link
-                  onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.listing.profile(row.original.id)}
-                >
-                  <FileText className="mr-1 size-icon" />
-                  {t('common.actions.consult')}
-                </Link>
-              ),
-            },
-          ]}
-          row={row}
-        />
-      ),
-    },
-  ];
+      {
+        accessorKey: 'qrCodeUrl',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('inputs.qrCodeUrl.label')} />
+        ),
+        cell: ({ row }) => {
+          const url = row.getValue('qrCodeUrl') as string;
+          return url ? (
+            <Button variant={'link'} asChild>
+              <Link href={url}>{t('inputs.qrCodeUrl.link')}</Link>
+            </Button>
+          ) : (
+            '-'
+          );
+        },
+      },
+      {
+        id: 'actions',
+        cell: ({ row }) => (
+          <DataTableRowActions
+            actions={[
+              {
+                component: (
+                  <Link
+                    onClick={(e) => e.stopPropagation()}
+                    href={ROUTES.listing.profile(row.original.id)}
+                  >
+                    <FileText className="mr-1 size-icon" />
+                    {t('common.actions.consult')}
+                  </Link>
+                ),
+              },
+            ]}
+            row={row}
+          />
+        ),
+      },
+    ],
+    [t, categories, genders, statuses, handleSortChange],
+  );
 
-  const filters: FilterOption<ProfilesArrayItem>[] = [
-    {
-      type: 'search',
-      label: t('common.data_table.search'),
-      defaultValue: formattedQueryParams.search ?? '',
-      onChange: (value) =>
-        handleParamsChange({
-          type: 'filter',
-          name: 'search',
-          value,
-        }),
-    },
-    {
-      type: 'checkbox',
-      property: 'status',
-      label: t('inputs.status.label'),
-      defaultValue: formattedQueryParams.status?.toString().split(',') ?? [],
-      options: statuses,
-      onChange: (value) => {
-        if (Array.isArray(value)) {
+  const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
+    () => [
+      {
+        type: 'search',
+        label: t('common.data_table.search'),
+        defaultValue: formattedQueryParams.search ?? '',
+        onChange: (value) =>
           handleParamsChange({
             type: 'filter',
-            name: 'status',
-            value: value.join(','),
-          });
-        }
+            name: 'search',
+            value,
+          }),
       },
-    },
-    {
-      type: 'checkbox',
-      property: 'category',
-      label: t('inputs.profileCategory.label'),
-      defaultValue: formattedQueryParams.category?.toString().split(',') ?? [],
-      options: categories,
-      onChange: (value) => {
-        if (Array.isArray(value)) {
-          handleParamsChange({
-            type: 'filter',
-            name: 'category',
-            value: value.join(','),
-          });
-        }
+      {
+        type: 'checkbox',
+        property: 'status',
+        label: t('inputs.status.label'),
+        defaultValue: formattedQueryParams.status?.toString().split(',') ?? [],
+        options: statuses,
+        onChange: (value) => {
+          if (Array.isArray(value)) {
+            handleParamsChange({
+              type: 'filter',
+              name: 'status',
+              value: value.join(','),
+            });
+          }
+        },
       },
-    },
-    {
-      type: 'checkbox',
-      property: 'gender',
-      label: t('inputs.gender.label'),
-      defaultValue: formattedQueryParams.gender?.toString().split(',') ?? [],
-      options: genders,
-      onChange: (value) => {
-        if (Array.isArray(value)) {
-          handleParamsChange({
-            type: 'filter',
-            name: 'gender',
-            value: value.join(','),
-          });
-        }
+      {
+        type: 'checkbox',
+        property: 'category',
+        label: t('inputs.profileCategory.label'),
+        defaultValue: formattedQueryParams.category?.toString().split(',') ?? [],
+        options: categories,
+        onChange: (value) => {
+          if (Array.isArray(value)) {
+            handleParamsChange({
+              type: 'filter',
+              name: 'category',
+              value: value.join(','),
+            });
+          }
+        },
       },
-    },
-  ];
-
-  React.useEffect(() => {
-    console.log(formattedQueryParams);
-  }, [formattedQueryParams]);
+      {
+        type: 'checkbox',
+        property: 'gender',
+        label: t('inputs.gender.label'),
+        defaultValue: formattedQueryParams.gender?.toString().split(',') ?? [],
+        options: genders,
+        onChange: (value) => {
+          if (Array.isArray(value)) {
+            handleParamsChange({
+              type: 'filter',
+              name: 'gender',
+              value: value.join(','),
+            });
+          }
+        },
+      },
+    ],
+    [t, formattedQueryParams, statuses, categories, genders, handleParamsChange],
+  );
 
   return (
     <PageContainer title={t('requests.title')}>
@@ -419,22 +485,9 @@ export default function ProfilesPage() {
           totalCount={results.total}
           pageIndex={formattedQueryParams.page}
           pageSize={formattedQueryParams.limit}
-          onExport={(data) => {
-            const itemsToDownload = data
-              .filter((item) => item.IDPictureUrl)
-              .map((item) => ({
-                url: item.IDPictureUrl as string,
-                name: item.IDPictureFileName,
-              }));
-
-            downloadPhotos(itemsToDownload, setIsLoading);
-          }}
-          onPageChange={(pageIndex) => {
-            handleParamsChange({ type: 'page', value: pageIndex });
-          }}
-          onLimitChange={(limit) => {
-            handleParamsChange({ type: 'limit', value: limit });
-          }}
+          onExport={handleExport}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
           enableExport={true}
           exportSelectedOnly={true}
           exportFilename="profiles"
@@ -551,3 +604,15 @@ const downloadPhotos = async (
     setIsLoading(false);
   }
 };
+
+type QuickEditFormProps = {
+  profile: ProfilesArrayItem;
+};
+
+function QuickEditForm({ profile }: QuickEditFormProps) {
+  return (
+    <div>
+      <h1>Quick Edit</h1>
+    </div>
+  );
+}
