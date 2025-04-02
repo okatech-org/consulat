@@ -30,6 +30,8 @@ interface RequestsTableProps {
   agents?: User[];
   availableServiceCategories: ServiceCategory[];
   initialData: PaginatedServiceRequests;
+  isLoading?: boolean;
+  onRefresh?: () => void;
 }
 
 export function RequestsTable({
@@ -38,6 +40,8 @@ export function RequestsTable({
   agents,
   availableServiceCategories = [],
   initialData,
+  isLoading = false,
+  onRefresh,
 }: RequestsTableProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
@@ -410,7 +414,7 @@ export function RequestsTable({
 
   return (
     <DataTable
-      isLoading={false}
+      isLoading={isLoading}
       columns={columns}
       data={initialData?.items ?? []}
       filters={localFilters}
@@ -420,6 +424,7 @@ export function RequestsTable({
       onPageChange={handlePageChange}
       onLimitChange={handleLimitChange}
       hiddenColumns={['id', 'priority', 'assignedTo']}
+      onRefresh={onRefresh}
     />
   );
 }

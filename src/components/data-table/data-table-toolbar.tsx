@@ -2,6 +2,7 @@
 
 import { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import { Input } from '@/components/ui/input';
@@ -57,12 +58,14 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filters?: FilterOption<TData>[];
   isLoading?: boolean;
+  onRefresh?: () => void;
 }
 
 export function DataTableToolbar<TData>({
   table,
   filters,
   isLoading = false,
+  onRefresh,
 }: DataTableToolbarProps<TData>) {
   const t = useTranslations('common.data_table');
   const isFiltered = false;
@@ -133,10 +136,23 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <div className={isLoading ? 'opacity-50 pointer-events-none' : ''}>
-        <DataTableViewOptions table={table} />
+      <div className="flex items-center gap-2">
+        {onRefresh && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-2"
+            onClick={onRefresh}
+            disabled={isLoading}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
+        <div className={isLoading ? 'opacity-50 pointer-events-none' : ''}>
+          <DataTableViewOptions table={table} />
+        </div>
+        {isLoading && <Loader2 className="animate-spin ml-2 h-4 w-4" />}
       </div>
-      {isLoading && <Loader2 className="animate-spin ml-2 h-4 w-4" />}
     </div>
   );
 }

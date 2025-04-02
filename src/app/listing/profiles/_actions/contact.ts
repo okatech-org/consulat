@@ -5,6 +5,7 @@ import { db } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
+import { randomUUID } from 'crypto';
 
 /**
  * Send a message to a profile and notify the profile owner
@@ -16,34 +17,22 @@ export async function sendProfileMessage(
 ) {
   const session = await auth();
 
-  if (!session || !session.user) {
-    throw new Error('You must be logged in to send messages');
-  }
-
-  // Get the profile and ensure it exists
-  const profile = await db.profile.findUnique({
-    where: { id: profileId },
-    include: { user: true },
-  });
-
-  if (!profile) {
-    throw new Error('Profile not found');
-  }
+  const userId = session?.user?.id ?? `guest-${randomUUID()}`;
 
   // Create the message in the database
   const createdMessage = await db.message.create({
     data: {
       content: message,
-      userId: session.user.id,
+      userId,
     },
   });
 
   const notificationTitle = 'Nouveau message';
-  const notificationContent = `${session.user.name || 'Un utilisateur'} vous a envoyé un message.`;
+  const notificationContent = `${session?.user?.name || 'Un utilisateur'} vous a envoyé un message.`;
 
   // Create a notification using the notify service
   await notify({
-    userId: profile.userId ?? '',
+    userId: profileId,
     type: NotificationType.REQUEST_NEW,
     title: notificationTitle,
     message: notificationContent,
@@ -58,8 +47,8 @@ export async function sendProfileMessage(
     ],
     metadata: {
       messageId: createdMessage.id,
-      senderId: session.user.id,
-      senderName: session.user.name || '',
+      senderId: userId,
+      senderName: session?.user?.name || 'Un utilisateur anonyme',
     },
   });
 
