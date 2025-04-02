@@ -813,3 +813,246 @@ export function capitalize(str: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
+
+/**
+ * Table utilities for handling data tables across the application
+ */
+
+/**
+ * Adapts search parameters from a URL query string to a structured object
+ * @param searchParams The URL search parameters
+ * @returns A formatted object with pagination, sorting, and filtering parameters
+ */
+export function adaptTableSearchParams(searchParams: URLSearchParams | null) {
+  if (!searchParams) {
+    return {
+      page: 1,
+      limit: 10,
+    };
+  }
+
+  const page = parseInt(searchParams.get('page') ?? '1', 10);
+  const limit = parseInt(searchParams.get('limit') ?? '10', 10);
+  const sort = searchParams.get('sort') ?? undefined;
+  const search = searchParams.get('search') ?? undefined;
+
+  // Extract custom filter parameters (excluding standard ones)
+  const params: Record<string, string | string[]> = {};
+  searchParams.forEach((value, key) => {
+    if (!['page', 'limit', 'sort', 'search'].includes(key)) {
+      // Check if the value contains commas, indicating it should be an array
+      if (value.includes(',')) {
+        params[key] = value.split(',');
+      } else {
+        params[key] = value;
+      }
+    }
+  });
+
+  return {
+    page,
+    limit,
+    sort,
+    search,
+    ...params,
+  };
+}
+
+/**
+ * Type for options when changing table parameters
+ */
+export type TableParamOption = {
+  type: 'page' | 'limit' | 'sort' | 'filter';
+  name?: string;
+  value: string | number | null;
+};
+
+/**
+ * Creates a function to navigate with updated URL parameters for tables
+ * @param pathname Current path
+ * @param router Next.js router
+ * @returns A function to navigate with updated parameters
+ */
+export function createTableParamNavigator(
+  pathname: string,
+  router: { push: (url: string) => void },
+) {
+  return (params: URLSearchParams) => {
+    const url = `${pathname}?${params.toString()}`;
+    router.push(url);
+  };
+}
+
+/**
+ * Updates URL parameters for tables based on the provided option
+ * @param queryParams Current query parameters
+ * @param option The parameter option to apply
+ * @param navigate Function to navigate with the updated parameters
+ */
+export function handleTableParamChange(
+  queryParams: URLSearchParams | null,
+  option: TableParamOption,
+  navigate: (params: URLSearchParams) => void,
+) {
+  const params = new URLSearchParams(queryParams?.toString() || '');
+
+  switch (option.type) {
+    case 'sort':
+      if (option.value) {
+        params.set('sort', option.value.toString());
+      } else {
+        params.delete('sort');
+      }
+      break;
+    case 'filter':
+      if (option.name && option.value) {
+        params.set(option.name, option.value.toString());
+      } else if (option.name) {
+        params.delete(option.name);
+      }
+      break;
+    default:
+      params.set(option.type, option.value?.toString() || '');
+  }
+
+  // Use setTimeout to avoid React update during render errors
+  setTimeout(() => navigate(params), 0);
+}
+
+/**
+ * Creates a function to handle sorting changes
+ * @param handleParamChange Function to handle parameter changes
+ * @returns A function to handle sorting changes
+ */
+export function createSortHandler(handleParamChange: (option: TableParamOption) => void) {
+  return (property: string, direction: string) => {
+    handleParamChange({ type: 'sort', value: `${property}-${direction}` });
+  };
+}
+
+/**
+ * Creates a function to handle page changes
+ * @param handleParamChange Function to handle parameter changes
+ * @returns A function to handle page changes
+ */
+export function createPageHandler(handleParamChange: (option: TableParamOption) => void) {
+  return (pageIndex: number) => {
+    handleParamChange({ type: 'page', value: pageIndex });
+  };
+}
+
+/**
+ * Creates a function to handle page size changes
+ * @param handleParamChange Function to handle parameter changes
+ * @returns A function to handle page size changes
+ */
+export function createLimitHandler(
+  handleParamChange: (option: TableParamOption) => void,
+) {
+  return (limit: number) => {
+    handleParamChange({ type: 'limit', value: limit });
+  };
+}
+
+/**
+ * Downloads files as a zip archive
+ * @param items Array of items with url and name properties
+ * @param setIsLoading Function to set loading state
+ */
+export async function downloadFilesAsZip(
+  items: Array<{ url: string; name: string }>,
+  setIsLoading: (isLoading: boolean) => void,
+) {
+  const JSZip = await import('jszip').then((mod) => mod.default);
+  setIsLoading(true);
+  const zip = new JSZip();
+
+  try {
+    // Create an array of promises for fetching files
+    const filePromises = items.map(async (item) => {
+      const { url, name } = item;
+      if (!url) return null;
+
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          credentials: 'same-origin',
+        });
+
+        if (!response.ok) {
+          console.error(
+            `Error fetching ${url}: ${response.status} ${response.statusText}`,
+          );
+          return null;
+        }
+
+        const blob = await response.blob();
+
+        if (blob.size === 0) {
+          console.error('Empty blob received for:', name);
+          return null;
+        }
+
+        // Determine file extension based on blob type
+        let extension = '.jpg'; // Default
+        if (blob.type) {
+          const mimeType = blob.type.toLowerCase();
+          if (mimeType.includes('png')) {
+            extension = '.png';
+          } else if (mimeType.includes('gif')) {
+            extension = '.gif';
+          } else if (mimeType.includes('webp')) {
+            extension = '.webp';
+          } else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+            extension = '.jpg';
+          } else if (mimeType.includes('svg')) {
+            extension = '.svg';
+          } else if (mimeType.includes('bmp')) {
+            extension = '.bmp';
+          } else if (mimeType.includes('pdf')) {
+            extension = '.pdf';
+          }
+        }
+
+        const fileNameWithExt = `${name}${extension}`;
+
+        return { fileName: fileNameWithExt, blob };
+      } catch (error) {
+        console.error(`Error downloading ${url}:`, error);
+        return null;
+      }
+    });
+
+    const files = (await Promise.all(filePromises)).filter(Boolean);
+
+    // Add each file to the zip file
+    files.forEach((file) => {
+      if (file) {
+        zip.file(file.fileName, file.blob);
+      }
+    });
+
+    // Generate the zip file
+    const content = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 },
+    });
+
+    // Create a download link and trigger the download
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = `export-${dateStr}_${timeStr}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error creating zip file:', error);
+  } finally {
+    setIsLoading(false);
+  }
+}
