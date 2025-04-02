@@ -2,18 +2,13 @@
 
 import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
-import {
-  ArrayOption,
-  PaginatedProfiles,
-  ProfilesArrayItem,
-} from '@/components/profile/types';
+import { PaginatedProfiles, ProfilesArrayItem } from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adaptSearchParams } from '@/components/profile/adapters';
 import { getProfiles } from '@/components/profile/actions';
 import { DataTable } from '@/components/data-table/data-table';
-import JSZip from 'jszip';
 import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
@@ -57,6 +52,8 @@ import {
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { toast } from 'sonner';
 import { updateProfile } from '@/actions/profile';
+import { useTableParams } from '@/components/utils/table-hooks';
+import { exportFilesAsZip } from '@/components/utils/table-export';
 
 // Define schema for profile quick edit
 const quickEditSchema = z.object({
@@ -68,8 +65,6 @@ type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 export default function ProfilesPage() {
   const t = useTranslations();
-  const router = useRouter();
-  const pathname = usePathname();
   const queryParams = useSearchParams();
   const formattedQueryParams = useMemo(
     () => adaptSearchParams(queryParams),
@@ -81,42 +76,8 @@ export default function ProfilesPage() {
     total: 0,
   });
 
-  const navigateWithParams = useCallback(
-    (params: URLSearchParams) => {
-      const url = `${pathname}?${params.toString()}`;
-      router.push(url);
-    },
-    [pathname, router],
-  );
-
-  const handleParamsChange = useCallback(
-    (option: ArrayOption) => {
-      const params = new URLSearchParams(queryParams?.toString());
-
-      switch (option.type) {
-        case 'sort':
-          if (option.value) {
-            params.set('sort', option.value.toString());
-          } else {
-            params.delete('sort');
-          }
-          break;
-        case 'filter':
-          if (option.value) {
-            params.set(option.name, option.value.toString());
-          } else {
-            params.delete(option.name);
-          }
-          break;
-        default:
-          params.set(option.type, option.value.toString());
-      }
-
-      // Use setTimeout to avoid React update during render errors
-      setTimeout(() => navigateWithParams(params), 0);
-    },
-    [queryParams, navigateWithParams],
-  );
+  const { handleParamsChange, handleSortChange, handlePageChange, handleLimitChange } =
+    useTableParams();
 
   const fetchProfiles = useCallback(async () => {
     const params = adaptSearchParams(queryParams);
@@ -162,36 +123,15 @@ export default function ProfilesPage() {
     [t],
   );
 
-  const handleSortChange = useCallback(
-    (property: string, dir: string) => {
-      handleParamsChange({ type: 'sort', value: `${property}-${dir}` });
-    },
-    [handleParamsChange],
-  );
-
-  const handlePageChange = useCallback(
-    (pageIndex: number) => {
-      handleParamsChange({ type: 'page', value: pageIndex });
-    },
-    [handleParamsChange],
-  );
-
-  const handleLimitChange = useCallback(
-    (limit: number) => {
-      handleParamsChange({ type: 'limit', value: limit });
-    },
-    [handleParamsChange],
-  );
-
   const handleExport = useCallback((data: ProfilesArrayItem[]) => {
     const itemsToDownload = data
       .filter((item) => item.IDPictureUrl)
       .map((item) => ({
         url: item.IDPictureUrl as string,
-        name: item.IDPictureFileName,
+        name: item.IDPictureFileName || `profile-${item.id}`,
       }));
 
-    downloadPhotos(itemsToDownload, setIsLoading);
+    exportFilesAsZip(itemsToDownload, setIsLoading);
   }, []);
 
   const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
@@ -673,103 +613,3 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
     </Form>
   );
 }
-
-const downloadPhotos = async (
-  items: Array<{ url: string; name: string }>,
-  setIsLoading: (isLoading: boolean) => void,
-) => {
-  setIsLoading(true);
-  const zip = new JSZip();
-
-  try {
-    // Create an array of promises for fetching images
-    const photoPromises = items.map(async (item) => {
-      const { url, name } = item;
-      if (!url) return null;
-
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          credentials: 'same-origin',
-        });
-
-        if (!response.ok) {
-          console.error(
-            `Error fetching ${url}: ${response.status} ${response.statusText}`,
-          );
-          return null;
-        }
-
-        const blob = await response.blob();
-
-        if (blob.size === 0) {
-          console.error('Empty blob received for:', name);
-          return null;
-        }
-
-        // Determine file extension based on blob type
-        let extension = '.jpg'; // Default
-        if (blob.type) {
-          const mimeType = blob.type.toLowerCase();
-          if (mimeType.includes('png')) {
-            extension = '.png';
-          } else if (mimeType.includes('gif')) {
-            extension = '.gif';
-          } else if (mimeType.includes('webp')) {
-            extension = '.webp';
-          } else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
-            extension = '.jpg';
-          } else if (mimeType.includes('svg')) {
-            extension = '.svg';
-          } else if (mimeType.includes('bmp')) {
-            extension = '.bmp';
-          }
-          // Add more types as needed
-        }
-
-        const fileNameWithExt = `${name}${extension}`;
-
-        return { fileName: fileNameWithExt, blob };
-      } catch (error) {
-        console.error(`Error downloading ${url}:`, error);
-        return null;
-      }
-    });
-
-    const photos = (await Promise.all(photoPromises)).filter(Boolean);
-
-    // Add each photo to the zip file
-    photos.forEach((photo) => {
-      if (photo) {
-        console.log('Adding to zip:', photo.fileName, 'Size:', photo.blob.size);
-        zip.file(photo.fileName, photo.blob);
-      }
-    });
-
-    // Generate the zip file
-    console.log('Generating zip...');
-    const content = await zip.generateAsync({
-      type: 'blob',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 6 },
-    });
-
-    console.log('Zip generated, size:', content.size);
-
-    // Create a download link and trigger the download
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10);
-    const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
-
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(content);
-    link.download = `profile-photos-${dateStr}_${timeStr}.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (error) {
-    console.error('Error creating zip file:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
