@@ -3,8 +3,21 @@ import { ReadonlyURLSearchParams } from 'next/navigation';
 import { BaseProfile, GetProfilesOptions, ProfilesArrayItem } from './types';
 import { formatDate } from 'date-fns';
 import { capitalize } from '@/lib/utils';
+import { env } from '@/lib/env';
 
 const currentAppUrl = `https://consulat.ga`;
+
+function getFileName(item: BaseProfile) {
+  return `${item.firstName?.toLocaleUpperCase()}_${item.lastName}_${item.cardNumber}`;
+}
+
+function getFileExtension(item: BaseProfile) {
+  return item.identityPicture?.fileType?.split('/')[1];
+}
+
+function getFilePath(item: BaseProfile) {
+  return `${env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH}${getFileName(item)}.${getFileExtension(item)}`;
+}
 
 export function adaptProfilesListing(profileItems: BaseProfile[]): ProfilesArrayItem[] {
   return profileItems.map((item) => {
@@ -15,7 +28,8 @@ export function adaptProfilesListing(profileItems: BaseProfile[]): ProfilesArray
       firstName: capitalize(item.firstName ?? ''),
       lastName: item.lastName?.toLocaleUpperCase() ?? '',
       IDPictureUrl: identityPicture?.fileUrl,
-      IDPictureFileName: `${item.firstName?.toLocaleUpperCase()}_${item.lastName}_${item.cardNumber}.${identityPicture?.fileType}`,
+      IDPictureFileName: `${getFileName(item)}`,
+      IDPicturePath: getFilePath(item),
       shareUrl: `${currentAppUrl}/listing/profiles/${item.id}`,
       cardIssuedAt: item.cardIssuedAt
         ? formatDate(item.cardIssuedAt, 'dd/MM/yyyy')

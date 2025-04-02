@@ -1020,7 +1020,10 @@ export async function downloadFilesAsZip(
           }
         }
 
-        const fileNameWithExt = `${name}${extension}`;
+        // Ensure the filename has no path separators
+        // Get only the filename part without any directory structure
+        const cleanedName = name.split(/[\\/]/).pop() || name;
+        const fileNameWithExt = `${cleanedName}${extension}`;
 
         return { fileName: fileNameWithExt, blob };
       } catch (error) {

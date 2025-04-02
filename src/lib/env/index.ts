@@ -48,6 +48,7 @@ export const env = createEnv({
     NEXT_PUBLIC_URL: z.string().url(),
     NEXT_PUBLIC_ORG_LOGO: z.string().url(),
     NEXT_PUBLIC_APP_NAME: z.string().min(1),
+    NEXT_PUBLIC_DEFAULT_IMAGE_PATH: z.string().url(),
   },
 
   /**
@@ -90,6 +91,7 @@ export const env = createEnv({
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     NEXT_PUBLIC_ORG_LOGO: process.env.NEXT_PUBLIC_ORG_LOGO,
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+    NEXT_PUBLIC_DEFAULT_IMAGE_PATH: process.env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH,
   },
 
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
