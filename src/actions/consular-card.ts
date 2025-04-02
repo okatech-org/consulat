@@ -15,6 +15,7 @@ import { db } from '@/lib/prisma';
 export async function generateConsularCardNumber(
   profileId: string,
   countryCode: string | null,
+  organizationId: string | null,
 ): Promise<string> {
   // Récupérer le profil pour avoir la date de naissance
   const profile = await db.profile.findUnique({
@@ -25,6 +26,15 @@ export async function generateConsularCardNumber(
   if (!profile?.birthDate) {
     throw new Error('Birth date is required to generate card number');
   }
+
+  const lastSequence = await db.sequence.findFirst({
+    where: {
+      countryCode: countryCode ?? '',
+      organizationId: organizationId ?? '',
+    },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, value: true },
+  });
 
   const birthDate = new Date(profile.birthDate);
   const currentYear = new Date().getFullYear();
@@ -38,26 +48,23 @@ export async function generateConsularCardNumber(
   const startYear = currentYear.toString().slice(-2);
   const endYear = (currentYear + validityYears).toString().slice(-2);
 
-  // Trouver la dernière carte générée pour ce pays cette année
-  const latestCard = await db.profile.findFirst({
-    where: {
-      AND: [{ cardNumber: { not: null } }],
-    },
-    orderBy: {
-      cardNumber: 'desc',
-    },
-    select: {
-      cardNumber: true,
-    },
-  });
-
   // Extraire le dernier numéro de séquence ou commencer à 1
-  let sequence = 1;
-  if (latestCard?.cardNumber) {
-    const match = latestCard.cardNumber.split('-')[1];
-    if (match) {
-      sequence = parseInt(match) + 1;
-    }
+  let sequence = Number('00010');
+  if (lastSequence?.value) {
+    sequence = Number(lastSequence.value) + 1;
+    await db.sequence.update({
+      where: { id: lastSequence.id },
+      data: { value: sequence.toString(), profileId: profileId },
+    });
+  } else {
+    await db.sequence.create({
+      data: {
+        value: '00001',
+        countryCode: countryCode ?? '',
+        organizationId: organizationId ?? '',
+        profileId: profileId,
+      },
+    });
   }
 
   // Formater le numéro de séquence sur 5 chiffres

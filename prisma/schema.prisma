@@ -929,9 +929,11 @@ model ParentalAuthority {
 }
 
 model Sequence {
-  id        String   @id @default(cuid())
-  value     Int      @default(0)
-  profileId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  value          String   @default("00000")
+  countryCode    String
+  organizationId String
+  profileId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

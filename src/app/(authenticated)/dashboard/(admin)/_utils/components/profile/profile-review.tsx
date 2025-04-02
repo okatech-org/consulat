@@ -204,6 +204,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                           'VALIDATED',
                           1,
                           validationNotes,
+                          request.organizationId,
                         ),
                       );
                       setIsLoading(false);

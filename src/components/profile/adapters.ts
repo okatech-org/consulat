@@ -30,8 +30,8 @@ export function adaptProfilesListing(profileItems: BaseProfile[]): ProfilesArray
 export function adaptSearchParams(
   searchParams: ReadonlyURLSearchParams,
 ): GetProfilesOptions {
-  const sortBy = searchParams.get('sortBy') as keyof BaseProfile;
-  const sortOrder = searchParams.get('sortOrder') as 'asc' | 'desc';
+  const sortBy = searchParams.get('sort')?.split('-')[0] as keyof BaseProfile;
+  const sortOrder = searchParams.get('sort')?.split('-')[1] as 'asc' | 'desc';
 
   return {
     status: searchParams

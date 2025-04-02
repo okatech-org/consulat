@@ -21,12 +21,50 @@ import { DataTableRowActions } from '@/components/data-table/data-table-row-acti
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
-import { FileText } from 'lucide-react';
+import { FileText, Edit } from 'lucide-react';
 import { RequestStatus, ProfileCategory, Gender } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import React from 'react';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Input } from '@/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
+import { toast } from 'sonner';
+import { updateProfile } from '@/actions/profile';
+
+// Define schema for profile quick edit
+const quickEditSchema = z.object({
+  cardNumber: z.string().optional(),
+  status: z.nativeEnum(RequestStatus),
+});
+
+type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 export default function ProfilesPage() {
   const t = useTranslations();
@@ -55,18 +93,23 @@ export default function ProfilesPage() {
     (option: ArrayOption) => {
       const params = new URLSearchParams(queryParams?.toString());
 
-      if (option.type === 'filter') {
-        if (option.value) {
-          params.set(option.name, option.value.toString());
-        } else {
-          params.delete(option.name);
-        }
-      } else {
-        if (option.value) {
+      switch (option.type) {
+        case 'sort':
+          if (option.value) {
+            params.set('sort', option.value.toString());
+          } else {
+            params.delete('sort');
+          }
+          break;
+        case 'filter':
+          if (option.value) {
+            params.set(option.name, option.value.toString());
+          } else {
+            params.delete(option.name);
+          }
+          break;
+        default:
           params.set(option.type, option.value.toString());
-        } else {
-          params.delete(option.type);
-        }
       }
 
       // Use setTimeout to avoid React update during render errors
@@ -120,8 +163,8 @@ export default function ProfilesPage() {
   );
 
   const handleSortChange = useCallback(
-    (dir: string) => {
-      handleParamsChange({ type: 'sort', value: dir });
+    (property: string, dir: string) => {
+      handleParamsChange({ type: 'sort', value: `${property}-${dir}` });
     },
     [handleParamsChange],
   );
@@ -180,7 +223,15 @@ export default function ProfilesPage() {
       {
         accessorKey: 'cardNumber',
         header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
-        cell: ({ row }) => <div>{row.original.cardNumber || '-'}</div>,
+        cell: ({ row }) => (
+          <div>
+            {row.original.cardNumber ? (
+              <span>{`...-${row.original.cardNumber.split('-')[1]}`}</span>
+            ) : (
+              '-'
+            )}
+          </div>
+        ),
         enableSorting: false,
         enableHiding: false,
       },
@@ -204,7 +255,7 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.lastName.label')}
-            sortHandler={handleSortChange}
+            sortHandler={(direction) => handleSortChange('lastName', direction)}
           />
         ),
         cell: ({ row }) => {
@@ -223,7 +274,7 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.firstName.label')}
-            sortHandler={handleSortChange}
+            sortHandler={(direction) => handleSortChange('firstName', direction)}
           />
         ),
         cell: ({ row }) => {
@@ -243,7 +294,7 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.profileCategory.label')}
-            sortHandler={handleSortChange}
+            sortHandler={(direction) => handleSortChange('category', direction)}
           />
         ),
         cell: ({ row }) => {
@@ -395,9 +446,27 @@ export default function ProfilesPage() {
                     onClick={(e) => e.stopPropagation()}
                     href={ROUTES.listing.profile(row.original.id)}
                   >
-                    <FileText className="mr-1 size-icon" />
+                    <FileText className="size-icon" />
                     {t('common.actions.consult')}
                   </Link>
+                ),
+              },
+              {
+                component: (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Edit className="size-icon" />
+                        <span>{t('common.actions.edit')}</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{t('common.actions.edit')}</DialogTitle>
+                      </DialogHeader>
+                      <QuickEditForm profile={row.original} onSuccess={fetchProfiles} />
+                    </DialogContent>
+                  </Dialog>
                 ),
               },
             ]}
@@ -406,7 +475,7 @@ export default function ProfilesPage() {
         ),
       },
     ],
-    [t, categories, genders, statuses, handleSortChange],
+    [t, categories, genders, statuses, handleSortChange, fetchProfiles],
   );
 
   const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
@@ -502,6 +571,106 @@ export default function ProfilesPage() {
         />
       </CardContainer>
     </PageContainer>
+  );
+}
+
+type QuickEditFormProps = {
+  profile: ProfilesArrayItem;
+  onSuccess: () => void;
+};
+
+function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
+  const t = useTranslations();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<QuickEditFormData>({
+    resolver: zodResolver(quickEditSchema),
+    defaultValues: {
+      cardNumber: profile.cardNumber || '',
+      status: profile.status,
+    },
+  });
+
+  const onSubmit = async (data: QuickEditFormData) => {
+    const editedData = filterUneditedKeys(data, form.formState.dirtyFields);
+
+    setIsSubmitting(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await tryCatch(updateProfile(profile.id, editedData as any));
+
+      if (result.error) {
+        toast.error(t('errors.common.unknown_error'));
+        console.error(result.error);
+        return;
+      }
+
+      toast.success(t('profile.update_success'));
+      onSuccess();
+    } catch (error) {
+      toast.error(t('errors.common.unknown_error'));
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="cardNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('inputs.cardNumber.label')}</FormLabel>
+              <FormControl>
+                <Input placeholder="123456" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('inputs.status.label')}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('inputs.status.placeholder')} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(RequestStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {t(`inputs.requestStatus.options.${status}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <DialogClose asChild>
+            <Button variant="outline" type="button" onClick={() => form.reset()}>
+              {t('common.actions.cancel')}
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
+            </Button>
+          </DialogClose>
+        </div>
+      </form>
+    </Form>
   );
 }
 
@@ -604,15 +773,3 @@ const downloadPhotos = async (
     setIsLoading(false);
   }
 };
-
-type QuickEditFormProps = {
-  profile: ProfilesArrayItem;
-};
-
-function QuickEditForm({ profile }: QuickEditFormProps) {
-  return (
-    <div>
-      <h1>Quick Edit</h1>
-    </div>
-  );
-}
