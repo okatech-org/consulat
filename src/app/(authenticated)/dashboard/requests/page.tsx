@@ -404,12 +404,11 @@ export default function RequestsPage() {
             });
           }
         },
-        isDisabled: !hasAnyRole(user || {}, ['ADMIN', 'MANAGER', 'AGENT', 'SUPER_ADMIN']),
       },
       {
         type: 'checkbox',
         property: 'status',
-        label: t('requests.filters.status'),
+        label: t('inputs.status.label'),
         defaultValue:
           typeof formattedParams.status === 'string'
             ? formattedParams.status.split(',')

@@ -895,7 +895,6 @@ export function handleTableParamChange(
   navigate: (params: URLSearchParams) => void,
 ) {
   const params = new URLSearchParams(queryParams?.toString() || '');
-
   switch (option.type) {
     case 'sort':
       if (option.value) {
@@ -909,6 +908,13 @@ export function handleTableParamChange(
         params.set(option.name, option.value.toString());
       } else if (option.name) {
         params.delete(option.name);
+      }
+      break;
+    case 'page':
+      if (option.value) {
+        params.set('page', option.value.toString());
+      } else {
+        params.delete('page');
       }
       break;
     default:
