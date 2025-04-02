@@ -17,6 +17,7 @@ export type ProfilesArrayItem = Pick<
 > & {
   IDPictureUrl?: string;
   IDPictureFileName: string;
+  IDPicturePath: string;
   shareUrl: string;
   cardIssuedAt?: string;
   cardExpiresAt?: string;

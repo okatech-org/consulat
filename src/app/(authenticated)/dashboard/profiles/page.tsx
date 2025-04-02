@@ -165,18 +165,14 @@ export default function ProfilesPage() {
         header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
         cell: ({ row }) => (
           <div>
-            {row.original.cardNumber ? (
-              <span>{`...-${row.original.cardNumber.split('-')[1]}`}</span>
-            ) : (
-              '-'
-            )}
+            {row.original.cardNumber ? <span>{row.original.cardNumber}</span> : '-'}
           </div>
         ),
         enableSorting: false,
         enableHiding: false,
       },
       {
-        accessorKey: 'identityPictureUrl',
+        accessorKey: 'IDPicture',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
         cell: ({ row }) => {
           const url = row.original.IDPictureUrl as string;
@@ -252,21 +248,6 @@ export default function ProfilesPage() {
         },
         filterFn: (row, id, value) => {
           return value.includes(row.original.category);
-        },
-      },
-      {
-        accessorKey: 'IDPictureFileName',
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={'Nom du fichier'} />
-        ),
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center">
-              <span className="max-w-[200px] truncate">
-                {row.original.IDPictureFileName || '-'}
-              </span>
-            </div>
-          );
         },
       },
       {
@@ -360,18 +341,52 @@ export default function ProfilesPage() {
         },
       },
       {
-        accessorKey: 'qrCodeUrl',
+        accessorKey: 'shareUrl',
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('inputs.qrCodeUrl.label')} />
         ),
         cell: ({ row }) => {
-          const url = row.getValue('qrCodeUrl') as string;
+          const url = row.getValue('shareUrl') as string;
           return url ? (
             <Button variant={'link'} asChild>
               <Link href={url}>{t('inputs.qrCodeUrl.link')}</Link>
             </Button>
           ) : (
             '-'
+          );
+        },
+      },
+      {
+        accessorKey: 'IDPictureFileName',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.identityPicture.label')}
+          />
+        ),
+        cell: ({ row }) => {
+          const url = row.getValue('IDPictureFileName') as string;
+          return url ? (
+            <Button variant={'link'} asChild>
+              <Link href={url}>{t('inputs.identityPicture.label')}</Link>
+            </Button>
+          ) : (
+            '-'
+          );
+        },
+      },
+      {
+        accessorKey: 'IDPicturePath',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={'Nom du fichier'} />
+        ),
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center">
+              <span className="max-w-[200px] truncate">
+                {row.original.IDPicturePath || '-'}
+              </span>
+            </div>
           );
         },
       },
@@ -503,8 +518,9 @@ export default function ProfilesPage() {
           hiddenColumns={[
             'cardPin',
             'email',
-            'qrCodeUrl',
+            'shareUrl',
             'IDPictureFileName',
+            'IDPicturePath',
             'createdAt',
             'gender',
           ]}
