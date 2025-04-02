@@ -19,6 +19,7 @@ export async function validateConsularRegistration(
   status: RequestStatus,
   validityYears: number = 3,
   notes?: string,
+  organizationId?: string,
 ) {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
@@ -26,7 +27,11 @@ export async function validateConsularRegistration(
   const cardData =
     status === 'VALIDATED'
       ? {
-          cardNumber: await generateConsularCardNumber(profileId, residenceCountryCode),
+          cardNumber: await generateConsularCardNumber(
+            profileId,
+            residenceCountryCode,
+            organizationId ?? null,
+          ),
           cardIssuedAt: new Date(),
           cardExpiresAt: new Date(Date.now() + validityYears * 365 * 24 * 60 * 60 * 1000), // {validityYears} an(s)
         }

@@ -665,7 +665,7 @@ export default {
       CARD_IN_PRODUCTION: 'Carte en cours de production',
       READY_FOR_PICKUP: 'Prêt pour retrait',
       APPOINTMENT_SCHEDULED: 'RDV de retrait/entretien programmé',
-      COMPLETED: 'Carte remise après entretien',
+      COMPLETED: 'Terminé',
       EDITED: 'Modifiée',
     },
   },

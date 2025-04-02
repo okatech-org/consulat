@@ -13,7 +13,8 @@ interface ProfilePageProps {
 }
 
 export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
-  const profileId = params.id;
+  const awaitedParams = await params;
+  const profileId = awaitedParams.id;
   const profile = await getProfileById(profileId);
 
   if (!profile) {
@@ -29,7 +30,8 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const profileId = params.id;
+  const awaitedParams = await params;
+  const profileId = awaitedParams.id;
   const session = await auth();
 
   const profile = await getProfileById(

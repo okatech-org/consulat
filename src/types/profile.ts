@@ -1,5 +1,6 @@
 import { Prisma, UserDocument } from '@prisma/client';
 import { FullServiceRequestInclude } from './service-request';
+import { identity } from 'lodash';
 
 // Base includes pour un profil
 export const BaseProfileInclude = {
@@ -13,6 +14,7 @@ export const BaseProfileInclude = {
       },
     },
     organization: true,
+    identityPicture: true,
   },
 } as const;
 

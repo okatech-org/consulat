@@ -41,10 +41,9 @@ export async function PublicHeader() {
         </Link>
         
         <div className="flex items-center gap-3">
-          <ChatToggle />
+          {!user && <ChatToggle />}
           
-          <ThemeToggleSingle />
-          {/* <LanguageSwitcherSingle /> */}
+          {!user && <ThemeToggleSingle />}
 
           {isAuth ? <NavUser showFeedback={false} user={user as SessionUser} /> : (<Button variant="default" asChild>
             <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base}>

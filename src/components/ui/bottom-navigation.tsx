@@ -68,7 +68,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
               key={index + item.title}
               href={item.url ? item.url : '#'}
               className={cn(
-                'flex items-center justify-center flex-col text-center aspect-square p-2',
+                'flex items-center justify-center flex-col text-center aspect-square',
                 'gap-1 rounded-md transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2',
                 'focus-visible:ring-ring active:scale-[0.95]',
                 isActive(item.url, true)
@@ -89,7 +89,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
             </Link>
           );
         })}
-        <div className="flex aspect-square p-2 items-center justify-center">
+        <div className="flex aspect-square items-center justify-center">
           <MobileDrawer items={mobileMenu} />
         </div>
       </nav>

@@ -46,6 +46,7 @@ interface DataTableProps<TData, TValue> {
   exportSelectedOnly?: boolean;
   onExport?: (data: TData[]) => void;
   hiddenColumns?: string[];
+  onRefresh?: () => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -64,6 +65,7 @@ export function DataTable<TData, TValue>({
   exportSelectedOnly = false,
   hiddenColumns = [],
   onExport,
+  onRefresh,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
 
@@ -126,7 +128,12 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       {filters?.length ? (
         <div className="flex items-center justify-between gap-2">
-          <DataTableToolbar isLoading={isLoading} filters={filters} table={table} />
+          <DataTableToolbar
+            isLoading={isLoading}
+            filters={filters}
+            table={table}
+            onRefresh={onRefresh}
+          />
           {enableExport && (
             <DataTableExport
               columns={columns}

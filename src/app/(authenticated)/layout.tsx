@@ -28,9 +28,9 @@ export default async function AuthenticatedLayout({
   return (
     <SidebarProvider>
       <AppSidebar user={currentUser} />
-      <SidebarInset className="overflow-x-hidden w-full">
-        <header className="w-full h-14 bg-card shrink-0 border-b border-border items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex h-full justify-between container items-center">
+      <SidebarInset className="overflow-hidden w-full flex flex-col relative">
+        <header className="w-full relative h-16 bg-card shrink-0 border-b border-border items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex w-full h-full justify-between container items-center">
             <div className="flex items-center gap-2 w-full max-w-[calc(100%-100px)]">
               <Button disabled={isMobile} variant="ghost" className="!p-0" asChild>
                 <SidebarTrigger />
@@ -40,7 +40,12 @@ export default async function AuthenticatedLayout({
             <NavUser user={currentUser} showFeedback={false} />
           </div>
         </header>
-        <div className={cn('container py-4 sm:py-8 min-h-dvh', isMobile && 'pb-safe')}>
+        <div
+          className={cn(
+            'container overflow-y-auto relative grow py-4 sm:py-8 min-h-dvh',
+            isMobile && 'pb-safe',
+          )}
+        >
           {children}
         </div>
         <BottomNavigation user={currentUser} />
