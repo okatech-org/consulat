@@ -60,6 +60,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { updateServiceRequestStatus } from '@/actions/service-requests';
+import { updateConsularRegistrationStatus } from '@/actions/consular-registration';
 
 // Define schema for quick edit form
 const quickEditSchema = z.object({
@@ -642,6 +643,37 @@ export default function RequestsPage() {
     return filterOptions;
   }, [t, user, agents, searchParams, handleParamsChange, statuses]);
 
+  // Handle bulk update of status for selected rows
+  const handleBulkStatusUpdate = async (
+    selectedRows: FullServiceRequest[],
+    status: RequestStatus,
+  ) => {
+    if (!selectedRows.length) return;
+
+    try {
+      const updatePromises = selectedRows.map(async (row) => {
+        if (row?.requestedFor?.id) {
+          return updateConsularRegistrationStatus(row.id, row.requestedFor.id, status);
+        }
+        return updateServiceRequestStatus(row.id, status);
+      });
+
+      await Promise.all(updatePromises);
+
+      // Refresh the data after updates
+      handleRefresh();
+
+      toast.success(
+        t('common.success.bulk_update_success', {
+          count: selectedRows.length,
+        }),
+      );
+    } catch (error) {
+      console.error('Error updating statuses:', error);
+      toast.error(t('common.errors.bulk_update_failed'));
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -662,6 +694,7 @@ export default function RequestsPage() {
             onLimitChange={handleLimitChange}
             hiddenColumns={['id', 'priority', 'assignedTo']}
             onRefresh={handleRefresh}
+            onBulkUpdateStatus={handleBulkStatusUpdate}
           />
         </CardContainer>
       )}

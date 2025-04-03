@@ -400,6 +400,7 @@ export default {
     review: 'Traiter',
     consult: 'Consulter',
     next: 'Suivant',
+    bulk_actions: 'Actions en masse',
   },
   no_country_found: 'Aucun pays trouvé',
   request_types: {
@@ -538,10 +539,12 @@ export default {
     saved: 'Enregistré avec succès',
     updated: 'Mis à jour avec succès',
     deleted: 'Supprimé avec succès',
+    bulk_update_success: '{count} demandes mises à jour avec succès',
   },
   errors: {
     save_failed: "Échec de l'enregistrement",
     update_failed: 'Échec de la mise à jour',
     delete_failed: 'Échec de la suppression',
+    bulk_update_failed: 'Échec de la mise à jour des demandes',
   },
 } as const;
