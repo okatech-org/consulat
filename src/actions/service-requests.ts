@@ -193,7 +193,7 @@ export async function updateServiceRequestStatus(
   status: RequestStatus,
   notes?: string,
 ) {
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER']);
+  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
   try {
     const updatedRequest = await db.serviceRequest.update({
@@ -229,7 +229,6 @@ export async function updateServiceRequestStatus(
       });
     }
 
-    revalidatePath(ROUTES.dashboard.requests);
     return { success: true, data: updatedRequest };
   } catch (error) {
     console.error('Error updating service request status:', error);

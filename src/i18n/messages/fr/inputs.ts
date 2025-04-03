@@ -15,6 +15,10 @@ export default {
       DOCUMENT_DELETED: 'Suppression du document',
     },
   },
+  notes: {
+    label: 'Notes',
+    placeholder: 'Ajouter des informations supplémentaires...',
+  },
   qrCodeUrl: {
     label: 'URL QRCode',
     link: 'Lien QRCode',

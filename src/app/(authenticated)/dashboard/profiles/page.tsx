@@ -4,7 +4,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
 import { PaginatedProfiles, ProfilesArrayItem } from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adaptSearchParams } from '@/components/profile/adapters';
 import { getProfiles } from '@/components/profile/actions';
@@ -55,14 +55,6 @@ import { updateProfile } from '@/actions/profile';
 import { useTableParams } from '@/components/utils/table-hooks';
 import { exportFilesAsZip } from '@/components/utils/table-export';
 
-// Define schema for profile quick edit
-const quickEditSchema = z.object({
-  cardNumber: z.string().optional(),
-  status: z.nativeEnum(RequestStatus),
-});
-
-type QuickEditFormData = z.infer<typeof quickEditSchema>;
-
 export default function ProfilesPage() {
   const t = useTranslations();
   const queryParams = useSearchParams();
@@ -70,6 +62,7 @@ export default function ProfilesPage() {
     () => adaptSearchParams(queryParams),
     [queryParams],
   );
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<PaginatedProfiles>({
     items: [],
@@ -499,7 +492,7 @@ export default function ProfilesPage() {
   );
 
   return (
-    <PageContainer title={t('requests.title')}>
+    <PageContainer title={'Gestion des profils'}>
       <CardContainer>
         <DataTable
           isLoading={isLoading}
@@ -514,6 +507,9 @@ export default function ProfilesPage() {
           onLimitChange={handleLimitChange}
           enableExport={true}
           exportSelectedOnly={true}
+          onRowClick={(row) => {
+            router.push(ROUTES.listing.profile(row.original.id));
+          }}
           exportFilename="profiles"
           hiddenColumns={[
             'cardPin',
@@ -529,6 +525,14 @@ export default function ProfilesPage() {
     </PageContainer>
   );
 }
+
+// Define schema for profile quick edit
+const quickEditSchema = z.object({
+  cardNumber: z.string().optional(),
+  status: z.nativeEnum(RequestStatus),
+});
+
+type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 type QuickEditFormProps = {
   profile: ProfilesArrayItem;
