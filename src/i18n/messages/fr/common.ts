@@ -534,4 +534,14 @@ export default {
     HONORARY_CONSULATE: 'Consulat honoraire',
     OTHER: 'Autre',
   },
+  success: {
+    saved: 'Enregistré avec succès',
+    updated: 'Mis à jour avec succès',
+    deleted: 'Supprimé avec succès',
+  },
+  errors: {
+    save_failed: "Échec de l'enregistrement",
+    update_failed: 'Échec de la mise à jour',
+    delete_failed: 'Échec de la suppression',
+  },
 } as const;

@@ -16,7 +16,7 @@ import { SessionUser } from '@/types';
 
 // Imports pour le DataTable
 import { ColumnDef } from '@tanstack/react-table';
-import { FileText } from 'lucide-react';
+import { FileText, Edit } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -30,12 +30,143 @@ import { Button } from '@/components/ui/button';
 
 // Imports des nouveaux hooks et utilitaires
 import { useTableParams } from '@/components/utils/table-hooks';
+import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { updateServiceRequestStatus } from '@/actions/service-requests';
+
+// Define schema for quick edit form
+const quickEditSchema = z.object({
+  status: z.nativeEnum(RequestStatus),
+  notes: z.string().optional(),
+});
+
+type QuickEditFormData = z.infer<typeof quickEditSchema>;
+
+type QuickEditFormProps = {
+  request: FullServiceRequest;
+  onSuccess: () => void;
+};
+
+function QuickEditForm({ request, onSuccess }: QuickEditFormProps) {
+  const t = useTranslations();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<QuickEditFormData>({
+    resolver: zodResolver(quickEditSchema),
+    defaultValues: {
+      status: request.status,
+      notes: '',
+    },
+  });
+
+  const onSubmit = async (data: QuickEditFormData) => {
+    setIsSubmitting(true);
+    try {
+      await updateServiceRequestStatus(request.id, data.status, data.notes);
+      toast.success(t('common.success.saved'));
+      onSuccess();
+    } catch (error) {
+      toast.error(t('common.errors.save_failed'));
+      console.error('Error updating request:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('inputs.status.label')}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('inputs.status.placeholder')} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(RequestStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {t(`inputs.requestStatus.options.${status}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('inputs.notes.label')}</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder={t('inputs.notes.placeholder')}
+                  {...field}
+                  className="min-h-[100px]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <DialogClose asChild>
+            <Button variant="outline" type="button" onClick={() => form.reset()}>
+              {t('common.actions.cancel')}
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
+            </Button>
+          </DialogClose>
+        </div>
+      </form>
+    </Form>
+  );
+}
 
 export default function RequestsPage() {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const { formatDate } = useDateLocale();
-
   const [user, setUser] = useState<SessionUser | null>(null);
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,15 +189,20 @@ export default function RequestsPage() {
 
     const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
 
+    // Convertir les chaînes en tableaux pour ces propriétés
+    const statusArray = queryParams.status?.split(',') || [];
+    const priorityArray = queryParams.priority?.split(',') || [];
+    const serviceCategoryArray = queryParams.serviceCategory?.split(',') || [];
+
     return {
       ...queryParams,
-      status: queryParams.status?.split(',').map((status) => status as RequestStatus),
-      priority: queryParams.priority
-        ?.split(',')
-        .map((priority) => priority as ServicePriority),
-      serviceCategory: queryParams.serviceCategory
-        ?.split(',')
-        .map((category) => category as ServiceCategory),
+      status: statusArray.length > 0 ? (statusArray as RequestStatus[]) : undefined,
+      priority:
+        priorityArray.length > 0 ? (priorityArray as ServicePriority[]) : undefined,
+      serviceCategory:
+        serviceCategoryArray.length > 0
+          ? (serviceCategoryArray as ServiceCategory[])
+          : undefined,
       page: Number(queryParams.page || '1'),
       limit: Number(queryParams.limit || '10'),
       sortBy: queryParams.sortBy || 'createdAt',
@@ -350,32 +486,60 @@ export default function RequestsPage() {
     tableColumns.push({
       id: 'actions',
       cell: ({ row }) => (
-        <Button variant={'outline'} asChild>
-          <Link
-            target="_blank"
-            onClick={(e) => e.stopPropagation()}
-            href={ROUTES.dashboard.service_requests(row.original.id)}
-          >
-            <FileText className="size-icon" />
-            {t('common.actions.consult')}
-          </Link>
-        </Button>
+        <DataTableRowActions
+          actions={[
+            {
+              component: (
+                <Link
+                  onClick={(e) => e.stopPropagation()}
+                  href={ROUTES.dashboard.service_requests(row.original.id)}
+                >
+                  <FileText className="size-icon" />
+                  {t('common.actions.consult')}
+                </Link>
+              ),
+            },
+            {
+              component: (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-start">
+                      <Edit className="size-icon" />
+                      <span>{t('common.actions.edit')}</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>{t('common.actions.edit')}</DialogTitle>
+                    </DialogHeader>
+                    <QuickEditForm request={row.original} onSuccess={handleRefresh} />
+                  </DialogContent>
+                </Dialog>
+              ),
+            },
+          ]}
+          row={row}
+        />
       ),
     });
 
     return tableColumns;
-  }, [t, user, formatDate, statuses]);
+  }, [t, user, formatDate, statuses, handleRefresh]);
 
   // Définition des filtres
   const filters = useMemo<FilterOption<FullServiceRequest>[]>(() => {
-    const formattedParams = formatQueryParams();
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
+
+    // Extraire directement des searchParams pour les filtres
+    const status = searchParams.get('status')?.split(',') || [];
+    const priority = searchParams.get('priority')?.split(',') || [];
+    const serviceCategory = searchParams.get('serviceCategory')?.split(',') || [];
 
     const filterOptions: FilterOption<FullServiceRequest>[] = [
       {
         type: 'search',
         label: t('requests.filters.search'),
-        defaultValue: formattedParams.search ?? '',
+        defaultValue: searchParams.get('search') || '',
         onChange: (value) =>
           handleParamsChange({
             type: 'filter',
@@ -387,10 +551,7 @@ export default function RequestsPage() {
         type: 'checkbox',
         property: 'serviceCategory',
         label: t('requests.filters.service_category'),
-        defaultValue:
-          typeof formattedParams.serviceCategory === 'string'
-            ? formattedParams.serviceCategory.split(',')
-            : (formattedParams.serviceCategory ?? []),
+        defaultValue: serviceCategory,
         options: Object.values(ServiceCategory).map((category) => ({
           value: category,
           label: t(`inputs.serviceCategory.options.${category}`),
@@ -409,10 +570,7 @@ export default function RequestsPage() {
         type: 'checkbox',
         property: 'status',
         label: t('inputs.status.label'),
-        defaultValue:
-          typeof formattedParams.status === 'string'
-            ? formattedParams.status.split(',')
-            : (formattedParams.status ?? []),
+        defaultValue: status,
         options: statuses,
         onChange: (value) => {
           if (Array.isArray(value)) {
@@ -428,10 +586,7 @@ export default function RequestsPage() {
         type: 'checkbox',
         property: 'priority',
         label: t('requests.filters.priority'),
-        defaultValue:
-          typeof formattedParams.priority === 'string'
-            ? formattedParams.priority.split(',')
-            : (formattedParams.priority ?? []),
+        defaultValue: priority,
         options: Object.values(ServicePriority).map((priority) => ({
           value: priority,
           label: t(`common.priority.${priority}`),
@@ -450,11 +605,13 @@ export default function RequestsPage() {
 
     // Ajouter le filtre assignedTo si l'utilisateur est admin
     if (isAdmin && agents.length > 0) {
+      const assignedToId = searchParams.get('assignedToId')?.split(',') || [];
+
       filterOptions.push({
         type: 'checkbox',
         property: 'assignedTo',
         label: t('requests.filters.assigned_to'),
-        defaultValue: formattedParams.assignedToId?.toString().split(',') ?? [],
+        defaultValue: assignedToId,
         options: agents.map((agent) => ({
           value: agent.id,
           label: agent.name || '-',
@@ -472,7 +629,7 @@ export default function RequestsPage() {
     }
 
     return filterOptions;
-  }, [t, user, agents, formatQueryParams, handleParamsChange, statuses]);
+  }, [t, user, agents, searchParams, handleParamsChange, statuses]);
 
   if (!user) {
     return null;
