@@ -62,7 +62,6 @@ export default function ProfilesPage() {
     () => adaptSearchParams(queryParams),
     [queryParams],
   );
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<PaginatedProfiles>({
     items: [],
@@ -155,13 +154,19 @@ export default function ProfilesPage() {
       },
       {
         accessorKey: 'cardNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title={'ID'} />,
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={'ID'}
+            sortHandler={(direction) => handleSortChange('cardNumber', direction)}
+          />
+        ),
         cell: ({ row }) => (
           <div>
             {row.original.cardNumber ? <span>{row.original.cardNumber}</span> : '-'}
           </div>
         ),
-        enableSorting: false,
+        enableSorting: true,
         enableHiding: false,
       },
       {
@@ -507,9 +512,6 @@ export default function ProfilesPage() {
           onLimitChange={handleLimitChange}
           enableExport={true}
           exportSelectedOnly={true}
-          onRowClick={(row) => {
-            router.push(ROUTES.listing.profile(row.original.id));
-          }}
           exportFilename="profiles"
           hiddenColumns={[
             'cardPin',
