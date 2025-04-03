@@ -16,7 +16,7 @@ import { SessionUser } from '@/types';
 
 // Imports pour le DataTable
 import { ColumnDef } from '@tanstack/react-table';
-import { FileText, Edit } from 'lucide-react';
+import { FileText, Edit, Eye } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -496,6 +496,17 @@ export default function RequestsPage() {
                 >
                   <FileText className="size-icon" />
                   {t('common.actions.consult')}
+                </Link>
+              ),
+            },
+            {
+              component: (
+                <Link
+                  onClick={(e) => e.stopPropagation()}
+                  href={ROUTES.dashboard.service_request_review(row.original.id)}
+                >
+                  <Eye className="size-icon" />
+                  {t('common.actions.review')}
                 </Link>
               ),
             },
