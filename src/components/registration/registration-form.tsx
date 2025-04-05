@@ -95,8 +95,6 @@ export function RegistrationForm({
 
     const cleanedData = getValuable(data);
 
-    console.log('cleanedData', cleanedData);
-
     try {
       // Update each form with the data from the analysis
       if (cleanedData.basicInfo && forms.basicInfo) {

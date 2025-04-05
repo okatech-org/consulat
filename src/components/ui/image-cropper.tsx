@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslations } from 'next-intl';
 import Slider from '@/components/ui/slider';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, RotateCw } from 'lucide-react';
 
 interface ImageCropperProps {
   imageUrl: string;
@@ -39,12 +39,19 @@ export function ImageCropper({
   const [isLoading, setIsLoading] = useState(false);
   const editorRef = useRef<AvatarEditor | null>(null);
 
-  // Function to handle 90-degree rotation
-  const handleRotate = useCallback(() => {
+  // Function to handle rotation to the left (counterclockwise)
+  const handleRotateLeft = useCallback(() => {
+    setRotation((prev) => {
+      // Rotate 90 degrees counterclockwise
+      return prev - 90;
+    });
+  }, []);
+
+  // Function to handle rotation to the right (clockwise)
+  const handleRotateRight = useCallback(() => {
     setRotation((prev) => {
       // Rotate 90 degrees clockwise
-      const newRotation = prev + 90;
-      return newRotation >= 360 ? newRotation - 360 : newRotation;
+      return prev + 90;
     });
   }, []);
 
@@ -154,6 +161,12 @@ export function ImageCropper({
 
   const { width, height } = getEditorDimensions();
 
+  // Normalize rotation value for AvatarEditor (which expects 0-359)
+  const normalizeRotation = (value: number) => {
+    // Convert negative values to positive equivalent in 0-359 range
+    return ((value % 360) + 360) % 360;
+  };
+
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="sm:max-w-[600px]">
@@ -171,26 +184,14 @@ export function ImageCropper({
             borderRadius={circularCrop ? Math.min(width, height) / 2 : 0}
             color={[0, 0, 0, 0.6]} // Background color behind the cropped image
             scale={scale}
-            rotate={rotation}
+            rotate={normalizeRotation(rotation)}
             crossOrigin="anonymous"
           />
         </div>
 
         <div className="mt-4 space-y-4">
           <div>
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">{t('zoom')}</label>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRotate}
-                type="button"
-                className="h-8 w-8 p-0"
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span className="sr-only">Rotate</span>
-              </Button>
-            </div>
+            <label className="text-sm font-medium">Agrandir l&apos;image</label>
             <Slider
               value={[scale]}
               min={1}
@@ -204,25 +205,9 @@ export function ImageCropper({
               className="mt-2"
             />
           </div>
-
-          <div>
-            <label className="text-sm font-medium">Rotation</label>
-            <Slider
-              value={[rotation]}
-              min={0}
-              max={359}
-              step={1}
-              onValueChange={(values) => {
-                if (values[0] !== undefined) {
-                  setRotation(values[0]);
-                }
-              }}
-              className="mt-2"
-            />
-          </div>
         </div>
 
-        <DialogFooter className="space-y-4">
+        <DialogFooter className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             {t('cancel')}
           </Button>
