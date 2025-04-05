@@ -369,7 +369,10 @@ export function NewProfileForm({
             disabled={isLoading || !form.formState.isValid}
           >
             <span>
-              {showOTP ? 'Continuer mon inscription' : "Obtenir un code d'accès"}
+              {showOTP
+                ? 'Continuer mon inscription'
+                : "Recevoir un code d'accès" +
+                  (form.watch('type') === 'EMAIL' ? ' par email' : ' par SMS')}
             </span>
             {!isLoading && <ArrowRight className="size-icon" />}
             {isLoading && <Loader2 className="size-icon animate-spin" />}
@@ -407,7 +410,7 @@ export function NewProfileForm({
           )}
           {!showOTP && (
             <Button
-              type="button"
+              type="submit"
               variant="link"
               disabled={isLoading}
               onClick={() => {
@@ -416,8 +419,8 @@ export function NewProfileForm({
             >
               <span className="text-muted-foreground">
                 {form.watch('type') === 'EMAIL'
-                  ? tAuth('login_with_phone_prompt')
-                  : tAuth('login_with_email_prompt')}
+                  ? "Recevoir un code d'accès par téléphone"
+                  : "Recevoir un code d'accès par email"}
               </span>
             </Button>
           )}

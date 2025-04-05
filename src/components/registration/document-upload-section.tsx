@@ -21,7 +21,6 @@ import {
   FormControl,
 } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
-import { getFieldsForDocument } from '@/lib/document-fields';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';
@@ -65,7 +64,6 @@ export function DocumentUploadSection({
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
-      analysisFields: getFieldsForDocument(DocumentType.PASSPORT),
       expectedType: DocumentType.PASSPORT,
     },
     {
@@ -75,7 +73,6 @@ export function DocumentUploadSection({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument(DocumentType.BIRTH_CERTIFICATE),
       expectedType: DocumentType.BIRTH_CERTIFICATE,
     },
     {
@@ -85,7 +82,6 @@ export function DocumentUploadSection({
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument(DocumentType.RESIDENCE_PERMIT),
       expectedType: DocumentType.RESIDENCE_PERMIT,
     },
     {
@@ -95,7 +91,6 @@ export function DocumentUploadSection({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      analysisFields: getFieldsForDocument(DocumentType.PROOF_OF_ADDRESS),
       expectedType: DocumentType.PROOF_OF_ADDRESS,
     },
   ] as const;

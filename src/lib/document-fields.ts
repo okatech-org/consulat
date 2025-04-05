@@ -1,129 +1,131 @@
-import { AnalysisFieldItem } from '@/lib/utils';
+import { DocumentField } from '@/lib/utils';
+import { FullProfile } from '@/types';
 import { DocumentType } from '@prisma/client';
-
-export const documentFieldsToAnalyze: AnalysisFieldItem[] = [];
+export const documentFieldsToAnalyze: DocumentField[] = [
+  {
+    name: 'firstName',
+    description: 'First name of the person as written on the document',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'passportNumber',
+    description: 'Passport number',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'passportIssueDate',
+    description: 'Date of issue of the passport in YYYY-MM-DD format',
+    required: true,
+    type: 'date',
+  },
+  {
+    name: 'passportExpiryDate',
+    description: 'Date of expiry of the passport in YYYY-MM-DD format',
+    required: true,
+    type: 'date',
+  },
+  {
+    name: 'passportIssueAuthority',
+    description: 'Authority that issued the passport',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'lastName',
+    description: 'Last name of the person as written on the document',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'gender',
+    description: 'Gender of the person. Must be exactly "MALE" or "FEMALE"',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'birthDate',
+    description: 'Date of birth in YYYY-MM-DD format',
+    required: true,
+    type: 'date',
+  },
+  {
+    name: 'birthPlace',
+    description: 'Place of birth (city name)',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'birthCountry',
+    description: 'Country code of birth (e.g. "FR")',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'acquisitionMode',
+    description:
+      'Mode of acquisition of the nationality (e.g. "BIRTH", "NATURALIZATION", "MARRIAGE", "OTHER"), use "BIRTH" by default if not specified',
+    required: true,
+    type: 'string',
+  },
+  {
+    name: 'address',
+    description:
+      'Complete address with the following structure: firstLine (address line 1), secondLine (address line 2), city, zipCode, country, e.g. { "firstLine": "123 Main St", "secondLine": "Apt 1", "city": "Springfield", "zipCode": "12345" }',
+    type: 'address',
+    required: true,
+  },
+  {
+    name: 'fatherFullName',
+    description: 'Full name of the father',
+    type: 'string',
+  },
+  {
+    name: 'motherFullName',
+    description: 'Full name of the mother',
+    type: 'string',
+  },
+  // Informations professionnelles
+  {
+    name: 'workStatus',
+    description:
+      'Work status, must be one of: "EMPLOYEE", "ENTREPRENEUR", "UNEMPLOYED", "RETIRED", "STUDENT", "OTHER"',
+    type: 'string',
+  },
+  {
+    name: 'profession',
+    description: 'Current profession or occupation (job title)',
+    type: 'string',
+  },
+];
 
 // Configuration spécifique par type de document
-export const documentSpecificFields: Record<DocumentType, string[]> = {
-  [DocumentType.PASSPORT]: [
+export const documentSpecificFields = {
+  PASSPORT: [
     'firstName',
     'lastName',
     'gender',
     'birthDate',
     'birthPlace',
     'birthCountry',
-    'nationality',
     'passportNumber',
     'passportIssueDate',
     'passportExpiryDate',
     'passportIssueAuthority',
-  ],
-  [DocumentType.BIRTH_CERTIFICATE]: [
-    'fatherFullName',
-    'motherFullName',
-    'birthPlace',
-    'birthDate',
     'acquisitionMode',
   ],
-  [DocumentType.RESIDENCE_PERMIT]: ['profession', 'workStatus', 'address'],
-  [DocumentType.PROOF_OF_ADDRESS]: ['address'],
-  [DocumentType.IDENTITY_CARD]: ['firstName', 'lastName', 'gender', 'birthDate'],
-  [DocumentType.MARRIAGE_CERTIFICATE]: ['maritalStatus', 'spouseFullName'],
-  [DocumentType.DEATH_CERTIFICATE]: [],
-  [DocumentType.DIVORCE_DECREE]: ['maritalStatus'],
-  [DocumentType.NATIONALITY_CERTIFICATE]: ['nationality', 'acquisitionMode'],
-  [DocumentType.OTHER]: [],
-  [DocumentType.VISA_PAGES]: ['passportNumber'],
-  [DocumentType.EMPLOYMENT_PROOF]: [
-    'profession',
-    'employer',
-    'workStatus',
-    'employerAddress',
-  ],
-  [DocumentType.NATURALIZATION_DECREE]: ['nationality', 'acquisitionMode'],
-  [DocumentType.IDENTITY_PHOTO]: [],
-  [DocumentType.CONSULAR_CARD]: ['firstName', 'lastName'],
-};
+  BIRTH_CERTIFICATE: ['fatherFullName', 'motherFullName'],
+  RESIDENCE_PERMIT: ['profession', 'workStatus', 'address'],
+  ADDRESS_PROOF: ['address'],
+} as unknown as Record<DocumentType, Array<keyof FullProfile>>;
 
 /**
  * Helper function to get relevant fields for a specific document type
  */
 export function getFieldsForDocument(
   documentType: keyof typeof documentSpecificFields,
-): AnalysisFieldItem[] {
+): DocumentField[] {
   const fieldNames = documentSpecificFields[documentType];
-  return documentFieldsToAnalyze.filter((field) => fieldNames.includes(field.name));
-}
-
-// Sections of the registration form
-export type FormSection = 'basicInfo' | 'contactInfo' | 'familyInfo' | 'professionalInfo';
-
-/**
- * Configuration of fields that should never be automatically updated by document analysis
- * This protects sensitive or manually entered fields from being overwritten
- *
- * You can use dot notation for nested fields, such as 'residentContact.address.country'
- */
-export const blacklistedAnalysisFields: Record<FormSection, string[]> = {
-  basicInfo: [
-    'residentContact.address.country',
-    'homeLandContact.address.country',
-    'residenceCountyCode',
-    'email',
-    'phoneNumber',
-  ],
-  contactInfo: [
-    'residentContact.address.country',
-    'homeLandContact.address.country',
-    'residenceCountyCode',
-    'email',
-    'phoneNumber',
-  ],
-  familyInfo: [
-    'residentContact.address.country',
-    'homeLandContact.address.country',
-    'residenceCountyCode',
-    'email',
-    'phoneNumber',
-  ],
-  professionalInfo: [
-    'residentContact.address.country',
-    'homeLandContact.address.country',
-    'residenceCountyCode',
-    'email',
-    'phoneNumber',
-  ],
-};
-/**
- * Checks if a field is blacklisted for automatic updates
- *
- * @param section The form section (basicInfo, contactInfo, etc.)
- * @param fieldPath The field path to check, can be a simple field name or a dot notation path
- * for nested objects (e.g., 'residentContact.address.country')
- * @returns boolean indicating if the field should not be updated
- */
-export function isFieldBlacklisted(section: FormSection, fieldPath: string): boolean {
-  // If section doesn't exist in the configuration, nothing is blacklisted
-  if (!blacklistedAnalysisFields[section]) return false;
-
-  // Check for exact match (entire field path)
-  if (blacklistedAnalysisFields[section].includes(fieldPath)) {
-    return true;
-  }
-
-  // Check if any parent object is blacklisted
-  // For example, if 'residentContact' is blacklisted, then 'residentContact.address.country' should also be blacklisted
-  const parts = fieldPath.split('.');
-
-  if (parts.length > 1) {
-    // Check all possible parent paths
-    for (let i = 1; i < parts.length; i++) {
-      const parentPath = parts.slice(0, i).join('.');
-      if (blacklistedAnalysisFields[section].includes(parentPath)) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+  return documentFieldsToAnalyze.filter((field) => fieldNames?.includes(field.name));
 }
