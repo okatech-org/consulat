@@ -23,7 +23,7 @@ import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { ErrorCard } from '../ui/error-card';
 import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '../layouts/card-container';
-import { isFieldBlacklisted } from '@/lib/document-fields';
+import { BasicInfoFormData } from '@/schemas/registration';
 
 // Define subtypes of StepKey for this component
 type ChildSteps = 'link' | 'documents' | 'identity';
@@ -61,22 +61,19 @@ export function ChildRegistrationForm() {
     try {
       // Just update basicInfo since that's all we need for child profiles
       if (forms.basicInfo) {
-        const { firstName, lastName, birthDate, birthPlace, birthCountry, nationality } =
-          data;
+        const fieldsToUpdate = [
+          'firstName',
+          'lastName',
+          'birthDate',
+          'birthPlace',
+          'birthCountry',
+        ] as Array<keyof BasicInfoFormData>;
 
-        // Only update non-blacklisted fields
-        if (firstName && !isFieldBlacklisted('basicInfo', 'firstName'))
-          forms.basicInfo.setValue('firstName', firstName);
-        if (lastName && !isFieldBlacklisted('basicInfo', 'lastName'))
-          forms.basicInfo.setValue('lastName', lastName);
-        if (birthDate && !isFieldBlacklisted('basicInfo', 'birthDate'))
-          forms.basicInfo.setValue('birthDate', birthDate);
-        if (birthPlace && !isFieldBlacklisted('basicInfo', 'birthPlace'))
-          forms.basicInfo.setValue('birthPlace', birthPlace);
-        if (birthCountry && !isFieldBlacklisted('basicInfo', 'birthCountry'))
-          forms.basicInfo.setValue('birthCountry', birthCountry);
-        if (nationality && !isFieldBlacklisted('basicInfo', 'nationality'))
-          forms.basicInfo.setValue('nationality', nationality);
+        fieldsToUpdate.forEach((field) => {
+          if (data[field]) {
+            forms.basicInfo.setValue(field, data[field]);
+          }
+        });
       }
 
       toast({

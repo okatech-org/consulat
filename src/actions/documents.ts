@@ -13,7 +13,7 @@ import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
 import { ROUTES } from '@/schemas/routes';
-import { documentSpecificFields } from '@/lib/document-fields';
+import { documentSpecificFields, getFieldsForDocument } from '@/lib/document-fields';
 
 import {
   BasicInfoFormData,
@@ -21,6 +21,7 @@ import {
   FamilyInfoFormData,
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
+import { DocumentField, tryCatch } from '@/lib/utils';
 
 // Types
 interface DocumentAnalysisResult {
@@ -155,12 +156,7 @@ function createStructuredOutputSchemaForDocument(
           type: 'string',
           description: 'Authority that issued the passport',
         },
-        nationality: {
-          type: 'string',
-          description: 'Nationality of the person (e.g. GA for Gabonese)',
-        },
       },
-      additionalProperties: false,
     },
     contactInfo: {
       type: 'object',
@@ -185,10 +181,8 @@ function createStructuredOutputSchemaForDocument(
               description: 'Postal/ZIP code',
             },
           },
-          additionalProperties: false,
         },
       },
-      additionalProperties: false,
     },
     familyInfo: {
       type: 'object',
@@ -211,7 +205,6 @@ function createStructuredOutputSchemaForDocument(
           description: "Spouse's full name, if married",
         },
       },
-      additionalProperties: false,
     },
     professionalInfo: {
       type: 'object',
@@ -235,7 +228,6 @@ function createStructuredOutputSchemaForDocument(
           description: 'Address of employer',
         },
       },
-      additionalProperties: false,
     },
   };
 
@@ -293,101 +285,83 @@ function createStructuredOutputSchemaForDocument(
   return baseSchema;
 }
 
-/**
- * Generate a document-specific prompt
- */
-function generatePromptForDocument(documentType: DocumentType): string {
-  // Common part of the prompt that applies to all document types
-  const basePrompt = `Please analyze this document and extract specific information.
-You are analyzing a Gabonese document, which may include handwritten text. Pay special attention to text recognition and interpretation.
+function generatePrompt(fields: DocumentField[]): string {
+  return `Please analyze this document and extract ONLY the following information in JSON format.
+You are analyzing Gabonese documents, which include handwritten text. Pay special attention to text recognition and interpretation.
 
 When analyzing handwritten text, follow these guidelines:
 
 1. Text Recognition Strategy:
    - Look for both cursive and print handwriting
-   - Consider different handwriting styles
+   - Consider different handwriting styles (slanted, vertical, connected, disconnected)
    - Pay attention to character spacing and alignment
-   - Look for text in designated fields and margins
+   - Look for text both in designated fields and margins
    - Check for crossed-out text and corrections
 
 2. Name Analysis:
    - Names may be handwritten with varying legibility
-   - Accents might be missing or varied
-   - Match against common Gabonese names
+   - Accents might be missing or varied (é,è,ë may appear as e)
+   - Match against the common Gabonese names
    - Consider regional naming patterns and traditions
    - Look for family name prefixes (e.g., M', N', Ondo, Nze)
 
 3. Number Recognition:
-   - Pay attention to date formats
+   - Pay attention to date formats (DD/MM/YYYY, DD-MM-YYYY)
+   - Look for both European (7) and local number variations
    - Be careful with 1/7, 4/9, 3/8 similarities in handwriting
-   - Check for numerical corrections or overwritten numbers`;
+   - Check for numerical corrections or overwritten numbers
 
-  // Document-specific guidance
-  const documentSpecificGuidance: Partial<Record<DocumentType, string>> = {
-    [DocumentType.PASSPORT]: `
-This is a PASSPORT document. Focus on extracting:
-- Personal details (first name, last name, gender)
-- Birth information (date, place, country)
-- Passport details (number, issue date, expiry date, issuing authority)
-- Nationality
+4. Document Context:
+   - Consider the document type (ID, certificate, form)
+   - Look for official stamps and watermarks near text
+   - Check for signatures and their placement
 
-Look for these details in standardized fields on the passport. Check both the main information page and the machine-readable zone (MRZ) at the bottom.`,
+5. Text Placement:
+   - Look for text in both designated fields and margins
+   - Check for continuations of text in different sections
+   - Consider text orientation and alignment
 
-    [DocumentType.BIRTH_CERTIFICATE]: `
-This is a BIRTH CERTIFICATE. Focus on extracting:
-- Person's details (first name, last name)
-- Birth information (date, place, country)
-- Parents' information (father's full name, mother's full name)
+Fields to extract:
+${fields
+  .map((field) => {
+    const description = [
+      field.name,
+      field.description,
+      field.required ? '(Required)' : '(Optional)',
+      field.type ? `[${field.type}]` : '',
+    ]
+      .filter(Boolean)
+      .join(' - ');
+    return `- ${description}`;
+  })
+  .join('\n')}
 
-Birth certificates often have a formal structure with fields for each piece of information. Pay attention to the parent names section which is crucial for identification.`,
+Return ONLY a valid JSON object with exact field names. Follow these format rules:
+- Use UPPERCASE for gender (MALE/FEMALE)
+- Use YYYY-MM-DD format for dates
+- For addresses use the structure: { firstLine, secondLine?, city, zipCode }
+- Only include fields that are found in the document and are mentioned above
+- Omit fields that are not found
+- When encountering unclear text, consider the document context and field expectations
 
-    [DocumentType.RESIDENCE_PERMIT]: `
-This is a RESIDENCE PERMIT. Focus on extracting:
-- Personal details (first name, last name)
-- Professional information (work status, profession, employer)
+Special Cases:
+- For unclear characters, consider common local writing patterns
+- For partially obscured text, use context to make informed interpretations
+- For overlapping text, try to separate based on ink color or writing style
+- For faded text, enhance contrast in your analysis
+- For stamps overlaying text, try to read through or around the stamp
 
-Look for sections that indicate the person's occupation or professional status. This might be in a dedicated field or mentioned in other parts of the document.`,
-
-    [DocumentType.PROOF_OF_ADDRESS]: `
-This is a PROOF OF ADDRESS document. Focus on extracting:
-- Address information (street address, city, postal code)
-
-This could be a utility bill, bank statement, or official correspondence. Look for the recipient address near the top of the document, often formatted as multiple lines.`,
-
-    [DocumentType.IDENTITY_CARD]: `
-This is an IDENTITY CARD. Focus on extracting:
-- Personal details (first name, last name, gender)
-- Birth information (date, place, country)
-- Identity card details (number, issue date, expiry date)`,
-
-    [DocumentType.OTHER]: `
-This is an unspecified document type. Extract any relevant personal information you can find.`,
-  };
-
-  // Special cases handling
-  const specialCasesPrompt = `
-4. Special Cases:
-   - For unclear characters, consider common local writing patterns
-   - For partially obscured text, don't make assumptions
-   - For overlapping text, try to separate based on ink color or writing style
-   - For faded text, enhance contrast in your analysis
-   - For stamps overlaying text, try to read through or around the stamp
-
-Analyze the document and extract ONLY the requested information, placing extracted data in the provided schema. DO NOT include information that isn't explicitly visible in the document.`;
-
-  // Use the specific guidance if available, otherwise use a generic one
-  const specificGuidance =
-    documentSpecificGuidance[documentType] ||
-    `
-This document needs analysis. Extract any relevant personal information visible in the document.`;
-
-  return `${basePrompt}${specificGuidance}${specialCasesPrompt}`;
+Do not include any additional text, comments, or explanations outside of the JSON object.
+If you're uncertain about a handwritten text interpretation, choose the most likely option based on common patterns in Gabonese documents.`;
 }
 
-async function optimizeImage(buffer: Buffer): Promise<Buffer> {
+export async function optimizeImage(
+  buffer: Buffer,
+  format: 'jpeg' | 'png' = 'jpeg',
+): Promise<Buffer> {
   return await sharp(buffer)
     .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 80 })
+    .toFormat(format, { quality: 80 })
     .toBuffer();
 }
 
@@ -409,52 +383,59 @@ export async function analyzeDocuments(
   documentsToAnalyze: Partial<Record<DocumentType, string>>,
   model: AIModel = 'gpt',
 ): Promise<AnalysisResponse> {
-  try {
-    const visionAnalyzer =
-      model === 'gpt' ? new OpenAIVisionAnalyzer() : new OpenAIVisionAnalyzer();
+  const visionAnalyzer =
+    model === 'gpt' ? new OpenAIVisionAnalyzer() : new OpenAIVisionAnalyzer();
 
-    const analysisResults = await Promise.all(
-      Object.entries(documentsToAnalyze).map(async ([key, fileUrl]) => {
-        const documentType = key as DocumentType;
+  const promises = Object.entries(documentsToAnalyze).map(async ([key, fileUrl]) => {
+    const documentType = key as DocumentType;
 
-        try {
-          // Get document-specific schema and prompt
-          const structuredOutputSchema =
-            createStructuredOutputSchemaForDocument(documentType);
-          const prompt = generatePromptForDocument(documentType);
+    // Get document-specific schema and prompt
+    const structuredOutputSchema = createStructuredOutputSchemaForDocument(documentType);
+    const fields = getFieldsForDocument(documentType);
+    const prompt = generatePrompt(fields);
 
-          // Récupérer le fichier depuis l'URL
-          const response = await fetch(fileUrl);
-          const fileBlob = await response.blob();
-          const file = new File([fileBlob], `${key}.${fileBlob.type.split('/')[1]}`, {
-            type: fileBlob.type,
-          });
+    // Récupérer le fichier depuis l'URL
+    const response = await fetch(fileUrl);
+    const fileBlob = await response.blob();
+    const file = new File([fileBlob], `${key}.${fileBlob.type.split('/')[1]}`, {
+      type: fileBlob.type,
+    });
 
-          const images = await fileToImages(file);
+    const { data: images, error } = await tryCatch(fileToImages(file));
 
-          const documentResults = await Promise.all(
-            images.slice(0, 1).map(async (imageBuffer) => {
-              const base64 = imageBuffer.toString('base64');
-              const extractedData = await visionAnalyzer.analyzeImageWithStructuredOutput(
-                base64,
-                prompt,
-                structuredOutputSchema,
-              );
+    if (error || !images) {
+      console.error(`Error analyzing ${key}:`, error);
+      return null;
+    }
 
-              return {
-                documentType: key,
-                extractedData: extractedData,
-              };
-            }),
-          );
+    const documentPromises = images.slice(0, 1).map(async (imageBuffer) => {
+      const base64 = imageBuffer.toString('base64');
+      const extractedData = await visionAnalyzer.analyzeImageWithStructuredOutput(
+        base64,
+        prompt,
+        structuredOutputSchema,
+      );
 
-          return documentResults[0]; // We're only using the first image for now
-        } catch (error) {
-          console.error(`Error analyzing ${key}:`, error);
-          return null;
-        }
-      }),
+      return {
+        documentType: key,
+        extractedData: extractedData,
+      };
+    });
+
+    const { data: documentResults, error: documentResultsError } = await tryCatch(
+      Promise.all(documentPromises),
     );
+
+    if (documentResultsError || !documentResults) {
+      console.error(`Error analyzing ${key}:`, documentResultsError);
+      return null;
+    }
+
+    return documentResults[0];
+  });
+
+  try {
+    const analysisResults = await Promise.all(promises);
 
     // Use type assertion to handle the undefined values
     const validResults = analysisResults.filter(

@@ -38,6 +38,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
 import { validateDocument } from '@/lib/document-validation';
 import { DocumentPreview } from './ui/document-preview';
+import { optimizeImage, optimizeImageFromForm } from '@/actions/documents';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -290,6 +291,7 @@ export function UserDocument({
     setIsLoading(true);
 
     const uploadResult = await tryCatch(uploadFileFromClient(file));
+
     if (uploadResult.error) {
       toast({
         title: t_messages('errors.update_failed'),
@@ -447,6 +449,7 @@ export function UserDocument({
       {/* Image Cropper Dialog */}
       {tempImageUrl && (
         <ImageCropper
+          fileName={`${document?.type}-${document?.id ?? ''}`}
           imageUrl={tempImageUrl}
           aspectRatio={aspectRatioNumber}
           circularCrop={true}

@@ -23,6 +23,7 @@ import { CountrySelect } from '@/components/ui/country-select';
 import { AppUserDocument } from '@/types';
 import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../user-document';
+import { capitalize } from '@/lib/utils';
 
 type BasicInfoFormProps = {
   form: UseFormReturn<BasicInfoFormData>;
@@ -71,7 +72,6 @@ export function BasicInfoForm({
                         }}
                         onDelete={() => {
                           field.onChange(undefined);
-                          window.location.reload();
                         }}
                         accept="image/*"
                         enableEditor={true}
@@ -131,6 +131,9 @@ export function BasicInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(capitalize(e.target.value));
+                        }}
                         placeholder={t_inputs('firstName.placeholder')}
                         disabled={isLoading}
                       />
@@ -148,6 +151,9 @@ export function BasicInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value.toUpperCase());
+                        }}
                         placeholder={t_inputs('lastName.placeholder')}
                         disabled={isLoading}
                       />

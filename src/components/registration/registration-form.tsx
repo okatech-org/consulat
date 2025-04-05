@@ -95,60 +95,98 @@ export function RegistrationForm({
 
     const cleanedData = getValuable(data);
 
+    console.log('cleanedData', cleanedData);
+
     try {
       // Update each form with the data from the analysis
       if (cleanedData.basicInfo && forms.basicInfo) {
-        Object.entries(cleanedData.basicInfo).forEach(([field, value]) => {
-          if (
-            typeof field === 'string' &&
-            forms.basicInfo.getValues()[field as keyof BasicInfoFormData] !== undefined
-          ) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            forms.basicInfo.setValue(field as keyof BasicInfoFormData, value as any);
+        const basicInforFields = [
+          'firstName',
+          'lastName',
+          'birthDate',
+          'birthPlace',
+          'birthCountry',
+          'gender',
+          'passportExpiryDate',
+          'passportIssueDate',
+          'passportIssueAuthority',
+          'passportNumber',
+          'acquisitionMode',
+        ] as Array<keyof BasicInfoFormData>;
+
+        basicInforFields.forEach((field) => {
+          if (cleanedData.basicInfo?.[field]) {
+            forms.basicInfo.setValue(field, cleanedData.basicInfo[field], {
+              shouldDirty: true,
+            });
           }
         });
       }
 
       if (cleanedData.contactInfo && forms.contactInfo) {
-        Object.entries(cleanedData.contactInfo).forEach(([field, value]) => {
-          if (
-            typeof field === 'string' &&
-            forms.contactInfo.getValues()[field as keyof ContactInfoFormData] !==
-              undefined
-          ) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            forms.contactInfo.setValue(field as keyof ContactInfoFormData, value as any);
+        const address = cleanedData.contactInfo.address;
+
+        if (address) {
+          const { firstLine, city, zipCode, secondLine } = address;
+
+          if (firstLine) {
+            forms.contactInfo.setValue('address.firstLine', firstLine, {
+              shouldDirty: true,
+            });
           }
-        });
+
+          if (city) {
+            forms.contactInfo.setValue('address.city', city, { shouldDirty: true });
+          }
+
+          if (zipCode) {
+            forms.contactInfo.setValue('address.zipCode', zipCode, { shouldDirty: true });
+          }
+
+          if (secondLine) {
+            forms.contactInfo.setValue('address.secondLine', secondLine, {
+              shouldDirty: true,
+            });
+          }
+        }
       }
 
       if (cleanedData.familyInfo && forms.familyInfo) {
-        Object.entries(cleanedData.familyInfo).forEach(([field, value]) => {
-          if (
-            typeof field === 'string' &&
-            forms.familyInfo.getValues()[field as keyof FamilyInfoFormData] !== undefined
-          ) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            forms.familyInfo.setValue(field as keyof FamilyInfoFormData, value as any);
-          }
-        });
+        const { fatherFullName, motherFullName, maritalStatus } = cleanedData.familyInfo;
+
+        if (fatherFullName) {
+          forms.familyInfo.setValue('fatherFullName', fatherFullName, {
+            shouldDirty: true,
+          });
+        }
+
+        if (motherFullName) {
+          forms.familyInfo.setValue('motherFullName', motherFullName, {
+            shouldDirty: true,
+          });
+        }
+
+        if (maritalStatus) {
+          forms.familyInfo.setValue('maritalStatus', maritalStatus, {
+            shouldDirty: true,
+          });
+        }
       }
 
       if (cleanedData.professionalInfo && forms.professionalInfo) {
-        Object.entries(cleanedData.professionalInfo).forEach(([field, value]) => {
-          if (
-            typeof field === 'string' &&
-            forms.professionalInfo.getValues()[
-              field as keyof ProfessionalInfoFormData
-            ] !== undefined
-          ) {
-            forms.professionalInfo.setValue(
-              field as keyof ProfessionalInfoFormData,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              value as any,
-            );
-          }
-        });
+        const { profession, workStatus } = cleanedData.professionalInfo;
+
+        if (profession) {
+          forms.professionalInfo.setValue('profession', profession, {
+            shouldDirty: true,
+          });
+        }
+
+        if (workStatus) {
+          forms.professionalInfo.setValue('workStatus', workStatus, {
+            shouldDirty: true,
+          });
+        }
       }
 
       toast({
