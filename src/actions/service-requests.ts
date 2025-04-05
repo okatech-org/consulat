@@ -90,6 +90,10 @@ export async function getServiceRequests(
       { requestedFor: { firstName: { contains: search, mode: 'insensitive' } } },
       { requestedFor: { lastName: { contains: search, mode: 'insensitive' } } },
       { requestedFor: { email: { contains: search, mode: 'insensitive' } } },
+      { requestedFor: { phoneNumber: { contains: search, mode: 'insensitive' } } },
+      { requestedFor: { cardNumber: { contains: search, mode: 'insensitive' } } },
+      { requestedFor: { passportNumber: { contains: search, mode: 'insensitive' } } },
+      { requestedFor: { status: { in: [search as RequestStatus] } } },
       { service: { name: { contains: search, mode: 'insensitive' } } },
     ];
   }

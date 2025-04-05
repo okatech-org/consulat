@@ -20,6 +20,7 @@ import {
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar, FilterOption } from './data-table-toolbar';
 import { DataTableExport } from './data-table-export';
+import { DataTableBulkActions } from './data-table-bulk-actions';
 import {
   Table,
   TableBody,
@@ -29,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useTranslations } from 'next-intl';
+import { RequestStatus } from '@prisma/client';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -47,6 +49,7 @@ interface DataTableProps<TData, TValue> {
   onExport?: (data: TData[]) => void;
   hiddenColumns?: string[];
   onRefresh?: () => void;
+  onBulkUpdateStatus?: (selectedRows: TData[], status: RequestStatus) => Promise<void>;
 }
 
 export function DataTable<TData, TValue>({
@@ -66,6 +69,7 @@ export function DataTable<TData, TValue>({
   hiddenColumns = [],
   onExport,
   onRefresh,
+  onBulkUpdateStatus,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
 
@@ -128,12 +132,18 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       {filters?.length ? (
         <div className="flex items-center justify-between gap-2">
-          <DataTableToolbar
-            isLoading={isLoading}
-            filters={filters}
-            table={table}
-            onRefresh={onRefresh}
-          />
+          <div className="flex items-center gap-2">
+            <DataTableToolbar
+              isLoading={isLoading}
+              filters={filters}
+              table={table}
+              onRefresh={onRefresh}
+            />
+            {table.getFilteredSelectedRowModel().rows.length > 0 &&
+              onBulkUpdateStatus && (
+                <DataTableBulkActions table={table} onUpdateStatus={onBulkUpdateStatus} />
+              )}
+          </div>
           {enableExport && (
             <DataTableExport
               columns={columns}
@@ -146,7 +156,10 @@ export function DataTable<TData, TValue>({
           )}
         </div>
       ) : enableExport ? (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          {table.getFilteredSelectedRowModel().rows.length > 0 && onBulkUpdateStatus && (
+            <DataTableBulkActions table={table} onUpdateStatus={onBulkUpdateStatus} />
+          )}
           <DataTableExport
             columns={columns}
             data={data}
@@ -155,6 +168,10 @@ export function DataTable<TData, TValue>({
             disableWhenNoSelection={exportSelectedOnly}
             onExport={onExport}
           />
+        </div>
+      ) : table.getFilteredSelectedRowModel().rows.length > 0 && onBulkUpdateStatus ? (
+        <div className="flex items-center justify-end">
+          <DataTableBulkActions table={table} onUpdateStatus={onBulkUpdateStatus} />
         </div>
       ) : null}
 

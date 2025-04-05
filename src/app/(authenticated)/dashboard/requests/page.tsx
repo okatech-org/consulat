@@ -9,7 +9,7 @@ import { getServiceRequests, GetRequestsOptions } from '@/actions/service-reques
 import { tryCatch } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
-import { hasPermission, hasAnyRole } from '@/lib/permissions/utils';
+import { hasPermission, hasAnyRole, RoleGuard } from '@/lib/permissions/utils';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { SessionUser } from '@/types';
@@ -60,6 +60,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { updateServiceRequestStatus } from '@/actions/service-requests';
+import { updateConsularRegistrationStatus } from '@/actions/consular-registration';
 
 // Define schema for quick edit form
 const quickEditSchema = z.object({
@@ -512,20 +513,22 @@ export default function RequestsPage() {
             },
             {
               component: (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Edit className="size-icon" />
-                      <span>{t('common.actions.edit')}</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>{t('common.actions.edit')}</DialogTitle>
-                    </DialogHeader>
-                    <QuickEditForm request={row.original} onSuccess={handleRefresh} />
-                  </DialogContent>
-                </Dialog>
+                <RoleGuard roles={['ADMIN', 'MANAGER', 'SUPER_ADMIN']}>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Edit className="size-icon" />
+                        <span>{t('common.actions.edit')}</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{t('common.actions.edit')}</DialogTitle>
+                      </DialogHeader>
+                      <QuickEditForm request={row.original} onSuccess={handleRefresh} />
+                    </DialogContent>
+                  </Dialog>
+                </RoleGuard>
               ),
             },
           ]}
@@ -642,6 +645,37 @@ export default function RequestsPage() {
     return filterOptions;
   }, [t, user, agents, searchParams, handleParamsChange, statuses]);
 
+  // Handle bulk update of status for selected rows
+  const handleBulkStatusUpdate = async (
+    selectedRows: FullServiceRequest[],
+    status: RequestStatus,
+  ) => {
+    if (!selectedRows.length) return;
+
+    try {
+      const updatePromises = selectedRows.map(async (row) => {
+        if (row?.requestedFor?.id) {
+          return updateConsularRegistrationStatus(row.id, row.requestedFor.id, status);
+        }
+        return updateServiceRequestStatus(row.id, status);
+      });
+
+      await Promise.all(updatePromises);
+
+      // Refresh the data after updates
+      handleRefresh();
+
+      toast.success(
+        t('common.success.bulk_update_success', {
+          count: selectedRows.length,
+        }),
+      );
+    } catch (error) {
+      console.error('Error updating statuses:', error);
+      toast.error(t('common.errors.bulk_update_failed'));
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -662,6 +696,7 @@ export default function RequestsPage() {
             onLimitChange={handleLimitChange}
             hiddenColumns={['id', 'priority', 'assignedTo']}
             onRefresh={handleRefresh}
+            onBulkUpdateStatus={handleBulkStatusUpdate}
           />
         </CardContainer>
       )}
