@@ -21,7 +21,6 @@ import {
   FormControl,
 } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
-import { getFieldsForDocument } from '@/lib/document-fields';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';

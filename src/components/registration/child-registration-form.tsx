@@ -71,7 +71,9 @@ export function ChildRegistrationForm() {
 
         fieldsToUpdate.forEach((field) => {
           if (data[field]) {
-            forms.basicInfo.setValue(field, data[field]);
+            forms.basicInfo.setValue(field, data[field], {
+              shouldDirty: true,
+            });
           }
         });
       }

@@ -71,7 +71,7 @@ export function BasicInfoForm({
                           field.onChange(doc);
                         }}
                         onDelete={() => {
-                          field.onChange(undefined);
+                          field.onChange(null);
                         }}
                         accept="image/*"
                         enableEditor={true}
