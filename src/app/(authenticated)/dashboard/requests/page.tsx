@@ -9,7 +9,7 @@ import { getServiceRequests, GetRequestsOptions } from '@/actions/service-reques
 import { tryCatch } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
-import { hasPermission, hasAnyRole } from '@/lib/permissions/utils';
+import { hasPermission, hasAnyRole, RoleGuard } from '@/lib/permissions/utils';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { SessionUser } from '@/types';
@@ -513,20 +513,22 @@ export default function RequestsPage() {
             },
             {
               component: (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Edit className="size-icon" />
-                      <span>{t('common.actions.edit')}</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>{t('common.actions.edit')}</DialogTitle>
-                    </DialogHeader>
-                    <QuickEditForm request={row.original} onSuccess={handleRefresh} />
-                  </DialogContent>
-                </Dialog>
+                <RoleGuard roles={['ADMIN', 'MANAGER', 'SUPER_ADMIN']}>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Edit className="size-icon" />
+                        <span>{t('common.actions.edit')}</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{t('common.actions.edit')}</DialogTitle>
+                      </DialogHeader>
+                      <QuickEditForm request={row.original} onSuccess={handleRefresh} />
+                    </DialogContent>
+                  </Dialog>
+                </RoleGuard>
               ),
             },
           ]}
