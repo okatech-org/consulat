@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
+import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCurrentUser } from '@/actions/user';
 import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
@@ -62,106 +62,42 @@ import { toast } from 'sonner';
 import { updateServiceRequestStatus } from '@/actions/service-requests';
 import { updateConsularRegistrationStatus } from '@/actions/consular-registration';
 
-// Define schema for quick edit form
-const quickEditSchema = z.object({
-  status: z.nativeEnum(RequestStatus),
-  notes: z.string().optional(),
-});
+// Function to adapt search parameters for service requests
+function adaptServiceRequestSearchParams(
+  searchParams: ReadonlyURLSearchParams,
+  user: SessionUser | null,
+): GetRequestsOptions {
+  const sortParam = searchParams.get('sort');
+  const sortBy = sortParam?.split('-')[0];
+  const sortOrder = sortParam?.split('-')[1] as 'asc' | 'desc';
 
-type QuickEditFormData = z.infer<typeof quickEditSchema>;
+  const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
 
-type QuickEditFormProps = {
-  request: FullServiceRequest;
-  onSuccess: () => void;
-};
-
-function QuickEditForm({ request, onSuccess }: QuickEditFormProps) {
-  const t = useTranslations();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<QuickEditFormData>({
-    resolver: zodResolver(quickEditSchema),
-    defaultValues: {
-      status: request.status,
-      notes: '',
-    },
-  });
-
-  const onSubmit = async (data: QuickEditFormData) => {
-    setIsSubmitting(true);
-    try {
-      await updateServiceRequestStatus(request.id, data.status, data.notes);
-      toast.success(t('common.success.saved'));
-      onSuccess();
-    } catch (error) {
-      toast.error(t('common.errors.save_failed'));
-      console.error('Error updating request:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+  return {
+    status: searchParams.get('status')?.split(',').filter(Boolean) as
+      | RequestStatus[]
+      | undefined,
+    priority: searchParams.get('priority')?.split(',').filter(Boolean) as
+      | ServicePriority[]
+      | undefined,
+    serviceCategory: searchParams.get('serviceCategory')?.split(',').filter(Boolean) as
+      | ServiceCategory[]
+      | undefined,
+    page: Math.max(1, Number(searchParams.get('page') || '1')),
+    limit: Math.max(1, Number(searchParams.get('limit') || '10')),
+    sortBy: sortBy || 'createdAt',
+    sortOrder: sortOrder || 'desc',
+    search: searchParams.get('search') || undefined,
+    startDate: searchParams.get('startDate')
+      ? new Date(searchParams.get('startDate')!)
+      : undefined,
+    endDate: searchParams.get('endDate')
+      ? new Date(searchParams.get('endDate')!)
+      : undefined,
+    organizationId:
+      searchParams.get('organizationId') ?? user?.organizationId ?? undefined,
+    assignedToId: isAgent ? user?.id : searchParams.get('assignedToId') || undefined,
   };
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('inputs.status.label')}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('inputs.status.placeholder')} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(RequestStatus).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {t(`inputs.requestStatus.options.${status}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('inputs.notes.label')}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t('inputs.notes.placeholder')}
-                  {...field}
-                  className="min-h-[100px]"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end space-x-2 pt-4">
-          <DialogClose asChild>
-            <Button variant="outline" type="button" onClick={() => form.reset()}>
-              {t('common.actions.cancel')}
-            </Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
-            </Button>
-          </DialogClose>
-        </div>
-      </form>
-    </Form>
-  );
 }
 
 export default function RequestsPage() {
@@ -179,40 +115,12 @@ export default function RequestsPage() {
   });
 
   // Utiliser le hook useTableParams pour gérer les paramètres de table
-  const { handleParamsChange, handlePageChange, handleLimitChange } = useTableParams();
+  const { handleParamsChange, handlePageChange, handleLimitChange, handleSortChange } =
+    useTableParams();
 
   // Format query parameters
   const formatQueryParams = useCallback(() => {
-    const queryParams: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-      queryParams[key] = value;
-    });
-
-    const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
-
-    // Convertir les chaînes en tableaux pour ces propriétés
-    const statusArray = queryParams.status?.split(',') || [];
-    const priorityArray = queryParams.priority?.split(',') || [];
-    const serviceCategoryArray = queryParams.serviceCategory?.split(',') || [];
-
-    return {
-      ...queryParams,
-      status: statusArray.length > 0 ? (statusArray as RequestStatus[]) : undefined,
-      priority:
-        priorityArray.length > 0 ? (priorityArray as ServicePriority[]) : undefined,
-      serviceCategory:
-        serviceCategoryArray.length > 0
-          ? (serviceCategoryArray as ServiceCategory[])
-          : undefined,
-      page: Number(queryParams.page || '1'),
-      limit: Number(queryParams.limit || '10'),
-      sortBy: queryParams.sortBy || 'createdAt',
-      sortOrder: queryParams.sortOrder as 'asc' | 'desc',
-      startDate: queryParams.startDate ? new Date(queryParams.startDate) : undefined,
-      endDate: queryParams.endDate ? new Date(queryParams.endDate) : undefined,
-      organizationId: queryParams.organizationId ?? user?.organizationId ?? undefined,
-      assignedToId: isAgent ? user?.id : undefined,
-    } as GetRequestsOptions;
+    return adaptServiceRequestSearchParams(searchParams, user);
   }, [searchParams, user]);
 
   // Load user data
@@ -346,7 +254,11 @@ export default function RequestsPage() {
       {
         accessorKey: 'firstName',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('inputs.firstName.label')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.firstName.label')}
+            sortHandler={(direction) => handleSortChange('firstName', direction)}
+          />
         ),
         cell: ({ row }) => {
           return (
@@ -357,11 +269,16 @@ export default function RequestsPage() {
             </div>
           );
         },
+        enableSorting: true,
       },
       {
         accessorKey: 'lastName',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('inputs.lastName.label')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.lastName.label')}
+            sortHandler={(direction) => handleSortChange('lastName', direction)}
+          />
         ),
         cell: ({ row }) => {
           return (
@@ -372,6 +289,7 @@ export default function RequestsPage() {
             </div>
           );
         },
+        enableSorting: true,
       },
       {
         accessorKey: 'createdAt',
@@ -379,17 +297,23 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('requests.table.submitted_at')}
+            sortHandler={(direction) => handleSortChange('createdAt', direction)}
           />
         ),
         cell: ({ row }) => {
           const date = row.original.createdAt;
           return date ? formatDate(date, 'dd/MM/yyyy') : '-';
         },
+        enableSorting: true,
       },
       {
         accessorKey: 'status',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.status.label')}
+            sortHandler={(direction) => handleSortChange('status', direction)}
+          />
         ),
         cell: ({ row }) => {
           const status = statuses.find(
@@ -409,6 +333,7 @@ export default function RequestsPage() {
         filterFn: (row, id, value) => {
           return value.includes(row.getValue(id));
         },
+        enableSorting: true,
       },
       {
         accessorKey: 'serviceCategory',
@@ -416,6 +341,7 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.serviceCategory.label')}
+            sortHandler={(direction) => handleSortChange('serviceCategory', direction)}
           />
         ),
         cell: ({ row }) => {
@@ -435,11 +361,16 @@ export default function RequestsPage() {
             </div>
           );
         },
+        enableSorting: true,
       },
       {
         accessorKey: 'priority',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('inputs.priority.label')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.priority.label')}
+            sortHandler={(direction) => handleSortChange('priority', direction)}
+          />
         ),
         cell: ({ row }) => {
           const priority = Object.values(ServicePriority).find(
@@ -462,6 +393,7 @@ export default function RequestsPage() {
         filterFn: (row, id, value) => {
           return value.includes(row.getValue(id));
         },
+        enableSorting: true,
       },
     ];
 
@@ -474,12 +406,14 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('requests.table.assigned_to')}
+            sortHandler={(direction) => handleSortChange('assignedToId', direction)}
           />
         ),
         cell: ({ row }) => {
           const assignedTo = row.original.assignedTo;
           return assignedTo ? assignedTo.name : '-';
         },
+        enableSorting: true,
       });
     }
 
@@ -538,7 +472,7 @@ export default function RequestsPage() {
     });
 
     return tableColumns;
-  }, [t, user, formatDate, statuses, handleRefresh]);
+  }, [t, user, formatDate, statuses, handleRefresh, handleSortChange]);
 
   // Définition des filtres
   const filters = useMemo<FilterOption<FullServiceRequest>[]>(() => {
@@ -701,5 +635,107 @@ export default function RequestsPage() {
         </CardContainer>
       )}
     </PageContainer>
+  );
+}
+
+// Define schema for quick edit form
+const quickEditSchema = z.object({
+  status: z.nativeEnum(RequestStatus),
+  notes: z.string().optional(),
+});
+
+type QuickEditFormData = z.infer<typeof quickEditSchema>;
+
+type QuickEditFormProps = {
+  request: FullServiceRequest;
+  onSuccess: () => void;
+};
+
+function QuickEditForm({ request, onSuccess }: QuickEditFormProps) {
+  const t = useTranslations();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<QuickEditFormData>({
+    resolver: zodResolver(quickEditSchema),
+    defaultValues: {
+      status: request.status,
+      notes: '',
+    },
+  });
+
+  const onSubmit = async (data: QuickEditFormData) => {
+    setIsSubmitting(true);
+    try {
+      await updateServiceRequestStatus(request.id, data.status, data.notes);
+      toast.success(t('common.success.saved'));
+      onSuccess();
+    } catch (error) {
+      toast.error(t('common.errors.save_failed'));
+      console.error('Error updating request:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('inputs.status.label')}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('inputs.status.placeholder')} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(RequestStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {t(`inputs.requestStatus.options.${status}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('inputs.notes.label')}</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder={t('inputs.notes.placeholder')}
+                  {...field}
+                  className="min-h-[100px]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <DialogClose asChild>
+            <Button variant="outline" type="button" onClick={() => form.reset()}>
+              {t('common.actions.cancel')}
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
+            </Button>
+          </DialogClose>
+        </div>
+      </form>
+    </Form>
   );
 }

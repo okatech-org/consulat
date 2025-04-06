@@ -4,7 +4,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
 import { PaginatedProfiles, ProfilesArrayItem } from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adaptSearchParams } from '@/components/profile/adapters';
 import { getProfiles } from '@/components/profile/actions';
