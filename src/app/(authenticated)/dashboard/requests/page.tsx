@@ -73,6 +73,9 @@ function adaptServiceRequestSearchParams(
 
   const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
 
+  // Get page parameter and ensure it's a valid number (1-based for URLs)
+  const page = Math.max(1, Number(searchParams.get('page') || '1'));
+
   return {
     status: searchParams.get('status')?.split(',').filter(Boolean) as
       | RequestStatus[]
@@ -83,7 +86,7 @@ function adaptServiceRequestSearchParams(
     serviceCategory: searchParams.get('serviceCategory')?.split(',').filter(Boolean) as
       | ServiceCategory[]
       | undefined,
-    page: Math.max(1, Number(searchParams.get('page') || '1')),
+    page: page,
     limit: Math.max(1, Number(searchParams.get('limit') || '10')),
     sortBy: sortBy || 'createdAt',
     sortOrder: sortOrder || 'desc',
@@ -624,9 +627,9 @@ export default function RequestsPage() {
             data={requestsData.items}
             filters={filters}
             totalCount={requestsData.total}
-            pageIndex={requestsData.page}
+            pageIndex={requestsData.page - 1}
             pageSize={Number(requestsData.limit || 10)}
-            onPageChange={handlePageChange}
+            onPageChange={(page) => handlePageChange(page + 1)}
             onLimitChange={handleLimitChange}
             hiddenColumns={['id', 'priority', 'assignedTo']}
             onRefresh={handleRefresh}

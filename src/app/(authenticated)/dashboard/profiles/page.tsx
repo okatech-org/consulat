@@ -66,6 +66,8 @@ export default function ProfilesPage() {
   const [results, setResults] = useState<PaginatedProfiles>({
     items: [],
     total: 0,
+    page: 1,
+    limit: 10,
   });
 
   const { handleParamsChange, handleSortChange, handlePageChange, handleLimitChange } =
@@ -505,8 +507,8 @@ export default function ProfilesPage() {
           data={results.items}
           filters={filters}
           totalCount={results.total}
-          pageIndex={formattedQueryParams.page}
-          pageSize={formattedQueryParams.limit}
+          pageIndex={results.page - 1}
+          pageSize={results.limit}
           onExport={handleExport}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
