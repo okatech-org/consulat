@@ -37,6 +37,8 @@ export interface GetProfilesOptions {
 export interface PaginatedProfiles {
   items: ProfilesArrayItem[];
   total: number;
+  page: number;
+  limit: number;
 }
 
 export type PaginationOption = {

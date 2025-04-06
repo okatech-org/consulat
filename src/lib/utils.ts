@@ -895,32 +895,28 @@ export function handleTableParamChange(
   navigate: (params: URLSearchParams) => void,
 ) {
   const params = new URLSearchParams(queryParams?.toString() || '');
-  switch (option.type) {
-    case 'sort':
-      if (option.value) {
-        params.set('sort', option.value.toString());
-      } else {
-        params.delete('sort');
-      }
-      break;
-    case 'filter':
-      if (option.name && option.value) {
-        params.set(option.name, option.value.toString());
-      } else if (option.name) {
-        params.delete(option.name);
-      }
-      break;
-    case 'page':
-      if (option.value) {
-        params.set('page', option.value.toString());
-      } else {
-        params.delete('page');
-      }
-      break;
-    default:
-      params.set(option.type, option.value?.toString() || '');
-  }
 
+  console.log(params.toString());
+
+  if (option.type === 'sort') {
+    if (option.value) {
+      params.set('sort', option.value.toString());
+    } else {
+      params.delete('sort');
+    }
+  } else if (option.type === 'filter') {
+    if (option.name && option.value) {
+      params.set(option.name, option.value.toString());
+    } else if (option.name) {
+      params.delete(option.name);
+    }
+  } else {
+    if (option.value) {
+      params.set(option.type, option.value.toString());
+    } else {
+      params.delete(option.type);
+    }
+  }
   // Use setTimeout to avoid React update during render errors
   setTimeout(() => navigate(params), 0);
 }

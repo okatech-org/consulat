@@ -23,8 +23,6 @@ export async function getProfiles(
 
   const where: Prisma.ProfileWhereInput = {};
 
-  console.log({ options });
-
   // Apply filters
   if (search) {
     where.OR = [
@@ -66,11 +64,11 @@ export async function getProfiles(
 
   if (result.error) {
     console.error('Error fetching profiles:', result.error);
-    return { items: [], total: 0 };
+    return { items: [], total: 0, page: safePage, limit: safeLimit };
   }
 
   if (!result.data) {
-    return { items: [], total: 0 };
+    return { items: [], total: 0, page: safePage, limit: safeLimit };
   }
 
   const [total, items] = result.data;
@@ -78,5 +76,7 @@ export async function getProfiles(
   return {
     items: adaptProfilesListing(items),
     total,
+    page: safePage,
+    limit: safeLimit,
   };
 }

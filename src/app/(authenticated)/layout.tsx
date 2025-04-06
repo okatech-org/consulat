@@ -42,7 +42,7 @@ export default async function AuthenticatedLayout({
         </header>
         <div
           className={cn(
-            'container overflow-y-auto relative grow py-4 sm:py-8 min-h-dvh',
+            'container overflow-y-auto relative pt-4 md:py-8 grow min-h-dvh',
             isMobile && 'pb-safe',
           )}
         >

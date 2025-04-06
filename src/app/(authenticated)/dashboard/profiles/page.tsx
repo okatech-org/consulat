@@ -4,7 +4,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
 import { PaginatedProfiles, ProfilesArrayItem } from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adaptSearchParams } from '@/components/profile/adapters';
 import { getProfiles } from '@/components/profile/actions';
@@ -66,6 +66,8 @@ export default function ProfilesPage() {
   const [results, setResults] = useState<PaginatedProfiles>({
     items: [],
     total: 0,
+    page: 1,
+    limit: 10,
   });
 
   const { handleParamsChange, handleSortChange, handlePageChange, handleLimitChange } =
@@ -505,8 +507,8 @@ export default function ProfilesPage() {
           data={results.items}
           filters={filters}
           totalCount={results.total}
-          pageIndex={formattedQueryParams.page}
-          pageSize={formattedQueryParams.limit}
+          pageIndex={results.page - 1}
+          pageSize={results.limit}
           onExport={handleExport}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
