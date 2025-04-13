@@ -314,7 +314,7 @@ export function RegistrationForm({
         description: t('submission.success.description'),
       });
 
-      router.push(ROUTES.user.profile);
+      router.push(ROUTES.user.dashboard);
     }
   };
 

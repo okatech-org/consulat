@@ -78,8 +78,6 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
             addressProof: profile.addressProof,
           }}
           profileId={profile.id}
-          profileStatus={profile.status}
-          className="md:col-span-2"
           onSave={() => router.refresh()}
           requestId={requestId}
         />

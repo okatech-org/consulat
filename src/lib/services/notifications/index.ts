@@ -9,7 +9,6 @@ import {
 import { sendNotification } from './notification-service';
 import { sendSMSOTP } from '@/actions/email';
 import { sendOTPEmail } from './providers/emails';
-import { tryCatch } from '@/lib/utils';
 
 /**
  * Fonction simplifiée pour créer et envoyer une notification

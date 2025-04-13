@@ -12,10 +12,8 @@ import {
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
-import { Briefcase, Building2, MapPin } from 'lucide-react';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ProfessionalInfoForm } from '@/components/registration/professional-info';
-import { InfoField } from '@/components/ui/info-field';
 
 interface ProfessionalInfoSectionProps {
   profile: Profile;
@@ -28,10 +26,8 @@ export function ProfessionalInfoSection({
   onSave,
   requestId,
 }: ProfessionalInfoSectionProps) {
-  const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
-  const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -77,74 +73,9 @@ export function ProfessionalInfoSection({
     }
   };
 
-  const handleCancel = () => {
-    form.reset();
-    setIsEditing(false);
-  };
-
-  const showEmployerFields = profile.workStatus === 'EMPLOYEE';
-  const showProfessionField = ['EMPLOYEE', 'ENTREPRENEUR'].includes(
-    profile.workStatus || '',
-  );
-
   return (
-    <EditableSection
-      title={t_sections('professional_info')}
-      isEditing={isEditing}
-      onEdit={() => setIsEditing(true)}
-      onCancel={handleCancel}
-      onSave={handleSave}
-      isLoading={isLoading}
-      profileStatus={profile.status}
-    >
-      {isEditing ? (
-        <ProfessionalInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
-      ) : (
-        <div className="space-y-6">
-          {/* Statut professionnel */}
-          <div className="space-y-4">
-            <InfoField
-              label={t_inputs('workStatus.label')}
-              value={
-                profile.workStatus
-                  ? t_inputs(`workStatus.options.${profile.workStatus}`)
-                  : undefined
-              }
-              icon={<Briefcase className="size-4" />}
-            />
-
-            {showProfessionField && (
-              <InfoField
-                label={t_inputs('profession.label')}
-                value={profile.profession}
-                icon={<Briefcase className="size-4" />}
-              />
-            )}
-          </div>
-
-          {/* Informations employeur */}
-          {showEmployerFields && (
-            <div className="grid gap-4">
-              <InfoField
-                label={t_inputs('employer.label')}
-                value={profile.employer}
-                icon={<Building2 className="size-4" />}
-              />
-              <InfoField
-                label={t_inputs('employer.address.label')}
-                value={profile.employerAddress}
-                icon={<MapPin className="size-4" />}
-              />
-            </div>
-          )}
-
-          <InfoField
-            label={t_inputs('employer.address.label')}
-            value={profile.activityInGabon}
-            icon={<Briefcase className="size-4" />}
-          />
-        </div>
-      )}
+    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+      <ProfessionalInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
     </EditableSection>
   );
 }

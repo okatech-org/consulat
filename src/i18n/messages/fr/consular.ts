@@ -170,7 +170,7 @@ export default {
     },
     actions: {
       start_procedure: 'Démarrer la procédure',
-      complete_profile: 'Compléter mon profil',
+      complete_profile: 'Modifier mon profil',
       start: 'Commencer la démarche',
       view: 'Voir les détails',
     },

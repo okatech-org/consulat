@@ -163,10 +163,8 @@ export function ReviewNotes({ requestId, notes = [] }: ReviewNotesProps) {
 }
 
 export const NotesList = ({ notes }: { notes: FullServiceRequest['notes'] }) => {
-  const t = useTranslations('admin.registrations.review.notes');
-
   return (
-    <CardContainer title={t('title')} contentClass="pt-0">
+    <CardContainer title={"Messages de l'administration"} contentClass="pt-0">
       {notes.map((note) => (
         <NoteItem key={note.id} note={note} />
       ))}

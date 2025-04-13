@@ -52,7 +52,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: 'Profil Consulaire',
+        name: 'Mon profil Consulaire',
         url: '/my-space',
         description: 'Gérer votre profil consulaire',
       },

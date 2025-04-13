@@ -29,7 +29,7 @@ export default function CardContainer({
         >
           <div>
             {title && (
-              <Card.CardTitle className={'text-xl font-bold tracking-tight'}>
+              <Card.CardTitle className={'text-lg font-bold tracking-tight'}>
                 {title}
               </Card.CardTitle>
             )}

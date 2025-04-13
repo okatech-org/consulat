@@ -76,7 +76,7 @@ export function ProfileStatusAlert({
           description: t('ready_for_pickup.description', {
             organization: organizationName || t('default.organization'),
             address: organizationAddress
-              ? `${organizationAddress.firstLine}, ${organizationAddress.city} ${organizationAddress.zipCode}`
+              ? `${organizationAddress.firstLine ?? ''}, ${organizationAddress.zipCode ?? ''} ${organizationAddress.city ?? ''}`
               : t('default.address'),
           }),
           action: (

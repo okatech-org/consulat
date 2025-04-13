@@ -1,11 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  UserDocument as PrismaUserDocument,
-  DocumentType,
-  RequestStatus,
-} from '@prisma/client';
+import { UserDocument as PrismaUserDocument, DocumentType } from '@prisma/client';
 import { EditableSection } from '../editable-section';
 import { AppUserDocument } from '@/types';
 import { UserDocument } from '@/components/user-document';
@@ -19,21 +15,16 @@ interface DocumentsSectionProps {
     identityPhoto?: PrismaUserDocument | null;
   };
   profileId: string;
-  className?: string;
-  profileStatus: RequestStatus;
   onSave: () => void;
   requestId?: string;
 }
 
 export function DocumentsSection({
   documents,
-  className,
   profileId,
-  profileStatus,
   onSave,
   requestId,
 }: DocumentsSectionProps) {
-  const t = useTranslations('profile');
   const t_common = useTranslations('common');
 
   const convertDocument = (
@@ -49,12 +40,7 @@ export function DocumentsSection({
   };
 
   return (
-    <EditableSection
-      title={t('sections.documents')}
-      isEditing={false}
-      className={className}
-      profileStatus={profileStatus}
-    >
+    <EditableSection isEditing={false} allowEdit={false}>
       <div className="grid gap-6 lg:grid-cols-2">
         <UserDocument
           label={t_common('documents.types.birth_certificate')}

@@ -41,7 +41,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         title: 'Chat',
         url: '#',
         component: (
-          <div className="flex aspect-square p-2 items-center justify-center">
+          <div className="flex items-center justify-center">
             <ChatToggle />
           </div>
         ),
@@ -53,7 +53,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       <nav
         ref={ref}
         className={cn(
-          'grid grid-cols-5 md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 min-h-max w-full bg-background border-t border-border',
+          'grid grid-cols-5 gap-1 py-2 px-4 md:hidden fixed bottom-0 left-0 -translate-y-2 right-0 z-50 mx-auto w-[calc(100%-2rem)] sm:max-w-max bg-background border rounded-full border-border',
           'items-center justify-around shadow-high',
           className,
         )}
@@ -68,7 +68,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
               key={index + item.title}
               href={item.url ? item.url : '#'}
               className={cn(
-                'flex items-center justify-center flex-col text-center aspect-square',
+                'flex items-center justify-center flex-col text-center',
                 'gap-1 rounded-md transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2',
                 'focus-visible:ring-ring active:scale-[0.95]',
                 isActive(item.url, true)
@@ -79,9 +79,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
               <div className="text-current">{item.icon}</div>
               {showLabels && (
                 <span
-                  className={cn(
-                    'text-[8px] truncate w-full text-uppercase transition-all',
-                  )}
+                  className={cn('text-[9px] truncate w-full uppercase transition-all')}
                 >
                   {item.title}
                 </span>
@@ -89,7 +87,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
             </Link>
           );
         })}
-        <div className="flex aspect-square items-center justify-center">
+        <div className="flex flex-col items-center justify-center">
           <MobileDrawer items={mobileMenu} />
         </div>
       </nav>

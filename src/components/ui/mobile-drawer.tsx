@@ -98,9 +98,13 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
             variant="ghost"
             size="icon"
             aria-label="Ouvrir le menu"
-            className={triggerClassName}
+            className={cn(
+              triggerClassName,
+              'flex flex-col items-center justify-center gap-0',
+            )}
           >
             {triggerChildren || <Menu className="size-icon" />}
+            <span className="text-[10px] uppercase text-muted-foreground">Menu</span>
           </Button>
         </SheetTrigger>
         <SheetContent

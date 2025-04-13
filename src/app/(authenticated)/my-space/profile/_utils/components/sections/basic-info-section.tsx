@@ -7,8 +7,6 @@ import { useTranslations } from 'next-intl';
 import { BasicInfoSchema, type BasicInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import {
   extractFieldsFromObject,
   filterUneditedKeys,
@@ -16,11 +14,8 @@ import {
   useDateLocale,
 } from '@/lib/utils';
 import { updateProfile } from '@/actions/profile';
-import { CountryCode } from '@/lib/autocomplete-datas';
 import { BasicInfoForm } from '@/components/registration/basic-info';
-import { InfoField } from '@/components/ui/info-field';
 import { FullProfile } from '@/types';
-import { UserDocument } from '@/components/user-document';
 
 interface BasicInfoSectionProps {
   profile: FullProfile;
@@ -29,12 +24,8 @@ interface BasicInfoSectionProps {
 }
 
 export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectionProps) {
-  const t_inputs = useTranslations('inputs');
-  const t = useTranslations('registration');
-  const t_countries = useTranslations('countries');
   const t_messages = useTranslations('messages');
   const t_errors = useTranslations('messages.errors');
-  const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
   const { formatDate } = useDateLocale();
   const [isEditing, setIsEditing] = useState(false);
@@ -52,6 +43,7 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
     'passportNumber',
     'passportIssueDate',
     'passportExpiryDate',
+    'passportIssueAuthority',
     'cardPin',
     'identityPicture',
     'residenceCountyCode',
@@ -111,154 +103,14 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
     setIsLoading(false);
   };
 
-  const handleCancel = () => {
-    form.reset();
-    setIsEditing(false);
-  };
-
   return (
-    <EditableSection
-      title={t_sections('basic_info')}
-      isEditing={isEditing}
-      onEdit={() => setIsEditing(true)}
-      onCancel={handleCancel}
-      onSave={handleSave}
-      isLoading={isLoading}
-      profileStatus={profile.status}
-    >
-      {isEditing ? (
-        <BasicInfoForm
-          form={form}
-          onSubmit={handleSave}
-          isLoading={isLoading}
-          profileId={profile.id}
-        />
-      ) : (
-        <div className="space-y-6">
-          {/* Informations d'identité */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-full flex justify-start">
-              {profile.identityPicture ? (
-                <div>
-                  <UserDocument
-                    document={{
-                      ...profile.identityPicture,
-                      metadata: profile.identityPicture.metadata
-                        ? ((typeof profile.identityPicture.metadata === 'string'
-                            ? JSON.parse(profile.identityPicture.metadata)
-                            : profile.identityPicture.metadata) as Record<
-                            string,
-                            unknown
-                          >)
-                        : null,
-                    }}
-                    label={t_inputs('identityPicture.label')}
-                    profileId={profile.id}
-                    requestId={requestId}
-                  />
-                </div>
-              ) : (
-                <InfoField
-                  label={`${t_inputs('identityPicture.label')}`}
-                  value={undefined}
-                  className={'col-span-full'}
-                />
-              )}
-            </div>
-
-            <InfoField
-              label={t_inputs('firstName.label')}
-              value={profile.firstName}
-              className={'col-span-1'}
-            />
-            <InfoField
-              label={t_inputs('lastName.label')}
-              value={profile.lastName}
-              className={'col-span-1'}
-            />
-            <InfoField
-              label={t_inputs('gender.label')}
-              value={
-                profile.gender
-                  ? t_inputs(`gender.options.${profile.gender}`)
-                  : t('form.not_provided')
-              }
-            />
-
-            <InfoField
-              label={t_inputs('birthCountry.label')}
-              value={
-                profile.birthCountry
-                  ? t_countries(profile.birthCountry as CountryCode)
-                  : t('form.not_provided')
-              }
-            />
-
-            <InfoField
-              label={t_inputs('birthDate.label')}
-              value={
-                profile.birthDate
-                  ? format(new Date(profile.birthDate), 'PPP', { locale: fr })
-                  : t('form.not_provided')
-              }
-            />
-            <InfoField label={t_inputs('birthPlace.label')} value={profile.birthPlace} />
-            <InfoField
-              label={t_inputs('nationality.label')}
-              value={t_countries(profile.nationality as CountryCode)}
-            />
-            <InfoField
-              label={t_inputs('nationality_acquisition.label')}
-              value={
-                profile.acquisitionMode
-                  ? t_inputs(`nationality_acquisition.options.${profile.acquisitionMode}`)
-                  : t('form.not_provided')
-              }
-            />
-          </div>
-
-          {/* Informations du passeport */}
-          <div className="mt-4 space-y-4">
-            <h4 className="font-medium">{t('form.passport.section_title')}</h4>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <InfoField
-                label={t_inputs('passport.number.label')}
-                value={profile.passportNumber}
-                className={'col-span-2'}
-              />
-              <InfoField
-                label={t_inputs('passport.issueAuthority.label')}
-                value={profile.passportIssueAuthority}
-                className={'col-span-2'}
-              />
-              <InfoField
-                label={t_inputs('passport.issueDate.label')}
-                value={
-                  profile.passportIssueDate
-                    ? formatDate(new Date(profile.passportIssueDate), 'PPP')
-                    : t('form.not_provided')
-                }
-                className={'col-span-2'}
-              />
-              <InfoField
-                label={t_inputs('passport.expiryDate.label')}
-                value={
-                  profile.passportExpiryDate
-                    ? formatDate(new Date(profile.passportExpiryDate), 'PPP')
-                    : t('form.not_provided')
-                }
-                className={'col-span-2'}
-              />
-
-              <InfoField
-                label={t_inputs('nipNumber.label')}
-                value={profile.cardPin}
-                className={'col-span-2'}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+      <BasicInfoForm
+        form={form}
+        onSubmit={handleSave}
+        isLoading={isLoading}
+        profileId={profile.id}
+      />
     </EditableSection>
   );
 }
