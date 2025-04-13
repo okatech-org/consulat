@@ -1,12 +1,4 @@
 import { getTranslations } from 'next-intl/server';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
 import { getServiceRequestsByUser } from '@/actions/service-requests';
@@ -83,19 +75,26 @@ export default async function UserDashboard() {
         </Button>
       }
     >
-      <div className="space-y-8 grid lg:grid-cols-6 gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:col-span-4">
+      <div className="grid lg:grid-cols-6 gap-6">
+        <div className="flex flex-col gap-4 lg:col-span-4">
           {/* Profile Status */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>{t_profile('stats.profile.title')}</CardTitle>
-              <CardDescription>
-                {userProfile?.status
-                  ? t_common(`status.${userProfile.status}`)
-                  : t_dashboard('sections.profile.status.pending')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <CardContainer
+            title={t_profile('stats.profile.title')}
+            subtitle={
+              userProfile?.status
+                ? t_common(`status.${userProfile.status}`)
+                : t_dashboard('sections.profile.status.pending')
+            }
+            footerContent={
+              <Button variant="outline" size="sm" className="w-full" asChild>
+                <Link href={ROUTES.user.profile}>
+                  {t_profile('actions.complete_profile')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            }
+          >
+            <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{t_profile('stats.profile.completion')}</span>
@@ -134,132 +133,133 @@ export default async function UserDashboard() {
                   </ul>
                 </div>
               )}
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href={ROUTES.user.profile}>
-                  {t_profile('actions.complete_profile')}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
+            </div>
+          </CardContainer>
 
-          {/* Recent Requests */}
-          <Card className="lg:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle>{t_profile('stats.requests.title')}</CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={ROUTES.user.requests}>{t_profile('actions.see_all')}</Link>
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {serviceRequests.length > 0 ? (
-                <div className="space-y-4">
-                  {serviceRequests.slice(0, 3).map((request) => (
-                    <div
-                      key={request.id}
-                      className="flex items-start space-x-3 border-b pb-3 last:border-0"
-                    >
-                      <div className="rounded-md bg-primary/10 p-2">
-                        <FileText className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">{request.service.name}</p>
-                          <Badge
-                            variant={
-                              request.status === 'COMPLETED'
-                                ? 'success'
-                                : [
-                                      'VALIDATED',
-                                      'CARD_IN_PRODUCTION',
-                                      'READY_FOR_PICKUP',
-                                      'APPOINTMENT_SCHEDULED',
-                                    ].includes(request.status)
-                                  ? 'default'
-                                  : 'secondary'
-                            }
-                          >
-                            {t_common(`status.${request.status}`)}
-                          </Badge>
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Recent Requests */}
+            <CardContainer
+              title={t_profile('stats.requests.title')}
+              action={
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={ROUTES.user.requests}>{t_profile('actions.see_all')}</Link>
+                </Button>
+              }
+              headerClass="pb-2"
+              footerContent={
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link href={ROUTES.user.requests}>
+                    {t_profile('actions.track_requests')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              }
+              className="w-full"
+            >
+              <div className="space-y-4">
+                {serviceRequests.length > 0 ? (
+                  <div className="space-y-4">
+                    {serviceRequests.slice(0, 3).map((request) => (
+                      <div
+                        key={request.id}
+                        className="flex items-start space-x-3 border-b pb-3 last:border-0"
+                      >
+                        <div className="rounded-md bg-primary/10 p-2">
+                          <FileText className="h-4 w-4 text-primary" />
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(request.createdAt), 'dd MMM yyyy')}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <p className="text-muted-foreground">Aucune donnée</p>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href={ROUTES.user.requests}>
-                  {t_profile('actions.track_requests')}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-
-          {/* Upcoming Appointments */}
-          <Card className="lg:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle>{t_profile('stats.appointments.title')}</CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={ROUTES.user.appointments}>
-                  {t_profile('actions.see_all')}
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {appointments.upcoming.length > 0 ? (
-                <div className="space-y-4">
-                  {appointments.upcoming.slice(0, 3).map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className="flex items-start space-x-3 border-b pb-3 last:border-0"
-                    >
-                      <div className="rounded-md bg-primary/10 p-2">
-                        <Calendar className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium">
-                          {appointment.request?.service?.name || t('appointments.title')}
-                        </p>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3" />
-                          <span>
-                            {format(new Date(appointment.date), 'dd MMM yyyy')} -{' '}
-                            {format(new Date(appointment.startTime), 'HH:mm')}
-                          </span>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium">{request.service.name}</p>
+                            <Badge
+                              variant={
+                                request.status === 'COMPLETED'
+                                  ? 'success'
+                                  : [
+                                        'VALIDATED',
+                                        'CARD_IN_PRODUCTION',
+                                        'READY_FOR_PICKUP',
+                                        'APPOINTMENT_SCHEDULED',
+                                      ].includes(request.status)
+                                    ? 'default'
+                                    : 'secondary'
+                              }
+                            >
+                              {t_common(`status.${request.status}`)}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(request.createdAt), 'dd MMM yyyy')}
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <p className="text-muted-foreground">
-                    {t_profile('stats.appointments.no_upcoming')}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href={ROUTES.user.appointments}>
-                  {t_profile('stats.appointments.schedule')}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-muted-foreground">Aucune donnée</p>
+                  </div>
+                )}
+              </div>
+            </CardContainer>
+
+            {/* Upcoming Appointments */}
+            <CardContainer
+              title={t_profile('stats.appointments.title')}
+              action={
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={ROUTES.user.appointments}>
+                    {t_profile('actions.see_all')}
+                  </Link>
+                </Button>
+              }
+              headerClass="pb-2"
+              footerContent={
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link href={ROUTES.user.appointments}>
+                    {t_profile('stats.appointments.schedule')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              }
+              className="w-full"
+            >
+              <div className="space-y-4">
+                {appointments.upcoming.length > 0 ? (
+                  <div className="space-y-4">
+                    {appointments.upcoming.slice(0, 3).map((appointment) => (
+                      <div
+                        key={appointment.id}
+                        className="flex items-start space-x-3 border-b pb-3 last:border-0"
+                      >
+                        <div className="rounded-md bg-primary/10 p-2">
+                          <Calendar className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-sm font-medium">
+                            {appointment.request?.service?.name ||
+                              t('appointments.title')}
+                          </p>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Clock className="mr-1 h-3 w-3" />
+                            <span>
+                              {format(new Date(appointment.date), 'dd MMM yyyy')} -{' '}
+                              {format(new Date(appointment.startTime), 'HH:mm')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-muted-foreground">
+                      {t_profile('stats.appointments.no_upcoming')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContainer>
+          </div>
         </div>
 
         {/* Recent Notifications */}
@@ -279,10 +279,10 @@ export default async function UserDashboard() {
                     key={notification.id}
                     className={notification.read ? 'bg-card/50' : 'shadow-md'}
                     title={
-                      <div className="flex justify-between">
+                      <div className="flex justify-between gap-1">
                         <span className="text-base">{notification.title}</span>
                         {!notification.read && (
-                          <Badge variant="info" className="ml-2">
+                          <Badge variant="info" className="min-w-max">
                             Nouveau
                           </Badge>
                         )}
@@ -300,11 +300,11 @@ export default async function UserDashboard() {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="text-center py-6">
+              <CardContainer>
+                <div className="text-center py-6">
                   <p className="text-muted-foreground">{t_notifications('empty')}</p>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContainer>
             )}
           </div>
         </section>

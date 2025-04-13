@@ -345,6 +345,17 @@ export default {
       expires_on: "Date d'expiration",
       valid_until: "Valable jusqu'au",
     },
+    identity_photo: {
+      guide: {
+        title: "Vérifiez que votre photo d'identité respecte les critères suivants :",
+        example_alt: "Exemple de photo d'identité",
+        face_centered: 'Visage centré et bien visible',
+        neutral_expression: 'Expression neutre, bouche fermée',
+        no_head_covering: 'Pas de couvre-chef (sauf pour motif religieux)',
+        eyes_visible: 'Yeux ouverts et clairement visibles, pas de lunettes teintées',
+        background_color: 'Fond couleur claire uniforme (blanc, gris, etc.)',
+      },
+    },
     preview: {
       title: 'Aperçu du document',
       loading: "Chargement de l'aperçu...",
