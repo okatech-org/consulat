@@ -10,11 +10,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useTranslations } from 'next-intl';
 import Slider from '@/components/ui/slider';
+import { ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 
 interface ImageCropperProps {
-  imageUrl: string;
+  imageUrl: string | File;
   aspectRatio?: number;
   circularCrop?: boolean;
   onCropComplete: (croppedImage: File) => void;
@@ -27,170 +27,177 @@ interface ImageCropperProps {
 export function ImageCropper({
   imageUrl,
   aspectRatio = 1,
-  circularCrop = true,
+  circularCrop = true, // Force circular crop
   onCropComplete,
   onCancel,
   open,
-  fileName,
+  fileName = 'cropped-image',
   guide,
 }: ImageCropperProps) {
-  const t = useTranslations('common.cropper');
   const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [position, setPosition] = useState({ x: 0.5, y: 0.5 });
+  const [imageLoaded, setImageLoaded] = useState(false);
   const editorRef = useRef<AvatarEditor | null>(null);
 
-  // Dans votre composant ImageCropper
+  // Calculate editor dimensions based on aspect ratio, forcing 1:1 for circular crop
+  const getEditorDimensions = useCallback(() => {
+    const baseSize = 500;
+    return { width: baseSize, height: baseSize }; // Always square for circular crop
+  }, []);
+
+  const { width, height } = getEditorDimensions();
+
+  const handlePositionChange = useCallback((position: { x: number; y: number }) => {
+    setPosition(position);
+  }, []);
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true);
+  }, []);
+
+  const handleRotationChange = useCallback((value: number) => {
+    setRotation(value);
+  }, []);
+
   const handleCropComplete = useCallback(async () => {
-    if (!editorRef.current) return;
+    if (!editorRef.current || !imageLoaded) return;
 
     try {
       setIsLoading(true);
 
-      // Étape 1: Créer une image à partir de l'URL
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // For highest quality, we'll use the original image size when possible
+      // This helps avoid the blurry output
+      const canvas = editorRef.current.getImage();
 
-      // Attendre que l'image soit chargée
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = imageUrl;
-      });
-
-      // Étape 2: Dessiner l'image sur un canvas
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
+      // Apply circular mask
       const ctx = canvas.getContext('2d');
-
       if (!ctx) {
         throw new Error('Could not get canvas context');
       }
 
-      // Dessiner l'image d'origine
-      ctx.drawImage(img, 0, 0);
+      // Create a circular mask
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Étape 3: Utiliser les données de l'éditeur pour recadrer
-      const editor = editorRef.current;
-      const position = editor.getCroppingRect();
-
-      // Créer un nouveau canvas pour l'image recadrée
-      const croppedCanvas = document.createElement('canvas');
-      const cropSize = Math.min(img.width, img.height);
-      croppedCanvas.width = cropSize;
-      croppedCanvas.height = cropSize;
-      const croppedCtx = croppedCanvas.getContext('2d');
-
-      if (!croppedCtx) {
-        throw new Error('Could not get cropped canvas context');
-      }
-
-      // Dessiner la partie recadrée
-      croppedCtx.drawImage(
-        canvas,
-        position.x * img.width,
-        position.y * img.height,
-        position.width * img.width,
-        position.height * img.height,
-        0,
-        0,
-        cropSize,
-        cropSize,
-      );
-
-      // Si recadrage circulaire demandé
-      if (circularCrop) {
-        croppedCtx.globalCompositeOperation = 'destination-in';
-        croppedCtx.beginPath();
-        croppedCtx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, Math.PI * 2);
-        croppedCtx.fill();
-      }
-
-      // Convertir en fichier
+      // Convert to file with high quality setting
       const blob = await new Promise<Blob | null>((resolve) => {
-        croppedCanvas.toBlob((blob) => resolve(blob), 'image/png', 0.95);
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       });
 
       if (!blob) {
         throw new Error('Failed to create image blob');
       }
 
-      // Créer un fichier
-      const outputFileName = fileName ? `${fileName}.png` : 'cropped-image.png';
+      // Create a file
+      const outputFileName = `${fileName}.png`;
       const file = new File([blob], outputFileName, { type: 'image/png' });
 
-      // Appeler le callback avec l'image recadrée
+      // Call the callback with the cropped image
       onCropComplete(file);
     } catch (error) {
       console.error('Error creating cropped image:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [onCropComplete, fileName, circularCrop, imageUrl]);
-
-  // Calculate editor dimensions based on aspect ratio
-  const getEditorDimensions = useCallback(() => {
-    const baseSize = 250; // Base size for the editor
-
-    if (aspectRatio === 1) {
-      return { width: baseSize, height: baseSize };
-    } else if (aspectRatio > 1) {
-      // Landscape orientation
-      return { width: baseSize, height: baseSize / aspectRatio };
-    } else {
-      // Portrait orientation
-      return { width: baseSize * aspectRatio, height: baseSize };
-    }
-  }, [aspectRatio]);
-
-  const { width, height } = getEditorDimensions();
+  }, [onCropComplete, fileName, imageLoaded]);
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogTitle>Recadrer l&apos;image</DialogTitle>
         </DialogHeader>
 
-        <div className="flex justify-center">
-          <AvatarEditor
-            ref={editorRef}
-            image={imageUrl}
-            width={width}
-            height={height}
-            border={50}
-            borderRadius={circularCrop ? Math.min(width, height) / 2 : 0}
-            color={[0, 0, 0, 0.6]} // Background color behind the cropped image
-            scale={scale}
-            rotate={0}
-            crossOrigin="anonymous"
-          />
+        <div className="space-y-4">
+          <div className="flex justify-center p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+            <AvatarEditor
+              ref={editorRef}
+              image={imageUrl}
+              width={width}
+              height={height}
+              border={50}
+              position={position}
+              borderRadius={999}
+              color={[0, 0, 0, 0.6]} // Background color
+              scale={scale}
+              rotate={rotation}
+              style={{ width: '100%', height: 'auto' }}
+              crossOrigin="anonymous"
+              onPositionChange={handlePositionChange}
+              onLoadSuccess={handleImageLoad}
+              onImageReady={handleImageLoad}
+              disableHiDPIScaling={false}
+              disableBoundaryChecks={true}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Agrandir l&apos;image</label>
+              </div>
+              <Slider
+                value={[scale]}
+                min={1}
+                max={3}
+                step={0.1}
+                onValueChange={(values) => {
+                  if (values[0] !== undefined) {
+                    setScale(values[0]);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Slider
+                value={[rotation]}
+                min={-180}
+                max={180}
+                step={5}
+                onValueChange={(values) => {
+                  if (values[0] !== undefined) {
+                    handleRotationChange(values[0]);
+                  }
+                }}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>-180°</span>
+                <span>0°</span>
+                <span>180°</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-4 mb-2">
-          <label className="text-sm font-medium mb-2">Agrandir l&apos;image</label>
-          <Slider
-            value={[scale]}
-            min={1}
-            max={3}
-            step={0.1}
-            onValueChange={(values) => {
-              if (values[0] !== undefined) {
-                setScale(values[0]);
-              }
-            }}
-          />
-        </div>
+        {guide && <div className="w-full mt-4">{guide}</div>}
 
-        <DialogFooter className="flex flex-col gap-2">
-          {guide && <div>{guide}</div>}
-          <div className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
-            <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleCropComplete} disabled={isLoading}>
-              {isLoading ? t('processing') : 'Valider'}
-            </Button>
+        <DialogFooter className="flex flex-col gap-2 mt-4">
+          <div className="flex flex-row justify-between w-full">
+            <div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setScale(1);
+                  setRotation(0);
+                }}
+                disabled={isLoading}
+              >
+                Réinitialiser
+              </Button>
+            </div>
+            <div className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
+              <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+                Annuler
+              </Button>
+              <Button onClick={handleCropComplete} disabled={isLoading || !imageLoaded}>
+                {isLoading ? 'Traitement en cours...' : 'Valider'}
+              </Button>
+            </div>
           </div>
         </DialogFooter>
       </DialogContent>

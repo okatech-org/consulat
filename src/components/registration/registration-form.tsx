@@ -82,6 +82,7 @@ export function RegistrationForm({
   const currentStepValidity = forms[currentTab as keyof typeof forms]?.formState.isValid;
   const currentStepErrors = forms[currentTab as keyof typeof forms]?.formState.errors;
   const totalSteps = orderedSteps.length;
+  const currentStepDirty = forms[currentTab as keyof typeof forms]?.formState.isDirty;
 
   // Gestionnaire d'analyse des components
   const handleDocumentsAnalysis = async (data: {
@@ -458,7 +459,7 @@ export function RegistrationForm({
                 {isLoading ? <Loader className="size-icon animate-spin" /> : null}
                 {currentStepIndex === totalSteps - 1
                   ? t('navigation.submit')
-                  : t('navigation.next')}
+                  : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
                 {currentStepIndex !== totalSteps - 1 && (
                   <ArrowRight className="size-icon" />
                 )}
