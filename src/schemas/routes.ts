@@ -53,7 +53,7 @@ export const ROUTES = {
   user: {
     base: '/my-space' as Route<string>,
     dashboard: '/my-space' as Route<string>,
-    requests: '/my-space/requests' as Route<string>,
+    requests: '/my-space/services/requests' as Route<string>,
     profile: '/my-space/profile' as Route<string>,
     appointments: '/my-space/appointments' as Route<string>,
     new_appointment: '/my-space/appointments/new' as Route<string>,
