@@ -13,13 +13,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { getUserServiceRequests } from '@/actions/services';
@@ -187,30 +180,6 @@ export default function ServicesPage() {
 
   const filteredRequests = filterRequests();
 
-  // Summary statistics for the dashboard
-  const getRequestStats = () => {
-    return {
-      total: serviceRequests.length,
-      ongoing: serviceRequests.filter((req) =>
-        [
-          'DRAFT',
-          'SUBMITTED',
-          'EDITED',
-          'PENDING',
-          'PENDING_COMPLETION',
-          'VALIDATED',
-          'CARD_IN_PRODUCTION',
-        ].includes(req.status),
-      ).length,
-      completed: serviceRequests.filter((req) =>
-        ['COMPLETED', 'READY_FOR_PICKUP'].includes(req.status),
-      ).length,
-      rejected: serviceRequests.filter((req) => req.status === 'REJECTED').length,
-    };
-  };
-
-  const stats = getRequestStats();
-
   return (
     <PageContainer
       title={t('title')}
@@ -331,24 +300,6 @@ export default function ServicesPage() {
               </div>
             )}
           </CardContainer>
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <CardContainer title="Total des demandes">
-              <div className="text-3xl font-bold">{stats.total}</div>
-            </CardContainer>
-
-            <CardContainer title="En cours">
-              <div className="text-3xl font-bold text-amber-500">{stats.ongoing}</div>
-            </CardContainer>
-
-            <CardContainer title="Complétées">
-              <div className="text-3xl font-bold text-green-500">{stats.completed}</div>
-            </CardContainer>
-
-            <CardContainer title="Rejetées">
-              <div className="text-3xl font-bold text-red-500">{stats.rejected}</div>
-            </CardContainer>
-          </div>
 
           {/* Action Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

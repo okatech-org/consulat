@@ -4,25 +4,30 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { getServiceRequestDetails } from '@/actions/services';
-import { ArrowLeft, CheckCircle, Clock, FileText, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  FileText,
+  AlertTriangle,
+  Calendar,
+  CreditCard,
+  EyeIcon,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { FullServiceRequest } from '@/types/service-request';
 import { RequestStatus } from '@prisma/client';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { ROUTES } from '@/schemas/routes';
+import CardContainer from '@/components/layouts/card-container';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Timeline } from '@/components/ui/timeline';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Define icon components
 type IconComponent = JSX.Element;
@@ -32,6 +37,49 @@ type StatusInfoType = {
   label: string;
   color: string;
   icon: IconComponent;
+};
+
+// Define type for form field value
+type FormFieldValue = {
+  id?: string;
+  type?: string;
+  status?: string;
+  fileUrl?: string;
+  value?: string | number;
+};
+
+// Define type for form data
+type FormData = {
+  [key: string]: {
+    [key: string]: FormFieldValue;
+  };
+};
+
+// Define types for action data
+type ActionData = {
+  notes?: string;
+  status?: string;
+};
+
+type ServiceAction = {
+  id: string;
+  type: string;
+  data: ActionData;
+  createdAt: string;
+  user: {
+    name: string;
+    image: string | null;
+  };
+};
+
+type ServiceNote = {
+  id: string;
+  content: string;
+  createdAt: string;
+  author?: {
+    name: string | null;
+    image: string | null;
+  };
 };
 
 // Status config for display
@@ -112,6 +160,8 @@ export default function ServiceRequestDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log(JSON.stringify(requestDetails, null, 2));
+
   useEffect(() => {
     const fetchRequestDetails = async () => {
       try {
@@ -151,40 +201,207 @@ export default function ServiceRequestDetailsPage() {
       <div className="container mx-auto py-6">
         <Link href={ROUTES.user.services}>
           <Button variant="outline" className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="size-icon" />
             {t('actions.backToServices')}
           </Button>
         </Link>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-red-500">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{error || 'Failed to load request details'}</p>
-          </CardContent>
-          <CardFooter>
-            <Button onClick={() => window.location.reload()}>Retry</Button>
-          </CardFooter>
-        </Card>
+        <CardContainer
+          title={<span className="text-red-500">Error</span>}
+          footerContent={<Button onClick={() => window.location.reload()}>Retry</Button>}
+        >
+          <p>{error || 'Failed to load request details'}</p>
+        </CardContainer>
       </div>
     );
   }
 
-  const { service, status, createdAt, updatedAt, assignedTo, notes, requiredDocuments } =
-    requestDetails;
+  const {
+    service,
+    status,
+    createdAt,
+    assignedTo,
+    notes,
+    requiredDocuments,
+    estimatedCompletionDate,
+  } = requestDetails;
   const statusInfo = getStatusInfo(status as RequestStatus);
-  const formattedLastUpdate = updatedAt
-    ? formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: fr })
-    : '';
 
-  // Check if status matches PENDING_COMPLETION (safely)
-  const isPendingCompletion = status === 'PENDING_COMPLETION';
+  const isConsularRegistration = requestDetails?.service.category === 'REGISTRATION';
+  const formData: FormData | null = requestDetails?.formData
+    ? JSON.parse(requestDetails.formData as string)
+    : null;
+
+  // Function to render consular registration details
+  const renderConsularRegistrationDetails = () => {
+    if (!requestDetails?.requestedFor) return null;
+    const person = requestDetails.requestedFor;
+
+    const formatDate = (date: string | Date | null | undefined) => {
+      if (!date) return '';
+      return format(new Date(date), 'dd/MM/yyyy');
+    };
+
+    return (
+      <div className="space-y-6">
+        <CardContainer
+          title="Informations personnelles"
+          subtitle="Détails de votre inscription consulaire"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-20 w-20">
+                <AvatarImage
+                  src={person.identityPicture?.fileUrl}
+                  alt={`${person.firstName || ''} ${person.lastName || ''}`}
+                />
+                <AvatarFallback>
+                  {person.firstName?.[0] || ''}
+                  {person.lastName?.[0] || ''}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold">
+                  {person.firstName} {person.lastName}
+                </h3>
+                <p className="text-sm text-muted-foreground">{person.email}</p>
+                <p className="text-sm text-muted-foreground">{person.phoneNumber}</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p>
+                <span className="font-medium">Date de naissance:</span>{' '}
+                {formatDate(person.birthDate)}
+              </p>
+              <p>
+                <span className="font-medium">Lieu de naissance:</span>{' '}
+                {person.birthPlace}, {person.birthCountry}
+              </p>
+              <p>
+                <span className="font-medium">Nationalité:</span> {person.nationality}
+              </p>
+              <p>
+                <span className="font-medium">Profession:</span> {person.profession}
+              </p>
+            </div>
+          </div>
+        </CardContainer>
+
+        {person.cardNumber && (
+          <CardContainer
+            title="Carte consulaire"
+            subtitle="Détails de votre carte consulaire"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <CreditCard className="h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold">{person.cardNumber}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Valide du {formatDate(person.cardIssuedAt)} au{' '}
+                    {formatDate(person.cardExpiresAt)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContainer>
+        )}
+      </div>
+    );
+  };
+
+  // Function to render form data
+  const renderFormData = () => {
+    if (!formData) return null;
+    return Object.entries(formData).map(([stepId, data]) => {
+      const step = requestDetails?.service.steps.find((s) => s.id === stepId);
+      if (!step) return null;
+
+      return (
+        <CardContainer key={stepId} title={step.title} subtitle={step.description}>
+          <div className="space-y-4">
+            {Object.entries(data).map(([fieldName, fieldValue]) => {
+              const value =
+                typeof fieldValue === 'object'
+                  ? fieldValue
+                  : { value: String(fieldValue) };
+              return (
+                <div key={fieldName} className="flex items-start gap-2">
+                  {value.fileUrl ? (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <a
+                        href={value.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {value.type}
+                      </a>
+                      <Badge
+                        variant={value.status === 'VALIDATED' ? 'success' : 'default'}
+                      >
+                        {value.status}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <p className="text-sm">
+                      <span className="font-medium">{fieldName}:</span> {value.value}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContainer>
+      );
+    });
+  };
+
+  // Function to render timeline
+  const renderTimeline = () => {
+    if (!requestDetails?.actions?.length) return null;
+
+    return (
+      <ScrollArea className="h-[400px] pr-4">
+        <Timeline>
+          {(requestDetails.actions as unknown as ServiceAction[]).map((action) => (
+            <div
+              key={action.id}
+              className="flex items-start gap-2 mb-4 pb-4 border-b last:border-b-0"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  src={action.user.image || undefined}
+                  alt={action.user.name}
+                />
+                <AvatarFallback>{action.user.name?.[0]}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{action.user.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(action.createdAt), 'dd/MM/yyyy HH:mm')}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">{action.type}</p>
+                {action.data?.notes && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {action.data.notes}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </Timeline>
+      </ScrollArea>
+    );
+  };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-4">
       <Link href={ROUTES.user.services}>
         <Button variant="outline" className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-1 size-icon" />
           {t('actions.backToServices')}
         </Button>
       </Link>
@@ -206,118 +423,125 @@ export default function ServiceRequestDetailsPage() {
 
       <Separator />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Status Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('request.status')}</CardTitle>
-            <CardDescription>
-              {t('request.lastUpdated')}: {formattedLastUpdate}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+      <Tabs defaultValue="details" className="w-full">
+        <TabsList>
+          <TabsTrigger value="details">Détails</TabsTrigger>
+          <TabsTrigger value="timeline">Historique</TabsTrigger>
+          {notes.length > 0 && <TabsTrigger value="notes">Notes</TabsTrigger>}
+        </TabsList>
+
+        <TabsContent value="details" className="space-y-6">
+          {isConsularRegistration
+            ? renderConsularRegistrationDetails()
+            : renderFormData()}
+
+          <CardContainer title="Informations de traitement">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {assignedTo && (
-                <p className="text-sm">
-                  <span className="font-medium">{t('request.assignedTo')}:</span>{' '}
-                  {assignedTo.name}
-                </p>
+                <div className="flex items-center gap-2">
+                  <Avatar>
+                    <AvatarImage
+                      src={assignedTo.image || ''}
+                      alt={assignedTo.name || ''}
+                    />
+                    <AvatarFallback>{assignedTo.name?.[0] || ''}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{assignedTo.name}</p>
+                    <p className="text-sm text-muted-foreground">Agent assigné</p>
+                  </div>
+                </div>
               )}
-              {requestDetails.lastActionAt && (
-                <p className="text-sm">
-                  <span className="font-medium">{t('request.lastAction')}:</span>{' '}
-                  {formatDistanceToNow(new Date(requestDetails.lastActionAt), {
-                    addSuffix: true,
-                    locale: fr,
-                  })}
-                </p>
+              {estimatedCompletionDate && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <div>
+                    <p className="font-medium">
+                      {format(new Date(estimatedCompletionDate), 'dd/MM/yyyy')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Date estimée de complétion
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </CardContainer>
+        </TabsContent>
 
-        {/* Documents Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('request.documents')}</CardTitle>
-            <CardDescription>
-              {requiredDocuments.length} {t('request.documentsProvided')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {requiredDocuments.length > 0 ? (
-              <ul className="space-y-2">
-                {requiredDocuments.slice(0, 3).map((doc) => (
-                  <li key={doc.id} className="text-sm flex items-center">
-                    <FileText className="h-4 w-4 mr-2" />
-                    {doc.type} - {doc.status}
-                  </li>
-                ))}
-                {requiredDocuments.length > 3 && (
-                  <li className="text-sm text-muted-foreground">
-                    +{requiredDocuments.length - 3} {t('request.moreDocuments')}
-                  </li>
-                )}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t('request.noDocuments')}</p>
-            )}
-          </CardContent>
-        </Card>
+        <TabsContent value="timeline">{renderTimeline()}</TabsContent>
 
-        {/* Notes Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('request.notes')}</CardTitle>
-            <CardDescription>
-              {notes.length} {t('request.notesCount')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {notes.length > 0 ? (
-              <ul className="space-y-2">
-                {notes.slice(0, 2).map((note) => (
-                  <li key={note.id} className="text-sm">
-                    <p className="line-clamp-2">{note.content}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {note.author?.name} -{' '}
-                      {new Date(note.createdAt).toLocaleDateString()}
-                    </p>
-                  </li>
+        <TabsContent value="notes">
+          <CardContainer title="Notes">
+            <ScrollArea className="h-[300px]">
+              <div className="space-y-4">
+                {(notes as unknown as ServiceNote[]).map((note) => (
+                  <div
+                    key={note.id}
+                    className="flex items-start gap-2 p-4 bg-muted rounded-lg"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={note.author?.image || undefined}
+                        alt={note.author?.name || undefined}
+                      />
+                      <AvatarFallback>{note.author?.name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{note.author?.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(note.createdAt), 'dd/MM/yyyy HH:mm')}
+                        </p>
+                      </div>
+                      <p className="mt-1">{note.content}</p>
+                    </div>
+                  </div>
                 ))}
-                {notes.length > 2 && (
-                  <li className="text-sm text-muted-foreground">
-                    +{notes.length - 2} {t('request.moreNotes')}
-                  </li>
-                )}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t('request.noNotes')}</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+            </ScrollArea>
+          </CardContainer>
+        </TabsContent>
+      </Tabs>
 
       {/* Actions section */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>{t('request.actions')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <Button variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              {t('request.viewDocuments')}
+      <CardContainer title="Actions" className="mt-6">
+        <div className="flex flex-wrap gap-4">
+          {status === 'PENDING_COMPLETION' && (
+            <Button variant="default">
+              <FileText className="size-icon" />
+              Fournir les informations
             </Button>
-            {isPendingCompletion && (
-              <Button variant="default">
-                <FileText className="mr-2 h-4 w-4" />
-                {t('request.provideInformation')}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          )}
+
+          {status === 'READY_FOR_PICKUP' && (
+            <Button variant="default" asChild>
+              <Link
+                href={`${ROUTES.user.new_appointment}?serviceRequestId=${requestDetails.id}&type=DOCUMENT_COLLECTION`}
+              >
+                <Calendar className="size-icon" />
+                Programmer le retrait
+              </Link>
+            </Button>
+          )}
+
+          {requiredDocuments.length > 0 && (
+            <Button variant="outline">
+              <FileText className="size-icon" />
+              Voir les documents
+            </Button>
+          )}
+
+          {isConsularRegistration && status === 'READY_FOR_PICKUP' && (
+            <Button variant="outline" asChild>
+              <Link href={ROUTES.user.profile}>
+                <EyeIcon className="size-icon" />
+                Voir mon profil
+              </Link>
+            </Button>
+          )}
+        </div>
+      </CardContainer>
     </div>
   );
 }

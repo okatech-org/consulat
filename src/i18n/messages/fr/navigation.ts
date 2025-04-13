@@ -4,7 +4,7 @@ export default {
     dashboard: 'Accueil',
     countries: 'Pays',
     organizations: 'Organismes',
-    services: 'Démarches',
+    services: 'Démarches et services',
     users: 'Utilisateurs',
     requests: 'Demandes',
     appointments: 'Rendez-vous',

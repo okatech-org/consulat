@@ -148,7 +148,7 @@ export default async function UserDashboard() {
               headerClass="pb-2"
               footerContent={
                 <Button variant="outline" size="sm" className="w-full" asChild>
-                  <Link href={ROUTES.user.requests}>
+                  <Link href={ROUTES.user.services}>
                     {t_profile('actions.track_requests')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -162,8 +162,14 @@ export default async function UserDashboard() {
                     {serviceRequests.slice(0, 3).map((request) => (
                       <div
                         key={request.id}
-                        className="flex items-start space-x-3 border-b pb-3 last:border-0"
+                        className="flex relative items-start space-x-3 border-b pb-3 last:border-0"
                       >
+                        <Link
+                          href={ROUTES.user.service_request_details(request.id)}
+                          className="absolute inset-0"
+                        >
+                          <span className="sr-only">Consulter la demande</span>
+                        </Link>
                         <div className="rounded-md bg-primary/10 p-2">
                           <FileText className="h-4 w-4 text-primary" />
                         </div>
