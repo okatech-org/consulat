@@ -65,10 +65,11 @@ model User {
   profile   Profile? @relation(fields: [profileId], references: [id])
   profileId String?  @unique
 
-  linkedCountries Country[] @relation("managedCountries")
-  messages        Message[]
-  country         Country?  @relation(fields: [countryCode], references: [code])
-  countryCode     String?
+  linkedCountries  Country[] @relation("managedCountries")
+  sentMessages     Message[] @relation("sender")
+  receivedMessages Message[] @relation("receiver")
+  country          Country?  @relation(fields: [countryCode], references: [code])
+  countryCode      String?
 
   managedOrganization Organization? @relation(fields: [organizationId], references: [id])
   organizationId      String?       @unique
@@ -403,10 +404,12 @@ model UserDocument {
 }
 
 model Message {
-  id      String @id @default(cuid())
-  content String
-  userId  String
-  user    User   @relation(fields: [userId], references: [id])
+  id         String  @id @default(cuid())
+  content    String
+  receiverId String
+  receiver   User    @relation("receiver", fields: [receiverId], references: [id])
+  senderId   String?
+  sender     User?   @relation("sender", fields: [senderId], references: [id])
 
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
   serviceRequestId String?

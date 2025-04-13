@@ -82,7 +82,7 @@ export function ContactInfoForm({
         className="space-y-6"
       >
         {banner}
-        <CardContainer contentClass="grid grid-cols-2 gap-6 pt-4">
+        <div className="grid grid-cols-2 gap-6 pt-4">
           {/* Email */}
           <FormField
             control={form.control}
@@ -685,7 +685,7 @@ export function ContactInfoForm({
               </fieldset>
             </CardContainer>
           )}
-        </CardContainer>
+        </div>
       </form>
     </Form>
   );

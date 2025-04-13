@@ -204,16 +204,19 @@ export default {
     notifications: {
       consular_registration_submitted: 'Inscription consulaire soumise',
       consular_registration_validated:
-        "Votre dossier d'inscription consulaire a été validé.",
+        "Votre dossier d'inscription consulaire a été validé. Vous recevrez un nouveau message lorsque votre carte sera prête.",
       consular_registration_rejected:
         "Votre dossier d'inscription consulaire a été rejeté.",
-      consular_card_ready: 'Votre carte consulaire est prête pour le retrait.',
+      consular_card_ready:
+        'Votre carte consulaire est prête pour le retrait. Veuillez prendre rendez-vous pour le retrait ou vous rendre dans nos bureaux pour la récupérer.',
       consular_registration_completed: 'Votre inscription consulaire est terminée.',
       messages: {
         submitted: "Votre demande d'inscription consulaire a été soumise avec succès.",
-        validated: "Votre dossier d'inscription consulaire a été validé.",
+        validated:
+          "Votre dossier d'inscription consulaire a été validé. Vous recevrez un nouveau message lorsque votre carte sera prête.",
         rejected: "Votre dossier d'inscription consulaire a été rejeté.",
-        ready_for_pickup: 'Votre carte consulaire est prête à être récupérée',
+        ready_for_pickup:
+          'Votre carte consulaire est prête à être récupérée. Veuillez prendre rendez-vous pour le retrait ou vous rendre dans nos bureaux pour la récupérer.',
         completed: 'Votre inscription consulaire est terminée.',
       },
       actions: {

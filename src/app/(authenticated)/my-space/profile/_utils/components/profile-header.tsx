@@ -9,20 +9,22 @@ import { ProfileStatusBadge } from './profile-status-badge';
 import { ConsularCardPreview } from '@/app/(authenticated)/my-space/profile/_utils/components/consular-card-preview';
 import CardContainer from '@/components/layouts/card-container';
 import { generateVCardString } from '@/lib/utils';
+import { ROUTES } from '@/schemas/routes';
 
 interface ProfileHeaderProps {
   profile: FullProfile;
+  inMySpace?: boolean;
 }
 
-export function ProfileHeader({ profile }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps) {
   const t = useTranslations('profile');
 
   const onShare = async () => {
     if (!profile) return;
 
     const vCardData = {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
+      firstName: profile.firstName || '',
+      lastName: profile.lastName || '',
       emails: profile.email ? [{ value: profile.email }] : [],
       phones: profile.user?.phoneNumber ? [profile.user.phoneNumber] : [],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
@@ -35,9 +37,9 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: profile?.firstName || 'Contact',
+          title: profile?.firstName?.trim() || 'Contact',
           text: 'Carte de contact consulaire',
-          url: window.location.href,
+          url: `${ROUTES.listing.profile(profile.id)}`,
         });
       } catch (err) {
         console.error('Error sharing:', err);
@@ -45,7 +47,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
     } else {
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${profile?.firstName || 'contact'}.vcf`;
+      a.download = `${profile?.firstName?.trim() || 'contact'}.vcf`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -55,10 +57,10 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
     if (!profile) return;
 
     const vCardData = {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
+      firstName: profile.firstName || '',
+      lastName: profile.lastName || '',
       emails: profile.email ? [{ value: profile.email }] : [],
-      phones: [profile.phoneNumber],
+      phones: [profile.user?.phoneNumber || ''],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
     };
 
@@ -68,14 +70,14 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${profile.firstName + ' ' + profile.lastName || 'contact'}.vcf`;
+    a.download = `${profile.firstName?.trim() + ' ' + profile.lastName?.trim() || 'contact'}.vcf`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <CardContainer contentClass="flex flex-col items-center gap-4 md:flex-row md:gap-6">
-      <Avatar className="size-24 md:size-32">
+      <Avatar className="size-24 md:size-32 bg-muted">
         {profile?.identityPicture ? (
           <AvatarImage
             src={profile?.identityPicture.fileUrl}
@@ -91,7 +93,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           <h1 className="text-2xl font-bold md:text-3xl">
             {`${profile?.firstName} ${profile?.lastName}`}
           </h1>
-          <ProfileStatusBadge status={profile?.status || 'DRAFT'} />
+          {inMySpace && <ProfileStatusBadge status={profile?.status || 'DRAFT'} />}
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
@@ -103,7 +105,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             <Download className="size-4" />
             {t('actions.download')}
           </Button>
-          <ConsularCardPreview profile={profile} />
+          {inMySpace && <ConsularCardPreview profile={profile} />}
         </div>
       </div>
     </CardContainer>

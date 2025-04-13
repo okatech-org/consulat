@@ -7,21 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { StatsCard } from '@/components/ui/stats-card';
 import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
 import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { format } from 'date-fns';
-import {
-  ArrowRight,
-  Calendar,
-  CheckCircle,
-  Clock,
-  FileText,
-  User,
-  UserIcon,
-} from 'lucide-react';
+import { ArrowRight, Calendar, Clock, FileText, UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { getUserFullProfileById } from '@/lib/user/getters';
 import { auth } from '@/auth';
 import { PageContainer } from '@/components/layouts/page-container';
+import CardContainer from '@/components/layouts/card-container';
 
 export default async function UserDashboard() {
   const t_common = await getTranslations('common');
@@ -62,24 +54,6 @@ export default async function UserDashboard() {
   // Fetch user service requests
   const serviceRequests = await getServiceRequestsByUser(session.user.id);
 
-  // Count requests by status
-  const pendingRequests = serviceRequests.filter((req) =>
-    ['DRAFT', 'SUBMITTED', 'PENDING', 'PENDING_COMPLETION'].includes(req.status),
-  ).length;
-
-  const processingRequests = serviceRequests.filter((req) =>
-    [
-      'VALIDATED',
-      'CARD_IN_PRODUCTION',
-      'READY_FOR_PICKUP',
-      'APPOINTMENT_SCHEDULED',
-    ].includes(req.status),
-  ).length;
-
-  const completedRequests = serviceRequests.filter((req) =>
-    ['COMPLETED'].includes(req.status),
-  ).length;
-
   // Fetch user appointments
   const appointmentsResponse = await getUserAppointments({ userId: session.user.id });
   const appointments = appointmentsResponse.data || {
@@ -109,44 +83,8 @@ export default async function UserDashboard() {
         </Button>
       }
     >
-      <div className="space-y-8">
-        {/* Overview Stats */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">{t('overview.title')}</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatsCard
-              title={t_profile('stats.profile.title')}
-              value={`${profileCompletion}%`}
-              description={t_profile('stats.profile.completion')}
-              icon={User}
-              className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm"
-              iconClassName="bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400"
-            />
-            <StatsCard
-              title={t('overview.pending_requests')}
-              value={pendingRequests}
-              icon={Clock}
-              className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30 shadow-sm"
-              iconClassName="bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400"
-            />
-            <StatsCard
-              title={t('overview.processing_requests')}
-              value={processingRequests}
-              icon={FileText}
-              className="bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm"
-              iconClassName="bg-white dark:bg-neutral-900 text-indigo-500 dark:text-indigo-400"
-            />
-            <StatsCard
-              title={t('overview.completed_requests')}
-              value={completedRequests}
-              icon={CheckCircle}
-              className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm"
-              iconClassName="bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400"
-            />
-          </div>
-        </section>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="space-y-8 grid lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:col-span-4">
           {/* Profile Status */}
           <Card className="lg:col-span-1">
             <CardHeader>
@@ -325,7 +263,7 @@ export default async function UserDashboard() {
         </div>
 
         {/* Recent Notifications */}
-        <section>
+        <section className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">{t_notifications('title')}</h2>
             <Button variant="ghost" size="sm" asChild>
@@ -335,29 +273,30 @@ export default async function UserDashboard() {
 
           <div className="space-y-4">
             {recentNotifications.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 {recentNotifications.map((notification) => (
-                  <Card
+                  <CardContainer
                     key={notification.id}
                     className={notification.read ? 'bg-card/50' : 'shadow-md'}
-                  >
-                    <CardHeader className="pb-2">
+                    title={
                       <div className="flex justify-between">
-                        <CardTitle className="text-base">{notification.title}</CardTitle>
+                        <span className="text-base">{notification.title}</span>
                         {!notification.read && (
                           <Badge variant="info" className="ml-2">
                             Nouveau
                           </Badge>
                         )}
                       </div>
-                      <CardDescription className="text-xs">
+                    }
+                    subtitle={
+                      <span className="text-xs">
                         {format(new Date(notification.createdAt), 'dd MMM yyyy - HH:mm')}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">{notification.message}</p>
-                    </CardContent>
-                  </Card>
+                      </span>
+                    }
+                    headerClass="pb-2"
+                  >
+                    <p className="text-sm">{notification.message}</p>
+                  </CardContainer>
                 ))}
               </div>
             ) : (

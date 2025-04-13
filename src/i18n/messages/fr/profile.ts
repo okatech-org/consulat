@@ -8,7 +8,7 @@ export default {
     progress: 'Progression globale',
     required_information: 'Informations requises',
     optional_information: 'Informations optionnelles',
-    complete_profile: 'Compléter mon profil',
+    complete_profile: 'Modifier mon profil',
     required: 'Requis',
     optional: 'Optionnel',
     show_more: 'Voir {count} de plus',
@@ -262,7 +262,7 @@ export default {
       },
     },
     actions: {
-      complete_profile: 'Compléter mon profil',
+      complete_profile: 'Modifier mon profil',
       submit_request: 'Nouvelle demande',
       track_requests: 'Suivre mes demandes',
       schedule_appointment: 'Prendre rendez-vous',

@@ -72,7 +72,7 @@ export default async function ProfilePage() {
     <PageContainer>
       <Suspense fallback={<LoadingSkeleton />}>
         <div className="flex flex-col gap-4">
-          <ProfileHeader profile={profile} />
+          <ProfileHeader profile={profile} inMySpace={true} />
           <ProfileStatusAlert
             status={profile.status}
             notes={

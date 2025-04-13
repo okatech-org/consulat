@@ -8,15 +8,9 @@ import { ContactInfoSchema, type ContactInfoFormData } from '@/schemas/registrat
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
-import { Badge } from '@/components/ui/badge';
-import { Flag, Mail, Phone } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { filterUneditedKeys, retrievePhoneNumber, tryCatch } from '@/lib/utils';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
-import { InfoField } from '@/components/ui/info-field';
-import { DisplayAddress } from '@/components/ui/display-address';
-import { CountryCode } from '@/lib/autocomplete-datas';
-import { Address } from '@prisma/client';
 
 interface ContactInfoSectionProps {
   profile: FullProfile;
@@ -29,12 +23,8 @@ export function ContactInfoSection({
   onSave,
   requestId,
 }: ContactInfoSectionProps) {
-  const t_inputs = useTranslations('inputs');
-  const t_countries = useTranslations('countries');
-  const t = useTranslations('registration');
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
-  const t_sections = useTranslations('profile.sections');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -102,104 +92,14 @@ export function ContactInfoSection({
     }
   };
 
-  const handleCancel = () => {
-    form.reset();
-    setIsEditing(false);
-  };
-
   return (
-    <EditableSection
-      title={t_sections('contact_info')}
-      isEditing={isEditing}
-      onEdit={() => setIsEditing(true)}
-      onCancel={handleCancel}
-      onSave={handleSave}
-      isLoading={isLoading}
-      profileStatus={profile.status}
-    >
-      {isEditing ? (
-        <ContactInfoForm
-          profile={profile}
-          form={form}
-          onSubmitAction={handleSave}
-          isLoading={isLoading}
-        />
-      ) : (
-        <div className="space-y-4">
-          {/* Coordonnées principales */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <InfoField
-              label={t_inputs('email.label')}
-              value={profile?.email}
-              icon={<Mail className="size-4" />}
-            />
-            <InfoField
-              label={t_inputs('phone.label')}
-              value={retrievePhoneNumber(profile?.phoneNumber ?? '').join(' ')}
-              icon={<Phone className="size-4" />}
-            />
-          </div>
-
-          {/* Adresses */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="space-y-6">
-              {profile.address ? (
-                <InfoField
-                  label={t_inputs('address.label')}
-                  value={<DisplayAddress address={profile.address as Address} />}
-                  icon={<Flag className="size-4" />}
-                />
-              ) : (
-                <Badge variant="destructive">{t('form.required')}</Badge>
-              )}
-            </div>
-
-            <div className="space-y-6">
-              {profile.residentContact ? (
-                <>
-                  <InfoField
-                    label={
-                      t_inputs('emergencyContact.label') +
-                      `${profile.residentContact?.address?.country ? ` - ${t_countries(profile.residentContact?.address?.country as CountryCode)}` : ''}`
-                    }
-                    value={
-                      <DisplayAddress
-                        title={`${profile.residentContact.firstName || ''} ${profile.residentContact.lastName || ''}`}
-                        address={profile.residentContact.address as Address}
-                      />
-                    }
-                    icon={<Flag className="size-4" />}
-                  />
-                </>
-              ) : (
-                <Badge variant="outline">{t('form.required')}</Badge>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="space-y-6">
-              {profile.homeLandContact ? (
-                <InfoField
-                  label={
-                    t_inputs('emergencyContact.label') +
-                    `${profile.homeLandContact?.address?.country ? ` - ${t_countries(profile.homeLandContact?.address?.country as CountryCode)}` : ''}`
-                  }
-                  value={
-                    <DisplayAddress
-                      title={`${profile.homeLandContact.firstName || ''} ${profile.homeLandContact.lastName || ''}`}
-                      address={profile.homeLandContact.address as Address}
-                    />
-                  }
-                  icon={<Flag className="size-4" />}
-                />
-              ) : (
-                <Badge variant="outline">{t('form.required')}</Badge>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+      <ContactInfoForm
+        profile={profile}
+        form={form}
+        onSubmitAction={handleSave}
+        isLoading={isLoading}
+      />
     </EditableSection>
   );
 }

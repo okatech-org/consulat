@@ -8,10 +8,8 @@ import { FamilyInfoSchema, type FamilyInfoFormData } from '@/schemas/registratio
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
-import { Users, User2 } from 'lucide-react';
 import { FullProfile } from '@/types';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
-import { InfoField } from '@/components/ui/info-field';
 import { FamilyInfoForm } from '@/components/registration/family-info';
 
 interface FamilyInfoSectionProps {
@@ -25,10 +23,8 @@ export function FamilyInfoSection({
   onSave,
   requestId,
 }: FamilyInfoSectionProps) {
-  const t_inputs = useTranslations('inputs');
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
-  const t_profile = useTranslations('profile');
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,70 +67,9 @@ export function FamilyInfoSection({
     }
   };
 
-  const handleCancel = () => {
-    form.reset();
-    setIsEditing(false);
-  };
-
-  const showSpouseField =
-    profile.maritalStatus === 'MARRIED' ||
-    profile.maritalStatus === 'COHABITING' ||
-    profile.maritalStatus === 'CIVIL_UNION';
-
   return (
-    <EditableSection
-      title={t_profile('sections.family_info')}
-      isEditing={isEditing}
-      onEdit={() => setIsEditing(true)}
-      onCancel={handleCancel}
-      onSave={handleSave}
-      isLoading={isLoading}
-      profileStatus={profile.status}
-    >
-      {isEditing ? (
-        <FamilyInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
-      ) : (
-        <div className="space-y-6">
-          {/* Situation matrimoniale */}
-          <div className="space-y-4">
-            <InfoField
-              label={t_inputs('maritalStatus.label')}
-              value={
-                profile.maritalStatus
-                  ? t_inputs(`maritalStatus.options.${profile.maritalStatus}`)
-                  : undefined
-              }
-              icon={<Users className="size-4" />}
-              required
-            />
-
-            {showSpouseField && (
-              <InfoField
-                label={t_inputs('spouse.fullName.label')}
-                value={profile.spouseFullName}
-                icon={<User2 className="size-4" />}
-                required
-              />
-            )}
-          </div>
-
-          {/* Parents */}
-          <div className="grid gap-4">
-            <InfoField
-              label={t_inputs('father.fullName.label')}
-              value={profile.fatherFullName}
-              icon={<User2 className="size-4" />}
-              required
-            />
-            <InfoField
-              label={t_inputs('mother.fullName.label')}
-              value={profile.motherFullName}
-              icon={<User2 className="size-4" />}
-              required
-            />
-          </div>
-        </div>
-      )}
+    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+      <FamilyInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
     </EditableSection>
   );
 }

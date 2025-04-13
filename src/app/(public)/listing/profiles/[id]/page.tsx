@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfileDetailsView } from './profile-details-view';
+import { getUserFullProfileById } from '@/lib/user/getters';
 
 interface ProfilePageProps {
   params: {
@@ -34,11 +35,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const profileId = awaitedParams.id;
   const session = await auth();
 
-  const profile = await getProfileById(
-    profileId,
-    session?.user?.id,
-    session?.user?.roles as string[],
-  );
+  const profile = await getUserFullProfileById(profileId);
 
   if (!profile) {
     notFound();
@@ -56,7 +53,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const canContact = !!session?.user;
 
   return (
-    <div className="container py-8 ">
+    <div className="container">
       <div className="mx-auto max-w-screen-xl">
         <Suspense fallback={<ProfileSkeleton />}>
           <ProfileDetailsView

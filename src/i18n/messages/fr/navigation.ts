@@ -1,10 +1,10 @@
 export default {
   menu: {
     title: 'Menu principal',
-    dashboard: 'Tableau de bord',
+    dashboard: 'Accueil',
     countries: 'Pays',
     organizations: 'Organismes',
-    services: 'Services & Démarches',
+    services: 'Démarches',
     users: 'Utilisateurs',
     requests: 'Demandes',
     appointments: 'Rendez-vous',
@@ -23,11 +23,11 @@ export default {
     profiles: 'Profils consulaires',
   },
   dashboard: {
-    title: 'Tableau de bord',
+    title: 'Accueil',
     welcome: 'Bienvenue sur le tableau de bord, {name}',
   },
   super_admin: {
-    dashboard: 'Tableau de bord',
+    dashboard: 'Accueil',
     countries: 'Pays',
     organizations: 'Organismes',
     services: 'Services',
@@ -35,7 +35,7 @@ export default {
     notifications: 'Notifications',
   },
   admin: {
-    dashboard: 'Tableau de bord',
+    dashboard: 'Accueil',
     registrations: 'Inscriptions',
     requests: 'Demandes',
     settings: 'Paramètres',
@@ -44,7 +44,7 @@ export default {
     users: 'Utilisateurs',
   },
   manager: {
-    dashboard: 'Tableau de bord',
+    dashboard: 'Accueil',
     requests: 'Demandes',
     appointments: 'Rendez-vous',
     users: 'Utilisateurs',
@@ -77,7 +77,7 @@ export default {
   dark_mode: 'Mode sombre',
   light_mode: 'Mode clair',
   agent: {
-    dashboard: 'Tableau de bord',
+    dashboard: 'Accueil',
     appointments: 'Rendez-vous',
     requests: 'Demandes',
     users: 'Utilisateurs',

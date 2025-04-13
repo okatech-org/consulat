@@ -22,7 +22,7 @@ export function ProfileDetailsView({
       {canContact && (
         <div className="mt-8">
           <ProfileContactForm
-            profileId={profile.id}
+            userId={profile.userId ?? profile.user?.id ?? ''}
             recipientEmail={profile.user?.email ?? ''}
             recipientName={`${profile.firstName} ${profile.lastName}`}
           />
