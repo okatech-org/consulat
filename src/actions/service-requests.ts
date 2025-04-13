@@ -117,7 +117,12 @@ export async function getServiceRequests(
       db.serviceRequest.findMany({
         where,
         ...FullServiceRequestInclude,
-        orderBy: { [sortBy]: sortOrder },
+        ...(sortBy && {
+          orderBy:
+            sortBy === 'firstName' || sortBy === 'lastName'
+              ? { requestedFor: { [sortBy]: sortOrder } }
+              : { [sortBy]: sortOrder },
+        }),
         skip: (safePage - 1) * safeLimit,
         take: safeLimit,
       }),

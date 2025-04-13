@@ -57,8 +57,8 @@ export function DataTable<TData, TValue>({
   data,
   filters,
   totalCount,
-  pageIndex,
-  pageSize,
+  pageIndex = 0,
+  pageSize = 10,
   onRowClick,
   isLoading = false,
   onPageChange,
@@ -84,9 +84,19 @@ export function DataTable<TData, TValue>({
   );
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  // Use pageIndex directly from props
+  React.useEffect(() => {
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: pageIndex,
+      pageSize: pageSize,
+    }));
+  }, [pageIndex, pageSize]);
+
   const [pagination, setPagination] = React.useState({
-    pageIndex: pageIndex ?? 1,
-    pageSize: pageSize ?? 10,
+    pageIndex: pageIndex,
+    pageSize: pageSize,
   });
 
   const table = useReactTable({
@@ -101,8 +111,8 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
-        pageIndex: pageIndex ?? 1,
-        pageSize: pageSize ?? 10,
+        pageIndex: pageIndex,
+        pageSize: pageSize,
       },
     },
     manualPagination: true,
@@ -118,12 +128,16 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     onPaginationChange: (updater) => {
-      setPagination((prev) => {
-        const newPagination = typeof updater === 'function' ? updater(prev) : updater;
-        onPageChange?.(newPagination.pageIndex);
-        onLimitChange?.(newPagination.pageSize);
-        return newPagination;
-      });
+      const newPagination = typeof updater === 'function' ? updater(pagination) : updater;
+      setPagination(newPagination);
+
+      if (onPageChange && newPagination.pageIndex !== pagination.pageIndex) {
+        onPageChange(newPagination.pageIndex);
+      }
+
+      if (onLimitChange && newPagination.pageSize !== pagination.pageSize) {
+        onLimitChange(newPagination.pageSize);
+      }
     },
     rowCount: totalCount,
   });
