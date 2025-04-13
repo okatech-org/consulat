@@ -415,8 +415,7 @@ export function RegistrationForm({
           {/* Contenu principal */}
           <div className="flex flex-col md:pb-10 gap-4 justify-center">
             {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
-            {renderCurrentStep()}
-
+            <CardContainer>{renderCurrentStep()}</CardContainer>
             {error && (
               <ErrorCard
                 description={
@@ -446,7 +445,7 @@ export function RegistrationForm({
                 disabled={isLoading || currentStepIndex === 0}
                 className="gap-2"
               >
-                <ArrowLeft className="size-4" />
+                <ArrowLeft className="size-icon" />
                 {t('navigation.previous')}
               </Button>
 
@@ -456,11 +455,13 @@ export function RegistrationForm({
                 disabled={isLoading}
                 className="ml-auto gap-2"
               >
-                {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+                {isLoading ? <Loader className="size-icon animate-spin" /> : null}
                 {currentStepIndex === totalSteps - 1
                   ? t('navigation.submit')
                   : t('navigation.next')}
-                {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
+                {currentStepIndex !== totalSteps - 1 && (
+                  <ArrowRight className="size-icon" />
+                )}
               </Button>
             </div>
             {!currentStepValidity && (

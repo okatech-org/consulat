@@ -32,7 +32,7 @@ const buttonVariants = cva(
         info: 'bg-info text-info-foreground shadow-interactive hover:shadow-interactive-hover active:shadow-interactive-active hover:bg-info/90',
       },
       size: {
-        default: 'h-8 px-2 py-1 min-h-[44px] min-w-[44px] md:min-w-max md:min-h-max',
+        default: 'h-8 px-3 py-2 min-h-[44px] min-w-[44px] md:min-w-max md:min-h-max',
         sm: 'h-9 rounded-md px-2 text-xs min-h-[36px] min-w-[36px]',
         lg: 'h-12 rounded-md px-4 min-h-[48px]',
         icon: 'h-10 w-10 min-h-[44px] min-w-[44px]',

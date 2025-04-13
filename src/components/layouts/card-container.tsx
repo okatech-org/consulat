@@ -28,11 +28,7 @@ export default function CardContainer({
           className={`flex-row space-y-0 pb-4 mb-4 border-b border-border ${headerClass}`}
         >
           <div>
-            {title && (
-              <Card.CardTitle className={'text-lg font-bold tracking-tight'}>
-                {title}
-              </Card.CardTitle>
-            )}
+            {title && <Card.CardTitle>{title}</Card.CardTitle>}
             {subtitle && <Card.CardDescription>{subtitle}</Card.CardDescription>}
           </div>
           {action && <div className="ml-auto">{action}</div>}

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { PenIcon, Trash, CheckCircle2 } from 'lucide-react';
+import { PenIcon, Trash, CheckCircle2, Info } from 'lucide-react';
 import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,7 +38,8 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
 import { validateDocument } from '@/lib/document-validation';
 import { DocumentPreview } from './ui/document-preview';
-import { optimizeImage, optimizeImageFromForm } from '@/actions/documents';
+import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -66,6 +67,37 @@ const updateDocumentSchema = z.object({
 });
 
 type UpdateDocumentData = z.infer<typeof updateDocumentSchema>;
+
+const IdentityPhotoGuide: React.FC = () => {
+  const t = useTranslations('common.documents.identity_photo');
+
+  return (
+    <div className="space-y-3 mb-2">
+      <Separator />
+      <p className="text-sm font-medium flex items-center gap-1">
+        <Info className="size-icon" />
+        {t('guide.title')}
+      </p>
+      <div className="flex flex-row gap-2 items-start">
+        <Image
+          src="https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOi6CYbGWBvnijUWNrVo7483MfhSbYuEpz0qGRK"
+          alt={t('guide.example_alt')}
+          width={96}
+          height={96}
+          className="object-cover aspect-square rounded-full"
+          unoptimized
+        />
+        <ul className="text-xs space-y-1 list-disc pl-5">
+          <li>{t('guide.face_centered')}</li>
+          <li>{t('guide.neutral_expression')}</li>
+          <li>{t('guide.no_head_covering')}</li>
+          <li>{t('guide.eyes_visible')}</li>
+          <li>{t('guide.background_color')}</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
 
 export function UserDocument({
   document,
@@ -456,6 +488,11 @@ export function UserDocument({
           onCropComplete={handleCropComplete}
           onCancel={handleCropCancel}
           open={cropperOpen}
+          guide={
+            expectedType === DocumentType.IDENTITY_PHOTO ? (
+              <IdentityPhotoGuide />
+            ) : undefined
+          }
         />
       )}
 

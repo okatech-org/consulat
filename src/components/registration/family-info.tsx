@@ -9,7 +9,6 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -51,111 +50,109 @@ export function FamilyInfoForm({
         {banner}
         {/* État civil */}
 
-        <Card>
-          <CardContent className={'space-y-6 pt-4'}>
-            <div>
-              <FormField
-                control={form.control}
-                name="maritalStatus"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('maritalStatus.label')}</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        if (
-                          value !== MaritalStatus.MARRIED &&
-                          value !== MaritalStatus.COHABITING &&
-                          value !== MaritalStatus.CIVIL_UNION
-                        ) {
-                          form.setValue('spouseFullName', undefined);
-                        }
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger disabled={isLoading}>
-                          <SelectValue placeholder={t_inputs('maritalStatus.select')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(MaritalStatus).map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {t_inputs(`maritalStatus.options.${status}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Champs spécifiques si marié(e) */}
-              {showSpouseFields && (
-                <div className="mt-4">
-                  <FormField
-                    control={form.control}
-                    name="spouseFullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t_inputs('spouseName.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            disabled={isLoading}
-                            placeholder={t_inputs('spouseName.placeholder')}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+        <div className={'space-y-6 pt-4'}>
+          <div>
+            <FormField
+              control={form.control}
+              name="maritalStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t_inputs('maritalStatus.label')}</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      if (
+                        value !== MaritalStatus.MARRIED &&
+                        value !== MaritalStatus.COHABITING &&
+                        value !== MaritalStatus.CIVIL_UNION
+                      ) {
+                        form.setValue('spouseFullName', undefined);
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger disabled={isLoading}>
+                        <SelectValue placeholder={t_inputs('maritalStatus.select')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(MaritalStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {t_inputs(`maritalStatus.options.${status}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <TradFormMessage />
+                </FormItem>
               )}
-            </div>
+            />
 
-            <Separator />
+            {/* Champs spécifiques si marié(e) */}
+            {showSpouseFields && (
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="spouseFullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t_inputs('spouseName.label')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          disabled={isLoading}
+                          placeholder={t_inputs('spouseName.placeholder')}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+          </div>
 
-            <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="fatherFullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('fatherName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isLoading}
-                        placeholder={t_inputs('fatherName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+          <Separator />
 
-              <FormField
-                control={form.control}
-                name="motherFullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('motherName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isLoading}
-                        placeholder={t_inputs('motherName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
+          <div className="grid gap-4">
+            <FormField
+              control={form.control}
+              name="fatherFullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t_inputs('fatherName.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={isLoading}
+                      placeholder={t_inputs('fatherName.placeholder')}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="motherFullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t_inputs('motherName.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={isLoading}
+                      placeholder={t_inputs('motherName.placeholder')}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
       </form>
     </Form>
   );

@@ -26,7 +26,6 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../user-document';
 import { AppUserDocument } from '@/types';
-import CardContainer from '../layouts/card-container';
 
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
@@ -138,84 +137,82 @@ export function DocumentUploadSection({
   };
 
   return (
-    <CardContainer>
-      <Form {...form}>
-        <form
-          ref={formRef}
-          onSubmit={form.handleSubmit(handleSubmitAction)}
-          className="space-y-8"
-        >
-          <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
-            <AnimatePresence mode="sync">
-              {requiredDocuments.map((doc, index) => (
-                <motion.div
-                  key={doc.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <FormField
-                    control={form.control}
-                    name={doc.id}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <UserDocument
-                            document={field.value as AppUserDocument}
-                            expectedType={doc.expectedType}
-                            label={doc.label}
-                            description={doc.description}
-                            required={doc.required}
-                            disabled={isLoading}
-                            profileId={profileId}
-                            onUpload={field.onChange}
-                            onDelete={() => {
-                              field.onChange(null);
-                            }}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
+    <Form {...form}>
+      <form
+        ref={formRef}
+        onSubmit={form.handleSubmit(handleSubmitAction)}
+        className="space-y-8"
+      >
+        <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
+          <AnimatePresence mode="sync">
+            {requiredDocuments.map((doc, index) => (
+              <motion.div
+                key={doc.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <FormField
+                  control={form.control}
+                  name={doc.id}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <UserDocument
+                          document={field.value as AppUserDocument}
+                          expectedType={doc.expectedType}
+                          label={doc.label}
+                          description={doc.description}
+                          required={doc.required}
+                          disabled={isLoading}
+                          profileId={profileId}
+                          onUpload={field.onChange}
+                          onDelete={() => {
+                            field.onChange(null);
+                          }}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+        <div className={'w-full space-y-4'}>
+          {/* Section d'analyse */}
+          {onAnalysisComplete && (
+            <Card className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <Button
+                    type="button"
+                    onClick={handleAnalysis}
+                    disabled={isAnalyzing || isLoading}
+                    className="w-full gap-2 md:w-auto"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <LoaderIcon className="size-5 animate-spin" />
+                        {t('documents.analysis.analyzing')}
+                      </>
+                    ) : (
+                      <>
+                        <ScanBarcode className="size-5" />
+                        {t('documents.analysis.start')}
+                      </>
                     )}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-          <div className={'w-full space-y-4'}>
-            {/* Section d'analyse */}
-            {onAnalysisComplete && (
-              <Card className="overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center gap-4 text-center">
-                    <Button
-                      type="button"
-                      onClick={handleAnalysis}
-                      disabled={isAnalyzing || isLoading}
-                      className="w-full gap-2 md:w-auto"
-                    >
-                      {isAnalyzing ? (
-                        <>
-                          <LoaderIcon className="size-5 animate-spin" />
-                          {t('documents.analysis.analyzing')}
-                        </>
-                      ) : (
-                        <>
-                          <ScanBarcode className="size-5" />
-                          {t('documents.analysis.start')}
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-sm text-muted-foreground">
-                      {t('documents.analysis.help')}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </form>
-      </Form>
-    </CardContainer>
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    {t('documents.analysis.help')}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </form>
+    </Form>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, ReactNode } from 'react';
 import AvatarEditor from 'react-avatar-editor';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslations } from 'next-intl';
 import Slider from '@/components/ui/slider';
-import { RotateCcw, RotateCw } from 'lucide-react';
 
 interface ImageCropperProps {
   imageUrl: string;
@@ -22,6 +21,7 @@ interface ImageCropperProps {
   onCancel: () => void;
   open: boolean;
   fileName?: string;
+  guide?: ReactNode;
 }
 
 export function ImageCropper({
@@ -32,28 +32,12 @@ export function ImageCropper({
   onCancel,
   open,
   fileName,
+  guide,
 }: ImageCropperProps) {
   const t = useTranslations('common.cropper');
   const [scale, setScale] = useState(1);
-  const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const editorRef = useRef<AvatarEditor | null>(null);
-
-  // Function to handle rotation to the left (counterclockwise)
-  const handleRotateLeft = useCallback(() => {
-    setRotation((prev) => {
-      // Rotate 90 degrees counterclockwise
-      return prev - 90;
-    });
-  }, []);
-
-  // Function to handle rotation to the right (clockwise)
-  const handleRotateRight = useCallback(() => {
-    setRotation((prev) => {
-      // Rotate 90 degrees clockwise
-      return prev + 90;
-    });
-  }, []);
 
   // Dans votre composant ImageCropper
   const handleCropComplete = useCallback(async () => {
@@ -161,20 +145,14 @@ export function ImageCropper({
 
   const { width, height } = getEditorDimensions();
 
-  // Normalize rotation value for AvatarEditor (which expects 0-359)
-  const normalizeRotation = (value: number) => {
-    // Convert negative values to positive equivalent in 0-359 range
-    return ((value % 360) + 360) % 360;
-  };
-
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center">
           <AvatarEditor
             ref={editorRef}
             image={imageUrl}
@@ -184,36 +162,36 @@ export function ImageCropper({
             borderRadius={circularCrop ? Math.min(width, height) / 2 : 0}
             color={[0, 0, 0, 0.6]} // Background color behind the cropped image
             scale={scale}
-            rotate={normalizeRotation(rotation)}
+            rotate={0}
             crossOrigin="anonymous"
           />
         </div>
 
-        <div className="mt-4 space-y-4">
-          <div>
-            <label className="text-sm font-medium">Agrandir l&apos;image</label>
-            <Slider
-              value={[scale]}
-              min={1}
-              max={3}
-              step={0.1}
-              onValueChange={(values) => {
-                if (values[0] !== undefined) {
-                  setScale(values[0]);
-                }
-              }}
-              className="mt-2"
-            />
-          </div>
+        <div className="space-y-4 mb-2">
+          <label className="text-sm font-medium mb-2">Agrandir l&apos;image</label>
+          <Slider
+            value={[scale]}
+            min={1}
+            max={3}
+            step={0.1}
+            onValueChange={(values) => {
+              if (values[0] !== undefined) {
+                setScale(values[0]);
+              }
+            }}
+          />
         </div>
 
-        <DialogFooter className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
-          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            {t('cancel')}
-          </Button>
-          <Button onClick={handleCropComplete} disabled={isLoading}>
-            {isLoading ? t('processing') : t('apply')}
-          </Button>
+        <DialogFooter className="flex flex-col gap-2">
+          {guide && <div>{guide}</div>}
+          <div className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
+            <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+              {t('cancel')}
+            </Button>
+            <Button onClick={handleCropComplete} disabled={isLoading}>
+              {isLoading ? t('processing') : 'Valider'}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
