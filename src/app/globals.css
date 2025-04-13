@@ -440,11 +440,6 @@ p,
     @apply inline sm:hidden;
   }
 
-  /* Ajuster l'espacement des éléments sur mobile */
-  .space-y-8 > :not([hidden]) ~ :not([hidden]) {
-    @apply my-4 md:my-8;
-  }
-
   /* Assurer que le contenu ne passe pas sous la navigation mobile */
   .pb-safe {
     padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
