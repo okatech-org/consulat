@@ -183,6 +183,7 @@ export default async function UserDashboard() {
                                     ? 'default'
                                     : 'secondary'
                               }
+                              className="min-w-max"
                             >
                               {t_common(`status.${request.status}`)}
                             </Badge>
