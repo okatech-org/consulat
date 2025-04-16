@@ -11,7 +11,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import Slider from '@/components/ui/slider';
-import { ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 
 interface ImageCropperProps {
   imageUrl: string | File;
@@ -171,33 +170,30 @@ export function ImageCropper({
                 <span>180°</span>
               </div>
             </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setScale(1);
+                setRotation(0);
+              }}
+              disabled={isLoading}
+              className="w-full text-xs"
+            >
+              Réinitialiser
+            </Button>
           </div>
         </div>
 
         {guide && <div className="w-full mt-4">{guide}</div>}
 
         <DialogFooter className="flex flex-col gap-2 mt-4">
-          <div className="flex flex-row justify-between w-full">
-            <div>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setScale(1);
-                  setRotation(0);
-                }}
-                disabled={isLoading}
-              >
-                Réinitialiser
-              </Button>
-            </div>
-            <div className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
-              <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-                Annuler
-              </Button>
-              <Button onClick={handleCropComplete} disabled={isLoading || !imageLoaded}>
-                {isLoading ? 'Traitement en cours...' : 'Valider'}
-              </Button>
-            </div>
+          <div className="flex flex-col-reverse gap-4 md:flex-row md:justify-end">
+            <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+              Annuler
+            </Button>
+            <Button onClick={handleCropComplete} disabled={isLoading || !imageLoaded}>
+              {isLoading ? 'Traitement en cours...' : 'Valider'}
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>

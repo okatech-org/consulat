@@ -263,7 +263,7 @@ export function RegistrationForm({
             title: t('submission.success.title'),
             description: t('submission.success.description'),
           });
-          router.push(ROUTES.user.profile);
+          router.push(ROUTES.user.dashboard);
         } else {
           await handleFinalSubmit();
         }
@@ -275,7 +275,7 @@ export function RegistrationForm({
       if (nextStep) {
         setCurrentTab(nextStep);
       } else {
-        router.push(ROUTES.user.profile);
+        router.push(ROUTES.user.dashboard);
       }
     } catch (err) {
       const { title, description } = handleFormError(err, t);
