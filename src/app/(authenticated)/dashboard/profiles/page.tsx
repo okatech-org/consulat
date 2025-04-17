@@ -510,7 +510,7 @@ export default function ProfilesPage() {
           pageIndex={results.page - 1}
           pageSize={results.limit}
           onExport={handleExport}
-          onPageChange={handlePageChange}
+          onPageChange={(page) => handlePageChange(page + 1)}
           onLimitChange={handleLimitChange}
           enableExport={true}
           exportSelectedOnly={true}

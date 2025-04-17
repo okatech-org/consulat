@@ -25,7 +25,6 @@ import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
-import { AppUserDocument } from '@/types/profile';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -93,23 +92,41 @@ export async function getServiceRequests(
       { requestedFor: { phoneNumber: { contains: search, mode: 'insensitive' } } },
       { requestedFor: { cardNumber: { contains: search, mode: 'insensitive' } } },
       { requestedFor: { passportNumber: { contains: search, mode: 'insensitive' } } },
-      { requestedFor: { status: { in: [search as RequestStatus] } } },
       { service: { name: { contains: search, mode: 'insensitive' } } },
     ];
   }
 
+  // Combine role-based filtering with AND instead of overwriting OR
+  const agentConditions: Prisma.ServiceRequestWhereInput[] = [];
+  const adminConditions: Prisma.ServiceRequestWhereInput[] = [];
+
   if (authResult.user.roles.includes(UserRole.AGENT)) {
-    where.OR = [
-      { assignedToId: authResult.user.id },
-      {
-        assignedToId: null,
-        organizationId: authResult.user.assignedOrganizationId ?? '',
-      },
-    ];
+    agentConditions.push({
+      OR: [
+        { assignedToId: authResult.user.id },
+        {
+          assignedToId: null,
+          organizationId: authResult.user.assignedOrganizationId ?? '',
+        },
+      ],
+    });
   }
 
   if (authResult.user.roles.includes(UserRole.ADMIN)) {
-    where.organizationId = authResult.user.organizationId ?? '';
+    adminConditions.push({
+      organizationId: authResult.user.organizationId ?? '',
+    });
+  }
+
+  // Apply role-based conditions if any exist
+  if (agentConditions.length > 0 || adminConditions.length > 0) {
+    // Ensure where.AND is an array before spreading
+    const existingAnd = Array.isArray(where.AND)
+      ? where.AND
+      : where.AND
+        ? [where.AND]
+        : [];
+    where.AND = [...existingAnd, ...agentConditions, ...adminConditions];
   }
 
   try {
@@ -395,16 +412,31 @@ export async function getServiceRequest(id: string): Promise<FullServiceRequest>
   });
 
   if (!request) {
-    throw new Error('messages.error.not_found', { cause: 'SERVICE_REQUEST_NOT_FOUND' });
+    throw new Error('messages.error.not_found', {
+      cause: 'SERVICE_REQUEST_NOT_FOUND',
+    });
   }
 
-  return {
-    ...request,
-    requiredDocuments: request.requiredDocuments.map((document) => ({
-      ...document,
-      metadata: JSON.parse(document.metadata as string) as Prisma.JsonValue,
-    })) as unknown as AppUserDocument[],
-  };
+  // Type assertion remains useful, assuming FullServiceRequest type will be fixed
+  const typedRequest = request as unknown as FullServiceRequest;
+
+  // Parse metadata for each document if metadata exists and is a string
+  // This map operates on the structure included by Prisma
+  typedRequest.requiredDocuments = typedRequest.requiredDocuments.map((doc) => {
+    let parsedMetadata = doc.metadata; // Default to original
+    if (typeof doc.metadata === 'string') {
+      try {
+        parsedMetadata = JSON.parse(doc.metadata);
+      } catch (error) {
+        console.error(`Failed to parse metadata for document ${doc.id}:`, error);
+      }
+    }
+    // Return the document with potentially parsed metadata
+    // The structure (including validatedBy) is preserved from the Prisma fetch
+    return { ...doc, metadata: parsedMetadata };
+  });
+
+  return typedRequest;
 }
 
 interface AddNoteInput {
