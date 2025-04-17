@@ -7,7 +7,6 @@ import {
   ConsularService,
   User,
 } from '@prisma/client';
-import { AppUserDocument } from './profile';
 
 // Base includes pour une demande de service
 export const BaseServiceRequestInclude = {
@@ -143,7 +142,6 @@ export type FullServiceRequest = Prisma.ServiceRequestGetPayload<
 > & {
   service: ConsularService;
   submittedBy: User;
-  requiredDocuments: AppUserDocument[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formData?: Record<string, any>;
 };

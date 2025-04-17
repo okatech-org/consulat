@@ -91,8 +91,8 @@ export function ProfileContactForm({
           title="Envoyer un message"
           subtitle="Envoyez un message à cette personne. Elle recevra une notification et pourra vous répondre."
           footerContent={
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isSubmitting}>
+            <div className="flex sm:justify-end">
+              <Button type="submit" className="w-full sm:w-max" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {'Envoyer le message'}
               </Button>
