@@ -27,6 +27,16 @@ import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../user-document';
 import { AppUserDocument } from '@/types';
 
+export type DocumentUploadItem = {
+  id: 'birthCertificate' | 'passport' | 'residencePermit' | 'addressProof';
+  label: string;
+  description: string;
+  required: boolean;
+  acceptedTypes: string[];
+  maxSize: number;
+  expectedType: DocumentType;
+};
+
 interface DocumentUploadSectionProps {
   form: UseFormReturn<DocumentsFormData>;
   handleSubmitAction: (data: DocumentsFormData) => void;
@@ -39,6 +49,7 @@ interface DocumentUploadSectionProps {
   isLoading?: boolean;
   formRef?: React.RefObject<HTMLFormElement>;
   profileId?: string;
+  documents?: DocumentUploadItem[];
 }
 
 export function DocumentUploadSection({
@@ -48,58 +59,19 @@ export function DocumentUploadSection({
   onAnalysisComplete,
   formRef,
   profileId,
+  documents = [],
 }: DocumentUploadSectionProps) {
   const t = useTranslations('registration');
-  const t_inputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
-
-  const requiredDocuments = [
-    {
-      id: 'passport' as const,
-      label: t_inputs('passport.label'),
-      description: t_inputs('passport.help'),
-      required: false,
-      acceptedTypes: ['image/*', 'application/pdf'],
-      maxSize: 5 * 1024 * 1024, // 5MB
-      expectedType: DocumentType.PASSPORT,
-    },
-    {
-      id: 'birthCertificate' as const,
-      label: t_inputs('birthCertificate.label'),
-      description: t_inputs('birthCertificate.help'),
-      required: true,
-      acceptedTypes: ['image/*', 'application/pdf'],
-      maxSize: 5 * 1024 * 1024,
-      expectedType: DocumentType.BIRTH_CERTIFICATE,
-    },
-    {
-      id: 'residencePermit' as const,
-      label: t_inputs('residencePermit.label'),
-      description: t_inputs('residencePermit.help'),
-      required: false,
-      acceptedTypes: ['image/*', 'application/pdf'],
-      maxSize: 5 * 1024 * 1024,
-      expectedType: DocumentType.RESIDENCE_PERMIT,
-    },
-    {
-      id: 'addressProof' as const,
-      label: t_inputs('addressProof.label'),
-      description: t_inputs('addressProof.help'),
-      required: true,
-      acceptedTypes: ['image/*', 'application/pdf'],
-      maxSize: 5 * 1024 * 1024,
-      expectedType: DocumentType.PROOF_OF_ADDRESS,
-    },
-  ] as const;
 
   const handleAnalysis = async () => {
     const documentsToAnalyze: Partial<Record<DocumentType, string>> = {};
 
     // Collecter les URLs des documents et leurs champs d'analyse
     Object.entries(form.getValues()).forEach(([key, document]) => {
-      const doc = requiredDocuments.find((d) => d.id === key);
+      const doc = documents.find((d) => d.id === key);
       if (document && doc) {
         const userDoc = document as AppUserDocument;
         if (userDoc?.fileUrl) {
@@ -145,7 +117,7 @@ export function DocumentUploadSection({
       >
         <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
           <AnimatePresence mode="sync">
-            {requiredDocuments.map((doc, index) => (
+            {documents.map((doc, index) => (
               <motion.div
                 key={doc.id}
                 initial={{ opacity: 0, y: 20 }}

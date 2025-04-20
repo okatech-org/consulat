@@ -10,7 +10,7 @@ import {
   FamilyInfoFormData,
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
-import { DocumentUploadSection } from './document-upload-section';
+import { DocumentUploadItem, DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { FamilyInfoForm } from './family-info';
 import { ContactInfoForm } from './contact-form';
@@ -37,6 +37,7 @@ import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import React from 'react';
 import { useStoredTabs } from '@/hooks/use-tabs';
+import { DocumentType } from '@prisma/client';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -99,7 +100,7 @@ export function RegistrationForm({
     try {
       // Update each form with the data from the analysis
       if (cleanedData.basicInfo && forms.basicInfo) {
-        const basicInforFields = [
+        const basicInfoFields = [
           'firstName',
           'lastName',
           'birthDate',
@@ -113,7 +114,7 @@ export function RegistrationForm({
           'acquisitionMode',
         ] as Array<keyof BasicInfoFormData>;
 
-        basicInforFields.forEach((field) => {
+        basicInfoFields.forEach((field) => {
           if (cleanedData.basicInfo?.[field]) {
             forms.basicInfo.setValue(field, cleanedData.basicInfo[field], {
               shouldDirty: true,
@@ -319,6 +320,45 @@ export function RegistrationForm({
     }
   };
 
+  const requiredDocuments: DocumentUploadItem[] = [
+    {
+      id: 'passport' as const,
+      label: tInputs('passport.label'),
+      description: tInputs('passport.help'),
+      required: false,
+      acceptedTypes: ['image/*', 'application/pdf'],
+      maxSize: 5 * 1024 * 1024, // 5MB
+      expectedType: DocumentType.PASSPORT,
+    },
+    {
+      id: 'birthCertificate' as const,
+      label: tInputs('birthCertificate.label'),
+      description: tInputs('birthCertificate.help'),
+      required: true,
+      acceptedTypes: ['image/*', 'application/pdf'],
+      maxSize: 5 * 1024 * 1024,
+      expectedType: DocumentType.BIRTH_CERTIFICATE,
+    },
+    {
+      id: 'residencePermit' as const,
+      label: tInputs('residencePermit.label'),
+      description: tInputs('residencePermit.help'),
+      required: false,
+      acceptedTypes: ['image/*', 'application/pdf'],
+      maxSize: 5 * 1024 * 1024,
+      expectedType: DocumentType.RESIDENCE_PERMIT,
+    },
+    {
+      id: 'addressProof' as const,
+      label: tInputs('addressProof.label'),
+      description: tInputs('addressProof.help'),
+      required: true,
+      acceptedTypes: ['image/*', 'application/pdf'],
+      maxSize: 5 * 1024 * 1024,
+      expectedType: DocumentType.PROOF_OF_ADDRESS,
+    },
+  ] as const;
+
   const stepsComponents: Record<keyof typeof forms | 'review', React.ReactNode> = {
     documents: (
       <DocumentUploadSection
@@ -327,6 +367,7 @@ export function RegistrationForm({
         onAnalysisComplete={handleDocumentsAnalysis}
         handleSubmitAction={() => handleNext()}
         isLoading={isLoading}
+        documents={requiredDocuments}
       />
     ),
     basicInfo: (

@@ -50,7 +50,7 @@ export async function createChildProfile(data: LinkFormData): Promise<{ id: stri
         if (data.otherParentPhone) {
           // Handle phone as a string for the query
           otherParentReq.push({
-            phoneNumber: data.otherParentPhone.number,
+            phoneNumber: data.otherParentPhone,
           });
         }
 
@@ -81,7 +81,7 @@ export async function createChildProfile(data: LinkFormData): Promise<{ id: stri
 
 export async function updateChildProfile(
   profileId: string,
-  data: Partial<FullProfileUpdateFormData>,
+  data: Partial<FullProfileUpdateFormData & Partial<LinkFormData>>,
 ): Promise<{ id: string }> {
   const t = await getTranslations('messages.profile.errors');
   const { user } = await checkAuth();
@@ -101,8 +101,15 @@ export async function updateChildProfile(
   // Extract date fields for proper formatting
   const { passportIssueDate, passportExpiryDate, birthDate, ...remain } = data;
 
+  // Only update fields that are provided
   const updateData: Prisma.ProfileUpdateInput = {
-    ...remain,
+    ...(remain.firstName && { firstName: remain.firstName }),
+    ...(remain.lastName && { lastName: remain.lastName }),
+    ...(remain.gender && { gender: remain.gender }),
+    ...(remain.birthPlace && { birthPlace: remain.birthPlace }),
+    ...(remain.birthCountry && { birthCountry: remain.birthCountry }),
+    ...(remain.nationality && { nationality: remain.nationality }),
+    ...(remain.acquisitionMode && { acquisitionMode: remain.acquisitionMode }),
     ...(birthDate && { birthDate: new Date(birthDate) }),
     ...(passportIssueDate && { passportIssueDate: new Date(passportIssueDate) }),
     ...(passportExpiryDate && { passportExpiryDate: new Date(passportExpiryDate) }),
@@ -152,7 +159,25 @@ export async function submitChildProfileForValidation(
     profile.nationality,
   ];
 
-  if (requiredFields.some((field) => !field)) {
+  // Debug which fields are missing
+  console.log('Profile data:', {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    birthDate: profile.birthDate,
+    birthPlace: profile.birthPlace,
+    nationality: profile.nationality,
+  });
+
+  const missingFields = requiredFields
+    .map((value, index) =>
+      !value
+        ? ['firstName', 'lastName', 'birthDate', 'birthPlace', 'nationality'][index]
+        : null,
+    )
+    .filter(Boolean);
+
+  if (missingFields.length > 0) {
+    console.log('Missing fields:', missingFields);
     throw new Error('missing_fields');
   }
 
@@ -253,7 +278,7 @@ export async function createChildProfileWithFiles(formData: FormData): Promise<s
           birthDate: basicInfo.birthDate,
           birthPlace: basicInfo.birthPlace,
           birthCountry: basicInfo.birthCountry,
-          nationality: basicInfo.nationality,
+          nationality: basicInfo.nationality ?? basicInfo.birthCountry,
           acquisitionMode: basicInfo.acquisitionMode,
 
           // Informations passeport
@@ -406,7 +431,7 @@ export async function createChildProfileWithFiles(formData: FormData): Promise<s
 
           if (linkInfo.otherParentPhone) {
             otherParentReq.push({
-              phoneNumber: linkInfo.otherParentPhone.number,
+              phoneNumber: linkInfo.otherParentPhone,
             });
           }
 

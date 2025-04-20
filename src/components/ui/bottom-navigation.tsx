@@ -53,35 +53,35 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       <nav
         ref={ref}
         className={cn(
-          'grid grid-cols-5 gap-1 py-2 px-4 md:hidden fixed bottom-0 left-0 -translate-y-2 right-0 z-50 mx-auto w-[calc(100%-2rem)] sm:max-w-max bg-background border rounded-full border-border',
+          'grid grid-cols-5 gap-1 py-2 px-4 md:hidden fixed bottom-0 left-0 -translate-y-4 right-0 z-50 mx-auto w-[calc(100%-2rem)] sm:max-w-max bg-background border rounded-full border-border',
           'items-center justify-around shadow-high',
           className,
         )}
         {...props}
       >
         {menu.slice(0, 4).map((item, index) => {
-          if (item.component) {
+          if (item?.component) {
             return <Fragment key={index + item.title}>{item.component}</Fragment>;
           }
           return (
             <Link
-              key={index + item.title}
-              href={item.url ? item.url : '#'}
+              key={index + item?.title}
+              href={item?.url ? item?.url : '#'}
               className={cn(
                 'flex items-center justify-center flex-col text-center',
                 'gap-1 rounded-md transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2',
                 'focus-visible:ring-ring active:scale-[0.95]',
-                isActive(item.url, true)
+                isActive(item?.url, true)
                   ? 'text-primary font-medium'
                   : 'text-muted-foreground',
               )}
             >
-              <div className="text-current">{item.icon}</div>
+              {item.icon && <div className="text-current">{item.icon}</div>}
               {showLabels && (
                 <span
                   className={cn('text-[9px] truncate w-full uppercase transition-all')}
                 >
-                  {item.title}
+                  {item?.title}
                 </span>
               )}
             </Link>

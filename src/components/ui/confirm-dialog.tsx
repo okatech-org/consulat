@@ -1,4 +1,7 @@
+'use client';
+
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,53 +11,89 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useTranslations } from 'next-intl';
 
 interface ConfirmDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  title: string;
-  description: string;
-  confirmText?: string;
-  cancelText?: string;
-  variant?: 'destructive' | 'secondary' | 'success' | 'default';
+  trigger?: React.ReactNode;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: 'destructive' | 'default';
+  onConfirm: () => void | Promise<void>;
+  disabled?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function ConfirmDialog({
-  open,
-  onOpenChange,
-  onConfirm,
+  trigger,
   title,
   description,
-  confirmText,
-  cancelText,
-  variant = 'default',
+  confirmLabel,
+  cancelLabel,
+  variant = 'destructive',
+  onConfirm,
+  disabled = false,
+  open,
+  onOpenChange,
 }: ConfirmDialogProps) {
+  const [isPending, setIsPending] = React.useState(false);
   const t = useTranslations('common.confirm');
 
-  const variantClass = {
-    destructive: '!bg-red-500 text-white',
-    secondary: '!bg-gray-500 text-white',
-    success: '!bg-green-500 text-white',
-    default: '!bg-primary-500 text-white',
+  const handleConfirm = async () => {
+    try {
+      setIsPending(true);
+      await onConfirm();
+    } catch (error) {
+      console.error('Confirmation action failed:', error);
+    } finally {
+      setIsPending(false);
+    }
   };
 
+  const dialog = (
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>{title || t('delete.title')}</AlertDialogTitle>
+        <AlertDialogDescription>
+          {description || t('delete.description')}
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel disabled={isPending}>
+          {cancelLabel || t('cancel')}
+        </AlertDialogCancel>
+        <AlertDialogAction
+          onClick={handleConfirm}
+          disabled={disabled || isPending}
+          className={
+            variant === 'destructive'
+              ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+              : ''
+          }
+        >
+          {confirmLabel || t('confirm')}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  );
+
+  if (open !== undefined && onOpenChange) {
+    return (
+      <AlertDialog open={open} onOpenChange={onOpenChange}>
+        {dialog}
+      </AlertDialog>
+    );
+  }
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{cancelText || t('cancel')}</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className={variantClass[variant]}>
-            {confirmText || t('confirm')}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+    <AlertDialog>
+      <AlertDialogTrigger asChild disabled={disabled}>
+        {trigger}
+      </AlertDialogTrigger>
+      {dialog}
     </AlertDialog>
   );
 }

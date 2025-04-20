@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, ReactNode } from 'react';
+import React, { useState, useRef, useCallback, ReactNode, TouchEvent } from 'react';
 import AvatarEditor from 'react-avatar-editor';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,8 +14,6 @@ import Slider from '@/components/ui/slider';
 
 interface ImageCropperProps {
   imageUrl: string | File;
-  aspectRatio?: number;
-  circularCrop?: boolean;
   onCropComplete: (croppedImage: File) => void;
   onCancel: () => void;
   open: boolean;
@@ -25,8 +23,6 @@ interface ImageCropperProps {
 
 export function ImageCropper({
   imageUrl,
-  aspectRatio = 1,
-  circularCrop = true, // Force circular crop
   onCropComplete,
   onCancel,
   open,
@@ -39,14 +35,18 @@ export function ImageCropper({
   const [position, setPosition] = useState({ x: 0.5, y: 0.5 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const editorRef = useRef<AvatarEditor | null>(null);
+  const touchStateRef = useRef({
+    startDistance: 0,
+    startAngle: 0,
+    initialScale: 1,
+    initialRotation: 0,
+    isInteracting: false,
+  });
 
-  // Calculate editor dimensions based on aspect ratio, forcing 1:1 for circular crop
-  const getEditorDimensions = useCallback(() => {
-    const baseSize = 500;
-    return { width: baseSize, height: baseSize }; // Always square for circular crop
-  }, []);
-
-  const { width, height } = getEditorDimensions();
+  // Calculate editor dimensions - always square for circular crop
+  const baseSize = 500;
+  const width = baseSize;
+  const height = baseSize;
 
   const handlePositionChange = useCallback((position: { x: number; y: number }) => {
     setPosition(position);
@@ -57,8 +57,85 @@ export function ImageCropper({
   }, []);
 
   const handleRotationChange = useCallback((value: number) => {
-    setRotation(value);
+    // Clamp rotation to -180 to 180
+    let newRotation = value % 360;
+    if (newRotation > 180) newRotation -= 360;
+    if (newRotation < -180) newRotation += 360;
+    setRotation(newRotation);
   }, []);
+
+  // Helper function to calculate distance between two points
+  const getDistance = (touches: React.TouchList): number => {
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    if (!touch1 || !touch2) return 0; // Check if touches are defined
+    return Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2),
+    );
+  };
+
+  // Helper function to calculate angle between two points
+  const getAngle = (touches: React.TouchList): number => {
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    if (!touch1 || !touch2) return 0; // Check if touches are defined
+    return (
+      Math.atan2(touch2.clientY - touch1.clientY, touch2.clientX - touch1.clientX) *
+      (180 / Math.PI)
+    );
+  };
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length === 2) {
+      event.preventDefault(); // Prevent page scroll/zoom
+      const distance = getDistance(event.touches);
+      const angle = getAngle(event.touches);
+      touchStateRef.current = {
+        startDistance: distance,
+        startAngle: angle,
+        initialScale: scale,
+        initialRotation: rotation,
+        isInteracting: true,
+      };
+    }
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    if (touchStateRef.current.isInteracting && event.touches.length === 2) {
+      event.preventDefault(); // Prevent page scroll/zoom
+
+      const currentDistance = getDistance(event.touches);
+      const currentAngle = getAngle(event.touches);
+
+      // Calculate scale change
+      const scaleChange = currentDistance / touchStateRef.current.startDistance;
+      let newScale = touchStateRef.current.initialScale * scaleChange;
+      newScale = Math.min(Math.max(newScale, 1), 3); // Clamp scale between 1 and 3
+
+      // Calculate rotation change
+      const angleChange = currentAngle - touchStateRef.current.startAngle;
+      const newRotation = touchStateRef.current.initialRotation + angleChange;
+
+      setScale(newScale);
+      handleRotationChange(newRotation); // Use handleRotationChange to clamp rotation
+    }
+  };
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    if (touchStateRef.current.isInteracting) {
+      // If only one touch remains, stop interaction
+      if (event.touches.length < 2) {
+        touchStateRef.current = {
+          startDistance: 0,
+          startAngle: 0,
+          initialScale: 1,
+          initialRotation: 0,
+          isInteracting: false,
+        };
+      }
+    }
+  };
 
   const handleCropComplete = useCallback(async () => {
     if (!editorRef.current || !imageLoaded) return;
@@ -112,7 +189,13 @@ export function ImageCropper({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex justify-center p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+          <div
+            className="flex justify-center p-2 bg-gray-50 dark:bg-gray-900 rounded-md touch-none"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'none' }}
+          >
             <AvatarEditor
               ref={editorRef}
               image={imageUrl}
@@ -153,6 +236,9 @@ export function ImageCropper({
             </div>
 
             <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Tourner l&apos;image</label>
+              </div>
               <Slider
                 value={[rotation]}
                 min={-180}
@@ -170,17 +256,6 @@ export function ImageCropper({
                 <span>180°</span>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setScale(1);
-                setRotation(0);
-              }}
-              disabled={isLoading}
-              className="w-full text-xs"
-            >
-              Réinitialiser
-            </Button>
           </div>
         </div>
 

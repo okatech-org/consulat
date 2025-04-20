@@ -87,6 +87,9 @@ export default {
       age: '{age} ans',
       view_profile: 'Voir le profil',
       make_request: 'Faire une demande',
+      delete: 'Supprimer',
+      delete_success: 'Profil supprimé avec succès',
+      delete_error: 'Erreur lors de la suppression du profil',
     },
     actions: {
       create: 'Créer un profil enfant',
