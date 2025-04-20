@@ -115,7 +115,16 @@ export const documentSpecificFields = {
     'passportIssueAuthority',
     'acquisitionMode',
   ],
-  BIRTH_CERTIFICATE: ['fatherFullName', 'motherFullName'],
+  BIRTH_CERTIFICATE: [
+    'fatherFullName',
+    'motherFullName',
+    'firstName',
+    'lastName',
+    'gender',
+    'birthDate',
+    'birthPlace',
+    'acquisitionMode',
+  ],
   RESIDENCE_PERMIT: ['profession', 'workStatus', 'address'],
   ADDRESS_PROOF: ['address'],
 } as unknown as Record<DocumentType, Array<keyof FullProfile>>;

@@ -40,6 +40,8 @@ import { validateDocument } from '@/lib/document-validation';
 import { DocumentPreview } from './ui/document-preview';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
+import { hasAnyRole } from '@/lib/permissions/utils';
+import { ConfirmDialog } from './ui/confirm-dialog';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -56,7 +58,6 @@ interface UserDocumentProps {
   onDelete?: () => void;
   noFormLabel?: boolean;
   enableEditor?: boolean;
-  aspectRatio?: string;
   requestId?: string;
 }
 
@@ -113,7 +114,6 @@ export function UserDocument({
   onDelete,
   onUpload,
   enableEditor = false,
-  aspectRatio = '1',
   requestId,
 }: UserDocumentProps) {
   const user = useCurrentUser();
@@ -167,13 +167,6 @@ export function UserDocument({
     }
     return validateDocument(document, required);
   }, [document, required]);
-
-  // Parse the aspectRatio prop to a number
-  const aspectRatioNumber = React.useMemo(() => {
-    if (!aspectRatio) return 1;
-    const [width, height] = aspectRatio.split(':');
-    return width && height ? parseFloat(width) / parseFloat(height) : 1;
-  }, [aspectRatio]);
 
   const handleDelete = async (documentId: string) => {
     setIsLoading(true);
@@ -388,14 +381,16 @@ export function UserDocument({
   };
 
   return (
-    <div className="mb-2 space-y-4 relative w-full h-auto overflow-hidden">
+    <div className="mb-4 space-y-4 relative w-full h-auto">
       <div className="flex flex-col gap-1">
         <div className="font-medium text-normal mb-1">
           <span>
             {label}
-            {required && <span className="ml-1 text-destructive">*</span>}
+            {required && <span className="ml-1">{'(Obligatoire)'}</span>}
           </span>
-          {document?.status && getStatusBadge(document.status)}
+          {document?.status &&
+            hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
+            getStatusBadge(document.status)}
         </div>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
@@ -412,8 +407,8 @@ export function UserDocument({
         />
 
         {document && (
-          <div className="absolute right-1 top-1 flex items-center gap-2">
-            {allowEdit && (
+          <div className="absolute right-1 bottom-0 translate-y-[70%] flex items-center gap-2">
+            {allowEdit && hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -423,15 +418,24 @@ export function UserDocument({
                 <PenIcon className="size-icon" />
               </Button>
             )}
-            <Button
-              variant="outline"
-              className="text-destructive"
-              onClick={() => handleDelete(document.id)}
-              disabled={disabled || isLoading}
-            >
-              <span className="sr-only">Supprimer</span>
-              <Trash className="size-icon" />
-            </Button>
+
+            <ConfirmDialog
+              trigger={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive border-destructive bg-transparent"
+                >
+                  <span>Supprimer</span>
+                  <Trash className="size-icon" />
+                </Button>
+              }
+              onConfirm={() => handleDelete(document.id)}
+              title="Supprimer le document"
+              description="Voulez-vous vraiment supprimer ce document ?"
+              confirmLabel="Oui, supprimer"
+              cancelLabel="Non, annuler"
+            />
           </div>
         )}
 
@@ -483,8 +487,6 @@ export function UserDocument({
         <ImageCropper
           fileName={`${document?.type}-${document?.id ?? ''}`}
           imageUrl={tempImageUrl}
-          aspectRatio={aspectRatioNumber}
-          circularCrop={true}
           onCropComplete={handleCropComplete}
           onCancel={handleCropCancel}
           open={cropperOpen}

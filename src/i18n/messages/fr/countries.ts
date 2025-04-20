@@ -1,5 +1,4 @@
 export default {
-  gabon: 'Gabon',
   AF: 'Afghanistan',
   AX: 'Îles Åland',
   AL: 'Albanie',

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -5,9 +7,11 @@ import { FullParentalAuthority } from '@/types/parental-authority';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FileText, ExternalLink } from 'lucide-react';
+import { FileText, ExternalLink, Trash2 } from 'lucide-react';
 import { calculateAge, useDateLocale } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
+import { deleteChildProfile } from '@/actions/delete-child-profile';
+import { toast } from 'sonner';
 
 interface ChildProfileCardProps {
   parentalAuthority: FullParentalAuthority;
@@ -22,6 +26,17 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
 
   // Calculer l'âge à partir de la date de naissance
   const age = profile?.birthDate ? calculateAge(profile.birthDate.toISOString()) : 0;
+
+  const handleDelete = async () => {
+    if (!profile?.id) return;
+
+    try {
+      await deleteChildProfile(profile.id);
+      toast.success(t('child_card.delete_success'));
+    } catch {
+      toast.error(t('child_card.delete_error'));
+    }
+  };
 
   return (
     <Card className="overflow-hidden">
@@ -72,10 +87,22 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
             {t('child_card.view_profile')}
           </Link>
         </Button>
-        <Button disabled variant="default" size="sm" className="flex-1">
-          <FileText className="size-icon" />
-          {t('child_card.make_request')}
-        </Button>
+        {profile?.status === 'DRAFT' ? (
+          <Button
+            variant="destructive"
+            size="sm"
+            className="flex-1"
+            onClick={() => handleDelete()}
+          >
+            <Trash2 className="size-icon" />
+            {t('child_card.delete')}
+          </Button>
+        ) : (
+          <Button disabled variant="default" size="sm" className="flex-1">
+            <FileText className="size-icon" />
+            {t('child_card.make_request')}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

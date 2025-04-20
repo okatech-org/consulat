@@ -32,7 +32,7 @@ export function useChildRegistrationForm() {
       resolver: zodResolver(
         z.object({
           passport: UserDocumentSchema.optional(),
-          birthCertificate: UserDocumentSchema.optional(),
+          birthCertificate: UserDocumentSchema,
           residencePermit: UserDocumentSchema.nullable().optional(),
           addressProof: UserDocumentSchema.optional().nullable(),
         }),

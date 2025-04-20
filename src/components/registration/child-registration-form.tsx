@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import { DocumentUploadSection } from './document-upload-section';
+import { DocumentUploadItem, DocumentUploadSection } from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
@@ -24,13 +24,14 @@ import { ErrorCard } from '../ui/error-card';
 import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '../layouts/card-container';
 import { BasicInfoFormData } from '@/schemas/registration';
+import { DocumentType } from '@prisma/client';
 
-// Define subtypes of StepKey for this component
 type ChildSteps = 'link' | 'documents' | 'identity';
 
 export function ChildRegistrationForm() {
   const router = useRouter();
   const t = useTranslations('registration');
+  const t_inputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
 
   const {
@@ -51,27 +52,37 @@ export function ChildRegistrationForm() {
   const { currentTab, handleTabChange } = useTabs<ChildSteps>('step', 'link');
   const currentStepIndex = orderedSteps.indexOf(currentTab);
   const totalSteps = orderedSteps.length;
+  const isCurrentStepDirty =
+    forms[currentTab as keyof typeof forms]?.formState.isDirty ?? false;
 
   // Handler for analysis
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDocumentsAnalysis = async (data: any) => {
+  const handleDocumentsAnalysis = async (data: {
+    basicInfo?: Partial<BasicInfoFormData>;
+  }) => {
     setIsLoading(true);
     setError(undefined);
 
     try {
       // Just update basicInfo since that's all we need for child profiles
-      if (forms.basicInfo) {
+      if (forms.basicInfo && data?.basicInfo) {
         const fieldsToUpdate = [
           'firstName',
           'lastName',
           'birthDate',
           'birthPlace',
           'birthCountry',
+          'gender',
+          'acquisitionMode',
+          'passportExpiryDate',
+          'passportIssueAuthority',
+          'passportIssueDate',
+          'passportNumber',
         ] as Array<keyof BasicInfoFormData>;
 
         fieldsToUpdate.forEach((field) => {
-          if (data[field]) {
-            forms.basicInfo.setValue(field, data[field], {
+          if (data.basicInfo?.[field]) {
+            forms.basicInfo.setValue(field, data.basicInfo?.[field], {
               shouldDirty: true,
             });
           }
@@ -108,73 +119,134 @@ export function ChildRegistrationForm() {
     setError(undefined);
     setIsLoading(true);
 
-    if (currentTab === 'link') {
-      // First step - create the child profile
-      const linkData = forms.link.getValues();
-      const isStepValid = await forms.link.trigger();
+    switch (currentTab) {
+      case 'link':
+        // First step - create the child profile
+        const linkData = forms.link.getValues();
+        const isLinkStepValid = await forms.link.trigger();
 
-      if (!isStepValid) {
-        setIsLoading(false);
-        return;
-      }
-
-      const { data: result, error } = await tryCatch(createChildProfile(linkData));
-
-      if (error) {
-        setError(error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      if (result) {
-        setProfileId(result.id);
-        const nextStep = orderedSteps[currentStepIndex + 1];
-        if (nextStep) {
-          handleTabChange(nextStep);
-        }
-      }
-    } else if (currentTab === 'identity' && profileId) {
-      // Handle identity step
-      const currentForm = forms.basicInfo;
-      const nextStep = orderedSteps[currentStepIndex + 1];
-
-      const isStepValid = await currentForm.trigger();
-
-      if (!isStepValid) {
-        setIsLoading(false);
-        return;
-      }
-
-      const stepData = currentForm.getValues();
-      const editedFields = filterUneditedKeys(
-        stepData,
-        currentForm.formState.dirtyFields,
-      );
-
-      if (editedFields) {
-        const { error } = await tryCatch(updateChildProfile(profileId, editedFields));
-
-        if (error) {
-          setError(error.message);
+        if (!isLinkStepValid) {
+          setError(t_errors('invalid_step'));
           setIsLoading(false);
           return;
         }
-      }
 
-      if (nextStep) {
-        handleTabChange(nextStep);
-      }
-    } else if (currentTab === 'documents') {
-      // Handle documents step - just navigate to next step
-      const isStepValid = await forms.documents.trigger();
+        if (!profileId) {
+          const { data: createChildProfileResult, error: createChildProfileError } =
+            await tryCatch(createChildProfile(linkData));
 
-      if (!isStepValid) {
-        setIsLoading(false);
-        return;
-      }
+          if (createChildProfileError) {
+            setError(createChildProfileError.message);
+            setIsLoading(false);
+            return;
+          }
 
-      await handleFinalSubmit();
+          if (createChildProfileResult) {
+            setProfileId(createChildProfileResult.id);
+            const nextStep = orderedSteps[currentStepIndex + 1];
+            if (nextStep) {
+              handleTabChange(nextStep);
+            }
+          }
+        } else {
+          const editedFields = filterUneditedKeys(
+            {
+              hasOtherParent: linkData.hasOtherParent,
+              parentRole: linkData.parentRole,
+              otherParentFirstName: linkData.otherParentFirstName,
+              otherParentLastName: linkData.otherParentLastName,
+              otherParentEmail: linkData.otherParentEmail,
+              otherParentPhone: linkData.otherParentPhone,
+              otherParentRole: linkData.otherParentRole,
+            },
+            forms.link.formState.dirtyFields,
+          );
+
+          if (editedFields) {
+            const { error } = await tryCatch(updateChildProfile(profileId, editedFields));
+
+            if (error) {
+              setError(error.message);
+              setIsLoading(false);
+              return;
+            }
+          }
+
+          const nextStep = orderedSteps[currentStepIndex + 1];
+          if (nextStep) {
+            handleTabChange(nextStep);
+          }
+        }
+
+        break;
+      case 'identity':
+        const currentForm = forms.basicInfo;
+
+        const isIdentityStepValid = await currentForm.trigger();
+
+        if (!isIdentityStepValid) {
+          setIsLoading(false);
+          return;
+        }
+
+        const stepData = currentForm.getValues();
+        const editedFields = filterUneditedKeys(
+          stepData,
+          currentForm.formState.dirtyFields,
+        );
+
+        if (editedFields && profileId) {
+          const { error } = await tryCatch(updateChildProfile(profileId, editedFields));
+
+          if (error) {
+            setError(error.message);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        if (profileId) {
+          const { data: submitChildProfileResult, error: submitChildProfileError } =
+            await tryCatch(submitChildProfileForValidation(profileId));
+
+          if (submitChildProfileError) {
+            const { title, description } = handleFormError(submitChildProfileError, t);
+            toast({ title, description, variant: 'destructive' });
+            setIsLoading(false);
+            return;
+          }
+
+          if (submitChildProfileResult) {
+            clearData();
+
+            toast({
+              title: t('submission.success.title'),
+              description: t('submission.success.description'),
+            });
+
+            setIsLoading(false);
+            router.push(ROUTES.user.children);
+          }
+        }
+
+        break;
+      case 'documents':
+        const nextStep = orderedSteps[currentStepIndex + 1];
+        // Handle documents step - just navigate to next step
+        const isDocumentsStepValid = await forms.documents.trigger();
+
+        if (!isDocumentsStepValid) {
+          setIsLoading(false);
+          return;
+        }
+
+        if (nextStep) {
+          handleTabChange(nextStep);
+        }
+
+        break;
     }
+
     setIsLoading(false);
   };
 
@@ -182,33 +254,6 @@ export function ChildRegistrationForm() {
     const previousStep = orderedSteps[currentStepIndex - 1];
     if (previousStep) {
       handleTabChange(previousStep);
-    }
-  };
-
-  // Final submission handler
-  const handleFinalSubmit = async () => {
-    if (!profileId) return;
-
-    setIsLoading(true);
-
-    const result = await tryCatch(submitChildProfileForValidation(profileId));
-
-    setIsLoading(false);
-
-    if (result.error) {
-      const { title, description } = handleFormError(result.error, t);
-      toast({ title, description, variant: 'destructive' });
-    }
-
-    if (result.data) {
-      clearData();
-
-      toast({
-        title: t('submission.success.title'),
-        description: t('submission.success.description'),
-      });
-
-      router.push(ROUTES.user.children);
     }
   };
 
@@ -232,6 +277,27 @@ export function ChildRegistrationForm() {
     review: forms.basicInfo, // For validation purposes
   };
 
+  const requiredDocuments: DocumentUploadItem[] = [
+    {
+      id: 'birthCertificate' as const,
+      label: t_inputs('birthCertificate.label'),
+      description: t_inputs('birthCertificate.help'),
+      required: true,
+      acceptedTypes: ['image/*', 'application/pdf'],
+      maxSize: 5 * 1024 * 1024,
+      expectedType: DocumentType.BIRTH_CERTIFICATE,
+    },
+    {
+      id: 'passport' as const,
+      label: t_inputs('passport.label'),
+      description: t_inputs('passport.help'),
+      required: false,
+      acceptedTypes: ['image/*', 'application/pdf'],
+      maxSize: 5 * 1024 * 1024, // 5MB
+      expectedType: DocumentType.PASSPORT,
+    },
+  ] as const;
+
   // Current step component render
   const stepsComponents: Record<ChildSteps, React.ReactNode> = {
     link: (
@@ -244,6 +310,7 @@ export function ChildRegistrationForm() {
         onAnalysisComplete={handleDocumentsAnalysis}
         handleSubmitAction={() => handleNext()}
         isLoading={isLoading}
+        documents={requiredDocuments}
       />
     ),
     identity: (
@@ -257,7 +324,7 @@ export function ChildRegistrationForm() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto min-h-full flex flex-col">
+    <div className="w-full relative max-w-3xl mx-auto min-h-full flex flex-col">
       <header className="w-full pb-4">
         <StepIndicator
           steps={orderedSteps.map((step) => {
@@ -284,7 +351,7 @@ export function ChildRegistrationForm() {
           {/* Main content */}
           <div className="flex flex-col md:pb-10 gap-4 justify-center">
             {currentStepIndex > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
-            {stepsComponents[currentTab]}
+            <CardContainer>{stepsComponents[currentTab]}</CardContainer>
 
             {error && (
               <ErrorCard
@@ -317,19 +384,19 @@ export function ChildRegistrationForm() {
                 {isLoading ? <Loader className="size-4 animate-spin" /> : null}
                 {currentStepIndex === totalSteps - 1
                   ? t('navigation.submit')
-                  : t('navigation.next')}
+                  : `${isCurrentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
                 {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
               </Button>
             </div>
-          </div>
 
-          {/* Mobile progress */}
-          <MobileProgress
-            currentStepIndex={currentStepIndex}
-            totalSteps={orderedSteps.length}
-            stepTitle={t(`steps.${getStepTranslation(currentTab)}`)}
-            isOptional={false}
-          />
+            {/* Mobile progress */}
+            <MobileProgress
+              currentStepIndex={currentStepIndex}
+              totalSteps={orderedSteps.length}
+              stepTitle={t(`steps.${getStepTranslation(currentTab)}`)}
+              isOptional={false}
+            />
+          </div>
         </div>
       </div>
     </div>

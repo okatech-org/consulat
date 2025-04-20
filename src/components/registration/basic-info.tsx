@@ -73,7 +73,6 @@ export function BasicInfoForm({
                       }}
                       accept="image/*"
                       enableEditor={true}
-                      aspectRatio="1/1"
                     />
                   </FormControl>
                   <TradFormMessage />
@@ -349,6 +348,7 @@ export function BasicInfoForm({
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ''}
                       type="text"
                       placeholder={t_inputs('nipNumber.placeholder')}
                       disabled={isLoading}
