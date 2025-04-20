@@ -386,7 +386,7 @@ export function UserDocument({
         <div className="font-medium text-normal mb-1">
           <span>
             {label}
-            {required && <span className="ml-1 text-destructive">{'(Obligatoire)'}</span>}
+            {required && <span className="ml-1">{'(Obligatoire)'}</span>}
           </span>
           {document?.status &&
             hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
