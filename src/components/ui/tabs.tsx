@@ -46,7 +46,7 @@ const TabsList = React.forwardRef<
         <TabsPrimitive.List
           ref={ref}
           className={cn(
-            'inline-flex h-10 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground',
+            'inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground',
             className,
           )}
           {...props}
@@ -78,8 +78,6 @@ const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
 >(({ className, ...props }, ref) => {
-  const isMobile = useIsMobile();
-
   return (
     <TabsPrimitive.Trigger
       ref={ref}
@@ -87,10 +85,7 @@ const TabsTrigger = React.forwardRef<
         'inline-flex items-center justify-center whitespace-nowrap rounded-md',
         'transition-all touch-manipulation',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        'disabled:pointer-events-none disabled:opacity-50',
-        isMobile
-          ? 'min-h-[44px] min-w-[44px] px-4 py-2 text-base shadow-low snap-center flex-shrink-0 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-medium active:scale-[0.98]'
-          : 'px-3 py-1.5 text-sm font-medium h-8 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
+        'disabled:pointer-events-none disabled:opacity-50 px-3 py-1.5 text-sm font-medium h-8 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
         className,
       )}
       {...props}

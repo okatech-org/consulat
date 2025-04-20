@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
 import { useStoredTabs } from '@/hooks/use-tabs';
 import { useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 
 type ProfileTabsProps = {
   profile: FullProfile;
@@ -95,11 +96,12 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
       value={currentTab}
       onValueChange={setCurrentTab}
     >
-      <TabsList className="mb-2 w-full px-0">
-        <div className="carousel-zone flex items-center px-0">
+      <TabsList className="mb-2 w-full">
+        <div className="flex items-center flex-wrap">
           {profileTabs.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id}>
               {tab.title}
+              <ArrowRight className="size-4 ml-1" />
             </TabsTrigger>
           ))}
         </div>
