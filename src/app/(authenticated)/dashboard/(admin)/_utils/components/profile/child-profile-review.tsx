@@ -235,7 +235,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
                           profile.id,
                           profile.residenceCountyCode,
                           'VALIDATED',
-                          1,
+                          3,
                           validationNotes,
                         ),
                       );

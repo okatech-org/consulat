@@ -202,7 +202,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                           profile.id,
                           profile.residenceCountyCode,
                           'VALIDATED',
-                          1,
+                          3,
                           validationNotes,
                           request.organizationId,
                         ),
