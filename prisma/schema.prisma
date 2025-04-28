@@ -209,6 +209,7 @@ enum RequestStatus {
   VALIDATED // Dossier validé - En attente de production
   REJECTED // Rejeté - Motif spécifié
   CARD_IN_PRODUCTION // Carte en cours de production
+  DOCUMENT_IN_PRODUCTION // Document en cours de production
   READY_FOR_PICKUP // Prêt pour retrait et entretien
   APPOINTMENT_SCHEDULED // RDV de retrait/entretien programmé
   COMPLETED // Carte remise après entretien
