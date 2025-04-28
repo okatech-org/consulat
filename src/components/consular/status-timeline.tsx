@@ -27,7 +27,7 @@ export function StatusTimeline({
   profile,
   className,
 }: StatusTimelineProps) {
-  const t = useTranslations('common.status');
+  const t = useTranslations('inputs.requestStatus.options');
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
 
   return (

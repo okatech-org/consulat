@@ -57,7 +57,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   const statusOptions = STATUS_ORDER.map((item) => {
     return {
       value: item,
-      label: t(`common.status.${item}`),
+      label: t(`inputs.requestStatus.options.${item}`),
     };
   });
 
@@ -85,7 +85,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                 {profile.firstName} {profile.lastName}{' '}
                 <ProfileStatusBadge
                   status={request.status}
-                  label={t(`common.status.${request.status}`)}
+                  label={t(`inputs.requestStatus.options.${request.status}`)}
                 />
               </h2>
               {profile?.email && (

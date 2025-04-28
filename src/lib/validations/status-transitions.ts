@@ -30,6 +30,14 @@ export function canSwitchTo(
         return { can: false, reason: 'incomplete_documents' };
       }
       return { can: true };
+    case RequestStatus.DOCUMENT_IN_PRODUCTION:
+      if (completionRate < 100) {
+        return { can: false, reason: 'incomplete_profile' };
+      }
+      if (!allDocumentsValidated(profile, profile.category)) {
+        return { can: false, reason: 'incomplete_documents' };
+      }
+      return { can: true };
     case RequestStatus.COMPLETED:
       if (completionRate < 100) {
         return { can: false, reason: 'incomplete_profile' };
@@ -62,6 +70,7 @@ export const STATUS_ORDER: RequestStatus[] = [
   'SUBMITTED',
   'PENDING',
   'VALIDATED',
+  'DOCUMENT_IN_PRODUCTION',
   'READY_FOR_PICKUP',
   'COMPLETED',
   'REJECTED',
