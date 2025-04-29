@@ -64,6 +64,13 @@ export function ImageCropper({
     setRotation(newRotation);
   }, []);
 
+  // Helper function to handle scale changes
+  const handleScaleChange = useCallback((value: number) => {
+    // Clamp scale between 0.5 and 2
+    const newScale = Math.min(Math.max(value, 0.5), 2);
+    setScale(newScale);
+  }, []);
+
   // Helper function to calculate distance between two points
   const getDistance = (touches: React.TouchList): number => {
     const touch1 = touches[0];
@@ -111,7 +118,7 @@ export function ImageCropper({
       // Calculate scale change
       const scaleChange = currentDistance / touchStateRef.current.startDistance;
       let newScale = touchStateRef.current.initialScale * scaleChange;
-      newScale = Math.min(Math.max(newScale, 1), 3); // Clamp scale between 1 and 3
+      newScale = Math.min(Math.max(newScale, 0.5), 2); // Clamp scale between 0.5 and 2
 
       // Calculate rotation change
       const angleChange = currentAngle - touchStateRef.current.startAngle;
@@ -224,15 +231,20 @@ export function ImageCropper({
               </div>
               <Slider
                 value={[scale]}
-                min={1}
-                max={3}
+                min={0.5}
+                max={2.5}
                 step={0.1}
                 onValueChange={(values) => {
                   if (values[0] !== undefined) {
-                    setScale(values[0]);
+                    handleScaleChange(values[0]);
                   }
                 }}
               />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>0.5x</span>
+                <span>1x</span>
+                <span>2.5x</span>
+              </div>
             </div>
 
             <div className="space-y-2">
