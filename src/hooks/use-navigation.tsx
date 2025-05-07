@@ -34,7 +34,7 @@ export function useNavigation(user: SessionUser) {
       title: t('dashboard'),
       url: ROUTES.dashboard.base,
       icon: <LayoutDashboard className="size-icon" />,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT],
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
     },
     {
       title: t('countries'),
@@ -52,25 +52,25 @@ export function useNavigation(user: SessionUser) {
       title: t('requests'),
       url: ROUTES.dashboard.requests,
       icon: <FileText className="size-icon" />,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('services'),
       url: ROUTES.dashboard.services,
       icon: <FileText className="size-icon" />,
-      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('profiles'),
       url: ROUTES.dashboard.profiles,
       icon: <Users className="size-icon" />,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('appointments'),
       url: ROUTES.dashboard.appointments,
       icon: <Calendar className="size-icon" />,
-      roles: [UserRole.ADMIN, UserRole.AGENT],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('users'),
@@ -82,7 +82,7 @@ export function useNavigation(user: SessionUser) {
       title: t('settings'),
       url: ROUTES.dashboard.settings,
       icon: <Settings className="size-icon" />,
-      roles: [UserRole.ADMIN],
+      roles: [UserRole.ADMIN, UserRole.MANAGER],
     },
   ];
 

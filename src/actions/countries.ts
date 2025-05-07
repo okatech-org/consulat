@@ -7,7 +7,6 @@ import { ROUTES } from '@/schemas/routes';
 import { CountryMetadata } from '@/types/country';
 import { Country, UserRole } from '@prisma/client';
 import { CountrySchemaInput } from '@/schemas/country';
-import { getCurrentUser } from './user';
 
 export type CountryWithCount = Country & {
   _count: {
@@ -17,7 +16,7 @@ export type CountryWithCount = Country & {
 };
 
 export async function getCountries(): Promise<CountryWithCount[]> {
-  await checkAuth([UserRole.SUPER_ADMIN]);
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   const countries = await db.country.findMany({
     include: {

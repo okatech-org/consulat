@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Fragment, ReactNode } from 'react';
 
-type RowAction<T> = {
+export type RowAction<T> = {
   component?: ReactNode;
   label?: ReactNode;
   onClick?: (row: T) => void;
