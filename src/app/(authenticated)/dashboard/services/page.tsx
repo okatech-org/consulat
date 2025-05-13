@@ -28,12 +28,12 @@ export default async function ServicesPage() {
     <PageContainer
       title={t('title')}
       action={
-        <Link href={ROUTES.dashboard.services_new} asChild>
-          <Button>
+        <Button asChild>
+          <Link href={ROUTES.dashboard.services_new}>
             <Plus className="size-icon" />
             <span className={'hidden sm:inline'}>{t('actions.create')}</span>
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       }
     >
       <CardContainer>

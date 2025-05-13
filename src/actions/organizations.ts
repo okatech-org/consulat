@@ -34,7 +34,7 @@ import {
 } from '@/types/organization';
 
 export async function getOrganizations(): Promise<OrganizationListingItem[]> {
-  await checkAuth([UserRole.SUPER_ADMIN]);
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
   return db.organization.findMany({
     include: {
