@@ -145,8 +145,8 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {filters?.length ? (
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2">
             <DataTableToolbar
               isLoading={isLoading}
               filters={filters}
@@ -170,7 +170,7 @@ export function DataTable<TData, TValue>({
           )}
         </div>
       ) : enableExport ? (
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           {table.getFilteredSelectedRowModel().rows.length > 0 && onBulkUpdateStatus && (
             <DataTableBulkActions table={table} onUpdateStatus={onBulkUpdateStatus} />
           )}
