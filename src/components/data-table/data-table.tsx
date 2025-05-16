@@ -20,7 +20,8 @@ import {
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar, FilterOption } from './data-table-toolbar';
 import { DataTableExport } from './data-table-export';
-import { DataTableBulkActions } from './data-table-bulk-actions';
+import { BulkAction, DataTableBulkActions } from './data-table-bulk-actions';
+
 import {
   Table,
   TableBody,
@@ -30,7 +31,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useTranslations } from 'next-intl';
-import { RequestStatus } from '@prisma/client';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -49,7 +49,7 @@ interface DataTableProps<TData, TValue> {
   onExport?: (data: TData[]) => void;
   hiddenColumns?: string[];
   onRefresh?: () => void;
-  onBulkUpdateStatus?: (selectedRows: TData[], status: RequestStatus) => Promise<void>;
+  bulkActions?: BulkAction<TData>[];
 }
 
 export function DataTable<TData, TValue>({
@@ -69,7 +69,7 @@ export function DataTable<TData, TValue>({
   hiddenColumns = [],
   onExport,
   onRefresh,
-  onBulkUpdateStatus,
+  bulkActions = [],
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
 
@@ -154,8 +154,8 @@ export function DataTable<TData, TValue>({
               onRefresh={onRefresh}
             />
             {table.getFilteredSelectedRowModel().rows.length > 0 &&
-              onBulkUpdateStatus && (
-                <DataTableBulkActions table={table} onUpdateStatus={onBulkUpdateStatus} />
+              bulkActions.length > 0 && (
+                <DataTableBulkActions table={table} actions={bulkActions} />
               )}
           </div>
           {enableExport && (
@@ -171,9 +171,10 @@ export function DataTable<TData, TValue>({
         </div>
       ) : enableExport ? (
         <div className="flex items-start justify-between">
-          {table.getFilteredSelectedRowModel().rows.length > 0 && onBulkUpdateStatus && (
-            <DataTableBulkActions table={table} onUpdateStatus={onBulkUpdateStatus} />
-          )}
+          {table.getFilteredSelectedRowModel().rows.length > 0 &&
+            bulkActions.length > 0 && (
+              <DataTableBulkActions table={table} actions={bulkActions} />
+            )}
           <DataTableExport
             columns={columns}
             data={data}
@@ -183,9 +184,10 @@ export function DataTable<TData, TValue>({
             onExport={onExport}
           />
         </div>
-      ) : table.getFilteredSelectedRowModel().rows.length > 0 && onBulkUpdateStatus ? (
+      ) : table.getFilteredSelectedRowModel().rows.length > 0 &&
+        bulkActions.length > 0 ? (
         <div className="flex items-center justify-end">
-          <DataTableBulkActions table={table} onUpdateStatus={onBulkUpdateStatus} />
+          <DataTableBulkActions table={table} actions={bulkActions} />
         </div>
       ) : null}
 
@@ -193,7 +195,11 @@ export function DataTable<TData, TValue>({
         <Table className="min-w-max">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} onClick={() => {}}>
+              <TableRow
+                key={headerGroup.id}
+                onClick={() => {}}
+                className="sticky top-0 bg-background"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id} colSpan={header.colSpan}>

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCurrentUser } from '@/actions/user';
 import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import { getServiceRequests, GetRequestsOptions } from '@/actions/service-requests';
-import { tryCatch } from '@/lib/utils';
+import { cn, tryCatch } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasPermission, hasAnyRole, RoleGuard } from '@/lib/permissions/utils';
@@ -61,6 +61,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { updateServiceRequestStatus } from '@/actions/service-requests';
 import { updateConsularRegistrationStatus } from '@/actions/consular-registration';
+import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
+import {
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  Sheet,
+} from '@/components/ui/sheet';
+import { assignRequestToAgent } from '@/actions/agents';
+import { useRouter } from 'next/navigation';
 
 // Function to adapt search parameters for service requests
 function adaptServiceRequestSearchParams(
@@ -104,6 +114,7 @@ function adaptServiceRequestSearchParams(
 }
 
 export default function RequestsPage() {
+  const router = useRouter();
   const t = useTranslations();
   const searchParams = useSearchParams();
   const { formatDate } = useDateLocale();
@@ -240,9 +251,8 @@ export default function RequestsPage() {
       },
       {
         accessorKey: 'identityPictureUrl',
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Photo d'identité" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
+        enableSorting: false,
         cell: ({ row }) => {
           const url = row.original.requestedFor?.identityPicture?.fileUrl as string;
           return url ? (
@@ -261,6 +271,10 @@ export default function RequestsPage() {
             column={column}
             title={t('inputs.firstName.label')}
             sortHandler={(direction) => handleSortChange('firstName', direction)}
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
           />
         ),
         cell: ({ row }) => {
@@ -272,7 +286,6 @@ export default function RequestsPage() {
             </div>
           );
         },
-        enableSorting: true,
       },
       {
         accessorKey: 'lastName',
@@ -281,6 +294,10 @@ export default function RequestsPage() {
             column={column}
             title={t('inputs.lastName.label')}
             sortHandler={(direction) => handleSortChange('lastName', direction)}
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
           />
         ),
         cell: ({ row }) => {
@@ -292,7 +309,6 @@ export default function RequestsPage() {
             </div>
           );
         },
-        enableSorting: true,
       },
       {
         accessorKey: 'createdAt',
@@ -316,6 +332,10 @@ export default function RequestsPage() {
             column={column}
             title={t('inputs.status.label')}
             sortHandler={(direction) => handleSortChange('status', direction)}
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
           />
         ),
         cell: ({ row }) => {
@@ -336,7 +356,6 @@ export default function RequestsPage() {
         filterFn: (row, id, value) => {
           return value.includes(row.getValue(id));
         },
-        enableSorting: true,
       },
       {
         accessorKey: 'serviceCategory',
@@ -345,6 +364,10 @@ export default function RequestsPage() {
             column={column}
             title={t('inputs.serviceCategory.label')}
             sortHandler={(direction) => handleSortChange('serviceCategory', direction)}
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
           />
         ),
         cell: ({ row }) => {
@@ -364,7 +387,6 @@ export default function RequestsPage() {
             </div>
           );
         },
-        enableSorting: true,
       },
       {
         accessorKey: 'priority',
@@ -373,6 +395,10 @@ export default function RequestsPage() {
             column={column}
             title={t('inputs.priority.label')}
             sortHandler={(direction) => handleSortChange('priority', direction)}
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
           />
         ),
         cell: ({ row }) => {
@@ -396,7 +422,6 @@ export default function RequestsPage() {
         filterFn: (row, id, value) => {
           return value.includes(row.getValue(id));
         },
-        enableSorting: true,
       },
     ];
 
@@ -410,19 +435,54 @@ export default function RequestsPage() {
             column={column}
             title={t('requests.table.assigned_to')}
             sortHandler={(direction) => handleSortChange('assignedToId', direction)}
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
           />
         ),
         cell: ({ row }) => {
           const assignedTo = row.original.assignedTo;
           return assignedTo ? assignedTo.name : '-';
         },
-        enableSorting: true,
       });
     }
 
     // Ajouter la colonne des actions
     tableColumns.push({
       id: 'actions',
+      header: ({ table }) => (
+        <DataTableBulkActions
+          table={table}
+          actions={[
+            {
+              component: (
+                <StatusChangeForm
+                  selectedRows={table
+                    .getFilteredSelectedRowModel()
+                    .flatRows.map((row) => row.original)}
+                  onSuccess={() => {
+                    router.refresh();
+                  }}
+                />
+              ),
+            },
+            {
+              component: (
+                <AssignToChangeForm
+                  selectedRows={table
+                    .getFilteredSelectedRowModel()
+                    .flatRows.map((row) => row.original)}
+                  agents={agents}
+                  onSuccess={() => {
+                    router.refresh();
+                  }}
+                />
+              ),
+            },
+          ]}
+        />
+      ),
       cell: ({ row }) => (
         <DataTableRowActions
           actions={[
@@ -475,7 +535,7 @@ export default function RequestsPage() {
     });
 
     return tableColumns;
-  }, [t, user, formatDate, statuses, handleRefresh, handleSortChange]);
+  }, [t, user, formatDate, statuses, handleRefresh, handleSortChange, agents, router]);
 
   // Définition des filtres
   const filters = useMemo<FilterOption<FullServiceRequest>[]>(() => {
@@ -582,40 +642,13 @@ export default function RequestsPage() {
     return filterOptions;
   }, [t, user, agents, searchParams, handleParamsChange, statuses]);
 
-  // Handle bulk update of status for selected rows
-  const handleBulkStatusUpdate = async (
-    selectedRows: FullServiceRequest[],
-    status: RequestStatus,
-  ) => {
-    if (!selectedRows.length) return;
-
-    try {
-      const updatePromises = selectedRows.map(async (row) => {
-        if (row?.requestedFor?.id) {
-          return updateConsularRegistrationStatus(row.id, row.requestedFor.id, status);
-        }
-        return updateServiceRequestStatus(row.id, status);
-      });
-
-      await Promise.all(updatePromises);
-
-      // Refresh the data after updates
-      handleRefresh();
-
-      toast.success(
-        t('common.success.bulk_update_success', {
-          count: selectedRows.length,
-        }),
-      );
-    } catch (error) {
-      console.error('Error updating statuses:', error);
-      toast.error(t('common.errors.bulk_update_failed'));
-    }
-  };
-
   if (!user) {
     return null;
   }
+
+  const hiddenColumns = hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN'])
+    ? ['id', 'priority']
+    : ['id', 'priority', 'assignedTo'];
 
   return (
     <PageContainer title={t('requests.title')}>
@@ -631,9 +664,8 @@ export default function RequestsPage() {
             pageSize={Number(requestsData.limit || 10)}
             onPageChange={(page) => handlePageChange(page + 1)}
             onLimitChange={handleLimitChange}
-            hiddenColumns={['id', 'priority', 'assignedTo']}
+            hiddenColumns={hiddenColumns}
             onRefresh={handleRefresh}
-            onBulkUpdateStatus={handleBulkStatusUpdate}
           />
         </CardContainer>
       )}
@@ -740,5 +772,229 @@ function QuickEditForm({ request, onSuccess }: QuickEditFormProps) {
         </div>
       </form>
     </Form>
+  );
+}
+
+const statusChangeSchema = z.object({
+  status: z.nativeEnum(RequestStatus),
+});
+
+type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
+
+type StatusChangeFormProps = {
+  selectedRows: FullServiceRequest[];
+  onSuccess: () => void;
+};
+
+function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
+  const t = useTranslations();
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<StatusChangeFormData>({
+    resolver: zodResolver(statusChangeSchema),
+  });
+
+  const onSubmit = async (data: StatusChangeFormData) => {
+    setIsSubmitting(true);
+    try {
+      await handleBulkStatusUpdate(selectedRows, data.status);
+
+      toast.success(
+        t('common.success.bulk_update_success', {
+          count: selectedRows.length,
+        }),
+      );
+      onSuccess();
+      setOpen(false);
+    } catch (error) {
+      toast.error(t('common.errors.save_failed'));
+      console.error('Error updating request:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBulkStatusUpdate = async (
+    selectedRows: FullServiceRequest[],
+    status: RequestStatus,
+  ) => {
+    if (!selectedRows.length) return;
+
+    const updatePromises = selectedRows.map(async (row) => {
+      if (row?.requestedFor?.id) {
+        return updateConsularRegistrationStatus(row.id, row.requestedFor.id, status);
+      }
+      return updateServiceRequestStatus(row.id, status);
+    });
+
+    await Promise.all(updatePromises);
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" aria-label="Changer le status" className="justify-start">
+          Changer le status
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" size="sm" className={cn('flex flex-col')}>
+        <SheetHeader className="text-left border-b pb-4 mb-4">
+          <SheetTitle>Changer le status</SheetTitle>
+        </SheetHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('inputs.status.label')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('inputs.status.placeholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(RequestStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {t(`inputs.requestStatus.options.${status}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <DialogClose asChild>
+                <Button variant="outline" type="button" onClick={() => form.reset()}>
+                  {t('common.actions.cancel')}
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>
+                {isSubmitting ? 'Chargement...' : 'Appliquer'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+const assignToChangeSchema = z.object({
+  assignedToId: z.string(),
+});
+
+type AssignToChangeFormData = z.infer<typeof assignToChangeSchema>;
+
+type AssignToChangeFormProps = {
+  selectedRows: FullServiceRequest[];
+  agents: User[];
+  onSuccess: () => void;
+};
+
+function AssignToChangeForm({
+  selectedRows,
+  agents,
+  onSuccess,
+}: AssignToChangeFormProps) {
+  const t = useTranslations();
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<AssignToChangeFormData>({
+    resolver: zodResolver(assignToChangeSchema),
+  });
+
+  const onSubmit = async (data: AssignToChangeFormData) => {
+    setIsSubmitting(true);
+    try {
+      await handleBulkAssignToUpdate(selectedRows, data.assignedToId);
+
+      toast.success(
+        t('common.success.bulk_update_success', {
+          count: selectedRows.length,
+        }),
+      );
+      onSuccess();
+      setOpen(false);
+    } catch (error) {
+      toast.error(t('common.errors.save_failed'));
+      console.error('Error updating request:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBulkAssignToUpdate = async (
+    selectedRows: FullServiceRequest[],
+    assignedToId: string,
+  ) => {
+    if (!selectedRows.length) return;
+
+    const updatePromises = selectedRows.map(async (row) => {
+      return assignRequestToAgent(row.id, assignedToId);
+    });
+
+    await Promise.all(updatePromises);
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" aria-label="Changer le status" className="justify-start">
+          Assigner à un agent
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" size="sm" className={cn('flex flex-col')}>
+        <SheetHeader className="text-left border-b pb-4 mb-4">
+          <SheetTitle>Assigner à un agent</SheetTitle>
+        </SheetHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('inputs.assignedTo.label')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('inputs.assignedTo.placeholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {agents.map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          {agent.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <DialogClose asChild>
+                <Button variant="outline" type="button" onClick={() => form.reset()}>
+                  {t('common.actions.cancel')}
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>
+                {isSubmitting ? 'Chargement...' : 'Appliquer'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
   );
 }

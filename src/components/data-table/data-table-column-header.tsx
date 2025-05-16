@@ -9,22 +9,28 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
-import { useTranslations } from 'next-intl';
+import { DropdownMenuLabel, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
   sortHandler?: (direction: 'asc' | 'desc') => void;
+  labels?: {
+    asc: string;
+    desc: string;
+  };
   title: string;
 }
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
+  labels = {
+    asc: 'Croissant',
+    desc: 'Décroissant',
+  },
   className,
   sortHandler,
 }: DataTableColumnHeaderProps<TData, TValue>) {
-  const t = useTranslations();
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }
@@ -49,6 +55,10 @@ export function DataTableColumnHeader<TData, TValue>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
+          <DropdownMenuLabel className="text-sm font-medium text-muted-foreground p-1">
+            Mode de tri
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
               sortHandler?.('asc');
@@ -56,7 +66,7 @@ export function DataTableColumnHeader<TData, TValue>({
             }}
           >
             <ArrowUp className="size-3.5 text-muted-foreground/70" />
-            {t('common.data_table.asc')}
+            {labels.asc}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
@@ -65,12 +75,7 @@ export function DataTableColumnHeader<TData, TValue>({
             }}
           >
             <ArrowDown className="size-3.5 text-muted-foreground/70" />
-            {t('common.data_table.desc')}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-            <EyeOff className="size-3.5 text-muted-foreground/70" />
-            {t('common.data_table.hide')}
+            {labels.desc}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
