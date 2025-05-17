@@ -69,6 +69,7 @@ function allDocumentsValidated(profile: FullProfile, category: ProfileCategory):
 export const STATUS_ORDER: RequestStatus[] = [
   'SUBMITTED',
   'PENDING',
+  'PENDING_COMPLETION',
   'VALIDATED',
   'DOCUMENT_IN_PRODUCTION',
   'READY_FOR_PICKUP',

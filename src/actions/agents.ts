@@ -108,6 +108,71 @@ export async function assignAgentToRequest(
   return updatedRequest;
 }
 
+export async function assignRequestToAgent(requestId: string, agentId: string) {
+  const t = await getTranslations();
+  const request = await db.serviceRequest.findUnique({
+    where: { id: requestId },
+  });
+
+  if (!request) {
+    throw new Error('request_not_found');
+  }
+
+  // Assigner la requête à l'agent
+  const updatedRequest = await db.serviceRequest.update({
+    where: { id: requestId },
+    data: {
+      assignedToId: agentId,
+      assignedAt: new Date(),
+      status: 'PENDING',
+      lastActionAt: new Date(),
+      lastActionBy: agentId,
+    },
+    include: {
+      assignedTo: true,
+    },
+  });
+
+  await Promise.all([
+    // Créer une action pour tracer l'assignation
+    await db.requestAction.create({
+      data: {
+        type: RequestActionType.ASSIGNMENT,
+        requestId: requestId,
+        userId: agentId,
+        data: {
+          previousStatus: request.status,
+          newStatus: 'PENDING',
+        },
+      },
+    }),
+    // créer une notification pour l'agent
+    await notify({
+      userId: agentId,
+      type: NotificationType.REQUEST_NEW,
+      title: t('agent.notifications.REQUEST_NEW.title'),
+      message: t('agent.notifications.REQUEST_NEW.message', {
+        requestType: request.serviceCategory,
+      }),
+      channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+      email: updatedRequest.assignedTo?.email || undefined,
+      actions: [
+        {
+          label: t('agent.notifications.REQUEST_NEW.see_request'),
+          url: `${env.NEXT_PUBLIC_URL}${ROUTES.dashboard.service_requests(request.id)}`,
+          primary: true,
+        },
+      ],
+      metadata: {
+        requestId: request.id,
+        requestType: request.serviceCategory,
+        organizationId: request.organizationId,
+        countryCode: request.countryCode,
+      },
+    }),
+  ]);
+}
+
 // Fonction helper pour sélectionner le meilleur agent
 async function selectBestAgent(agents: Agent[], requestPriority: string): Promise<Agent> {
   // Calculer un score pour chaque agent
