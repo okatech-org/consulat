@@ -176,6 +176,7 @@ export default {
     DOCUMENTS_VALIDATION: 'Validation des documents',
     PENDING_COMPLETION: 'À compléter',
     CARD_IN_PRODUCTION: 'Carte en production',
+    DOCUMENT_IN_PRODUCTION: 'Document en production',
     READY_FOR_PICKUP: 'Prêt à récupérer',
     APPOINTMENT_SCHEDULED: 'Rendez-vous planifié',
     REJECTED_BY_USER: "Rejeté par l'utilisateur",
