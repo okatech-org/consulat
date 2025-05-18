@@ -52,8 +52,6 @@ export async function getProfiles(
     where.assignedOrganizationId = organizationId;
   }
 
-  console.log({ sort });
-
   const result = await tryCatch(
     db.$transaction([
       db.profile.count({ where }),
