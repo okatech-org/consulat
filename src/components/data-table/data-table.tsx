@@ -50,6 +50,7 @@ interface DataTableProps<TData, TValue> {
   hiddenColumns?: string[];
   onRefresh?: () => void;
   bulkActions?: BulkAction<TData>[];
+  activeSorting?: [keyof TData, 'asc' | 'desc'];
 }
 
 export function DataTable<TData, TValue>({
@@ -70,6 +71,7 @@ export function DataTable<TData, TValue>({
   onExport,
   onRefresh,
   bulkActions = [],
+  activeSorting,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('common.data_table');
 
@@ -84,6 +86,12 @@ export function DataTable<TData, TValue>({
   );
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  React.useEffect(() => {
+    if (activeSorting) {
+      setSorting([{ id: activeSorting[0] as string, desc: activeSorting[1] === 'desc' }]);
+    }
+  }, [activeSorting]);
 
   // Use pageIndex directly from props
   React.useEffect(() => {

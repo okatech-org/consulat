@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { Input } from './input';
 import { DocumentPreview } from './document-preview';

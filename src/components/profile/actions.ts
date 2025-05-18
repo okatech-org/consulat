@@ -15,7 +15,7 @@ export async function getProfiles(
 
   const isAdmin = user?.roles.includes('ADMIN') || user?.roles.includes('SUPER_ADMIN');
 
-  const { search, status, category, page, limit, organizationId, gender } = options;
+  const { search, status, category, page, limit, organizationId, gender, sort } = options;
 
   // Ensure page is a positive number
   const safePage = Math.max(1, Number(page));
@@ -35,6 +35,8 @@ export async function getProfiles(
 
   if (status && status.length > 0) {
     where.status = { in: status };
+  } else {
+    where.status = { not: 'DRAFT' };
   }
 
   if (category && category.length > 0) {
@@ -50,12 +52,19 @@ export async function getProfiles(
     where.assignedOrganizationId = organizationId;
   }
 
+  console.log({ sort });
+
   const result = await tryCatch(
     db.$transaction([
       db.profile.count({ where }),
       db.profile.findMany({
         where,
         ...BaseProfileInclude,
+        ...(sort && {
+          orderBy: {
+            [sort[0]]: sort[1],
+          },
+        }),
         skip: (safePage - 1) * safeLimit,
         take: safeLimit,
       }),

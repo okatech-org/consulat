@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { PenIcon, CheckCircle2, Info, UploadIcon } from 'lucide-react';
-import { cn, tryCatch } from '@/lib/utils';
+import { tryCatch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -124,6 +124,7 @@ export function UserDocument({
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
   const [isReplacing, setIsReplacing] = React.useState(false);
+  const [replaceFile, setReplaceFile] = React.useState<File | null>(null);
 
   // Check if user has admin role
   const hasAdminRole = React.useMemo(() => {
@@ -258,13 +259,16 @@ export function UserDocument({
 
   const handleCropComplete = async (croppedFile: File) => {
     setCropperOpen(false);
-
     if (tempImageUrl) {
       URL.revokeObjectURL(tempImageUrl);
       setTempImageUrl(null);
     }
-
-    await handleFileUpload(croppedFile);
+    if (replaceFile) {
+      await handleReplaceFile(croppedFile);
+      setReplaceFile(null);
+    } else {
+      await handleFileUpload(croppedFile);
+    }
   };
 
   const handleCropCancel = () => {
@@ -273,6 +277,7 @@ export function UserDocument({
       URL.revokeObjectURL(tempImageUrl);
       setTempImageUrl(null);
     }
+    setReplaceFile(null);
   };
 
   const onUpdate = async (data: UpdateDocumentData) => {
@@ -350,13 +355,24 @@ export function UserDocument({
     }
   };
 
+  // Refactored: handle file selection for replace (reupload)
+  const handleReplaceFileSelection = async (file: File) => {
+    if (!enableEditor || !file.type.startsWith('image/')) {
+      await handleReplaceFile(file);
+      return;
+    }
+    setReplaceFile(file);
+    setTempImageUrl(URL.createObjectURL(file));
+    setCropperOpen(true);
+  };
+
   return (
-    <div className="mb-4 space-y-4 relative w-full h-auto">
-      <div className="flex flex-col gap-1">
-        <div className="font-medium text-normal mb-1">
+    <div className="relative w-full h-auto space-y-2 mb-12">
+      <div>
+        <div className="font-medium">
           <span>
             {label}
-            {required && <span className="ml-1">{'(Obligatoire)'}</span>}
+            {required && <span className="text-sm">{' (Obligatoire)'}</span>}
           </span>
           {document?.status &&
             hasAnyRole(user as SessionUser, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
@@ -365,7 +381,7 @@ export function UserDocument({
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 
-      <div className={cn('relative', 'w-full')}>
+      <div className={'relative w-full'}>
         <FileInput
           onChangeAction={handleFileSelection}
           accept={accept}
@@ -526,7 +542,7 @@ export function UserDocument({
             </DialogHeader>
             <div className="py-4">
               <FileInput
-                onChangeAction={handleReplaceFile}
+                onChangeAction={handleReplaceFileSelection}
                 accept={accept}
                 disabled={isLoading}
                 loading={isLoading}
