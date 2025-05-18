@@ -138,6 +138,7 @@ export default {
       remove: 'Supprimer',
       change: 'Modifier',
       preview: 'Prévisualiser',
+      reupload: 'Remplacer',
     },
   },
   loading: 'Chargement...',

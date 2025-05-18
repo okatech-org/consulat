@@ -203,3 +203,39 @@ export async function createUserDocument(data: {
         : (document.metadata as Record<string, unknown>) || {},
   };
 }
+
+/**
+ * Remplace le fichier d'un UserDocument, met à jour fileUrl, fileType et remet le statut à PENDING.
+ * @param documentId - L'identifiant du document à mettre à jour
+ * @param fileUrl - La nouvelle URL du fichier
+ * @param fileType - Le nouveau type MIME du fichier
+ * @returns Le document mis à jour au format AppUserDocument
+ */
+export async function replaceUserDocumentFile(
+  documentId: string,
+  fileUrl: string,
+  fileType: string,
+): Promise<AppUserDocument | null> {
+  await checkAuth();
+
+  const { data: updatedDocument, error } = await tryCatch(
+    db.userDocument.update({
+      where: { id: documentId },
+      data: {
+        fileUrl,
+        fileType,
+        status: DocumentStatus.PENDING,
+      },
+    }),
+  );
+
+  if (error || !updatedDocument) {
+    throw new Error('replace_document_file_failed');
+  }
+
+  return {
+    ...updatedDocument,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata: updatedDocument?.metadata as Record<string, any>,
+  };
+}
