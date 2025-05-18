@@ -10,7 +10,11 @@ import { Loader2, MessageCircle, Lock } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { useDateLocale } from '@/lib/utils';
 import { FullServiceRequest } from '@/types/service-request';
-import { addServiceRequestNote } from '@/actions/service-requests';
+import {
+  addServiceRequestNote,
+  updateServiceRequestStatus,
+} from '@/actions/service-requests';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface NoteItemProps {
   note: FullServiceRequest['notes'][number];
@@ -41,17 +45,22 @@ export const NoteItem = ({ note }: NoteItemProps) => {
 
 interface NoteEditorProps {
   type: 'INTERNAL' | 'FEEDBACK';
-  onSubmit: (content: string, type: 'INTERNAL' | 'FEEDBACK') => Promise<void>;
+  onSubmit: (
+    content: string,
+    type: 'INTERNAL' | 'FEEDBACK',
+    pendingCompletionStatus: boolean,
+  ) => Promise<void>;
   isLoading: boolean;
 }
 
 const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
   const [content, setContent] = useState('');
+  const [pendingCompletionStatus, setPendingCompletionStatus] = useState(false);
   const t = useTranslations('admin.registrations.review.notes');
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
-    await onSubmit(content, type);
+    await onSubmit(content, type, pendingCompletionStatus);
     setContent('');
   };
 
@@ -65,6 +74,23 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
         onChange={(e) => setContent(e.target.value)}
         rows={2}
       />
+      <div className="flex items-center gap-2">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="pending-completion-status"
+            checked={pendingCompletionStatus}
+            onCheckedChange={(checked) =>
+              setPendingCompletionStatus(checked === 'indeterminate' ? false : checked)
+            }
+          />
+          <label
+            htmlFor="pending-completion-status"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {"Changer le statut à 'En attente de validation'"}
+          </label>
+        </div>
+      </div>
       <Button
         onClick={handleSubmit}
         disabled={isLoading || !content.trim()}
@@ -87,7 +113,11 @@ export function ReviewNotes({ requestId, notes = [] }: ReviewNotesProps) {
   const { toast } = useToast();
   const t = useTranslations('admin.registrations.review.notes');
 
-  const handleAddNote = async (content: string, type: 'INTERNAL' | 'FEEDBACK') => {
+  const handleAddNote = async (
+    content: string,
+    type: 'INTERNAL' | 'FEEDBACK',
+    pendingCompletionStatus: boolean,
+  ) => {
     try {
       setIsLoading(true);
       const result = await addServiceRequestNote({
@@ -95,6 +125,10 @@ export function ReviewNotes({ requestId, notes = [] }: ReviewNotesProps) {
         content,
         type,
       });
+
+      if (pendingCompletionStatus) {
+        await updateServiceRequestStatus(requestId, 'PENDING_COMPLETION');
+      }
 
       if (result.error) {
         toast({
@@ -127,12 +161,12 @@ export function ReviewNotes({ requestId, notes = [] }: ReviewNotesProps) {
       <Tabs defaultValue="internal">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="internal">
-            <Lock className="mr-2 size-4" />
-            {t('tabs.internal')}
+            <Lock className="mr-2 size-icon" />
+            <span className="text-xs">{t('tabs.internal')}</span>
           </TabsTrigger>
           <TabsTrigger value="feedback">
-            <MessageCircle className="mr-2 size-4" />
-            {t('tabs.feedback')}
+            <MessageCircle className="mr-2 size-icon" />
+            <span className="text-xs">{t('tabs.feedback')}</span>
           </TabsTrigger>
         </TabsList>
 

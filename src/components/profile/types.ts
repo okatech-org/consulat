@@ -14,6 +14,7 @@ export type ProfilesArrayItem = Pick<
   | 'firstName'
   | 'lastName'
   | 'createdAt'
+  | 'validationRequestId'
 > & {
   IDPictureUrl?: string;
   IDPictureFileName: string;

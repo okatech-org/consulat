@@ -54,6 +54,15 @@ import { toast } from 'sonner';
 import { updateProfile } from '@/actions/profile';
 import { useTableParams } from '@/components/utils/table-hooks';
 import { exportFilesAsZip } from '@/components/utils/table-export';
+import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { FullProfileUpdateFormData } from '@/schemas/registration';
 
 export default function ProfilesPage() {
   const t = useTranslations();
@@ -161,6 +170,7 @@ export default function ProfilesPage() {
             column={column}
             title={'ID'}
             sortHandler={(direction) => handleSortChange('cardNumber', direction)}
+            labels={{ asc: '↑', desc: '↓' }}
           />
         ),
         cell: ({ row }) => (
@@ -192,6 +202,7 @@ export default function ProfilesPage() {
             column={column}
             title={t('inputs.lastName.label')}
             sortHandler={(direction) => handleSortChange('lastName', direction)}
+            labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
         cell: ({ row }) => {
@@ -211,6 +222,7 @@ export default function ProfilesPage() {
             column={column}
             title={t('inputs.firstName.label')}
             sortHandler={(direction) => handleSortChange('firstName', direction)}
+            labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
         cell: ({ row }) => {
@@ -231,6 +243,7 @@ export default function ProfilesPage() {
             column={column}
             title={t('inputs.profileCategory.label')}
             sortHandler={(direction) => handleSortChange('category', direction)}
+            labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
         cell: ({ row }) => {
@@ -253,7 +266,11 @@ export default function ProfilesPage() {
       {
         accessorKey: 'status',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('inputs.status.label')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.status.label')}
+            labels={{ asc: 'A-Z', desc: 'Z-A' }}
+          />
         ),
         cell: ({ row }) => {
           const status = statuses.find((status) => status.value === row.original.status);
@@ -392,9 +409,39 @@ export default function ProfilesPage() {
       },
       {
         id: 'actions',
+        header: ({ table }) => (
+          <DataTableBulkActions
+            table={table}
+            actions={[
+              {
+                component: (
+                  <StatusChangeForm
+                    selectedRows={table
+                      .getFilteredSelectedRowModel()
+                      .flatRows.map((row) => row.original)}
+                    onSuccess={fetchProfiles}
+                  />
+                ),
+              },
+            ]}
+          />
+        ),
         cell: ({ row }) => (
           <DataTableRowActions
             actions={[
+              {
+                component: row.original.validationRequestId ? (
+                  <Link
+                    onClick={(e) => e.stopPropagation()}
+                    href={ROUTES.dashboard.service_requests(
+                      row.original.validationRequestId,
+                    )}
+                  >
+                    <FileText className="size-icon" />
+                    {'Voir la demande'}
+                  </Link>
+                ) : null,
+              },
               {
                 component: (
                   <Link
@@ -635,5 +682,97 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
         </div>
       </form>
     </Form>
+  );
+}
+
+// Bulk status change form for profiles
+const statusChangeSchema = z.object({
+  status: z.nativeEnum(RequestStatus),
+});
+type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
+type StatusChangeFormProps = {
+  selectedRows: ProfilesArrayItem[];
+  onSuccess: () => void;
+};
+function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
+  const t = useTranslations();
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const form = useForm<StatusChangeFormData>({
+    resolver: zodResolver(statusChangeSchema),
+  });
+  const onSubmit = async (data: StatusChangeFormData) => {
+    setIsSubmitting(true);
+    try {
+      if (!selectedRows.length) return;
+      const updatePromises = selectedRows.map(async (row) => {
+        return tryCatch(
+          updateProfile(row.id, {
+            status: data.status,
+          } as Partial<FullProfileUpdateFormData>),
+        );
+      });
+      await Promise.all(updatePromises);
+      toast.success(
+        t('common.success.bulk_update_success', { count: selectedRows.length }),
+      );
+      onSuccess();
+      setOpen(false);
+    } catch (error) {
+      toast.error(t('common.errors.save_failed'));
+      console.error('Error updating profiles:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" aria-label="Changer le statut" className="justify-start">
+          Changer le statut
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" size="sm" className="flex flex-col">
+        <SheetHeader className="text-left border-b pb-4 mb-4">
+          <SheetTitle>Changer le statut</SheetTitle>
+        </SheetHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('inputs.status.label')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('inputs.status.placeholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(RequestStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {t(`inputs.requestStatus.options.${status}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" type="button" onClick={() => form.reset()}>
+                {t('common.actions.cancel')}
+              </Button>
+              <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>
+                {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
   );
 }

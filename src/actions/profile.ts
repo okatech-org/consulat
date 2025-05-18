@@ -442,6 +442,7 @@ export async function submitProfileForValidation(
     data: {
       status: 'SUBMITTED',
       submittedAt: new Date(),
+      validationRequestId: serviceRequest.id,
     },
   });
 }

@@ -50,7 +50,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
       ? t('requests.actions.start_processing')
       : t('requests.actions.continue_processing');
 
-    if (isProcessable && isAgent)
+    if (isProcessable && isAgent) {
       return (
         <Button
           onClick={async () => {
@@ -62,10 +62,10 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
           {label}
         </Button>
       );
+    }
 
     return (
       <Button
-        disabled={!isProcessable}
         onClick={async () => {
           router.push(ROUTES.dashboard.service_request_review(request.id));
         }}
