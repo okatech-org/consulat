@@ -67,6 +67,7 @@ export function ProfileContactForm({
       );
 
       toast({
+        variant: 'success',
         title: 'Message envoyé',
         description: `Votre message a été envoyé à ${recipientName}`,
       });

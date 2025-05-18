@@ -407,25 +407,22 @@ export function UserDocument({
         />
 
         {document && (
-          <div className="absolute right-1 bottom-0 translate-y-[70%] flex items-center gap-2">
-            {allowEdit && hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsUpdating(true)}
-                disabled={disabled || isLoading}
-              >
-                <PenIcon className="size-icon" />
-              </Button>
-            )}
+          <div className="absolute right-1 bottom-0 flex items-center gap-2">
+            {allowEdit &&
+              hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN', 'MANAGER']) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsUpdating(true)}
+                  disabled={disabled || isLoading}
+                >
+                  <PenIcon className="size-icon" />
+                </Button>
+              )}
 
             <ConfirmDialog
               trigger={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive border-destructive bg-transparent"
-                >
+                <Button variant="destructiveOutline" size="sm">
                   <span>Supprimer</span>
                   <Trash className="size-icon" />
                 </Button>

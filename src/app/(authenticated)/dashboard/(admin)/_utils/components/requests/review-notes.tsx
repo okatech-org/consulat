@@ -57,6 +57,7 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
   const [content, setContent] = useState('');
   const [pendingCompletionStatus, setPendingCompletionStatus] = useState(false);
   const t = useTranslations('admin.registrations.review.notes');
+  const tInputs = useTranslations('inputs');
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
@@ -87,7 +88,7 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
             htmlFor="pending-completion-status"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            {"Changer le statut à 'En attente de validation'"}
+            {`Changer le statut à '${tInputs('requestStatus.options.PENDING_COMPLETION')}'`}
           </label>
         </div>
       </div>
