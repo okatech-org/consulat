@@ -87,7 +87,7 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
             htmlFor="pending-completion-status"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            {"Passer la demande en statut 'En attente de validation'"}
+            {"Changer le statut à 'En attente de validation'"}
           </label>
         </div>
       </div>
