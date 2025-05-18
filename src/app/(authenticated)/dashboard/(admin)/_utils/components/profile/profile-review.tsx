@@ -70,7 +70,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-6">
         <CardContainer className="col-span-4">
           <div className="flex items-start gap-4">
-            <Avatar className="size-14 md:size-24">
+            <Avatar className="size-14 md:size-24 bg-muted">
               <AvatarImage
                 src={profile.identityPicture?.fileUrl ?? ''}
                 alt={profile.firstName ?? ''}

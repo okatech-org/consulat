@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { Input } from './input';
+import { DocumentPreview } from './document-preview';
 
 export interface FileInputProps {
   onChangeAction: (file: File) => void;
@@ -17,6 +17,7 @@ export interface FileInputProps {
   fileUrl?: string | null;
   fileType?: string | null;
   showPreview?: boolean;
+  preview?: React.ReactNode;
   aspectRatio?: string;
 }
 
@@ -34,6 +35,28 @@ export function FileInput({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const isPdf = fileType?.includes('application/pdf') ?? false;
+
+  const handleDownload = async () => {
+    if (!fileUrl || !fileType) return;
+
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      // Get file extension from content type
+      const contentType = response.headers.get('content-type');
+      const extension = contentType?.split('/')[1] || 'pdf';
+      a.download = `${fileType?.toLowerCase()}.${extension}`;
+      window.document.body.appendChild(a);
+      a.click();
+      window.document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
 
   const acceptedFileTypes: Array<'image' | 'pdf'> = [];
 
@@ -98,32 +121,14 @@ export function FileInput({
           )}
         </button>
 
-        {/* Dialog de prévisualisation */}
-        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-          <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden">
-            <DialogTitle className="sr-only">{t('preview')}</DialogTitle>
-            {isPdf ? (
-              <div className="flex flex-col items-center justify-center gap-2 p-4">
-                <iframe src={fileUrl} className="w-full h-[70vh]" title={t('pdf')} />
-                <Button asChild variant="outline">
-                  <a href={fileUrl} target="_blank" rel="noopener noreferrer" download>
-                    {t('downloadPdf')}
-                  </a>
-                </Button>
-              </div>
-            ) : (
-              <div className="relative w-full h-[70vh]">
-                <Image
-                  src={fileUrl}
-                  alt={t('preview')}
-                  fill
-                  style={{ objectFit: 'contain' }}
-                  priority
-                />
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <DocumentPreview
+          url={fileUrl}
+          title={t('label')}
+          type={fileType ?? ''}
+          onDownload={handleDownload}
+          isOpen={previewOpen}
+          setIsOpenAction={setPreviewOpen}
+        />
       </div>
     );
   }

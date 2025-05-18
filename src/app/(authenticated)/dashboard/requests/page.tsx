@@ -119,6 +119,10 @@ export default function RequestsPage() {
   const searchParams = useSearchParams();
   const { formatDate } = useDateLocale();
   const [user, setUser] = useState<SessionUser | null>(null);
+  const formattedQueryParams = useMemo(
+    () => adaptServiceRequestSearchParams(searchParams, user),
+    [searchParams, user],
+  );
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [requestsData, setRequestsData] = useState<PaginatedServiceRequests>({
@@ -131,11 +135,6 @@ export default function RequestsPage() {
   // Utiliser le hook useTableParams pour gérer les paramètres de table
   const { handleParamsChange, handlePageChange, handleLimitChange, handleSortChange } =
     useTableParams();
-
-  // Format query parameters
-  const formatQueryParams = useCallback(() => {
-    return adaptServiceRequestSearchParams(searchParams, user);
-  }, [searchParams, user]);
 
   // Load user data
   useEffect(() => {
@@ -170,10 +169,9 @@ export default function RequestsPage() {
       if (!user) return;
 
       setIsLoading(true);
-      const formattedParams = formatQueryParams();
 
       try {
-        const result = await tryCatch(getServiceRequests(formattedParams));
+        const result = await tryCatch(getServiceRequests(formattedQueryParams));
         if (result.data) {
           setRequestsData(result.data);
         } else if (result.error) {
@@ -187,13 +185,12 @@ export default function RequestsPage() {
     }
 
     fetchRequestsData();
-  }, [user, formatQueryParams]);
+  }, [user, formattedQueryParams]);
 
   // Refresh data fonction
   const handleRefresh = useCallback(() => {
-    const formattedParams = formatQueryParams();
     setIsLoading(true);
-    getServiceRequests(formattedParams)
+    getServiceRequests(formattedQueryParams)
       .then((data) => {
         setRequestsData(data);
       })
@@ -203,7 +200,7 @@ export default function RequestsPage() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [formatQueryParams]);
+  }, [formattedQueryParams]);
 
   // Définition des statuses pour les filtres
   const statuses = useMemo(
@@ -256,7 +253,7 @@ export default function RequestsPage() {
         cell: ({ row }) => {
           const url = row.original.requestedFor?.identityPicture?.fileUrl as string;
           return url ? (
-            <Avatar>
+            <Avatar className="bg-muted">
               <AvatarImage src={url} />
             </Avatar>
           ) : (
@@ -666,6 +663,14 @@ export default function RequestsPage() {
             onLimitChange={handleLimitChange}
             hiddenColumns={hiddenColumns}
             onRefresh={handleRefresh}
+            activeSorting={
+              formattedQueryParams.sortBy && formattedQueryParams.sortOrder
+                ? [
+                    formattedQueryParams.sortBy as keyof FullServiceRequest,
+                    formattedQueryParams.sortOrder,
+                  ]
+                : undefined
+            }
           />
         </CardContainer>
       )}

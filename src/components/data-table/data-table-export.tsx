@@ -287,7 +287,7 @@ export function DataTableExport<TData, TValue = unknown>({
                 >
                   <Download className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only">
-                    Exporter {exportFormat === 'xlsx' ? 'XLSX' : 'CSV'}
+                    {`Exporter (${Object.entries(selectedRows).filter(([_, value]) => value).length} lignes)`}
                   </span>
                 </Button>
               </DialogTrigger>

@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { PenIcon, Trash, CheckCircle2, Info } from 'lucide-react';
-import { cn, tryCatch, useDateLocale } from '@/lib/utils';
+import { PenIcon, CheckCircle2, Info, UploadIcon } from 'lucide-react';
+import { tryCatch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,9 +23,8 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createUserDocument,
-  deleteUserDocument,
+  replaceUserDocumentFile,
   updateUserDocument,
-  checkDocumentExists,
 } from '@/actions/user-documents';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,12 +35,10 @@ import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
 import { ImageCropper } from './ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
-import { validateDocument } from '@/lib/document-validation';
-import { DocumentPreview } from './ui/document-preview';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { ConfirmDialog } from './ui/confirm-dialog';
+import { SessionUser } from '@/types/user';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -111,7 +108,6 @@ export function UserDocument({
   disabled = false,
   allowEdit = true,
   accept = 'image/*,application/pdf',
-  onDelete,
   onUpload,
   enableEditor = false,
   requestId,
@@ -127,85 +123,14 @@ export function UserDocument({
   const [tempImageUrl, setTempImageUrl] = React.useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
-  const { formatDate } = useDateLocale();
-
-  const handleDownload = async () => {
-    if (!document) return;
-
-    try {
-      const response = await fetch(document.fileUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = window.document.createElement('a');
-      a.href = url;
-      // Get file extension from content type
-      const contentType = response.headers.get('content-type');
-      const extension = contentType?.split('/')[1] || 'pdf';
-      a.download = `${document.type.toLowerCase()}.${extension}`;
-      window.document.body.appendChild(a);
-      a.click();
-      window.document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading document:', error);
-    }
-  };
+  const [isReplacing, setIsReplacing] = React.useState(false);
+  const [replaceFile, setReplaceFile] = React.useState<File | null>(null);
 
   // Check if user has admin role
   const hasAdminRole = React.useMemo(() => {
-    const adminRoles = ['ADMIN', 'AGENT', 'SUPER_ADMIN'];
+    const adminRoles = ['ADMIN', 'AGENT', 'SUPER_ADMIN', 'MANAGER'];
     return user?.roles?.some((role) => adminRoles.includes(role));
   }, [user]);
-
-  // Validate document
-  const validation = React.useMemo(() => {
-    if (!document) {
-      return {
-        isValid: !required,
-        errors: required ? ['required_document'] : [],
-      };
-    }
-    return validateDocument(document, required);
-  }, [document, required]);
-
-  const handleDelete = async (documentId: string) => {
-    setIsLoading(true);
-
-    try {
-      // Vérifier d'abord si le document existe
-      const documentExists = await checkDocumentExists(documentId);
-      if (!documentExists) {
-        // Mettre à jour l'interface sans appeler l'API
-        onDelete?.();
-        toast({
-          title: t_common('status.DELETED'),
-          description: t_errors('document_already_deleted'),
-          variant: 'default',
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Si le document existe, procéder à la suppression
-      const result = await tryCatch(deleteUserDocument(documentId, requestId));
-
-      if (result.data) {
-        onDelete?.();
-      }
-
-      if (result.error) {
-        window.location.reload();
-      }
-    } catch (error) {
-      toast({
-        title: t_messages('errors.update_failed'),
-        description: error instanceof Error ? error.message : String(error),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdate = async (documentId: string, data: any) => {
@@ -334,13 +259,16 @@ export function UserDocument({
 
   const handleCropComplete = async (croppedFile: File) => {
     setCropperOpen(false);
-
     if (tempImageUrl) {
       URL.revokeObjectURL(tempImageUrl);
       setTempImageUrl(null);
     }
-
-    await handleFileUpload(croppedFile);
+    if (replaceFile) {
+      await handleReplaceFile(croppedFile);
+      setReplaceFile(null);
+    } else {
+      await handleFileUpload(croppedFile);
+    }
   };
 
   const handleCropCancel = () => {
@@ -349,6 +277,7 @@ export function UserDocument({
       URL.revokeObjectURL(tempImageUrl);
       setTempImageUrl(null);
     }
+    setReplaceFile(null);
   };
 
   const onUpdate = async (data: UpdateDocumentData) => {
@@ -380,22 +309,79 @@ export function UserDocument({
     );
   };
 
+  const handleReplaceFile = async (file: File) => {
+    setIsLoading(true);
+    try {
+      // Upload du fichier (réutilise la logique d'upload existante)
+      const uploadResult = await tryCatch(uploadFileFromClient(file));
+      if (uploadResult.error) {
+        toast({
+          title: t_messages('errors.update_failed'),
+          description: t_errors(uploadResult.error.message),
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+      if (uploadResult.data && document) {
+        const uploaded = uploadResult.data[0] as FileUploadResponse;
+        // Appel de l'action serveur pour remplacer le fichier
+        const { error, data: updatedDoc } = await tryCatch(
+          replaceUserDocumentFile(
+            document.id,
+            uploaded.serverData.fileUrl,
+            uploaded.type,
+          ),
+        );
+        if (error) {
+          toast({
+            title: t_messages('errors.update_failed'),
+            description: t_errors(error.message),
+            variant: 'destructive',
+          });
+        } else if (updatedDoc) {
+          toast({
+            title: t_messages('success.update_title'),
+            description: t_messages('success.update_description'),
+            variant: 'success',
+          });
+          onUpload?.(updatedDoc);
+          router.refresh();
+        }
+      }
+    } finally {
+      setIsLoading(false);
+      setIsReplacing(false);
+    }
+  };
+
+  // Refactored: handle file selection for replace (reupload)
+  const handleReplaceFileSelection = async (file: File) => {
+    if (!enableEditor || !file.type.startsWith('image/')) {
+      await handleReplaceFile(file);
+      return;
+    }
+    setReplaceFile(file);
+    setTempImageUrl(URL.createObjectURL(file));
+    setCropperOpen(true);
+  };
+
   return (
-    <div className="mb-4 space-y-4 relative w-full h-auto">
-      <div className="flex flex-col gap-1">
-        <div className="font-medium text-normal mb-1">
+    <div className="relative w-full h-auto space-y-2 mb-12">
+      <div>
+        <div className="font-medium">
           <span>
             {label}
-            {required && <span className="ml-1">{'(Obligatoire)'}</span>}
+            {required && <span className="text-sm">{' (Obligatoire)'}</span>}
           </span>
           {document?.status &&
-            hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
+            hasAnyRole(user as SessionUser, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
             getStatusBadge(document.status)}
         </div>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
 
-      <div className={cn('relative', 'w-full')}>
+      <div className={'relative w-full'}>
         <FileInput
           onChangeAction={handleFileSelection}
           accept={accept}
@@ -407,8 +393,8 @@ export function UserDocument({
         />
 
         {document && (
-          <div className="absolute right-1 bottom-0 translate-y-[70%] flex items-center gap-2">
-            {allowEdit && hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) && (
+          <div className="absolute right-0 bottom-0 translate-y-[120%] flex items-center gap-1">
+            {allowEdit && hasAdminRole && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -419,65 +405,32 @@ export function UserDocument({
               </Button>
             )}
 
-            <ConfirmDialog
-              trigger={
+            {allowEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-2"
+                onClick={() => setIsReplacing(true)}
+                disabled={isLoading || disabled}
+              >
+                {t_common('upload.actions.reupload')}
+                <UploadIcon className="size-icon" />
+              </Button>
+            )}
+
+            {hasAdminRole && (
+              <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-destructive border-destructive bg-transparent"
+                  onClick={() => setIsDialogOpen(true)}
+                  disabled={disabled || isLoading}
                 >
-                  <span>Supprimer</span>
-                  <Trash className="size-icon" />
-                </Button>
-              }
-              onConfirm={() => handleDelete(document.id)}
-              title="Supprimer le document"
-              description="Voulez-vous vraiment supprimer ce document ?"
-              confirmLabel="Oui, supprimer"
-              cancelLabel="Non, annuler"
-            />
-          </div>
-        )}
-
-        {document && (
-          <div className="flex flex-1 flex-col justify-end space-y-1 pt-4 text-sm text-muted-foreground">
-            {(document.issuedAt || document.expiresAt) && (
-              <p>
-                {t('validity', {
-                  start: document.issuedAt ? formatDate(document.issuedAt) : 'N/A',
-                  end: document.expiresAt ? formatDate(document.expiresAt) : 'N/A',
-                })}
-              </p>
-            )}
-          </div>
-        )}
-
-        {hasAdminRole && document && (
-          <div className="flex gap-2">
-            {/* Display validation status for all users */}
-            <div className="flex items-center gap-2 mt-2">
-              {validation.isValid && (
-                <span className="text-success flex items-center gap-1">
                   <CheckCircle2 className="size-icon" />
-                  {t_common('status.VALIDATED')}
-                </span>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsDialogOpen(true)}
-              disabled={disabled || isLoading}
-            >
-              <CheckCircle2 className="size-icon" />
-              <span>Validation</span>
-            </Button>
-            <DocumentPreview
-              url={document.fileUrl}
-              title={label}
-              type={document.fileType}
-              onDownload={handleDownload}
-            />
+                  <span>Validation</span>
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -578,6 +531,37 @@ export function UserDocument({
             router.refresh();
           }}
         />
+      )}
+
+      {/* FileInput pour le remplacement (dialog simple) */}
+      {isReplacing && (
+        <Dialog open={isReplacing} onOpenChange={setIsReplacing}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t_common('upload.actions.reupload')}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <FileInput
+                onChangeAction={handleReplaceFileSelection}
+                accept={accept}
+                disabled={isLoading}
+                loading={isLoading}
+                fileUrl={undefined}
+                fileType={undefined}
+                showPreview={false}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsReplacing(false)}
+              >
+                {t('actions.cancel')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

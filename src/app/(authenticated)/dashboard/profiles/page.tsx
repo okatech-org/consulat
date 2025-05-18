@@ -50,7 +50,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
-import { toast } from 'sonner';
 import { updateProfile } from '@/actions/profile';
 import { useTableParams } from '@/components/utils/table-hooks';
 import { exportFilesAsZip } from '@/components/utils/table-export';
@@ -63,6 +62,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { FullProfileUpdateFormData } from '@/schemas/registration';
+import { toast } from '@/hooks/use-toast';
 
 export default function ProfilesPage() {
   const t = useTranslations();
@@ -164,13 +164,40 @@ export default function ProfilesPage() {
         enableHiding: false,
       },
       {
-        accessorKey: 'cardNumber',
+        accessorKey: 'id',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={'ID'}
             sortHandler={(direction) => handleSortChange('cardNumber', direction)}
-            labels={{ asc: '↑', desc: '↓' }}
+            labels={{ asc: 'A-Z', desc: 'Z-A' }}
+          />
+        ),
+        cell: ({ row }) => (
+          <button
+            type="button"
+            className="text-muted-foreground cursor-pointer"
+            onClick={() => {
+              navigator.clipboard.writeText(row.original.id);
+              toast({
+                title: 'ID copié dans le presse-papiers',
+                variant: 'success',
+              });
+            }}
+          >
+            {row.original.id}
+          </button>
+        ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'cardNumber',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={'Carte N°'}
+            sortHandler={(direction) => handleSortChange('cardNumber', direction)}
+            labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
         cell: ({ row }) => (
@@ -184,10 +211,11 @@ export default function ProfilesPage() {
       {
         accessorKey: 'IDPicture',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
+        enableSorting: false,
         cell: ({ row }) => {
           const url = row.original.IDPictureUrl as string;
           return url ? (
-            <Avatar>
+            <Avatar className="bg-muted">
               <AvatarImage src={url} className="h-10 w-10 rounded-full object-cover" />
             </Avatar>
           ) : (
@@ -563,14 +591,19 @@ export default function ProfilesPage() {
           exportSelectedOnly={true}
           exportFilename="profiles"
           hiddenColumns={[
+            'id',
             'cardPin',
             'email',
             'shareUrl',
             'IDPictureFileName',
             'IDPicturePath',
-            'createdAt',
             'gender',
+            'cardExpiresAt',
+            'category',
           ]}
+          activeSorting={
+            formattedQueryParams.sort as [keyof ProfilesArrayItem, 'asc' | 'desc']
+          }
         />
       </CardContainer>
     </PageContainer>
@@ -611,15 +644,24 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
       const result = await tryCatch(updateProfile(profile.id, editedData as any));
 
       if (result.error) {
-        toast.error(t('errors.common.unknown_error'));
+        toast({
+          title: t('errors.common.unknown_error'),
+          variant: 'destructive',
+        });
         console.error(result.error);
         return;
       }
 
-      toast.success(t('profile.update_success'));
+      toast({
+        title: t('profile.update_success'),
+        variant: 'success',
+      });
       onSuccess();
     } catch (error) {
-      toast.error(t('errors.common.unknown_error'));
+      toast({
+        title: t('errors.common.unknown_error'),
+        variant: 'destructive',
+      });
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -713,13 +755,17 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
         );
       });
       await Promise.all(updatePromises);
-      toast.success(
-        t('common.success.bulk_update_success', { count: selectedRows.length }),
-      );
+      toast({
+        title: t('common.success.bulk_update_success', { count: selectedRows.length }),
+        variant: 'success',
+      });
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast.error(t('common.errors.save_failed'));
+      toast({
+        title: t('common.errors.save_failed'),
+        variant: 'destructive',
+      });
       console.error('Error updating profiles:', error);
     } finally {
       setIsSubmitting(false);

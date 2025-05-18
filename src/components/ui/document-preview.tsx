@@ -3,18 +3,25 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Maximize2, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
+import { Download, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DocumentPreviewProps {
+  isOpen: boolean;
+  setIsOpenAction: (isOpen: boolean) => void;
   url: string;
   title: string;
   type: string;
   onDownload?: () => void;
 }
 
-export function DocumentPreview({ url, title, onDownload }: DocumentPreviewProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function DocumentPreview({
+  url,
+  title,
+  onDownload,
+  isOpen,
+  setIsOpenAction,
+}: DocumentPreviewProps) {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
 
@@ -25,11 +32,7 @@ export function DocumentPreview({ url, title, onDownload }: DocumentPreviewProps
   const isPDF = url.toLowerCase().endsWith('.pdf');
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
-        <ZoomIn className="size-icon" />
-        <span className="sr-only">Voir</span>
-      </Button>
+    <Dialog open={isOpen} onOpenChange={setIsOpenAction}>
       <DialogContent className="h-[90vh] max-w-4xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

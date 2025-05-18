@@ -77,7 +77,6 @@ export function DocumentsSection({
           expectedType={DocumentType.RESIDENCE_PERMIT}
           profileId={profileId}
           allowEdit={true}
-          required
           onDelete={onSave}
           onUpload={onSave}
           noFormLabel={true}
