@@ -41,7 +41,7 @@ export function DataTableRowActions<TData>({
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
+      <DropdownMenuContent align="end" className="w-max">
         {actions.map((action, index) => (
           <Fragment key={index}>
             <DropdownMenuItem asChild>{action.component}</DropdownMenuItem>

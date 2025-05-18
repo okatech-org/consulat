@@ -40,27 +40,26 @@ export function ProfileCompletion({
           </span>
         </div>
         <Progress value={completionRate} />
-      </div>
-
-      {/* Informations requises */}
-      <FieldsSection
-        title={t('completion.required_information')}
-        fields={fieldStatus.required.fields.filter((f) => !f.completed)}
-        completed={fieldStatus.required.completed}
-        total={fieldStatus.required.total}
-        type="required"
-      />
-
-      {/* Informations optionnelles */}
-      {fieldStatus.optional.total > 0 && (
+        {/* Informations requises */}
         <FieldsSection
-          title={t('completion.optional_information')}
-          fields={fieldStatus.optional.fields}
-          completed={fieldStatus.optional.completed}
-          total={fieldStatus.optional.total}
-          type="optional"
+          title={t('completion.required_information')}
+          fields={fieldStatus.required.fields.filter((f) => !f.completed)}
+          completed={fieldStatus.required.completed}
+          total={fieldStatus.required.total}
+          type="required"
         />
-      )}
+
+        {/* Informations optionnelles */}
+        {fieldStatus.optional.total > 0 && (
+          <FieldsSection
+            title={t('completion.optional_information')}
+            fields={fieldStatus.optional.fields}
+            completed={fieldStatus.optional.completed}
+            total={fieldStatus.optional.total}
+            type="optional"
+          />
+        )}
+      </div>
     </CardContainer>
   );
 }
