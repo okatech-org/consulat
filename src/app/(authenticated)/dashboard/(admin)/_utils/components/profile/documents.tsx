@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { FullProfile } from '@/types';
-import { CheckCircle2, AlertTriangle, Shield } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Shield, Eye } from 'lucide-react';
 import { useDateLocale } from '@/lib/utils';
 import { Badge, BadgeVariant } from '@/components/ui/badge';
 import { DocumentPreview } from '@/components/ui/document-preview';
@@ -23,6 +23,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
   const t_review = useTranslations('admin.registrations.review');
   const router = useRouter();
   const { formatDate } = useDateLocale();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleDownload = async (url: string, filename: string) => {
     try {
@@ -84,7 +85,7 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
 
   return (
     <CardContainer
-      title={t_review('sections.documents')}
+      title={t_review('sections.documents') + ' ' + profile.id}
       contentClass="grid sm:grid-cols-2 gap-4 sm:gap-6"
     >
       {documents.map(({ type, label, document, required }) => {
@@ -135,13 +136,16 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                   <DocumentPreview
                     url={document.fileUrl}
                     title={label}
-                    type={type}
+                    type={document.fileType?.includes('image') ? 'image' : 'pdf'}
                     onDownload={() =>
                       handleDownload(
                         document.fileUrl,
                         `${type.toLowerCase()}.${document.fileUrl.split('.').pop()}`,
                       )
                     }
+                    isOpen={isOpen}
+                    setIsOpenAction={setIsOpen}
+                    showTrigger={true}
                   />
                   <Button
                     variant="outline"
@@ -156,20 +160,6 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                     <Shield className="size-4" />
                     <span className="text-sm">Valider</span>
                   </Button>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      {validation.isValid ? (
-                        <CheckCircle2 className="text-success size-5" />
-                      ) : (
-                        <AlertTriangle className="size-5 text-warning" />
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {validation.isValid
-                        ? t_review('documents.valid')
-                        : validation.errors.join(', ')}
-                    </TooltipContent>
-                  </Tooltip>
                 </>
               )}
             </div>

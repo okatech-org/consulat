@@ -124,7 +124,7 @@ export function FileInput({
         <DocumentPreview
           url={fileUrl}
           title={t('label')}
-          type={fileType ?? ''}
+          type={fileType?.includes('image') ? 'image' : 'pdf'}
           onDownload={handleDownload}
           isOpen={previewOpen}
           setIsOpenAction={setPreviewOpen}
