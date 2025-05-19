@@ -1,8 +1,8 @@
 import { FullServiceRequest } from '@/types/service-request';
-import { ProfileReview } from '../../(admin)/_utils/components/profile/profile-review';
+import { ProfileReview } from '../../../../../components/profile/profile-review';
 import { ServiceRequestReview } from './service-request-review';
 import { BaseAgent } from '@/types/organization';
-import { ChildProfileReview } from '../../(admin)/_utils/components/profile/child-profile-review';
+import { ChildProfileReview } from '../../../../../components/profile/child-profile-review';
 import { FullProfile } from '@/types';
 
 interface RequestReviewProps {

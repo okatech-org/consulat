@@ -34,7 +34,7 @@ import { FileInput } from './ui/file-input';
 import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
 import { ImageCropper } from './ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
+import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';

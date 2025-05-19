@@ -41,21 +41,3 @@ export interface PaginatedProfiles {
   page: number;
   limit: number;
 }
-
-export type PaginationOption = {
-  type: 'page' | 'limit';
-  value: number;
-};
-
-export type SortOption = {
-  type: 'sort';
-  value: string;
-};
-
-export type ParamsFilterOption = {
-  type: 'filter';
-  name: string;
-  value: string;
-};
-
-export type ArrayOption = PaginationOption | SortOption | ParamsFilterOption;

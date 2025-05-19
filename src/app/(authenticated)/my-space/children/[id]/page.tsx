@@ -1,4 +1,4 @@
-import { NotesList } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/requests/review-notes';
+import { NotesList } from '@/components/requests/review-notes';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { getUserFullProfileById } from '@/lib/user/getters';
 import {

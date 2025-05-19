@@ -23,7 +23,7 @@ import { FullProfile } from '@/types/profile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusTimeline } from '@/components/consular/status-timeline';
 import { Label } from '@/components/ui/label';
-import { ReviewNotes } from '../../(admin)/_utils/components/requests/review-notes';
+import { ReviewNotes } from '../../../../../components/requests/review-notes';
 import useServiceReview from '@/hooks/use-service-review';
 
 interface ServiceRequestReviewProps {

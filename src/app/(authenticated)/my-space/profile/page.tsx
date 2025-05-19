@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { buttonVariants } from '@/components/ui/button';
 import { calculateProfileCompletion, getProfileFieldsStatus } from '@/lib/utils';
-import { NotesList } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/requests/review-notes';
+import { NotesList } from '@/components/requests/review-notes';
 import { ProfileCompletion } from './_utils/components/profile-completion';
 import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
