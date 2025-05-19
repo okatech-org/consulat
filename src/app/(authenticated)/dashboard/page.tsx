@@ -1,8 +1,8 @@
 import { ServerRoleGuard } from '@/lib/permissions/utils';
-import SuperAdminDashboard from './_utils/components/superadmin';
+import SuperAdminDashboard from '../../../components/dashboards/superadmin-dashboard';
 import { getCurrentUser } from '@/actions/user';
-import AgentDashboard from './_utils/components/agent';
-import AdminDashboard from './(admin)/_utils/dashboard';
+import AgentDashboard from '../../../components/dashboards/agent-dashboard';
+import AdminDashboard from '../../../components/dashboards/admin-dashboard';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();

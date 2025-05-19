@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail } from 'lucide-react';
 import { FullProfile } from '@/types/profile';
-import { ProfileProfessional } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/professional';
-import { ProfileBasicInfo } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/basic-info';
-import { ProfileContact } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/contact';
-import { ProfileDocuments } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/documents';
-import { ProfileFamily } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/family';
+import { ProfileProfessional } from '@/components/profile/professional';
+import { ProfileBasicInfo } from '@/components/profile/basic-info';
+import { ProfileContact } from '@/components/profile/contact';
+import { ProfileDocuments } from '@/components/profile/documents';
+import { ProfileFamily } from '@/components/profile/family';
 import CardContainer from '../layouts/card-container';
 
 interface UserProfileProps {

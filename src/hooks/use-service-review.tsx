@@ -20,7 +20,7 @@ import { Badge, BadgeVariant } from '@/components/ui/badge';
 import { DisplayAddress } from '@/components/ui/display-address';
 import { DocumentPreview } from '@/components/ui/document-preview';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { DocumentValidationDialog } from '@/app/(authenticated)/dashboard/(admin)/_utils/components/profile/document-validation-dialog';
+import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
 import { documentValidations, validateDocument } from '@/lib/document-validation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';

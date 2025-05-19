@@ -491,6 +491,8 @@ model ConsularService {
   updatedAt   DateTime @updatedAt
   Country     Country? @relation(fields: [countryCode], references: [code])
   countryCode String?
+
+  certificateTemplates CertificateTemplate[]
 }
 
 model ServiceStep {
@@ -595,6 +597,8 @@ model ServiceRequest {
   // Indicateurs de performance
   firstPassValidation Boolean? // Validation au premier passage
   processingTime      Int? // Temps de traitement en heures
+
+  certificates Certificate[]
 
   @@index([submittedById])
   @@index([serviceId])
@@ -940,4 +944,58 @@ model Sequence {
   profileId      String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+// Modèle pour les modèles d'attestations
+model CertificateTemplate {
+  id               String          @id @default(cuid())
+  name             String
+  description      String?
+  content          String          @db.Text // Contenu de l'attestation avec variables
+  availableFields  Json // Champs disponibles pour le mapping
+  requiredStatuses RequestStatus[] // Statuts pour lesquels ce modèle est applicable
+  isActive         Boolean         @default(true)
+
+  // Relations
+  service      ConsularService @relation(fields: [serviceId], references: [id])
+  serviceId    String
+  certificates Certificate[]
+
+  // Métadonnées
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceId])
+}
+
+// Modèle pour les attestations générées
+model Certificate {
+  id          String            @id @default(cuid())
+  content     String            @db.Text // Contenu généré de l'attestation
+  fileUrl     String? // URL du fichier généré (PDF)
+  isGenerated Boolean           @default(true) // false si uploadé manuellement
+  status      CertificateStatus @default(DRAFT)
+
+  // Relations
+  template         CertificateTemplate? @relation(fields: [templateId], references: [id])
+  templateId       String?
+  serviceRequest   ServiceRequest       @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String
+
+  // Permissions d'accès
+  isVisibleToUser Boolean @default(false)
+
+  // Métadonnées
+  generatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([templateId])
+  @@index([serviceRequestId])
+}
+
+enum CertificateStatus {
+  DRAFT
+  GENERATED
+  APPROVED
+  REVOKED
 }
