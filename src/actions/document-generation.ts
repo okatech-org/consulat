@@ -3,7 +3,6 @@
 import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { DocumentTemplate } from '@prisma/client';
-import { InputJsonValue } from '@prisma/client/runtime/library';
 
 export async function getDocumentTemplates(organizationId: string) {
   // Check for admin, super_admin, or manager role
@@ -18,13 +17,11 @@ export async function getDocumentTemplates(organizationId: string) {
 
 export async function getDocumentTemplateById(
   id: string,
-  organizationId: string,
 ): Promise<DocumentTemplate | null> {
   try {
     return db.documentTemplate.findUnique({
       where: {
         id,
-        organizationId,
       },
     });
   } catch (error) {
@@ -50,5 +47,23 @@ export async function deleteDocumentTemplate(id: string) {
 
   return db.documentTemplate.delete({
     where: { id },
+  });
+}
+
+export async function updateDocumentTemplate(
+  id: string,
+  data: Partial<DocumentTemplate>,
+) {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  return db.documentTemplate.update({
+    where: { id },
+    data: {
+      ...(data.name && { name: data.name }),
+      ...(data.description && { description: data.description }),
+      ...(data.type && { type: data.type }),
+      ...(data.content && { content: JSON.stringify(data.content) }),
+      ...(data.metadata && { metadata: JSON.stringify(data.metadata) }),
+    },
   });
 }

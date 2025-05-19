@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { DocumentType } from '@prisma/client';
+import { DocumentTemplate, DocumentType } from '@prisma/client';
 import { CreateDocumentTemplateSchema, CreateDocumentTemplateInput } from './schemas';
 import {
   Select,
@@ -31,6 +31,8 @@ import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { LoaderIcon } from 'lucide-react';
+import CardContainer from '../layouts/card-container';
+import { MultiSelect } from '../ui/multi-select';
 
 interface CreateDocumentTemplateFormProps {
   organizationId: string;
@@ -155,5 +157,110 @@ export function CreateDocumentTemplateFormSheet({
         <CreateDocumentTemplateForm organizationId={organizationId} />
       </SheetContent>
     </Sheet>
+  );
+}
+
+interface EditionFormProps {
+  template: DocumentTemplate;
+}
+
+export default function EditionForm({ template }: EditionFormProps) {
+  const t = useTranslations('inputs');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<CreateDocumentTemplateInput>({
+    resolver: zodResolver(CreateDocumentTemplateSchema),
+    defaultValues: {
+      name: template.name,
+      description: template.description ?? '',
+      content: template.content ? JSON.parse(template.content as string) : {},
+      type: template.type,
+      organizationId: template.organizationId ?? '',
+    },
+  });
+
+  const onSubmit = (data: CreateDocumentTemplateInput) => {
+    setIsLoading(true);
+    console.log(data);
+    setIsLoading(false);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+          <div className="col-span-4">Editeur</div>
+          <CardContainer
+            title="Informations"
+            className="col-span-2"
+            contentClass="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('documentTemplate.name.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={t('documentTemplate.name.placeholder')}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('documentTemplate.description.label')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder={t('documentTemplate.description.placeholder')}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('documentTemplate.type.label')}</FormLabel>
+                  <FormControl>
+                    <MultiSelect<DocumentType>
+                      options={Object.values(DocumentType).map((type) => ({
+                        value: type,
+                        label: t(`userDocument.options.${type}`),
+                      }))}
+                      onChange={field.onChange}
+                      selected={field.value}
+                      type="single"
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {t('documentTemplate.actions.submit')}
+              {isLoading && <LoaderIcon className="size-icon ml-1 animate-spin" />}
+            </Button>
+          </CardContainer>
+        </div>
+      </form>
+    </Form>
   );
 }
