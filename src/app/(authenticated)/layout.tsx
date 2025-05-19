@@ -30,14 +30,16 @@ export default async function AuthenticatedLayout({
       <AppSidebar user={currentUser} />
       <SidebarInset className="overflow-hidden w-full flex flex-col relative pb-safe pt-[64px]">
         <header className="fixed top-0 z-50 w-full h-16 bg-card shrink-0 border-b border-border items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex w-full h-full justify-between container items-center">
-            <div className="flex items-center gap-2 w-full max-w-[calc(100%-100px)]">
+          <div className="flex w-full h-full justify-between items-center px-4">
+            <div className="flex items-center gap-2 w-full">
               <Button disabled={isMobile} variant="ghost" className="!p-0" asChild>
                 <SidebarTrigger />
               </Button>
               <BreadcrumbMenu />
             </div>
-            <NavUser user={currentUser} showFeedback={false} />
+            <div className="min-w-max">
+              <NavUser user={currentUser} showFeedback={false} />
+            </div>
           </div>
         </header>
         <div

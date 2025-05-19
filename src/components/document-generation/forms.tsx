@@ -36,6 +36,7 @@ import { ROUTES } from '@/schemas/routes';
 import { LoaderIcon } from 'lucide-react';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
+import { PDFBuilder } from './pdf-builder';
 
 interface CreateDocumentTemplateFormProps {
   organizationId: string;
@@ -211,8 +212,10 @@ export default function EditionForm({ template }: EditionFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
-          <div className="col-span-4">Editeur</div>
+        <div className="grid grid-cols-1 gap-4">
+          <div className="col-span-4">
+            <PDFBuilder />
+          </div>
           <CardContainer
             title="Informations"
             className="col-span-2"
