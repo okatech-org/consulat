@@ -161,7 +161,7 @@ type Children =
   | (NoteElement & { children?: Children[] })
   | (CanvasElement & { children?: Children[] });
 
-type Config = {
+export type Config = {
   document: DocumentProps;
   font?: {
     family: string;
@@ -380,13 +380,15 @@ function renderChild(child: Children) {
 }
 
 type PDFBuilderProps = {
-  config: Config;
+  config?: Config;
 };
 
 export function PDFBuilder({ config = quixoteConfig }: PDFBuilderProps) {
   if (config.font) {
     Font.register(config.font);
   }
+
+  console.log({ config });
 
   return (
     <div className="w-full h-full">

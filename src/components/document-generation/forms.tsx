@@ -36,7 +36,7 @@ import { ROUTES } from '@/schemas/routes';
 import { LoaderIcon } from 'lucide-react';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
-import { PDFBuilder } from './pdf-builder';
+import { Config, PDFBuilder } from './pdf-builder';
 
 interface CreateDocumentTemplateFormProps {
   organizationId: string;
@@ -172,12 +172,21 @@ export default function EditionForm({ template }: EditionFormProps) {
   const t = useTranslations('inputs');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const defaultConfig: Config = {
+    document: {
+      title: template.name,
+    },
+    children: [],
+  };
   const form = useForm<CreateDocumentTemplateInput>({
     resolver: zodResolver(CreateDocumentTemplateSchema),
     defaultValues: {
       name: template.name,
       description: template.description ?? '',
-      content: template.content ? JSON.parse(template.content as string) : {},
+      content: {
+        ...defaultConfig,
+        ...(template.content ? JSON.parse(template.content as string) : {}),
+      },
       type: template.type,
       organizationId: template.organizationId ?? '',
     },
@@ -214,7 +223,7 @@ export default function EditionForm({ template }: EditionFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 gap-4">
           <div className="col-span-4">
-            <PDFBuilder />
+            <PDFBuilder config={form.watch('content') as Config} />
           </div>
           <CardContainer
             title="Informations"
