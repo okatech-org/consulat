@@ -159,6 +159,7 @@ export default {
     failed_to_select_random_agent: "Échec lors de la sélection aléatoire d'un agent",
     profile_failed: 'Échec de la mise à jour du profil',
     profile_success: 'Profil mis à jour avec succès',
+    fail_to_create_document_template: 'Échec de la création du modèle de document',
   },
   profile: {
     errors: {
@@ -194,6 +195,9 @@ export default {
       update_success: 'Profil mis à jour avec succès',
       update_title: 'Mise à jour du profil',
       update_description: 'Les modifications ont été enregistrées avec succès',
+    },
+    document_template: {
+      create_success: 'Modèle de document créé avec succès',
     },
   },
   requests: {

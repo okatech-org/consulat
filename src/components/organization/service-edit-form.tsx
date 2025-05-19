@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -111,6 +110,9 @@ export function ConsularServiceForm({
             <TabsTrigger value="delivery">{t('tabs.delivery')}</TabsTrigger>
             <TabsTrigger value="pricing">{t('tabs.pricing')}</TabsTrigger>
             <TabsTrigger value="steps">{t('tabs.steps')}</TabsTrigger>
+            <TabsTrigger value="documentGeneration">
+              {t('tabs.documentGeneration')}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className={'space-y-6'}>
@@ -599,6 +601,8 @@ export function ConsularServiceForm({
               </Button>
             </div>
           </TabsContent>
+
+          <TabsContent value="documentGeneration"></TabsContent>
         </Tabs>
 
         <div className="gap-4 lg:flex lg:justify-end">

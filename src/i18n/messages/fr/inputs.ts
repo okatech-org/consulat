@@ -700,4 +700,27 @@ export default {
       CONSULAR_CARD: 'Carte consulaire',
     },
   },
+  documentTemplate: {
+    name: {
+      label: 'Nom du modèle',
+      placeholder: 'Entrez le nom du modèle',
+    },
+    description: {
+      label: 'Description',
+      placeholder: 'Entrez une description du modèle',
+    },
+    type: {
+      label: 'Type de document',
+      placeholder: 'Sélectionnez un type de document',
+    },
+    actions: {
+      edit: 'Modifier',
+      delete: 'Supprimer',
+      submit: 'Enregistrer',
+    },
+    empty: {
+      title: 'Aucun modèle de document',
+      description: 'Commencez par créer votre premier modèle de document',
+    },
+  },
 } as const;

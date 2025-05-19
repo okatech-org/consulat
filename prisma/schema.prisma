@@ -426,11 +426,12 @@ model GeneratedDocument {
 }
 
 model DocumentTemplate {
-  id       String       @id @default(cuid())
-  name     String
-  type     DocumentType
-  content  Json
-  metadata Json?
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  type        DocumentType
+  content     Json
+  metadata    Json?
 
   organization             Organization?              @relation(fields: [organizationId], references: [id])
   organizationId           String?
