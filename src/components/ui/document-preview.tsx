@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface DocumentPreviewProps {
   isOpen: boolean;
@@ -33,15 +34,16 @@ export function DocumentPreview({
 }: DocumentPreviewProps) {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const isMobile = useMediaQuery('(max-width: 640px)');
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.5));
   const handleRotate = () => setRotation((prev) => (prev + 90) % 360);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpenAction}>
+    <Sheet open={isOpen} onOpenChange={setIsOpenAction}>
       {showTrigger && (
-        <DialogTrigger asChild>
+        <SheetTrigger asChild>
           <Button
             type="button"
             variant="outline"
@@ -50,12 +52,12 @@ export function DocumentPreview({
           >
             <Eye className="size-icon" />
           </Button>
-        </DialogTrigger>
+        </SheetTrigger>
       )}
-      <DialogContent className="h-[90vh] max-w-4xl">
-        <div className="flex h-full flex-col">
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
+      <SheetContent side={isMobile ? 'bottom' : 'right'} className="!max-w-5xl">
+        <div className="flex h-full flex-col gap-4 overflow-hidden">
+          <SheetHeader>
+            <SheetTitle>{title}</SheetTitle>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleZoomOut}>
                 <ZoomOut className="size-icon" />
@@ -73,12 +75,12 @@ export function DocumentPreview({
                 </Button>
               )}
             </div>
-          </DialogHeader>
-          <div className="flex-1 overflow-auto p-4">
+          </SheetHeader>
+          <div className="flex-1 overflow-auto">
             {type === 'pdf' ? (
               <iframe src={`${url}#toolbar=0`} className="size-full" title={title} />
             ) : (
-              <div className="flex h-full items-center justify-center">
+              <div className="flex size-full items-center justify-center">
                 <div
                   className={cn(
                     'relative transition-transform duration-200',
@@ -99,7 +101,7 @@ export function DocumentPreview({
             )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
