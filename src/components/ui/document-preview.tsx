@@ -53,7 +53,7 @@ export function DocumentPreview({
         </DialogTrigger>
       )}
       <DialogContent className="h-[90vh] max-w-4xl">
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col gap-4 overflow-hidden">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <div className="flex items-center gap-2">
@@ -74,11 +74,11 @@ export function DocumentPreview({
               )}
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-auto p-4">
+          <div className="flex-1 overflow-auto">
             {type === 'pdf' ? (
               <iframe src={`${url}#toolbar=0`} className="size-full" title={title} />
             ) : (
-              <div className="flex h-full items-center justify-center">
+              <div className="flex size-full items-center justify-center">
                 <div
                   className={cn(
                     'relative transition-transform duration-200',
