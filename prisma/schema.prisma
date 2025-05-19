@@ -404,6 +404,52 @@ model UserDocument {
   @@index([serviceRequestId])
 }
 
+model GeneratedDocument {
+  id        String       @id @default(cuid())
+  type      DocumentType
+  fileUrl   String // URL du fichier stocké
+  fileType  String // Type de fichier
+  issuedAt  DateTime?
+  expiresAt DateTime?
+  metadata  Json? // Métadonnées additionnelles
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String?
+
+  template   DocumentTemplate @relation(fields: [templateId], references: [id])
+  templateId String
+
+  @@index([serviceRequestId])
+}
+
+model DocumentTemplate {
+  id       String       @id @default(cuid())
+  name     String
+  type     DocumentType
+  content  Json
+  metadata Json?
+
+  organization             Organization?              @relation(fields: [organizationId], references: [id])
+  organizationId           String?
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  generateDocumentSettings GenerateDocumentSettings[]
+  generatedDocuments       GeneratedDocument[]
+}
+
+model GenerateDocumentSettings {
+  id               String           @id @default(cuid())
+  serviceId        String
+  service          ConsularService  @relation(fields: [serviceId], references: [id])
+  settings         Json? // Métadonnées additionnelles
+  template         DocumentTemplate @relation(fields: [templateId], references: [id])
+  templateId       String
+  generateOnStatus RequestStatus[]
+}
+
 model Message {
   id         String  @id @default(cuid())
   content    String
@@ -460,6 +506,7 @@ model ConsularService {
   // Configuration
   requiredDocuments           DocumentType[] // Types de documents requis
   optionalDocuments           DocumentType[] // Types de documents optionnels
+  toGenerateDocuments         DocumentType[] // Types de documents à générer
   requiresAppointment         Boolean        @default(false)
   appointmentDuration         Int? // Durée en minutes
   appointmentInstructions     String?
@@ -486,13 +533,12 @@ model ConsularService {
   postalRequirements String?
 
   // Métadonnées
-  metadata    Json? // Données additionnelles flexibles
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  Country     Country? @relation(fields: [countryCode], references: [code])
-  countryCode String?
-
-  certificateTemplates CertificateTemplate[]
+  metadata                 Json? // Données additionnelles flexibles
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  Country                  Country?                   @relation(fields: [countryCode], references: [code])
+  countryCode              String?
+  generateDocumentSettings GenerateDocumentSettings[]
 }
 
 model ServiceStep {
@@ -590,6 +636,8 @@ model ServiceRequest {
   // Add this relation
   actions RequestAction[]
 
+  generatedDocuments GeneratedDocument[]
+
   // Métadonnées
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -597,8 +645,6 @@ model ServiceRequest {
   // Indicateurs de performance
   firstPassValidation Boolean? // Validation au premier passage
   processingTime      Int? // Temps de traitement en heures
-
-  certificates Certificate[]
 
   @@index([submittedById])
   @@index([serviceId])
@@ -884,7 +930,8 @@ model Organization {
 
   agents User[] @relation("OrganizationAgents")
 
-  serviceRequests ServiceRequest[]
+  serviceRequests   ServiceRequest[]
+  documentTemplates DocumentTemplate[]
 
   @@map("organizations")
 }
@@ -944,58 +991,4 @@ model Sequence {
   profileId      String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-}
-
-// Modèle pour les modèles d'attestations
-model CertificateTemplate {
-  id               String          @id @default(cuid())
-  name             String
-  description      String?
-  content          String          @db.Text // Contenu de l'attestation avec variables
-  availableFields  Json // Champs disponibles pour le mapping
-  requiredStatuses RequestStatus[] // Statuts pour lesquels ce modèle est applicable
-  isActive         Boolean         @default(true)
-
-  // Relations
-  service      ConsularService @relation(fields: [serviceId], references: [id])
-  serviceId    String
-  certificates Certificate[]
-
-  // Métadonnées
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([serviceId])
-}
-
-// Modèle pour les attestations générées
-model Certificate {
-  id          String            @id @default(cuid())
-  content     String            @db.Text // Contenu généré de l'attestation
-  fileUrl     String? // URL du fichier généré (PDF)
-  isGenerated Boolean           @default(true) // false si uploadé manuellement
-  status      CertificateStatus @default(DRAFT)
-
-  // Relations
-  template         CertificateTemplate? @relation(fields: [templateId], references: [id])
-  templateId       String?
-  serviceRequest   ServiceRequest       @relation(fields: [serviceRequestId], references: [id])
-  serviceRequestId String
-
-  // Permissions d'accès
-  isVisibleToUser Boolean @default(false)
-
-  // Métadonnées
-  generatedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([templateId])
-  @@index([serviceRequestId])
-}
-
-enum CertificateStatus {
-  DRAFT
-  GENERATED
-  APPROVED
-  REVOKED
 }
