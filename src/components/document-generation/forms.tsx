@@ -25,8 +25,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Sheet, SheetTrigger, SheetContent } from '../ui/sheet';
-import { tryCatch } from '@/lib/utils';
-import { createDocumentTemplate } from '@/actions/document-generation';
+import { filterUneditedKeys, removeUndefined, tryCatch } from '@/lib/utils';
+import {
+  createDocumentTemplate,
+  updateDocumentTemplate,
+} from '@/actions/document-generation';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
@@ -167,7 +170,7 @@ interface EditionFormProps {
 export default function EditionForm({ template }: EditionFormProps) {
   const t = useTranslations('inputs');
   const [isLoading, setIsLoading] = useState(false);
-
+  const router = useRouter();
   const form = useForm<CreateDocumentTemplateInput>({
     resolver: zodResolver(CreateDocumentTemplateSchema),
     defaultValues: {
@@ -179,9 +182,29 @@ export default function EditionForm({ template }: EditionFormProps) {
     },
   });
 
-  const onSubmit = (data: CreateDocumentTemplateInput) => {
-    setIsLoading(true);
-    console.log(data);
+  const onSubmit = async (data: CreateDocumentTemplateInput) => {
+    const editedFields = filterUneditedKeys(data, form.formState.dirtyFields);
+
+    const response = await tryCatch(
+      updateDocumentTemplate(template.id, editedFields as Partial<DocumentTemplate>),
+    );
+
+    if (response.error) {
+      toast({
+        title: response.error.message,
+        variant: 'destructive',
+      });
+    }
+
+    if (response.data) {
+      toast({
+        title: 'Modèle de document mis à jour avec succès',
+        variant: 'success',
+      });
+
+      router.refresh();
+    }
+
     setIsLoading(false);
   };
 
