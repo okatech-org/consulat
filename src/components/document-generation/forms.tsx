@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Sheet, SheetTrigger, SheetContent } from '../ui/sheet';
-import { filterUneditedKeys, removeUndefined, tryCatch } from '@/lib/utils';
+import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import {
   createDocumentTemplate,
   updateDocumentTemplate,
@@ -62,7 +62,7 @@ export function CreateDocumentTemplateForm({
   const onSubmit = async (data: CreateDocumentTemplateInput) => {
     setLoading(true);
 
-    const response = await tryCatch(createDocumentTemplate(data));
+    const response = await tryCatch(createDocumentTemplate(data as DocumentTemplate));
 
     if (response.error) {
       toast({
