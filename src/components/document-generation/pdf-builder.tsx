@@ -540,13 +540,74 @@ function ConfigEditor({
     onChange(newConfig);
   }
 
+  function handleRemoveElement(path: string[]) {
+    const newConfig = { ...config };
+    console.log('Removing element at path:', path);
+
+    const flatConfig = flattenConfig(newConfig);
+    console.log(
+      'All elements:',
+      flatConfig.map((c) => ({ element: c.element, props: c.props })),
+    );
+
+    const index = flatConfig.findIndex(
+      (child) => child.element === path[path.length - 1],
+    );
+    console.log('Found element at index:', index);
+
+    if (index !== -1) {
+      flatConfig.splice(index, 1);
+      const resultConfig = unflattenConfig(flatConfig);
+      onChange(resultConfig);
+    } else {
+      console.warn('Element not found at path:', path);
+    }
+  }
+
+  function flattenConfig(config: Config): Children[] {
+    const flatChildren: Children[] = [];
+
+    function flatten(children: Children[]) {
+      children.forEach((child) => {
+        flatChildren.push(child);
+        if (child.children && child.children.length > 0) {
+          flatten(child.children);
+        }
+      });
+    }
+
+    flatten(config.children);
+    return flatChildren;
+  }
+
+  function unflattenConfig(flatConfig: Children[]): Config {
+    // Create a new config with the first element as root
+    const newConfig: Config = {
+      document: config.document,
+      children: [],
+    };
+
+    // Add all elements at root level for now
+    // Later we can implement proper tree reconstruction if needed
+    newConfig.children = flatConfig;
+
+    return newConfig;
+  }
+
   function renderChildEditor(child: Children, path: string[]) {
     const elementKey = `element-${path.join('-')}-${child.element}-${Date.now()}`;
 
-    console.log(elementKey);
     return (
-      <div key={elementKey} className="pl-4 border-l-2 border-gray-200 my-2">
-        {elementKey}
+      <div
+        key={elementKey}
+        className="pl-4 border-l-2 border-gray-200 my-2 flex flex-col gap-2"
+      >
+        <div className="flex items-center gap-2">
+          <span>{elementKey}</span>
+          <Button variant="link" size="link" onClick={() => handleRemoveElement(path)}>
+            <MinusIcon className="size-icon" />
+          </Button>
+        </div>
       </div>
     );
   }
