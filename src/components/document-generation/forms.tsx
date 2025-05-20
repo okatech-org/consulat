@@ -176,7 +176,22 @@ export default function EditionForm({ template }: EditionFormProps) {
     document: {
       title: template.name,
     },
-    children: [],
+    children: [
+      {
+        element: 'Page',
+        props: {
+          size: 'A4',
+          orientation: 'portrait',
+          wrap: true,
+          style: {
+            paddingTop: 35,
+            paddingBottom: 65,
+            paddingHorizontal: 35,
+          },
+        },
+        children: [],
+      },
+    ],
   };
   const form = useForm<CreateDocumentTemplateInput>({
     resolver: zodResolver(CreateDocumentTemplateSchema),
@@ -218,12 +233,19 @@ export default function EditionForm({ template }: EditionFormProps) {
     setIsLoading(false);
   };
 
+  console.log(form.formState);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 gap-4">
           <div className="col-span-4">
-            <PDFBuilder config={form.watch('content') as Config} />
+            <PDFBuilder
+              config={form.watch('content') as Config}
+              onConfigChange={(config) => {
+                form.setValue('content', config);
+              }}
+            />
           </div>
           <CardContainer
             title="Informations"
