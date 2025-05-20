@@ -8,7 +8,7 @@ import CardContainer from '../layouts/card-container';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { MinusIcon, PencilIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -163,12 +163,14 @@ type Children =
   | (LinkElement & { children?: Children[] })
   | (NoteElement & { children?: Children[] });
 
+type Font = {
+  family: string;
+  src: string;
+};
+
 export type Config = {
   document: DocumentProps;
-  font?: {
-    family: string;
-    src: string;
-  };
+  fonts: Font[];
   children: Children[];
 };
 
@@ -182,50 +184,51 @@ function renderChild(child: Children) {
   switch (child.element) {
     case 'Document':
       return (
-        <Document {...(child.props as DocumentProps)}>
+        <Document key={child.id} {...(child.props as DocumentProps)}>
           {child.children && renderChildren(child.children)}
         </Document>
       );
     case 'Page':
       return (
-        <Page {...(child.props as PageProps)}>
+        <Page key={child.id} {...(child.props as PageProps)}>
           {child.children && renderChildren(child.children)}
           {child.content}
         </Page>
       );
     case 'Text':
       return (
-        <Text {...(child.props as TextProps)}>
+        <Text key={child.id} {...(child.props as TextProps)}>
           {child.children && renderChildren(child.children)}
           {child.content}
         </Text>
       );
     case 'Image':
-      return <Image {...(child.props as Required<ImageProps>)} />;
+      return <Image key={child.id} {...(child.props as Required<ImageProps>)} />;
     case 'View':
       return (
-        <View {...(child.props as ViewProps)}>
+        <View key={child.id} {...(child.props as ViewProps)}>
           {child.children && renderChildren(child.children)}
           {child.content}
         </View>
       );
     case 'Link':
       return (
-        <Link {...(child.props as LinkProps)}>
+        <Link key={child.id} {...(child.props as LinkProps)}>
           {child.children && renderChildren(child.children)}
           {child.content}
         </Link>
       );
     case 'Note':
-      return <Note {...(child.props as Required<NoteProps>)} />;
+      return (
+        <Note {...(child.props as Required<NoteProps>)} key={child.id}>
+          {child.children && renderChildren(child.children)}
+          {child.content}
+        </Note>
+      );
     default:
       return null;
   }
 }
-
-type PDFBuilderProps = {
-  config?: Config;
-};
 
 function removeElementFromTree(children: Children[], id: string): Children[] {
   // Recursively remove element by id from the tree
@@ -369,7 +372,13 @@ function getDefaultElement(type: ElementType, parentId: string): Children {
   }
 }
 
-function ConfigEditor({ config }: { config: Config }) {
+function ConfigEditor({
+  config,
+  setConfig,
+}: {
+  config: Config;
+  setConfig: (config: Config) => void;
+}) {
   const [localConfig, setLocalConfig] = useState(config);
   const [editing, setEditing] = useState<Children | null>(null);
 
@@ -446,6 +455,15 @@ function ConfigEditor({ config }: { config: Config }) {
   function renderEditDialog() {
     if (!editing) return null;
     const { element, props, content, id } = editing;
+    // Helper for safely getting nested style values
+    const getStyle = (key: string) =>
+      props && props.style && typeof props.style === 'object'
+        ? (props.style[key] ?? '')
+        : '';
+    // Helper for safely updating nested style values
+    const handleStyleChange = (styleKey: string, value: string | number) => {
+      handlePropChange(id, ['props', 'style', styleKey], value);
+    };
     return (
       <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
         <DialogContent>
@@ -454,7 +472,7 @@ function ConfigEditor({ config }: { config: Config }) {
           </DialogHeader>
           <div className="space-y-4">
             {element === 'Text' && (
-              <div>
+              <>
                 <Label className="block text-xs font-medium mb-1">Contenu</Label>
                 <Input
                   className="input input-bordered w-full"
@@ -462,10 +480,34 @@ function ConfigEditor({ config }: { config: Config }) {
                   onChange={(e) => handlePropChange(id, ['content'], e.target.value)}
                   placeholder="Contenu du texte"
                 />
-              </div>
+                <Label className="block text-xs font-medium mb-1 mt-2">
+                  Taille de police
+                </Label>
+                <Input
+                  type="number"
+                  className="input input-bordered w-full"
+                  value={props?.style?.fontSize ?? ''}
+                  onChange={(e) => handleStyleChange('fontSize', Number(e.target.value))}
+                  placeholder="Taille de police"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">Police</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={props?.style?.fontFamily ?? ''}
+                  onChange={(e) => handleStyleChange('fontFamily', e.target.value)}
+                  placeholder="Police (ex: Times-Roman)"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">Couleur</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={props?.style?.color ?? ''}
+                  onChange={(e) => handleStyleChange('color', e.target.value)}
+                  placeholder="Couleur (ex: #000000)"
+                />
+              </>
             )}
             {element === 'Image' && (
-              <div>
+              <>
                 <Label className="block text-xs font-medium mb-1">
                   Url de l&apos;image
                 </Label>
@@ -477,15 +519,152 @@ function ConfigEditor({ config }: { config: Config }) {
                   }
                   placeholder="Url de l'image"
                 />
-              </div>
+                <Label className="block text-xs font-medium mb-1 mt-2">Largeur</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={getStyle('width')}
+                  onChange={(e) => handleStyleChange('width', e.target.value)}
+                  placeholder="Largeur (ex: 100%)"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">Hauteur</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={getStyle('height')}
+                  onChange={(e) => handleStyleChange('height', e.target.value)}
+                  placeholder="Hauteur (ex: auto)"
+                />
+              </>
             )}
-            {/* Add more fields for other element types and props as needed */}
-            {/* Example: Page size/orientation, View style, etc. */}
+            {element === 'Page' && (
+              <>
+                <Label className="block text-xs font-medium mb-1">Taille</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={props.size ?? ''}
+                  onChange={(e) =>
+                    handlePropChange(id, ['props', 'size'], e.target.value)
+                  }
+                  placeholder="Taille (ex: A4)"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">Orientation</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={props.orientation ?? ''}
+                  onChange={(e) =>
+                    handlePropChange(id, ['props', 'orientation'], e.target.value)
+                  }
+                  placeholder="Orientation (portrait/landscape)"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">
+                  Padding haut
+                </Label>
+                <Input
+                  type="number"
+                  className="input input-bordered w-full"
+                  value={getStyle('paddingTop')}
+                  onChange={(e) =>
+                    handleStyleChange('paddingTop', Number(e.target.value))
+                  }
+                  placeholder="Padding haut"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">Padding bas</Label>
+                <Input
+                  type="number"
+                  className="input input-bordered w-full"
+                  value={getStyle('paddingBottom')}
+                  onChange={(e) =>
+                    handleStyleChange('paddingBottom', Number(e.target.value))
+                  }
+                  placeholder="Padding bas"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">
+                  Padding horizontal
+                </Label>
+                <Input
+                  type="number"
+                  className="input input-bordered w-full"
+                  value={getStyle('paddingHorizontal')}
+                  onChange={(e) =>
+                    handleStyleChange('paddingHorizontal', Number(e.target.value))
+                  }
+                  placeholder="Padding horizontal"
+                />
+              </>
+            )}
+            {element === 'View' && (
+              <>
+                <Label className="block text-xs font-medium mb-1">Marge basse</Label>
+                <Input
+                  type="number"
+                  className="input input-bordered w-full"
+                  value={getStyle('marginBottom')}
+                  onChange={(e) =>
+                    handleStyleChange('marginBottom', Number(e.target.value))
+                  }
+                  placeholder="Marge basse"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">
+                  Direction du flex
+                </Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={getStyle('flexDirection')}
+                  onChange={(e) => handleStyleChange('flexDirection', e.target.value)}
+                  placeholder="Direction du flex (row/column)"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">
+                  Couleur de fond
+                </Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={getStyle('backgroundColor')}
+                  onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+                  placeholder="Couleur de fond (ex: #ffffff)"
+                />
+              </>
+            )}
+            {element === 'Link' && (
+              <>
+                <Label className="block text-xs font-medium mb-1">URL</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={props.src ?? ''}
+                  onChange={(e) => handlePropChange(id, ['props', 'src'], e.target.value)}
+                  placeholder="URL du lien"
+                />
+                <Label className="block text-xs font-medium mb-1 mt-2">Couleur</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={props.style?.color ?? ''}
+                  onChange={(e) => handleStyleChange('color', e.target.value)}
+                  placeholder="Couleur du lien (ex: #0000ff)"
+                />
+              </>
+            )}
+            {element === 'Note' && (
+              <>
+                <Label className="block text-xs font-medium mb-1">
+                  Contenu de la note
+                </Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={props.children ?? ''}
+                  onChange={(e) =>
+                    handlePropChange(id, ['props', 'children'], e.target.value)
+                  }
+                  placeholder="Contenu de la note"
+                />
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
     );
   }
+
+  useEffect(() => {
+    setConfig(localConfig);
+  }, [localConfig, setConfig]);
 
   function renderChildEditor(child: Children) {
     const permissible = getPermissibleChildTypes(child);
@@ -568,7 +747,9 @@ function ConfigEditor({ config }: { config: Config }) {
             />
           )}
         {child.children && child.children.length > 0 && (
-          <div className="ml-2">{child.children.map((c) => renderChildEditor(c))}</div>
+          <div className="ml-2 flex flex-col gap-2">
+            {child.children.map((c) => renderChildEditor(c))}
+          </div>
         )}
       </div>
     );
@@ -586,7 +767,7 @@ function ConfigEditor({ config }: { config: Config }) {
           Ajouter une page
         </Button>
       </div>
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {localConfig.children.map((child) => renderChildEditor(child))}
       </div>
       {renderEditDialog()}
@@ -594,17 +775,30 @@ function ConfigEditor({ config }: { config: Config }) {
   );
 }
 
+type PDFBuilderProps = {
+  config?: Config;
+  onChange?: (config: Config) => void;
+};
+
 export function PDFBuilder({
   config = {
+    fonts: [],
     document: {
       title: 'Document',
     },
     children: [],
   },
+  onChange,
 }: PDFBuilderProps) {
-  if (config.font) {
-    Font.register(config.font);
-  }
+  const [localConfig, setLocalConfig] = useState(config);
+
+  localConfig.fonts.forEach((font) => {
+    Font.register(font);
+  });
+
+  useEffect(() => {
+    onChange?.(localConfig);
+  }, [localConfig, onChange]);
 
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-6 gap-4">
@@ -613,11 +807,13 @@ export function PDFBuilder({
         contentClass="overflow-hidden p-0 aspect-[1/1.4142]"
       >
         <ReactPDF.PDFViewer width="100%" height="100%">
-          <Document {...config.document}>{config.children.map(renderChild)}</Document>
+          <Document {...config.document}>
+            {localConfig.children.map(renderChild)}
+          </Document>
         </ReactPDF.PDFViewer>
       </CardContainer>
       <CardContainer className="lg:col-span-2" title="Editor">
-        <ConfigEditor config={config} />
+        <ConfigEditor config={localConfig} setConfig={setLocalConfig} />
       </CardContainer>
     </div>
   );

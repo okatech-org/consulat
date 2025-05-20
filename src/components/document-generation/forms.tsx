@@ -172,14 +172,21 @@ export default function EditionForm({ template }: EditionFormProps) {
   const t = useTranslations('inputs');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const defaultPageId = crypto.randomUUID();
   const defaultConfig: Config = {
+    fonts: [
+      {
+        family: 'Oswald',
+        src: 'https://fonts.gstatic.com/s/oswald/v13/Y_TKV6o8WovbUd3m_X9aAA.ttf',
+      },
+    ],
     document: {
       title: template.name,
     },
     children: [
       {
         element: 'Page',
-        id: crypto.randomUUID(),
+        id: defaultPageId,
         parentId: 'root',
         props: {
           size: 'A4',
@@ -191,7 +198,21 @@ export default function EditionForm({ template }: EditionFormProps) {
             paddingHorizontal: 35,
           },
         },
-        children: [],
+        children: [
+          {
+            element: 'Text',
+            id: crypto.randomUUID(),
+            parentId: defaultPageId,
+            content: 'Nouveau texte',
+            props: {
+              style: {
+                fontSize: 20,
+                textAlign: 'center',
+                fontFamily: 'Oswald',
+              },
+            },
+          },
+        ],
       },
     ],
   };
@@ -240,11 +261,23 @@ export default function EditionForm({ template }: EditionFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 gap-4">
           <div className="col-span-4">
-            <PDFBuilder
-              config={form.watch('content') as Config}
-              onConfigChange={(config) => {
-                form.setValue('content', config);
-              }}
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('documentTemplate.description.label')}</FormLabel>
+                  <FormControl>
+                    <PDFBuilder
+                      config={field.value as Config}
+                      onChange={(config) => {
+                        field.onChange(config);
+                      }}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
             />
           </div>
           <CardContainer
