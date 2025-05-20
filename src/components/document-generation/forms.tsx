@@ -179,6 +179,8 @@ export default function EditionForm({ template }: EditionFormProps) {
     children: [
       {
         element: 'Page',
+        id: crypto.randomUUID(),
+        parentId: 'root',
         props: {
           size: 'A4',
           orientation: 'portrait',
@@ -232,8 +234,6 @@ export default function EditionForm({ template }: EditionFormProps) {
 
     setIsLoading(false);
   };
-
-  console.log(form.formState);
 
   return (
     <Form {...form}>

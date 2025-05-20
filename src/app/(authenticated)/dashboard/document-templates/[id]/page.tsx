@@ -12,7 +12,8 @@ interface DocumentTemplatePageProps {
 export default async function DocumentTemplatePage({
   params,
 }: DocumentTemplatePageProps) {
-  const modelId = params.id as string;
+  const awaitedParams = await params;
+  const modelId = awaitedParams.id as string;
 
   if (!modelId) {
     return (

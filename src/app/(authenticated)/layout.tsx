@@ -37,7 +37,7 @@ export default async function AuthenticatedLayout({
               </Button>
               <BreadcrumbMenu />
             </div>
-            <div className="min-w-max">
+            <div className="min-w-max right-0">
               <NavUser user={currentUser} showFeedback={false} />
             </div>
           </div>

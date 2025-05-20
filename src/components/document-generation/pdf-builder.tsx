@@ -1,25 +1,13 @@
 'use client';
 
-import {
-  Document,
-  Page,
-  Text,
-  Image,
-  Font,
-  View,
-  Link,
-  Note,
-  Canvas,
-} from '@react-pdf/renderer';
+import { Document, Page, Text, Image, Font, View, Link, Note } from '@react-pdf/renderer';
 import ReactPDF from '@react-pdf/renderer';
 import type { Style as PDFStyle } from '@react-pdf/types';
 import type { PDFVersion, PageSize, Bookmark, SourceObject } from '@react-pdf/types';
 import CardContainer from '../layouts/card-container';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { MultiSelect } from '../ui/multi-select';
-import { MinusIcon, PlusIcon } from 'lucide-react';
+import { MinusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 type PageMode =
@@ -106,14 +94,6 @@ type NoteProps = {
   style?: PDFStyle;
 };
 
-type CanvasProps = {
-  paint: (painter: unknown, width: number, height: number) => null;
-  debug?: boolean;
-  fixed?: boolean;
-  bookmark?: string | Bookmark;
-  style?: PDFStyle;
-};
-
 enum ElementType {
   Document = 'Document',
   Page = 'Page',
@@ -122,10 +102,11 @@ enum ElementType {
   Image = 'Image',
   Link = 'Link',
   Note = 'Note',
-  Canvas = 'Canvas',
 }
 
 type ChildrenBase = {
+  id: string;
+  parentId?: string;
   content?: string;
 };
 
@@ -164,11 +145,6 @@ type NoteElement = ChildrenBase & {
   props: NoteProps;
 };
 
-type CanvasElement = ChildrenBase & {
-  element: 'Canvas';
-  props: CanvasProps;
-};
-
 type Children =
   | (DocumentElement & { children?: Children[] })
   | (PageElement & { children?: Children[] })
@@ -176,8 +152,7 @@ type Children =
   | (TextElement & { children?: Children[] })
   | (ImageElement & { children?: Children[] })
   | (LinkElement & { children?: Children[] })
-  | (NoteElement & { children?: Children[] })
-  | (CanvasElement & { children?: Children[] });
+  | (NoteElement & { children?: Children[] });
 
 export type Config = {
   document: DocumentProps;
@@ -186,162 +161,6 @@ export type Config = {
     src: string;
   };
   children: Children[];
-};
-
-const quixoteConfig: Config = {
-  document: {
-    title: 'Don Quijote de la Mancha',
-    author: 'Miguel de Cervantes',
-    subject: 'Spanish Literature',
-    keywords: 'novel, spanish, classic',
-    creator: 'Consulat.ga PDF Generator',
-    language: 'es',
-    pageMode: 'useNone',
-    pageLayout: 'singlePage',
-  },
-  font: {
-    family: 'Oswald',
-    src: 'https://fonts.gstatic.com/s/oswald/v13/Y_TKV6o8WovbUd3m_X9aAA.ttf',
-  },
-  children: [
-    {
-      element: 'Page',
-      props: {
-        size: 'A4',
-        orientation: 'portrait',
-        wrap: true,
-        style: {
-          paddingTop: 35,
-          paddingBottom: 65,
-          paddingHorizontal: 35,
-        },
-      },
-      children: [
-        {
-          element: 'View',
-          props: {
-            style: {
-              marginBottom: 30,
-              borderBottom: '1pt solid #999',
-              paddingBottom: 20,
-            },
-          },
-          children: [
-            {
-              element: 'Text',
-              props: {
-                id: 'title',
-                style: {
-                  fontSize: 24,
-                  textAlign: 'center',
-                  fontFamily: 'Oswald',
-                },
-              },
-              content: 'Don Quijote de la Mancha',
-            },
-            {
-              element: 'Text',
-              props: {
-                style: {
-                  fontSize: 12,
-                  textAlign: 'center',
-                  marginTop: 10,
-                },
-              },
-              content: 'Miguel de Cervantes',
-            },
-          ],
-        },
-        {
-          element: 'View',
-          props: {
-            style: {
-              flexDirection: 'row',
-              marginBottom: 20,
-            },
-          },
-          children: [
-            {
-              element: 'View',
-              props: {
-                style: {
-                  flex: 1,
-                  marginRight: 10,
-                },
-              },
-              children: [
-                {
-                  element: 'Image',
-                  props: {
-                    source:
-                      'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOi0G1T4rEioAQZb145Ml832EyDvzWdnmFpiX0P',
-                    cache: true,
-                    style: {
-                      width: '100%',
-                      height: 'auto',
-                    },
-                  },
-                },
-              ],
-            },
-            {
-              element: 'View',
-              props: {
-                style: {
-                  flex: 2,
-                },
-              },
-              children: [
-                {
-                  element: 'Link',
-                  props: {
-                    src: '#chapter1',
-                    style: {
-                      textDecoration: 'none',
-                      color: '#000',
-                    },
-                  },
-                  children: [
-                    {
-                      element: 'Text',
-                      props: {
-                        id: 'chapter1',
-                        style: {
-                          fontSize: 18,
-                          marginBottom: 10,
-                          fontFamily: 'Oswald',
-                        },
-                      },
-                      content:
-                        'Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo D. Quijote de la Mancha',
-                    },
-                  ],
-                },
-                {
-                  element: 'Text',
-                  props: {
-                    style: {
-                      fontSize: 14,
-                      textAlign: 'justify',
-                      fontFamily: 'Times-Roman',
-                    },
-                  },
-                  content:
-                    'En un lugar de la Mancha, de cuyo nombre no quiero acordarme...',
-                },
-                {
-                  element: 'Note',
-                  props: {
-                    children: 'This is a note annotation in the PDF',
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
 };
 
 export function renderChildren(children: Children[]) {
@@ -390,8 +209,6 @@ function renderChild(child: Children) {
       );
     case 'Note':
       return <Note {...(child.props as Required<NoteProps>)} />;
-    case 'Canvas':
-      return <Canvas {...child.props} />;
     default:
       return null;
   }
@@ -409,41 +226,46 @@ function ConfigEditor({
   config: Config;
   onChange: (config: Config) => void;
 }) {
-  function handleAddElement(path: string[], type: ElementType) {
+  const [localConfig, setLocalConfig] = useState(config);
+
+  function handleAddElement(parentId: string, type: ElementType) {
     const newConfig = { ...config };
 
+    if (parentId === 'root') {
+      newConfig.children.push({
+        id: crypto.randomUUID(),
+        parentId: 'root',
+        element: 'Page',
+        props: {
+          size: 'A4',
+          orientation: 'portrait',
+          wrap: true,
+          style: {
+            paddingTop: 35,
+            paddingBottom: 65,
+            paddingHorizontal: 35,
+          },
+        },
+        children: [],
+      });
+
+      onChange(newConfig);
+      return;
+    }
+
+    const flatChildren = flattenConfig(newConfig);
+    const parent = flatChildren.find((child) => child.id === parentId);
+    if (!parent) {
+      throw new Error(`Parent element not found: ${parentId}`);
+    }
     let newElement: Children;
+    const newId = crypto.randomUUID();
 
     switch (type) {
-      case ElementType.Document:
-        newElement = {
-          element: 'Document',
-          props: {
-            title: 'New Document',
-            creator: 'Consulat.ga PDF Generator',
-            language: 'fr',
-          },
-          children: [],
-        };
-        break;
-      case ElementType.Page:
-        newElement = {
-          element: 'Page',
-          props: {
-            size: 'A4',
-            orientation: 'portrait',
-            wrap: true,
-            style: {
-              paddingTop: 35,
-              paddingBottom: 65,
-              paddingHorizontal: 35,
-            },
-          },
-          children: [],
-        };
-        break;
       case ElementType.View:
         newElement = {
+          id: newId,
+          parentId: parentId,
           element: 'View',
           props: {
             wrap: true,
@@ -456,6 +278,8 @@ function ConfigEditor({
         break;
       case ElementType.Text:
         newElement = {
+          id: newId,
+          parentId: parentId,
           element: 'Text',
           props: {
             wrap: true,
@@ -469,6 +293,8 @@ function ConfigEditor({
         break;
       case ElementType.Image:
         newElement = {
+          id: newId,
+          parentId: parentId,
           element: 'Image',
           props: {
             source: '',
@@ -482,6 +308,8 @@ function ConfigEditor({
         break;
       case ElementType.Link:
         newElement = {
+          id: newId,
+          parentId: parentId,
           element: 'Link',
           props: {
             src: '#',
@@ -495,21 +323,11 @@ function ConfigEditor({
         break;
       case ElementType.Note:
         newElement = {
+          id: newId,
+          parentId: parentId,
           element: 'Note',
           props: {
             children: 'New note',
-          },
-        };
-        break;
-      case ElementType.Canvas:
-        newElement = {
-          element: 'Canvas',
-          props: {
-            paint: (painter, width, height) => null,
-            style: {
-              width: '100%',
-              height: 100,
-            },
           },
         };
         break;
@@ -517,94 +335,56 @@ function ConfigEditor({
         throw new Error(`Unsupported element type: ${type}`);
     }
 
-    // Navigate to the target location using the path
-    let current: any = newConfig;
-    for (let i = 0; i < path.length - 1; i++) {
-      if (!current.children) {
-        current.children = [];
-      }
-      current = current.children[parseInt(path[i], 10)];
-    }
-
-    // Add the new element at the specified position
-    if (!current.children) {
-      current.children = [];
-    }
-    const lastIndex = path[path.length - 1];
-    if (lastIndex !== undefined) {
-      current.children.splice(parseInt(lastIndex, 10), 0, newElement);
+    if (parentId === 'root') {
+      newConfig.children.push(newElement);
     } else {
-      current.children.push(newElement);
+      const parentPath = flatChildren.find((child) => child.id === parentId)?.path;
+      if (!parentPath) {
+        throw new Error(`Parent element not found: ${parentId}`);
+      }
+
+      const parentRefInConfig = config.children.find((child) => child.id === parentId);
+      if (!parentRefInConfig) {
+        throw new Error(`Parent element not found: ${parentId}`);
+      }
+
+      parentRefInConfig.children?.splice(parentPath.length, 0, newElement);
     }
 
     onChange(newConfig);
   }
 
-  function handleRemoveElement(path: string[]) {
-    const newConfig = { ...config };
-    console.log('Removing element at path:', path);
+  function handleRemoveElement(id: string, parentId?: string) {
+    const newConfig = { ...localConfig };
 
-    const flatConfig = flattenConfig(newConfig);
-    console.log(
-      'All elements:',
-      flatConfig.map((c) => ({ element: c.element, props: c.props })),
-    );
-
-    const index = flatConfig.findIndex(
-      (child) => child.element === path[path.length - 1],
-    );
-    console.log('Found element at index:', index);
-
-    if (index !== -1) {
-      flatConfig.splice(index, 1);
-      const resultConfig = unflattenConfig(flatConfig);
-      onChange(resultConfig);
-    } else {
-      console.warn('Element not found at path:', path);
-    }
-  }
-
-  function flattenConfig(config: Config): Children[] {
-    const flatChildren: Children[] = [];
-
-    function flatten(children: Children[]) {
-      children.forEach((child) => {
-        flatChildren.push(child);
-        if (child.children && child.children.length > 0) {
-          flatten(child.children);
-        }
-      });
+    if (!parentId) {
+      throw new Error('Parent ID is required');
     }
 
-    flatten(config.children);
-    return flatChildren;
+    if (parentId === 'root') {
+      newConfig.children = newConfig.children.filter((child) => child.id !== id);
+    }
+
+    console.log({ newConfig });
+
+    setLocalConfig(() => newConfig);
   }
 
-  function unflattenConfig(flatConfig: Children[]): Config {
-    // Create a new config with the first element as root
-    const newConfig: Config = {
-      document: config.document,
-      children: [],
-    };
-
-    // Add all elements at root level for now
-    // Later we can implement proper tree reconstruction if needed
-    newConfig.children = flatConfig;
-
-    return newConfig;
-  }
-
-  function renderChildEditor(child: Children, path: string[]) {
-    const elementKey = `element-${path.join('-')}-${child.element}-${Date.now()}`;
-
+  function renderChildEditor(child: Children) {
     return (
       <div
-        key={elementKey}
+        key={child.id}
         className="pl-4 border-l-2 border-gray-200 my-2 flex flex-col gap-2"
       >
         <div className="flex items-center gap-2">
-          <span>{elementKey}</span>
-          <Button variant="link" size="link" onClick={() => handleRemoveElement(path)}>
+          <span className="truncate max-w-full">{child.element}</span>
+          <Button
+            disabled={child.element === 'Document'}
+            type="button"
+            variant="link"
+            size="link"
+            onClick={() => handleRemoveElement(child.id, child.parentId)}
+          >
             <MinusIcon className="size-icon" />
           </Button>
         </div>
@@ -612,12 +392,28 @@ function ConfigEditor({
     );
   }
 
+  function flattenConfig(config: Config): Array<Children & { path: number[] }> {
+    const flatChildren: Array<Children & { path: number[] }> = [];
+
+    function flatten(children: Children[], path: number[]) {
+      children.forEach((child, index) => {
+        flatChildren.push({ ...child, path: [...path, index] });
+        if (child.children && child.children.length > 0) {
+          flatten(child.children, [...path, index]);
+        }
+      });
+    }
+
+    flatten(config.children, []);
+    return flatChildren;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <Label>Arborescence du document</Label>
         <Button
-          onClick={() => handleAddElement([], ElementType.Page)}
+          onClick={() => handleAddElement('root', ElementType.Page)}
           variant="outline"
           size="sm"
         >
@@ -625,13 +421,21 @@ function ConfigEditor({
         </Button>
       </div>
       <div className="space-y-2">
-        {config.children.map((child, index) => renderChildEditor(child, [index]))}
+        {localConfig.children.map((child) => renderChildEditor(child))}
       </div>
     </div>
   );
 }
 
-export function PDFBuilder({ config = quixoteConfig, onConfigChange }: PDFBuilderProps) {
+export function PDFBuilder({
+  config = {
+    document: {
+      title: 'Document',
+    },
+    children: [],
+  },
+  onConfigChange,
+}: PDFBuilderProps) {
   if (config.font) {
     Font.register(config.font);
   }
@@ -640,7 +444,7 @@ export function PDFBuilder({ config = quixoteConfig, onConfigChange }: PDFBuilde
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-6 gap-4">
       <div className="aspect-[1/1.4142] lg:col-span-4">
         <ReactPDF.PDFViewer width="100%" height="100%">
-          <Document {...config.document}>{renderChildren(config.children)}</Document>
+          <Document {...config.document}>{config.children.map(renderChild)}</Document>
         </ReactPDF.PDFViewer>
       </div>
       <CardContainer className="lg:col-span-2" title="Editor">
