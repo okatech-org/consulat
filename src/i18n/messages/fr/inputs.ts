@@ -723,4 +723,56 @@ export default {
       description: 'Commencez par créer votre premier modèle de document',
     },
   },
+  pdfEditor: {
+    text: {
+      content: 'Contenu du texte',
+      content_placeholder: 'Saisir le texte…',
+      fontSize: 'Taille de police',
+      fontSize_placeholder: 'Ex: 12',
+      fontFamily: 'Police',
+      fontFamily_placeholder: 'Ex: Times-Roman',
+    },
+    image: {
+      source: "URL de l'image",
+      source_placeholder: 'Ex: https://…',
+      width: 'Largeur',
+      width_placeholder: 'Ex: 100%',
+      height: 'Hauteur',
+      height_placeholder: 'Ex: auto',
+    },
+    page: {
+      size: 'Taille',
+      size_placeholder: 'Ex: A4',
+      orientation: 'Orientation',
+      orientation_placeholder: 'portrait/landscape',
+      paddingTop: 'Padding haut',
+      paddingTop_placeholder: 'Ex: 35',
+    },
+    note: {
+      content: 'Contenu de la note',
+      content_placeholder: 'Saisir la note…',
+    },
+    link: {
+      src: 'URL du lien',
+      src_placeholder: 'Ex: https://…',
+      color: 'Couleur du lien',
+      color_placeholder: 'Ex: #0000ff',
+    },
+    view: {
+      flexDirection: 'Direction du flex',
+      flexDirection_placeholder: 'row/column',
+      backgroundColor: 'Couleur de fond',
+      backgroundColor_placeholder: 'Ex: #ffffff',
+    },
+    document: {
+      title: 'Titre du document',
+      title_placeholder: 'Ex: Rapport annuel',
+      author: 'Auteur',
+      author_placeholder: 'Ex: Jean Dupont',
+    },
+  },
+  actions: {
+    save: 'Sauvegarder',
+    cancel: 'Annuler',
+  },
 } as const;

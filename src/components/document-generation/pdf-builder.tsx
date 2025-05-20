@@ -8,7 +8,7 @@ import CardContainer from '../layouts/card-container';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { MinusIcon, PencilIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -17,7 +17,7 @@ import {
 } from '../ui/dropdown-menu';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Input } from '../ui/input';
+import { ElementEditForm } from './element-edit-form';
 
 type PageMode =
   | 'useNone'
@@ -154,7 +154,7 @@ type NoteElement = ChildrenBase & {
   props: NoteProps;
 };
 
-type Children =
+export type Children =
   | (DocumentElement & { children?: Children[] })
   | (PageElement & { children?: Children[] })
   | (ViewElement & { children?: Children[] })
@@ -458,212 +458,35 @@ function ConfigEditor({
 
   function renderEditDialog() {
     if (!editing) return null;
-    const { element, props, content, id } = editing;
-    // Helper for safely getting nested style values
-    const getStyle = (key: string) => {
-      if (props && 'style' in props && props.style && typeof props.style === 'object') {
-        // @ts-expect-error: dynamic style access
-        return props.style[key] ?? '';
-      }
-      return '';
-    };
-    // Helper for safely updating nested style values
-    const handleStyleChange = (styleKey: string, value: string | number) => {
-      handlePropChange(id, ['props', 'style', styleKey], value);
-    };
     return (
       <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifier les propriétés de {element}</DialogTitle>
+            <DialogTitle>Modifier les propriétés de {editing.element}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            {element === 'Text' && (
-              <>
-                <Label className="block text-xs font-medium mb-1">Contenu</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={typeof content === 'string' ? content : ''}
-                  onChange={(e) => handlePropChange(id, ['content'], e.target.value)}
-                  placeholder="Contenu du texte"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">
-                  Taille de police
-                </Label>
-                <Input
-                  type="number"
-                  className="input input-bordered w-full"
-                  value={props?.style?.fontSize ?? ''}
-                  onChange={(e) => handleStyleChange('fontSize', Number(e.target.value))}
-                  placeholder="Taille de police"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">Police</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={props?.style?.fontFamily ?? ''}
-                  onChange={(e) => handleStyleChange('fontFamily', e.target.value)}
-                  placeholder="Police (ex: Times-Roman)"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">Couleur</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={props?.style?.color ?? ''}
-                  onChange={(e) => handleStyleChange('color', e.target.value)}
-                  placeholder="Couleur (ex: #000000)"
-                />
-              </>
-            )}
-            {element === 'Image' && (
-              <>
-                <Label className="block text-xs font-medium mb-1">
-                  Url de l&apos;image
-                </Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={typeof props.source === 'string' ? props.source : ''}
-                  onChange={(e) =>
-                    handlePropChange(id, ['props', 'source'], e.target.value)
+          <ElementEditForm
+            element={editing}
+            onSave={(updated) => {
+              // Appliquer la modification à la config
+              function updateElement(children: Children[]): Children[] {
+                return children.map((child) => {
+                  if (child.id === updated.id) {
+                    return updated;
                   }
-                  placeholder="Url de l'image"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">Largeur</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={getStyle('width')}
-                  onChange={(e) => handleStyleChange('width', e.target.value)}
-                  placeholder="Largeur (ex: 100%)"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">Hauteur</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={getStyle('height')}
-                  onChange={(e) => handleStyleChange('height', e.target.value)}
-                  placeholder="Hauteur (ex: auto)"
-                />
-              </>
-            )}
-            {element === 'Page' && (
-              <>
-                <Label className="block text-xs font-medium mb-1">Taille</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={typeof props.size === 'string' ? props.size : ''}
-                  onChange={(e) =>
-                    handlePropChange(id, ['props', 'size'], e.target.value)
+                  if (child.children) {
+                    return { ...child, children: updateElement(child.children) };
                   }
-                  placeholder="Taille (ex: A4)"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">Orientation</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={props.orientation ?? ''}
-                  onChange={(e) =>
-                    handlePropChange(id, ['props', 'orientation'], e.target.value)
-                  }
-                  placeholder="Orientation (portrait/landscape)"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">
-                  Padding haut
-                </Label>
-                <Input
-                  type="number"
-                  className="input input-bordered w-full"
-                  value={getStyle('paddingTop')}
-                  onChange={(e) =>
-                    handleStyleChange('paddingTop', Number(e.target.value))
-                  }
-                  placeholder="Padding haut"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">Padding bas</Label>
-                <Input
-                  type="number"
-                  className="input input-bordered w-full"
-                  value={getStyle('paddingBottom')}
-                  onChange={(e) =>
-                    handleStyleChange('paddingBottom', Number(e.target.value))
-                  }
-                  placeholder="Padding bas"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">
-                  Padding horizontal
-                </Label>
-                <Input
-                  type="number"
-                  className="input input-bordered w-full"
-                  value={getStyle('paddingHorizontal')}
-                  onChange={(e) =>
-                    handleStyleChange('paddingHorizontal', Number(e.target.value))
-                  }
-                  placeholder="Padding horizontal"
-                />
-              </>
-            )}
-            {element === 'View' && (
-              <>
-                <Label className="block text-xs font-medium mb-1">Marge basse</Label>
-                <Input
-                  type="number"
-                  className="input input-bordered w-full"
-                  value={getStyle('marginBottom')}
-                  onChange={(e) =>
-                    handleStyleChange('marginBottom', Number(e.target.value))
-                  }
-                  placeholder="Marge basse"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">
-                  Direction du flex
-                </Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={getStyle('flexDirection')}
-                  onChange={(e) => handleStyleChange('flexDirection', e.target.value)}
-                  placeholder="Direction du flex (row/column)"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">
-                  Couleur de fond
-                </Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={getStyle('backgroundColor')}
-                  onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-                  placeholder="Couleur de fond (ex: #ffffff)"
-                />
-              </>
-            )}
-            {element === 'Link' && (
-              <>
-                <Label className="block text-xs font-medium mb-1">URL</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={props.src ?? ''}
-                  onChange={(e) => handlePropChange(id, ['props', 'src'], e.target.value)}
-                  placeholder="URL du lien"
-                />
-                <Label className="block text-xs font-medium mb-1 mt-2">Couleur</Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={props.style?.color ?? ''}
-                  onChange={(e) => handleStyleChange('color', e.target.value)}
-                  placeholder="Couleur du lien (ex: #0000ff)"
-                />
-              </>
-            )}
-            {element === 'Note' && (
-              <>
-                <Label className="block text-xs font-medium mb-1">
-                  Contenu de la note
-                </Label>
-                <Input
-                  className="input input-bordered w-full"
-                  value={props.children ?? ''}
-                  onChange={(e) =>
-                    handlePropChange(id, ['props', 'children'], e.target.value)
-                  }
-                  placeholder="Contenu de la note"
-                />
-              </>
-            )}
-          </div>
+                  return child;
+                });
+              }
+              setConfig({
+                ...config,
+                children: updateElement(config.children),
+              });
+              setEditing(null);
+            }}
+            onCancel={() => setEditing(null)}
+          />
         </DialogContent>
       </Dialog>
     );
