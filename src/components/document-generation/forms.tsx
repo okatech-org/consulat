@@ -233,6 +233,8 @@ export default function EditionForm({ template }: EditionFormProps) {
   });
 
   const onSubmit = async (data: CreateDocumentTemplateInput) => {
+    setIsLoading(true);
+
     const editedFields = filterUneditedKeys(data, form.formState.dirtyFields);
 
     const response = await tryCatch(
@@ -259,7 +261,10 @@ export default function EditionForm({ template }: EditionFormProps) {
   };
 
   useEffect(() => {
-    form.setValue('content', builderConfig);
+    form.setValue('content', builderConfig, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   }, [builderConfig, form]);
 
   return (
