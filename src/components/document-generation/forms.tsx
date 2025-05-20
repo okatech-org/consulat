@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -216,15 +216,17 @@ export default function EditionForm({ template }: EditionFormProps) {
       },
     ],
   };
+  const [builderConfig, setBuilderConfig] = useState<Config>({
+    ...defaultConfig,
+    ...(template.content ? JSON.parse(template.content as string) : {}),
+  });
+
   const form = useForm<CreateDocumentTemplateInput>({
     resolver: zodResolver(CreateDocumentTemplateSchema),
     defaultValues: {
       name: template.name,
       description: template.description ?? '',
-      content: {
-        ...defaultConfig,
-        ...(template.content ? JSON.parse(template.content as string) : {}),
-      },
+      content: builderConfig,
       type: template.type,
       organizationId: template.organizationId ?? '',
     },
@@ -256,29 +258,16 @@ export default function EditionForm({ template }: EditionFormProps) {
     setIsLoading(false);
   };
 
+  useEffect(() => {
+    form.setValue('content', builderConfig);
+  }, [builderConfig, form]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 gap-4">
           <div className="col-span-4">
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('documentTemplate.description.label')}</FormLabel>
-                  <FormControl>
-                    <PDFBuilder
-                      config={field.value as Config}
-                      onChange={(config) => {
-                        field.onChange(config);
-                      }}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+            <PDFBuilder config={builderConfig} onChange={setBuilderConfig} />
           </div>
           <CardContainer
             title="Informations"

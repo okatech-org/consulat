@@ -221,8 +221,7 @@ function renderChild(child: Children) {
     case 'Note':
       return (
         <Note {...(child.props as Required<NoteProps>)} key={child.id}>
-          {child.children && renderChildren(child.children)}
-          {child.content}
+          {typeof child.props.children === 'string' ? child.props.children : ''}
         </Note>
       );
     default:
@@ -379,7 +378,6 @@ function ConfigEditor({
   config: Config;
   setConfig: (config: Config) => void;
 }) {
-  const [localConfig, setLocalConfig] = useState(config);
   const [editing, setEditing] = useState<Children | null>(null);
 
   function handleAddElement(parentId: string, type: ElementType) {
@@ -389,16 +387,16 @@ function ConfigEditor({
       // Only allow adding Page to root
       if (type !== ElementType.Page) return;
       newConfig = {
-        ...localConfig,
-        children: [...localConfig.children, newElement],
+        ...config,
+        children: [...config.children, newElement],
       };
     } else {
       newConfig = {
-        ...localConfig,
-        children: addElementToParent(localConfig.children, parentId, newElement),
+        ...config,
+        children: addElementToParent(config.children, parentId, newElement),
       };
     }
-    setLocalConfig(newConfig);
+    setConfig(newConfig);
   }
 
   function handleRemoveElement(id: string, parentId?: string) {
@@ -406,16 +404,16 @@ function ConfigEditor({
     let newConfig: Config;
     if (parentId === 'root') {
       newConfig = {
-        ...localConfig,
-        children: localConfig.children.filter((child) => child.id !== id),
+        ...config,
+        children: config.children.filter((child) => child.id !== id),
       };
     } else {
       newConfig = {
-        ...localConfig,
-        children: removeElementFromTree(localConfig.children, id),
+        ...config,
+        children: removeElementFromTree(config.children, id),
       };
     }
-    setLocalConfig(newConfig);
+    setConfig(newConfig);
   }
 
   function handlePropChange(id: string, path: string[], value: unknown) {
@@ -425,9 +423,15 @@ function ConfigEditor({
           const updated = { ...child };
           let target: unknown = updated;
           for (let i = 0; i < path.length - 1; i++) {
-            if (typeof target === 'object' && target !== null && path[i] in target) {
+            const key = path[i];
+            if (
+              typeof target === 'object' &&
+              target !== null &&
+              typeof key === 'string' &&
+              Object.prototype.hasOwnProperty.call(target, key)
+            ) {
               // @ts-expect-error: dynamic path
-              target = target[path[i]];
+              target = target[key];
             } else {
               return child;
             }
@@ -448,18 +452,21 @@ function ConfigEditor({
         return child;
       });
     }
-    const newConfig = { ...localConfig, children: updateProps(localConfig.children) };
-    setLocalConfig(newConfig);
+    const newConfig = { ...config, children: updateProps(config.children) };
+    setConfig(newConfig);
   }
 
   function renderEditDialog() {
     if (!editing) return null;
     const { element, props, content, id } = editing;
     // Helper for safely getting nested style values
-    const getStyle = (key: string) =>
-      props && props.style && typeof props.style === 'object'
-        ? (props.style[key] ?? '')
-        : '';
+    const getStyle = (key: string) => {
+      if (props && 'style' in props && props.style && typeof props.style === 'object') {
+        // @ts-expect-error: dynamic style access
+        return props.style[key] ?? '';
+      }
+      return '';
+    };
     // Helper for safely updating nested style values
     const handleStyleChange = (styleKey: string, value: string | number) => {
       handlePropChange(id, ['props', 'style', styleKey], value);
@@ -540,7 +547,7 @@ function ConfigEditor({
                 <Label className="block text-xs font-medium mb-1">Taille</Label>
                 <Input
                   className="input input-bordered w-full"
-                  value={props.size ?? ''}
+                  value={typeof props.size === 'string' ? props.size : ''}
                   onChange={(e) =>
                     handlePropChange(id, ['props', 'size'], e.target.value)
                   }
@@ -662,10 +669,6 @@ function ConfigEditor({
     );
   }
 
-  useEffect(() => {
-    setConfig(localConfig);
-  }, [localConfig, setConfig]);
-
   function renderChildEditor(child: Children) {
     const permissible = getPermissibleChildTypes(child);
     return (
@@ -768,7 +771,7 @@ function ConfigEditor({
         </Button>
       </div>
       <div className="flex flex-col gap-2">
-        {localConfig.children.map((child) => renderChildEditor(child))}
+        {config.children.map((child) => renderChildEditor(child))}
       </div>
       {renderEditDialog()}
     </div>
@@ -777,7 +780,7 @@ function ConfigEditor({
 
 type PDFBuilderProps = {
   config?: Config;
-  onChange?: (config: Config) => void;
+  onChange: (config: Config) => void;
 };
 
 export function PDFBuilder({
@@ -790,15 +793,9 @@ export function PDFBuilder({
   },
   onChange,
 }: PDFBuilderProps) {
-  const [localConfig, setLocalConfig] = useState(config);
-
-  localConfig.fonts.forEach((font) => {
+  config.fonts.forEach((font) => {
     Font.register(font);
   });
-
-  useEffect(() => {
-    onChange?.(localConfig);
-  }, [localConfig, onChange]);
 
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-6 gap-4">
@@ -807,13 +804,11 @@ export function PDFBuilder({
         contentClass="overflow-hidden p-0 aspect-[1/1.4142]"
       >
         <ReactPDF.PDFViewer width="100%" height="100%">
-          <Document {...config.document}>
-            {localConfig.children.map(renderChild)}
-          </Document>
+          <Document {...config.document}>{config.children.map(renderChild)}</Document>
         </ReactPDF.PDFViewer>
       </CardContainer>
       <CardContainer className="lg:col-span-2" title="Editor">
-        <ConfigEditor config={localConfig} setConfig={setLocalConfig} />
+        <ConfigEditor config={config} setConfig={onChange} />
       </CardContainer>
     </div>
   );
