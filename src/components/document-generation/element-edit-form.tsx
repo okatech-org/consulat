@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
-import type { Children, ElementType } from './pdf-builder';
+import type { Children } from './pdf-builder';
+import { FileInput } from '@/components/ui/file-input';
+import { uploadFileFromClient } from '@/components/ui/uploadthing';
 
 interface ElementEditFormProps {
   element: Children;
@@ -15,6 +17,16 @@ interface ElementEditFormProps {
 
 function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
+}
+
+// Type guard for fileUrl property
+function hasFileUrl(obj: unknown): obj is { fileUrl: string } {
+  return (
+    !!obj &&
+    typeof obj === 'object' &&
+    'fileUrl' in obj &&
+    typeof (obj as { fileUrl: unknown }).fileUrl === 'string'
+  );
 }
 
 export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormProps) {
@@ -81,7 +93,38 @@ export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormPr
               value={localElement.props?.source ?? ''}
               onChange={(e) => updateProp(['props', 'source'], e.target.value)}
               placeholder={t('pdfEditor.image.source_placeholder')}
+              type="url"
             />
+            <div className="my-2">
+              <FileInput
+                accept="image/*"
+                fileUrl={
+                  typeof localElement.props?.source === 'string'
+                    ? localElement.props?.source
+                    : undefined
+                }
+                fileType={localElement.props?.source ? 'image' : undefined}
+                onChangeAction={async (file) => {
+                  const res = await uploadFileFromClient(file);
+                  let url: string | undefined;
+                  if (res[0]) {
+                    if (hasFileUrl(res[0])) {
+                      url = res[0].fileUrl;
+                    } else if (
+                      res[0]?.serverData &&
+                      typeof res[0].serverData.fileUrl === 'string'
+                    ) {
+                      url = res[0].serverData.fileUrl;
+                    }
+                  }
+                  if (url) {
+                    updateProp(['props', 'source'], url);
+                  }
+                }}
+                showPreview={true}
+                aspectRatio="16/9"
+              />
+            </div>
             <label className="block text-xs font-medium mb-1 mt-2">
               {t('pdfEditor.image.width')}
             </label>
