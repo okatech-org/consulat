@@ -9,6 +9,12 @@ import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { MinusIcon } from 'lucide-react';
 import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '../ui/dropdown-menu';
 
 type PageMode =
   | 'useNone'
@@ -216,25 +222,68 @@ function renderChild(child: Children) {
 
 type PDFBuilderProps = {
   config?: Config;
-  onConfigChange: (config: Config) => void;
 };
 
-function ConfigEditor({
-  config,
-  onChange,
-}: {
-  config: Config;
-  onChange: (config: Config) => void;
-}) {
-  const [localConfig, setLocalConfig] = useState(config);
+function removeElementFromTree(children: Children[], id: string): Children[] {
+  // Recursively remove element by id from the tree
+  return children
+    .filter((child) => child.id !== id)
+    .map((child) =>
+      child.children
+        ? { ...child, children: removeElementFromTree(child.children, id) }
+        : child,
+    );
+}
 
-  function handleAddElement(parentId: string, type: ElementType) {
-    const newConfig = { ...config };
+function addElementToParent(
+  children: Children[],
+  parentId: string,
+  newElement: Children,
+): Children[] {
+  return children.map((child) => {
+    if (child.id === parentId) {
+      return {
+        ...child,
+        children: child.children ? [...child.children, newElement] : [newElement],
+      };
+    }
+    if (child.children) {
+      return {
+        ...child,
+        children: addElementToParent(child.children, parentId, newElement),
+      };
+    }
+    return child;
+  });
+}
 
-    if (parentId === 'root') {
-      newConfig.children.push({
-        id: crypto.randomUUID(),
-        parentId: 'root',
+function getPermissibleChildTypes(element: Children): ElementType[] {
+  switch (element.element) {
+    case 'Document':
+      return [ElementType.Page];
+    case 'Page':
+    case 'View':
+      return [
+        ElementType.View,
+        ElementType.Text,
+        ElementType.Image,
+        ElementType.Link,
+        ElementType.Note,
+      ];
+    case 'Link':
+      return [ElementType.Text, ElementType.View, ElementType.Image, ElementType.Note];
+    default:
+      return [];
+  }
+}
+
+function getDefaultElement(type: ElementType, parentId: string): Children {
+  const newId = crypto.randomUUID();
+  switch (type) {
+    case ElementType.Page:
+      return {
+        id: newId,
+        parentId,
         element: 'Page',
         props: {
           size: 'A4',
@@ -247,165 +296,157 @@ function ConfigEditor({
           },
         },
         children: [],
-      });
+      };
+    case ElementType.View:
+      return {
+        id: newId,
+        parentId,
+        element: 'View',
+        props: {
+          wrap: true,
+          style: {
+            marginBottom: 10,
+          },
+        },
+        children: [],
+      };
+    case ElementType.Text:
+      return {
+        id: newId,
+        parentId,
+        element: 'Text',
+        props: {
+          wrap: true,
+          style: {
+            fontSize: 12,
+            fontFamily: 'Times-Roman',
+          },
+        },
+        content: 'New Text',
+      };
+    case ElementType.Image:
+      return {
+        id: newId,
+        parentId,
+        element: 'Image',
+        props: {
+          source: '',
+          cache: true,
+          style: {
+            width: '100%',
+            height: 'auto',
+          },
+        },
+      };
+    case ElementType.Link:
+      return {
+        id: newId,
+        parentId,
+        element: 'Link',
+        props: {
+          src: '#',
+          style: {
+            textDecoration: 'none',
+            color: '#000',
+          },
+        },
+        children: [],
+      };
+    case ElementType.Note:
+      return {
+        id: newId,
+        parentId,
+        element: 'Note',
+        props: {
+          children: 'New note',
+        },
+      };
+    default:
+      throw new Error(`Unsupported element type: ${type}`);
+  }
+}
 
-      onChange(newConfig);
-      return;
-    }
+function ConfigEditor({ config }: { config: Config }) {
+  const [localConfig, setLocalConfig] = useState(config);
 
-    const flatChildren = flattenConfig(newConfig);
-    const parent = flatChildren.find((child) => child.id === parentId);
-    if (!parent) {
-      throw new Error(`Parent element not found: ${parentId}`);
-    }
-    let newElement: Children;
-    const newId = crypto.randomUUID();
-
-    switch (type) {
-      case ElementType.View:
-        newElement = {
-          id: newId,
-          parentId: parentId,
-          element: 'View',
-          props: {
-            wrap: true,
-            style: {
-              marginBottom: 10,
-            },
-          },
-          children: [],
-        };
-        break;
-      case ElementType.Text:
-        newElement = {
-          id: newId,
-          parentId: parentId,
-          element: 'Text',
-          props: {
-            wrap: true,
-            style: {
-              fontSize: 12,
-              fontFamily: 'Times-Roman',
-            },
-          },
-          content: 'New Text',
-        };
-        break;
-      case ElementType.Image:
-        newElement = {
-          id: newId,
-          parentId: parentId,
-          element: 'Image',
-          props: {
-            source: '',
-            cache: true,
-            style: {
-              width: '100%',
-              height: 'auto',
-            },
-          },
-        };
-        break;
-      case ElementType.Link:
-        newElement = {
-          id: newId,
-          parentId: parentId,
-          element: 'Link',
-          props: {
-            src: '#',
-            style: {
-              textDecoration: 'none',
-              color: '#000',
-            },
-          },
-          children: [],
-        };
-        break;
-      case ElementType.Note:
-        newElement = {
-          id: newId,
-          parentId: parentId,
-          element: 'Note',
-          props: {
-            children: 'New note',
-          },
-        };
-        break;
-      default:
-        throw new Error(`Unsupported element type: ${type}`);
-    }
-
+  function handleAddElement(parentId: string, type: ElementType) {
+    const newElement = getDefaultElement(type, parentId);
+    let newConfig: Config;
     if (parentId === 'root') {
-      newConfig.children.push(newElement);
+      // Only allow adding Page to root
+      if (type !== ElementType.Page) return;
+      newConfig = {
+        ...localConfig,
+        children: [...localConfig.children, newElement],
+      };
     } else {
-      const parentPath = flatChildren.find((child) => child.id === parentId)?.path;
-      if (!parentPath) {
-        throw new Error(`Parent element not found: ${parentId}`);
-      }
-
-      const parentRefInConfig = config.children.find((child) => child.id === parentId);
-      if (!parentRefInConfig) {
-        throw new Error(`Parent element not found: ${parentId}`);
-      }
-
-      parentRefInConfig.children?.splice(parentPath.length, 0, newElement);
+      newConfig = {
+        ...localConfig,
+        children: addElementToParent(localConfig.children, parentId, newElement),
+      };
     }
-
-    onChange(newConfig);
+    setLocalConfig(newConfig);
   }
 
   function handleRemoveElement(id: string, parentId?: string) {
-    const newConfig = { ...localConfig };
-
-    if (!parentId) {
-      throw new Error('Parent ID is required');
-    }
-
+    if (!parentId) return;
+    let newConfig: Config;
     if (parentId === 'root') {
-      newConfig.children = newConfig.children.filter((child) => child.id !== id);
+      newConfig = {
+        ...localConfig,
+        children: localConfig.children.filter((child) => child.id !== id),
+      };
+    } else {
+      newConfig = {
+        ...localConfig,
+        children: removeElementFromTree(localConfig.children, id),
+      };
     }
-
-    console.log({ newConfig });
-
-    setLocalConfig(() => newConfig);
+    setLocalConfig(newConfig);
   }
 
   function renderChildEditor(child: Children) {
+    const permissible = getPermissibleChildTypes(child);
     return (
-      <div
-        key={child.id}
-        className="pl-4 border-l-2 border-gray-200 my-2 flex flex-col gap-2"
-      >
-        <div className="flex items-center gap-2">
-          <span className="truncate max-w-full">{child.element}</span>
-          <Button
-            disabled={child.element === 'Document'}
-            type="button"
-            variant="link"
-            size="link"
-            onClick={() => handleRemoveElement(child.id, child.parentId)}
-          >
-            <MinusIcon className="size-icon" />
-          </Button>
+      <div key={child.id} className="pl-2 border-l-2 border-gray-200 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate max-w-full font-semibold">{child.element}</span>
+          <div className="commands flex items-center gap-2">
+            <Button
+              disabled={child.element === 'Document'}
+              type="button"
+              variant="link"
+              size="icon"
+              onClick={() => handleRemoveElement(child.id, child.parentId)}
+            >
+              <MinusIcon className="size-icon" />
+            </Button>
+            {permissible.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" variant="link" size="link">
+                    +
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {permissible.map((type) => (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => handleAddElement(child.id, type)}
+                    >
+                      {type}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
+        {child.children && child.children.length > 0 && (
+          <div className="ml-2">{child.children.map((c) => renderChildEditor(c))}</div>
+        )}
       </div>
     );
-  }
-
-  function flattenConfig(config: Config): Array<Children & { path: number[] }> {
-    const flatChildren: Array<Children & { path: number[] }> = [];
-
-    function flatten(children: Children[], path: number[]) {
-      children.forEach((child, index) => {
-        flatChildren.push({ ...child, path: [...path, index] });
-        if (child.children && child.children.length > 0) {
-          flatten(child.children, [...path, index]);
-        }
-      });
-    }
-
-    flatten(config.children, []);
-    return flatChildren;
   }
 
   return (
@@ -434,7 +475,6 @@ export function PDFBuilder({
     },
     children: [],
   },
-  onConfigChange,
 }: PDFBuilderProps) {
   if (config.font) {
     Font.register(config.font);
@@ -448,7 +488,7 @@ export function PDFBuilder({
         </ReactPDF.PDFViewer>
       </div>
       <CardContainer className="lg:col-span-2" title="Editor">
-        <ConfigEditor config={config} onChange={onConfigChange} />
+        <ConfigEditor config={config} />
       </CardContainer>
     </div>
   );
