@@ -424,6 +424,10 @@ p,
     @apply !size-6 sm:!size-4;
   }
 
+  .size-icon-button {
+    @apply !size-8 sm:!size-6;
+  }
+
   .mobile-hide {
     @apply hidden sm:block;
   }

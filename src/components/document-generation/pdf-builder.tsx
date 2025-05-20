@@ -7,7 +7,7 @@ import type { PDFVersion, PageSize, Bookmark, SourceObject } from '@react-pdf/ty
 import CardContainer from '../layouts/card-container';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
-import { MinusIcon } from 'lucide-react';
+import { MinusIcon, PencilIcon } from 'lucide-react';
 import { useState } from 'react';
 import {
   DropdownMenu,
@@ -15,6 +15,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../ui/dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Input } from '../ui/input';
 
 type PageMode =
   | 'useNone'
@@ -322,7 +325,7 @@ function getDefaultElement(type: ElementType, parentId: string): Children {
             fontFamily: 'Times-Roman',
           },
         },
-        content: 'New Text',
+        content: 'Nouveau texte',
       };
     case ElementType.Image:
       return {
@@ -368,6 +371,7 @@ function getDefaultElement(type: ElementType, parentId: string): Children {
 
 function ConfigEditor({ config }: { config: Config }) {
   const [localConfig, setLocalConfig] = useState(config);
+  const [editing, setEditing] = useState<Children | null>(null);
 
   function handleAddElement(parentId: string, type: ElementType) {
     const newElement = getDefaultElement(type, parentId);
@@ -405,29 +409,131 @@ function ConfigEditor({ config }: { config: Config }) {
     setLocalConfig(newConfig);
   }
 
+  function handlePropChange(id: string, path: string[], value: unknown) {
+    function updateProps(children: Children[]): Children[] {
+      return children.map((child) => {
+        if (child.id === id) {
+          const updated = { ...child };
+          let target: unknown = updated;
+          for (let i = 0; i < path.length - 1; i++) {
+            if (typeof target === 'object' && target !== null && path[i] in target) {
+              // @ts-expect-error: dynamic path
+              target = target[path[i]];
+            } else {
+              return child;
+            }
+          }
+          if (
+            typeof target === 'object' &&
+            target !== null &&
+            path[path.length - 1] !== undefined
+          ) {
+            // @ts-expect-error: dynamic path
+            target[path[path.length - 1]] = value;
+          }
+          return updated;
+        }
+        if (child.children) {
+          return { ...child, children: updateProps(child.children) };
+        }
+        return child;
+      });
+    }
+    const newConfig = { ...localConfig, children: updateProps(localConfig.children) };
+    setLocalConfig(newConfig);
+  }
+
+  function renderEditDialog() {
+    if (!editing) return null;
+    const { element, props, content, id } = editing;
+    return (
+      <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier les propriétés de {element}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {element === 'Text' && (
+              <div>
+                <Label className="block text-xs font-medium mb-1">Contenu</Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={typeof content === 'string' ? content : ''}
+                  onChange={(e) => handlePropChange(id, ['content'], e.target.value)}
+                  placeholder="Contenu du texte"
+                />
+              </div>
+            )}
+            {element === 'Image' && (
+              <div>
+                <Label className="block text-xs font-medium mb-1">
+                  Url de l&apos;image
+                </Label>
+                <Input
+                  className="input input-bordered w-full"
+                  value={typeof props.source === 'string' ? props.source : ''}
+                  onChange={(e) =>
+                    handlePropChange(id, ['props', 'source'], e.target.value)
+                  }
+                  placeholder="Url de l'image"
+                />
+              </div>
+            )}
+            {/* Add more fields for other element types and props as needed */}
+            {/* Example: Page size/orientation, View style, etc. */}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   function renderChildEditor(child: Children) {
     const permissible = getPermissibleChildTypes(child);
     return (
       <div key={child.id} className="pl-2 border-l-2 border-gray-200 flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 text-sm border-b border-dashed border-gray-200 pb-1">
           <span className="truncate max-w-full font-semibold">{child.element}</span>
           <div className="commands flex items-center gap-2">
-            <Button
-              disabled={child.element === 'Document'}
-              type="button"
-              variant="link"
-              size="icon"
-              onClick={() => handleRemoveElement(child.id, child.parentId)}
-            >
-              <MinusIcon className="size-icon" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  disabled={child.element === 'Document'}
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemoveElement(child.id, child.parentId)}
+                >
+                  <MinusIcon className="size-icon" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Retirer l&apos;élément</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setEditing(child)}
+                >
+                  <PencilIcon className="size-icon" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Modifier l&apos;élément</TooltipContent>
+            </Tooltip>
             {permissible.length > 0 && (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="link" size="link">
-                    +
-                  </Button>
-                </DropdownMenuTrigger>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon">
+                        +
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Ajouter un élément</TooltipContent>
+                </Tooltip>
+
                 <DropdownMenuContent align="start">
                   {permissible.map((type) => (
                     <DropdownMenuItem
@@ -442,6 +548,25 @@ function ConfigEditor({ config }: { config: Config }) {
             )}
           </div>
         </div>
+        {/* Inline editing for Text.content and Image.props.source */}
+        {child.element === 'Text' && (
+          <input
+            className="input input-bordered w-full my-1"
+            value={typeof child.content === 'string' ? child.content : ''}
+            onChange={(e) => handlePropChange(child.id, ['content'], e.target.value)}
+          />
+        )}
+        {child.element === 'Image' &&
+          !!child.props &&
+          typeof child.props.source === 'string' && (
+            <input
+              className="input input-bordered w-full my-1"
+              value={child.props.source}
+              onChange={(e) =>
+                handlePropChange(child.id, ['props', 'source'], e.target.value)
+              }
+            />
+          )}
         {child.children && child.children.length > 0 && (
           <div className="ml-2">{child.children.map((c) => renderChildEditor(c))}</div>
         )}
@@ -464,6 +589,7 @@ function ConfigEditor({ config }: { config: Config }) {
       <div className="space-y-2">
         {localConfig.children.map((child) => renderChildEditor(child))}
       </div>
+      {renderEditDialog()}
     </div>
   );
 }
@@ -482,11 +608,14 @@ export function PDFBuilder({
 
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-6 gap-4">
-      <div className="aspect-[1/1.4142] lg:col-span-4">
+      <CardContainer
+        className="lg:col-span-4 overflow-hidden"
+        contentClass="overflow-hidden p-0 aspect-[1/1.4142]"
+      >
         <ReactPDF.PDFViewer width="100%" height="100%">
           <Document {...config.document}>{config.children.map(renderChild)}</Document>
         </ReactPDF.PDFViewer>
-      </div>
+      </CardContainer>
       <CardContainer className="lg:col-span-2" title="Editor">
         <ConfigEditor config={config} />
       </CardContainer>
