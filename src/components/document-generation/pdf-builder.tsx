@@ -409,151 +409,157 @@ function ConfigEditor({
   config: Config;
   onChange: (config: Config) => void;
 }) {
-  const [localConfig, setLocalConfig] = useState(config);
-
-  const handleAddPage = () => {
+  function handleAddElement(path: string[], type: ElementType) {
     const newConfig = { ...config };
-    newConfig.children.push({
-      element: 'Page',
-      props: {
-        size: 'A4',
-        orientation: 'portrait',
-        wrap: true,
-        style: {
-          paddingTop: 35,
-          paddingBottom: 65,
-          paddingHorizontal: 35,
-        },
-      },
-      children: [],
-    });
-    onChange(newConfig);
-  };
 
-  const handleAddChild = (parentPath: number[] = []) => {
-    const newConfig = { ...config };
-    const newChild: Children = {
-      element: 'Text',
-      props: { style: {} },
-      content: 'New Text',
-    };
+    let newElement: Children;
 
-    let current = newConfig.children;
-    for (const index of parentPath) {
-      if (index >= current.length) return;
-      const child = current[index];
-      if (child && 'children' in child) {
-        if (!child.children) {
-          child.children = [];
-        }
-        current = child.children;
-      } else {
-        return;
-      }
+    switch (type) {
+      case ElementType.Document:
+        newElement = {
+          element: 'Document',
+          props: {
+            title: 'New Document',
+            creator: 'Consulat.ga PDF Generator',
+            language: 'fr',
+          },
+          children: [],
+        };
+        break;
+      case ElementType.Page:
+        newElement = {
+          element: 'Page',
+          props: {
+            size: 'A4',
+            orientation: 'portrait',
+            wrap: true,
+            style: {
+              paddingTop: 35,
+              paddingBottom: 65,
+              paddingHorizontal: 35,
+            },
+          },
+          children: [],
+        };
+        break;
+      case ElementType.View:
+        newElement = {
+          element: 'View',
+          props: {
+            wrap: true,
+            style: {
+              marginBottom: 10,
+            },
+          },
+          children: [],
+        };
+        break;
+      case ElementType.Text:
+        newElement = {
+          element: 'Text',
+          props: {
+            wrap: true,
+            style: {
+              fontSize: 12,
+              fontFamily: 'Times-Roman',
+            },
+          },
+          content: 'New Text',
+        };
+        break;
+      case ElementType.Image:
+        newElement = {
+          element: 'Image',
+          props: {
+            source: '',
+            cache: true,
+            style: {
+              width: '100%',
+              height: 'auto',
+            },
+          },
+        };
+        break;
+      case ElementType.Link:
+        newElement = {
+          element: 'Link',
+          props: {
+            src: '#',
+            style: {
+              textDecoration: 'none',
+              color: '#000',
+            },
+          },
+          children: [],
+        };
+        break;
+      case ElementType.Note:
+        newElement = {
+          element: 'Note',
+          props: {
+            children: 'New note',
+          },
+        };
+        break;
+      case ElementType.Canvas:
+        newElement = {
+          element: 'Canvas',
+          props: {
+            paint: (painter, width, height) => null,
+            style: {
+              width: '100%',
+              height: 100,
+            },
+          },
+        };
+        break;
+      default:
+        throw new Error(`Unsupported element type: ${type}`);
     }
-    current.push(newChild);
-    onChange(newConfig);
-  };
 
-  const handleUpdateChild = (path: number[]) => (updates: Partial<Children>) => {
-    if (path.length === 0) return;
-    const newConfig = { ...config };
-    let current = newConfig.children;
-    const lastIndex = path[path.length - 1];
-
+    // Navigate to the target location using the path
+    let current: any = newConfig;
     for (let i = 0; i < path.length - 1; i++) {
-      const index = path[i];
-      if (typeof index !== 'number' || index >= current.length) return;
-      const child = current[index];
-      if (child && 'children' in child) {
-        if (!child.children) {
-          child.children = [];
-        }
-        current = child.children;
-      } else {
-        return;
+      if (!current.children) {
+        current.children = [];
       }
+      current = current.children[parseInt(path[i], 10)];
     }
 
-    if (typeof lastIndex !== 'number' || lastIndex >= current.length) return;
-    const existingChild = current[lastIndex];
-    const updatedChild = { ...existingChild, ...updates } as Children;
-    current[lastIndex] = updatedChild;
-    onChange(newConfig);
-  };
+    // Add the new element at the specified position
+    if (!current.children) {
+      current.children = [];
+    }
+    const lastIndex = path[path.length - 1];
+    if (lastIndex !== undefined) {
+      current.children.splice(parseInt(lastIndex, 10), 0, newElement);
+    } else {
+      current.children.push(newElement);
+    }
 
-  const handleDeleteChild = (path: number[]) => {
-    const newConfig = { ...config };
-    const newChildren = newConfig.children.filter((_, index) => !path.includes(index));
-    newConfig.children = newChildren;
     onChange(newConfig);
-  };
+  }
 
-  const renderChildEditor = (child: Children, path: number[]) => {
+  function renderChildEditor(child: Children, path: string[]) {
+    const elementKey = `element-${path.join('-')}-${child.element}-${Date.now()}`;
+
+    console.log(elementKey);
     return (
-      <div key={path.join('-')} className="pl-4 border-l-2 border-gray-200 my-2">
-        <div className="flex flex-col gap-2">
-          <div className="w-full space-y-1">
-            <Label>Type d&apos;élément</Label>
-            <MultiSelect
-              options={Object.values(ElementType)
-                .filter((type) => type !== 'Document' && type !== 'Page')
-                .map((type) => ({
-                  value: type,
-                  label: type,
-                }))}
-              selected={child.element}
-              type="single"
-              onChange={(value) =>
-                handleUpdateChild(path)({
-                  element: value as Children['element'],
-                  content: child.content ?? '',
-                })
-              }
-            />
-          </div>
-
-          {child.content !== undefined && (
-            <Input
-              value={child.content}
-              onChange={(e) => handleUpdateChild(path)({ content: e.target.value })}
-              placeholder="Content"
-            />
-          )}
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              onClick={() => handleAddChild(path)}
-              variant="link"
-              size="link"
-              className="text-sm"
-            >
-              Ajouter un élément enfant
-              <PlusIcon className="size-icon ml-1" />
-            </Button>
-            <Button
-              type="button"
-              onClick={() => handleDeleteChild(path)}
-              variant="link"
-              size="link"
-              className="text-sm"
-            >
-              <MinusIcon className="size-icon ml-1" />
-            </Button>
-          </div>
-        </div>
-        {child.children?.map((childItem, index) =>
-          renderChildEditor(childItem, [...path, index]),
-        )}
+      <div key={elementKey} className="pl-4 border-l-2 border-gray-200 my-2">
+        {elementKey}
       </div>
     );
-  };
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <Label>Arborescence du document</Label>
-        <Button onClick={() => handleAddPage()} variant="outline" size="sm">
+        <Button
+          onClick={() => handleAddElement([], ElementType.Page)}
+          variant="outline"
+          size="sm"
+        >
           Ajouter une page
         </Button>
       </div>
