@@ -12,7 +12,7 @@ export function PublicLayout({ children }: BaseLayoutProps) {
     <SidebarProvider>
       <PublicHeader />
       <SidebarInset className="w-dvw min-h-dvh relative overflow-x-hidden">
-        <main className={'pt-20 flex size-full grow'}>{children}</main>
+        <main className={'pt-16 flex size-full grow'}>{children}</main>
         <PublicFooter />
       </SidebarInset>
     </SidebarProvider>

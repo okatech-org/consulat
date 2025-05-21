@@ -39,6 +39,7 @@ export default {
     steps: 'Étapes supplémentaires',
     myRequests: 'Mes demandes',
     availableServices: 'Services disponibles',
+    documentGeneration: 'Génération de documents',
   },
   processing: {
     title: 'Mode de traitement',

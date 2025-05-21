@@ -1,22 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronsUpDown, Plus } from 'lucide-react';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-} from '@/components/ui/dropdown-menu';
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar';
+import { DropdownMenu } from '@/components/ui/dropdown-menu';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 
 export function TeamSwitcher({
   teams,
@@ -27,9 +14,6 @@ export function TeamSwitcher({
     plan: React.ReactNode;
   }[];
 }) {
-  const { isMobile } = useSidebar();
-  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -39,46 +23,13 @@ export function TeamSwitcher({
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
             <div className="flex aspect-square items-center justify-center rounded-md">
-              {activeTeam && activeTeam.logo}
+              {teams[0] && teams[0].logo}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <p className="truncate font-semibold">{activeTeam?.name}</p>
-              <span className="truncate text-xs">{activeTeam?.plan}</span>
+              <p className="truncate font-semibold">{teams[0]?.name}</p>
+              <span className="truncate text-xs">{teams[0]?.plan}</span>
             </div>
-            <ChevronsUpDown className="ml-auto" />
           </SidebarMenuButton>
-          {teams.length > 1 && (
-            <DropdownMenuContent
-              className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg hidden"
-              align="start"
-              side={isMobile ? 'bottom' : 'right'}
-              sideOffset={4}
-            >
-              <DropdownMenuLabel className="text-xs text-muted-foreground">
-                Teams
-              </DropdownMenuLabel>
-              {teams.map((team, index) => (
-                <DropdownMenuItem
-                  key={`team-logo-${index}`}
-                  onClick={() => setActiveTeam(team)}
-                  className="gap-2 p-2"
-                >
-                  <div className="flex size-6 items-center justify-center rounded-sm border">
-                    {team.logo && team.logo}
-                  </div>
-                  {team.name}
-                  <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 p-2">
-                <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                  <Plus className="size-4" />
-                </div>
-                <div className="font-medium text-muted-foreground">Add team</div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          )}
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>

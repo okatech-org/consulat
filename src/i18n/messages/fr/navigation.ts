@@ -21,6 +21,7 @@ export default {
     new_request: 'Nouvelle demande',
     available: 'Services consulaires disponibles',
     profiles: 'Profils consulaires',
+    'document-templates': 'Modèles de documents',
   },
   dashboard: {
     title: 'Accueil',

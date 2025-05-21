@@ -16,7 +16,7 @@ export default async function LandingPage() {
   const t = await getTranslations();
 
   return (
-    <div className="flex flex-col bg-[#f2f2f2] dark:bg-[#131313] text-neutral-900 dark:text-white antialiased w-full home-container">
+    <div className="flex flex-col bg-[#f2f2f2] dark:bg-[#131313] text-neutral-900 dark:text-white antialiased w-full home-box-container">
       {/* Composant client pour les animations globales */}
       <GlobalAnimations />
 
@@ -31,7 +31,7 @@ export default async function LandingPage() {
           <div className="absolute -bottom-[10%] -left-[10%] h-[500px] w-[500px] rounded-full bg-gradient-to-b from-purple-300/20 to-indigo-300/20 blur-3xl dark:from-purple-700/20 dark:to-indigo-700/20"></div>
         </div>
 
-        <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
+        <div className="box-container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <AnimatedSection animation="fade-right" className="max-w-3xl">
               <h1 className="mb-6 font-bold tracking-tight flex flex-col">
@@ -307,7 +307,7 @@ export default async function LandingPage() {
 
       {/* Final CTA Section */}
       <section className="bg-gradient-to-b from-[#f9fafc] to-[#f4f5f9] dark:from-[#131313] dark:to-[#242424] py-14 sm:py-16 md:py-20 w-full">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
+        <div className="box-container mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
           <div className="relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-[#131313] dark:to-[#242424] p-6 sm:p-10 md:p-12 lg:p-16">
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-gradient-to-br from-blue-200/20 to-indigo-200/20 blur-3xl dark:from-blue-600/10 dark:to-indigo-600/10"></div>
@@ -363,7 +363,7 @@ export default async function LandingPage() {
         <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-blue-100/40 dark:bg-blue-900/10 blur-3xl"></div>
         <div className="absolute -bottom-32 right-0 w-80 h-80 rounded-full bg-indigo-100/40 dark:bg-indigo-900/10 blur-3xl"></div>
 
-        <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
+        <div className="box-container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
           {/* Section principale du footer */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
             {/* Logo, slogan et réseaux sociaux */}

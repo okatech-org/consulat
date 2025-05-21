@@ -78,16 +78,13 @@ export function ChatToggle() {
         <span className="text-sm font-medium">Chat</span>
       </SheetTitle>
 
-      <SheetTrigger className="aspect-square size-[45px] p-1 rounded-full overflow-hidden">
+      <SheetTrigger className="aspect-square size-[40px] p-1 rounded-full overflow-hidden">
         <IAstedButton />
       </SheetTrigger>
 
       <SheetContent
         side={isMobile ? 'bottom' : 'right'}
-        className={cn(
-          'w-full max-w-[700px] sm:w-[700px] p-0',
-          isMobile && 'h-full max-h-[600px]',
-        )}
+        className={cn('w-full md:max-w-[700px] p-0', isMobile && 'h-full max-h-[600px]')}
       >
         <div className="h-full overflow-hidden">
           <ModernChatWindow

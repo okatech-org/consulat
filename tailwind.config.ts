@@ -236,8 +236,9 @@ export default {
         'scale-in': 'scale-in 0.2s ease-out',
       },
       maxWidth: {
-        container: '1400px',
         'screen-xl': '1280px',
+        'screen-2xl': '1400px',
+        'screen-3xl': '1600px',
       },
       aspectRatio: {
         document: '1/1.4',
