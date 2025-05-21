@@ -40,7 +40,7 @@ import {
 import { ArrowUp, Loader2, Plus, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface ServiceFormProps {
@@ -73,7 +73,6 @@ export function ConsularServiceForm({
   });
 
   const handleSubmit = async (data: ServiceSchemaInput) => {
-    console.log({ data });
     setIsLoading(true);
     try {
       if (service.id) {
@@ -99,14 +98,8 @@ export function ConsularServiceForm({
       setIsLoading(false);
     }
   };
-  const serviceSteps: ServiceStep[] = form.watch('steps');
 
-  useEffect(() => {
-    console.log({
-      generateDocumentSettings: form.watch('generateDocumentSettings'),
-      errors: form.formState.errors,
-    });
-  }, [form.watch('generateDocumentSettings')]);
+  const serviceSteps: ServiceStep[] = form.watch('steps');
 
   return (
     <Form {...form}>
@@ -624,6 +617,7 @@ export function ConsularServiceForm({
                     <GenerateDocumentSettingsForm
                       templates={documentTemplates}
                       statuses={Object.values(RequestStatus)}
+                      steps={serviceSteps}
                       value={field.value}
                       onChange={(val) => field.onChange(val)}
                       disabled={isLoading}

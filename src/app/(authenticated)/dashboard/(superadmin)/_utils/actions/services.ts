@@ -109,7 +109,7 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
                 serviceId: data.id,
                 templateId: setting.templateId,
                 generateOnStatus: setting.generateOnStatus,
-                ...(setting.settings && { settings: setting.settings }),
+                ...(setting.settings && { settings: JSON.stringify(setting.settings) }),
               },
             });
           }

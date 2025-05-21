@@ -5,10 +5,5 @@
     "next/router",
     "next/dist",
     "^lucide-react/dist"
-  ],
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "explicit"
-  }
+  ]
 }
