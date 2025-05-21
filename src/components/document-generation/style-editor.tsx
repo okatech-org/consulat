@@ -160,6 +160,24 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
     onChange({ ...value, [key]: val });
   };
 
+  // Utilitaire type-safe pour accéder aux clés dynamiques de traduction
+  const getI18n = (key: string, fallback: string) =>
+    t(key as unknown as string, { default: fallback }) as string;
+  const getPropI18n = (key: keyof PDFStyle) => {
+    const label = getI18n(`${key}.label`, key);
+    const placeholder = getI18n(`${key}.placeholder`, '');
+    // Pour les valeurs (select)
+    const values = (meta?: { options?: string[] }) =>
+      meta?.options?.reduce(
+        (acc, val) => {
+          acc[val] = getI18n(`${key}.values.${val}`, val);
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+    return { label, placeholder, values };
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2 items-center">
@@ -170,7 +188,7 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
         )}
         {selectedKeys.map((key) => (
           <Badge key={key} variant="secondary" className="flex items-center gap-1 pr-1">
-            {t(key, { default: key })}
+            {getPropI18n(key).label}
             <button
               type="button"
               className="ml-1 text-xs text-muted-foreground hover:text-destructive"
@@ -213,7 +231,7 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
                     onClick={() => addProp(p.key)}
                   >
                     <Check className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100" />
-                    {t(p.key, { default: p.key })}
+                    {getPropI18n(p.key).label}
                   </button>
                 ))}
               </div>
@@ -226,14 +244,13 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
           const meta = getStylePropMeta(key);
           if (!meta) return null;
           const val = value[key];
+          const i18n = getPropI18n(key);
           // Input dynamique selon le type
           switch (meta.type) {
             case 'number':
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-medium">
-                    {t(key, { default: key })}
-                  </label>
+                  <label className="text-xs font-medium">{i18n.label}</label>
                   <Input
                     type="number"
                     value={val ?? ''}
@@ -243,16 +260,14 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
                         e.target.value === '' ? '' : Number(e.target.value),
                       )
                     }
-                    placeholder={t(key + '_placeholder', { default: '' })}
+                    placeholder={i18n.placeholder}
                   />
                 </div>
               );
             case 'color':
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-medium">
-                    {t(key, { default: key })}
-                  </label>
+                  <label className="text-xs font-medium">{i18n.label}</label>
                   <Input
                     type="color"
                     value={
@@ -263,20 +278,19 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
                 </div>
               );
             case 'select':
+              const valuesMap = i18n.values(meta);
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-medium">
-                    {t(key, { default: key })}
-                  </label>
+                  <label className="text-xs font-medium">{i18n.label}</label>
                   <select
                     className="input input-bordered rounded-md h-10 px-2"
                     value={val ?? ''}
                     onChange={(e) => handleValueChange(key, e.target.value)}
                   >
-                    <option value="">{t(key + '_placeholder', { default: '--' })}</option>
+                    <option value="">{i18n.placeholder || '--'}</option>
                     {meta.options?.map((opt) => (
                       <option key={opt} value={opt}>
-                        {t(key + '.' + opt, { default: opt })}
+                        {valuesMap?.[opt] ?? opt}
                       </option>
                     ))}
                   </select>
@@ -285,13 +299,11 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
             default:
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-medium">
-                    {t(key, { default: key })}
-                  </label>
+                  <label className="text-xs font-medium">{i18n.label}</label>
                   <Input
                     value={val ?? ''}
                     onChange={(e) => handleValueChange(key, e.target.value)}
-                    placeholder={t(key + '_placeholder', { default: '' })}
+                    placeholder={i18n.placeholder}
                   />
                 </div>
               );
