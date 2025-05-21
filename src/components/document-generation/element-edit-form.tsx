@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import type { Children } from './pdf-builder';
 import { FileInput } from '@/components/ui/file-input';
 import { uploadFileFromClient } from '@/components/ui/uploadthing';
+import { StyleEditor } from './style-editor';
 
 interface ElementEditFormProps {
   element: Children;
@@ -60,27 +61,12 @@ export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormPr
               onChange={(e) => updateProp(['content'], e.target.value)}
               placeholder={t('pdfEditor.text.content_placeholder')}
             />
-            <label className="block text-xs font-medium mb-1 mt-2">
-              {t('pdfEditor.text.fontSize')}
-            </label>
-            <Input
-              type="number"
-              value={localElement.props?.style?.fontSize ?? ''}
-              onChange={(e) =>
-                updateProp(['props', 'style', 'fontSize'], Number(e.target.value))
-              }
-              placeholder={t('pdfEditor.text.fontSize_placeholder')}
-            />
-            <label className="block text-xs font-medium mb-1 mt-2">
-              {t('pdfEditor.text.fontFamily')}
-            </label>
-            <Input
-              value={localElement.props?.style?.fontFamily ?? ''}
-              onChange={(e) =>
-                updateProp(['props', 'style', 'fontFamily'], e.target.value)
-              }
-              placeholder={t('pdfEditor.text.fontFamily_placeholder')}
-            />
+            <div className="mt-2">
+              <StyleEditor
+                value={localElement.props?.style ?? {}}
+                onChange={(newStyle) => updateProp(['props', 'style'], newStyle)}
+              />
+            </div>
           </>
         );
       case 'Image':
@@ -90,7 +76,11 @@ export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormPr
               {t('pdfEditor.image.source')}
             </label>
             <Input
-              value={localElement.props?.source ?? ''}
+              value={
+                typeof localElement.props?.source === 'string'
+                  ? localElement.props?.source
+                  : ''
+              }
               onChange={(e) => updateProp(['props', 'source'], e.target.value)}
               placeholder={t('pdfEditor.image.source_placeholder')}
               type="url"
@@ -125,22 +115,12 @@ export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormPr
                 aspectRatio="16/9"
               />
             </div>
-            <label className="block text-xs font-medium mb-1 mt-2">
-              {t('pdfEditor.image.width')}
-            </label>
-            <Input
-              value={localElement.props?.style?.width ?? ''}
-              onChange={(e) => updateProp(['props', 'style', 'width'], e.target.value)}
-              placeholder={t('pdfEditor.image.width_placeholder')}
-            />
-            <label className="block text-xs font-medium mb-1 mt-2">
-              {t('pdfEditor.image.height')}
-            </label>
-            <Input
-              value={localElement.props?.style?.height ?? ''}
-              onChange={(e) => updateProp(['props', 'style', 'height'], e.target.value)}
-              placeholder={t('pdfEditor.image.height_placeholder')}
-            />
+            <div className="mt-2">
+              <StyleEditor
+                value={localElement.props?.style ?? {}}
+                onChange={(newStyle) => updateProp(['props', 'style'], newStyle)}
+              />
+            </div>
           </>
         );
       case 'Page':
@@ -150,7 +130,11 @@ export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormPr
               {t('pdfEditor.page.size')}
             </label>
             <Input
-              value={localElement.props?.size ?? ''}
+              value={
+                typeof localElement.props?.size === 'string'
+                  ? localElement.props?.size
+                  : ''
+              }
               onChange={(e) => updateProp(['props', 'size'], e.target.value)}
               placeholder={t('pdfEditor.page.size_placeholder')}
             />
@@ -158,21 +142,20 @@ export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormPr
               {t('pdfEditor.page.orientation')}
             </label>
             <Input
-              value={localElement.props?.orientation ?? ''}
+              value={
+                typeof localElement.props?.orientation === 'string'
+                  ? localElement.props?.orientation
+                  : ''
+              }
               onChange={(e) => updateProp(['props', 'orientation'], e.target.value)}
               placeholder={t('pdfEditor.page.orientation_placeholder')}
             />
-            <label className="block text-xs font-medium mb-1 mt-2">
-              {t('pdfEditor.page.paddingTop')}
-            </label>
-            <Input
-              type="number"
-              value={localElement.props?.style?.paddingTop ?? ''}
-              onChange={(e) =>
-                updateProp(['props', 'style', 'paddingTop'], Number(e.target.value))
-              }
-              placeholder={t('pdfEditor.page.paddingTop_placeholder')}
-            />
+            <div className="mt-2">
+              <StyleEditor
+                value={localElement.props?.style ?? {}}
+                onChange={(newStyle) => updateProp(['props', 'style'], newStyle)}
+              />
+            </div>
           </>
         );
       case 'Note':
@@ -199,39 +182,23 @@ export function ElementEditForm({ element, onSave, onCancel }: ElementEditFormPr
               onChange={(e) => updateProp(['props', 'src'], e.target.value)}
               placeholder={t('pdfEditor.link.src_placeholder')}
             />
-            <label className="block text-xs font-medium mb-1 mt-2">
-              {t('pdfEditor.link.color')}
-            </label>
-            <Input
-              value={localElement.props?.style?.color ?? ''}
-              onChange={(e) => updateProp(['props', 'style', 'color'], e.target.value)}
-              placeholder={t('pdfEditor.link.color_placeholder')}
-            />
+            <div className="mt-2">
+              <StyleEditor
+                value={localElement.props?.style ?? {}}
+                onChange={(newStyle) => updateProp(['props', 'style'], newStyle)}
+              />
+            </div>
           </>
         );
       case 'View':
         return (
           <>
-            <label className="block text-xs font-medium mb-1">
-              {t('pdfEditor.view.flexDirection')}
-            </label>
-            <Input
-              value={localElement.props?.style?.flexDirection ?? ''}
-              onChange={(e) =>
-                updateProp(['props', 'style', 'flexDirection'], e.target.value)
-              }
-              placeholder={t('pdfEditor.view.flexDirection_placeholder')}
-            />
-            <label className="block text-xs font-medium mb-1 mt-2">
-              {t('pdfEditor.view.backgroundColor')}
-            </label>
-            <Input
-              value={localElement.props?.style?.backgroundColor ?? ''}
-              onChange={(e) =>
-                updateProp(['props', 'style', 'backgroundColor'], e.target.value)
-              }
-              placeholder={t('pdfEditor.view.backgroundColor_placeholder')}
-            />
+            <div className="mt-2">
+              <StyleEditor
+                value={localElement.props?.style ?? {}}
+                onChange={(newStyle) => updateProp(['props', 'style'], newStyle)}
+              />
+            </div>
           </>
         );
       case 'Document':

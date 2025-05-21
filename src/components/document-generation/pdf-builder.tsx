@@ -18,6 +18,7 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { ElementEditForm } from './element-edit-form';
+import { Badge } from '../ui/badge';
 
 type PageMode =
   | 'useNone'
@@ -495,10 +496,22 @@ function ConfigEditor({
   function renderChildEditor(child: Children) {
     const permissible = getPermissibleChildTypes(child);
     return (
-      <div key={child.id} className="pl-2 border-l-2 border-gray-200 flex flex-col gap-2">
+      <div
+        key={child.id}
+        className={`p-2 rounded-sm border border-l-primary/50 flex flex-col gap-2 ${
+          child.parentId === 'root'
+            ? 'border-l-2 border-gray-200'
+            : 'border-l-2 border-gray-200'
+        }`}
+      >
         <div className="flex items-center justify-between gap-2 text-sm border-b border-dashed border-gray-200 pb-1">
-          <span className="truncate max-w-full font-semibold">{child.element}</span>
           <div className="commands flex items-center gap-2">
+            <Badge
+              className="max-w-full text-xs font-semibold uppercase"
+              variant="outline"
+            >
+              <span>{child.element}</span>
+            </Badge>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -526,32 +539,32 @@ function ConfigEditor({
               </TooltipTrigger>
               <TooltipContent>Modifier l&apos;élément</TooltipContent>
             </Tooltip>
-            {permissible.length > 0 && (
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon">
-                        +
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>Ajouter un élément</TooltipContent>
-                </Tooltip>
-
-                <DropdownMenuContent align="start">
-                  {permissible.map((type) => (
-                    <DropdownMenuItem
-                      key={type}
-                      onClick={() => handleAddElement(child.id, type)}
-                    >
-                      {type}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
+          {permissible.length > 0 && (
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon">
+                      +
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Ajouter un élément</TooltipContent>
+              </Tooltip>
+
+              <DropdownMenuContent align="start">
+                {permissible.map((type) => (
+                  <DropdownMenuItem
+                    key={type}
+                    onClick={() => handleAddElement(child.id, type)}
+                  >
+                    {type}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
         {/* Inline editing for Text.content and Image.props.source */}
         {child.element === 'Text' && (
@@ -573,7 +586,7 @@ function ConfigEditor({
             />
           )}
         {child.children && child.children.length > 0 && (
-          <div className="ml-2 flex flex-col gap-2">
+          <div className="ml-2 flex flex-col gap-2 h-full overflow-y-auto">
             {child.children.map((c) => renderChildEditor(c))}
           </div>
         )}
@@ -623,15 +636,19 @@ export function PDFBuilder({
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-6 gap-4">
       <CardContainer
-        className="lg:col-span-4 overflow-hidden"
-        contentClass="overflow-hidden p-0 aspect-[1/1.4142]"
+        className="lg:col-span-3"
+        title="Editor"
+        contentClass="aspect-document overflow-y-auto"
+      >
+        <ConfigEditor config={config} setConfig={onChange} />
+      </CardContainer>
+      <CardContainer
+        className="lg:col-span-3 overflow-hidden"
+        contentClass="overflow-hidden p-0 aspect-document"
       >
         <ReactPDF.PDFViewer width="100%" height="100%">
           <Document {...config.document}>{config.children.map(renderChild)}</Document>
         </ReactPDF.PDFViewer>
-      </CardContainer>
-      <CardContainer className="lg:col-span-2" title="Editor">
-        <ConfigEditor config={config} setConfig={onChange} />
       </CardContainer>
     </div>
   );

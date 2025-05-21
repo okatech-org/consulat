@@ -51,7 +51,7 @@ export function NotificationBell({
         <SheetContent
           side={isMobile ? 'bottom' : 'right'}
           className={cn(
-            'flex flex-col w-full max-w-[700px] overflow-y-auto h-full',
+            'flex flex-col w-full !max-w-[700px] overflow-y-auto h-full',
             isMobile && 'max-h-[70dvh]',
           )}
         >

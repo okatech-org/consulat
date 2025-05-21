@@ -443,6 +443,9 @@ p,
   .mobile-show-inline {
     @apply inline sm:hidden;
   }
+  .aspect-document {
+    aspect-ratio: 1/1.4;
+  }
 
   /* Assurer que le contenu ne passe pas sous la navigation mobile */
   .pb-safe {
