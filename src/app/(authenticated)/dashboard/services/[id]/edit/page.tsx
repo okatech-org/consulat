@@ -14,7 +14,7 @@ import { UserRole } from '@prisma/client';
 import { getCountries } from '@/actions/countries';
 import { getCurrentUser } from '@/actions/user';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { getValuable } from '@/lib/utils';
+import { getDocumentTemplates } from '@/actions/document-generation';
 
 export default async function EditServicePage({ params }: { params: { id: string } }) {
   const awaitedParams = await params;
@@ -29,10 +29,11 @@ export default async function EditServicePage({ params }: { params: { id: string
   const organization = !isSuperAdmin
     ? await getOrganizationWithSpecificIncludes(user.organizationId ?? '', ['countries'])
     : null;
+  const documentTemplates = await getDocumentTemplates(
+    isSuperAdmin ? null : (user.organizationId ?? ''),
+  );
 
   const service = await getFullService(awaitedParams.id);
-
-  const cleanedService = getValuable(service);
 
   if (!service) {
     return <NotFound />;
@@ -42,9 +43,10 @@ export default async function EditServicePage({ params }: { params: { id: string
     <PageContainer title={service.name} description={t('edit_title')}>
       <CardContainer>
         <ConsularServiceForm
-          service={cleanedService}
+          service={service}
           organizations={organizations ?? [organization]}
           countries={countries ?? organization?.countries ?? []}
+          documentTemplates={documentTemplates}
         />
       </CardContainer>
     </PageContainer>

@@ -5,6 +5,7 @@ import {
   DocumentType,
   ProcessingMode,
   DeliveryMode,
+  RequestStatus,
 } from '@prisma/client';
 import { CountryCodeSchema } from './inputs';
 import { fieldTypes } from '@/types/consular-service';
@@ -47,6 +48,18 @@ export const ServiceStepSchema = z.object({
   fields: z.array(ServiceFieldSchema).optional(),
 });
 
+export const GenerateDocumentSettingsSchema = z.object({
+  templateId: z.string(),
+  generateOnStatus: z.array(z.nativeEnum(RequestStatus)),
+  settings: z.record(z.string(), z.any()).optional().nullable(),
+  serviceId: z.string().optional().nullable(),
+  id: z.string().optional().nullable(),
+});
+
+export type GenerateDocumentSettingsSchemaInput = z.infer<
+  typeof GenerateDocumentSettingsSchema
+>;
+
 export const ServiceSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Le nom doit contenir au moins 2 caractères'),
@@ -71,6 +84,14 @@ export const ServiceSchema = z.object({
   price: z.number().min(0).optional(),
   currency: z.string().default('EUR'),
   steps: z.array(ServiceStepSchema),
+  generateDocumentSettings: z
+    .array(GenerateDocumentSettingsSchema, {
+      required_error: 'Les paramètres de génération de documents sont requis',
+      invalid_type_error:
+        'Les paramètres de génération de documents doivent être un tableau',
+    })
+    .optional()
+    .default([]),
 });
 
 export type ServiceSchemaInput = z.infer<typeof ServiceSchema>;

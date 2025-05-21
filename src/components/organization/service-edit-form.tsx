@@ -1,27 +1,11 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  ServiceCategory,
-  DocumentType,
-  DeliveryMode,
-  ServiceStepType,
-} from '@prisma/client';
-import { OrganizationListingItem } from '@/types/organization';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, ArrowUp, Trash } from 'lucide-react';
-import { ConsularServiceItem, ServiceStep } from '@/types/consular-service';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { useState } from 'react';
 import { updateService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GenerateDocumentSettingsForm } from '@/components/document-generation/generate-document-settings-form';
+import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CountrySelect } from '@/components/ui/country-select';
 import {
   Form,
   FormControl,
@@ -31,26 +15,46 @@ import {
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import { CountrySelect } from '@/components/ui/country-select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
-import { profileFields } from '@/types/profile';
+import { Input } from '@/components/ui/input';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { filterUneditedKeys, getValuable } from '@/lib/utils';
 import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
-import { filterUneditedKeys } from '@/lib/utils';
+import { ConsularServiceItem, ServiceStep } from '@/types/consular-service';
 import { Country } from '@/types/country';
-import { getValuable } from '@/lib/utils';
+import { OrganizationListingItem } from '@/types/organization';
+import { profileFields } from '@/types/profile';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  DeliveryMode,
+  DocumentTemplate,
+  DocumentType,
+  RequestStatus,
+  ServiceCategory,
+  ServiceStepType,
+} from '@prisma/client';
+import { ArrowUp, Loader2, Plus, Trash } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 interface ServiceFormProps {
   organizations: OrganizationListingItem[];
   countries: Country[];
   service: Partial<ConsularServiceItem>;
+  documentTemplates: DocumentTemplate[];
 }
 
 export function ConsularServiceForm({
   organizations,
   service,
   countries,
+  documentTemplates,
 }: ServiceFormProps) {
   const t = useTranslations('services');
   const t_inputs = useTranslations('inputs');
@@ -69,6 +73,7 @@ export function ConsularServiceForm({
   });
 
   const handleSubmit = async (data: ServiceSchemaInput) => {
+    console.log({ data });
     setIsLoading(true);
     try {
       if (service.id) {
@@ -94,8 +99,14 @@ export function ConsularServiceForm({
       setIsLoading(false);
     }
   };
-
   const serviceSteps: ServiceStep[] = form.watch('steps');
+
+  useEffect(() => {
+    console.log({
+      generateDocumentSettings: form.watch('generateDocumentSettings'),
+      errors: form.formState.errors,
+    });
+  }, [form.watch('generateDocumentSettings')]);
 
   return (
     <Form {...form}>
@@ -104,7 +115,7 @@ export function ConsularServiceForm({
         className={'flex h-full flex-col space-y-4'}
       >
         <Tabs defaultValue="general" className={'grow'}>
-          <TabsList className={'mb-4'}>
+          <TabsList className={'mb-4 flex flex-wrap gap-2'}>
             <TabsTrigger value="general">{t('tabs.general')}</TabsTrigger>
             <TabsTrigger value="documents">{t('tabs.documents')}</TabsTrigger>
             <TabsTrigger value="delivery">{t('tabs.delivery')}</TabsTrigger>
@@ -602,7 +613,27 @@ export function ConsularServiceForm({
             </div>
           </TabsContent>
 
-          <TabsContent value="documentGeneration"></TabsContent>
+          <TabsContent value="documentGeneration">
+            <FormField
+              control={form.control}
+              name={`generateDocumentSettings`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('form.steps.step.description.label')}</FormLabel>
+                  <FormControl>
+                    <GenerateDocumentSettingsForm
+                      templates={documentTemplates}
+                      statuses={Object.values(RequestStatus)}
+                      value={field.value}
+                      onChange={(val) => field.onChange(val)}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <TradFormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
         </Tabs>
 
         <div className="gap-4 lg:flex lg:justify-end">

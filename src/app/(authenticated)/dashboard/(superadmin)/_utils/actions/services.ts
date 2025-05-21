@@ -1,15 +1,15 @@
 'use server';
 
-import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
+import { db } from '@/lib/prisma';
+import { NewServiceSchemaInput } from '@/schemas/consular-service';
+import { ROUTES } from '@/schemas/routes';
+import type {
+  ConsularServiceItem,
+  ConsularServiceListingItem,
+} from '@/types/consular-service';
 import { UserRole } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-import { ROUTES } from '@/schemas/routes';
-import { NewServiceSchemaInput } from '@/schemas/consular-service';
-import type {
-  ConsularServiceListingItem,
-  ConsularServiceItem,
-} from '@/types/consular-service';
 
 /**
  * Récupérer tous les services
@@ -65,13 +65,55 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
     // Mise à jour du service et de ses étapes
     const service = await db.$transaction(async (tx) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { steps, organizationId, ...serviceData } = data;
+      const { steps, organizationId, generateDocumentSettings, ...serviceData } = data;
 
       // Supprimer les étapes existantes si de nouvelles sont fournies
       if (steps) {
         await tx.serviceStep.deleteMany({
           where: { serviceId: data.id },
         });
+      }
+
+      if (generateDocumentSettings) {
+        // 1. Récupérer les settings existants (non utilisé, donc retiré)
+        // const existingSettings = await tx.generateDocumentSettings.findMany({
+        //   where: { serviceId: data.id },
+        // });
+        const incoming: typeof generateDocumentSettings = generateDocumentSettings;
+        const incomingIds: string[] = incoming
+          .filter((s) => s.id)
+          .map((s) => s.id as string);
+
+        // 2. Supprimer ceux qui ne sont plus présents
+        await tx.generateDocumentSettings.deleteMany({
+          where: {
+            serviceId: data.id,
+            id: { notIn: incomingIds },
+          },
+        });
+
+        // 3. Update ou create
+        for (const setting of incoming) {
+          if (setting.id) {
+            await tx.generateDocumentSettings.update({
+              where: { id: setting.id },
+              data: {
+                templateId: setting.templateId,
+                generateOnStatus: setting.generateOnStatus,
+                settings: setting.settings ?? undefined,
+              },
+            });
+          } else {
+            await tx.generateDocumentSettings.create({
+              data: {
+                serviceId: data.id,
+                templateId: setting.templateId,
+                generateOnStatus: setting.generateOnStatus,
+                ...(setting.settings && { settings: setting.settings }),
+              },
+            });
+          }
+        }
       }
 
       // Mettre à jour le service
@@ -230,7 +272,7 @@ export async function unassignServiceFromOrganization(
 /**
  * Récupérer un service par son ID
  */
-export async function getFullService(id: string): Promise<ConsularServiceItem> {
+export async function getFullService(id: string): Promise<ConsularServiceItem | null> {
   await checkAuth();
 
   const service = await db.consularService.findUnique({
@@ -238,11 +280,12 @@ export async function getFullService(id: string): Promise<ConsularServiceItem> {
     include: {
       steps: true,
       organization: true,
+      generateDocumentSettings: true,
     },
   });
 
   if (!service) {
-    throw new Error('Service not found', { cause: 'SERVICE_NOT_FOUND' });
+    return null;
   }
 
   const transformedService = {

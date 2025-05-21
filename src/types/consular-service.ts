@@ -141,6 +141,7 @@ export interface ServiceStep {
 export interface ConsularServiceItem extends Omit<ConsularService, 'fields'> {
   steps: ServiceStep[];
   organization: Organization | null;
+  generateDocumentSettings: GenerateDocumentSettings;
 }
 
 export type UpdateServiceInput = Partial<ConsularServiceItem>;

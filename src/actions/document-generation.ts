@@ -4,13 +4,13 @@ import { db } from '@/lib/prisma';
 import { checkAuth } from '@/lib/auth/action';
 import { DocumentTemplate } from '@prisma/client';
 
-export async function getDocumentTemplates(organizationId: string) {
+export async function getDocumentTemplates(organizationId: string | null) {
   // Check for admin, super_admin, or manager role
   await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
 
   return db.documentTemplate.findMany({
     where: {
-      organizationId,
+      ...(organizationId && { organizationId }),
     },
   });
 }
