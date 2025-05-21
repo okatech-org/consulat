@@ -237,6 +237,8 @@ export default {
       },
       maxWidth: {
         'screen-xl': '1280px',
+        'screen-2xl': '1400px',
+        'screen-3xl': '1600px',
       },
       aspectRatio: {
         document: '1/1.4',

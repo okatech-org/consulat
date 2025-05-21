@@ -411,6 +411,10 @@ p,
     @apply px-4 md:px-6;
   }
 
+  .box-container {
+    @apply px-4 md:px-6 max-w-screen-2xl mx-auto w-full;
+  }
+
   .link-button {
     @apply text-blue-500 hover:text-blue-600 underline;
   }

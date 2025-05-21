@@ -37,7 +37,7 @@ export default async function AuthenticatedLayout({
     <SidebarProvider>
       <AppSidebar user={currentUser} />
       <SidebarInset className="overflow-hidden w-full flex flex-col relative pb-safe pt-16">
-        <header className="w-full fixed left-0 right-0 top-0 px-4 z-50 h-16 bg-card shrink-0 border-b border-border items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <header className="w-full fixed left-0 right-0 top-0 px-4 z-50 h-16 bg-card shrink-0 border-b border-border items-center gap-2 transition-[width,height] ease-linear">
           <div className="flex gap-4 w-full h-full justify-between items-center overflow-x-hidden">
             <div className="min-w-max">
               <TeamSwitcher
@@ -75,7 +75,9 @@ export default async function AuthenticatedLayout({
           </div>
         </header>
         <div
-          className={cn('container overflow-y-auto relative grow py-4 sm:py-8 min-h-dvh')}
+          className={cn(
+            'box-container overflow-y-auto relative grow py-4 sm:py-8 min-h-dvh',
+          )}
         >
           {children}
         </div>
