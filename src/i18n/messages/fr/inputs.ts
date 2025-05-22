@@ -958,6 +958,10 @@ export default {
         placeholder: 'Sélectionner les statuts de génération...',
       },
       add: 'Ajouter une configuration',
+      dynamicFields: {
+        label: 'Attribution des champs dynamiques',
+        selectPlaceholder: 'Sélectionner un champ du formulaire...',
+      },
     },
   },
 } as const;

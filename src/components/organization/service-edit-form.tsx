@@ -101,6 +101,8 @@ export function ConsularServiceForm({
 
   const serviceSteps: ServiceStep[] = form.watch('steps');
 
+  console.log({ cleanedService });
+
   return (
     <Form {...form}>
       <form
