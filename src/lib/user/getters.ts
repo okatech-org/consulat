@@ -10,7 +10,7 @@ import {
   FullUserInclude,
   UserSessionInclude,
 } from '@/types';
-import { ServiceCategory, UserRole } from '@prisma/client';
+import { ServiceCategory, ServiceRequest, UserRole } from '@prisma/client';
 import { SessionUser } from '@/types/user';
 import { FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
 
@@ -77,5 +77,16 @@ export async function getUserFullProfileById(id: string): Promise<FullProfile | 
   return db.profile.findUnique({
     where: { id: id },
     ...FullProfileInclude,
+  });
+}
+
+export async function getServiceRequestsByProfileId(
+  profileId: string,
+): Promise<ServiceRequest[]> {
+  return db.serviceRequest.findMany({
+    where: { requestedForId: profileId },
+    include: {
+      service: true,
+    },
   });
 }

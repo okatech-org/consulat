@@ -12,13 +12,15 @@ import CardContainer from '@/components/layouts/card-container';
 import { useStoredTabs } from '@/hooks/use-tabs';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
+import { ServiceRequest } from '@prisma/client';
 
 type ProfileTabsProps = {
   profile: FullProfile;
   requestId?: string;
+  requests?: ServiceRequest[];
 };
 
-export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
+export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) {
   const t = useTranslations('profile');
   const router = useRouter();
 
@@ -85,6 +87,20 @@ export function ProfileTabs({ profile, requestId }: ProfileTabsProps) {
       ),
     },
   ];
+
+  if (requests) {
+    profileTabs.push({
+      id: 'requests',
+      title: 'Demandes en cours',
+      content: (
+        <div>
+          {requests.map((request) => (
+            <div key={request.id}>{request.serviceCategory}</div>
+          ))}
+        </div>
+      ),
+    });
+  }
 
   type Tab = (typeof profileTabs)[number]['id'];
 
