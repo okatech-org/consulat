@@ -49,6 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from '@/hooks/use-toast';
 import { updateServiceRequestStatus } from '@/actions/service-requests';
 import { updateConsularRegistrationStatus } from '@/actions/consular-registration';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
@@ -655,15 +656,19 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
     try {
       await handleBulkStatusUpdate(selectedRows, data.status);
 
-      toast.success(
-        t('common.success.bulk_update_success', {
+      toast({
+        title: t('common.success.bulk_update_success', {
           count: selectedRows.length,
         }),
-      );
+        variant: 'success',
+      });
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast.error(t('common.errors.save_failed'));
+      toast({
+        title: t('common.errors.save_failed'),
+        variant: 'destructive',
+      });
       console.error('Error updating request:', error);
     } finally {
       setIsSubmitting(false);
@@ -771,15 +776,19 @@ function AssignToChangeForm({
     try {
       await handleBulkAssignToUpdate(selectedRows, data.assignedToId);
 
-      toast.success(
-        t('common.success.bulk_update_success', {
+      toast({
+        title: t('common.success.bulk_update_success', {
           count: selectedRows.length,
         }),
-      );
+        variant: 'success',
+      });
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast.error(t('common.errors.save_failed'));
+      toast({
+        title: t('common.errors.save_failed'),
+        variant: 'destructive',
+      });
       console.error('Error updating request:', error);
     } finally {
       setIsSubmitting(false);
