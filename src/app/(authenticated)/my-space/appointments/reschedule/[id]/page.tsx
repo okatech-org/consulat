@@ -1,7 +1,11 @@
 import { getAppointment } from '@/actions/appointments';
 import { RescheduleAppointmentForm } from '@/components/appointments/reschedule-appointment-form';
+import { PageContainer } from '@/components/layouts/page-container';
 import { ErrorCard } from '@/components/ui/error-card';
+import { ROUTES } from '@/schemas/routes';
+import { ArrowLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 
 interface RescheduleAppointmentPageProps {
   params: {
@@ -15,23 +19,28 @@ export default async function RescheduleAppointmentPage({
   const t = await getTranslations('appointments');
   const appointment = await getAppointment(params.id);
 
-  if (!appointment) {
-    return (
-      <ErrorCard
-        title={t('reschedule.error.not_found')}
-        description={t('reschedule.error.not_found_description')}
-      />
-    );
-  }
-
   return (
-    <div className="container max-w-2xl py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">{t('reschedule.title')}</h1>
-        <p className="text-muted-foreground">{t('reschedule.description')}</p>
-      </div>
-
-      <RescheduleAppointmentForm appointment={appointment} />
-    </div>
+    <PageContainer
+      title={t('reschedule.title')}
+      description={t('reschedule.description')}
+      action={
+        <Link
+          href={ROUTES.user.appointments}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-icon" />
+          {'Retour'}
+        </Link>
+      }
+    >
+      {appointment ? (
+        <RescheduleAppointmentForm appointment={appointment} />
+      ) : (
+        <ErrorCard
+          title={t('reschedule.error.not_found')}
+          description={t('reschedule.error.not_found_description')}
+        />
+      )}
+    </PageContainer>
   );
 }
