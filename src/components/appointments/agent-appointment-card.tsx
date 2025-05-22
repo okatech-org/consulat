@@ -100,7 +100,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             })}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {appointment.request?.service.name ?? t('type.options.OTHER')}
+            {appointment.service?.name ?? t('type.options.OTHER')}
           </p>
           {appointment.attendee && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -109,10 +109,10 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             </div>
           )}
         </div>
-        <Button variant="ghost" size="icon" asChild className="shrink-0">
+        <Button variant="outline" asChild className="shrink-0">
           <Link href={`${ROUTES.dashboard.appointments}/${appointment.id}`}>
             <ExternalLink className="size-4" />
-            <span className="sr-only">{commonT('actions.view')}</span>
+            <span>{'Voir les détails'}</span>
           </Link>
         </Button>
       </CardHeader>

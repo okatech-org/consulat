@@ -19,9 +19,10 @@ interface AppointmentPageProps {
 }
 
 export default async function AppointmentPage({ params }: AppointmentPageProps) {
+  const awaitedParams = await params;
   const t = await getTranslations('appointments');
   const commonT = await getTranslations('common');
-  const appointment = await getAppointment(params.id);
+  const appointment = await getAppointment(awaitedParams.id);
 
   if (!appointment) {
     return (
@@ -54,7 +55,19 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
   return (
     <PageContainer
       title={t('details.title')}
-      description={t('details.subtitle', { id: appointment.id })}
+      description={
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground">
+            {t('details.subtitle', { id: appointment.id })}
+          </p>
+          <Badge
+            variant="secondary"
+            className={cn('text-base', getStatusColor(appointment.status))}
+          >
+            {commonT(`status.${appointment.status}`)}
+          </Badge>
+        </div>
+      }
     >
       <div className="mb-8">
         <Button variant="ghost" size="sm" className="mb-4" asChild>
@@ -63,21 +76,6 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
             {t('actions.back')}
           </Link>
         </Button>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{t('details.title')}</h1>
-            <p className="text-muted-foreground">
-              {t('details.subtitle', { id: appointment.id })}
-            </p>
-          </div>
-          <Badge
-            variant="secondary"
-            className={cn('text-base', getStatusColor(appointment.status))}
-          >
-            {commonT(`status.${appointment.status}`)}
-          </Badge>
-        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -87,9 +85,7 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-semibold">
-                {appointment.request?.service.name ?? t('service.placeholder')}
-              </h3>
+              <h3 className="font-semibold">{appointment.service?.name}</h3>
               <p className="text-sm text-muted-foreground">
                 {appointment.organization.name}
               </p>
@@ -115,10 +111,19 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <User className="size-4 text-muted-foreground" />
-              <div>
+              <div className="flex flex-col gap-2">
                 <p className="font-medium">{appointment.attendee.name}</p>
               </div>
             </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={`${ROUTES.listing.profiles}/${appointment.attendee.profileId}`}
+                target="_blank"
+              >
+                <User className="size-4" />
+                <span>Consulter le profil</span>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 

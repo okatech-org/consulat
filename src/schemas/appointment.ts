@@ -67,4 +67,5 @@ export interface AppointmentWithRelations extends Appointment {
   agent: User | null;
   request?: (ServiceRequest & { service: ConsularService }) | null;
   attendee?: User | null;
+  service?: ConsularService;
 }
