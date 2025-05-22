@@ -13,6 +13,7 @@ import { useStoredTabs } from '@/hooks/use-tabs';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { ServiceRequest } from '@prisma/client';
+import { RequestsSection } from './sections/requests-section';
 
 type ProfileTabsProps = {
   profile: FullProfile;
@@ -91,14 +92,8 @@ export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) 
   if (requests) {
     profileTabs.push({
       id: 'requests',
-      title: 'Demandes en cours',
-      content: (
-        <div>
-          {requests.map((request) => (
-            <div key={request.id}>{request.serviceCategory}</div>
-          ))}
-        </div>
-      ),
+      title: t('sections.requests'),
+      content: <RequestsSection requests={requests} />,
     });
   }
 
