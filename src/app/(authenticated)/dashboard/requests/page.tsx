@@ -9,14 +9,14 @@ import { getServiceRequests, GetRequestsOptions } from '@/actions/service-reques
 import { cn, tryCatch } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
-import { hasPermission, hasAnyRole, RoleGuard } from '@/lib/permissions/utils';
+import { hasPermission, hasAnyRole } from '@/lib/permissions/utils';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { SessionUser } from '@/types';
 
 // Imports pour le DataTable
 import { ColumnDef } from '@tanstack/react-table';
-import { FileText, Edit, Eye } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -30,15 +30,7 @@ import { Button } from '@/components/ui/button';
 
 // Imports des nouveaux hooks et utilitaires
 import { useTableParams } from '@/components/utils/table-hooks';
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { DialogClose } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -57,8 +49,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
 import { updateServiceRequestStatus } from '@/actions/service-requests';
 import { updateConsularRegistrationStatus } from '@/actions/consular-registration';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
@@ -481,58 +471,20 @@ export default function RequestsPage() {
         />
       ),
       cell: ({ row }) => (
-        <DataTableRowActions
-          actions={[
-            {
-              component: (
-                <Link
-                  onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.dashboard.service_requests(row.original.id)}
-                >
-                  <FileText className="size-icon" />
-                  {t('common.actions.consult')}
-                </Link>
-              ),
-            },
-            {
-              component: (
-                <Link
-                  onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.dashboard.service_request_review(row.original.id)}
-                >
-                  <Eye className="size-icon" />
-                  {t('common.actions.review')}
-                </Link>
-              ),
-            },
-            {
-              component: (
-                <RoleGuard roles={['ADMIN', 'MANAGER', 'SUPER_ADMIN']}>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Edit className="size-icon" />
-                        <span>{t('common.actions.edit')}</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>{t('common.actions.edit')}</DialogTitle>
-                      </DialogHeader>
-                      <QuickEditForm request={row.original} onSuccess={handleRefresh} />
-                    </DialogContent>
-                  </Dialog>
-                </RoleGuard>
-              ),
-            },
-          ]}
-          row={row}
-        />
+        <Button variant="outline" size="sm" className="min-w-max" asChild>
+          <Link
+            onClick={(e) => e.stopPropagation()}
+            href={ROUTES.dashboard.service_requests(row.original.id)}
+          >
+            <FileText className="size-icon" />
+            {t('common.actions.consult')}
+          </Link>
+        </Button>
       ),
     });
 
     return tableColumns;
-  }, [t, user, formatDate, statuses, handleRefresh, handleSortChange, agents, router]);
+  }, [t, user, formatDate, statuses, handleSortChange, agents, router]);
 
   // Définition des filtres
   const filters = useMemo<FilterOption<FullServiceRequest>[]>(() => {
@@ -675,108 +627,6 @@ export default function RequestsPage() {
         </CardContainer>
       )}
     </PageContainer>
-  );
-}
-
-// Define schema for quick edit form
-const quickEditSchema = z.object({
-  status: z.nativeEnum(RequestStatus),
-  notes: z.string().optional(),
-});
-
-type QuickEditFormData = z.infer<typeof quickEditSchema>;
-
-type QuickEditFormProps = {
-  request: FullServiceRequest;
-  onSuccess: () => void;
-};
-
-function QuickEditForm({ request, onSuccess }: QuickEditFormProps) {
-  const t = useTranslations();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<QuickEditFormData>({
-    resolver: zodResolver(quickEditSchema),
-    defaultValues: {
-      status: request.status,
-      notes: '',
-    },
-  });
-
-  const onSubmit = async (data: QuickEditFormData) => {
-    setIsSubmitting(true);
-    try {
-      await updateServiceRequestStatus(request.id, data.status, data.notes);
-      toast.success(t('common.success.saved'));
-      onSuccess();
-    } catch (error) {
-      toast.error(t('common.errors.save_failed'));
-      console.error('Error updating request:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('inputs.status.label')}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('inputs.status.placeholder')} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(RequestStatus).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {t(`inputs.requestStatus.options.${status}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('inputs.notes.label')}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t('inputs.notes.placeholder')}
-                  {...field}
-                  className="min-h-[100px]"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end space-x-2 pt-4">
-          <DialogClose asChild>
-            <Button variant="outline" type="button" onClick={() => form.reset()}>
-              {t('common.actions.cancel')}
-            </Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
-            </Button>
-          </DialogClose>
-        </div>
-      </form>
-    </Form>
   );
 }
 
