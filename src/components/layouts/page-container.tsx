@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 interface PageContainerProps {
   title?: ReactNode;
-  description?: string;
+  description?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -22,7 +22,7 @@ export const PageContainer = ({
           {(title || description) && (
             <div>
               {title && <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>}
-              {description && <p className="text-muted-foreground">{description}</p>}
+              {description && <div className="text-muted-foreground">{description}</div>}
             </div>
           )}
           {action && <div>{action}</div>}

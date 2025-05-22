@@ -20,6 +20,8 @@ export function AgentAppointmentsTabs({
   const { currentTab, handleTabChange } = useTabs<string>('tab', 'upcoming');
   const t = useTranslations('appointments.tabs');
 
+  console.log({ upcoming });
+
   return (
     <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
       <TabsList>

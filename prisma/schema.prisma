@@ -540,6 +540,7 @@ model ConsularService {
   Country                  Country?                   @relation(fields: [countryCode], references: [code])
   countryCode              String?
   generateDocumentSettings GenerateDocumentSettings[]
+  appointments             Appointment[]
 }
 
 model ServiceStep {
@@ -673,12 +674,13 @@ model Appointment {
 
   // Relations existantes
   attendeeId String // Utilisateur qui prend le RDV
-  attendee   User            @relation(fields: [attendeeId], references: [id], name: "AppointmentAttendee")
+  attendee   User             @relation(fields: [attendeeId], references: [id], name: "AppointmentAttendee")
   agentId    String? // Agent assigné (optional)
-  agent      User?           @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
-  request    ServiceRequest? @relation(fields: [requestId], references: [id])
-  requestId  String?         @unique
+  agent      User?            @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
+  request    ServiceRequest?  @relation(fields: [requestId], references: [id])
+  requestId  String?          @unique
   serviceId  String?
+  service    ConsularService? @relation(fields: [serviceId], references: [id])
 
   // Métadonnées
   createdAt       DateTime  @default(now())

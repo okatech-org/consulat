@@ -379,6 +379,8 @@ export async function getUserAppointments(params: {
       },
       include: {
         organization: true,
+        attendee: true,
+        service: true,
         agent: true,
         request: {
           include: {
@@ -554,6 +556,7 @@ export async function getAppointment(id: string) {
       include: {
         organization: true,
         agent: true,
+        service: true,
         request: {
           include: {
             service: true,

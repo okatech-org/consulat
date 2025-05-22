@@ -32,10 +32,6 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     ? await getUserFullProfileById(request.requestedForId)
     : await getUserFullProfile(user.id);
 
-  if (!hasPermission(user, 'serviceRequests', 'view', request)) {
-    return notFound();
-  }
-
   const { data: agents = [] } = request.organizationId
     ? await getOrganizationAgents(request.organizationId)
     : { data: [] };
