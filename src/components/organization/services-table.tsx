@@ -25,7 +25,6 @@ import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getOrganizationFromId } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/services';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
-import { RoleGuard } from '@/lib/permissions/utils';
 import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
@@ -179,7 +178,7 @@ export function ServicesTable({
           </>
         ),
         onClick: () => {
-          router.push(ROUTES.dashboard.edit_service(row.id));
+          router.push(ROUTES.dashboard.edit_service(row.original.id));
         },
       },
       {
@@ -190,7 +189,7 @@ export function ServicesTable({
           </>
         ),
         onClick: () => {
-          handleDuplicateService(row.id);
+          handleDuplicateService(row.original.id);
         },
       },
       {
@@ -210,7 +209,7 @@ export function ServicesTable({
           </>
         ),
         onClick: () => {
-          handleStatusChange(row.id, !row.original.isActive);
+          handleStatusChange(row.original.id, !row.original.isActive);
         },
       },
       {

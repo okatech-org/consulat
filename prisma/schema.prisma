@@ -445,7 +445,7 @@ model GenerateDocumentSettings {
   id               String           @id @default(cuid())
   serviceId        String
   service          ConsularService  @relation(fields: [serviceId], references: [id])
-  settings         Json? // Métadonnées additionnelles
+  settings         Json?
   template         DocumentTemplate @relation(fields: [templateId], references: [id])
   templateId       String
   generateOnStatus RequestStatus[]

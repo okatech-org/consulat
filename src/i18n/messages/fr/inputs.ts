@@ -946,4 +946,22 @@ export default {
     save: 'Sauvegarder',
     cancel: 'Annuler',
   },
+  documentGeneration: {
+    config: {
+      title: 'Configuration #{index}',
+      template: {
+        label: 'Modèle de document',
+        placeholder: 'Sélectionner un modèle de document...',
+      },
+      status: {
+        label: 'Statuts de génération',
+        placeholder: 'Sélectionner les statuts de génération...',
+      },
+      add: 'Ajouter une configuration',
+      dynamicFields: {
+        label: 'Attribution des champs dynamiques',
+        selectPlaceholder: 'Sélectionner un champ du formulaire...',
+      },
+    },
+  },
 } as const;
