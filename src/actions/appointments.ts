@@ -309,6 +309,7 @@ export async function createAppointment(data: AppointmentInput) {
         agentId: validatedData.agentId,
         countryCode: validatedData.countryCode,
         instructions: validatedData.instructions,
+        requestId: validatedData.requestId,
       },
       include: {
         attendee: true,

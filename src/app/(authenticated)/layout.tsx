@@ -74,11 +74,7 @@ export default async function AuthenticatedLayout({
             <NavUser user={currentUser} showFeedback={false} />
           </div>
         </header>
-        <div
-          className={cn(
-            'box-container overflow-y-auto relative grow py-4 sm:py-8 min-h-dvh',
-          )}
-        >
+        <div className={cn('box-container relative grow py-4 sm:py-8 min-h-dvh')}>
           {children}
         </div>
         <BottomNavigation user={currentUser} />

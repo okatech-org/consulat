@@ -23,23 +23,32 @@ export const BaseServiceRequestInclude = {
       select: {
         id: true,
         name: true,
-        category: true,
         description: true,
+        category: true,
         requiredDocuments: true,
+        optionalDocuments: true,
+        toGenerateDocuments: true,
         requiresAppointment: true,
         appointmentDuration: true,
+        appointmentInstructions: true,
         deliveryAppointment: true,
         deliveryAppointmentDuration: true,
-        processingMode: true,
-        deliveryMode: true,
-        proxyRequirements: true,
-        postalRequirements: true,
-        optionalDocuments: true,
+        deliveryAppointmentDesc: true,
         steps: true,
         isFree: true,
         price: true,
         currency: true,
+        organizationId: true,
+        processingMode: true,
+        deliveryMode: true,
+        proxyRequirements: true,
+        postalRequirements: true,
+        metadata: true,
+        createdAt: true,
+        updatedAt: true,
+        countryCode: true,
         Country: true,
+        generateDocumentSettings: true,
       },
     },
     organization: {
@@ -99,18 +108,6 @@ export const FullServiceRequestInclude = {
         receiver: true,
       },
     },
-    appointment: {
-      include: {
-        agent: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        location: true,
-      },
-    },
     actions: {
       include: {
         user: {
@@ -128,6 +125,7 @@ export const FullServiceRequestInclude = {
         identityPicture: true,
       },
     },
+    appointment: true,
   },
 } as const;
 

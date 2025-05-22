@@ -94,6 +94,7 @@ export default {
     service: 'Service',
     slot: 'Horaire',
     confirmation: 'Confirmation',
+    request: 'Demande',
   },
   agent: 'Agent consulaire',
   validation: {
@@ -104,8 +105,8 @@ export default {
     organization_required: "L'organisation est requise",
     service_required: 'Le service est requis',
     country_required: 'Le pays est requis',
-    duplicate_service:
-      "Vous avez déjà un rendez-vous en cours pour ce service. Veuillez attendre que celui-ci soit terminé avant d'en prendre un nouveau.",
+    duplicate_service: 'Vous avez déjà un rendez-vous pour ce service',
+    duplicate_request: 'Vous avez déjà un rendez-vous pour cette demande',
   },
   reschedule: {
     title: 'Reporter le rendez-vous',
@@ -137,5 +138,11 @@ export default {
     datetime: 'Date et heure',
     location: 'Lieu',
     duration: '{duration} minutes',
+  },
+  request: {
+    label: 'Demande',
+    placeholder: 'Sélectionnez une demande',
+    description: 'Choisissez la demande pour laquelle vous souhaitez prendre rendez-vous',
+    no_eligible: 'Aucune demande éligible pour la prise de rendez-vous.',
   },
 } as const;
