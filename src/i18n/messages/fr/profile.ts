@@ -84,6 +84,7 @@ export default {
     family_info: 'Informations familiales',
     professional_info: 'Informations professionnelles',
     documents: 'Documents officiels',
+    requests: 'Demandes en cours',
   },
   fields: {
     gender: 'Genre',

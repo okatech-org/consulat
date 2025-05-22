@@ -123,7 +123,6 @@ export function ProfileContactForm({
                 <FormLabel>Votre contact (email ou numéro de téléphone)</FormLabel>
                 <FormControl>
                   <Input
-                    autoFocus={true}
                     {...field}
                     type="text"
                     autoComplete="email"

@@ -5,7 +5,10 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfileDetailsView } from './profile-details-view';
-import { getUserFullProfileById } from '@/lib/user/getters';
+import {
+  getServiceRequestsByProfileId,
+  getUserFullProfileById,
+} from '@/lib/user/getters';
 
 interface ProfilePageProps {
   params: {
@@ -52,6 +55,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Determine if the user can contact this profile
   const canContact = !!session?.user;
 
+  const requests = hasFullAccess
+    ? await getServiceRequestsByProfileId(profileId)
+    : undefined;
+
   return (
     <div className="container">
       <div className="mx-auto max-w-screen-xl">
@@ -60,6 +67,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             profile={profile}
             hasFullAccess={hasFullAccess ?? false}
             canContact={canContact}
+            requests={requests}
           />
         </Suspense>
       </div>
