@@ -608,7 +608,7 @@ model ServiceRequest {
   messages             Message[] // Communications
 
   // Rendez-vous associé (si applicable)
-  appointment Appointment?
+  appointments Appointment[]
 
   proxyName            String?
   proxyIdentityDoc     String?

@@ -125,7 +125,8 @@ export const FullServiceRequestInclude = {
         identityPicture: true,
       },
     },
-    appointment: true,
+    service: true,
+    appointments: true,
   },
 } as const;
 

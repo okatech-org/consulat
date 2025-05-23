@@ -72,7 +72,7 @@ const FormItemContext = React.createContext<FormItemContextValue>(
 );
 
 const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
+  ({ className = 'flex flex-col', ...props }, ref) => {
     const id = React.useId();
 
     return (

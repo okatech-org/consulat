@@ -5,16 +5,16 @@ import { redirect } from 'next/navigation';
 import { NewAppointmentForm } from '@/components/appointments/new-appointment-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { getRegistrationRequestDetailsById } from '@/actions/registrations';
-import { getServiceRequestsByUser } from '@/actions/service-requests';
+import { getServiceRequest, getServiceRequestsByUser } from '@/actions/service-requests';
 import type { FullServiceRequest } from '@/types/service-request';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getTranslations } from 'next-intl/server';
+import { AppointmentType } from '@prisma/client';
 
 interface NewAppointmentPageProps {
   searchParams: {
     serviceRequestId?: string;
-    type?: string;
+    type?: AppointmentType;
     serviceId?: string;
   };
 }
@@ -31,15 +31,18 @@ export default async function NewAppointmentPage({
   }
 
   // Récupérer les informations pré-remplies si disponibles
-  let preselectedData: { requestId?: string; type?: string } | undefined;
+  let preselectedData:
+    | {
+        request?: FullServiceRequest;
+        type?: AppointmentType;
+      }
+    | undefined;
   if (awaitedSearchParams.serviceRequestId) {
-    const request = await getRegistrationRequestDetailsById(
-      awaitedSearchParams.serviceRequestId,
-    );
+    const request = await getServiceRequest(awaitedSearchParams.serviceRequestId);
     if (request) {
       preselectedData = {
-        requestId: request.id,
-        type: awaitedSearchParams.type || 'DOCUMENT_COLLECTION',
+        request,
+        type: awaitedSearchParams.type,
       };
     }
   }
@@ -48,17 +51,6 @@ export default async function NewAppointmentPage({
     getServiceRequestsByUser(user.id) as Promise<FullServiceRequest[]>,
     getOrganizationByCountry(user.countryCode ?? ''),
   ]);
-
-  if (!organization) {
-    return (
-      <div>
-        <h1>
-          Pas d&apos;organisation trouvée pour ce pays. Veuillez contacter
-          l&apos;administrateur.
-        </h1>
-      </div>
-    );
-  }
 
   return (
     <PageContainer
@@ -74,13 +66,22 @@ export default async function NewAppointmentPage({
         </Link>
       }
     >
-      <NewAppointmentForm
-        serviceRequests={serviceRequests}
-        countryCode={user.countryCode ?? ''}
-        organizationId={organization.id}
-        attendeeId={user.id}
-        preselectedData={preselectedData}
-      />
+      {!organization && (
+        <h1>
+          Pas d&apos;organisation trouvée pour ce pays. Veuillez contacter
+          l&apos;administrateur.
+        </h1>
+      )}
+
+      {organization && (
+        <NewAppointmentForm
+          serviceRequests={serviceRequests}
+          countryCode={user.countryCode ?? ''}
+          organizationId={organization.id}
+          attendeeId={user.id}
+          preselectedData={preselectedData}
+        />
+      )}
     </PageContainer>
   );
 }
