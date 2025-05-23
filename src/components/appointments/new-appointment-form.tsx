@@ -15,7 +15,7 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
-import { cn, useDateLocale } from '@/lib/utils';
+import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
@@ -119,52 +119,42 @@ export function NewAppointmentForm({
   const selectedDate = form.watch('date');
 
   const onSubmit = async (data: AppointmentInput) => {
+    setIsLoading(true);
     if (!selectedTimeSlot) return;
+
+    console.log({
+      data,
+      selectedTimeSlot,
+    });
 
     // Vérifier qu'un agent est disponible
     const agentId = selectedTimeSlot.availableAgents[0];
+
+    const appointment = {
+      ...data,
+      startTime: selectedTimeSlot.start,
+      endTime: selectedTimeSlot.end,
+      duration: selectedTimeSlot.duration,
+      status: AppointmentStatus.CONFIRMED,
+    };
+
+    const result = await tryCatch(createAppointment(appointment));
+
+    if (result.error) {
+      console.error(result.error);
+    }
+
+    if (result.data) {
+      router.push(ROUTES.user.appointments);
+    }
+
     if (!agentId) {
       console.error('No agent available for this time slot');
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    try {
-      // Préparer les données du rendez-vous
-      const appointment = {
-        ...data,
-        startTime: selectedTimeSlot.start,
-        endTime: selectedTimeSlot.end,
-        duration: selectedTimeSlot.duration,
-        agentId,
-        status: AppointmentStatus.CONFIRMED,
-      };
-
-      // Appeler l'action serveur
-      const result = await createAppointment(appointment);
-
-      if (!result.success) {
-        // Gérer l'erreur de rendez-vous en double
-        if (
-          result.error?.includes('Unique constraint failed on the fields: (`serviceId`)')
-        ) {
-          form.setError('requestId', {
-            type: 'manual',
-            message: t('validation.duplicate_request'),
-          });
-          setCurrentTab('request'); // Retourner à l'onglet de sélection du service
-          return;
-        }
-        throw new Error(result.error);
-      }
-
-      router.push(ROUTES.user.appointments);
-    } catch (error) {
-      console.error(error);
-      // TODO: Afficher une notification d'erreur
-    } finally {
-      setIsLoading(false);
-    }
+    setIsLoading(false);
   };
 
   const handleTabChange = (value: string) => {

@@ -245,6 +245,7 @@ export default {
   },
   appointments: {
     notifications: {
+      duplicate_request: 'Cette demande est déjà associée à un rendez-vous existant',
       appointment_confirmed: 'Rendez-vous confirmé',
       appointment_confirmed_message:
         'Votre rendez-vous a été confirmé pour le {date} à {time}',
