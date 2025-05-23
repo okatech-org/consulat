@@ -326,9 +326,6 @@ export function NewAppointmentForm({
       selectedRequest.assignedTo?.id,
     )
       .then((slots) => {
-        console.log({
-          slots,
-        });
         setAvailableTimeSlots(slots);
       })
       .catch((error) => {
