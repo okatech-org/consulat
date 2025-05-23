@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import CardContainer from '../layouts/card-container';
 
 interface AppointmentCardProps {
   appointment: AppointmentWithRelations;
@@ -70,86 +71,72 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-semibold">
-              {appointment.request?.service.name ?? t('type.options.OTHER')}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {t_inputs(
-                `serviceCategory.options.${appointment.request?.service.category ?? 'OTHER'}`,
-              )}
-            </p>
-          </div>
-          <Badge variant={getStatusColor(appointment.status)}>
-            {t_common(`status.${appointment.status}`)}
-          </Badge>
+    <CardContainer
+      title={appointment.request?.service.name ?? t('type.options.OTHER')}
+      subtitle={t_inputs(
+        `serviceCategory.options.${appointment.request?.service.category ?? 'OTHER'}`,
+      )}
+      action={
+        <Badge variant={getStatusColor(appointment.status)}>
+          {t_common(`status.${appointment.status}`)}
+        </Badge>
+      }
+      contentClass="space-y-4"
+    >
+      <div className="flex items-center gap-2">
+        <Calendar className="size-4 text-muted-foreground" />
+        <span>{formatDate(appointment.date, 'PPP')}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Clock className="size-4 text-muted-foreground" />
+        <span>
+          {formatDate(appointment.startTime, 'HH:mm')} -{' '}
+          {formatDate(appointment.endTime, 'HH:mm')}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <MapPin className="size-4 text-muted-foreground" />
+        <span>{appointment.organization.name}</span>
+      </div>
+      {appointment.agent && (
+        <p className="text-sm text-muted-foreground">
+          {t('agent')}: {appointment.agent.name}
+        </p>
+      )}
+      {appointment.instructions && (
+        <p className="text-sm text-muted-foreground">{appointment.instructions}</p>
+      )}
+      {appointment.status === 'CONFIRMED' && (
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReschedule}
+            disabled={isLoading}
+          >
+            {t('actions.reschedule')}
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={isLoading}>
+                {t('actions.cancel')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('cancel.title')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('cancel.description')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('actions.back')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCancel}>
+                  {t('actions.confirm')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="size-4 text-muted-foreground" />
-            <span>{formatDate(appointment.date, 'PPP')}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="size-4 text-muted-foreground" />
-            <span>
-              {formatDate(appointment.startTime, 'HH:mm')} -{' '}
-              {formatDate(appointment.endTime, 'HH:mm')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="size-4 text-muted-foreground" />
-            <span>{appointment.organization.name}</span>
-          </div>
-          {appointment.agent && (
-            <p className="text-sm text-muted-foreground">
-              {t('agent')}: {appointment.agent.name}
-            </p>
-          )}
-          {appointment.instructions && (
-            <p className="text-sm text-muted-foreground">{appointment.instructions}</p>
-          )}
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-end gap-2">
-        {appointment.status === 'CONFIRMED' && (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReschedule}
-              disabled={isLoading}
-            >
-              {t('actions.reschedule')}
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" disabled={isLoading}>
-                  {t('actions.cancel')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('cancel.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('cancel.description')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('actions.back')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleCancel}>
-                    {t('actions.confirm')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
-        )}
-      </CardFooter>
-    </Card>
+      )}
+    </CardContainer>
   );
 }
