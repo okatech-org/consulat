@@ -629,7 +629,7 @@ export function NewAppointmentForm({
             <CardContainer
               title={t('steps.confirmation')}
               footerContent={
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center gap-2">
                   {canGoPrevious() && (
                     <Button
                       type="button"
