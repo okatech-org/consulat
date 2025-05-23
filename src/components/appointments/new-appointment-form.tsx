@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
 import { cn, useDateLocale } from '@/lib/utils';
-import { CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
@@ -69,7 +69,7 @@ export function NewAppointmentForm({
 
   const { currentTab, setCurrentTab } = useStoredTabs<Step>(
     'new-appointment-tab',
-    preselectedData ? 'slot' : 'request',
+    preselectedData?.type && preselectedData.request?.id ? 'slot' : 'request',
   );
 
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
@@ -389,8 +389,6 @@ export function NewAppointmentForm({
     setSelectedRequest(request);
     const types: AppointmentType[] = [];
 
-    console.log({ request });
-
     if (request.service.requiresAppointment) {
       types.push('DOCUMENT_COLLECTION');
     }
@@ -406,6 +404,53 @@ export function NewAppointmentForm({
   const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
     (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
   );
+
+  // Sequential navigation functions
+  const handleNext = () => {
+    const currentIndex = steps.indexOf(currentTab);
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex < steps.length) {
+      const nextTab = steps[nextIndex];
+      handleTabChange(nextTab as Step);
+    }
+  };
+
+  const handlePrevious = () => {
+    const currentIndex = steps.indexOf(currentTab);
+    const prevIndex = currentIndex - 1;
+
+    if (prevIndex >= 0) {
+      const prevTab = steps[prevIndex];
+      setCurrentTab(prevTab as Step);
+    }
+  };
+
+  // Check if next button should be enabled
+  const canGoNext = (): boolean => {
+    const currentValue = form.getValues();
+
+    switch (currentTab) {
+      case 'request':
+        return !!(currentValue.requestId && currentValue.type);
+      case 'slot':
+        return !!(currentValue.date && currentValue.startTime);
+      case 'confirmation':
+        return false; // Last step, no next
+      default:
+        return false;
+    }
+  };
+
+  // Check if previous button should be shown
+  const canGoPrevious = (): boolean => {
+    return currentTab !== 'request';
+  };
+
+  // Check if we're on the last step
+  const isLastStep = (): boolean => {
+    return currentTab === 'confirmation';
+  };
 
   if (!attendeeId) {
     return (
@@ -453,7 +498,22 @@ export function NewAppointmentForm({
           </TabsList>
 
           <TabsContent value="request" className="space-y-4">
-            <CardContainer title={t('steps.request')} subtitle={t('request.description')}>
+            <CardContainer
+              title={t('steps.request')}
+              subtitle={t('request.description')}
+              footerContent={
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={isLoading || !canGoNext()}
+                  >
+                    {t('actions.next')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              }
+            >
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -511,7 +571,36 @@ export function NewAppointmentForm({
           </TabsContent>
 
           <TabsContent value="slot" className="space-y-4">
-            <CardContainer title={t('steps.slot')}>
+            <CardContainer
+              title={t('steps.slot')}
+              footerContent={
+                <div className="flex justify-between items-center gap-2">
+                  {canGoPrevious() && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={isLoading}
+                    >
+                      <ArrowLeft className="size-icon" />
+                      {t('actions.back')}
+                    </Button>
+                  )}
+
+                  {!isLastStep() && (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={isLoading || !canGoNext()}
+                      className={!canGoPrevious() ? 'ml-auto' : ''}
+                    >
+                      {t('actions.next')}
+                      <ArrowRight className="size-icon" />
+                    </Button>
+                  )}
+                </div>
+              }
+            >
               <div className="space-y-4">
                 {selectedRequest && (
                   <>
@@ -540,8 +629,24 @@ export function NewAppointmentForm({
             <CardContainer
               title={t('steps.confirmation')}
               footerContent={
-                <div className="flex justify-end">
-                  <Button type="submit" disabled={isLoading}>
+                <div className="flex justify-between">
+                  {canGoPrevious() && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={isLoading}
+                    >
+                      <ArrowLeft className="size-icon" />
+                      {t('actions.back')}
+                    </Button>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className={!canGoPrevious() ? 'ml-auto' : ''}
+                  >
                     {isLoading ? t('actions.submitting') : t('actions.confirm')}
                   </Button>
                 </div>
