@@ -608,7 +608,7 @@ model ServiceRequest {
   messages             Message[] // Communications
 
   // Rendez-vous associé (si applicable)
-  appointment Appointment?
+  appointments Appointment[]
 
   proxyName            String?
   proxyIdentityDoc     String?
@@ -678,7 +678,7 @@ model Appointment {
   agentId    String? // Agent assigné (optional)
   agent      User?            @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
   request    ServiceRequest?  @relation(fields: [requestId], references: [id])
-  requestId  String?          @unique
+  requestId  String?
   serviceId  String?
   service    ConsularService? @relation(fields: [serviceId], references: [id])
 

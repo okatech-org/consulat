@@ -54,8 +54,8 @@ export async function getAvailableTimeSlots(
   startDate: Date,
   endDate: Date,
   duration: number,
+  agentId?: string,
 ): Promise<TimeSlotWithAgent[]> {
-  // 1. Récupération des données nécessaires
   const [agentsData, countryData, organizationData] = await Promise.all([
     db.user.findMany({
       where: {
@@ -66,6 +66,7 @@ export async function getAvailableTimeSlots(
         specializations: {
           has: serviceCategory,
         },
+        ...(agentId && { id: agentId }),
       },
       include: {
         assignedAppointments: {
@@ -290,73 +291,84 @@ export async function getAvailableServices(countryCode: string) {
 
 export async function createAppointment(data: AppointmentInput) {
   const t = await getTranslations('messages');
-  try {
-    // Valider les données avec Zod
-    const validatedData = AppointmentSchema.parse(data);
 
-    // Créer le rendez-vous dans la base de données
-    const appointment = await db.appointment.create({
-      data: {
-        date: validatedData.date,
-        startTime: validatedData.startTime,
-        endTime: validatedData.endTime,
-        duration: validatedData.duration,
-        type: validatedData.type,
-        status: validatedData.status,
-        organizationId: validatedData.organizationId,
-        serviceId: validatedData.serviceId,
-        attendeeId: validatedData.attendeeId,
-        agentId: validatedData.agentId,
-        countryCode: validatedData.countryCode,
-        instructions: validatedData.instructions,
-        requestId: validatedData.requestId,
+  // Valider les données avec Zod
+  const validatedData = AppointmentSchema.parse(data);
+
+  // check if the request is already associated with an appointment
+  const existingAppointment = await db.appointment.findFirst({
+    where: {
+      requestId: validatedData.requestId,
+      status: {
+        notIn: [AppointmentStatus.CANCELLED, AppointmentStatus.COMPLETED],
       },
-      include: {
-        attendee: true,
-        organization: true,
-        agent: true,
-      },
-    });
+      type: validatedData.type,
+    },
+  });
 
-    if (appointment.attendee) {
-      await notifyAppointment(
-        appointment.attendee.id,
-        t('appointments.notifications.appointment_confirmed'),
-        t('appointments.notifications.appointment_confirmed_message', {
-          date: format(appointment.date, 'dd/MM/yyyy'),
-          time: format(appointment.startTime, 'HH:mm'),
-        }),
-        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
-        t('appointments.notifications.actions.view_appointment'),
-        {
-          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
-          email: appointment.attendee.email ?? undefined,
-        },
-      );
-    }
-
-    if (appointment.agent) {
-      await notifyAppointment(
-        appointment.agent.id,
-        t('appointments.notifications.appointment_confirmed_agent'),
-        t('appointments.notifications.appointment_confirmed_message', {
-          date: format(appointment.date, 'dd/MM/yyyy'),
-          time: format(appointment.startTime, 'HH:mm'),
-        }),
-        `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
-        t('appointments.notifications.actions.view_appointment'),
-        {
-          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
-          email: appointment.agent.email ?? undefined,
-        },
-      );
-    }
-
-    return { success: true, data: appointment };
-  } catch (error) {
-    console.error('Failed to create appointment:', error);
-    return { success: false, error: 'Failed to create appointment' };
+  if (existingAppointment) {
+    throw new Error(t('appointments.notifications.duplicate_request'));
   }
+
+  // Créer le rendez-vous dans la base de données
+  const appointment = await db.appointment.create({
+    data: {
+      date: validatedData.date,
+      startTime: validatedData.startTime,
+      endTime: validatedData.endTime,
+      duration: validatedData.duration,
+      type: validatedData.type,
+      status: validatedData.status,
+      organizationId: validatedData.organizationId,
+      serviceId: validatedData.serviceId,
+      attendeeId: validatedData.attendeeId,
+      agentId: validatedData.agentId,
+      countryCode: validatedData.countryCode,
+      instructions: validatedData.instructions,
+      requestId: validatedData.requestId,
+    },
+    include: {
+      attendee: true,
+      organization: true,
+      agent: true,
+    },
+  });
+
+  if (appointment.attendee) {
+    await notifyAppointment(
+      appointment.attendee.id,
+      t('appointments.notifications.appointment_confirmed'),
+      t('appointments.notifications.appointment_confirmed_message', {
+        date: format(appointment.date, 'dd/MM/yyyy'),
+        time: format(appointment.startTime, 'HH:mm'),
+      }),
+      `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+      t('appointments.notifications.actions.view_appointment'),
+      {
+        channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+        email: appointment.attendee.email ?? undefined,
+      },
+    );
+  }
+
+  if (appointment.agent) {
+    await notifyAppointment(
+      appointment.agent.id,
+      t('appointments.notifications.appointment_confirmed_agent'),
+      t('appointments.notifications.appointment_confirmed_message', {
+        date: format(appointment.date, 'dd/MM/yyyy'),
+        time: format(appointment.startTime, 'HH:mm'),
+      }),
+      `${env.NEXT_PUBLIC_URL}${ROUTES.user.appointments}`,
+      t('appointments.notifications.actions.view_appointment'),
+      {
+        channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+        email: appointment.agent.email ?? undefined,
+      },
+    );
+  }
+
+  return appointment;
 }
 
 interface GroupedAppointments {

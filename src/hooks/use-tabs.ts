@@ -11,7 +11,13 @@ export function useTabs<T extends string>(key: string, defaultValue: T) {
   const handleTabChange = (value: T) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set(key, value);
-    router.push(`?${params.toString()}`);
+
+    // Use replaceState to update URL without page reload
+    const newUrl = `?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+
+    // Force a router refresh to update the searchParams
+    router.refresh();
   };
 
   return {

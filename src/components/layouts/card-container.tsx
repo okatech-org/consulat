@@ -25,7 +25,7 @@ export default function CardContainer({
     <Card.Card className={'flex flex-col ' + className}>
       {(title || subtitle || action) && (
         <Card.CardHeader
-          className={`flex-row space-y-0 pb-4 mb-4 border-b border-border ${headerClass}`}
+          className={`flex-row space-y-0 pb-4 mb-4 gap-2 border-b border-border ${headerClass}`}
         >
           <div>
             {title && <Card.CardTitle>{title}</Card.CardTitle>}

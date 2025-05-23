@@ -1,18 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppointmentType, AppointmentStatus } from '@prisma/client';
 import { useTranslations } from 'next-intl';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,7 +15,7 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
-import { cn, useDateLocale } from '@/lib/utils';
+import { cn, tryCatch, useDateLocale } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +29,9 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import type { FullServiceRequest } from '@/types/service-request';
+import CardContainer from '../layouts/card-container';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 
 interface NewAppointmentFormProps {
   serviceRequests: FullServiceRequest[];
@@ -44,8 +39,8 @@ interface NewAppointmentFormProps {
   organizationId: string;
   attendeeId: string;
   preselectedData?: {
-    requestId?: string;
-    type?: string;
+    type?: AppointmentType;
+    request?: FullServiceRequest;
   };
 }
 
@@ -68,20 +63,19 @@ export function NewAppointmentForm({
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
   const t_inputs = useTranslations('inputs');
+  const t_messages = useTranslations('messages');
   const router = useRouter();
-  const [step, setStep] = useState<Step>(preselectedData ? 'slot' : 'request');
-  const [isLoading, setIsLoading] = useState(false);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent | null>(
-    null,
-  );
   const { formatDate } = useDateLocale();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [selectedRequest, setSelectedRequest] = useState<FullServiceRequest | null>(
-    preselectedData?.requestId
-      ? (serviceRequests.find((r) => r.id === preselectedData.requestId) ?? null)
-      : null,
+  const [currentTab, setCurrentTab] = useState<Step>(
+    preselectedData?.type && preselectedData.request?.id ? 'slot' : 'request',
   );
+
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent>();
+  const [selectedRequest, setSelectedRequest] = useState<FullServiceRequest>();
+  const [availableTypes, setAvailableTypes] = useState<AppointmentType[]>([]);
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
@@ -90,177 +84,146 @@ export function NewAppointmentForm({
       organizationId,
       date: new Date(),
       attendeeId,
-      requestId: preselectedData?.requestId ?? '',
-      serviceId: preselectedData?.requestId
-        ? (serviceRequests.find((r) => r.id === preselectedData.requestId)?.service.id ??
-          '')
-        : '',
-      type: (preselectedData?.type as AppointmentType) ?? 'DOCUMENT_COLLECTION',
-      duration: 15,
     },
   });
+
+  useLayoutEffect(() => {
+    if (preselectedData?.request) {
+      form.setValue('requestId', preselectedData.request.id);
+      form.setValue('serviceId', preselectedData.request.service.id);
+      setSelectedRequest(preselectedData.request);
+
+      if (preselectedData.request.assignedToId) {
+        form.setValue('agentId', preselectedData.request.assignedToId);
+      }
+
+      if (preselectedData.type) {
+        form.setValue('type', preselectedData.type);
+        setAvailableTypes([preselectedData.type]);
+      } else {
+        const types: AppointmentType[] = [];
+
+        if (preselectedData.request.service.requiresAppointment) {
+          types.push('DOCUMENT_COLLECTION');
+        }
+
+        if (preselectedData.request.service.deliveryAppointment) {
+          types.push('DOCUMENT_SUBMISSION');
+        }
+
+        setAvailableTypes(types);
+      }
+    }
+  }, [form, preselectedData]);
 
   const selectedDate = form.watch('date');
 
   const onSubmit = async (data: AppointmentInput) => {
+    setIsLoading(true);
     if (!selectedTimeSlot) return;
 
-    // Vérifier qu'un agent est disponible
-    const agentId = selectedTimeSlot.availableAgents[0];
-    if (!agentId) {
-      console.error('No agent available for this time slot');
-      return;
+    const appointment = {
+      ...data,
+      startTime: selectedTimeSlot.start,
+      endTime: selectedTimeSlot.end,
+      duration: selectedTimeSlot.duration,
+      status: AppointmentStatus.CONFIRMED,
+    };
+
+    const result = await tryCatch(createAppointment(appointment));
+
+    if (result.error) {
+      toast({
+        title: 'Erreur',
+        description: t_messages(result.error as any),
+        variant: 'destructive',
+      });
     }
 
-    setIsLoading(true);
-    try {
-      // Préparer les données du rendez-vous
-      const appointment = {
-        ...data,
-        startTime: selectedTimeSlot.start,
-        endTime: selectedTimeSlot.end,
-        duration: selectedTimeSlot.duration,
-        agentId,
-        status: AppointmentStatus.CONFIRMED,
-      };
-
-      // Appeler l'action serveur
-      const result = await createAppointment(appointment);
-
-      if (!result.success) {
-        // Gérer l'erreur de rendez-vous en double
-        if (
-          result.error?.includes('Unique constraint failed on the fields: (`serviceId`)')
-        ) {
-          form.setError('requestId', {
-            type: 'manual',
-            message: t('validation.duplicate_request'),
-          });
-          setStep('request'); // Retourner à l'étape de sélection du service
-          return;
-        }
-        throw new Error(result.error);
-      }
-
+    if (result.data) {
+      toast({
+        title: t_messages('appointments.notifications.appointment_confirmed'),
+        description: t_messages(
+          'appointments.notifications.appointment_confirmed_message',
+          {
+            date: formatDate(result.data.date, 'PPPP'),
+            time: formatDate(result.data.startTime, 'HH:mm'),
+          },
+        ),
+        variant: 'success',
+      });
       router.push(ROUTES.user.appointments);
-    } catch (error) {
-      console.error(error);
-      // TODO: Afficher une notification d'erreur
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
-  const handleNext = () => {
+  const handleTabChange = (value: string) => {
+    const tab = value as Step;
     const currentValue = form.getValues();
 
-    switch (step) {
-      case 'request':
-        if (currentValue.requestId) {
-          setStep('slot');
-        }
-        break;
+    // Validation before allowing tab switch
+    switch (tab) {
       case 'slot':
-        if (currentValue.date) {
-          setStep('confirmation');
+        if (!currentValue.requestId || !currentValue.type) {
+          return; // Don't allow switching if request is not selected
         }
-        break;
-    }
-  };
-
-  const handleBack = () => {
-    switch (step) {
-      case 'slot':
-        setStep('request');
         break;
       case 'confirmation':
-        setStep('slot');
+        if (
+          !currentValue.requestId ||
+          !currentValue.type ||
+          !currentValue.date ||
+          !currentValue.startTime
+        ) {
+          return; // Don't allow switching if required fields are missing
+        }
         break;
+    }
+
+    setCurrentTab(tab);
+  };
+
+  const isTabAccessible = (tab: Step): boolean => {
+    const currentValue = form.getValues();
+
+    switch (tab) {
+      case 'request':
+        return true; // Always accessible
+      case 'slot':
+        return !!(currentValue.requestId && currentValue.type);
+      case 'confirmation':
+        return !!(
+          currentValue.requestId &&
+          currentValue.type &&
+          currentValue.date &&
+          currentValue.startTime
+        );
+      default:
+        return false;
     }
   };
 
-  const renderStepIndicator = () => {
-    const currentIndex = steps.indexOf(step);
+  const isTabCompleted = (tab: Step): boolean => {
+    const currentValue = form.getValues();
 
-    return (
-      <div>
-        <div className="flex items-center justify-between">
-          {steps.map((s, index) => (
-            <div
-              key={s}
-              className="flex flex-1 items-center"
-              aria-current={s === step ? 'step' : undefined}
-            >
-              <div
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-full border-2',
-                  s === step
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : index < currentIndex
-                      ? 'border-primary bg-primary/20'
-                      : 'border-muted-foreground',
-                )}
-              >
-                {index < currentIndex ? (
-                  <CheckCircle className="h-4 w-4" />
-                ) : (
-                  <span>{index + 1}</span>
-                )}
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={cn('h-0.5 flex-1', {
-                    'bg-primary': index < currentIndex,
-                    'bg-muted-foreground': index >= currentIndex,
-                  })}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="mt-2 flex justify-between text-sm">
-          {steps.map((s) => (
-            <span
-              key={s}
-              className={cn('flex-1 text-center', {
-                'text-primary font-medium': s === step,
-                'text-muted-foreground': s !== step,
-              })}
-            >
-              {t(stepTranslations[s])}
-            </span>
-          ))}
-        </div>
-      </div>
-    );
+    switch (tab) {
+      case 'request':
+        return !!(currentValue.requestId && currentValue.type);
+      case 'slot':
+        return !!(currentValue.date && currentValue.startTime);
+      case 'confirmation':
+        return false; // Never completed until form submission
+      default:
+        return false;
+    }
   };
-
-  // Only show eligible requests: not completed/cancelled and no appointment
-  const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
-    (req) => !['COMPLETED', 'CANCELLED'].includes(req.status) && !req.appointment,
-  );
-
-  const serviceOptions = eligibleRequests.map((request) => ({
-    value: request.id,
-    label: request.service.name,
-  }));
-
-  const appointmentTypeOptions = Object.values([
-    'DOCUMENT_SUBMISSION',
-    'DOCUMENT_COLLECTION',
-    'INTERVIEW',
-    'EMERGENCY',
-    'OTHER',
-  ] as const).map((type) => ({
-    value: type,
-    label: t(`type.options.${type}`),
-  }));
 
   const renderServiceInfo = () => {
     if (!selectedRequest) return null;
 
     return (
-      <div className="mt-6 rounded-lg border p-4">
+      <div className="mt-6 mx-auto rounded-lg border p-4">
         <h3 className="font-medium">{selectedRequest.service.name}</h3>
         {selectedRequest.service.description && (
           <p className="mt-2 text-sm text-muted-foreground">
@@ -282,11 +245,6 @@ export function NewAppointmentForm({
           <div className="mt-4 flex items-center gap-2">
             <span className="font-medium">Agent assigné :</span>
             <span>{selectedRequest.assignedTo.name}</span>
-            {selectedRequest.assignedTo.email && (
-              <span className="text-muted-foreground">
-                ({selectedRequest.assignedTo.email})
-              </span>
-            )}
           </div>
         )}
       </div>
@@ -358,50 +316,129 @@ export function NewAppointmentForm({
     const endOfDay = new Date(selectedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    if (selectedRequest.assignedTo) {
-      // Fetch slots for the assigned agent only
-      getAvailableTimeSlots(
-        selectedRequest.service.category,
-        organizationId,
-        countryCode,
-        startOfDay,
-        endOfDay,
-        selectedRequest.service.appointmentDuration ?? 15,
-      )
-        .then((slots) => {
-          // Filter slots to only those where the assigned agent is available
-          const filteredSlots = slots.filter((slot) =>
-            slot.availableAgents.includes(selectedRequest.assignedTo!.id),
-          );
-          setAvailableTimeSlots(filteredSlots);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      // Fallback: fetch slots for all agents
-      getAvailableTimeSlots(
-        selectedRequest.service.category,
-        organizationId,
-        countryCode,
-        startOfDay,
-        endOfDay,
-        selectedRequest.service.appointmentDuration ?? 15,
-      )
-        .then((slots) => {
-          setAvailableTimeSlots(slots);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
+    getAvailableTimeSlots(
+      selectedRequest.service.category,
+      organizationId,
+      countryCode,
+      startOfDay,
+      endOfDay,
+      selectedRequest.service.appointmentDuration ?? 15,
+      selectedRequest.assignedTo?.id,
+    )
+      .then((slots) => {
+        setAvailableTimeSlots(slots);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [selectedRequest, selectedDate, organizationId, countryCode]);
+
+  function handleRequestChange(requestId?: string) {
+    if (!requestId) {
+      setSelectedRequest(undefined);
+      setAvailableTypes([]);
+      form.setValue('agentId', '', {
+        shouldDirty: true,
+      });
+      form.setValue('serviceId', '', {
+        shouldDirty: true,
+      });
+
+      return;
+    }
+
+    // Only show eligible requests: not completed/cancelled and no appointment
+    const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
+      (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
+    );
+
+    const request = eligibleRequests.find((r) => r.id === requestId);
+
+    if (!request) {
+      setSelectedRequest(undefined);
+      setAvailableTypes([]);
+      return;
+    }
+
+    setSelectedRequest(request);
+
+    form.setValue('serviceId', request.service.id, {
+      shouldDirty: true,
+    });
+
+    if (request.assignedToId) {
+      form.setValue('agentId', request.assignedToId, {
+        shouldDirty: true,
+      });
+    }
+
+    const types: AppointmentType[] = [];
+
+    if (request.service.requiresAppointment) {
+      types.push('DOCUMENT_COLLECTION');
+    }
+
+    if (request.service.deliveryAppointment) {
+      types.push('DOCUMENT_SUBMISSION');
+    }
+
+    setAvailableTypes(types);
+  }
+
+  // Only show eligible requests: not completed/cancelled and no appointment
+  const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
+    (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
+  );
+
+  // Sequential navigation functions
+  const handleNext = () => {
+    const currentIndex = steps.indexOf(currentTab);
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex < steps.length) {
+      const nextTab = steps[nextIndex];
+      handleTabChange(nextTab as Step);
+    }
+  };
+
+  const handlePrevious = () => {
+    const currentIndex = steps.indexOf(currentTab);
+    const prevIndex = currentIndex - 1;
+
+    if (prevIndex >= 0) {
+      const prevTab = steps[prevIndex];
+      setCurrentTab(prevTab as Step);
+    }
+  };
+
+  // Check if next button should be enabled
+  const canGoNext = (): boolean => {
+    const currentValue = form.getValues();
+
+    switch (currentTab) {
+      case 'request':
+        return !!(currentValue.requestId && currentValue.type);
+      case 'slot':
+        return !!(currentValue.date && currentValue.startTime);
+      case 'confirmation':
+        return false; // Last step, no next
+      default:
+        return false;
+    }
+  };
+
+  // Check if previous button should be shown
+  const canGoPrevious = (): boolean => {
+    return currentTab !== 'request';
+  };
+
+  // Check if we're on the last step
+  const isLastStep = (): boolean => {
+    return currentTab === 'confirmation';
+  };
 
   if (!attendeeId) {
     return (
@@ -411,7 +448,7 @@ export function NewAppointmentForm({
     );
   }
 
-  if (step === 'request' && eligibleRequests.length === 0) {
+  if (eligibleRequests.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground">{t('request.no_eligible')}</p>
@@ -419,49 +456,89 @@ export function NewAppointmentForm({
     );
   }
 
+  function handleTypeChange(type: AppointmentType) {
+    if (
+      type === 'DOCUMENT_COLLECTION' &&
+      selectedRequest?.service.deliveryAppointmentDuration
+    ) {
+      form.setValue('duration', selectedRequest.service.deliveryAppointmentDuration);
+      return;
+    }
+
+    if (
+      type === 'DOCUMENT_SUBMISSION' &&
+      selectedRequest?.service.deliveryAppointmentDuration
+    ) {
+      form.setValue('duration', selectedRequest.service.deliveryAppointmentDuration);
+      return;
+    }
+
+    form.setValue('duration', 15);
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {renderStepIndicator()}
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            {steps.map((step) => {
+              const isCompleted = isTabCompleted(step);
+              const isAccessible = isTabAccessible(step);
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t(`steps.${step}`)}</CardTitle>
-            {step === 'request' && (
-              <CardDescription>{t('request.description')}</CardDescription>
-            )}
-          </CardHeader>
+              return (
+                <TabsTrigger
+                  key={step}
+                  value={step}
+                  disabled={!isAccessible}
+                  className={cn(
+                    'relative',
+                    isCompleted && 'bg-primary/10',
+                    !isAccessible && 'opacity-50 cursor-not-allowed',
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    {isCompleted && <CheckCircle className="h-4 w-4 text-primary" />}
+                    <span>{t(stepTranslations[step])}</span>
+                  </div>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
 
-          <CardContent className="space-y-4">
-            {step === 'request' && (
+          <TabsContent value="request" className="space-y-4">
+            <CardContainer
+              title={t('steps.request')}
+              subtitle={t('request.description')}
+              footerContent={
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={isLoading || !canGoNext()}
+                  >
+                    {t('actions.next')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              }
+            >
               <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="requestId"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-max">
                       <FormLabel>{t('request.label')}</FormLabel>
                       <FormControl>
                         <MultiSelect<string>
-                          options={serviceOptions}
+                          options={eligibleRequests.map((request) => ({
+                            value: request.id,
+                            label: request.service.name,
+                          }))}
                           selected={field.value}
                           onChange={(value) => {
                             field.onChange(value);
-                            const foundRequest = eligibleRequests.find(
-                              (r) => r.id === value,
-                            );
-                            setSelectedRequest(foundRequest ?? null);
-                            if (foundRequest) {
-                              form.setValue('serviceId', foundRequest.service.id);
-                            }
-                            form.setValue(
-                              'duration',
-                              foundRequest?.service.appointmentDuration ?? 15,
-                            );
-                            form.setValue(
-                              'instructions',
-                              foundRequest?.service.appointmentInstructions ?? '',
-                            );
+                            handleRequestChange(value);
                           }}
                           placeholder={t('request.placeholder')}
                           type="single"
@@ -472,120 +549,151 @@ export function NewAppointmentForm({
                   )}
                 />
                 {renderServiceInfo()}
-              </div>
-            )}
 
-            {step === 'request' && selectedRequest && (
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('type.label')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect<AppointmentType>
-                        options={appointmentTypeOptions}
-                        selected={field.value}
-                        onChange={field.onChange}
-                        placeholder={t('type.placeholder')}
-                        type="single"
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
+                {selectedRequest && (
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem className="w-max">
+                        <FormLabel>{t('type.label')}</FormLabel>
+                        <FormControl>
+                          <MultiSelect<AppointmentType>
+                            options={availableTypes.map((type) => ({
+                              value: type,
+                              label: t(`type.options.${type}`),
+                            }))}
+                            selected={field.value}
+                            onChange={(value) => {
+                              field.onChange(value);
+                              handleTypeChange(value);
+                            }}
+                            placeholder={t('type.placeholder')}
+                            type="single"
+                          />
+                        </FormControl>
+                        <TradFormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
-            )}
-
-            {step === 'slot' && selectedRequest && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('datetime.pick_date')}</FormLabel>
-                      <FormControl>
-                        <DatePicker date={field.value} onSelect={field.onChange} />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {selectedDate && renderTimeSlotPicker()}
-              </>
-            )}
-
-            {step === 'confirmation' && selectedRequest && form.watch('date') && (
-              <div className="space-y-4">
-                <div className="rounded-lg border p-4">
-                  <dl className="divide-y">
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.service')}</dt>
-                      <dd>{selectedRequest.service.name}</dd>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.type')}</dt>
-                      <dd>{t(`type.options.${form.watch('type')}`)}</dd>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.date')}</dt>
-                      <dd>{formatDate(form.watch('date'), 'PPPP')}</dd>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.time')}</dt>
-                      <dd>
-                        {formatDate(form.watch('startTime'), 'HH:mm')}
-                        {' - '}
-                        {formatDate(form.watch('endTime'), 'HH:mm')}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
               </div>
-            )}
-          </CardContent>
+            </CardContainer>
+          </TabsContent>
 
-          <CardFooter className="flex justify-between">
-            {step !== 'request' && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBack}
-                disabled={isLoading}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('actions.back')}
-              </Button>
-            )}
+          <TabsContent value="slot" className="space-y-4">
+            <CardContainer
+              title={t('steps.slot')}
+              footerContent={
+                <div className="flex justify-between items-center gap-2">
+                  {canGoPrevious() && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={isLoading}
+                    >
+                      <ArrowLeft className="size-icon" />
+                      {t('actions.back')}
+                    </Button>
+                  )}
 
-            {step !== 'confirmation' && (
-              <Button
-                type="button"
-                onClick={handleNext}
-                className={cn(step === 'request' && 'ml-auto')}
-                disabled={
-                  isLoading ||
-                  (step === 'request' && !form.watch('requestId')) ||
-                  (step === 'request' && !form.watch('type')) ||
-                  (step === 'slot' && !form.watch('date')) ||
-                  (step === 'slot' && !form.watch('startTime')) ||
-                  (step === 'slot' && !form.watch('endTime'))
-                }
-              >
-                {t('actions.next')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            )}
+                  {!isLastStep() && (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={isLoading || !canGoNext()}
+                      className={!canGoPrevious() ? 'ml-auto' : ''}
+                    >
+                      {t('actions.next')}
+                      <ArrowRight className="size-icon" />
+                    </Button>
+                  )}
+                </div>
+              }
+            >
+              <div className="space-y-4">
+                {selectedRequest && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="w-max">
+                          <FormLabel>{t('datetime.pick_date')}</FormLabel>
+                          <FormControl>
+                            <DatePicker date={field.value} onSelect={field.onChange} />
+                          </FormControl>
+                          <TradFormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-            {step === 'confirmation' && (
-              <Button type="submit" className={'ml-auto'} disabled={isLoading}>
-                {isLoading ? t('actions.submitting') : t('actions.confirm')}
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
+                    {selectedDate && renderTimeSlotPicker()}
+                  </>
+                )}
+              </div>
+            </CardContainer>
+          </TabsContent>
+
+          <TabsContent value="confirmation" className="space-y-4">
+            <CardContainer
+              title={t('steps.confirmation')}
+              footerContent={
+                <div className="flex justify-between items-center gap-2">
+                  {canGoPrevious() && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={isLoading}
+                    >
+                      <ArrowLeft className="size-icon" />
+                      {t('actions.back')}
+                    </Button>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className={!canGoPrevious() ? 'ml-auto' : ''}
+                  >
+                    {isLoading ? t('actions.submitting') : t('actions.confirm')}
+                  </Button>
+                </div>
+              }
+            >
+              <div className="space-y-4">
+                {selectedRequest && form.watch('date') && (
+                  <div className="rounded-lg border p-4">
+                    <dl className="divide-y">
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.service')}</dt>
+                        <dd>{selectedRequest.service.name}</dd>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.type')}</dt>
+                        <dd>{t(`type.options.${form.watch('type')}`)}</dd>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.date')}</dt>
+                        <dd>{formatDate(form.watch('date'), 'PPPP')}</dd>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.time')}</dt>
+                        <dd>
+                          {formatDate(form.watch('startTime'), 'HH:mm')}
+                          {' - '}
+                          {formatDate(form.watch('endTime'), 'HH:mm')}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                )}
+              </div>
+            </CardContainer>
+          </TabsContent>
+        </Tabs>
       </form>
     </Form>
   );

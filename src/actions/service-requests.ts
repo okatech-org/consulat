@@ -404,7 +404,7 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
  * Récupérer une demande de service par son ID
  */
 export async function getServiceRequest(id: string): Promise<FullServiceRequest> {
-  await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
+  await checkAuth();
 
   const request = await db.serviceRequest.findUnique({
     where: { id },
@@ -449,7 +449,7 @@ export async function addServiceRequestNote(input: AddNoteInput) {
   const t = await getTranslations('admin.registrations.review.notes');
 
   try {
-    const authResult = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']);
+    const authResult = await checkAuth();
 
     // Récupérer le profil pour avoir l'userId
     const request = await db.serviceRequest.findUnique({
