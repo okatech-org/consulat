@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
 import { cn, useDateLocale } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle, Clock } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
@@ -30,6 +30,8 @@ import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import type { FullServiceRequest } from '@/types/service-request';
 import CardContainer from '../layouts/card-container';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useStoredTabs } from '@/hooks/use-tabs';
 
 interface NewAppointmentFormProps {
   serviceRequests: FullServiceRequest[];
@@ -65,7 +67,11 @@ export function NewAppointmentForm({
   const { formatDate } = useDateLocale();
   const [isLoading, setIsLoading] = useState(false);
 
-  const [step, setStep] = useState<Step>(preselectedData ? 'slot' : 'request');
+  const { currentTab, setCurrentTab } = useStoredTabs<Step>(
+    'new-appointment-tab',
+    preselectedData ? 'slot' : 'request',
+  );
+
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent>();
   const [selectedRequest, setSelectedRequest] = useState<FullServiceRequest>();
@@ -142,7 +148,7 @@ export function NewAppointmentForm({
             type: 'manual',
             message: t('validation.duplicate_request'),
           });
-          setStep('request'); // Retourner à l'étape de sélection du service
+          setCurrentTab('request'); // Retourner à l'onglet de sélection du service
           return;
         }
         throw new Error(result.error);
@@ -157,94 +163,66 @@ export function NewAppointmentForm({
     }
   };
 
-  const handleNext = () => {
+  const handleTabChange = (value: string) => {
+    const tab = value as Step;
     const currentValue = form.getValues();
 
-    switch (step) {
-      case 'request':
-        if (currentValue.requestId) {
-          setStep('slot');
-        }
-        break;
+    // Validation before allowing tab switch
+    switch (tab) {
       case 'slot':
-        if (currentValue.date) {
-          setStep('confirmation');
+        if (!currentValue.requestId || !currentValue.type) {
+          return; // Don't allow switching if request is not selected
         }
-        break;
-    }
-  };
-
-  const handleBack = () => {
-    switch (step) {
-      case 'slot':
-        setStep('request');
         break;
       case 'confirmation':
-        setStep('slot');
+        if (
+          !currentValue.requestId ||
+          !currentValue.type ||
+          !currentValue.date ||
+          !currentValue.startTime
+        ) {
+          return; // Don't allow switching if required fields are missing
+        }
         break;
+    }
+
+    setCurrentTab(tab);
+  };
+
+  const isTabAccessible = (tab: Step): boolean => {
+    const currentValue = form.getValues();
+
+    switch (tab) {
+      case 'request':
+        return true; // Always accessible
+      case 'slot':
+        return !!(currentValue.requestId && currentValue.type);
+      case 'confirmation':
+        return !!(
+          currentValue.requestId &&
+          currentValue.type &&
+          currentValue.date &&
+          currentValue.startTime
+        );
+      default:
+        return false;
     }
   };
 
-  const renderStepIndicator = () => {
-    const currentIndex = steps.indexOf(step);
+  const isTabCompleted = (tab: Step): boolean => {
+    const currentValue = form.getValues();
 
-    return (
-      <div className="mx-auto">
-        <div className="flex items-center justify-between">
-          {steps.map((s, index) => (
-            <div
-              key={s}
-              className="flex flex-1 items-center"
-              aria-current={s === step ? 'step' : undefined}
-            >
-              <div
-                className={cn(
-                  'flex size-8 items-center justify-center rounded-full border-2',
-                  s === step
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : index < currentIndex
-                      ? 'border-primary bg-primary/20'
-                      : 'border-muted-foreground',
-                )}
-              >
-                {index < currentIndex ? (
-                  <CheckCircle className="size-icon" />
-                ) : (
-                  <span>{index + 1}</span>
-                )}
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={cn('h-0.5 flex-1', {
-                    'bg-primary': index < currentIndex,
-                    'bg-muted-foreground': index >= currentIndex,
-                  })}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="mt-2 flex justify-between text-sm">
-          {steps.map((s) => (
-            <span
-              key={s}
-              className={cn('flex-1 text-center', {
-                'text-primary font-medium': s === step,
-                'text-muted-foreground': s !== step,
-              })}
-            >
-              {t(stepTranslations[s])}
-            </span>
-          ))}
-        </div>
-      </div>
-    );
+    switch (tab) {
+      case 'request':
+        return !!(currentValue.requestId && currentValue.type);
+      case 'slot':
+        return !!(currentValue.date && currentValue.startTime);
+      case 'confirmation':
+        return false; // Never completed until form submission
+      default:
+        return false;
+    }
   };
-
-  // Only show eligible requests: not completed/cancelled and no appointment
-  const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
-    (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
-  );
 
   const renderServiceInfo = () => {
     if (!selectedRequest) return null;
@@ -395,6 +373,11 @@ export function NewAppointmentForm({
       return;
     }
 
+    // Only show eligible requests: not completed/cancelled and no appointment
+    const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
+      (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
+    );
+
     const request = eligibleRequests.find((r) => r.id === requestId);
 
     if (!request) {
@@ -419,6 +402,11 @@ export function NewAppointmentForm({
     setAvailableTypes(types);
   }
 
+  // Only show eligible requests: not completed/cancelled and no appointment
+  const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
+    (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
+  );
+
   if (!attendeeId) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -427,7 +415,7 @@ export function NewAppointmentForm({
     );
   }
 
-  if (step === 'request' && eligibleRequests.length === 0) {
+  if (eligibleRequests.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground">{t('request.no_eligible')}</p>
@@ -438,54 +426,34 @@ export function NewAppointmentForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {renderStepIndicator()}
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            {steps.map((step) => {
+              const isCompleted = isTabCompleted(step);
+              const isAccessible = isTabAccessible(step);
 
-        <CardContainer
-          title={t(`steps.${step}`)}
-          subtitle={step === 'request' ? t('request.description') : undefined}
-          footerContent={
-            <div className="flex justify-between gap-2">
-              {step !== 'request' && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleBack}
-                  disabled={isLoading}
+              return (
+                <TabsTrigger
+                  key={step}
+                  value={step}
+                  disabled={!isAccessible}
+                  className={cn(
+                    'relative',
+                    isCompleted && 'bg-primary/10',
+                    !isAccessible && 'opacity-50 cursor-not-allowed',
+                  )}
                 >
-                  <ArrowLeft className="size-icon" />
-                  {t('actions.back')}
-                </Button>
-              )}
+                  <div className="flex items-center gap-2">
+                    {isCompleted && <CheckCircle className="h-4 w-4 text-primary" />}
+                    <span>{t(stepTranslations[step])}</span>
+                  </div>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
 
-              {step !== 'confirmation' && (
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                  className={cn(step === 'request' && 'ml-auto')}
-                  disabled={
-                    isLoading ||
-                    (step === 'request' && !form.watch('requestId')) ||
-                    (step === 'request' && !form.watch('type')) ||
-                    (step === 'slot' && !form.watch('date')) ||
-                    (step === 'slot' && !form.watch('startTime')) ||
-                    (step === 'slot' && !form.watch('endTime'))
-                  }
-                >
-                  {t('actions.next')}
-                  <ArrowRight className="size-icon" />
-                </Button>
-              )}
-
-              {step === 'confirmation' && (
-                <Button type="submit" className={'ml-auto'} disabled={isLoading}>
-                  {isLoading ? t('actions.submitting') : t('actions.confirm')}
-                </Button>
-              )}
-            </div>
-          }
-        >
-          <div className="space-y-4">
-            {step === 'request' && (
+          <TabsContent value="request" className="space-y-4">
+            <CardContainer title={t('steps.request')} subtitle={t('request.description')}>
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -513,84 +481,103 @@ export function NewAppointmentForm({
                   )}
                 />
                 {renderServiceInfo()}
-              </div>
-            )}
 
-            {step === 'request' && selectedRequest && (
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem className="w-max">
-                    <FormLabel>{t('type.label')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect<AppointmentType>
-                        options={availableTypes.map((type) => ({
-                          value: type,
-                          label: t(`type.options.${type}`),
-                        }))}
-                        selected={field.value}
-                        onChange={field.onChange}
-                        placeholder={t('type.placeholder')}
-                        type="single"
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
+                {selectedRequest && (
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem className="w-max">
+                        <FormLabel>{t('type.label')}</FormLabel>
+                        <FormControl>
+                          <MultiSelect<AppointmentType>
+                            options={availableTypes.map((type) => ({
+                              value: type,
+                              label: t(`type.options.${type}`),
+                            }))}
+                            selected={field.value}
+                            onChange={field.onChange}
+                            placeholder={t('type.placeholder')}
+                            type="single"
+                          />
+                        </FormControl>
+                        <TradFormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
-            )}
-
-            {step === 'slot' && selectedRequest && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem className="w-max">
-                      <FormLabel>{t('datetime.pick_date')}</FormLabel>
-                      <FormControl>
-                        <DatePicker date={field.value} onSelect={field.onChange} />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {selectedDate && renderTimeSlotPicker()}
-              </>
-            )}
-
-            {step === 'confirmation' && selectedRequest && form.watch('date') && (
-              <div className="space-y-4">
-                <div className="rounded-lg border p-4">
-                  <dl className="divide-y">
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.service')}</dt>
-                      <dd>{selectedRequest.service.name}</dd>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.type')}</dt>
-                      <dd>{t(`type.options.${form.watch('type')}`)}</dd>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.date')}</dt>
-                      <dd>{formatDate(form.watch('date'), 'PPPP')}</dd>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <dt className="font-medium">{t('confirmation.time')}</dt>
-                      <dd>
-                        {formatDate(form.watch('startTime'), 'HH:mm')}
-                        {' - '}
-                        {formatDate(form.watch('endTime'), 'HH:mm')}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
               </div>
-            )}
-          </div>
-        </CardContainer>
+            </CardContainer>
+          </TabsContent>
+
+          <TabsContent value="slot" className="space-y-4">
+            <CardContainer title={t('steps.slot')}>
+              <div className="space-y-4">
+                {selectedRequest && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="w-max">
+                          <FormLabel>{t('datetime.pick_date')}</FormLabel>
+                          <FormControl>
+                            <DatePicker date={field.value} onSelect={field.onChange} />
+                          </FormControl>
+                          <TradFormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {selectedDate && renderTimeSlotPicker()}
+                  </>
+                )}
+              </div>
+            </CardContainer>
+          </TabsContent>
+
+          <TabsContent value="confirmation" className="space-y-4">
+            <CardContainer
+              title={t('steps.confirmation')}
+              footerContent={
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? t('actions.submitting') : t('actions.confirm')}
+                  </Button>
+                </div>
+              }
+            >
+              <div className="space-y-4">
+                {selectedRequest && form.watch('date') && (
+                  <div className="rounded-lg border p-4">
+                    <dl className="divide-y">
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.service')}</dt>
+                        <dd>{selectedRequest.service.name}</dd>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.type')}</dt>
+                        <dd>{t(`type.options.${form.watch('type')}`)}</dd>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.date')}</dt>
+                        <dd>{formatDate(form.watch('date'), 'PPPP')}</dd>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <dt className="font-medium">{t('confirmation.time')}</dt>
+                        <dd>
+                          {formatDate(form.watch('startTime'), 'HH:mm')}
+                          {' - '}
+                          {formatDate(form.watch('endTime'), 'HH:mm')}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                )}
+              </div>
+            </CardContainer>
+          </TabsContent>
+        </Tabs>
       </form>
     </Form>
   );
