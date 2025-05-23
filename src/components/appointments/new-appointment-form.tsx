@@ -31,7 +31,7 @@ import { ROUTES } from '@/schemas/routes';
 import type { FullServiceRequest } from '@/types/service-request';
 import CardContainer from '../layouts/card-container';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useTabs } from '@/hooks/use-tabs';
+import { toast } from '@/hooks/use-toast';
 
 interface NewAppointmentFormProps {
   serviceRequests: FullServiceRequest[];
@@ -63,12 +63,12 @@ export function NewAppointmentForm({
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
   const t_inputs = useTranslations('inputs');
+  const t_messages = useTranslations('messages');
   const router = useRouter();
   const { formatDate } = useDateLocale();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { currentTab, handleTabChange: setCurrentTab } = useTabs<Step>(
-    'new-appointment-tab',
+  const [currentTab, setCurrentTab] = useState<Step>(
     preselectedData?.type && preselectedData.request?.id ? 'slot' : 'request',
   );
 
@@ -122,14 +122,6 @@ export function NewAppointmentForm({
     setIsLoading(true);
     if (!selectedTimeSlot) return;
 
-    console.log({
-      data,
-      selectedTimeSlot,
-    });
-
-    // Vérifier qu'un agent est disponible
-    const agentId = selectedTimeSlot.availableAgents[0];
-
     const appointment = {
       ...data,
       startTime: selectedTimeSlot.start,
@@ -141,17 +133,26 @@ export function NewAppointmentForm({
     const result = await tryCatch(createAppointment(appointment));
 
     if (result.error) {
-      console.error(result.error);
+      toast({
+        title: 'Erreur',
+        description: t_messages(result.error as any),
+        variant: 'destructive',
+      });
     }
 
     if (result.data) {
+      toast({
+        title: t_messages('appointments.notifications.appointment_confirmed'),
+        description: t_messages(
+          'appointments.notifications.appointment_confirmed_message',
+          {
+            date: formatDate(result.data.date, 'PPPP'),
+            time: formatDate(result.data.startTime, 'HH:mm'),
+          },
+        ),
+        variant: 'success',
+      });
       router.push(ROUTES.user.appointments);
-    }
-
-    if (!agentId) {
-      console.error('No agent available for this time slot');
-      setIsLoading(false);
-      return;
     }
 
     setIsLoading(false);
@@ -315,61 +316,40 @@ export function NewAppointmentForm({
     const endOfDay = new Date(selectedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    if (selectedRequest.assignedTo) {
-      getAvailableTimeSlots(
-        selectedRequest.service.category,
-        organizationId,
-        countryCode,
-        startOfDay,
-        endOfDay,
-        selectedRequest.service.appointmentDuration ?? 15,
-      )
-        .then((slots) => {
-          // Filter slots to only those where the assigned agent is available
-          const filteredSlots = slots.filter((slot) =>
-            slot.availableAgents.includes(selectedRequest.assignedTo!.id),
-          );
-          setAvailableTimeSlots(filteredSlots);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
+    getAvailableTimeSlots(
+      selectedRequest.service.category,
+      organizationId,
+      countryCode,
+      startOfDay,
+      endOfDay,
+      selectedRequest.service.appointmentDuration ?? 15,
+      selectedRequest.assignedTo?.id,
+    )
+      .then((slots) => {
+        console.log({
+          slots,
         });
-    } else {
-      // Fallback: fetch slots for all agents
-      getAvailableTimeSlots(
-        selectedRequest.service.category,
-        organizationId,
-        countryCode,
-        startOfDay,
-        endOfDay,
-        selectedRequest.service.appointmentDuration ?? 15,
-      )
-        .then((slots) => {
-          setAvailableTimeSlots(slots);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
+        setAvailableTimeSlots(slots);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [selectedRequest, selectedDate, organizationId, countryCode]);
-
-  React.useEffect(() => {
-    console.log({
-      data: form.getValues(),
-      errors: form.formState.errors,
-    });
-  }, [form.formState.errors, form.formState, form]);
 
   function handleRequestChange(requestId?: string) {
     if (!requestId) {
       setSelectedRequest(undefined);
       setAvailableTypes([]);
+      form.setValue('agentId', '', {
+        shouldDirty: true,
+      });
+      form.setValue('serviceId', '', {
+        shouldDirty: true,
+      });
+
       return;
     }
 
@@ -391,6 +371,12 @@ export function NewAppointmentForm({
     form.setValue('serviceId', request.service.id, {
       shouldDirty: true,
     });
+
+    if (request.assignedToId) {
+      form.setValue('agentId', request.assignedToId, {
+        shouldDirty: true,
+      });
+    }
 
     const types: AppointmentType[] = [];
 

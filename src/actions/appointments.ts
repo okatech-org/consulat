@@ -54,8 +54,8 @@ export async function getAvailableTimeSlots(
   startDate: Date,
   endDate: Date,
   duration: number,
+  agentId?: string,
 ): Promise<TimeSlotWithAgent[]> {
-  // 1. Récupération des données nécessaires
   const [agentsData, countryData, organizationData] = await Promise.all([
     db.user.findMany({
       where: {
@@ -66,6 +66,7 @@ export async function getAvailableTimeSlots(
         specializations: {
           has: serviceCategory,
         },
+        ...(agentId && { id: agentId }),
       },
       include: {
         assignedAppointments: {
