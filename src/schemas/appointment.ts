@@ -20,7 +20,9 @@ export const AppointmentSchema = z.object({
   endTime: z.date({
     required_error: 'appointments.validation.end_time_required',
   }),
-  duration: z.number(),
+  duration: z.number({
+    required_error: 'appointments.validation.duration_required',
+  }),
   type: z.nativeEnum(AppointmentType, {
     required_error: 'appointments.validation.type_required',
   }),

@@ -31,7 +31,7 @@ import { ROUTES } from '@/schemas/routes';
 import type { FullServiceRequest } from '@/types/service-request';
 import CardContainer from '../layouts/card-container';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useStoredTabs } from '@/hooks/use-tabs';
+import { useTabs } from '@/hooks/use-tabs';
 
 interface NewAppointmentFormProps {
   serviceRequests: FullServiceRequest[];
@@ -67,7 +67,7 @@ export function NewAppointmentForm({
   const { formatDate } = useDateLocale();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { currentTab, setCurrentTab } = useStoredTabs<Step>(
+  const { currentTab, handleTabChange: setCurrentTab } = useTabs<Step>(
     'new-appointment-tab',
     preselectedData?.type && preselectedData.request?.id ? 'slot' : 'request',
   );
@@ -92,6 +92,10 @@ export function NewAppointmentForm({
       form.setValue('requestId', preselectedData.request.id);
       form.setValue('serviceId', preselectedData.request.service.id);
       setSelectedRequest(preselectedData.request);
+
+      if (preselectedData.request.assignedToId) {
+        form.setValue('agentId', preselectedData.request.assignedToId);
+      }
 
       if (preselectedData.type) {
         form.setValue('type', preselectedData.type);
@@ -322,7 +326,6 @@ export function NewAppointmentForm({
     endOfDay.setHours(23, 59, 59, 999);
 
     if (selectedRequest.assignedTo) {
-      // Fetch slots for the assigned agent only
       getAvailableTimeSlots(
         selectedRequest.service.category,
         organizationId,
@@ -366,6 +369,13 @@ export function NewAppointmentForm({
     }
   }, [selectedRequest, selectedDate, organizationId, countryCode]);
 
+  React.useEffect(() => {
+    console.log({
+      data: form.getValues(),
+      errors: form.formState.errors,
+    });
+  }, [form.formState.errors, form.formState, form]);
+
   function handleRequestChange(requestId?: string) {
     if (!requestId) {
       setSelectedRequest(undefined);
@@ -387,6 +397,11 @@ export function NewAppointmentForm({
     }
 
     setSelectedRequest(request);
+
+    form.setValue('serviceId', request.service.id, {
+      shouldDirty: true,
+    });
+
     const types: AppointmentType[] = [];
 
     if (request.service.requiresAppointment) {
@@ -466,6 +481,26 @@ export function NewAppointmentForm({
         <p className="text-muted-foreground">{t('request.no_eligible')}</p>
       </div>
     );
+  }
+
+  function handleTypeChange(type: AppointmentType) {
+    if (
+      type === 'DOCUMENT_COLLECTION' &&
+      selectedRequest?.service.deliveryAppointmentDuration
+    ) {
+      form.setValue('duration', selectedRequest.service.deliveryAppointmentDuration);
+      return;
+    }
+
+    if (
+      type === 'DOCUMENT_SUBMISSION' &&
+      selectedRequest?.service.deliveryAppointmentDuration
+    ) {
+      form.setValue('duration', selectedRequest.service.deliveryAppointmentDuration);
+      return;
+    }
+
+    form.setValue('duration', 15);
   }
 
   return (
@@ -556,7 +591,10 @@ export function NewAppointmentForm({
                               label: t(`type.options.${type}`),
                             }))}
                             selected={field.value}
-                            onChange={field.onChange}
+                            onChange={(value) => {
+                              field.onChange(value);
+                              handleTypeChange(value);
+                            }}
                             placeholder={t('type.placeholder')}
                             type="single"
                           />
