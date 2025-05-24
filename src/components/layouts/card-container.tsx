@@ -16,10 +16,10 @@ export default function CardContainer({
   action,
   subtitle,
   children,
-  className,
+  className = '',
   contentClass = 'pt-4',
   footerContent,
-  headerClass,
+  headerClass = '',
 }: Readonly<CardContainerProps>) {
   return (
     <Card.Card className={'flex flex-col ' + className}>
