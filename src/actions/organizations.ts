@@ -12,7 +12,6 @@ import {
 import { Country, OrganizationStatus, ServiceCategory, UserRole } from '@prisma/client';
 
 import { AgentFormData } from '@/schemas/user';
-import { processFileData } from './utils';
 import { env } from '@/lib/env/index';
 import { sendAdminWelcomeEmail } from '@/lib/services/notifications/providers/emails';
 import { notify } from '@/lib/services/notifications';

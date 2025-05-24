@@ -19,11 +19,8 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
   const pathname = usePathname();
 
   const isActive = (url: string) => {
-    if (url === ROUTES.dashboard.base) {
+    if (url === ROUTES.dashboard.base || ROUTES.user.base) {
       return pathname === url;
-    }
-    if (url === ROUTES.user.base) {
-      return pathname.startsWith(url);
     }
 
     if (pathname === url) return true;
