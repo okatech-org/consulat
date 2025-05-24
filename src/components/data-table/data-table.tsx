@@ -199,8 +199,8 @@ export function DataTable<TData, TValue>({
         </div>
       ) : null}
 
-      <div className="rounded-md border">
-        <Table className="min-w-max relative w-full overflow-hidden">
+      <div className="rounded-md border overflow-hidden">
+        <Table className="min-w-max relative w-full">
           <TableHeader className="sticky top-0 z-10 bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

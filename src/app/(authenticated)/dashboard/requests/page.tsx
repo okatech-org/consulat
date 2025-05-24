@@ -7,7 +7,6 @@ import { getCurrentUser } from '@/actions/user';
 import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import { getServiceRequests, GetRequestsOptions } from '@/actions/service-requests';
 import { cn, tryCatch } from '@/lib/utils';
-import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasPermission, hasAnyRole } from '@/lib/permissions/utils';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
@@ -603,29 +602,27 @@ export default function RequestsPage() {
   return (
     <PageContainer title={t('requests.title')}>
       {user && hasPermission(user, 'serviceRequests', 'list') && (
-        <CardContainer>
-          <DataTable
-            isLoading={isLoading}
-            columns={columns}
-            data={requestsData.items}
-            filters={filters}
-            totalCount={requestsData.total}
-            pageIndex={requestsData.page - 1}
-            pageSize={Number(requestsData.limit || 10)}
-            onPageChange={(page) => handlePageChange(page + 1)}
-            onLimitChange={handleLimitChange}
-            hiddenColumns={hiddenColumns}
-            onRefresh={handleRefresh}
-            activeSorting={
-              formattedQueryParams.sortBy && formattedQueryParams.sortOrder
-                ? [
-                    formattedQueryParams.sortBy as keyof FullServiceRequest,
-                    formattedQueryParams.sortOrder,
-                  ]
-                : undefined
-            }
-          />
-        </CardContainer>
+        <DataTable
+          isLoading={isLoading}
+          columns={columns}
+          data={requestsData.items}
+          filters={filters}
+          totalCount={requestsData.total}
+          pageIndex={requestsData.page - 1}
+          pageSize={Number(requestsData.limit || 10)}
+          onPageChange={(page) => handlePageChange(page + 1)}
+          onLimitChange={handleLimitChange}
+          hiddenColumns={hiddenColumns}
+          onRefresh={handleRefresh}
+          activeSorting={
+            formattedQueryParams.sortBy && formattedQueryParams.sortOrder
+              ? [
+                  formattedQueryParams.sortBy as keyof FullServiceRequest,
+                  formattedQueryParams.sortOrder,
+                ]
+              : undefined
+          }
+        />
       )}
     </PageContainer>
   );
