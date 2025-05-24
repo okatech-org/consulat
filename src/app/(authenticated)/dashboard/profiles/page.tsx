@@ -575,37 +575,35 @@ export default function ProfilesPage() {
 
   return (
     <PageContainer title={'Gestion des profils'}>
-      <CardContainer>
-        <DataTable
-          isLoading={isLoading}
-          columns={columns}
-          data={results.items}
-          filters={filters}
-          totalCount={results.total}
-          pageIndex={results.page - 1}
-          pageSize={results.limit}
-          onExport={handleExport}
-          onPageChange={(page) => handlePageChange(page + 1)}
-          onLimitChange={handleLimitChange}
-          enableExport={true}
-          exportSelectedOnly={true}
-          exportFilename="profiles"
-          hiddenColumns={[
-            'id',
-            'cardPin',
-            'email',
-            'shareUrl',
-            'IDPictureFileName',
-            'IDPicturePath',
-            'gender',
-            'cardExpiresAt',
-            'category',
-          ]}
-          activeSorting={
-            formattedQueryParams.sort as [keyof ProfilesArrayItem, 'asc' | 'desc']
-          }
-        />
-      </CardContainer>
+      <DataTable
+        isLoading={isLoading}
+        columns={columns}
+        data={results.items}
+        filters={filters}
+        totalCount={results.total}
+        pageIndex={results.page - 1}
+        pageSize={results.limit}
+        onExport={handleExport}
+        onPageChange={(page) => handlePageChange(page + 1)}
+        onLimitChange={handleLimitChange}
+        enableExport={true}
+        exportSelectedOnly={true}
+        exportFilename="profiles"
+        hiddenColumns={[
+          'id',
+          'cardPin',
+          'email',
+          'shareUrl',
+          'IDPictureFileName',
+          'IDPicturePath',
+          'gender',
+          'cardExpiresAt',
+          'category',
+        ]}
+        activeSorting={
+          formattedQueryParams.sort as [keyof ProfilesArrayItem, 'asc' | 'desc']
+        }
+      />
     </PageContainer>
   );
 }

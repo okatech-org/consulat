@@ -165,17 +165,17 @@ export function DataTable<TData, TValue>({
               bulkActions.length > 0 && (
                 <DataTableBulkActions table={table} actions={bulkActions} />
               )}
+            {enableExport && (
+              <DataTableExport
+                columns={columns}
+                data={data}
+                filename={exportFilename}
+                selectedRows={rowSelection}
+                disableWhenNoSelection={exportSelectedOnly}
+                onExport={onExport}
+              />
+            )}
           </div>
-          {enableExport && (
-            <DataTableExport
-              columns={columns}
-              data={data}
-              filename={exportFilename}
-              selectedRows={rowSelection}
-              disableWhenNoSelection={exportSelectedOnly}
-              onExport={onExport}
-            />
-          )}
         </div>
       ) : enableExport ? (
         <div className="flex items-start justify-between">
@@ -200,14 +200,10 @@ export function DataTable<TData, TValue>({
       ) : null}
 
       <div className="rounded-md border">
-        <Table className="min-w-max">
-          <TableHeader>
+        <Table className="min-w-max relative w-full overflow-hidden">
+          <TableHeader className="sticky top-0 z-10 bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow
-                key={headerGroup.id}
-                onClick={() => {}}
-                className="sticky top-0 bg-background"
-              >
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id} colSpan={header.colSpan}>

@@ -10,7 +10,7 @@ import {
   FormControl,
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { UserDocument } from '../user-document';
+import { UserDocument } from '../documents/user-document';
 import { AppUserDocument } from '@/types';
 import CardContainer from '../layouts/card-container';
 import { ServiceForm } from '@/hooks/use-service-form';

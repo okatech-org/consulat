@@ -28,11 +28,11 @@ import {
 } from '@/actions/user-documents';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MetadataForm } from '@/components/metadata-form';
+import { MetadataForm } from '@/components/documents/metadata-form';
 import { toast } from '@/hooks/use-toast';
-import { FileInput } from './ui/file-input';
-import { FileUploadResponse, uploadFileFromClient } from './ui/uploadthing';
-import { ImageCropper } from './ui/image-cropper';
+import { FileInput } from '../ui/file-input';
+import { FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
+import { ImageCropper } from '../ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
 import Image from 'next/image';

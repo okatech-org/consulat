@@ -1,8 +1,8 @@
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { BreadcrumbMenu } from './layouts/breadcrumb-menu';
-import { NotificationBell } from './notifications/notification-bell';
-import { ChatToggle } from './chat/chat-toggle';
+import { BreadcrumbMenu } from '../layouts/breadcrumb-menu';
+import { NotificationBell } from '../notifications/notification-bell';
+import { ChatToggle } from '../chat/chat-toggle';
 
 export function SiteHeader() {
   return (
