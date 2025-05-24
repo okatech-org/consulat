@@ -13,21 +13,22 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavMainItem } from '@/hooks/use-navigation';
+import { ROUTES } from '@/schemas/routes';
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
   const pathname = usePathname();
 
   const isActive = (url: string) => {
-    // For exact matches, return true
+    if (url === ROUTES.dashboard.base) {
+      return pathname === url;
+    }
+    if (url === ROUTES.user.base) {
+      return pathname.startsWith(url);
+    }
+
     if (pathname === url) return true;
 
-    // For parent routes, check if the pathname starts with the URL
-    // but only if the next character is a slash or end of string
-    // This prevents /dashboard/lorem from matching /dashboard-lorem
-    return (
-      pathname.startsWith(url) &&
-      (pathname.length === url.length || pathname[url.length] === '/')
-    );
+    pathname.startsWith(url);
   };
 
   return (
