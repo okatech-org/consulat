@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
+import { Loader2, TrashIcon } from 'lucide-react';
 import { Input } from './input';
 import { DocumentPreview } from './document-preview';
 
 export interface FileInputProps {
   onChangeAction: (file: File) => void;
+  onDeleteAction?: () => void;
   accept?: string;
   loading?: boolean;
   disabled?: boolean;
@@ -23,6 +24,7 @@ export interface FileInputProps {
 
 export function FileInput({
   onChangeAction,
+  onDeleteAction,
   accept = 'image/*,application/pdf',
   loading = false,
   disabled = false,
@@ -129,6 +131,19 @@ export function FileInput({
           isOpen={previewOpen}
           setIsOpenAction={setPreviewOpen}
         />
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteAction?.();
+          }}
+          className="absolute top-2 right-2"
+        >
+          <TrashIcon className="size-icon" />
+        </Button>
       </div>
     );
   }

@@ -27,7 +27,6 @@ import { Loader2, Trash } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { DocumentUploadField } from '@/components/ui/document-upload';
 import { filterUneditedKeys, weekDays } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -39,6 +38,8 @@ import { updateOrganizationSettings } from '@/actions/organizations';
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
 import { Country } from '@prisma/client';
+import { FileInput } from '@/components/ui/file-input';
+import { useFile } from '@/hooks/use-file';
 
 interface OrganizationSettingsProps {
   organization: Organization;
@@ -49,6 +50,7 @@ export function OrganizationSettings({
   organization,
   availableCountries = [],
 }: OrganizationSettingsProps) {
+  const { handleFileUpload, handleFileDelete, isLoading: fileLoading } = useFile();
   const schema = generateOrganizationSettingsSchema(
     organization.countries as unknown as Country[],
   );
@@ -72,19 +74,10 @@ export function OrganizationSettings({
   const onSubmit = async (data: OrganizationSettingsFormData) => {
     setIsLoading(true);
 
-    let file;
-
-    if (data.logoFile) {
-      const formData = new FormData();
-
-      formData.append('files', data.logoFile[0]);
-      file = formData;
-    }
-
     filterUneditedKeys(data, form.formState.dirtyFields);
 
     const { data: result, error } = await tryCatch(
-      updateOrganizationSettings(organization.id, data, file),
+      updateOrganizationSettings(organization.id, data),
     );
 
     if (error) {
@@ -113,16 +106,22 @@ export function OrganizationSettings({
           <div className={'space-y-4'}>
             <FormField
               control={form.control}
-              name="logoFile"
+              name="logo"
               render={({ field }) => (
-                <DocumentUploadField<OrganizationSettingsFormData>
-                  id={field.name}
-                  field={field}
+                <FileInput
+                  onChangeAction={async (file) => {
+                    const fileUrl = await handleFileUpload(file);
+                    if (fileUrl) {
+                      field.onChange(fileUrl);
+                    }
+                  }}
+                  onDeleteAction={() => {
+                    handleFileDelete(field.value ?? '');
+                    field.onChange('');
+                  }}
                   accept="image/*"
-                  form={form}
-                  label={t('settings.general.logo')}
-                  required={true}
-                  disabled={isLoading}
+                  fileUrl={field.value}
+                  loading={fileLoading}
                 />
               )}
             />
@@ -595,54 +594,44 @@ export function OrganizationSettings({
                     <div className="grid gap-6 sm:grid-cols-2">
                       <FormField
                         control={form.control}
-                        name={`metadata.${country.code}.settings.consularCard.rectoModel`}
+                        name={`metadata.${country.code}.settings.consularCard.rectoModelUrl`}
                         render={({ field }) => (
-                          <DocumentUploadField<OrganizationSettingsFormData>
-                            id={`${country.code}-recto-model`}
-                            field={field}
-                            form={form}
-                            label={t('settings.consularCard.rectoModel')}
-                            description={t('settings.consularCard.rectoModelDescription')}
+                          <FileInput
+                            onChangeAction={async (file) => {
+                              const fileUrl = await handleFileUpload(file);
+                              console.log({ fileUrl });
+                              if (fileUrl) {
+                                field.onChange(fileUrl);
+                              }
+                            }}
+                            onDeleteAction={() => {
+                              handleFileDelete(field.value);
+                            }}
+                            fileUrl={field.value}
                             accept="image/*"
-                            aspectRatio="square"
-                            existingFile={
-                              form.getValues(
-                                `metadata.${country.code}.settings.consularCard.rectoModelUrl`,
-                              )
-                                ? {
-                                    fileUrl: form.getValues(
-                                      `metadata.${country.code}.settings.consularCard.rectoModelUrl`,
-                                    ),
-                                  }
-                                : undefined
-                            }
+                            loading={fileLoading}
                           />
                         )}
                       />
 
                       <FormField
                         control={form.control}
-                        name={`metadata.${country.code}.settings.consularCard.versoModel`}
+                        name={`metadata.${country.code}.settings.consularCard.versoModelUrl`}
                         render={({ field }) => (
-                          <DocumentUploadField<OrganizationSettingsFormData>
-                            id={`${country.code}-verso-model`}
-                            field={field}
-                            form={form}
-                            label={t('settings.consularCard.versoModel')}
-                            description={t('settings.consularCard.versoModelDescription')}
+                          <FileInput
+                            onChangeAction={async (file) => {
+                              const fileUrl = await handleFileUpload(file);
+                              console.log({ fileUrl });
+                              if (fileUrl) {
+                                field.onChange(fileUrl);
+                              }
+                            }}
+                            onDeleteAction={() => {
+                              handleFileDelete(field.value);
+                            }}
+                            fileUrl={field.value}
                             accept="image/*"
-                            aspectRatio="square"
-                            existingFile={
-                              form.getValues(
-                                `metadata.${country.code}.settings.consularCard.versoModelUrl`,
-                              )
-                                ? {
-                                    fileUrl: form.getValues(
-                                      `metadata.${country.code}.settings.consularCard.versoModelUrl`,
-                                    ),
-                                  }
-                                : undefined
-                            }
+                            loading={fileLoading}
                           />
                         )}
                       />

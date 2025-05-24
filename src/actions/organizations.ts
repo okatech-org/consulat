@@ -418,19 +418,10 @@ export async function getOrganizationByCountry(countryCode: string) {
 export async function updateOrganizationSettings(
   organizationId: string,
   data: OrganizationSettingsFormData,
-  logoFile?: FormData,
 ) {
   await checkAuth([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]);
 
   try {
-    let logoUrl = data.logo;
-    if (logoFile) {
-      const uploadResult = await processFileData(logoFile);
-      if (uploadResult?.url) {
-        logoUrl = uploadResult.url;
-      }
-    }
-
     const { countryIds, metadata, ...rest } = data;
 
     const organization = await db.organization.update({
@@ -438,7 +429,6 @@ export async function updateOrganizationSettings(
       data: {
         ...rest,
         ...(metadata && { metadata: JSON.stringify(metadata) }),
-        ...(logoUrl && { logo: logoUrl }),
         ...(countryIds && {
           countries: {
             connect: countryIds.map((id) => ({ id })),

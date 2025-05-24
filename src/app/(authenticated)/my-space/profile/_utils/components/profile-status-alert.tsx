@@ -130,12 +130,16 @@ export function ProfileStatusAlert({
   const Icon = config.icon;
 
   return (
-    <CardContainer contentClass="flex flex-col gap-2 justify-start">
-      <div className="flex items-center gap-2">
-        <Icon className={cn('size-4', config.icon === Loader2 && 'animate-spin')} />
-        <AlertTitle>{config.title}</AlertTitle>
-      </div>
-      <p>{config.description}</p>
+    <CardContainer
+      title={
+        <div className="flex items-center gap-2">
+          <Icon className={cn('size-4', config.icon === Loader2 && 'animate-spin')} />
+          <AlertTitle>{config.title}</AlertTitle>
+        </div>
+      }
+      subtitle={config.description}
+      contentClass="flex flex-col gap-2 justify-start"
+    >
       <div className="w-max">{config.action}</div>
     </CardContainer>
   );
