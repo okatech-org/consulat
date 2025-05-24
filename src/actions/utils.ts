@@ -74,3 +74,11 @@ export async function deleteFiles(keys: string[]) {
     throw new Error('Error deleting files');
   }
 }
+
+export async function deleteFile(fileUrl: string) {
+  const fileKey = fileUrl.split('/').pop();
+  if (fileKey) {
+    const result = await utapi.deleteFiles(fileKey);
+    console.log({ result });
+  }
+}

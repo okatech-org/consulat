@@ -91,7 +91,6 @@ const CountrySettingsSchema = z.object({
   settings: z
     .object({
       logo: z.string().optional(),
-      logoFile: z.any().optional(),
       contact: ContactSchema,
       schedule: ScheduleSchema,
       holidays: z.array(HolidaySchema).optional().default([]),
@@ -100,8 +99,6 @@ const CountrySettingsSchema = z.object({
         .object({
           rectoModelUrl: z.string().optional(),
           versoModelUrl: z.string().optional(),
-          rectoModel: PictureFileSchema.optional(),
-          versoModel: PictureFileSchema.optional(),
         })
         .optional(),
     })
@@ -121,7 +118,6 @@ export function generateOrganizationSettingsSchema(countries: Country[]) {
   return z.object({
     name: z.string().min(1, 'messages.errors.name_required'),
     logo: z.string().optional(),
-    logoFile: z.any().optional(),
     type: z.nativeEnum(OrganizationType).optional(),
     status: z.nativeEnum(OrganizationStatus).optional(),
     countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),

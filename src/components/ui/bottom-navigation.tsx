@@ -9,8 +9,8 @@ import { useNavigation } from '@/hooks/use-navigation';
 import { SessionUser } from '@/types/user';
 import { MobileDrawer } from './mobile-drawer';
 import { ChatToggle } from '../chat/chat-toggle';
-import { NavMainItem } from '../layouts/nav-main';
 import { Fragment } from 'react';
+import { NavMainItem } from '@/hooks/use-navigation';
 
 export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
   user: SessionUser;
@@ -47,7 +47,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         ),
       },
       thirdItem,
-    ] as NavMainItem[];
+    ] as Array<NavMainItem & { component?: React.ReactNode }>;
 
     return (
       <nav
@@ -76,7 +76,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                   : 'text-muted-foreground',
               )}
             >
-              {item.icon && <div className="text-current">{item.icon}</div>}
+              {item.icon && <item.icon className="size-icon" />}
               {showLabels && (
                 <span
                   className={cn('text-[9px] truncate w-full uppercase transition-all')}

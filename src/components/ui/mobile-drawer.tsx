@@ -16,7 +16,7 @@ import {
   SheetClose,
 } from './sheet';
 
-import { NavMainItem } from '../layouts/nav-main';
+import { NavMainItem } from '@/hooks/use-navigation';
 import { ThemeToggleSingle } from '../layouts/theme-toggle-single';
 import { logUserOut } from '@/actions/auth';
 import { NotificationBell } from '../notifications/notification-bell';
@@ -79,13 +79,10 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                 )}
               >
-                {item.icon && <span className="text-muted-foreground">{item.icon}</span>}
+                {item.icon && <item.icon className="size-icon" />}
                 <span>{item.title}</span>
               </Link>
             </SheetClose>
-            {item.items && item.items.length > 0 && (
-              <ul className="mt-1 space-y-1">{renderItems(item.items, level + 1)}</ul>
-            )}
           </div>
         </React.Fragment>
       ));
@@ -109,7 +106,6 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
         </SheetTrigger>
         <SheetContent
           side="bottom"
-          size="sm"
           className={cn('flex flex-col max-h-[70dvh]', className)}
         >
           <SheetHeader className="text-left border-b pb-4 mb-4">

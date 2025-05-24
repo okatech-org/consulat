@@ -27,7 +27,7 @@ export function SettingsTabs({
 
   return (
     <Tabs defaultValue={currentTab} className="space-y-4" onValueChange={handleTabChange}>
-      <TabsList>
+      <TabsList className="flex-wrap !h-auto">
         <TabsTrigger value="organization">{t('settings.tabs.organization')}</TabsTrigger>
         <TabsTrigger value="services">{t('settings.tabs.services')}</TabsTrigger>
         <TabsTrigger value="agents">{t('settings.tabs.agents')}</TabsTrigger>
