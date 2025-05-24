@@ -107,7 +107,7 @@ export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) 
       value={currentTab}
       onValueChange={handleTabChange}
     >
-      <TabsList className="mb-2 w-full">
+      <TabsList className="mb-2 w-full flex-wrap !h-auto">
         <div className="flex items-center flex-wrap">
           {profileTabs.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id}>
