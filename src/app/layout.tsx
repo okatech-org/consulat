@@ -122,8 +122,6 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
 
-  console.log('in root layout');
-
   return (
     <html lang={locale as string} suppressHydrationWarning dir="ltr">
       <body className={inter.className + ' bg-muted'}>

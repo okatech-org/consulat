@@ -41,14 +41,12 @@ export default async function EditServicePage({ params }: { params: { id: string
 
   return (
     <PageContainer title={service.name} description={t('edit_title')}>
-      <CardContainer>
-        <ConsularServiceForm
-          service={service}
-          organizations={organizations ?? [organization]}
-          countries={countries ?? organization?.countries ?? []}
-          documentTemplates={documentTemplates}
-        />
-      </CardContainer>
+      <ConsularServiceForm
+        service={service}
+        organizations={organizations ?? [organization]}
+        countries={countries ?? organization?.countries ?? []}
+        documentTemplates={documentTemplates}
+      />
     </PageContainer>
   );
 }

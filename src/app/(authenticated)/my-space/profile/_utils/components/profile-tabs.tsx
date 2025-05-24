@@ -9,7 +9,7 @@ import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-import { useStoredTabs } from '@/hooks/use-tabs';
+import { useTabs } from '@/hooks/use-tabs';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { ServiceRequest } from '@prisma/client';
@@ -99,13 +99,13 @@ export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) 
 
   type Tab = (typeof profileTabs)[number]['id'];
 
-  const { currentTab, setCurrentTab } = useStoredTabs<Tab>('tab', 'basic-info');
+  const { currentTab, handleTabChange } = useTabs<Tab>('tab', 'basic-info');
 
   return (
     <Tabs
       className={'col-span-full lg:col-span-6'}
       value={currentTab}
-      onValueChange={setCurrentTab}
+      onValueChange={handleTabChange}
     >
       <TabsList className="mb-2 w-full">
         <div className="flex items-center flex-wrap">

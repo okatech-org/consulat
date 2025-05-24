@@ -15,7 +15,7 @@ import { debounce } from 'lodash';
 
 // eslint-disable-next-line
 export interface BaseFilterOption<TData = Record<string, any>> {
-  property?: string;
+  property: string;
   isDisabled?: boolean;
   label: string;
 }

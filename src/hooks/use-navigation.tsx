@@ -1,6 +1,5 @@
 'use client';
 
-import { NavMainItem } from '@/components/layouts/nav-main';
 import { ROUTES } from '@/schemas/routes';
 import { SessionUser } from '@/types/user';
 import { UserRole } from '@prisma/client';
@@ -20,6 +19,13 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
+
+export type NavMainItem = {
+  title: string;
+  url: string;
+  icon: React.ElementType;
+  roles: UserRole[];
+};
 
 export function useNavigation(user: SessionUser) {
   const t = useTranslations('navigation.menu');

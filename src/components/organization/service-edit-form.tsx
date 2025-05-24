@@ -4,7 +4,6 @@ import { updateService } from '@/app/(authenticated)/dashboard/(superadmin)/_uti
 import { GenerateDocumentSettingsForm } from '@/components/document-generation/generate-document-settings-form';
 import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CountrySelect } from '@/components/ui/country-select';
 import {
   Form,
@@ -21,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { useTabs } from '@/hooks/use-tabs';
 import { useToast } from '@/hooks/use-toast';
 import { filterUneditedKeys, getValuable } from '@/lib/utils';
 import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
@@ -42,6 +42,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import CardContainer from '../layouts/card-container';
 
 interface ServiceFormProps {
   organizations: OrganizationListingItem[];
@@ -49,6 +50,14 @@ interface ServiceFormProps {
   service: Partial<ConsularServiceItem>;
   documentTemplates: DocumentTemplate[];
 }
+
+type Tab =
+  | 'general'
+  | 'documents'
+  | 'delivery'
+  | 'pricing'
+  | 'steps'
+  | 'documentGeneration';
 
 export function ConsularServiceForm({
   organizations,
@@ -61,6 +70,7 @@ export function ConsularServiceForm({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { currentTab, handleTabChange } = useTabs<Tab>('tab', 'general');
 
   const cleanedService = getValuable(service);
 
@@ -109,8 +119,8 @@ export function ConsularServiceForm({
         onSubmit={form.handleSubmit(handleSubmit)}
         className={'flex h-full flex-col space-y-4'}
       >
-        <Tabs defaultValue="general" className={'grow'}>
-          <TabsList className={'mb-4 flex flex-wrap gap-2'}>
+        <Tabs value={currentTab} onValueChange={handleTabChange}>
+          <TabsList className={'mb-4 flex flex-wrap gap-2 w-max'}>
             <TabsTrigger value="general">{t('tabs.general')}</TabsTrigger>
             <TabsTrigger value="documents">{t('tabs.documents')}</TabsTrigger>
             <TabsTrigger value="delivery">{t('tabs.delivery')}</TabsTrigger>
@@ -121,413 +131,423 @@ export function ConsularServiceForm({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="general" className={'space-y-6'}>
-            {/* Informations générales */}
+          <CardContainer>
+            <TabsContent value="general" className={'space-y-6'}>
+              {/* Informations générales */}
 
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.name.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder={t('form.name.placeholder')}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.description.label')}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder={t('form.description.placeholder')}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem className="w-full flex flex-col gap-2">
-                  <FormLabel>{t_inputs('serviceCategory.label')}</FormLabel>
-                  <MultiSelect<ServiceCategory>
-                    type="single"
-                    options={Object.values(ServiceCategory).map((category) => ({
-                      label: t_inputs(`serviceCategory.options.${category}`),
-                      value: category,
-                    }))}
-                    onChange={field.onChange}
-                    selected={field.value}
-                    disabled={isLoading}
-                  />
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="organizationId"
-              render={({ field }) => (
-                <FormItem className="w-full flex flex-col gap-2">
-                  <FormLabel>{t_inputs('organization.label')}</FormLabel>
-                  <MultiSelect<string>
-                    type="single"
-                    options={organizations?.map((organization) => ({
-                      label: organization.name,
-                      value: organization.id,
-                    }))}
-                    onChange={field.onChange}
-                    selected={field.value}
-                    disabled={isLoading || Boolean(service?.organizationId)}
-                    className="min-w-max"
-                  />
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="countryCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t_inputs('country.label')}</FormLabel>
-                  <FormControl>
-                    <CountrySelect
-                      type="single"
-                      selected={field.value as CountryCode}
-                      onChange={(value) => field.onChange(value)}
-                      options={countries?.map((item) => item.code as CountryCode)}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-
-          <TabsContent value="documents" className={'space-y-6'}>
-            {/* Configuration des documents */}
-            <FormField
-              control={form.control}
-              name="requiredDocuments"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.required_documents.label')}</FormLabel>
-                  <MultiSelect<DocumentType>
-                    type={'multiple'}
-                    options={Object.values(DocumentType).map((type) => ({
-                      label: t(`documents.${type.toLowerCase()}`),
-                      value: type,
-                    }))}
-                    selected={field.value}
-                    onChange={field.onChange}
-                    placeholder={t('form.required_documents.placeholder')}
-                    searchPlaceholder={t('form.required_documents.search')}
-                    emptyText={t('form.required_documents.empty')}
-                  />
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="optionalDocuments"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.optional_documents.label')}</FormLabel>
-                  <MultiSelect<DocumentType>
-                    options={Object.values(DocumentType).map((type) => ({
-                      label: t(`documents.${type.toLowerCase()}`),
-                      value: type,
-                    }))}
-                    selected={field.value}
-                    onChange={field.onChange}
-                    placeholder={t('form.required_documents.placeholder')}
-                    searchPlaceholder={t('form.required_documents.search')}
-                    emptyText={t('form.required_documents.empty')}
-                  />
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-
-          <TabsContent value="delivery">
-            <div className="space-y-6">
-              {/* Configuration des rendez-vous */}
               <FormField
                 control={form.control}
-                name="requiresAppointment"
+                name="name"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel>{t_inputs('appointment.presidential.label')}</FormLabel>
-                      <FormDescription>
-                        {t_inputs('appointment.presidential.description')}
-                      </FormDescription>
-                    </div>
+                  <FormItem>
+                    <FormLabel>{t('form.name.label')}</FormLabel>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                      <Input
+                        {...field}
+                        placeholder={t('form.name.placeholder')}
                         disabled={isLoading}
                       />
                     </FormControl>
+                    <TradFormMessage />
                   </FormItem>
                 )}
               />
 
-              {form.watch('requiresAppointment') && (
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="appointmentDuration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t_inputs('appointment.duration.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={15}
-                            step={5}
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            placeholder={t_inputs('appointment.duration.placeholder')}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t_inputs('appointment.duration.description')}
-                        </FormDescription>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="appointmentInstructions"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {t_inputs('appointment.instructions.label')}
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder={t_inputs('appointment.instructions.placeholder')}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t_inputs('appointment.instructions.description')}
-                        </FormDescription>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-
-              <Separator />
-
-              {/* Modes de livraison */}
               <FormField
                 control={form.control}
-                name="deliveryMode"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.delivery.modes.label')}</FormLabel>
-                    <MultiSelect<DeliveryMode>
-                      type={'multiple'}
-                      options={Object.values(DeliveryMode).map((mode) => ({
-                        label: t(`form.delivery.modes.options.${mode.toLowerCase()}`),
-                        value: mode,
+                    <FormLabel>{t('form.description.label')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={t('form.description.placeholder')}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem className="w-full flex flex-col gap-2">
+                    <FormLabel>{t_inputs('serviceCategory.label')}</FormLabel>
+                    <MultiSelect<ServiceCategory>
+                      type="single"
+                      options={Object.values(ServiceCategory).map((category) => ({
+                        label: t_inputs(`serviceCategory.options.${category}`),
+                        value: category,
                       }))}
+                      onChange={field.onChange}
                       selected={field.value}
-                      onChange={(value) => {
-                        field.onChange(value);
-                      }}
+                      disabled={isLoading}
                     />
                     <TradFormMessage />
                   </FormItem>
                 )}
               />
 
-              {form.watch('deliveryMode').includes(DeliveryMode.IN_PERSON) && (
-                <FormField
-                  control={form.control}
-                  name="deliveryAppointmentDesc"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('form.delivery.appointment.instructions')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder={t('form.delivery.appointment.description')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* Options de proxy */}
-              {form.watch('deliveryMode').includes(DeliveryMode.BY_PROXY) && (
-                <FormField
-                  control={form.control}
-                  name="proxyRequirements"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('form.delivery.proxy.requirements.label')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder={t('form.delivery.proxy.requirements.placeholder')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="pricing">
-            <div className="space-y-6">
               <FormField
                 control={form.control}
-                name="isFree"
+                name="organizationId"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>{t('form.pricing.label')}</FormLabel>
-                      <FormDescription>{t('form.pricing.description')}</FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={!!field.value}
-                        onCheckedChange={(value) => {
-                          field.onChange(value);
-                        }}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
+                  <FormItem className="w-full flex flex-col gap-2">
+                    <FormLabel>{t_inputs('organization.label')}</FormLabel>
+                    <MultiSelect<string>
+                      type="single"
+                      options={organizations?.map((organization) => ({
+                        label: organization.name,
+                        value: organization.id,
+                      }))}
+                      onChange={field.onChange}
+                      selected={field.value}
+                      disabled={isLoading || Boolean(service?.organizationId)}
+                      className="min-w-max"
+                    />
+                    <TradFormMessage />
                   </FormItem>
                 )}
               />
 
-              {form.watch('isFree') === true && (
-                <>
+              <FormField
+                control={form.control}
+                name="countryCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t_inputs('country.label')}</FormLabel>
+                    <FormControl>
+                      <CountrySelect
+                        type="single"
+                        selected={field.value as CountryCode}
+                        onChange={(value) => field.onChange(value)}
+                        options={countries?.map((item) => item.code as CountryCode)}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+
+            <TabsContent value="documents" className={'space-y-6'}>
+              {/* Configuration des documents */}
+              <FormField
+                control={form.control}
+                name="requiredDocuments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.required_documents.label')}</FormLabel>
+                    <MultiSelect<DocumentType>
+                      type={'multiple'}
+                      options={Object.values(DocumentType).map((type) => ({
+                        label: t(`documents.${type.toLowerCase()}`),
+                        value: type,
+                      }))}
+                      selected={field.value}
+                      onChange={field.onChange}
+                      placeholder={t('form.required_documents.placeholder')}
+                      searchPlaceholder={t('form.required_documents.search')}
+                      emptyText={t('form.required_documents.empty')}
+                    />
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="optionalDocuments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.optional_documents.label')}</FormLabel>
+                    <MultiSelect<DocumentType>
+                      options={Object.values(DocumentType).map((type) => ({
+                        label: t(`documents.${type.toLowerCase()}`),
+                        value: type,
+                      }))}
+                      selected={field.value}
+                      onChange={field.onChange}
+                      placeholder={t('form.required_documents.placeholder')}
+                      searchPlaceholder={t('form.required_documents.search')}
+                      emptyText={t('form.required_documents.empty')}
+                    />
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+
+            <TabsContent value="delivery">
+              <div className="space-y-6">
+                {/* Configuration des rendez-vous */}
+                <FormField
+                  control={form.control}
+                  name="requiresAppointment"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row gap-2 items-center justify-between rounded-lg border p-4 w-max">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <div className="space-y-0.5">
+                        <FormLabel>
+                          {t_inputs('appointment.presidential.label')}
+                        </FormLabel>
+                        <FormDescription>
+                          {t_inputs('appointment.presidential.description')}
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('requiresAppointment') && (
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="appointmentDuration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t_inputs('appointment.duration.label')}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={15}
+                              step={5}
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              placeholder={t_inputs('appointment.duration.placeholder')}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {t_inputs('appointment.duration.description')}
+                          </FormDescription>
+                          <TradFormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="appointmentInstructions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            {t_inputs('appointment.instructions.label')}
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder={t_inputs(
+                                'appointment.instructions.placeholder',
+                              )}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {t_inputs('appointment.instructions.description')}
+                          </FormDescription>
+                          <TradFormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* Modes de livraison */}
+                <FormField
+                  control={form.control}
+                  name="deliveryMode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('form.delivery.modes.label')}</FormLabel>
+                      <MultiSelect<DeliveryMode>
+                        type={'multiple'}
+                        options={Object.values(DeliveryMode).map((mode) => ({
+                          label: t(`form.delivery.modes.options.${mode.toLowerCase()}`),
+                          value: mode,
+                        }))}
+                        selected={field.value}
+                        onChange={(value) => {
+                          field.onChange(value);
+                        }}
+                      />
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('deliveryMode').includes(DeliveryMode.IN_PERSON) && (
                   <FormField
                     control={form.control}
-                    name="price"
+                    name="deliveryAppointmentDesc"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('form.pricing.price.label')}</FormLabel>
+                        <FormLabel>
+                          {t('form.delivery.appointment.instructions')}
+                        </FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
+                          <Textarea
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            placeholder={t('form.pricing.price.placeholder')}
+                            placeholder={t('form.delivery.appointment.description')}
                           />
                         </FormControl>
                         <TradFormMessage />
                       </FormItem>
                     )}
                   />
+                )}
 
+                {/* Options de proxy */}
+                {form.watch('deliveryMode').includes(DeliveryMode.BY_PROXY) && (
                   <FormField
                     control={form.control}
-                    name="currency"
+                    name="proxyRequirements"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('form.pricing.currency.label')}</FormLabel>
-                        <MultiSelect<string>
-                          options={[
-                            { value: 'EUR', label: 'EUR' },
-                            { value: 'XAF', label: 'XAF' },
-                            { value: 'USD', label: 'USD' },
-                          ]}
-                          selected={field.value}
-                          onChange={field.onChange}
-                          type={'single'}
-                          placeholder={t('form.pricing.currency.placeholder')}
-                        />
+                        <FormLabel>
+                          {t('form.delivery.proxy.requirements.label')}
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder={t(
+                              'form.delivery.proxy.requirements.placeholder',
+                            )}
+                          />
+                        </FormControl>
                         <TradFormMessage />
                       </FormItem>
                     )}
                   />
-                </>
-              )}
-            </div>
-          </TabsContent>
+                )}
+              </div>
+            </TabsContent>
 
-          <TabsContent value="steps">
-            <div className="space-y-6">
-              {/* Liste des étapes existantes */}
-              <div className="space-y-4">
-                {serviceSteps.map((step, index) => (
-                  <Card key={index + `${step?.id ?? ''}`}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-base">
-                        {step.title || t('form.steps.untitled')}
-                      </CardTitle>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const steps = form.getValues('steps');
-                            if (index > 0) {
-                              const newSteps = [...steps];
-                              [newSteps[index - 1], newSteps[index]] = [
-                                newSteps[index],
-                                newSteps[index - 1],
-                              ];
-                              form.setValue('steps', newSteps);
-                            }
+            <TabsContent value="pricing">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="isFree"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row gap-2 w-max items-center justify-between">
+                      <FormControl>
+                        <Switch
+                          checked={!!field.value}
+                          onCheckedChange={(value) => {
+                            field.onChange(value);
                           }}
-                          disabled={index === 0}
-                        >
-                          <ArrowUp className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const steps = form.getValues('steps');
-                            const newSteps = steps.filter(
-                              (_: never, i: number) => i !== index,
-                            );
-                            form.setValue('steps', newSteps);
-                          }}
-                        >
-                          <Trash className="size-4" />
-                        </Button>
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <div className="space-y-0.5">
+                        <FormLabel>{t('form.pricing.label')}</FormLabel>
+                        <FormDescription>{t('form.pricing.description')}</FormDescription>
                       </div>
-                    </CardHeader>
-                    <CardContent>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('isFree') === true && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('form.pricing.label')}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              placeholder={t('form.price.placeholder')}
+                            />
+                          </FormControl>
+                          <TradFormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="currency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('form.pricing.currency.label')}</FormLabel>
+                          <MultiSelect<string>
+                            options={[
+                              { value: 'EUR', label: 'EUR' },
+                              { value: 'XAF', label: 'XAF' },
+                              { value: 'USD', label: 'USD' },
+                            ]}
+                            selected={field.value}
+                            onChange={field.onChange}
+                            type={'single'}
+                            placeholder={t('form.pricing.currency.placeholder')}
+                          />
+                          <TradFormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="steps">
+              <div className="space-y-6">
+                {/* Liste des étapes existantes */}
+                <div className="space-y-4">
+                  {serviceSteps.map((step, index) => (
+                    <CardContainer
+                      key={index + `${step?.id ?? ''}`}
+                      title={step.title || t('form.steps.untitled')}
+                      action={
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const steps = form.getValues('steps');
+                              if (index > 0) {
+                                const newSteps = [...steps];
+                                [newSteps[index - 1], newSteps[index]] = [
+                                  newSteps[index],
+                                  newSteps[index - 1],
+                                ];
+                                form.setValue('steps', newSteps);
+                              }
+                            }}
+                            disabled={index === 0}
+                          >
+                            <ArrowUp className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const steps = form.getValues('steps');
+                              const newSteps = steps.filter(
+                                (_: never, i: number) => i !== index,
+                              );
+                              form.setValue('steps', newSteps);
+                            }}
+                          >
+                            <Trash className="size-4" />
+                          </Button>
+                        </div>
+                      }
+                    >
                       <div className="space-y-4">
                         <FormField
                           control={form.control}
@@ -578,58 +598,58 @@ export function ConsularServiceForm({
                           />
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </CardContainer>
+                  ))}
+                </div>
+
+                {/* Bouton pour ajouter une étape */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const steps = form.getValues('steps') || [];
+                    form.setValue('steps', [
+                      ...steps,
+                      {
+                        title: '',
+                        type: ServiceStepType.FORM,
+                        isRequired: true,
+                        description: '',
+                        order: steps.length,
+                        fields: [],
+                      },
+                    ]);
+                  }}
+                >
+                  <Plus className="mr-2 size-4" />
+                  {t('form.steps.add')}
+                </Button>
               </div>
+            </TabsContent>
 
-              {/* Bouton pour ajouter une étape */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const steps = form.getValues('steps') || [];
-                  form.setValue('steps', [
-                    ...steps,
-                    {
-                      title: '',
-                      type: ServiceStepType.FORM,
-                      isRequired: true,
-                      description: '',
-                      order: steps.length,
-                      fields: [],
-                    },
-                  ]);
-                }}
-              >
-                <Plus className="mr-2 size-4" />
-                {t('form.steps.add')}
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="documentGeneration">
-            <FormField
-              control={form.control}
-              name={`generateDocumentSettings`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.steps.step.description.label')}</FormLabel>
-                  <FormControl>
-                    <GenerateDocumentSettingsForm
-                      templates={documentTemplates}
-                      statuses={Object.values(RequestStatus)}
-                      steps={serviceSteps}
-                      value={field.value}
-                      onChange={(val) => field.onChange(val)}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
+            <TabsContent value="documentGeneration">
+              <FormField
+                control={form.control}
+                name={`generateDocumentSettings`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.steps.step.description.label')}</FormLabel>
+                    <FormControl>
+                      <GenerateDocumentSettingsForm
+                        templates={documentTemplates}
+                        statuses={Object.values(RequestStatus)}
+                        steps={serviceSteps}
+                        value={field.value}
+                        onChange={(val) => field.onChange(val)}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+          </CardContainer>
         </Tabs>
 
         <div className="gap-4 lg:flex lg:justify-end">

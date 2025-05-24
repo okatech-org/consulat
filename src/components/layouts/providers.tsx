@@ -19,8 +19,6 @@ export async function Providers({ children }: { children: React.ReactNode }) {
 
   const sidebarState = cookieStore?.get('sidebar_state');
 
-  console.log('in providers');
-
   return (
     <SidebarProvider defaultOpen={sidebarState?.value === 'true'}>
       <Analytics />

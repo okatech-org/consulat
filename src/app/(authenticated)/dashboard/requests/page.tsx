@@ -8,7 +8,7 @@ import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import { getServiceRequests, GetRequestsOptions } from '@/actions/service-requests';
 import { cn, tryCatch } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
-import { hasPermission, hasAnyRole } from '@/lib/permissions/utils';
+import { hasAnyRole } from '@/lib/permissions/utils';
 import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { SessionUser } from '@/types';
@@ -498,6 +498,7 @@ export default function RequestsPage() {
     const filterOptions: FilterOption<FullServiceRequest>[] = [
       {
         type: 'search',
+        property: 'search',
         label: t('requests.filters.search'),
         defaultValue: searchParams.get('search') || '',
         onChange: (value) =>
@@ -601,29 +602,27 @@ export default function RequestsPage() {
 
   return (
     <PageContainer title={t('requests.title')}>
-      {user && hasPermission(user, 'serviceRequests', 'list') && (
-        <DataTable
-          isLoading={isLoading}
-          columns={columns}
-          data={requestsData.items}
-          filters={filters}
-          totalCount={requestsData.total}
-          pageIndex={requestsData.page - 1}
-          pageSize={Number(requestsData.limit || 10)}
-          onPageChange={(page) => handlePageChange(page + 1)}
-          onLimitChange={handleLimitChange}
-          hiddenColumns={hiddenColumns}
-          onRefresh={handleRefresh}
-          activeSorting={
-            formattedQueryParams.sortBy && formattedQueryParams.sortOrder
-              ? [
-                  formattedQueryParams.sortBy as keyof FullServiceRequest,
-                  formattedQueryParams.sortOrder,
-                ]
-              : undefined
-          }
-        />
-      )}
+      <DataTable
+        isLoading={isLoading}
+        columns={columns}
+        data={requestsData.items}
+        filters={filters}
+        totalCount={requestsData.total}
+        pageIndex={requestsData.page - 1}
+        pageSize={Number(requestsData.limit || 10)}
+        onPageChange={(page) => handlePageChange(page + 1)}
+        onLimitChange={handleLimitChange}
+        hiddenColumns={hiddenColumns}
+        onRefresh={handleRefresh}
+        activeSorting={
+          formattedQueryParams.sortBy && formattedQueryParams.sortOrder
+            ? [
+                formattedQueryParams.sortBy as keyof FullServiceRequest,
+                formattedQueryParams.sortOrder,
+              ]
+            : undefined
+        }
+      />
     </PageContainer>
   );
 }
@@ -695,7 +694,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
           Changer le status
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" size="sm" className={cn('flex flex-col')}>
+      <SheetContent side="right" className={cn('flex flex-col')}>
         <SheetHeader className="text-left border-b pb-4 mb-4">
           <SheetTitle>Changer le status</SheetTitle>
         </SheetHeader>
@@ -812,7 +811,7 @@ function AssignToChangeForm({
           Assigner à un agent
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" size="sm" className={cn('flex flex-col')}>
+      <SheetContent side="right" className={cn('flex flex-col')}>
         <SheetHeader className="text-left border-b pb-4 mb-4">
           <SheetTitle>Assigner à un agent</SheetTitle>
         </SheetHeader>
