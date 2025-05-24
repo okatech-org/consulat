@@ -15,6 +15,8 @@ import {
   Baby,
   Users,
   MessageSquare,
+  FolderIcon,
+  FileIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
@@ -33,61 +35,61 @@ export function useNavigation(user: SessionUser) {
     {
       title: t('dashboard'),
       url: ROUTES.dashboard.base,
-      icon: <LayoutDashboard className="size-icon" />,
+      icon: LayoutDashboard,
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
     },
     {
       title: t('countries'),
       url: ROUTES.sa.countries,
-      icon: <Globe className="size-icon" />,
+      icon: Globe,
       roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('organizations'),
       url: ROUTES.sa.organizations,
-      icon: <Building2 className="size-icon" />,
+      icon: Building2,
       roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('requests'),
       url: ROUTES.dashboard.requests,
-      icon: <FileText className="size-icon" />,
+      icon: FolderIcon,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('services'),
       url: ROUTES.dashboard.services,
-      icon: <FileText className="size-icon" />,
+      icon: FileText,
       roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('profiles'),
       url: ROUTES.dashboard.profiles,
-      icon: <Users className="size-icon" />,
+      icon: Users,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('appointments'),
       url: ROUTES.dashboard.appointments,
-      icon: <Calendar className="size-icon" />,
+      icon: Calendar,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('users'),
       url: ROUTES.dashboard.users,
-      icon: <Users className="size-icon" />,
+      icon: Users,
       roles: [UserRole.SUPER_ADMIN],
     },
     {
       title: t('document-templates'),
       url: ROUTES.dashboard.doc_templates,
-      icon: <FileText className="size-icon" />,
+      icon: FileIcon,
       roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('settings'),
       url: ROUTES.dashboard.settings,
-      icon: <Settings className="size-icon" />,
+      icon: Settings,
       roles: [UserRole.ADMIN, UserRole.MANAGER],
     },
   ];
@@ -96,31 +98,31 @@ export function useNavigation(user: SessionUser) {
     {
       title: t('dashboard'),
       url: ROUTES.user.dashboard,
-      icon: <LayoutDashboard className="size-icon" />,
+      icon: LayoutDashboard,
       roles: [UserRole.USER],
     },
     {
       title: t('profile'),
       url: ROUTES.user.profile,
-      icon: <User className="size-icon" />,
+      icon: User,
       roles: [UserRole.USER],
     },
     {
       title: t('services'),
       url: ROUTES.user.services,
-      icon: <FileText className="size-icon" />,
+      icon: FolderIcon,
       roles: [UserRole.USER],
     },
     {
       title: t('children'),
       url: ROUTES.user.children,
-      icon: <Baby className="size-icon" />,
+      icon: Baby,
       roles: [UserRole.USER],
     },
     {
       title: t('appointments'),
       url: ROUTES.user.appointments,
-      icon: <Calendar className="size-icon" />,
+      icon: Calendar,
       roles: [UserRole.USER],
     },
   ];
@@ -139,7 +141,7 @@ export function useNavigation(user: SessionUser) {
     {
       title: t('account'),
       url: isAdmin ? ROUTES.dashboard.account_settings : ROUTES.user.account,
-      icon: <User className="size-icon" />,
+      icon: User,
       roles: [
         UserRole.USER,
         UserRole.ADMIN,
@@ -151,7 +153,7 @@ export function useNavigation(user: SessionUser) {
     {
       title: t('feedback'),
       url: isAdmin ? ROUTES.dashboard.feedback : ROUTES.user.feedback,
-      icon: <MessageSquare className="size-icon" />,
+      icon: MessageSquare,
       roles: [
         UserRole.USER,
         UserRole.ADMIN,

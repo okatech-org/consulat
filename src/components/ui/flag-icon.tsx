@@ -19,7 +19,7 @@ export function FlagIcon({ countryCode, className, size = 40 }: FlagIconProps) {
       alt={t_countries(countryCode)}
       width={size}
       height={size}
-      className={cn('w-5 h-auto', className)}
+      className={cn('w-5 !h-auto', className)}
     />
   );
 }

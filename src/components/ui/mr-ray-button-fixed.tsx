@@ -203,13 +203,11 @@ const IAstedButton: React.FC<IAstedButtonProps> = () => {
           <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-center z-10 pointer-events-none text-glow icon-container-wrapper">
             <div className="icon-container">
               <div className="alternating-element text-element">
-                <p className="text-xs md:text-md  tracking-wide whitespace-nowrap">
-                  Mr Ray
-                </p>
+                <p className="text-xs tracking-wide whitespace-nowrap">Mr Ray</p>
               </div>
               <div className="alternating-element mic-element">
                 <svg
-                  className="size-5 md:size-8"
+                  className="size-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -226,7 +224,7 @@ const IAstedButton: React.FC<IAstedButtonProps> = () => {
               </div>
               <div className="alternating-element chat-element">
                 <svg
-                  className="size-5 md:size-8"
+                  className="size-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"

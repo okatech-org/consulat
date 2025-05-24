@@ -35,7 +35,7 @@ export default function CardContainer({
         </Card.CardHeader>
       )}
       <Card.CardContent
-        className={`${contentClass} ${title || subtitle || action ? '!pt-0' : ''}`}
+        className={`flex-1 ${contentClass} ${title || subtitle || action ? '!pt-0' : ''}`}
       >
         {children}
       </Card.CardContent>

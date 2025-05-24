@@ -3,9 +3,10 @@ import SuperAdminDashboard from '../../../components/dashboards/superadmin-dashb
 import { getCurrentUser } from '@/actions/user';
 import AgentDashboard from '../../../components/dashboards/agent-dashboard';
 import AdminDashboard from '../../../components/dashboards/admin-dashboard';
+import { SessionUser } from '@/types/user';
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
+  const user = (await getCurrentUser()) as SessionUser;
 
   return (
     <>

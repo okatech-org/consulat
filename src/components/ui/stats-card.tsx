@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
+import CardContainer from '../layouts/card-container';
 
 interface StatsCardProps {
   title: string;
@@ -25,34 +25,34 @@ export function StatsCard({
   iconClassName,
 }: StatsCardProps) {
   return (
-    <Card className={cn('', className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0  p-4 sm:p-6 pb-0">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+    <CardContainer
+      title={title}
+      action={
         <div className={cn('p-2 rounded-md', iconClassName)}>
           <Icon className="size-icon" />
         </div>
-      </CardHeader>
-      <CardContent className="p-4 sm:p-6">
-        <div className="text-2xl font-bold">{value}</div>
-        {(description || trend) && (
-          <div className="flex items-center gap-2">
-            {trend && (
-              <span
-                className={cn(
-                  'text-xs',
-                  trend.isPositive ? 'text-green-500' : 'text-red-500',
-                )}
-              >
-                {trend.isPositive ? '+' : '-'}
-                {trend.value}%
-              </span>
-            )}
-            {description && (
-              <p className="text-xs text-muted-foreground">{description}</p>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      }
+      className={className}
+      contentClass="!pt-0"
+      headerClass="border-b-0"
+    >
+      <div className="text-2xl font-bold">{value}</div>
+      {(description || trend) && (
+        <div className="flex items-center gap-2">
+          {trend && (
+            <span
+              className={cn(
+                'text-xs',
+                trend.isPositive ? 'text-green-500' : 'text-red-500',
+              )}
+            >
+              {trend.isPositive ? '+' : '-'}
+              {trend.value}%
+            </span>
+          )}
+          {description && <p className="text-xs text-muted-foreground">{description}</p>}
+        </div>
+      )}
+    </CardContainer>
   );
 }

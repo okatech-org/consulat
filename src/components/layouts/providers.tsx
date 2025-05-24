@@ -1,0 +1,45 @@
+import { cookies } from 'next/headers';
+import { SidebarProvider } from '../ui/sidebar';
+import { Analytics } from '@vercel/analytics/react';
+import { auth } from '@/auth';
+import { getMessages } from 'next-intl/server';
+import { Session } from 'next-auth';
+import { ChatProvider } from '@/contexts/chat-context';
+import { SessionProvider } from 'next-auth/react';
+import { NextIntlClientProvider, AbstractIntlMessages } from 'next-intl';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
+import { ViewportDetector } from './viewport-detector';
+
+export async function Providers({ children }: { children: React.ReactNode }) {
+  const promises = [getMessages(), auth()];
+
+  const [messages, session] = await Promise.all(promises);
+  const cookieStore = await cookies();
+
+  const sidebarState = cookieStore?.get('sidebar_state');
+
+  console.log('in providers');
+
+  return (
+    <SidebarProvider defaultOpen={sidebarState?.value === 'true'}>
+      <Analytics />
+      <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ChatProvider>
+            <SessionProvider session={session as Session}>
+              <ViewportDetector />
+              {children}
+              <Toaster />
+            </SessionProvider>
+          </ChatProvider>
+        </ThemeProvider>
+      </NextIntlClientProvider>
+    </SidebarProvider>
+  );
+}
