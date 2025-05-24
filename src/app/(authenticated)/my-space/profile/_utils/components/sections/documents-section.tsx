@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { UserDocument as PrismaUserDocument, DocumentType } from '@prisma/client';
 import { EditableSection } from '../editable-section';
 import { AppUserDocument } from '@/types';
-import { UserDocument } from '@/components/user-document';
+import { UserDocument } from '@/components/documents/user-document';
 
 interface DocumentsSectionProps {
   documents: {

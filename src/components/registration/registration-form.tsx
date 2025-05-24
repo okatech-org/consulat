@@ -36,7 +36,7 @@ import { FullProfile } from '@/types';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import React from 'react';
-import { useStoredTabs } from '@/hooks/use-tabs';
+import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@prisma/client';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
@@ -77,7 +77,10 @@ export function RegistrationForm({
     'professionalInfo',
   ];
 
-  const { currentTab, setCurrentTab } = useStoredTabs<Step>('tab', 'documents');
+  const { currentTab, handleTabChange: setCurrentTab } = useTabs<Step>(
+    'tab',
+    'documents',
+  );
 
   const currentStepIndex = orderedSteps.indexOf(currentTab);
   const currentStepValidity = forms[currentTab as keyof typeof forms]?.formState.isValid;

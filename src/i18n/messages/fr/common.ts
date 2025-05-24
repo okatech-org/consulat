@@ -560,4 +560,11 @@ export default {
     delete_failed: 'Échec de la suppression',
     bulk_update_failed: 'Échec de la mise à jour des demandes',
   },
+  ui: {
+    sidebar: {
+      toggle: 'Basculer la barre latérale',
+      title: 'Barre latérale',
+      description: 'Affiche la barre latérale mobile.',
+    },
+  },
 } as const;

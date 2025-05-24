@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   adaptTableSearchParams,
@@ -11,6 +11,7 @@ import {
   handleTableParamChange,
   TableParamOption,
 } from '@/lib/utils';
+import { FilterOption } from '../data-table/data-table-toolbar';
 
 /**
  * Custom hook for managing table params and navigation
@@ -99,4 +100,97 @@ export function useTableData<T, P = Record<string, unknown>>(
     loadData,
     params: formattedParams,
   };
+}
+
+export type QueryParams = {
+  [key: string]: unknown;
+};
+
+export type Pagination = {
+  page: number;
+  limit: number;
+};
+
+export type Sorting<TData> = {
+  field: keyof TData;
+  order: 'asc' | 'desc';
+};
+
+export function useTableSearchParams<TData>(filters: FilterOption<TData>[]) {
+  const searchParams = useSearchParams();
+  const [pagination, setPagination] = useState<Pagination>({
+    page: Number(searchParams.get('pageIndex')) || 1,
+    limit: Number(searchParams.get('pageSize')) || 10,
+  });
+  const [sorting, setSorting] = useState<Sorting<TData>>({
+    field: searchParams.get('sort') as keyof TData,
+    order: searchParams.get('order') as 'asc' | 'desc',
+  });
+  const [params, setParams] = useState<QueryParams>(
+    getParamsFromFilters(filters, searchParams, pagination, sorting),
+  );
+
+  function handleParamsChange(option: Record<string, unknown>) {
+    setParams((prev) => ({ ...prev, ...option }));
+    updateUrlParamsWithoutReload(option);
+  }
+
+  function updateUrlParamsWithoutReload(option: Record<string, unknown>) {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    Object.entries(option).forEach(([key, value]) => {
+      currentParams.set(key, value as string);
+    });
+
+    const newUrl = `?${currentParams.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }
+
+  function handlePaginationChange(newPagination: Partial<Pagination>) {
+    const updatedPagination = { ...pagination, ...newPagination };
+    setPagination(updatedPagination);
+    handleParamsChange(updatedPagination);
+  }
+
+  function handleSortingChange(newSorting: Partial<Sorting<TData>>) {
+    const updatedSorting = { ...sorting, ...newSorting };
+    setSorting(updatedSorting);
+    handleParamsChange(updatedSorting);
+  }
+
+  return {
+    params,
+    pagination,
+    sorting,
+    handleParamsChange,
+    handlePaginationChange,
+    handleSortingChange,
+  };
+}
+
+function getParamsFromFilters<TData>(
+  filters: FilterOption<TData>[],
+  searchParams: URLSearchParams,
+  pagination: Pagination,
+  sorting: Sorting<TData>,
+) {
+  const params: QueryParams = {
+    ...pagination,
+    ...sorting,
+  };
+
+  for (const filter of filters) {
+    const value = searchParams.get(filter.property);
+
+    if (value) {
+      if (filter.type === 'checkbox') {
+        params[filter.property] = value.split(',');
+      } else {
+        params[filter.property] = value;
+      }
+    } else {
+      params[filter.property] = filter.type === 'checkbox' ? [] : undefined;
+    }
+  }
+
+  return params;
 }

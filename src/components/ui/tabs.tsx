@@ -1,98 +1,41 @@
-'use client';
+"use client"
 
-import * as React from 'react';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
+import * as React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
 
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from "@/lib/utils"
 
-// Component to add global styles for hiding scrollbars
-const ScrollbarStylesProvider = () => {
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
-  return null;
-};
-
-const Tabs = TabsPrimitive.Root;
+const Tabs = TabsPrimitive.Root
 
 const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => {
-  const isMobile = useIsMobile();
-
-  return (
-    <>
-      {isMobile && <ScrollbarStylesProvider />}
-      {isMobile ? (
-        <TabsListMobile ref={ref} className={cn(className)} {...props} />
-      ) : (
-        <TabsPrimitive.List
-          ref={ref}
-          className={cn(
-            'inline-flex items-center rounded-lg bg-muted p-1 text-muted-foreground',
-            className,
-          )}
-          {...props}
-        />
-      )}
-    </>
-  );
-});
-TabsList.displayName = TabsPrimitive.List.displayName;
-
-const TabsListMobile = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'flex w-full flex-nowrap overflow-x-auto snap-x snap-mandatory px-1 py-2',
-      'scrollbar-none gap-2 rounded-lg bg-muted text-muted-foreground',
-      'touch-manipulation no-scrollbar',
-      className,
+      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+      className
     )}
     {...props}
   />
-));
-TabsListMobile.displayName = 'TabsListMobile';
+))
+TabsList.displayName = TabsPrimitive.List.displayName
 
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => {
-  return (
-    <TabsPrimitive.Trigger
-      ref={ref}
-      className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-md',
-        'transition-all touch-manipulation',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        'disabled:pointer-events-none disabled:opacity-50 px-3 py-1.5 text-sm font-medium h-8 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
-        className,
-      )}
-      {...props}
-    />
-  );
-});
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
+      className
+    )}
+    {...props}
+  />
+))
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
 const TabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
@@ -101,13 +44,12 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      'mt-3 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-      'animate-fade-in w-full',
-      className,
+      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      className
     )}
     {...props}
   />
-));
-TabsContent.displayName = TabsPrimitive.Content.displayName;
+))
+TabsContent.displayName = TabsPrimitive.Content.displayName
 
-export { Tabs, TabsList, TabsListMobile, TabsTrigger, TabsContent };
+export { Tabs, TabsList, TabsTrigger, TabsContent }

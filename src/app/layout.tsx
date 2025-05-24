@@ -1,19 +1,11 @@
 import './globals.css';
 import './animation.css';
-import { ThemeProvider } from '@/components/layouts/theme-provider';
 import React from 'react';
 import { Inter } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
-import { AbstractIntlMessages, NextIntlClientProvider } from 'next-intl';
-import { getLocale, getMessages } from 'next-intl/server';
-import { Toaster } from '@/components/ui/toaster';
-import { SessionProvider } from 'next-auth/react';
-import { auth } from '@/auth';
+import { getLocale } from 'next-intl/server';
 import { env } from '@/lib/env/index';
-import { ChatProvider } from '@/contexts/chat-context';
-import { Analytics } from '@vercel/analytics/react';
-import { ViewportDetector } from '@/components/layouts/viewport-detector';
-import { Session } from 'next-auth';
+import { Providers } from '@/components/layouts/providers';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -128,30 +120,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const promises = [getLocale(), getMessages(), auth()];
-
-  const [locale, messages, session] = await Promise.all(promises);
+  const locale = await getLocale();
 
   return (
     <html lang={locale as string} suppressHydrationWarning dir="ltr">
       <body className={inter.className + ' bg-muted'}>
-        <Analytics />
-        <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <ChatProvider>
-              <SessionProvider session={session as Session}>
-                <ViewportDetector />
-                {children}
-                <Toaster />
-              </SessionProvider>
-            </ChatProvider>
-          </ThemeProvider>
-        </NextIntlClientProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

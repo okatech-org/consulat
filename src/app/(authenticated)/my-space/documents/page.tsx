@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { getUserDocumentsList } from '@/actions/documents';
-import { DocumentsList } from '@/components/documents-list';
+import { DocumentsList } from '@/components/documents/documents-list';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getTranslations } from 'next-intl/server';

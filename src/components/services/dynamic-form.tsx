@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Info, ArrowRight, Loader } from 'lucide-react';
-import { UserDocument } from '../user-document';
+import { UserDocument } from '../documents/user-document';
 import { AppUserDocument } from '@/types/profile';
 import { PhoneNumberInput } from '../ui/phone-number';
 import { Textarea } from '../ui/textarea';

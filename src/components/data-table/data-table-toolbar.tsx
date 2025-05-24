@@ -15,7 +15,7 @@ import { debounce } from 'lodash';
 
 // eslint-disable-next-line
 export interface BaseFilterOption<TData = Record<string, any>> {
-  property?: string;
+  property: string;
   isDisabled?: boolean;
   label: string;
 }
@@ -92,7 +92,7 @@ export function DataTableToolbar<TData>({
                     }, filter.debounce ?? 300);
                     debouncedSearch(value);
                   }}
-                  containerClassName="w-[150px] lg:w-[250px] max-w-max"
+                  className="w-[150px] lg:w-[250px] max-w-max"
                 />
               )}
 

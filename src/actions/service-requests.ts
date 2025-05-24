@@ -55,6 +55,8 @@ export async function getServiceRequests(
 ): Promise<PaginatedServiceRequests> {
   const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
+  console.log({ options });
+
   const {
     search,
     status,

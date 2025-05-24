@@ -33,15 +33,15 @@ export function NotificationBell({
             role="button"
             aria-label={title}
             tabIndex={0}
-            className="rounded-full aspect-square hover:bg-muted transition-colors"
+            className="rounded-full relative aspect-square hover:bg-muted transition-colors"
           >
             <BellRingIcon
-              className={`${bellClassName} size-icon ${isLoading ? 'animate-[bell-ring_0.5s_ease-in-out]' : ''}`}
+              className={`${bellClassName} size-5 ${isLoading ? 'animate-[bell-ring_0.5s_ease-in-out]' : ''}`}
             />
 
             <AnimatePresence>
               {unreadCount > 0 && (
-                <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-0 right-0 translate-x-[1rem] translate-y-[1rem]">
+                <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-[-100%] translate-x-[1rem] translate-y-[1rem]">
                   <span className="sr-only">{unreadCount}</span>
                 </div>
               )}

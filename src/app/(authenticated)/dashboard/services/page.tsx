@@ -1,5 +1,4 @@
 import { getTranslations } from 'next-intl/server';
-import CardContainer from '@/components/layouts/card-container';
 import { getOrganizations } from '@/actions/organizations';
 import { ServicesTable } from '@/components/organization/services-table';
 import { getServices } from '../(superadmin)/_utils/actions/services';
@@ -36,17 +35,15 @@ export default async function ServicesPage() {
         </Button>
       }
     >
-      <CardContainer>
-        {servicesError || organizationsError || countriesError ? (
-          <div className="text-destructive">{t('messages.error.fetch')}</div>
-        ) : (
-          <ServicesTable
-            services={services ?? []}
-            organizations={organizations ?? []}
-            countries={countries ?? []}
-          />
-        )}
-      </CardContainer>
+      {servicesError || organizationsError || countriesError ? (
+        <div className="text-destructive">{t('messages.error.fetch')}</div>
+      ) : (
+        <ServicesTable
+          services={services ?? []}
+          organizations={organizations ?? []}
+          countries={countries ?? []}
+        />
+      )}
     </PageContainer>
   );
 }

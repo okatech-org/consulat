@@ -24,7 +24,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';
-import { UserDocument } from '../user-document';
+import { UserDocument } from '../documents/user-document';
 import { AppUserDocument } from '@/types';
 
 export type DocumentUploadItem = {
