@@ -167,8 +167,8 @@ export interface ServiceRequestFilters {
   status?: RequestStatus[];
   priority?: ServicePriority[];
   serviceCategory?: ServiceCategory[];
-  assignedToId?: string;
-  organizationId?: string;
+  assignedToId?: string[];
+  organizationId?: string[];
   startDate?: Date;
   endDate?: Date;
 }
