@@ -53,9 +53,7 @@ export async function getServiceRequestsByUser(userId: string) {
 export async function getServiceRequests(
   options?: GetRequestsOptions,
 ): Promise<PaginatedServiceRequests> {
-  const authResult = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
-
-  console.log({ options });
+  await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
   const {
     search,
@@ -81,8 +79,8 @@ export async function getServiceRequests(
   if (status) where.status = { in: status };
   if (priority) where.priority = { in: priority };
   if (serviceCategory) where.service = { category: { in: serviceCategory } };
-  if (assignedToId) where.assignedToId = assignedToId ?? '';
-  if (organizationId) where.organizationId = organizationId ?? '';
+  if (assignedToId) where.assignedToId = { in: assignedToId };
+  if (organizationId) where.organizationId = { in: organizationId };
   if (startDate) where.createdAt = { gte: startDate };
   if (endDate) where.createdAt = { lte: endDate };
 
@@ -96,39 +94,6 @@ export async function getServiceRequests(
       { requestedFor: { passportNumber: { contains: search, mode: 'insensitive' } } },
       { service: { name: { contains: search, mode: 'insensitive' } } },
     ];
-  }
-
-  // Combine role-based filtering with AND instead of overwriting OR
-  const agentConditions: Prisma.ServiceRequestWhereInput[] = [];
-  const adminConditions: Prisma.ServiceRequestWhereInput[] = [];
-
-  if (authResult.user.roles.includes(UserRole.AGENT)) {
-    agentConditions.push({
-      OR: [
-        { assignedToId: authResult.user.id },
-        {
-          assignedToId: null,
-          organizationId: authResult.user.assignedOrganizationId ?? '',
-        },
-      ],
-    });
-  }
-
-  if (authResult.user.roles.includes(UserRole.ADMIN)) {
-    adminConditions.push({
-      organizationId: authResult.user.organizationId ?? '',
-    });
-  }
-
-  // Apply role-based conditions if any exist
-  if (agentConditions.length > 0 || adminConditions.length > 0) {
-    // Ensure where.AND is an array before spreading
-    const existingAnd = Array.isArray(where.AND)
-      ? where.AND
-      : where.AND
-        ? [where.AND]
-        : [];
-    where.AND = [...existingAnd, ...agentConditions, ...adminConditions];
   }
 
   try {

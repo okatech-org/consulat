@@ -62,6 +62,14 @@ import {
 import { assignRequestToAgent } from '@/actions/agents';
 import { useRouter } from 'next/navigation';
 
+function getOrganizationId(user: SessionUser): string | null {
+  if (hasAnyRole(user, ['ADMIN'])) {
+    return user?.organizationId ?? null;
+  }
+
+  return user?.assignedOrganizationId ?? null;
+}
+
 // Function to adapt search parameters for service requests
 function adaptServiceRequestSearchParams(
   searchParams: ReadonlyURLSearchParams,
@@ -72,6 +80,8 @@ function adaptServiceRequestSearchParams(
   const sortOrder = sortParam?.split('-')[1] as 'asc' | 'desc';
 
   const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
+
+  const organizationId = user ? getOrganizationId(user) : null;
 
   // Get page parameter and ensure it's a valid number (1-based for URLs)
   const page = Math.max(1, Number(searchParams.get('page') || '1'));
@@ -98,8 +108,13 @@ function adaptServiceRequestSearchParams(
       ? new Date(searchParams.get('endDate')!)
       : undefined,
     organizationId:
-      searchParams.get('organizationId') ?? user?.organizationId ?? undefined,
-    assignedToId: isAgent ? user?.id : searchParams.get('assignedToId') || undefined,
+      searchParams.get('organizationId')?.split(',').filter(Boolean) ??
+      (organizationId ? [organizationId] : undefined),
+    assignedToId: isAgent
+      ? user?.id
+        ? [user.id]
+        : undefined
+      : searchParams.get('assignedToId')?.split(',').filter(Boolean) || undefined,
   };
 }
 
