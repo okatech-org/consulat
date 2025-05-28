@@ -19,7 +19,6 @@ import {
 
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar, FilterOption } from './data-table-toolbar';
-import { DataTableExport } from './data-table-export';
 import { BulkAction, DataTableBulkActions } from './data-table-bulk-actions';
 
 import {
@@ -43,10 +42,9 @@ interface DataTableProps<TData, TValue> {
   pageIndex?: number;
   onPageChange?: (pageIndex: number) => void;
   onLimitChange?: (pageSize: number) => void;
-  enableExport?: boolean;
   exportFilename?: string;
   exportSelectedOnly?: boolean;
-  onExport?: (data: TData[]) => void;
+  exportTrigger?: React.ReactNode;
   hiddenColumns?: string[];
   onRefresh?: () => void;
   bulkActions?: BulkAction<TData>[];
@@ -64,11 +62,10 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   onPageChange,
   onLimitChange,
-  enableExport = false,
   exportFilename,
   exportSelectedOnly = false,
   hiddenColumns = [],
-  onExport,
+  exportTrigger,
   onRefresh,
   bulkActions = [],
   activeSorting,
@@ -152,52 +149,22 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      {filters?.length ? (
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2">
-            <DataTableToolbar
-              isLoading={isLoading}
-              filters={filters}
-              table={table}
-              onRefresh={onRefresh}
-            />
-            {table.getFilteredSelectedRowModel().rows.length > 0 &&
-              bulkActions.length > 0 && (
-                <DataTableBulkActions table={table} actions={bulkActions} />
-              )}
-            {enableExport && (
-              <DataTableExport
-                columns={columns}
-                data={data}
-                filename={exportFilename}
-                selectedRows={rowSelection}
-                disableWhenNoSelection={exportSelectedOnly}
-                onExport={onExport}
-              />
-            )}
-          </div>
-        </div>
-      ) : enableExport ? (
-        <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <DataTableToolbar
+            isLoading={isLoading}
+            filters={filters}
+            table={table}
+            onRefresh={onRefresh}
+          />
           {table.getFilteredSelectedRowModel().rows.length > 0 &&
             bulkActions.length > 0 && (
               <DataTableBulkActions table={table} actions={bulkActions} />
             )}
-          <DataTableExport
-            columns={columns}
-            data={data}
-            filename={exportFilename}
-            selectedRows={rowSelection}
-            disableWhenNoSelection={exportSelectedOnly}
-            onExport={onExport}
-          />
+
+          {exportTrigger}
         </div>
-      ) : table.getFilteredSelectedRowModel().rows.length > 0 &&
-        bulkActions.length > 0 ? (
-        <div className="flex items-center justify-end">
-          <DataTableBulkActions table={table} actions={bulkActions} />
-        </div>
-      ) : null}
+      </div>
 
       <div className="rounded-md border overflow-hidden">
         <Table className="min-w-max relative w-full">
