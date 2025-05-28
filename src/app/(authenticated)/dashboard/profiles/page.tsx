@@ -1,6 +1,32 @@
 'use client';
 
-import CardContainer from '@/components/layouts/card-container';
+// Type declarations for File System Access API
+declare global {
+  interface Window {
+    showDirectoryPicker(options?: {
+      mode?: 'read' | 'readwrite';
+      startIn?: string;
+    }): Promise<FileSystemDirectoryHandle>;
+  }
+
+  interface FileSystemDirectoryHandle {
+    name: string;
+    getFileHandle(
+      name: string,
+      options?: { create?: boolean },
+    ): Promise<FileSystemFileHandle>;
+  }
+
+  interface FileSystemFileHandle {
+    createWritable(): Promise<FileSystemWritableFileStream>;
+  }
+
+  interface FileSystemWritableFileStream {
+    write(data: Blob | BufferSource | string): Promise<void>;
+    close(): Promise<void>;
+  }
+}
+
 import { PageContainer } from '@/components/layouts/page-container';
 import { PaginatedProfiles, ProfilesArrayItem } from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
@@ -16,7 +42,7 @@ import { DataTableRowActions } from '@/components/data-table/data-table-row-acti
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
-import { FileText, Edit } from 'lucide-react';
+import { FileText, Edit, Download, FolderOpen } from 'lucide-react';
 import { RequestStatus, ProfileCategory, Gender } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,7 +78,6 @@ import {
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { updateProfile } from '@/actions/profile';
 import { useTableParams } from '@/components/utils/table-hooks';
-import { exportFilesAsZip } from '@/components/utils/table-export';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
 import {
   Sheet,
@@ -63,6 +88,7 @@ import {
 } from '@/components/ui/sheet';
 import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { toast } from '@/hooks/use-toast';
+import * as XLSX from 'xlsx';
 
 export default function ProfilesPage() {
   const t = useTranslations();
@@ -125,17 +151,6 @@ export default function ProfilesPage() {
       })),
     [t],
   );
-
-  const handleExport = useCallback((data: ProfilesArrayItem[]) => {
-    const itemsToDownload = data
-      .filter((item) => item.IDPictureUrl)
-      .map((item) => ({
-        url: item.IDPictureUrl as string,
-        name: item.IDPictureFileName || `profile-${item.id}`,
-      }));
-
-    exportFilesAsZip(itemsToDownload, setIsLoading);
-  }, []);
 
   const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
     () => [
@@ -451,6 +466,16 @@ export default function ProfilesPage() {
                   />
                 ),
               },
+              {
+                component: (
+                  <ExportWithDirectoryForm
+                    selectedRows={table
+                      .getFilteredSelectedRowModel()
+                      .flatRows.map((row) => row.original)}
+                    onSuccess={fetchProfiles}
+                  />
+                ),
+              },
             ]}
           />
         ),
@@ -512,6 +537,7 @@ export default function ProfilesPage() {
     () => [
       {
         type: 'search',
+        property: 'search',
         label: t('common.data_table.search'),
         defaultValue: formattedQueryParams.search ?? '',
         onChange: (value) =>
@@ -583,10 +609,8 @@ export default function ProfilesPage() {
         totalCount={results.total}
         pageIndex={results.page - 1}
         pageSize={results.limit}
-        onExport={handleExport}
         onPageChange={(page) => handlePageChange(page + 1)}
         onLimitChange={handleLimitChange}
-        enableExport={true}
         exportSelectedOnly={true}
         exportFilename="profiles"
         hiddenColumns={[
@@ -776,7 +800,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
           Changer le statut
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" size="sm" className="flex flex-col">
+      <SheetContent side="right" className="flex flex-col">
         <SheetHeader className="text-left border-b pb-4 mb-4">
           <SheetTitle>Changer le statut</SheetTitle>
         </SheetHeader>
@@ -816,6 +840,268 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
             </div>
           </form>
         </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// Bulk export with directory selection form for profiles
+type ExportWithDirectoryFormProps = {
+  selectedRows: ProfilesArrayItem[];
+  onSuccess: () => void;
+};
+
+function ExportWithDirectoryForm({
+  selectedRows,
+  onSuccess,
+}: ExportWithDirectoryFormProps) {
+  const [open, setOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [customPath, setCustomPath] = useState('');
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
+
+  // Initialize custom path when opening
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && !customPath) {
+      // Get default path from env or use a fallback
+      const defaultPath =
+        process.env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH || '/images/profiles/';
+      setCustomPath(defaultPath);
+    }
+    setOpen(newOpen);
+  };
+
+  const handleExportWithDirectory = async () => {
+    if (!selectedRows.length) return;
+
+    // Check if File System Access API is supported
+    if (!('showDirectoryPicker' in window)) {
+      toast({
+        title: 'Fonctionnalité non supportée',
+        description:
+          'Votre navigateur ne supporte pas la sélection de dossier. Utilisez Chrome, Edge ou un navigateur compatible.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      setDownloadProgress({ current: 0, total: selectedRows.length + 1 }); // +1 for Excel file
+
+      // Let user select directory
+      const directoryHandle = await (
+        window as Window & {
+          showDirectoryPicker(options?: {
+            mode?: 'read' | 'readwrite';
+          }): Promise<FileSystemDirectoryHandle>;
+        }
+      ).showDirectoryPicker({
+        mode: 'readwrite',
+      });
+
+      // Prepare data for Excel export with custom IDPicturePath
+      const exportData = selectedRows.map((item) => ({
+        ...item,
+        IDPicturePath: `${customPath.endsWith('/') ? customPath : customPath + '/'}${item.IDPictureFileName}.png`,
+      }));
+
+      // Create Excel file
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Profiles');
+
+      // Generate Excel file as blob
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const excelBlob = new Blob([excelBuffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      // Save Excel file to selected directory
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+      const excelFileName = `profiles-export-${dateStr}_${timeStr}.xlsx`;
+
+      const excelFileHandle = await directoryHandle.getFileHandle(excelFileName, {
+        create: true,
+      });
+      const excelWritable = await excelFileHandle.createWritable();
+      await excelWritable.write(excelBlob);
+      await excelWritable.close();
+
+      // Update progress for Excel file
+      setDownloadProgress((prev) => ({ ...prev, current: prev.current + 1 }));
+
+      // Download images to the selected directory (all as PNG)
+      const imagePromises = selectedRows
+        .filter((item) => item.IDPictureUrl)
+        .map(async (item) => {
+          try {
+            const response = await fetch(item.IDPictureUrl as string, {
+              method: 'GET',
+              credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+              console.error(`Error fetching ${item.IDPictureUrl}: ${response.status}`);
+              return null;
+            }
+
+            const blob = await response.blob();
+
+            // All images are saved as PNG using IDPictureFileName
+            const fileName = `${item.IDPictureFileName}.png`;
+            const fileHandle = await directoryHandle.getFileHandle(fileName, {
+              create: true,
+            });
+            const writable = await fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+
+            // Update progress
+            setDownloadProgress((prev) => ({ ...prev, current: prev.current + 1 }));
+
+            return fileName;
+          } catch (error) {
+            console.error(`Error downloading image for profile ${item.id}:`, error);
+            setDownloadProgress((prev) => ({ ...prev, current: prev.current + 1 }));
+            return null;
+          }
+        });
+
+      await Promise.all(imagePromises);
+
+      toast({
+        title: 'Export réussi',
+        description: `${selectedRows.length} profils exportés avec succès dans le dossier sélectionné.`,
+        variant: 'success',
+      });
+
+      setOpen(false);
+      onSuccess();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        // User cancelled directory selection
+        return;
+      }
+
+      toast({
+        title: "Erreur lors de l'export",
+        description: "Une erreur est survenue lors de l'export. Veuillez réessayer.",
+        variant: 'destructive',
+      });
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+      setDownloadProgress({ current: 0, total: 0 });
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          aria-label="Exporter avec sélection de dossier"
+          className="justify-start"
+        >
+          Exporter dans un dossier
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="flex flex-col !w-full !max-w-2xl">
+        <SheetHeader className="text-left border-b pb-4 mb-4">
+          <SheetTitle>Exporter dans un dossier</SheetTitle>
+        </SheetHeader>
+
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Cette action va vous permettre de sélectionner un dossier de destination pour
+            exporter :
+          </p>
+
+          <ul className="text-sm space-y-2 list-disc list-inside text-muted-foreground">
+            <li>Un fichier Excel avec les données des profils sélectionnés</li>
+            <li>Toutes les images des profils (sans compression)</li>
+            <li>Les chemins des images seront mis à jour dans le fichier Excel</li>
+          </ul>
+
+          <div className="space-y-2">
+            <label htmlFor="customPath" className="text-sm font-medium">
+              Chemin pour IDPicturePath dans l&apos;Excel :
+            </label>
+            <Input
+              id="customPath"
+              value={customPath}
+              onChange={(e) => setCustomPath(e.target.value)}
+              placeholder="/images/profiles/"
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              Ce chemin sera utilisé dans la colonne IDPicturePath du fichier Excel (ex:{' '}
+              {customPath.endsWith('/') ? customPath : customPath + '/'}profile-id.png)
+            </p>
+          </div>
+
+          {isExporting && downloadProgress.total > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Progression :</span>
+                <span>
+                  {downloadProgress.current}/{downloadProgress.total}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${(downloadProgress.current / downloadProgress.total) * 100}%`,
+                  }}
+                ></div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {downloadProgress.current === 0
+                  ? 'Préparation...'
+                  : downloadProgress.current === downloadProgress.total
+                    ? 'Terminé !'
+                    : `Téléchargement en cours... (${downloadProgress.current}/${downloadProgress.total})`}
+              </p>
+            </div>
+          )}
+
+          <div className="bg-blue-50 p-3 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>Note :</strong> Cette fonctionnalité nécessite un navigateur
+              compatible (Chrome, Edge, etc.)
+            </p>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isExporting}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleExportWithDirectory}
+              disabled={isExporting || !selectedRows.length || !customPath.trim()}
+            >
+              {isExporting ? (
+                <>
+                  <Download className="size-icon mr-2 animate-spin" />
+                  Export en cours...
+                </>
+              ) : (
+                <>
+                  <FolderOpen className="size-icon mr-2" />
+                  Sélectionner le dossier
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
