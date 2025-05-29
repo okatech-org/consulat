@@ -22,6 +22,7 @@ export default {
     available: 'Services consulaires disponibles',
     profiles: 'Profils consulaires',
     'document-templates': 'Modèles de documents',
+    agents: 'Agents',
   },
   dashboard: {
     title: 'Accueil',
