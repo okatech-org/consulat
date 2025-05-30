@@ -25,6 +25,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
 import { getServices } from '../(superadmin)/_utils/actions/services';
 
+interface SearchParams {
+  search?: string;
+  linkedCountries?: string[];
+  assignedServices?: string[];
+  assignedOrganizationId?: string[];
+}
+
 export default function AgentsListingPage() {
   const currentUser = useCurrentUser();
   const [data, setData] = useState<AgentsListResult>({
@@ -57,7 +64,7 @@ export default function AgentsListingPage() {
 
   // Gestion des paramètres d'URL/table (pagination, tri, filtres)
   const { params, pagination, sorting, handleParamsChange, handlePaginationChange } =
-    useTableSearchParams<AgentListItem>([]); // On passe [] ici, les filtres sont définis après
+    useTableSearchParams<AgentListItem, SearchParams>(adaptSearchParams);
 
   // Définir les filtres disponibles (à adapter selon les besoins)
   const filters: FilterOption<AgentListItem>[] = useMemo(
@@ -67,7 +74,7 @@ export default function AgentsListingPage() {
         property: 'search',
         label: 'Rechercher',
         defaultValue: params.search as string,
-        onChange: (value: string) => handleParamsChange({ search: value }),
+        onChange: (value: string) => handleParamsChange('search', value),
       },
       {
         type: 'checkbox' as const,
@@ -75,7 +82,7 @@ export default function AgentsListingPage() {
         label: 'Pays',
         options: countries.map((c) => ({ value: c.code, label: c.name })),
         defaultValue: params.linkedCountries as string[],
-        onChange: (value: string[]) => handleParamsChange({ linkedCountries: value }),
+        onChange: (value: string[]) => handleParamsChange('linkedCountries', value),
       },
       {
         type: 'checkbox' as const,
@@ -83,7 +90,7 @@ export default function AgentsListingPage() {
         label: 'Services',
         options: services.map((s) => ({ value: s.id, label: s.name })),
         defaultValue: params.assignedServices as string[],
-        onChange: (value: string[]) => handleParamsChange({ assignedServices: value }),
+        onChange: (value: string[]) => handleParamsChange('assignedServices', value),
       },
       ...(isSuperAdmin
         ? [
@@ -94,7 +101,7 @@ export default function AgentsListingPage() {
               options: organizations.map((o) => ({ value: o.id, label: o.name })),
               defaultValue: params.assignedOrganizationId as string[],
               onChange: (value: string[]) =>
-                handleParamsChange({ assignedOrganizationId: value }),
+                handleParamsChange('assignedOrganizationId', value),
             },
           ]
         : []),
@@ -232,6 +239,39 @@ export default function AgentsListingPage() {
     });
   }
 
+  function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
+    const params: SearchParams = {};
+    const paramsKeys: (keyof SearchParams)[] = [
+      'search',
+      'linkedCountries',
+      'assignedServices',
+      'assignedOrganizationId',
+    ];
+
+    paramsKeys.forEach((key) => {
+      const value = urlSearchParams.get(key);
+      if (value) {
+        if (
+          key === 'linkedCountries' ||
+          key === 'assignedServices' ||
+          key === 'assignedOrganizationId'
+        ) {
+          const arr = value.split(',');
+          if (arr.length > 0 && arr[0] !== '') {
+            params[key] = arr;
+          }
+          // Sinon, on n'ajoute pas la clé (tableau vide)
+        } else {
+          params[key] = value;
+        }
+      }
+    });
+
+    return params;
+  }
+
+  console.log({ params, pagination, sorting });
+
   return (
     <PageContainer title="Agents">
       <DataTable
@@ -244,7 +284,6 @@ export default function AgentsListingPage() {
         pageSize={data.limit}
         onPageChange={(page) => handlePaginationChange({ page: page + 1 })}
         onLimitChange={(limit) => handlePaginationChange({ limit })}
-        onRefresh={() => handleParamsChange({})}
         activeSorting={
           sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
         }
