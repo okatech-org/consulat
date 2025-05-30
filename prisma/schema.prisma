@@ -86,6 +86,7 @@ model User {
   assignedOrganization   Organization?     @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
   assignedOrganizationId String?
   authoredNotes          Note[]
+  assignedServices       ConsularService[] @relation("AssignedServices")
   assignedRequests       ServiceRequest[]  @relation("AssignedRequests")
   assignedAppointments   Appointment[]     @relation("AppointmentAgent")
   requestActions         RequestAction[]
@@ -541,6 +542,7 @@ model ConsularService {
   countryCode              String?
   generateDocumentSettings GenerateDocumentSettings[]
   appointments             Appointment[]
+  assignedTo               User[]                     @relation("AssignedServices")
 }
 
 model ServiceStep {

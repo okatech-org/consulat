@@ -13,11 +13,7 @@ import { useState } from 'react';
 import { tryCatch, filterUneditedKeys } from '@/lib/utils';
 import { useChildRegistrationForm } from '@/hooks/use-child-registration-form';
 import { LinkForm } from './link-form';
-import {
-  createChildProfile,
-  updateChildProfile,
-  submitChildProfileForValidation,
-} from '@/actions/child-profiles';
+import { createChildProfile, updateChildProfile } from '@/actions/child-profiles';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { ErrorCard } from '../ui/error-card';
@@ -25,6 +21,7 @@ import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '../layouts/card-container';
 import { BasicInfoFormData } from '@/schemas/registration';
 import { DocumentType } from '@prisma/client';
+import { submitProfileForValidation } from '@/actions/profile';
 
 type ChildSteps = 'link' | 'documents' | 'identity';
 
@@ -207,7 +204,7 @@ export function ChildRegistrationForm() {
 
         if (profileId) {
           const { data: submitChildProfileResult, error: submitChildProfileError } =
-            await tryCatch(submitChildProfileForValidation(profileId));
+            await tryCatch(submitProfileForValidation(profileId, true));
 
           if (submitChildProfileError) {
             const { title, description } = handleFormError(submitChildProfileError, t);

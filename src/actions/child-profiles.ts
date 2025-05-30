@@ -13,7 +13,6 @@ import {
 } from '@/types/parental-authority';
 import { getTranslations } from 'next-intl/server';
 import { FullProfileUpdateFormData } from '@/schemas/registration';
-import { FullProfileInclude } from '@/types';
 
 export async function createChildProfile(data: LinkFormData): Promise<{ id: string }> {
   try {
@@ -119,75 +118,6 @@ export async function updateChildProfile(
   const updatedProfile = await db.profile.update({
     where: { id: profileId },
     data: updateData,
-  });
-
-  return { id: updatedProfile.id };
-}
-
-export async function submitChildProfileForValidation(
-  profileId: string,
-): Promise<{ id: string }> {
-  const { user: currentUser } = await checkAuth();
-
-  if (!currentUser || !currentUser.countryCode) {
-    throw new Error('unauthorized');
-  }
-
-  // Verify profile exists and is complete
-  const profile = await db.profile.findUnique({
-    where: { id: profileId },
-    ...FullProfileInclude,
-  });
-
-  if (!profile) {
-    throw new Error('profile_not_found');
-  }
-
-  // Verify required documents and fields for a child profile
-  const requiredDocuments = [profile.birthCertificate, profile.identityPicture];
-
-  if (requiredDocuments.some((doc) => !doc)) {
-    throw new Error('missing_documents');
-  }
-
-  // Verify required fields for a child profile
-  const requiredFields = [
-    profile.firstName,
-    profile.lastName,
-    profile.birthDate,
-    profile.birthPlace,
-    profile.nationality,
-  ];
-
-  // Debug which fields are missing
-  console.log('Profile data:', {
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-    birthDate: profile.birthDate,
-    birthPlace: profile.birthPlace,
-    nationality: profile.nationality,
-  });
-
-  const missingFields = requiredFields
-    .map((value, index) =>
-      !value
-        ? ['firstName', 'lastName', 'birthDate', 'birthPlace', 'nationality'][index]
-        : null,
-    )
-    .filter(Boolean);
-
-  if (missingFields.length > 0) {
-    console.log('Missing fields:', missingFields);
-    throw new Error('missing_fields');
-  }
-
-  // Update status to submitted
-  const updatedProfile = await db.profile.update({
-    where: { id: profileId },
-    data: {
-      status: 'PENDING',
-      submittedAt: new Date(),
-    },
   });
 
   return { id: updatedProfile.id };

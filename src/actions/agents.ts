@@ -3,18 +3,19 @@
 import { CountryCode } from '@/lib/autocomplete-datas';
 import { db } from '@/lib/prisma';
 import {
-  ServiceCategory,
   User,
   RequestActionType,
   ServiceRequest,
   NotificationType,
   PrismaClient,
+  Prisma,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
+import { checkAuth } from '@/lib/auth/action';
 
 type Agent = User & { assignedRequests: ServiceRequest[] };
 
@@ -41,11 +42,7 @@ export async function assignAgentToRequest(
     throw new Error('request_already_assigned');
   }
 
-  const agents = await getAvailableAgents(
-    organizationId,
-    countryCode,
-    request.serviceCategory,
-  );
+  const agents = await getAvailableAgents(organizationId, countryCode, request.serviceId);
 
   if (agents.length === 0) {
     throw new Error('no_agents_available');
@@ -233,7 +230,7 @@ function calculatePerformanceScore(agent: User): number {
 export async function getAvailableAgents(
   organizationId: string,
   countryCode: CountryCode,
-  serviceCategory: ServiceCategory,
+  serviceId: string,
 ): Promise<Array<Agent>> {
   const agents = await db.user.findMany({
     where: {
@@ -244,8 +241,10 @@ export async function getAvailableAgents(
           code: countryCode,
         },
       },
-      specializations: {
-        has: serviceCategory,
+      assignedServices: {
+        some: {
+          id: serviceId,
+        },
       },
     },
     include: {
@@ -256,8 +255,134 @@ export async function getAvailableAgents(
           },
         },
       },
+      assignedServices: true,
     },
   });
 
   return agents;
+}
+
+// Options pour la récupération des demandes
+export interface AgentsListRequestOptions {
+  search?: string;
+  assignedServices: string[];
+  country: string[];
+  organizationId?: string[];
+  page?: number;
+  limit?: number;
+  sortBy?: {
+    direction: 'asc' | 'desc';
+    field: 'assignedServices' | 'country' | 'organizationId';
+  };
+}
+
+const AgentListItemSelect: Prisma.UserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  phoneNumber: true,
+  assignedServices: true,
+  linkedCountries: true,
+  assignedOrganizationId: true,
+};
+
+export type AgentListItem = Prisma.UserGetPayload<{
+  select: typeof AgentListItemSelect;
+}>;
+
+export interface AgentsListResult {
+  items: AgentListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+/**
+ * Récupérer les demandes de services avec filtres et pagination
+ */
+export async function getAgentsList(
+  options?: AgentsListRequestOptions,
+): Promise<AgentsListResult> {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  console.log('options', options);
+
+  const { search, assignedServices, country, organizationId, page, limit, sortBy } =
+    options || {};
+
+  // Ensure page is a positive number
+  const safePage = Math.max(1, Number(page));
+  const safeLimit = Math.max(1, Number(limit));
+
+  const where: Prisma.UserWhereInput = {
+    roles: { has: 'AGENT' },
+  };
+
+  if (assignedServices)
+    where.assignedServices = { some: { id: { in: assignedServices } } };
+  if (country) where.linkedCountries = { some: { code: { in: country } } };
+  if (organizationId) where.assignedOrganizationId = { in: organizationId };
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+      { phoneNumber: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  try {
+    const [items, total] = await Promise.all([
+      db.user.findMany({
+        where,
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
+        select: AgentListItemSelect,
+        ...(sortBy && {
+          orderBy: {
+            [sortBy.field]: sortBy.direction,
+          },
+        }),
+      }),
+      db.user.count({ where }),
+    ]);
+
+    return {
+      items,
+      total,
+      page: safePage,
+      limit: safeLimit,
+    };
+  } catch (error) {
+    console.error('Error fetching service requests:', error);
+    throw new Error('Failed to fetch service requests');
+  }
+}
+
+const AgentDetailsSelect: Prisma.UserSelect = {
+  ...AgentListItemSelect,
+  assignedRequests: true,
+  specializations: true,
+  availability: true,
+  completedRequests: true,
+  averageProcessingTime: true,
+};
+
+export type AgentDetails = Prisma.UserGetPayload<{
+  select: typeof AgentDetailsSelect;
+}>;
+
+export async function getAgentDetails(id: string): Promise<AgentDetails> {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  const agent = await db.user.findUnique({
+    where: { id },
+    select: AgentDetailsSelect,
+  });
+
+  if (!agent) {
+    throw new Error('agent_not_found');
+  }
+
+  return agent;
 }
