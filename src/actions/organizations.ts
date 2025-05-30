@@ -9,7 +9,13 @@ import {
   OrganizationSettingsFormData,
   UpdateOrganizationInput,
 } from '@/schemas/organization';
-import { Country, OrganizationStatus, ServiceCategory, UserRole } from '@prisma/client';
+import {
+  Country,
+  OrganizationStatus,
+  ServiceCategory,
+  UserRole,
+  Prisma,
+} from '@prisma/client';
 
 import { AgentFormData } from '@/schemas/user';
 import { env } from '@/lib/env/index';
@@ -32,10 +38,16 @@ import {
   createAgentInclude,
 } from '@/types/organization';
 
-export async function getOrganizations(): Promise<OrganizationListingItem[]> {
+export async function getOrganizations(
+  organizationId?: string,
+): Promise<OrganizationListingItem[]> {
   await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  const where: Prisma.OrganizationWhereInput = {
+    ...(organizationId && { id: organizationId }),
+  };
 
   return db.organization.findMany({
+    where,
     include: {
       countries: true,
       _count: {

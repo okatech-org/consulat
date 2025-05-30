@@ -8,14 +8,21 @@ import type {
   ConsularServiceItem,
   ConsularServiceListingItem,
 } from '@/types/consular-service';
-import { UserRole } from '@prisma/client';
+import { UserRole, Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
 /**
  * Récupérer tous les services
  */
-export async function getServices(): Promise<ConsularServiceListingItem[]> {
+export async function getServices(
+  organizationId?: string,
+): Promise<ConsularServiceListingItem[]> {
+  const where: Prisma.ConsularServiceWhereInput = {
+    ...(organizationId && { organizationId }),
+  };
+
   return db.consularService.findMany({
+    where,
     orderBy: {
       createdAt: 'desc',
     },

@@ -129,7 +129,7 @@ export async function getServiceRequests(
  * Assigner une demande à un agent
  */
 export async function assignServiceRequest(requestId: string, agentId: string) {
-  const authResult = await checkAuth();
+  const authResult = await checkAuth(['ADMIN', 'MANAGER', 'SUPER_ADMIN']);
 
   try {
     const [request, agent] = await Promise.all([
