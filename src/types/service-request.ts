@@ -169,16 +169,8 @@ export interface ServiceRequestFilters {
   serviceCategory?: ServiceCategory[];
   assignedToId?: string[];
   organizationId?: string[];
-  startDate?: Date;
-  endDate?: Date;
-}
-
-// Type pour les résultats de recherche paginés
-export interface PaginatedServiceRequests {
-  items: FullServiceRequest[];
-  total: number;
-  page: number;
-  limit: number;
+  submittedById?: string[];
+  createdAt?: Date;
 }
 
 // Type pour les actions sur les demandes

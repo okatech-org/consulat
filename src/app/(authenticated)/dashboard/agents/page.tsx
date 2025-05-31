@@ -46,20 +46,35 @@ export default function AgentsListingPage() {
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
 
-  // Chargement des options de filtres au mount
   useEffect(() => {
-    async function loadData() {
-      const [countriesRes, orgsRes, servicesRes] = await Promise.all([
-        getActiveCountries(),
-        getOrganizations(isSuperAdmin ? undefined : currentUser?.managedOrganizationId),
-        getServices(isSuperAdmin ? undefined : currentUser?.managedOrganizationId),
-      ]);
-      setCountries(countriesRes.map((c) => ({ code: c.code, name: c.name })));
+    async function loadOrganizations() {
+      const orgsRes = await getOrganizations();
       setOrganizations(orgsRes.map((o) => ({ id: o.id, name: o.name })));
+    }
+
+    if (isSuperAdmin) {
+      loadOrganizations();
+    }
+  }, [isSuperAdmin]);
+
+  useEffect(() => {
+    async function loadCountries() {
+      const countriesRes = await getActiveCountries();
+      setCountries(countriesRes.map((c) => ({ code: c.code, name: c.name })));
+    }
+
+    loadCountries();
+  }, []);
+
+  useEffect(() => {
+    async function loadServices() {
+      const servicesRes = await getServices(
+        isSuperAdmin ? undefined : currentUser?.managedOrganizationId,
+      );
       setServices(servicesRes.map((s) => ({ id: s.id, name: s.name })));
     }
 
-    loadData();
+    loadServices();
   }, [isSuperAdmin, currentUser]);
 
   // Gestion des paramètres d'URL/table (pagination, tri, filtres)
@@ -282,8 +297,8 @@ export default function AgentsListingPage() {
         totalCount={data.total}
         pageIndex={data.page - 1}
         pageSize={data.limit}
-        onPageChange={(page) => handlePaginationChange({ page: page + 1 })}
-        onLimitChange={(limit) => handlePaginationChange({ limit })}
+        onPageChange={(page) => handlePaginationChange('page', page + 1)}
+        onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         activeSorting={
           sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
         }

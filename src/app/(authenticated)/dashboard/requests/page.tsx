@@ -1,15 +1,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getCurrentUser } from '@/actions/user';
 import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
-import { getServiceRequests, GetRequestsOptions } from '@/actions/service-requests';
+import {
+  getServiceRequestsList,
+  GetRequestsOptions,
+  ServiceRequestListItem,
+  PaginatedServiceRequests,
+} from '@/actions/service-requests';
 import { cn, tryCatch } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { FullServiceRequest, PaginatedServiceRequests } from '@/types/service-request';
+import { FullServiceRequest, ServiceRequestFilters } from '@/types/service-request';
 import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
 import { SessionUser } from '@/types';
 
@@ -26,9 +29,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-
-// Imports des nouveaux hooks et utilitaires
-import { useTableParams } from '@/components/utils/table-hooks';
+import { useTableSearchParams } from '@/components/utils/table-hooks';
 import { DialogClose } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,31 +62,10 @@ import {
 } from '@/components/ui/sheet';
 import { assignRequestToAgent } from '@/actions/agents';
 import { useRouter } from 'next/navigation';
-
-function getOrganizationId(user: SessionUser): string | null {
-  if (hasAnyRole(user, ['ADMIN'])) {
-    return user?.organizationId ?? null;
-  }
-
-  return user?.assignedOrganizationId ?? null;
-}
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 // Function to adapt search parameters for service requests
-function adaptServiceRequestSearchParams(
-  searchParams: ReadonlyURLSearchParams,
-  user: SessionUser | null,
-): GetRequestsOptions {
-  const sortParam = searchParams.get('sort');
-  const sortBy = sortParam?.split('-')[0];
-  const sortOrder = sortParam?.split('-')[1] as 'asc' | 'desc';
-
-  const isAgent = user ? hasAnyRole(user, ['AGENT']) : false;
-
-  const organizationId = user ? getOrganizationId(user) : null;
-
-  // Get page parameter and ensure it's a valid number (1-based for URLs)
-  const page = Math.max(1, Number(searchParams.get('page') || '1'));
-
+function adaptSearchParams(searchParams: URLSearchParams): ServiceRequestFilters {
   return {
     status: searchParams.get('status')?.split(',').filter(Boolean) as
       | RequestStatus[]
@@ -96,66 +76,47 @@ function adaptServiceRequestSearchParams(
     serviceCategory: searchParams.get('serviceCategory')?.split(',').filter(Boolean) as
       | ServiceCategory[]
       | undefined,
-    page: page,
-    limit: Math.max(1, Number(searchParams.get('limit') || '10')),
-    sortBy: sortBy || 'createdAt',
-    sortOrder: sortOrder || 'desc',
+    organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean) as
+      | string[]
+      | undefined,
+    assignedToId: searchParams.get('assignedToId')?.split(',').filter(Boolean) as
+      | string[]
+      | undefined,
+    createdAt: searchParams.get('createdAt')
+      ? new Date(searchParams.get('createdAt')!)
+      : undefined,
     search: searchParams.get('search') || undefined,
-    startDate: searchParams.get('startDate')
-      ? new Date(searchParams.get('startDate')!)
-      : undefined,
-    endDate: searchParams.get('endDate')
-      ? new Date(searchParams.get('endDate')!)
-      : undefined,
-    organizationId:
-      searchParams.get('organizationId')?.split(',').filter(Boolean) ??
-      (organizationId ? [organizationId] : undefined),
-    assignedToId: isAgent
-      ? user?.id
-        ? [user.id]
-        : undefined
-      : searchParams.get('assignedToId')?.split(',').filter(Boolean) || undefined,
   };
 }
 
 export default function RequestsPage() {
+  const {
+    params,
+    pagination,
+    sorting,
+    handleParamsChange,
+    handleSortingChange,
+    handlePaginationChange,
+  } = useTableSearchParams<ServiceRequestListItem, ServiceRequestFilters>(
+    adaptSearchParams,
+  );
   const router = useRouter();
   const t = useTranslations();
-  const searchParams = useSearchParams();
   const { formatDate } = useDateLocale();
-  const [user, setUser] = useState<SessionUser | null>(null);
-  const formattedQueryParams = useMemo(
-    () => adaptServiceRequestSearchParams(searchParams, user),
-    [searchParams, user],
-  );
+  const user = useCurrentUser() as SessionUser;
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [requestsData, setRequestsData] = useState<PaginatedServiceRequests>({
     items: [],
     total: 0,
-    page: 1,
-    limit: 10,
   });
-
-  // Utiliser le hook useTableParams pour gérer les paramètres de table
-  const { handleParamsChange, handlePageChange, handleLimitChange, handleSortChange } =
-    useTableParams();
-
-  // Load user data
-  useEffect(() => {
-    async function loadUserData() {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-    }
-    loadUserData();
-  }, []);
 
   // Load organization data if user is admin
   useEffect(() => {
     async function loadOrganizationData() {
-      if (user && hasAnyRole(user, ['ADMIN']) && user.organizationId) {
+      if (user && hasAnyRole(user, ['ADMIN']) && user.managedOrganizationId) {
         const result = await tryCatch(
-          getOrganizationWithSpecificIncludes(user.organizationId, ['agents']),
+          getOrganizationWithSpecificIncludes(user.managedOrganizationId, ['agents']),
         );
         if (result.data && result.data.agents) {
           setAgents(result.data.agents as unknown as User[]);
@@ -164,6 +125,7 @@ export default function RequestsPage() {
     }
 
     if (user) {
+      console.log('loadOrganizationData', { user });
       loadOrganizationData();
     }
   }, [user]);
@@ -171,12 +133,17 @@ export default function RequestsPage() {
   // Fetch requests data
   useEffect(() => {
     async function fetchRequestsData() {
-      if (!user) return;
-
+      const requestsOptions: GetRequestsOptions = {
+        ...params,
+        page: pagination.page,
+        limit: pagination.limit,
+        sortBy: sorting.field,
+        sortOrder: sorting.order,
+      };
       setIsLoading(true);
 
       try {
-        const result = await tryCatch(getServiceRequests(formattedQueryParams));
+        const result = await tryCatch(getServiceRequestsList(requestsOptions));
         if (result.data) {
           setRequestsData(result.data);
         } else if (result.error) {
@@ -190,12 +157,12 @@ export default function RequestsPage() {
     }
 
     fetchRequestsData();
-  }, [user, formattedQueryParams]);
+  }, [user, params, pagination, sorting]);
 
   // Refresh data fonction
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
-    getServiceRequests(formattedQueryParams)
+    getServiceRequestsList(params)
       .then((data) => {
         setRequestsData(data);
       })
@@ -205,7 +172,7 @@ export default function RequestsPage() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [formattedQueryParams]);
+  }, [params]);
 
   // Définition des statuses pour les filtres
   const statuses = useMemo(
@@ -218,8 +185,8 @@ export default function RequestsPage() {
   );
 
   // Définition des colonnes de la table
-  const columns = useMemo<ColumnDef<PaginatedServiceRequests['items'][number]>[]>(() => {
-    const tableColumns: ColumnDef<PaginatedServiceRequests['items'][number]>[] = [
+  const columns = useMemo<ColumnDef<ServiceRequestListItem>[]>(() => {
+    const tableColumns: ColumnDef<ServiceRequestListItem>[] = [
       {
         id: 'select',
         header: ({ table }) => (
@@ -272,7 +239,12 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.firstName.label')}
-            sortHandler={(direction) => handleSortChange('firstName', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'firstName' as keyof ServiceRequestListItem,
+                order: direction,
+              })
+            }
             labels={{
               asc: 'A-Z',
               desc: 'Z-A',
@@ -295,7 +267,12 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.lastName.label')}
-            sortHandler={(direction) => handleSortChange('lastName', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'lastName' as keyof ServiceRequestListItem,
+                order: direction,
+              })
+            }
             labels={{
               asc: 'A-Z',
               desc: 'Z-A',
@@ -318,7 +295,12 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('requests.table.submitted_at')}
-            sortHandler={(direction) => handleSortChange('createdAt', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'createdAt',
+                order: direction,
+              })
+            }
           />
         ),
         cell: ({ row }) => {
@@ -333,7 +315,12 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.status.label')}
-            sortHandler={(direction) => handleSortChange('status', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'status',
+                order: direction,
+              })
+            }
             labels={{
               asc: 'A-Z',
               desc: 'Z-A',
@@ -365,7 +352,12 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.serviceCategory.label')}
-            sortHandler={(direction) => handleSortChange('serviceCategory', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'serviceCategory',
+                order: direction,
+              })
+            }
             labels={{
               asc: 'A-Z',
               desc: 'Z-A',
@@ -373,18 +365,10 @@ export default function RequestsPage() {
           />
         ),
         cell: ({ row }) => {
-          const serviceCategory = Object.values(ServiceCategory).find(
-            (serviceCategory) => serviceCategory === row.getValue('serviceCategory'),
-          );
-
-          if (!serviceCategory) {
-            return null;
-          }
-
           return (
             <div className="flex items-center">
               <Badge variant={'outline'}>
-                {t(`inputs.serviceCategory.options.${serviceCategory}`)}
+                {t(`inputs.serviceCategory.options.${row.original.serviceCategory}`)}
               </Badge>
             </div>
           );
@@ -396,7 +380,12 @@ export default function RequestsPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.priority.label')}
-            sortHandler={(direction) => handleSortChange('priority', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'priority',
+                order: direction,
+              })
+            }
             labels={{
               asc: 'A-Z',
               desc: 'Z-A',
@@ -404,19 +393,12 @@ export default function RequestsPage() {
           />
         ),
         cell: ({ row }) => {
-          const priority = Object.values(ServicePriority).find(
-            (priority) => priority === row.getValue('priority'),
-          );
-
-          if (!priority) {
-            return null;
-          }
-
           return (
             <div className="flex items-center">
-              <Badge variant={priority === 'URGENT' ? 'destructive' : 'outline'}>
-                {/* @ts-expect-error - translations are in lowercase */}
-                {t('inputs.priority.options.' + priority)}
+              <Badge
+                variant={row.original.priority === 'URGENT' ? 'destructive' : 'outline'}
+              >
+                {t(`inputs.priority.options.${row.original.priority}`)}
               </Badge>
             </div>
           );
@@ -431,12 +413,17 @@ export default function RequestsPage() {
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
     if (isAdmin) {
       tableColumns.push({
-        accessorKey: 'assignedTo',
+        accessorKey: 'assignedToId',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('requests.table.assigned_to')}
-            sortHandler={(direction) => handleSortChange('assignedToId', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'assignedToId',
+                order: direction,
+              })
+            }
             labels={{
               asc: 'A-Z',
               desc: 'Z-A',
@@ -499,46 +486,32 @@ export default function RequestsPage() {
     });
 
     return tableColumns;
-  }, [t, user, formatDate, statuses, handleSortChange, agents, router]);
+  }, [t, user, formatDate, statuses, handleSortingChange, agents, router]);
 
   // Définition des filtres
   const filters = useMemo<FilterOption<FullServiceRequest>[]>(() => {
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
-
-    // Extraire directement des searchParams pour les filtres
-    const status = searchParams.get('status')?.split(',') || [];
-    const priority = searchParams.get('priority')?.split(',') || [];
-    const serviceCategory = searchParams.get('serviceCategory')?.split(',') || [];
 
     const filterOptions: FilterOption<FullServiceRequest>[] = [
       {
         type: 'search',
         property: 'search',
         label: t('requests.filters.search'),
-        defaultValue: searchParams.get('search') || '',
-        onChange: (value) =>
-          handleParamsChange({
-            type: 'filter',
-            name: 'search',
-            value,
-          }),
+        defaultValue: params.search || '',
+        onChange: (value) => handleParamsChange('search', value),
       },
       {
         type: 'checkbox',
         property: 'serviceCategory',
         label: t('requests.filters.service_category'),
-        defaultValue: serviceCategory,
+        defaultValue: params.serviceCategory || [],
         options: Object.values(ServiceCategory).map((category) => ({
           value: category,
           label: t(`inputs.serviceCategory.options.${category}`),
         })),
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange({
-              type: 'filter',
-              name: 'serviceCategory',
-              value: value.join(','),
-            });
+            handleParamsChange('serviceCategory', value);
           }
         },
       },
@@ -546,15 +519,11 @@ export default function RequestsPage() {
         type: 'checkbox',
         property: 'status',
         label: t('inputs.status.label'),
-        defaultValue: status,
+        defaultValue: params.status || [],
         options: statuses,
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange({
-              type: 'filter',
-              name: 'status',
-              value: value.join(','),
-            });
+            handleParamsChange('status', value);
           }
         },
       },
@@ -562,18 +531,14 @@ export default function RequestsPage() {
         type: 'checkbox',
         property: 'priority',
         label: t('requests.filters.priority'),
-        defaultValue: priority,
+        defaultValue: params.priority || [],
         options: Object.values(ServicePriority).map((priority) => ({
           value: priority,
           label: t(`common.priority.${priority}`),
         })),
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange({
-              type: 'filter',
-              name: 'priority',
-              value: value.join(','),
-            });
+            handleParamsChange('priority', value);
           }
         },
       },
@@ -581,31 +546,25 @@ export default function RequestsPage() {
 
     // Ajouter le filtre assignedTo si l'utilisateur est admin
     if (isAdmin && agents.length > 0) {
-      const assignedToId = searchParams.get('assignedToId')?.split(',') || [];
-
       filterOptions.push({
         type: 'checkbox',
-        property: 'assignedTo',
+        property: 'assignedToId',
         label: t('requests.filters.assigned_to'),
-        defaultValue: assignedToId,
+        defaultValue: params.assignedToId || [],
         options: agents.map((agent) => ({
           value: agent.id,
           label: agent.name || '-',
         })),
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange({
-              type: 'filter',
-              name: 'assignedToId',
-              value: value.join(','),
-            });
+            handleParamsChange('assignedToId', value);
           }
         },
       });
     }
 
     return filterOptions;
-  }, [t, user, agents, searchParams, handleParamsChange, statuses]);
+  }, [t, user, agents, params, handleParamsChange, statuses]);
 
   if (!user) {
     return null;
@@ -623,20 +582,13 @@ export default function RequestsPage() {
         data={requestsData.items}
         filters={filters}
         totalCount={requestsData.total}
-        pageIndex={requestsData.page - 1}
-        pageSize={Number(requestsData.limit || 10)}
-        onPageChange={(page) => handlePageChange(page + 1)}
-        onLimitChange={handleLimitChange}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
+        onPageChange={(page) => handlePaginationChange('page', page + 1)}
+        onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         hiddenColumns={hiddenColumns}
         onRefresh={handleRefresh}
-        activeSorting={
-          formattedQueryParams.sortBy && formattedQueryParams.sortOrder
-            ? [
-                formattedQueryParams.sortBy as keyof FullServiceRequest,
-                formattedQueryParams.sortOrder,
-              ]
-            : undefined
-        }
+        activeSorting={[sorting.field, sorting.order]}
       />
     </PageContainer>
   );
@@ -649,7 +601,7 @@ const statusChangeSchema = z.object({
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
 
 type StatusChangeFormProps = {
-  selectedRows: FullServiceRequest[];
+  selectedRows: ServiceRequestListItem[];
   onSuccess: () => void;
 };
 
@@ -687,7 +639,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   };
 
   const handleBulkStatusUpdate = async (
-    selectedRows: FullServiceRequest[],
+    selectedRows: ServiceRequestListItem[],
     status: RequestStatus,
   ) => {
     if (!selectedRows.length) return;
@@ -764,7 +716,7 @@ const assignToChangeSchema = z.object({
 type AssignToChangeFormData = z.infer<typeof assignToChangeSchema>;
 
 type AssignToChangeFormProps = {
-  selectedRows: FullServiceRequest[];
+  selectedRows: ServiceRequestListItem[];
   agents: User[];
   onSuccess: () => void;
 };
@@ -807,7 +759,7 @@ function AssignToChangeForm({
   };
 
   const handleBulkAssignToUpdate = async (
-    selectedRows: FullServiceRequest[],
+    selectedRows: ServiceRequestListItem[],
     assignedToId: string,
   ) => {
     if (!selectedRows.length) return;

@@ -42,8 +42,6 @@ interface DataTableProps<TData, TValue> {
   pageIndex?: number;
   onPageChange?: (pageIndex: number) => void;
   onLimitChange?: (pageSize: number) => void;
-  exportFilename?: string;
-  exportSelectedOnly?: boolean;
   exportTrigger?: React.ReactNode;
   hiddenColumns?: string[];
   onRefresh?: () => void;
@@ -62,8 +60,6 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   onPageChange,
   onLimitChange,
-  exportFilename,
-  exportSelectedOnly = false,
   hiddenColumns = [],
   exportTrigger,
   onRefresh,

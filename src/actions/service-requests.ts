@@ -6,7 +6,6 @@ import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import {
   ServiceRequestFilters,
-  PaginatedServiceRequests,
   FullServiceRequestInclude,
   ServiceRequestStats,
   FullServiceRequest,
@@ -47,10 +46,37 @@ export async function getServiceRequestsByUser(userId: string) {
   return requests;
 }
 
+const ServiceRequestListItemSelect: Prisma.ServiceRequestSelect = {
+  id: true,
+  status: true,
+  priority: true,
+  serviceCategory: true,
+  createdAt: true,
+  updatedAt: true,
+  submittedBy: true,
+  requestedFor: {
+    include: {
+      identityPicture: true,
+    },
+  },
+  assignedTo: true,
+  organization: true,
+  country: true,
+};
+
+export type ServiceRequestListItem = Prisma.ServiceRequestGetPayload<{
+  select: typeof ServiceRequestListItemSelect;
+}>;
+
+export interface PaginatedServiceRequests {
+  items: ServiceRequestListItem[];
+  total: number;
+}
+
 /**
  * Récupérer les demandes de services avec filtres et pagination
  */
-export async function getServiceRequests(
+export async function getServiceRequestsList(
   options?: GetRequestsOptions,
 ): Promise<PaginatedServiceRequests> {
   await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
@@ -62,27 +88,19 @@ export async function getServiceRequests(
     serviceCategory,
     assignedToId,
     organizationId,
-    startDate,
-    endDate,
     page = 1,
     limit = 10,
     sortBy = 'createdAt',
     sortOrder = 'desc',
   } = options || {};
 
-  // Ensure page is a positive number
-  const safePage = Math.max(1, Number(page));
-  const safeLimit = Math.max(1, Number(limit));
-
   const where: Prisma.ServiceRequestWhereInput = {};
 
   if (status) where.status = { in: status };
   if (priority) where.priority = { in: priority };
-  if (serviceCategory) where.service = { category: { in: serviceCategory } };
+  if (serviceCategory) where.serviceCategory = { in: serviceCategory };
   if (assignedToId) where.assignedToId = { in: assignedToId };
   if (organizationId) where.organizationId = { in: organizationId };
-  if (startDate) where.createdAt = { gte: startDate };
-  if (endDate) where.createdAt = { lte: endDate };
 
   if (search) {
     where.OR = [
@@ -96,33 +114,26 @@ export async function getServiceRequests(
     ];
   }
 
-  try {
-    const [requests, total] = await Promise.all([
-      db.serviceRequest.findMany({
-        where,
-        ...FullServiceRequestInclude,
-        ...(sortBy && {
-          orderBy:
-            sortBy === 'firstName' || sortBy === 'lastName'
-              ? { requestedFor: { [sortBy]: sortOrder } }
-              : { [sortBy]: sortOrder },
-        }),
-        skip: (safePage - 1) * safeLimit,
-        take: safeLimit,
+  const [requests, total] = await Promise.all([
+    db.serviceRequest.findMany({
+      where,
+      select: ServiceRequestListItemSelect,
+      ...(sortBy && {
+        orderBy:
+          sortBy === 'firstName' || sortBy === 'lastName'
+            ? { requestedFor: { [sortBy]: sortOrder } }
+            : { [sortBy]: sortOrder },
       }),
-      db.serviceRequest.count({ where }),
-    ]);
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    db.serviceRequest.count({ where }),
+  ]);
 
-    return {
-      items: requests as FullServiceRequest[],
-      total,
-      page: safePage,
-      limit: safeLimit,
-    };
-  } catch (error) {
-    console.error('Error fetching service requests:', error);
-    throw new Error('Failed to fetch service requests');
-  }
+  return {
+    items: requests,
+    total,
+  };
 }
 
 /**

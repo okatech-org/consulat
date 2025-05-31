@@ -120,8 +120,9 @@ export function useTableSearchParams<T, V>(
     limit: Number(searchParams.get('limit')) || 10,
   });
   const [sorting, setSorting] = useState<Sorting<T>>({
-    field: searchParams.get('sort') as keyof T,
-    order: searchParams.get('order') as 'asc' | 'desc',
+    field:
+      (searchParams.get('sort')?.split('-')[0] as keyof T) || ('createdAt' as keyof T),
+    order: (searchParams.get('sort')?.split('-')[1] as 'asc' | 'desc') || 'desc',
   });
   const [params, setParams] = useState<V>(adaptSearchParams(searchParams));
 
@@ -170,18 +171,19 @@ export function useTableSearchParams<T, V>(
     window.history.replaceState({}, '', newUrl);
   }
 
-  function handlePaginationChange(newPagination: Partial<Pagination>) {
-    const updatedPagination = { ...pagination, ...newPagination };
+  function handlePaginationChange(key: 'page' | 'limit', value: number) {
+    const updatedPagination = { ...pagination, [key]: value };
     setPagination(updatedPagination);
-    updateUrlParamsWithoutReload('page', updatedPagination.page);
-    updateUrlParamsWithoutReload('limit', updatedPagination.limit);
+    updateUrlParamsWithoutReload(key, value);
   }
 
   function handleSortingChange(newSorting: Partial<Sorting<T>>) {
     const updatedSorting = { ...sorting, ...newSorting };
     setSorting(updatedSorting);
-    updateUrlParamsWithoutReload('sort', updatedSorting.field);
-    updateUrlParamsWithoutReload('order', updatedSorting.order);
+    updateUrlParamsWithoutReload(
+      'sort',
+      `${String(updatedSorting.field)}-${updatedSorting.order}` as keyof T,
+    );
   }
 
   return {
