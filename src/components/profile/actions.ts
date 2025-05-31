@@ -15,11 +15,16 @@ export async function getProfiles(
 
   const isAdmin = user?.roles.includes('ADMIN') || user?.roles.includes('SUPER_ADMIN');
 
-  const { search, status, category, page, limit, organizationId, gender, sort } = options;
-
-  // Ensure page is a positive number
-  const safePage = Math.max(1, Number(page));
-  const safeLimit = Math.max(1, Number(limit));
+  const {
+    search,
+    status,
+    category,
+    page = 1,
+    limit = 10,
+    organizationId,
+    gender,
+    sort,
+  } = options;
 
   const where: Prisma.ProfileWhereInput = {};
 
@@ -49,7 +54,7 @@ export async function getProfiles(
 
   // Apply organization filter for admins
   if (isAdmin && organizationId) {
-    where.assignedOrganizationId = organizationId;
+    where.assignedOrganizationId = { in: organizationId };
   }
 
   const result = await tryCatch(
@@ -60,22 +65,22 @@ export async function getProfiles(
         ...BaseProfileInclude,
         ...(sort && {
           orderBy: {
-            [sort[0]]: sort[1],
+            [sort.field]: sort.order,
           },
         }),
-        skip: (safePage - 1) * safeLimit,
-        take: safeLimit,
+        skip: (page - 1) * limit,
+        take: limit,
       }),
     ]),
   );
 
   if (result.error) {
     console.error('Error fetching profiles:', result.error);
-    return { items: [], total: 0, page: safePage, limit: safeLimit };
+    return { items: [], total: 0 };
   }
 
   if (!result.data) {
-    return { items: [], total: 0, page: safePage, limit: safeLimit };
+    return { items: [], total: 0 };
   }
 
   const [total, items] = result.data;
@@ -83,7 +88,5 @@ export async function getProfiles(
   return {
     items: adaptProfilesListing(items),
     total,
-    page: safePage,
-    limit: safeLimit,
   };
 }

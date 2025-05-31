@@ -24,20 +24,24 @@ export type ProfilesArrayItem = Pick<
   cardExpiresAt?: string;
 };
 
-export interface GetProfilesOptions {
+export type ProfilesFilters = {
   search?: string;
   status?: RequestStatus[];
   category?: ProfileCategory[];
+  gender?: Gender[];
+  organizationId?: string[];
+};
+
+export interface GetProfilesOptions extends ProfilesFilters {
   page?: number;
   limit?: number;
-  gender?: Gender[];
-  sort?: [keyof BaseProfile, 'asc' | 'desc'];
-  organizationId?: string;
+  sort?: {
+    field: keyof BaseProfile;
+    order: 'asc' | 'desc';
+  };
 }
 
 export interface PaginatedProfiles {
   items: ProfilesArrayItem[];
   total: number;
-  page: number;
-  limit: number;
 }

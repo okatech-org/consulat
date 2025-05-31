@@ -28,7 +28,11 @@ declare global {
 }
 
 import { PageContainer } from '@/components/layouts/page-container';
-import { PaginatedProfiles, ProfilesArrayItem } from '@/components/profile/types';
+import {
+  PaginatedProfiles,
+  ProfilesArrayItem,
+  ProfilesFilters,
+} from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -90,6 +94,24 @@ import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { toast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 
+function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
+  return {
+    search: searchParams.get('search') || undefined,
+    status: searchParams.get('status')?.split(',').filter(Boolean) as
+      | RequestStatus[]
+      | undefined,
+    category: searchParams.get('category')?.split(',').filter(Boolean) as
+      | ProfileCategory[]
+      | undefined,
+    gender: searchParams.get('gender')?.split(',').filter(Boolean) as
+      | Gender[]
+      | undefined,
+    organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean) as
+      | string[]
+      | undefined,
+  };
+}
+
 export default function ProfilesPage() {
   const t = useTranslations();
   const queryParams = useSearchParams();
@@ -101,8 +123,6 @@ export default function ProfilesPage() {
   const [results, setResults] = useState<PaginatedProfiles>({
     items: [],
     total: 0,
-    page: 1,
-    limit: 10,
   });
 
   const { handleParamsChange, handleSortChange, handlePageChange, handleLimitChange } =
