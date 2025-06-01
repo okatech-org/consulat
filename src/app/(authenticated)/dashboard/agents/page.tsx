@@ -71,7 +71,7 @@ export default function AgentsListingPage() {
       const servicesRes = await getServices(
         isSuperAdmin
           ? undefined
-          : (currentUser?.managedOrganizationId ?? currentUser?.assignedOrganizationId),
+          : (currentUser?.organizationId ?? currentUser?.assignedOrganizationId),
       );
       setServices(servicesRes.map((s) => ({ id: s.id, name: s.name })));
     }
@@ -136,7 +136,10 @@ export default function AgentsListingPage() {
         limit: pagination.limit,
         sortBy: sorting.field
           ? {
-              field: sorting.field as 'assignedServices' | 'country' | 'organizationId',
+              field: sorting.field as
+                | 'assignedServices'
+                | 'country'
+                | 'assignedOrganizationId' as any,
               direction: sorting.order || 'asc',
             }
           : undefined,
@@ -205,6 +208,22 @@ export default function AgentsListingPage() {
         ),
         cell: ({ row }) => row.original.phoneNumber || '-',
       },
+      ...(isSuperAdmin
+        ? [
+            {
+              accessorKey: 'assignedOrganizationId',
+              header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="ID Organisation" />
+              ),
+              cell: ({ row }) => {
+                const org = organizations.find(
+                  (item) => item.id === row.original.assignedOrganizationId,
+                );
+                return org?.name || '-';
+              },
+            },
+          ]
+        : []),
       {
         accessorKey: 'linkedCountries',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Pays" />,
@@ -269,7 +288,6 @@ export default function AgentsListingPage() {
           if (arr.length > 0 && arr[0] !== '') {
             params[key] = arr;
           }
-          // Sinon, on n'ajoute pas la clé (tableau vide)
         } else {
           params[key] = value;
         }
