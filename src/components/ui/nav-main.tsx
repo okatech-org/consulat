@@ -14,9 +14,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavMainItem } from '@/hooks/use-navigation';
 import { ROUTES } from '@/schemas/routes';
+import { useChat } from '@/contexts/chat-context';
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
   const pathname = usePathname();
+  const { toggleChat } = useChat();
 
   const isActive = (url: string) => {
     if (url === ROUTES.dashboard.base || ROUTES.user.base) {
@@ -44,6 +46,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               size="icon"
               className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
+              onClick={toggleChat}
             >
               <MailIcon />
               <span className="sr-only">Messagerie</span>
