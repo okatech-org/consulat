@@ -78,7 +78,7 @@ export function useNavigation(user: SessionUser) {
       title: t('agents'),
       url: ROUTES.dashboard.agents,
       icon: Users,
-      roles: [UserRole.ADMIN, UserRole.MANAGER],
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPER_ADMIN],
     },
     {
       title: t('appointments'),

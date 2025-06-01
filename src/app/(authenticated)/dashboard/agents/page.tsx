@@ -69,7 +69,9 @@ export default function AgentsListingPage() {
   useEffect(() => {
     async function loadServices() {
       const servicesRes = await getServices(
-        isSuperAdmin ? undefined : currentUser?.managedOrganizationId,
+        isSuperAdmin
+          ? undefined
+          : (currentUser?.managedOrganizationId ?? currentUser?.assignedOrganizationId),
       );
       setServices(servicesRes.map((s) => ({ id: s.id, name: s.name })));
     }
@@ -245,14 +247,6 @@ export default function AgentsListingPage() {
     ],
     [],
   );
-
-  if (isSuperAdmin) {
-    columns.push({
-      accessorKey: 'assignedOrganizationId',
-      header: 'Organisation',
-      cell: ({ row }) => row.original.assignedOrganizationId || 'N/A',
-    });
-  }
 
   function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
     const params: SearchParams = {};
