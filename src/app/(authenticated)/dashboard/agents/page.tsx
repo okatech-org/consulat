@@ -10,7 +10,7 @@ import {
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { useTableSearchParams } from '@/components/utils/table-hooks';
-import { ColumnDef } from '@tanstack/react-table';
+import { Column, ColumnDef, Row } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -37,8 +37,6 @@ export default function AgentsListingPage() {
   const [data, setData] = useState<AgentsListResult>({
     items: [],
     total: 0,
-    page: 1,
-    limit: 10,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
@@ -212,10 +210,10 @@ export default function AgentsListingPage() {
         ? [
             {
               accessorKey: 'assignedOrganizationId',
-              header: ({ column }) => (
+              header: ({ column }: { column: Column<AgentListItem, unknown> }) => (
                 <DataTableColumnHeader column={column} title="ID Organisation" />
               ),
-              cell: ({ row }) => {
+              cell: ({ row }: { row: Row<AgentListItem> }) => {
                 const org = organizations.find(
                   (item) => item.id === row.original.assignedOrganizationId,
                 );
@@ -307,8 +305,8 @@ export default function AgentsListingPage() {
         data={data.items}
         filters={filters}
         totalCount={data.total}
-        pageIndex={data.page - 1}
-        pageSize={data.limit}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         activeSorting={
