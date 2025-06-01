@@ -8,6 +8,7 @@ import {
   createPageHandler,
   createSortHandler,
   createTableParamNavigator,
+  getValuable,
   handleTableParamChange,
   TableParamOption,
 } from '@/lib/utils';
@@ -142,7 +143,10 @@ export function useTableSearchParams<T, V>(
       updateUrlParamsWithoutReload(key, value);
     }
 
-    setParams(newParams);
+    const cleanedParams = getValuable(
+      newParams as unknown as Record<string, unknown>,
+    ) as V;
+    setParams(cleanedParams);
   }
 
   function updateUrlParamsWithoutReload(

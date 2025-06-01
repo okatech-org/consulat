@@ -94,21 +94,31 @@ import { toast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
-  return {
-    search: searchParams.get('search') || undefined,
-    status: searchParams.get('status')?.split(',').filter(Boolean) as
-      | RequestStatus[]
-      | undefined,
-    category: searchParams.get('category')?.split(',').filter(Boolean) as
-      | ProfileCategory[]
-      | undefined,
-    gender: searchParams.get('gender')?.split(',').filter(Boolean) as
-      | Gender[]
-      | undefined,
-    organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean) as
-      | string[]
-      | undefined,
-  };
+  const params = {
+    ...(searchParams.get('search') && { search: searchParams.get('search') }),
+    ...(searchParams.get('status') && {
+      status: searchParams.get('status')?.split(',').filter(Boolean) as
+        | RequestStatus[]
+        | undefined,
+    }),
+    ...(searchParams.get('category') && {
+      category: searchParams.get('category')?.split(',').filter(Boolean) as
+        | ProfileCategory[]
+        | undefined,
+    }),
+    ...(searchParams.get('gender') && {
+      gender: searchParams.get('gender')?.split(',').filter(Boolean) as
+        | Gender[]
+        | undefined,
+    }),
+    ...(searchParams.get('organizationId') && {
+      organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean) as
+        | string[]
+        | undefined,
+    }),
+  } as ProfilesFilters;
+
+  return params;
 }
 
 export default function ProfilesPage() {
@@ -129,20 +139,23 @@ export default function ProfilesPage() {
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
-    try {
-      const requestsOptions: GetProfilesOptions = {
-        ...params,
-        ...pagination,
-        ...sorting,
-      };
 
-      const profiles = await getProfiles(requestsOptions);
-      setResults(profiles);
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    const defaultOptions: GetProfilesOptions = {
+      page: 1,
+      limit: 10,
+    };
+
+    const requestsOptions: GetProfilesOptions = {
+      ...defaultOptions,
+      ...params,
+      ...pagination,
+      ...sorting,
+    };
+
+    const profiles = await getProfiles(requestsOptions);
+    setResults(profiles);
+
+    setIsLoading(false);
   }, [params, pagination, sorting]);
 
   useEffect(() => {
