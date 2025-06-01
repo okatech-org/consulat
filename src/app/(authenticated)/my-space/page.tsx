@@ -1,26 +1,23 @@
-import { getTranslations } from 'next-intl/server';
 import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
 import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { calculateProfileCompletion } from '@/lib/utils';
-import { format } from 'date-fns';
-import { ArrowRight, Calendar, Clock, FileText, UserIcon } from 'lucide-react';
-import Link from 'next/link';
-import { ROUTES } from '@/schemas/routes';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { getUserFullProfileById } from '@/lib/user/getters';
 import { auth } from '@/auth';
 import { PageContainer } from '@/components/layouts/page-container';
+import { UserSpaceNavigation } from '@/components/layouts/user-space-navigation';
+import { ProfileStatusCard } from '@/components/user/profile-status-card';
+import { RequestsTimeline } from '@/components/user/requests-timeline';
 import CardContainer from '@/components/layouts/card-container';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Bell, ArrowRight, FileText } from 'lucide-react';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export default async function UserDashboard() {
-  const t_common = await getTranslations('common');
-  const t = await getTranslations('user.dashboard');
-  const t_profile = await getTranslations('profile.dashboard');
-  const t_dashboard = await getTranslations('dashboard');
-  const t_notifications = await getTranslations('notifications');
-
   const session = await auth();
 
   if (!session?.user) {
@@ -44,7 +41,18 @@ export default async function UserDashboard() {
   }
 
   // Fetch user service requests
-  const serviceRequests = await getServiceRequestsByUser(session.user.id);
+  const serviceRequestsData = await getServiceRequestsByUser(session.user.id);
+
+  // Transform service requests to match expected interface
+  const serviceRequests = serviceRequestsData.map((request) => ({
+    id: request.id,
+    service: {
+      name: request.service.name,
+    },
+    status: request.status,
+    createdAt: request.createdAt.toISOString(),
+    updatedAt: request.updatedAt?.toISOString(),
+  }));
 
   // Fetch user appointments
   const appointmentsResponse = await getUserAppointments({ userId: session.user.id });
@@ -56,266 +64,235 @@ export default async function UserDashboard() {
 
   // Fetch recent notifications
   const notifications = await getNotifications();
-  const recentNotifications = notifications.slice(0, 5);
+  const recentNotifications = notifications.slice(0, 3);
+
+  // Déterminer les actions urgentes
+  const urgentActions = [];
+
+  // Profil incomplet
+  if (profileCompletion < 75) {
+    urgentActions.push({
+      title: 'Compléter votre profil',
+      description: `Il vous manque ${100 - profileCompletion}% pour finaliser`,
+      href: ROUTES.user.profile,
+      variant: 'urgent' as const,
+    });
+  }
+
+  // Documents manquants critiques
+  if (missingDocuments.length > 3) {
+    urgentActions.push({
+      title: 'Documents manquants',
+      description: `${missingDocuments.length} documents à fournir`,
+      href: ROUTES.user.documents,
+      variant: 'important' as const,
+    });
+  }
+
+  // Demandes avec actions requises
+  const pendingRequests = serviceRequests.filter(
+    (req) => req.status === 'REJECTED' || req.status === 'READY_FOR_PICKUP',
+  );
+  if (pendingRequests.length > 0) {
+    urgentActions.push({
+      title: 'Demandes nécessitant une action',
+      description: `${pendingRequests.length} demande${pendingRequests.length > 1 ? 's' : ''} en attente`,
+      href: ROUTES.user.requests,
+      variant: 'important' as const,
+    });
+  }
 
   return (
-    <PageContainer
-      title={t('title')}
-      description={t_profile('welcome', {
-        name: session.user.name || '',
-      })}
-      action={
-        <Button asChild>
-          <Link href={ROUTES.user.profile}>
-            <UserIcon className="size-icon" />
-            <span className={'ml-1 hidden sm:inline'}>
-              {t_profile('actions.complete_profile')}
-            </span>
-          </Link>
-        </Button>
-      }
-    >
-      <div className="grid lg:grid-cols-6 gap-6">
-        <div className="flex flex-col gap-4 lg:col-span-4">
-          {/* Profile Status */}
-          <CardContainer
-            title={t_profile('stats.profile.title')}
-            subtitle={
-              userProfile?.status
-                ? t_common(`status.${userProfile.status}`)
-                : t_dashboard('sections.profile.status.pending')
-            }
-            footerContent={
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href={ROUTES.user.profile}>
-                  {t_profile('actions.complete_profile')}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            }
-          >
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>{t_profile('stats.profile.completion')}</span>
-                  <span className="font-medium">{profileCompletion}%</span>
-                </div>
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full"
-                    style={{ width: `${profileCompletion}%` }}
-                  />
-                </div>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <PageContainer className="max-w-7xl mx-auto">
+        {/* Navigation contextuelle */}
+        <UserSpaceNavigation className="mb-6" />
 
-              {missingDocuments.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">
-                    {t_dashboard('sections.profile.missing_fields')}
-                  </p>
-                  <ul className="text-sm space-y-1">
-                    {missingDocuments.slice(0, 3).map((doc, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-destructive/70" />
-                        <span>
-                          {/* @ts-expect-error - Using string literal for translation key */}
-                          {t_dashboard(`sections.profile.fields.${doc}`)}
-                        </span>
-                      </li>
-                    ))}
-                    {missingDocuments.length > 3 && (
-                      <li className="text-xs text-muted-foreground">
-                        {t_dashboard('sections.profile.and_more', {
-                          count: missingDocuments.length - 3,
+        <div className="grid lg:grid-cols-12 gap-6">
+          {/* Zone principale - Informations critiques */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Hero Zone - Statut du profil avec actions prioritaires */}
+            <ProfileStatusCard
+              profileCompletion={profileCompletion}
+              profileStatus={userProfile?.status}
+              missingDocuments={missingDocuments}
+              userName={session.user.name || undefined}
+              urgentActions={urgentActions}
+              className="border-2 shadow-lg"
+            />
+
+            {/* Timeline des demandes */}
+            <RequestsTimeline requests={serviceRequests} maxVisible={4} />
+
+            {/* Prochains rendez-vous */}
+            {appointments.upcoming.length > 0 && (
+              <CardContainer
+                title="Prochains rendez-vous"
+                action={
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link
+                      href={ROUTES.user.appointments}
+                      className="flex items-center gap-1"
+                    >
+                      <span>Voir tout</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                }
+              >
+                <div className="space-y-4">
+                  {appointments.upcoming.slice(0, 2).map((appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-md">
+                          <Calendar className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-foreground">
+                            {appointment.request?.service?.name || 'Rendez-vous'}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(appointment.date), 'dd MMM yyyy à HH:mm', {
+                              locale: fr,
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={ROUTES.user.appointments}>Gérer</Link>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContainer>
+            )}
+          </div>
+
+          {/* Sidebar - Notifications et actions rapides */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Notifications prioritaires */}
+            <CardContainer
+              title={
+                <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  <span>Notifications</span>
+                  {notifications.filter((n) => !n.read).length > 0 && (
+                    <Badge variant="destructive" className="text-xs">
+                      {notifications.filter((n) => !n.read).length}
+                    </Badge>
+                  )}
+                </div>
+              }
+              action={
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={ROUTES.user.notifications}>Voir tout</Link>
+                </Button>
+              }
+            >
+              <div className="space-y-3">
+                {recentNotifications.length > 0 ? (
+                  recentNotifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-3 rounded-lg border transition-all hover:shadow-sm ${
+                        notification.read
+                          ? 'bg-muted/50 border-border'
+                          : 'bg-primary/5 border-primary/20'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h4 className="font-medium text-sm text-foreground line-clamp-1">
+                          {notification.title}
+                        </h4>
+                        {!notification.read && (
+                          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        {notification.message}
+                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(notification.createdAt), 'dd MMM', {
+                          locale: fr,
                         })}
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </CardContainer>
-
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Recent Requests */}
-            <CardContainer
-              title={t_profile('stats.requests.title')}
-              action={
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={ROUTES.user.requests}>{t_profile('actions.see_all')}</Link>
-                </Button>
-              }
-              headerClass="pb-2"
-              footerContent={
-                <Button variant="outline" size="sm" className="w-full" asChild>
-                  <Link href={ROUTES.user.services}>
-                    {t_profile('actions.track_requests')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              }
-              className="w-full"
-            >
-              <div className="space-y-4">
-                {serviceRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {serviceRequests.slice(0, 3).map((request) => (
-                      <div
-                        key={request.id}
-                        className="flex relative items-start space-x-3 border-b pb-3 last:border-0"
-                      >
-                        <Link
-                          href={ROUTES.user.service_request_details(request.id)}
-                          className="absolute inset-0"
-                        >
-                          <span className="sr-only">Consulter la demande</span>
-                        </Link>
-                        <div className="rounded-md bg-primary/10 p-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium">{request.service.name}</p>
-                            <Badge
-                              variant={
-                                request.status === 'COMPLETED'
-                                  ? 'success'
-                                  : [
-                                        'VALIDATED',
-                                        'CARD_IN_PRODUCTION',
-                                        'READY_FOR_PICKUP',
-                                        'APPOINTMENT_SCHEDULED',
-                                      ].includes(request.status)
-                                    ? 'default'
-                                    : 'secondary'
-                              }
-                              className="min-w-max"
-                            >
-                              {t_common(`status.${request.status}`)}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(request.createdAt), 'dd MMM yyyy')}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      </span>
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center py-6">
-                    <p className="text-muted-foreground">Aucune donnée</p>
-                  </div>
-                )}
-              </div>
-            </CardContainer>
-
-            {/* Upcoming Appointments */}
-            <CardContainer
-              title={t_profile('stats.appointments.title')}
-              action={
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={ROUTES.user.appointments}>
-                    {t_profile('actions.see_all')}
-                  </Link>
-                </Button>
-              }
-              headerClass="pb-2"
-              footerContent={
-                <Button variant="outline" size="sm" className="w-full" asChild>
-                  <Link href={ROUTES.user.appointments}>
-                    {t_profile('stats.appointments.schedule')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              }
-              className="w-full"
-            >
-              <div className="space-y-4">
-                {appointments.upcoming.length > 0 ? (
-                  <div className="space-y-4">
-                    {appointments.upcoming.slice(0, 3).map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        className="flex items-start space-x-3 border-b pb-3 last:border-0"
-                      >
-                        <div className="rounded-md bg-primary/10 p-2">
-                          <Calendar className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-sm font-medium">
-                            {appointment.request?.service?.name ||
-                              t('appointments.title')}
-                          </p>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Clock className="mr-1 h-3 w-3" />
-                            <span>
-                              {format(new Date(appointment.date), 'dd MMM yyyy')} -{' '}
-                              {format(new Date(appointment.startTime), 'HH:mm')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-muted-foreground">
-                      {t_profile('stats.appointments.no_upcoming')}
+                    <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Aucune notification récente
                     </p>
                   </div>
                 )}
               </div>
             </CardContainer>
+
+            {/* Actions rapides */}
+            <CardContainer title="Actions rapides">
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link href={ROUTES.user.services}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Nouvelle demande
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link href={ROUTES.user.appointments}>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Prendre rendez-vous
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link href={ROUTES.user.documents}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Mes documents
+                  </Link>
+                </Button>
+              </div>
+            </CardContainer>
+
+            {/* Aide contextuelle */}
+            <CardContainer
+              title="Besoin d'aide ?"
+              className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
+            >
+              <div className="space-y-3">
+                <p className="text-sm text-blue-800">
+                  Notre équipe est là pour vous accompagner dans vos démarches.
+                </p>
+                <div className="space-y-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Guide d&apos;utilisation
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full" asChild>
+                    <Link href={ROUTES.user.feedback}>Contacter le support</Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContainer>
           </div>
         </div>
-
-        {/* Recent Notifications */}
-        <section className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">{t_notifications('title')}</h2>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={ROUTES.user.notifications}>{t_profile('actions.see_all')}</Link>
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {recentNotifications.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {recentNotifications.map((notification) => (
-                  <CardContainer
-                    key={notification.id}
-                    className={notification.read ? 'bg-card/50' : 'shadow-md'}
-                    title={
-                      <div className="flex justify-between gap-1">
-                        <span className="text-base">{notification.title}</span>
-                        {!notification.read && (
-                          <Badge variant="info" className="min-w-max">
-                            Nouveau
-                          </Badge>
-                        )}
-                      </div>
-                    }
-                    subtitle={
-                      <span className="text-xs">
-                        {format(new Date(notification.createdAt), 'dd MMM yyyy - HH:mm')}
-                      </span>
-                    }
-                    headerClass="pb-2"
-                  >
-                    <p className="text-sm">{notification.message}</p>
-                  </CardContainer>
-                ))}
-              </div>
-            ) : (
-              <CardContainer>
-                <div className="text-center py-6">
-                  <p className="text-muted-foreground">{t_notifications('empty')}</p>
-                </div>
-              </CardContainer>
-            )}
-          </div>
-        </section>
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </div>
   );
 }

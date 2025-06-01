@@ -229,15 +229,15 @@
 
 #### Sprint 1: Fondations Critiques (2 semaines)
 
-- [ ] **Navigation principale** : Breadcrumbs + menu latéral
-- [ ] **Hiérarchie visuelle** : Refonte système de couleurs/typographie
-- [ ] **Actions prioritaires** : Identification et mise en évidence CTA principaux
-- [ ] **Mobile responsive** : Optimisation layout mobile-first
+- [x] **Navigation principale** : Breadcrumbs + menu latéral
+- [x] **Hiérarchie visuelle** : Refonte système de couleurs/typographie
+- [x] **Actions prioritaires** : Identification et mise en évidence CTA principaux
+- [x] **Mobile responsive** : Optimisation layout mobile-first
 
 #### Sprint 2: Composants Intelligents (2 semaines)
 
-- [ ] **Dashboard statut** : Refonte complète carte profil avec progressbar
-- [ ] **Timeline demandes** : Interface chronologique pour suivi des demandes
+- [x] **Dashboard statut** : Refonte complète carte profil avec progressbar
+- [x] **Timeline demandes** : Interface chronologique pour suivi des demandes
 - [ ] **Notifications actionnables** : Système de priorité et actions directes
 - [ ] **Navigation rapide** : Widget d'accès rapide aux sections fréquentes
 
