@@ -28,11 +28,14 @@ declare global {
 }
 
 import { PageContainer } from '@/components/layouts/page-container';
-import { PaginatedProfiles, ProfilesArrayItem } from '@/components/profile/types';
+import {
+  GetProfilesOptions,
+  PaginatedProfiles,
+  ProfilesArrayItem,
+  ProfilesFilters,
+} from '@/components/profile/types';
 import { useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { adaptSearchParams } from '@/components/profile/adapters';
 import { getProfiles } from '@/components/profile/actions';
 import { DataTable } from '@/components/data-table/data-table';
 import { ColumnDef } from '@tanstack/react-table';
@@ -77,7 +80,7 @@ import {
 } from '@/components/ui/select';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { updateProfile } from '@/actions/profile';
-import { useTableParams } from '@/components/utils/table-hooks';
+import { useTableSearchParams } from '@/components/utils/table-hooks';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
 import {
   Sheet,
@@ -90,36 +93,70 @@ import { FullProfileUpdateFormData } from '@/schemas/registration';
 import { toast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 
+function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
+  const params = {
+    ...(searchParams.get('search') && { search: searchParams.get('search') }),
+    ...(searchParams.get('status') && {
+      status: searchParams.get('status')?.split(',').filter(Boolean) as
+        | RequestStatus[]
+        | undefined,
+    }),
+    ...(searchParams.get('category') && {
+      category: searchParams.get('category')?.split(',').filter(Boolean) as
+        | ProfileCategory[]
+        | undefined,
+    }),
+    ...(searchParams.get('gender') && {
+      gender: searchParams.get('gender')?.split(',').filter(Boolean) as
+        | Gender[]
+        | undefined,
+    }),
+    ...(searchParams.get('organizationId') && {
+      organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean) as
+        | string[]
+        | undefined,
+    }),
+  } as ProfilesFilters;
+
+  return params;
+}
+
 export default function ProfilesPage() {
   const t = useTranslations();
-  const queryParams = useSearchParams();
-  const formattedQueryParams = useMemo(
-    () => adaptSearchParams(queryParams),
-    [queryParams],
-  );
+  const {
+    params,
+    pagination,
+    sorting,
+    handleParamsChange,
+    handlePaginationChange,
+    handleSortingChange,
+  } = useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<PaginatedProfiles>({
     items: [],
     total: 0,
-    page: 1,
-    limit: 10,
   });
 
-  const { handleParamsChange, handleSortChange, handlePageChange, handleLimitChange } =
-    useTableParams();
-
   const fetchProfiles = useCallback(async () => {
-    const params = adaptSearchParams(queryParams);
     setIsLoading(true);
-    try {
-      const profiles = await getProfiles(params);
-      setResults(profiles);
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [queryParams]);
+
+    const defaultOptions: GetProfilesOptions = {
+      page: 1,
+      limit: 10,
+    };
+
+    const requestsOptions: GetProfilesOptions = {
+      ...defaultOptions,
+      ...params,
+      ...pagination,
+      ...sorting,
+    };
+
+    const profiles = await getProfiles(requestsOptions);
+    setResults(profiles);
+
+    setIsLoading(false);
+  }, [params, pagination, sorting]);
 
   useEffect(() => {
     fetchProfiles();
@@ -184,7 +221,12 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={'ID'}
-            sortHandler={(direction) => handleSortChange('cardNumber', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'id',
+                order: direction,
+              })
+            }
             labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
@@ -211,7 +253,12 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={'Carte N°'}
-            sortHandler={(direction) => handleSortChange('cardNumber', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'cardNumber',
+                order: direction,
+              })
+            }
             labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
@@ -244,7 +291,12 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.lastName.label')}
-            sortHandler={(direction) => handleSortChange('lastName', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'lastName',
+                order: direction,
+              })
+            }
             labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
@@ -264,7 +316,12 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.firstName.label')}
-            sortHandler={(direction) => handleSortChange('firstName', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'firstName',
+                order: direction,
+              })
+            }
             labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
@@ -285,7 +342,12 @@ export default function ProfilesPage() {
           <DataTableColumnHeader
             column={column}
             title={t('inputs.profileCategory.label')}
-            sortHandler={(direction) => handleSortChange('category', direction)}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'category',
+                order: direction,
+              })
+            }
             labels={{ asc: 'A-Z', desc: 'Z-A' }}
           />
         ),
@@ -530,7 +592,7 @@ export default function ProfilesPage() {
         ),
       },
     ],
-    [t, categories, genders, statuses, handleSortChange, fetchProfiles],
+    [handleSortingChange, t, categories, statuses, genders, fetchProfiles],
   );
 
   const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
@@ -539,27 +601,18 @@ export default function ProfilesPage() {
         type: 'search',
         property: 'search',
         label: t('common.data_table.search'),
-        defaultValue: formattedQueryParams.search ?? '',
-        onChange: (value) =>
-          handleParamsChange({
-            type: 'filter',
-            name: 'search',
-            value,
-          }),
+        defaultValue: params.search || '',
+        onChange: (value) => handleParamsChange('search', value),
       },
       {
         type: 'checkbox',
         property: 'status',
         label: t('inputs.status.label'),
-        defaultValue: formattedQueryParams.status?.toString().split(',') ?? [],
+        defaultValue: params.status || [],
         options: statuses,
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange({
-              type: 'filter',
-              name: 'status',
-              value: value.join(','),
-            });
+            handleParamsChange('status', value);
           }
         },
       },
@@ -567,15 +620,11 @@ export default function ProfilesPage() {
         type: 'checkbox',
         property: 'category',
         label: t('inputs.profileCategory.label'),
-        defaultValue: formattedQueryParams.category?.toString().split(',') ?? [],
+        defaultValue: params.category || [],
         options: categories,
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange({
-              type: 'filter',
-              name: 'category',
-              value: value.join(','),
-            });
+            handleParamsChange('category', value);
           }
         },
       },
@@ -583,20 +632,16 @@ export default function ProfilesPage() {
         type: 'checkbox',
         property: 'gender',
         label: t('inputs.gender.label'),
-        defaultValue: formattedQueryParams.gender?.toString().split(',') ?? [],
+        defaultValue: params.gender || [],
         options: genders,
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange({
-              type: 'filter',
-              name: 'gender',
-              value: value.join(','),
-            });
+            handleParamsChange('gender', value);
           }
         },
       },
     ],
-    [t, formattedQueryParams, statuses, categories, genders, handleParamsChange],
+    [t, params, statuses, categories, genders, handleParamsChange],
   );
 
   return (
@@ -607,12 +652,10 @@ export default function ProfilesPage() {
         data={results.items}
         filters={filters}
         totalCount={results.total}
-        pageIndex={results.page - 1}
-        pageSize={results.limit}
-        onPageChange={(page) => handlePageChange(page + 1)}
-        onLimitChange={handleLimitChange}
-        exportSelectedOnly={true}
-        exportFilename="profiles"
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
+        onPageChange={(page) => handlePaginationChange('page', page + 1)}
+        onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         hiddenColumns={[
           'id',
           'cardPin',
@@ -624,9 +667,7 @@ export default function ProfilesPage() {
           'cardExpiresAt',
           'category',
         ]}
-        activeSorting={
-          formattedQueryParams.sort as [keyof ProfilesArrayItem, 'asc' | 'desc']
-        }
+        activeSorting={[sorting.field, sorting.order]}
       />
     </PageContainer>
   );

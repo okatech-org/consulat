@@ -8,10 +8,10 @@ import {
   createPageHandler,
   createSortHandler,
   createTableParamNavigator,
+  getValuable,
   handleTableParamChange,
   TableParamOption,
 } from '@/lib/utils';
-import { FilterOption } from '../data-table/data-table-toolbar';
 
 /**
  * Custom hook for managing table params and navigation
@@ -102,59 +102,92 @@ export function useTableData<T, P = Record<string, unknown>>(
   };
 }
 
-export type QueryParams = {
-  [key: string]: unknown;
-};
-
 export type Pagination = {
   page: number;
   limit: number;
 };
 
-export type Sorting<TData> = {
-  field: keyof TData;
+export type Sorting<T> = {
+  field: keyof T;
   order: 'asc' | 'desc';
 };
 
-export function useTableSearchParams<TData>(filters: FilterOption<TData>[]) {
+export function useTableSearchParams<T, V>(
+  adaptSearchParams: (searchParams: URLSearchParams) => V,
+) {
   const searchParams = useSearchParams();
   const [pagination, setPagination] = useState<Pagination>({
-    page: Number(searchParams.get('pageIndex')) || 1,
-    limit: Number(searchParams.get('pageSize')) || 10,
+    page: Number(searchParams.get('page')) || 1,
+    limit: Number(searchParams.get('limit')) || 10,
   });
-  const [sorting, setSorting] = useState<Sorting<TData>>({
-    field: searchParams.get('sort') as keyof TData,
-    order: searchParams.get('order') as 'asc' | 'desc',
+  const [sorting, setSorting] = useState<Sorting<T>>({
+    field:
+      (searchParams.get('sort')?.split('-')[0] as keyof T) || ('createdAt' as keyof T),
+    order: (searchParams.get('sort')?.split('-')[1] as 'asc' | 'desc') || 'desc',
   });
-  const [params, setParams] = useState<QueryParams>(
-    getParamsFromFilters(filters, searchParams, pagination, sorting),
-  );
+  const [params, setParams] = useState<V>(adaptSearchParams(searchParams));
 
-  function handleParamsChange(option: Record<string, unknown>) {
-    setParams((prev) => ({ ...prev, ...option }));
-    updateUrlParamsWithoutReload(option);
+  function handleParamsChange(key: keyof V, value: V[keyof V]) {
+    const newParams = { ...params };
+
+    // On retire la clé si la valeur est vide (string vide ou tableau vide)
+    if (
+      value === undefined ||
+      value === '' ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      delete newParams[key];
+      updateUrlParamsWithoutReload(key, undefined);
+    } else {
+      newParams[key] = value;
+      updateUrlParamsWithoutReload(key, value);
+    }
+
+    const cleanedParams = getValuable(
+      newParams as unknown as Record<string, unknown>,
+    ) as V;
+    setParams(cleanedParams);
   }
 
-  function updateUrlParamsWithoutReload(option: Record<string, unknown>) {
+  function updateUrlParamsWithoutReload(
+    key: keyof V | 'page' | 'limit' | 'sort' | 'order',
+    value: V[keyof V] | number | 'asc' | 'desc' | undefined | keyof T,
+  ) {
     const currentParams = new URLSearchParams(searchParams.toString());
-    Object.entries(option).forEach(([key, value]) => {
-      currentParams.set(key, value as string);
-    });
+
+    // On retire la clé si la valeur est vide
+    if (
+      value === undefined ||
+      value === '' ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      currentParams.delete(key as string);
+    } else {
+      // Pour les tableaux, on join avec une virgule
+      if (Array.isArray(value)) {
+        currentParams.set(key as string, value.join(','));
+      } else {
+        currentParams.set(key as string, value as string);
+      }
+    }
 
     const newUrl = `?${currentParams.toString()}`;
     window.history.replaceState({}, '', newUrl);
   }
 
-  function handlePaginationChange(newPagination: Partial<Pagination>) {
-    const updatedPagination = { ...pagination, ...newPagination };
+  function handlePaginationChange(key: 'page' | 'limit', value: number) {
+    const updatedPagination = { ...pagination, [key]: value };
     setPagination(updatedPagination);
-    handleParamsChange(updatedPagination);
+    updateUrlParamsWithoutReload(key, value);
   }
 
-  function handleSortingChange(newSorting: Partial<Sorting<TData>>) {
+  function handleSortingChange(newSorting: Partial<Sorting<T>>) {
     const updatedSorting = { ...sorting, ...newSorting };
     setSorting(updatedSorting);
-    handleParamsChange(updatedSorting);
+    updateUrlParamsWithoutReload(
+      'sort',
+      `${String(updatedSorting.field)}-${updatedSorting.order}` as keyof T,
+    );
   }
 
   return {
@@ -165,32 +198,4 @@ export function useTableSearchParams<TData>(filters: FilterOption<TData>[]) {
     handlePaginationChange,
     handleSortingChange,
   };
-}
-
-function getParamsFromFilters<TData>(
-  filters: FilterOption<TData>[],
-  searchParams: URLSearchParams,
-  pagination: Pagination,
-  sorting: Sorting<TData>,
-) {
-  const params: QueryParams = {
-    ...pagination,
-    ...sorting,
-  };
-
-  for (const filter of filters) {
-    const value = searchParams.get(filter.property);
-
-    if (value) {
-      if (filter.type === 'checkbox') {
-        params[filter.property] = value.split(',');
-      } else {
-        params[filter.property] = value;
-      }
-    } else {
-      params[filter.property] = filter.type === 'checkbox' ? [] : undefined;
-    }
-  }
-
-  return params;
 }

@@ -25,6 +25,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
 import { getServices } from '../(superadmin)/_utils/actions/services';
 
+interface SearchParams {
+  search?: string;
+  linkedCountries?: string[];
+  assignedServices?: string[];
+  assignedOrganizationId?: string[];
+}
+
 export default function AgentsListingPage() {
   const currentUser = useCurrentUser();
   const [data, setData] = useState<AgentsListResult>({
@@ -39,25 +46,42 @@ export default function AgentsListingPage() {
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
 
-  // Chargement des options de filtres au mount
   useEffect(() => {
-    async function loadData() {
-      const [countriesRes, orgsRes, servicesRes] = await Promise.all([
-        getActiveCountries(),
-        getOrganizations(isSuperAdmin ? undefined : currentUser?.managedOrganizationId),
-        getServices(isSuperAdmin ? undefined : currentUser?.managedOrganizationId),
-      ]);
-      setCountries(countriesRes.map((c) => ({ code: c.code, name: c.name })));
+    async function loadOrganizations() {
+      const orgsRes = await getOrganizations();
       setOrganizations(orgsRes.map((o) => ({ id: o.id, name: o.name })));
+    }
+
+    if (isSuperAdmin) {
+      loadOrganizations();
+    }
+  }, [isSuperAdmin]);
+
+  useEffect(() => {
+    async function loadCountries() {
+      const countriesRes = await getActiveCountries();
+      setCountries(countriesRes.map((c) => ({ code: c.code, name: c.name })));
+    }
+
+    loadCountries();
+  }, []);
+
+  useEffect(() => {
+    async function loadServices() {
+      const servicesRes = await getServices(
+        isSuperAdmin
+          ? undefined
+          : (currentUser?.managedOrganizationId ?? currentUser?.assignedOrganizationId),
+      );
       setServices(servicesRes.map((s) => ({ id: s.id, name: s.name })));
     }
 
-    loadData();
+    loadServices();
   }, [isSuperAdmin, currentUser]);
 
   // Gestion des paramètres d'URL/table (pagination, tri, filtres)
   const { params, pagination, sorting, handleParamsChange, handlePaginationChange } =
-    useTableSearchParams<AgentListItem>([]); // On passe [] ici, les filtres sont définis après
+    useTableSearchParams<AgentListItem, SearchParams>(adaptSearchParams);
 
   // Définir les filtres disponibles (à adapter selon les besoins)
   const filters: FilterOption<AgentListItem>[] = useMemo(
@@ -67,7 +91,7 @@ export default function AgentsListingPage() {
         property: 'search',
         label: 'Rechercher',
         defaultValue: params.search as string,
-        onChange: (value: string) => handleParamsChange({ search: value }),
+        onChange: (value: string) => handleParamsChange('search', value),
       },
       {
         type: 'checkbox' as const,
@@ -75,7 +99,7 @@ export default function AgentsListingPage() {
         label: 'Pays',
         options: countries.map((c) => ({ value: c.code, label: c.name })),
         defaultValue: params.linkedCountries as string[],
-        onChange: (value: string[]) => handleParamsChange({ linkedCountries: value }),
+        onChange: (value: string[]) => handleParamsChange('linkedCountries', value),
       },
       {
         type: 'checkbox' as const,
@@ -83,7 +107,7 @@ export default function AgentsListingPage() {
         label: 'Services',
         options: services.map((s) => ({ value: s.id, label: s.name })),
         defaultValue: params.assignedServices as string[],
-        onChange: (value: string[]) => handleParamsChange({ assignedServices: value }),
+        onChange: (value: string[]) => handleParamsChange('assignedServices', value),
       },
       ...(isSuperAdmin
         ? [
@@ -94,7 +118,7 @@ export default function AgentsListingPage() {
               options: organizations.map((o) => ({ value: o.id, label: o.name })),
               defaultValue: params.assignedOrganizationId as string[],
               onChange: (value: string[]) =>
-                handleParamsChange({ assignedOrganizationId: value }),
+                handleParamsChange('assignedOrganizationId', value),
             },
           ]
         : []),
@@ -224,13 +248,38 @@ export default function AgentsListingPage() {
     [],
   );
 
-  if (isSuperAdmin) {
-    columns.push({
-      accessorKey: 'assignedOrganizationId',
-      header: 'Organisation',
-      cell: ({ row }) => row.original.assignedOrganizationId || 'N/A',
+  function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
+    const params: SearchParams = {};
+    const paramsKeys: (keyof SearchParams)[] = [
+      'search',
+      'linkedCountries',
+      'assignedServices',
+      'assignedOrganizationId',
+    ];
+
+    paramsKeys.forEach((key) => {
+      const value = urlSearchParams.get(key);
+      if (value) {
+        if (
+          key === 'linkedCountries' ||
+          key === 'assignedServices' ||
+          key === 'assignedOrganizationId'
+        ) {
+          const arr = value.split(',');
+          if (arr.length > 0 && arr[0] !== '') {
+            params[key] = arr;
+          }
+          // Sinon, on n'ajoute pas la clé (tableau vide)
+        } else {
+          params[key] = value;
+        }
+      }
     });
+
+    return params;
   }
+
+  console.log({ params, pagination, sorting });
 
   return (
     <PageContainer title="Agents">
@@ -242,9 +291,8 @@ export default function AgentsListingPage() {
         totalCount={data.total}
         pageIndex={data.page - 1}
         pageSize={data.limit}
-        onPageChange={(page) => handlePaginationChange({ page: page + 1 })}
-        onLimitChange={(limit) => handlePaginationChange({ limit })}
-        onRefresh={() => handleParamsChange({})}
+        onPageChange={(page) => handlePaginationChange('page', page + 1)}
+        onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         activeSorting={
           sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
         }
