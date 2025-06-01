@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAgentDetails, AgentDetails } from '@/actions/agents';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -10,7 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data-table/data-table';
-import { tryCatch } from '@/lib/utils';
+import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
+import { useTableSearchParams } from '@/components/utils/table-hooks';
+import { tryCatch, useDateLocale } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 import {
   Mail,
   Phone,
@@ -19,28 +23,298 @@ import {
   Clock,
   FileText,
   CheckCircle,
-  MapPin,
   Briefcase,
   Settings,
   Shield,
   AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
+
+interface RequestFilters {
+  search?: string;
+  status?: string[];
+  serviceCategory?: string[];
+  priority?: string[];
+  page?: number;
+  limit?: number;
+}
 
 export default function AgentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const currentUser = useCurrentUser();
+  const t = useTranslations();
+  const { formatDate } = useDateLocale();
   const agentId = params.id as string;
 
   const [agent, setAgent] = useState<AgentDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filteredRequests, setFilteredRequests] = useState<
+    AgentDetails['assignedRequests']
+  >([]);
+
+  // Table state management
+  const {
+    params: tableParams,
+    pagination,
+    sorting,
+    handleParamsChange,
+    handleSortingChange,
+    handlePaginationChange,
+  } = useTableSearchParams<AgentDetails['assignedRequests'][0], RequestFilters>(
+    adaptSearchParams,
+  );
+
+  function adaptSearchParams(urlSearchParams: URLSearchParams): RequestFilters {
+    const params: RequestFilters = {};
+    const paramsKeys: (keyof RequestFilters)[] = [
+      'search',
+      'status',
+      'serviceCategory',
+      'priority',
+    ];
+
+    paramsKeys.forEach((key) => {
+      const value = urlSearchParams.get(key);
+      if (value) {
+        if (key === 'status' || key === 'serviceCategory' || key === 'priority') {
+          const arr = value.split(',');
+          if (arr.length > 0 && arr[0] !== '') {
+            params[key] = arr;
+          }
+        } else {
+          params[key] = value;
+        }
+      }
+    });
+
+    return params;
+  }
+
+  // Définition des statuses pour les filtres
+  const statuses = useMemo(
+    () =>
+      Object.values(RequestStatus).map((status) => ({
+        value: status,
+        label: t(`inputs.requestStatus.options.${status}`),
+      })),
+    [t],
+  );
+
+  // Définition des filtres pour le tableau des demandes
+  const requestFilters = useMemo<FilterOption<AgentDetails['assignedRequests'][0]>[]>(
+    () => [
+      {
+        type: 'search',
+        property: 'search',
+        label: t('requests.filters.search'),
+        defaultValue: tableParams.search || '',
+        onChange: (value: string) => handleParamsChange('search', value),
+      },
+      {
+        type: 'checkbox',
+        property: 'status',
+        label: t('inputs.status.label'),
+        defaultValue: (tableParams.status as string[]) || [],
+        options: statuses,
+        onChange: (value: string[]) => handleParamsChange('status', value),
+      },
+      {
+        type: 'checkbox',
+        property: 'serviceCategory',
+        label: t('requests.filters.service_category'),
+        defaultValue: (tableParams.serviceCategory as string[]) || [],
+        options: Object.values(ServiceCategory).map((category) => ({
+          value: category,
+          label: t(`inputs.serviceCategory.options.${category}`),
+        })),
+        onChange: (value: string[]) => handleParamsChange('serviceCategory', value),
+      },
+      {
+        type: 'checkbox',
+        property: 'priority',
+        label: t('requests.filters.priority'),
+        defaultValue: (tableParams.priority as string[]) || [],
+        options: Object.values(ServicePriority).map((priority) => ({
+          value: priority,
+          label: t(`common.priority.${priority}`),
+        })),
+        onChange: (value: string[]) => handleParamsChange('priority', value),
+      },
+    ],
+    [t, tableParams, statuses, handleParamsChange],
+  );
+
+  // Définition des colonnes pour les demandes assignées
+  const requestsColumns: ColumnDef<AgentDetails['assignedRequests'][0]>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title="ID"
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'id',
+                order: direction,
+              })
+            }
+          />
+        ),
+        cell: ({ row }) => (
+          <Link
+            href={ROUTES.dashboard.service_requests(row.original.id)}
+            className="font-mono text-sm hover:underline"
+          >
+            #{row.original.id.slice(-8)}
+          </Link>
+        ),
+      },
+      {
+        accessorKey: 'serviceCategory',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.serviceCategory.label')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'serviceCategory',
+                order: direction,
+              })
+            }
+          />
+        ),
+        cell: ({ row }) => (
+          <Badge variant="outline">
+            {t(`inputs.serviceCategory.options.${row.original.serviceCategory}`)}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: 'status',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.status.label')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'status',
+                order: direction,
+              })
+            }
+          />
+        ),
+        cell: ({ row }) => {
+          const status = statuses.find((status) => status.value === row.original.status);
+          return (
+            <Badge
+              variant={
+                row.original.status === 'COMPLETED'
+                  ? 'default'
+                  : [
+                        'VALIDATED',
+                        'CARD_IN_PRODUCTION',
+                        'READY_FOR_PICKUP',
+                        'APPOINTMENT_SCHEDULED',
+                      ].includes(row.original.status)
+                    ? 'default'
+                    : 'secondary'
+              }
+            >
+              {status?.label || row.original.status}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: 'priority',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('inputs.priority.label')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'priority',
+                order: direction,
+              })
+            }
+          />
+        ),
+        cell: ({ row }) => (
+          <Badge variant={row.original.priority === 'URGENT' ? 'destructive' : 'outline'}>
+            {t(`inputs.priority.options.${row.original.priority}`)}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('requests.table.submitted_at')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'createdAt',
+                order: direction,
+              })
+            }
+          />
+        ),
+        cell: ({ row }) => formatDate(new Date(row.original.createdAt), 'dd/MM/yyyy'),
+      },
+      {
+        accessorKey: 'assignedAt',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title="Assigné le"
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'assignedAt',
+                order: direction,
+              })
+            }
+          />
+        ),
+        cell: ({ row }) =>
+          row.original.assignedAt
+            ? formatDate(new Date(row.original.assignedAt), 'dd/MM/yyyy')
+            : '-',
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <Button variant="outline" size="sm" asChild>
+            <Link href={ROUTES.dashboard.service_requests(row.original.id)}>
+              <FileText className="h-4 w-4 mr-2" />
+              {t('common.actions.consult')}
+            </Link>
+          </Button>
+        ),
+      },
+    ],
+    [t, statuses, formatDate, handleSortingChange],
+  );
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
+  const canManageAgent = isSuperAdmin || currentUser?.roles?.includes('ADMIN');
 
   useEffect(() => {
     async function fetchAgentDetails() {
@@ -60,6 +334,61 @@ export default function AgentDetailPage() {
 
     fetchAgentDetails();
   }, [agentId]);
+
+  // Filter and paginate requests
+  useEffect(() => {
+    if (!agent?.assignedRequests) {
+      setFilteredRequests([]);
+      return;
+    }
+
+    let filtered = [...agent.assignedRequests];
+
+    // Apply search filter
+    if (tableParams.search) {
+      const searchTerm = tableParams.search.toLowerCase();
+      filtered = filtered.filter(
+        (request) =>
+          request.id.toLowerCase().includes(searchTerm) ||
+          request.serviceCategory?.toLowerCase().includes(searchTerm),
+      );
+    }
+
+    // Apply status filter
+    if (tableParams.status && tableParams.status.length > 0) {
+      filtered = filtered.filter((request) =>
+        tableParams.status!.includes(request.status),
+      );
+    }
+
+    // Apply service category filter
+    if (tableParams.serviceCategory && tableParams.serviceCategory.length > 0) {
+      filtered = filtered.filter((request) =>
+        tableParams.serviceCategory!.includes(request.serviceCategory),
+      );
+    }
+
+    // Apply priority filter
+    if (tableParams.priority && tableParams.priority.length > 0) {
+      filtered = filtered.filter((request) =>
+        tableParams.priority!.includes(request.priority),
+      );
+    }
+
+    // Apply sorting
+    if (sorting.field && sorting.order) {
+      filtered.sort((a, b) => {
+        const aValue = a[sorting.field as keyof typeof a];
+        const bValue = b[sorting.field as keyof typeof b];
+
+        if (aValue < bValue) return sorting.order === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sorting.order === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setFilteredRequests(filtered);
+  }, [agent?.assignedRequests, tableParams, sorting]);
 
   if (isLoading) {
     return (
@@ -105,77 +434,14 @@ export default function AgentDetailPage() {
       ].includes(r.status),
     ).length || 0;
 
-  const completedRequests = agent.completedRequests || 0;
+  const completedRequests =
+    agent.assignedRequests?.filter((r) => r.status === 'COMPLETED').length || 0;
   const averageProcessingTime = agent.averageProcessingTime || 0;
 
-  // Définition des colonnes pour les demandes assignées
-  const requestsColumns: ColumnDef<AgentDetails['assignedRequests'][0]>[] = [
-    {
-      accessorKey: 'id',
-      header: 'ID',
-      cell: ({ row }) => (
-        <Link
-          href={ROUTES.dashboard.service_requests(row.original.id)}
-          className="font-mono text-sm hover:underline"
-        >
-          #{row.original.id.slice(-8)}
-        </Link>
-      ),
-    },
-    {
-      accessorKey: 'serviceCategory',
-      header: 'Service',
-      cell: ({ row }) => row.original.serviceCategory || '-',
-    },
-    {
-      accessorKey: 'status',
-      header: 'Statut',
-      cell: ({ row }) => (
-        <Badge
-          variant={
-            row.original.status === 'COMPLETED'
-              ? 'default'
-              : [
-                    'VALIDATED',
-                    'CARD_IN_PRODUCTION',
-                    'READY_FOR_PICKUP',
-                    'APPOINTMENT_SCHEDULED',
-                  ].includes(row.original.status)
-                ? 'default'
-                : 'secondary'
-          }
-        >
-          {row.original.status}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Créé le',
-      cell: ({ row }) =>
-        format(new Date(row.original.createdAt), 'dd MMM yyyy', { locale: fr }),
-    },
-    {
-      accessorKey: 'assignedAt',
-      header: 'Assigné le',
-      cell: ({ row }) =>
-        row.original.assignedAt
-          ? format(new Date(row.original.assignedAt), 'dd MMM yyyy', { locale: fr })
-          : '-',
-    },
-  ];
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
-  const canManageAgent = isSuperAdmin || currentUser?.roles?.includes('ADMIN');
+  // Paginate filtered requests
+  const startIndex = (pagination.page - 1) * pagination.limit;
+  const endIndex = startIndex + pagination.limit;
+  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
 
   return (
     <PageContainer title="Détail de l'agent" description={agent.name || 'Agent sans nom'}>
@@ -258,23 +524,6 @@ export default function AgentDetailPage() {
                 </div>
               </div>
             )}
-
-            {/* Spécialisations */}
-            {agent.specializations && agent.specializations.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-sm font-medium">
-                  <MapPin className="h-4 w-4" />
-                  <span>Spécialisations</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {agent.specializations.map((spec) => (
-                    <Badge key={spec} variant="outline">
-                      {spec}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </CardContainer>
 
@@ -326,16 +575,28 @@ export default function AgentDetailPage() {
               <Badge variant="outline">{agent.assignedRequests?.length || 0}</Badge>
             </div>
           }
+          action={
+            <Button variant="outline" size="sm" asChild>
+              <Link href={ROUTES.dashboard.requests}>
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Gérer toutes les demandes
+              </Link>
+            </Button>
+          }
         >
           {agent.assignedRequests && agent.assignedRequests.length > 0 ? (
             <DataTable
               columns={requestsColumns}
-              data={agent.assignedRequests}
-              totalCount={agent.assignedRequests.length}
-              pageIndex={0}
-              pageSize={10}
-              onPageChange={() => {}}
-              onLimitChange={() => {}}
+              data={paginatedRequests}
+              filters={requestFilters}
+              totalCount={filteredRequests.length}
+              pageIndex={pagination.page - 1}
+              pageSize={pagination.limit}
+              onPageChange={(page) => handlePaginationChange('page', page + 1)}
+              onLimitChange={(limit) => handlePaginationChange('limit', limit)}
+              activeSorting={
+                sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
+              }
             />
           ) : (
             <div className="text-center py-8">
