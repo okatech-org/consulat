@@ -16,6 +16,14 @@ import { useTableSearchParams } from '@/components/utils/table-hooks';
 import { tryCatch, useDateLocale } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
   Mail,
   Phone,
   Globe,
@@ -25,7 +33,6 @@ import {
   CheckCircle,
   Briefcase,
   Settings,
-  Shield,
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
@@ -34,6 +41,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
+import { EditAgentForm } from './components/edit-agent-form';
 
 interface RequestFilters {
   search?: string;
@@ -58,6 +66,7 @@ export default function AgentDetailPage() {
   const [filteredRequests, setFilteredRequests] = useState<
     AgentDetails['assignedRequests']
   >([]);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
   // Table state management
   const {
@@ -86,10 +95,10 @@ export default function AgentDetailPage() {
         if (key === 'status' || key === 'serviceCategory' || key === 'priority') {
           const arr = value.split(',');
           if (arr.length > 0 && arr[0] !== '') {
-            params[key] = arr;
+            params[key] = arr as any;
           }
         } else {
-          params[key] = value;
+          params[key] = value as any;
         }
       }
     });
@@ -316,6 +325,11 @@ export default function AgentDetailPage() {
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
   const canManageAgent = isSuperAdmin || currentUser?.roles?.includes('ADMIN');
 
+  const handleAgentUpdate = (updatedAgent: AgentDetails) => {
+    setAgent(updatedAgent);
+    setIsEditSheetOpen(false);
+  };
+
   useEffect(() => {
     async function fetchAgentDetails() {
       if (!agentId) return;
@@ -381,6 +395,11 @@ export default function AgentDetailPage() {
         const aValue = a[sorting.field as keyof typeof a];
         const bValue = b[sorting.field as keyof typeof b];
 
+        // Handle null values
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return sorting.order === 'asc' ? -1 : 1;
+        if (bValue == null) return sorting.order === 'asc' ? 1 : -1;
+
         if (aValue < bValue) return sorting.order === 'asc' ? -1 : 1;
         if (aValue > bValue) return sorting.order === 'asc' ? 1 : -1;
         return 0;
@@ -444,7 +463,7 @@ export default function AgentDetailPage() {
   const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
 
   return (
-    <PageContainer title="Détail de l'agent" description={agent.name || 'Agent sans nom'}>
+    <PageContainer title="Détail de l'agent" description={agent.name}>
       <div className="space-y-6">
         {/* Header avec informations de base */}
         <CardContainer
@@ -478,14 +497,27 @@ export default function AgentDetailPage() {
           action={
             canManageAgent && (
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Modifier
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Réinitialiser mot de passe
-                </Button>
+                <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Modifier
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="!w-full xs:max-w-xl md:max-w-2xl">
+                    <SheetHeader>
+                      <SheetTitle>Modifier l&apos;agent</SheetTitle>
+                      <SheetDescription>
+                        Modifiez les informations de l&apos;agent {agent.name}
+                      </SheetDescription>
+                    </SheetHeader>
+                    <EditAgentForm
+                      agent={agent}
+                      onSuccess={handleAgentUpdate}
+                      onCancel={() => setIsEditSheetOpen(false)}
+                    />
+                  </SheetContent>
+                </Sheet>
               </div>
             )
           }

@@ -383,3 +383,70 @@ export async function getAgentDetails(id: string): Promise<AgentDetails> {
 
   return agent;
 }
+
+interface UpdateAgentData {
+  email?: string;
+  phoneNumber?: string;
+  countryIds?: string[];
+  serviceIds?: string[];
+}
+
+export async function updateAgent(id: string, data: UpdateAgentData) {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  try {
+    const updateData: Prisma.UserUpdateInput = {};
+
+    if (data.email !== undefined) {
+      updateData.email = data.email;
+    }
+
+    if (data.phoneNumber !== undefined) {
+      updateData.phoneNumber = data.phoneNumber;
+    }
+
+    if (data.countryIds) {
+      updateData.linkedCountries = {
+        set: data.countryIds.map((id) => ({ id })),
+      };
+    }
+
+    if (data.serviceIds) {
+      updateData.assignedServices = {
+        set: data.serviceIds.map((id) => ({ id })),
+      };
+    }
+
+    const updatedAgent = await db.user.update({
+      where: { id },
+      data: updateData,
+      select: AgentDetailsSelect,
+    });
+
+    return updatedAgent;
+  } catch (error) {
+    console.error('Failed to update agent:', error);
+    throw new Error('Failed to update agent');
+  }
+}
+
+export async function getServicesForOrganization(organizationId?: string) {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  const where: Prisma.ConsularServiceWhereInput = {
+    isActive: true,
+    ...(organizationId && { organizationId }),
+  };
+
+  return db.consularService.findMany({
+    where,
+    select: {
+      id: true,
+      name: true,
+      category: true,
+    },
+    orderBy: {
+      name: 'asc',
+    },
+  });
+}

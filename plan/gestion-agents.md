@@ -64,4 +64,3 @@
 - [x] Server actions dans `src/actions/agents.ts` si besoin
 - [x] Ajout de traductions dans `src/i18n/messages/fr/agent.ts`
 - [x] Ajout de la route pour les détails dans `src/schemas/routes.ts`
-- [ ] Mise à jour de `.tree.md`

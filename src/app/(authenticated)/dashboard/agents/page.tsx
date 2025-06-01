@@ -262,7 +262,7 @@ export default function AgentsListingPage() {
         ),
       },
     ],
-    [],
+    [isSuperAdmin, organizations],
   );
 
   function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
