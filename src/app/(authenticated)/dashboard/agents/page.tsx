@@ -10,7 +10,7 @@ import {
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { useTableSearchParams } from '@/components/utils/table-hooks';
-import { ColumnDef } from '@tanstack/react-table';
+import { Column, ColumnDef, Row } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -37,8 +37,6 @@ export default function AgentsListingPage() {
   const [data, setData] = useState<AgentsListResult>({
     items: [],
     total: 0,
-    page: 1,
-    limit: 10,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
@@ -71,7 +69,7 @@ export default function AgentsListingPage() {
       const servicesRes = await getServices(
         isSuperAdmin
           ? undefined
-          : (currentUser?.managedOrganizationId ?? currentUser?.assignedOrganizationId),
+          : (currentUser?.organizationId ?? currentUser?.assignedOrganizationId),
       );
       setServices(servicesRes.map((s) => ({ id: s.id, name: s.name })));
     }
@@ -136,7 +134,10 @@ export default function AgentsListingPage() {
         limit: pagination.limit,
         sortBy: sorting.field
           ? {
-              field: sorting.field as 'assignedServices' | 'country' | 'organizationId',
+              field: sorting.field as
+                | 'assignedServices'
+                | 'country'
+                | 'assignedOrganizationId' as any,
               direction: sorting.order || 'asc',
             }
           : undefined,
@@ -205,6 +206,22 @@ export default function AgentsListingPage() {
         ),
         cell: ({ row }) => row.original.phoneNumber || '-',
       },
+      ...(isSuperAdmin
+        ? [
+            {
+              accessorKey: 'assignedOrganizationId',
+              header: ({ column }: { column: Column<AgentListItem, unknown> }) => (
+                <DataTableColumnHeader column={column} title="ID Organisation" />
+              ),
+              cell: ({ row }: { row: Row<AgentListItem> }) => {
+                const org = organizations.find(
+                  (item) => item.id === row.original.assignedOrganizationId,
+                );
+                return org?.name || '-';
+              },
+            },
+          ]
+        : []),
       {
         accessorKey: 'linkedCountries',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Pays" />,
@@ -245,7 +262,7 @@ export default function AgentsListingPage() {
         ),
       },
     ],
-    [],
+    [isSuperAdmin, organizations],
   );
 
   function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
@@ -269,7 +286,6 @@ export default function AgentsListingPage() {
           if (arr.length > 0 && arr[0] !== '') {
             params[key] = arr;
           }
-          // Sinon, on n'ajoute pas la clé (tableau vide)
         } else {
           params[key] = value;
         }
@@ -289,8 +305,8 @@ export default function AgentsListingPage() {
         data={data.items}
         filters={filters}
         totalCount={data.total}
-        pageIndex={data.page - 1}
-        pageSize={data.limit}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         activeSorting={

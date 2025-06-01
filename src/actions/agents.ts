@@ -293,8 +293,6 @@ export type AgentListItem = Prisma.UserGetPayload<{
 export interface AgentsListResult {
   items: AgentListItem[];
   total: number;
-  page: number;
-  limit: number;
 }
 
 /**
@@ -305,14 +303,15 @@ export async function getAgentsList(
 ): Promise<AgentsListResult> {
   await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
 
-  console.log('options', options);
-
-  const { search, assignedServices, country, organizationId, page, limit, sortBy } =
-    options || {};
-
-  // Ensure page is a positive number
-  const safePage = Math.max(1, Number(page));
-  const safeLimit = Math.max(1, Number(limit));
+  const {
+    search,
+    assignedServices,
+    country,
+    organizationId,
+    page = 1,
+    limit = 10,
+    sortBy,
+  } = options || {};
 
   const where: Prisma.UserWhereInput = {
     roles: { has: 'AGENT' },
@@ -335,8 +334,8 @@ export async function getAgentsList(
     const [items, total] = await Promise.all([
       db.user.findMany({
         where,
-        skip: (safePage - 1) * safeLimit,
-        take: safeLimit,
+        skip: (page - 1) * limit,
+        take: limit,
         select: AgentListItemSelect,
         ...(sortBy && {
           orderBy: {
@@ -350,8 +349,6 @@ export async function getAgentsList(
     return {
       items,
       total,
-      page: safePage,
-      limit: safeLimit,
     };
   } catch (error) {
     console.error('Error fetching service requests:', error);
@@ -385,4 +382,71 @@ export async function getAgentDetails(id: string): Promise<AgentDetails> {
   }
 
   return agent;
+}
+
+interface UpdateAgentData {
+  email?: string;
+  phoneNumber?: string;
+  countryIds?: string[];
+  serviceIds?: string[];
+}
+
+export async function updateAgent(id: string, data: UpdateAgentData) {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  try {
+    const updateData: Prisma.UserUpdateInput = {};
+
+    if (data.email !== undefined) {
+      updateData.email = data.email;
+    }
+
+    if (data.phoneNumber !== undefined) {
+      updateData.phoneNumber = data.phoneNumber;
+    }
+
+    if (data.countryIds) {
+      updateData.linkedCountries = {
+        set: data.countryIds.map((id) => ({ id })),
+      };
+    }
+
+    if (data.serviceIds) {
+      updateData.assignedServices = {
+        set: data.serviceIds.map((id) => ({ id })),
+      };
+    }
+
+    const updatedAgent = await db.user.update({
+      where: { id },
+      data: updateData,
+      select: AgentDetailsSelect,
+    });
+
+    return updatedAgent;
+  } catch (error) {
+    console.error('Failed to update agent:', error);
+    throw new Error('Failed to update agent');
+  }
+}
+
+export async function getServicesForOrganization(organizationId?: string) {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  const where: Prisma.ConsularServiceWhereInput = {
+    isActive: true,
+    ...(organizationId && { organizationId }),
+  };
+
+  return db.consularService.findMany({
+    where,
+    select: {
+      id: true,
+      name: true,
+      category: true,
+    },
+    orderBy: {
+      name: 'asc',
+    },
+  });
 }
