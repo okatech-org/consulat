@@ -14,6 +14,8 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { ServiceRequest } from '@prisma/client';
 import { RequestsSection } from './sections/requests-section';
+import { MobileProfileNavigation } from './mobile-profile-navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ProfileTabsProps = {
   profile: FullProfile;
@@ -24,6 +26,7 @@ type ProfileTabsProps = {
 export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) {
   const t = useTranslations('profile');
   const router = useRouter();
+  const isMobile = useIsMobile();
 
   const profileTabs = [
     {
@@ -100,6 +103,17 @@ export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) 
   type Tab = (typeof profileTabs)[number]['id'];
 
   const { currentTab, handleTabChange } = useTabs<Tab>('tab', 'basic-info');
+
+  // Use Accordion on mobile, Tabs on desktop
+  if (isMobile) {
+    return (
+      <MobileProfileNavigation
+        profile={profile}
+        requestId={requestId}
+        requests={requests}
+      />
+    );
+  }
 
   return (
     <Tabs

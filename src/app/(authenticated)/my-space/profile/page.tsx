@@ -8,9 +8,9 @@ import { InfoIcon, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { buttonVariants } from '@/components/ui/button';
-import { calculateProfileCompletion, getProfileFieldsStatus } from '@/lib/utils';
+import { calculateProfileCompletion } from '@/lib/utils';
 import { NotesList } from '@/components/requests/review-notes';
-import { ProfileCompletion } from './_utils/components/profile-completion';
+import { ProfileProgressBar } from './_utils/components/profile-progress-bar';
 import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import CardContainer from '@/components/layouts/card-container';
@@ -40,7 +40,6 @@ export default async function ProfilePage() {
       : null;
 
   const completionRate = calculateProfileCompletion(profile);
-  const fieldStatus = getProfileFieldsStatus(profile);
 
   if (!profile) {
     return (
@@ -84,8 +83,12 @@ export default async function ProfilePage() {
           />
         </div>
         <div className="grid grid-cols-8 gap-4">
-          {profile && <ProfileTabs profile={profile} />}
-          <div className={'col-span-full flex flex-col gap-4 lg:col-span-2'}>
+          {profile && (
+            <div className="col-span-full flex flex-col gap-4 lg:col-span-5">
+              <ProfileTabs profile={profile} />
+            </div>
+          )}
+          <div className={'col-span-full flex flex-col gap-4 lg:col-span-3'}>
             {registrationRequest?.notes && registrationRequest?.notes?.length > 0 && (
               <NotesList
                 notes={registrationRequest.notes.filter(
@@ -93,10 +96,7 @@ export default async function ProfilePage() {
                 )}
               />
             )}
-            <ProfileCompletion
-              completionRate={completionRate}
-              fieldStatus={fieldStatus}
-            />
+            <ProfileProgressBar profile={profile} />
 
             {![
               'SUBMITTED',

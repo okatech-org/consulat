@@ -1,0 +1,54 @@
+/* Mobile Profile Styles */
+
+/* Ensure proper spacing for sticky button */
+@media (max-width: 768px) {
+  /* Add padding bottom to account for sticky save button */
+  .profile-content-wrapper {
+    padding-bottom: 5rem;
+  }
+
+  /* Accordion improvements */
+  .accordion-trigger-icon {
+    transition: transform 200ms;
+  }
+  
+  [data-state="open"] .accordion-trigger-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Touch-friendly tap targets */
+  .accordion-trigger {
+    min-height: 56px;
+    touch-action: manipulation;
+  }
+
+  /* Better visual feedback on mobile */
+  .accordion-item {
+    transition: border-color 200ms ease-in-out;
+  }
+
+  /* Sticky button animation */
+  .sticky-save-button {
+    animation: slideUp 300ms ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Improve form spacing on mobile */
+  .mobile-form-spacing > * + * {
+    margin-top: 1.5rem;
+  }
+
+  /* Ensure tooltips work well on mobile */
+  .tooltip-trigger {
+    padding: 0.25rem;
+    margin: -0.25rem;
+  }
+}
