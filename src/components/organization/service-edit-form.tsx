@@ -88,7 +88,6 @@ export function ConsularServiceForm({
       if (service.id) {
         filterUneditedKeys(data, form.formState.dirtyFields, ['id', 'steps']);
       }
-
       const result = await updateService(data);
       if (result.error) {
         throw new Error(result.error);
@@ -111,7 +110,17 @@ export function ConsularServiceForm({
 
   const serviceSteps: ServiceStep[] = form.watch('steps');
 
-  console.log({ cleanedService });
+  function handleDeliveryModeChange(value: DeliveryMode[]) {
+    if (value.includes(DeliveryMode.IN_PERSON) || value.includes(DeliveryMode.BY_PROXY)) {
+      form.setValue('deliveryAppointment', true, { shouldDirty: true });
+      form.setValue('deliveryAppointmentDesc', '', { shouldDirty: true });
+      form.setValue('deliveryAppointmentDuration', 15, { shouldDirty: true });
+    } else {
+      form.setValue('deliveryAppointment', false, { shouldDirty: true });
+      form.setValue('deliveryAppointmentDesc', undefined, { shouldDirty: true });
+      form.setValue('deliveryAppointmentDuration', undefined, { shouldDirty: true });
+    }
+  }
 
   return (
     <Form {...form}>
@@ -379,6 +388,7 @@ export function ConsularServiceForm({
                         selected={field.value}
                         onChange={(value) => {
                           field.onChange(value);
+                          handleDeliveryModeChange(value);
                         }}
                       />
                       <TradFormMessage />
