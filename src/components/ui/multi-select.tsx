@@ -3,14 +3,13 @@
 import * as React from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
-  Command,
+  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -97,75 +96,69 @@ export function MultiSelect<T>({
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn('min-w-max justify-between px-2', className)}
-            disabled={disabled}
-          >
-            <div className="flex flex-wrap gap-1">
-              {type === 'multiple' && <span className="opacity-50">{placeholder}</span>}
-              {type === 'single' && (
+      <Button
+        type="button"
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className={cn('min-w-max justify-between px-2', className)}
+        disabled={disabled}
+        onClick={() => setOpen(true)}
+      >
+        <div className="flex flex-wrap gap-1">
+          {type === 'multiple' && <span className="opacity-50">{placeholder}</span>}
+          {type === 'single' && (
+            <>
+              {selectedOptions.length > 0 ? (
                 <>
-                  {selectedOptions.length > 0 ? (
-                    <>
-                      {selectedOptions[0]?.component ? (
-                        selectedOptions[0]?.component
-                      ) : (
-                        <Badge variant={'secondary'}>{selectedOptions[0]?.label}</Badge>
-                      )}
-                    </>
+                  {selectedOptions[0]?.component ? (
+                    selectedOptions[0]?.component
                   ) : (
-                    <span className="opacity-50">{placeholder}</span>
+                    <Badge variant={'secondary'}>{selectedOptions[0]?.label}</Badge>
                   )}
                 </>
+              ) : (
+                <span className="opacity-50">{placeholder}</span>
               )}
-            </div>
-            <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-full p-0 z-[99999]">
-          <Command>
-            <CommandInput
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onValueChange={setSearchValue}
-              autoComplete={autoComplete}
-            />
-            <CommandList>
-              <CommandEmpty>{emptyText}</CommandEmpty>
-              <CommandGroup className="max-h-64 overflow-auto">
-                {filteredOptions.map((option) => (
-                  <CommandItem
-                    key={String(option.value)}
-                    value={option.label}
-                    onSelect={() => {
-                      toggleOption(option.value);
-                      if (type === 'single') {
-                        setOpen(false);
-                      }
-                    }}
-                    disabled={option.disabled}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedValues.includes(option.value)
-                          ? 'opacity-100'
-                          : 'opacity-0',
-                      )}
-                    />
-                    {option.component ? option.component : <span>{option.label}</span>}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+            </>
+          )}
+        </div>
+        <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
+      </Button>
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput
+          placeholder={searchPlaceholder}
+          value={searchValue}
+          onValueChange={setSearchValue}
+          autoComplete={autoComplete}
+        />
+        <CommandList>
+          <CommandEmpty>{emptyText}</CommandEmpty>
+          <CommandGroup className="max-h-64 overflow-auto">
+            {filteredOptions.map((option) => (
+              <CommandItem
+                key={String(option.value)}
+                value={option.label}
+                onSelect={() => {
+                  toggleOption(option.value);
+                  if (type === 'single') {
+                    setOpen(false);
+                  }
+                }}
+                disabled={option.disabled}
+              >
+                <Check
+                  className={cn(
+                    'mr-2 h-4 w-4',
+                    selectedValues.includes(option.value) ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
+                {option.component ? option.component : <span>{option.label}</span>}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
       {type === 'multiple' && (
         <div className="flex flex-wrap gap-1">
           {selectedOptions.map((option) => (
