@@ -115,7 +115,7 @@ export function MultiSelect<T>({
                       {selectedOptions[0]?.component ? (
                         selectedOptions[0]?.component
                       ) : (
-                        <Badge variant={'info'}>{selectedOptions[0]?.label}</Badge>
+                        <Badge variant={'secondary'}>{selectedOptions[0]?.label}</Badge>
                       )}
                     </>
                   ) : (
@@ -174,7 +174,7 @@ export function MultiSelect<T>({
                 toggleOption(option.value);
               }}
               key={String(option.value)}
-              variant={'info'}
+              variant={'secondary'}
               className="mr-1"
             >
               {option.label}
