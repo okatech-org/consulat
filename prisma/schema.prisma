@@ -82,19 +82,25 @@ model User {
 
   appointmentsToAttend Appointment[] @relation("AppointmentAttendee")
 
-  // agent fields
-  assignedOrganization   Organization?     @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
+  // agent & manager fields
+  assignedOrganization   Organization? @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
   assignedOrganizationId String?
-  authoredNotes          Note[]
-  assignedServices       ConsularService[] @relation("AssignedServices")
-  assignedRequests       ServiceRequest[]  @relation("AssignedRequests")
-  assignedAppointments   Appointment[]     @relation("AppointmentAgent")
-  requestActions         RequestAction[]
-  maxActiveRequests      Int? // Nombre maximum de demandes actives
-  specializations        ServiceCategory[] // Spécialisations de l'agent
-  availability           Json? // Configuration de disponibilité
-  completedRequests      Int               @default(0)
-  averageProcessingTime  Float?
+
+  authoredNotes         Note[]
+  assignedServices      ConsularService[] @relation("AssignedServices")
+  assignedRequests      ServiceRequest[]  @relation("AssignedRequests")
+  managedBy             User?             @relation("ManagedBy", fields: [managedByUserId], references: [id])
+  managedByUserId       String?
+  assignedAppointments  Appointment[]     @relation("AppointmentAgent")
+  requestActions        RequestAction[]
+  maxActiveRequests     Int? // Nombre maximum de demandes actives
+  specializations       ServiceCategory[] // Spécialisations de l'agent
+  availability          Json? // Configuration de disponibilité
+  completedRequests     Int               @default(0)
+  averageProcessingTime Float?
+
+  // manager field
+  managedAgents User[] @relation("ManagedBy")
 
   // Nouvelles relations pour le service de notification
   scheduledNotifications  ScheduledNotification[]

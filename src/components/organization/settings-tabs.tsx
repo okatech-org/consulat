@@ -7,7 +7,7 @@ import { CreateServiceButton } from '@/components/organization/create-service-bu
 import { ServicesTable } from '@/components/organization/services-table';
 import CardContainer from '@/components/layouts/card-container';
 import { CreateAgentButton } from '@/components/organization/CreateAgentButton';
-import { UsersTable } from '@/components/organization/users-table';
+import { AgentsTableWithFilters } from '@/components/organization/agents-table-with-filters';
 import * as React from 'react';
 import { Organization } from '@/types/organization';
 import { Country } from '@prisma/client';
@@ -67,7 +67,7 @@ export function SettingsTabs({
 
       <TabsContent value="agents" className="space-y-4">
         <CardContainer
-          title={t('settings.agents.title')}
+          title="Agents et Managers"
           action={
             <CreateAgentButton
               initialData={{
@@ -77,10 +77,7 @@ export function SettingsTabs({
             />
           }
         >
-          <UsersTable
-            agents={organization.agents ?? []}
-            countries={organization.countries ?? []}
-          />
+          <AgentsTableWithFilters organizationId={organization.id} />
         </CardContainer>
       </TabsContent>
     </Tabs>

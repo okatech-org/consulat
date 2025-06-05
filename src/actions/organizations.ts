@@ -279,19 +279,22 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
 
   const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-  const { countryIds, serviceIds, firstName, lastName, ...rest } = data;
+  const { countryIds, serviceIds, firstName, lastName, role, managedByUserId, ...rest } = data;
 
   const agent = await db.user.create({
     data: {
       ...rest,
       name: `${firstName} ${lastName}`,
-      roles: [UserRole.AGENT],
+      roles: [role || UserRole.AGENT],
+      ...(managedByUserId && { managedByUserId }),
       linkedCountries: {
         connect: countryIds.map((id) => ({ id })),
       },
-      assignedServices: {
-        connect: serviceIds.map((id) => ({ id })),
-      },
+      ...(serviceIds && serviceIds.length > 0 && {
+        assignedServices: {
+          connect: serviceIds.map((id) => ({ id })),
+        },
+      }),
     },
     include: {
       ...BaseAgentInclude.include,
@@ -359,7 +362,7 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
   }
 }
 
-export async function getOrganizationAgents(id: string): Promise<{
+export async function getOrganizationAgents(id: string, managerId?: string): Promise<{
   data?: BaseAgent[];
   error?: string;
 }> {
@@ -367,6 +370,67 @@ export async function getOrganizationAgents(id: string): Promise<{
     const agents = await db.user.findMany({
       where: {
         assignedOrganizationId: id,
+        roles: {
+          has: UserRole.AGENT,
+        },
+        ...(managerId && { managedByUserId: managerId }),
+      },
+      ...BaseAgentInclude,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { data: agents };
+  } catch (error) {
+    console.error('Error fetching agents:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function getOrganizationManagers(id: string): Promise<{
+  data?: { id: string; name: string | null }[];
+  error?: string;
+}> {
+  try {
+    const managers = await db.user.findMany({
+      where: {
+        assignedOrganizationId: id,
+        roles: {
+          has: UserRole.MANAGER,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { data: managers };
+  } catch (error) {
+    console.error('Error fetching managers:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function getAgentsByManager(managerId: string): Promise<{
+  data?: BaseAgent[];
+  error?: string;
+}> {
+  const { user } = await checkAuth([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]);
+  
+  // Verify the manager can only see their own agents
+  if (user.roles.includes(UserRole.MANAGER) && user.id !== managerId) {
+    return { error: 'messages.error.unauthorized' };
+  }
+
+  try {
+    const agents = await db.user.findMany({
+      where: {
+        managedByUserId: managerId,
         roles: {
           has: UserRole.AGENT,
         },
@@ -379,7 +443,7 @@ export async function getOrganizationAgents(id: string): Promise<{
 
     return { data: agents };
   } catch (error) {
-    console.error('Error fetching agents:', error);
+    console.error('Error fetching agents by manager:', error);
     return { error: 'messages.error.fetch' };
   }
 }

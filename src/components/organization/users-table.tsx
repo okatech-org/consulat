@@ -8,7 +8,7 @@ import { DataTableRowActions } from '@/components/data-table/data-table-row-acti
 import { Trash } from 'lucide-react';
 import { DataTable } from '@/components/data-table/data-table';
 import { BaseAgent, FullOrganization } from '@/types/organization';
-import { Country, ServiceCategory } from '@prisma/client';
+import { Country, ServiceCategory, UserRole } from '@prisma/client';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { CollapseList } from '../ui/collapse-list';
 import { ROUTES } from '@/schemas/routes';
@@ -44,6 +44,19 @@ export function UsersTable({ agents }: UsersTableProps) {
       header: t('table.phone'),
       accessorKey: 'phoneNumber',
       cell: ({ row }) => (row.original.phoneNumber ? `${row.original.phoneNumber}` : '-'),
+    },
+    {
+      header: 'Rôle',
+      accessorKey: 'roles',
+      cell: ({ row }) => {
+        const roles = row.original.roles;
+        if (roles.includes(UserRole.MANAGER)) {
+          return <Badge>Manager</Badge>;
+        } else if (roles.includes(UserRole.AGENT)) {
+          return <Badge variant="secondary">Agent</Badge>;
+        }
+        return '-';
+      },
     },
     {
       accessorKey: 'linkedCountries',

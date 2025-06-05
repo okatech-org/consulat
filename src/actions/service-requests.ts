@@ -79,7 +79,7 @@ export interface PaginatedServiceRequests {
 export async function getServiceRequestsList(
   options?: GetRequestsOptions,
 ): Promise<PaginatedServiceRequests> {
-  await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
+  const { user } = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
 
   const {
     search,
@@ -96,10 +96,32 @@ export async function getServiceRequestsList(
 
   const where: Prisma.ServiceRequestWhereInput = {};
 
+  // If user is MANAGER, only show requests assigned to agents they manage
+  if (user.roles.includes(UserRole.MANAGER)) {
+    const managedAgents = await db.user.findMany({
+      where: {
+        managedByUserId: user.id,
+        roles: { has: UserRole.AGENT },
+      },
+      select: { id: true },
+    });
+    const managedAgentIds = managedAgents.map(agent => agent.id);
+    
+    // Include requests assigned to managed agents
+    if (managedAgentIds.length > 0) {
+      where.assignedToId = { in: managedAgentIds };
+    } else {
+      // If no managed agents, return empty results
+      return { items: [], total: 0 };
+    }
+  }
+
   if (status) where.status = { in: status };
   if (priority) where.priority = { in: priority };
   if (serviceCategory) where.serviceCategory = { in: serviceCategory };
-  if (assignedToId) where.assignedToId = { in: assignedToId };
+  if (assignedToId && !user.roles.includes(UserRole.MANAGER)) {
+    where.assignedToId = { in: assignedToId };
+  }
   if (organizationId) where.organizationId = { in: organizationId };
 
   if (search) {

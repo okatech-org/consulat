@@ -13,7 +13,6 @@ import { useTableSearchParams } from '@/components/utils/table-hooks';
 import { Column, ColumnDef, Row } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { PageContainer } from '@/components/layouts/page-container';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -23,9 +22,12 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
-import { getServices } from '../(superadmin)/_utils/actions/services';
-import { CreateAgentButton } from '@/components/organization/CreateAgentButton';
-import { Country, UserRole } from '@prisma/client';
+import { getServices } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
+import { UserRole } from '@prisma/client';
+import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
+import { Eye, Trash } from 'lucide-react';
+import { EditAgentDialog } from './edit-agent-dialog';
+import { useRouter } from 'next/navigation';
 
 interface SearchParams {
   search?: string;
@@ -34,7 +36,12 @@ interface SearchParams {
   assignedOrganizationId?: string[];
 }
 
-export default function AgentsListingPage() {
+interface AgentsTableWithFiltersProps {
+  organizationId?: string;
+}
+
+export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFiltersProps) {
+  const router = useRouter();
   const currentUser = useCurrentUser();
   const [data, setData] = useState<AgentsListResult>({
     items: [],
@@ -42,10 +49,13 @@ export default function AgentsListingPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
-  const [countriesData, setCountriesData] = useState<Country[]>([]);
   const [organizations, setOrganizations] = useState<{ id: string; name: string }[]>([]);
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<AgentListItem | null>(null);
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
+  const isAdmin = currentUser?.roles?.includes('ADMIN');
+  const isManager = currentUser?.roles?.includes('MANAGER');
 
   useEffect(() => {
     async function loadOrganizations() {
@@ -62,7 +72,6 @@ export default function AgentsListingPage() {
     async function loadCountries() {
       const countriesRes = await getActiveCountries();
       setCountries(countriesRes.map((c) => ({ code: c.code, name: c.name })));
-      setCountriesData(countriesRes);
     }
 
     loadCountries();
@@ -71,15 +80,15 @@ export default function AgentsListingPage() {
   useEffect(() => {
     async function loadServices() {
       const servicesRes = await getServices(
-        isSuperAdmin
+        organizationId || (isSuperAdmin
           ? undefined
-          : (currentUser?.organizationId ?? currentUser?.assignedOrganizationId),
+          : (currentUser?.organizationId ?? currentUser?.assignedOrganizationId)),
       );
       setServices(servicesRes.map((s) => ({ id: s.id, name: s.name })));
     }
 
     loadServices();
-  }, [isSuperAdmin, currentUser]);
+  }, [isSuperAdmin, currentUser, organizationId]);
 
   // Gestion des paramètres d'URL/table (pagination, tri, filtres)
   const { params, pagination, sorting, handleParamsChange, handlePaginationChange } =
@@ -111,7 +120,7 @@ export default function AgentsListingPage() {
         defaultValue: params.assignedServices as string[],
         onChange: (value: string[]) => handleParamsChange('assignedServices', value),
       },
-      ...(isSuperAdmin
+      ...(isSuperAdmin && !organizationId
         ? [
             {
               type: 'checkbox' as const,
@@ -125,10 +134,12 @@ export default function AgentsListingPage() {
           ]
         : []),
     ],
-    [countries, organizations, services, isSuperAdmin, handleParamsChange, params],
+    [countries, organizations, services, isSuperAdmin, handleParamsChange, params, organizationId],
   );
 
   const getOrganizationId = useCallback(() => {
+    if (organizationId) return organizationId;
+    
     if (currentUser?.roles.includes('SUPER_ADMIN')) {
       return undefined;
     }
@@ -142,13 +153,13 @@ export default function AgentsListingPage() {
     }
 
     return undefined;
-  }, [currentUser]);
+  }, [currentUser, organizationId]);
 
   // Fetch agents à chaque changement de params
   useEffect(() => {
     setIsLoading(true);
     const fetch = async () => {
-      const organizationId = getOrganizationId();
+      const orgId = getOrganizationId();
 
       const options: AgentsListRequestOptions = {
         search: params.search as string,
@@ -167,7 +178,7 @@ export default function AgentsListingPage() {
         country: (params.linkedCountries as string[]) ?? undefined,
         organizationId:
           params.assignedOrganizationId ??
-          (organizationId ? [organizationId] : undefined),
+          (orgId ? [orgId] : undefined),
       };
 
       const result = await tryCatch(getAgentsList(options));
@@ -236,7 +247,7 @@ export default function AgentsListingPage() {
         cell: ({ row }) => {
           const user = row.original as any;
           if (!user.roles) return '-';
-
+          
           if (user.roles.includes(UserRole.MANAGER)) {
             return <Badge>Manager</Badge>;
           } else if (user.roles.includes(UserRole.AGENT)) {
@@ -245,12 +256,12 @@ export default function AgentsListingPage() {
           return '-';
         },
       },
-      ...(isSuperAdmin
+      ...(isSuperAdmin && !organizationId
         ? [
             {
               accessorKey: 'assignedOrganizationId',
               header: ({ column }: { column: Column<AgentListItem, unknown> }) => (
-                <DataTableColumnHeader column={column} title="ID Organisation" />
+                <DataTableColumnHeader column={column} title="Organisation" />
               ),
               cell: ({ row }: { row: Row<AgentListItem> }) => {
                 const org = organizations.find(
@@ -268,7 +279,7 @@ export default function AgentsListingPage() {
           row.original.linkedCountries && row.original.linkedCountries.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {row.original.linkedCountries.map((c) => (
-                <Badge key={c.code}>{c.name}</Badge>
+                <Badge key={c.code} variant="outline">{c.name}</Badge>
               ))}
             </div>
           ) : (
@@ -284,7 +295,7 @@ export default function AgentsListingPage() {
           row.original.assignedServices && row.original.assignedServices.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {row.original.assignedServices.map((s: { name: string; id: string }) => (
-                <Badge key={s.id}>{s.name}</Badge>
+                <Badge key={s.id} variant="secondary">{s.name}</Badge>
               ))}
             </div>
           ) : (
@@ -295,13 +306,35 @@ export default function AgentsListingPage() {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-          <Button asChild variant="outline" size="sm">
-            <Link href={`${ROUTES.dashboard.agents}/${row.original.id}`}>Consulter</Link>
-          </Button>
+          <DataTableRowActions<AgentListItem>
+            actions={[
+              {
+                label: (
+                  <>
+                    <Eye className="size-icon" />
+                    <span>Consulter</span>
+                  </>
+                ),
+                onClick: (row) => router.push(ROUTES.dashboard.agent_detail(row.id)),
+              },
+              ...((isAdmin || isSuperAdmin) ? [{
+                label: (
+                  <>
+                    <Trash className="mr-1 size-4 text-destructive" />
+                    <span className="text-destructive">Supprimer</span>
+                  </>
+                ),
+                onClick: (row: AgentListItem) => {
+                  console.log("Supprimer l'agent", row);
+                },
+              }] : []),
+            ]}
+            row={row}
+          />
         ),
       },
     ],
-    [isSuperAdmin, organizations],
+    [isSuperAdmin, isAdmin, organizations, router, organizationId],
   );
 
   function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
@@ -334,18 +367,13 @@ export default function AgentsListingPage() {
     return params;
   }
 
+  const handleEditSuccess = () => {
+    // Recharger la page pour mettre à jour les données
+    window.location.reload();
+  };
+
   return (
-    <PageContainer
-      title="Agents"
-      action={
-        <CreateAgentButton
-          initialData={{
-            assignedOrganizationId: getOrganizationId(),
-          }}
-          countries={countriesData}
-        />
-      }
-    >
+    <>
       <DataTable
         isLoading={isLoading}
         columns={columns}
@@ -360,6 +388,14 @@ export default function AgentsListingPage() {
           sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
         }
       />
-    </PageContainer>
+      {selectedAgent && (
+        <EditAgentDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          agent={selectedAgent as any}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+    </>
   );
 }

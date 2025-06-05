@@ -32,11 +32,13 @@ import {
   SelectContent,
   SelectItem,
 } from '../ui/select';
+import { UserRole } from '@prisma/client';
 
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
   countries: Organization['countries'];
   services: { id: string; name: string }[];
+  managers?: { id: string; name: string }[];
   onSuccess?: () => void;
 }
 
@@ -44,6 +46,7 @@ export function AgentForm({
   initialData,
   countries,
   services,
+  managers = [],
   onSuccess,
 }: AgentFormProps) {
   const t_inputs = useTranslations('inputs');
@@ -59,6 +62,7 @@ export function AgentForm({
       countryIds: initialData?.countryIds ?? [],
       serviceIds: initialData?.serviceIds ?? [],
       phoneNumber: initialData?.phoneNumber ?? '+33-',
+      role: initialData?.role ?? UserRole.AGENT,
     },
     mode: 'onSubmit',
   });
@@ -162,25 +166,22 @@ export function AgentForm({
 
         <FormField
           control={form.control}
-          name="countryIds"
+          name="role"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t_inputs('country.label')}</FormLabel>
+              <FormLabel>Rôle</FormLabel>
               <FormControl>
                 <Select
-                  value={field.value?.[0] || ''}
-                  onValueChange={(value) => field.onChange([value])}
+                  value={field.value}
+                  onValueChange={field.onChange}
                   disabled={isLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t_inputs('country.select_placeholder')} />
+                    <SelectValue placeholder="Sélectionner un rôle" />
                   </SelectTrigger>
                   <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.id} value={country.id}>
-                        {country.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value={UserRole.AGENT}>Agent</SelectItem>
+                    <SelectItem value={UserRole.MANAGER}>Manager</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -189,20 +190,51 @@ export function AgentForm({
           )}
         />
 
+        {form.watch('role') === UserRole.AGENT && managers.length > 0 && (
+          <FormField
+            control={form.control}
+            name="managedByUserId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Manager</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value || ''}
+                    onValueChange={field.onChange}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un manager" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {managers.map((manager) => (
+                        <SelectItem key={manager.id} value={manager.id}>
+                          {manager.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
         <FormField
           control={form.control}
-          name="serviceIds"
+          name="countryIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Services</FormLabel>
+              <FormLabel>{t_inputs('country.label')}</FormLabel>
               <FormControl>
                 <MultiSelect<string>
-                  placeholder="Sélectionner les services"
-                  options={services.map((service) => ({
-                    label: service.name,
-                    value: service.id,
+                  placeholder={t_inputs('country.select_placeholder')}
+                  options={countries.map((country) => ({
+                    label: country.name,
+                    value: country.id,
                   }))}
-                  selected={field.value}
+                  selected={field.value || []}
                   onChange={field.onChange}
                   type={'multiple'}
                   disabled={isLoading}
@@ -212,6 +244,32 @@ export function AgentForm({
             </FormItem>
           )}
         />
+
+        {form.watch('role') === 'AGENT' && (
+          <FormField
+            control={form.control}
+            name="serviceIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Services (optionnel)</FormLabel>
+                <FormControl>
+                  <MultiSelect<string>
+                    placeholder="Sélectionner les services"
+                    options={services.map((service) => ({
+                      label: service.name,
+                      value: service.id,
+                    }))}
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    type={'multiple'}
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="col-span-full flex flex-end">
           <Button type="submit" className="ml-2" disabled={isLoading}>

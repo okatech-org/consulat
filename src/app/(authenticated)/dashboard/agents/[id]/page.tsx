@@ -35,12 +35,14 @@ import {
   Settings,
   AlertCircle,
   ExternalLink,
+  Eye,
+  Users,
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
-import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
+import { RequestStatus, ServiceCategory, ServicePriority, UserRole } from '@prisma/client';
 import { EditAgentForm } from './components/edit-agent-form';
 
 interface RequestFilters {
@@ -158,6 +160,84 @@ export default function AgentDetailPage() {
       },
     ],
     [t, tableParams, statuses, handleParamsChange],
+  );
+
+  // Définition des colonnes pour les agents managés
+  const managedAgentsColumns: ColumnDef<NonNullable<AgentDetails['managedAgents']>[0]>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Nom" />,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={undefined} alt={row.original.name || '-'} />
+              <AvatarFallback>{row.original.name?.[0] || 'A'}</AvatarFallback>
+            </Avatar>
+            <Link
+              href={ROUTES.dashboard.agent_detail(row.original.id)}
+              className="font-medium hover:underline"
+            >
+              {row.original.name || 'Sans nom'}
+            </Link>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'email',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+        cell: ({ row }) => row.original.email || '-',
+      },
+      {
+        accessorKey: 'phoneNumber',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Téléphone" />,
+        cell: ({ row }) => row.original.phoneNumber || '-',
+      },
+      {
+        accessorKey: 'linkedCountries',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Pays" />,
+        cell: ({ row }) =>
+          row.original.linkedCountries && row.original.linkedCountries.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {row.original.linkedCountries.map((c: any) => (
+                <Badge key={c.code} variant="outline">{c.name}</Badge>
+              ))}
+            </div>
+          ) : (
+            '-'
+          ),
+      },
+      {
+        accessorKey: 'assignedRequests',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Demandes actives" />,
+        cell: ({ row }) => {
+          const activeRequests = row.original.assignedRequests?.length || 0;
+          return (
+            <Badge variant={activeRequests > 5 ? 'destructive' : 'secondary'}>
+              {activeRequests}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: 'completedRequests',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Complétées" />,
+        cell: ({ row }) => row.original.completedRequests || 0,
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <Button variant="outline" size="sm" asChild>
+            <Link href={ROUTES.dashboard.agent_detail(row.original.id)}>
+              <Eye className="h-4 w-4 mr-2" />
+              {t('common.actions.consult')}
+            </Link>
+          </Button>
+        ),
+      },
+    ],
+    [t],
   );
 
   // Définition des colonnes pour les demandes assignées
@@ -324,6 +404,7 @@ export default function AgentDetailPage() {
 
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
   const canManageAgent = isSuperAdmin || currentUser?.roles?.includes('ADMIN');
+  const isManager = agent?.roles?.includes(UserRole.MANAGER);
 
   const handleAgentUpdate = (updatedAgent: AgentDetails) => {
     setAgent(updatedAgent);
@@ -463,7 +544,9 @@ export default function AgentDetailPage() {
   const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
 
   return (
-    <PageContainer title="Détail de l'agent" description={agent.name}>
+    <PageContainer 
+      title={isManager ? "Détail du manager" : "Détail de l'agent"} 
+      description={agent.name}>
       <div className="space-y-6">
         {/* Header avec informations de base */}
         <CardContainer
@@ -560,86 +643,179 @@ export default function AgentDetailPage() {
         </CardContainer>
 
         {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard
-            title="Demandes en attente"
-            value={pendingRequests}
-            description="Demandes à traiter"
-            icon={Clock}
-            className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30"
-            iconClassName="bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400"
-          />
-
-          <StatsCard
-            title="En traitement"
-            value={processingRequests}
-            description="Demandes en cours"
-            icon={FileText}
-            className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30"
-            iconClassName="bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400"
-          />
-
-          <StatsCard
-            title="Complétées"
-            value={completedRequests}
-            description="Demandes finalisées"
-            icon={CheckCircle}
-            className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30"
-            iconClassName="bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400"
-          />
-
-          <StatsCard
-            title="Temps moyen"
-            value={`${averageProcessingTime}j`}
-            description="Traitement moyen"
-            icon={Calendar}
-            className="bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800/30"
-            iconClassName="bg-white dark:bg-neutral-900 text-purple-500 dark:text-purple-400"
-          />
-        </div>
-
-        {/* Demandes assignées */}
-        <CardContainer
-          title={
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
-              <span>Demandes assignées</span>
-              <Badge variant="outline">{agent.assignedRequests?.length || 0}</Badge>
-            </div>
-          }
-          action={
-            <Button variant="outline" size="sm" asChild>
-              <Link href={ROUTES.dashboard.requests}>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Gérer toutes les demandes
-              </Link>
-            </Button>
-          }
-        >
-          {agent.assignedRequests && agent.assignedRequests.length > 0 ? (
-            <DataTable
-              columns={requestsColumns}
-              data={paginatedRequests}
-              filters={requestFilters}
-              totalCount={filteredRequests.length}
-              pageIndex={pagination.page - 1}
-              pageSize={pagination.limit}
-              onPageChange={(page) => handlePaginationChange('page', page + 1)}
-              onLimitChange={(limit) => handlePaginationChange('limit', limit)}
-              activeSorting={
-                sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
-              }
+        {isManager ? (
+          // Statistiques pour Manager
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatsCard
+              title="Agents managés"
+              value={agent.managedAgents?.length || 0}
+              description="Nombre total d'agents"
+              icon={Users}
+              className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400"
             />
-          ) : (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">Aucune demande assignée</p>
-              <p className="text-muted-foreground">
-                Cet agent n&apos;a pas encore de demandes assignées.
-              </p>
-            </div>
-          )}
-        </CardContainer>
+
+            <StatsCard
+              title="Demandes actives"
+              value={
+                agent.managedAgents?.reduce((sum, a) => sum + (a.assignedRequests?.length || 0), 0) || 0
+              }
+              description="Total des agents"
+              icon={FileText}
+              className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400"
+            />
+
+            <StatsCard
+              title="Total complétées"
+              value={
+                agent.managedAgents?.reduce((sum, a) => sum + (a.completedRequests || 0), 0) || 0
+              }
+              description="Par tous les agents"
+              icon={CheckCircle}
+              className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400"
+            />
+
+            <StatsCard
+              title="Temps moyen"
+              value={
+                agent.managedAgents && agent.managedAgents.length > 0
+                  ? `${Math.round(
+                      agent.managedAgents.reduce((sum, a) => sum + (a.averageProcessingTime || 0), 0) /
+                        agent.managedAgents.length
+                    )}j`
+                  : '0j'
+              }
+              description="Moyenne des agents"
+              icon={Calendar}
+              className="bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-purple-500 dark:text-purple-400"
+            />
+          </div>
+        ) : (
+          // Statistiques pour Agent
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatsCard
+              title="Demandes en attente"
+              value={pendingRequests}
+              description="Demandes à traiter"
+              icon={Clock}
+              className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400"
+            />
+
+            <StatsCard
+              title="En traitement"
+              value={processingRequests}
+              description="Demandes en cours"
+              icon={FileText}
+              className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400"
+            />
+
+            <StatsCard
+              title="Complétées"
+              value={completedRequests}
+              description="Demandes finalisées"
+              icon={CheckCircle}
+              className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400"
+            />
+
+            <StatsCard
+              title="Temps moyen"
+              value={`${averageProcessingTime}j`}
+              description="Traitement moyen"
+              icon={Calendar}
+              className="bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800/30"
+              iconClassName="bg-white dark:bg-neutral-900 text-purple-500 dark:text-purple-400"
+            />
+          </div>
+        )}
+
+        {/* Section conditionnelle pour Manager ou Agent */}
+        {isManager ? (
+          // Section pour les managers - Afficher les agents managés
+          <CardContainer
+            title={
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5" />
+                <span>Agents managés</span>
+                <Badge variant="outline">{agent.managedAgents?.length || 0}</Badge>
+              </div>
+            }
+            action={
+              <Button variant="outline" size="sm" asChild>
+                <Link href={ROUTES.dashboard.agents}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Voir tous les agents
+                </Link>
+              </Button>
+            }
+          >
+            {agent.managedAgents && agent.managedAgents.length > 0 ? (
+              <DataTable
+                columns={managedAgentsColumns}
+                data={agent.managedAgents}
+                totalCount={agent.managedAgents.length}
+                pageIndex={0}
+                pageSize={10}
+              />
+            ) : (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium">Aucun agent managé</p>
+                <p className="text-muted-foreground">
+                  Ce manager n&apos;a pas encore d&apos;agents assignés.
+                </p>
+              </div>
+            )}
+          </CardContainer>
+        ) : (
+          // Section pour les agents - Afficher les demandes assignées
+          <CardContainer
+            title={
+              <div className="flex items-center space-x-2">
+                <FileText className="h-5 w-5" />
+                <span>Demandes assignées</span>
+                <Badge variant="outline">{agent.assignedRequests?.length || 0}</Badge>
+              </div>
+            }
+            action={
+              <Button variant="outline" size="sm" asChild>
+                <Link href={ROUTES.dashboard.requests}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Gérer toutes les demandes
+                </Link>
+              </Button>
+            }
+          >
+            {agent.assignedRequests && agent.assignedRequests.length > 0 ? (
+              <DataTable
+                columns={requestsColumns}
+                data={paginatedRequests}
+                filters={requestFilters}
+                totalCount={filteredRequests.length}
+                pageIndex={pagination.page - 1}
+                pageSize={pagination.limit}
+                onPageChange={(page) => handlePaginationChange('page', page + 1)}
+                onLimitChange={(limit) => handlePaginationChange('limit', limit)}
+                activeSorting={
+                  sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
+                }
+              />
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium">Aucune demande assignée</p>
+                <p className="text-muted-foreground">
+                  Cet agent n&apos;a pas encore de demandes assignées.
+                </p>
+              </div>
+            )}
+          </CardContainer>
+        )}
 
         {/* Disponibilité et statut */}
         {agent.availability && (
