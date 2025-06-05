@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,11 @@ import { BaseAgent, FullOrganization } from '@/types/organization';
 import { Country, ServiceCategory } from '@prisma/client';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { CollapseList } from '../ui/collapse-list';
+import { ROUTES } from '@/schemas/routes';
+import { Eye } from 'lucide-react';
+import { EditAgentDialog } from './edit-agent-dialog';
+
+import { useRouter } from 'next/navigation';
 
 interface UsersTableProps {
   agents: FullOrganization['agents'];
@@ -18,8 +23,11 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ agents }: UsersTableProps) {
+  const router = useRouter();
   const t = useTranslations('organization.settings.agents');
   const t_base = useTranslations();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<BaseAgent | null>(null);
 
   const columns: ColumnDef<BaseAgent>[] = [
     {
@@ -71,6 +79,15 @@ export function UsersTable({ agents }: UsersTableProps) {
               {
                 label: (
                   <>
+                    <Eye className="size-icon" />
+                    <span>{t_base('common.actions.consult')}</span>
+                  </>
+                ),
+                onClick: (row) => router.push(ROUTES.dashboard.agent_detail(row.id)),
+              },
+              {
+                label: (
+                  <>
                     <Trash className="mr-1 size-4 text-destructive" />
                     <span className="text-destructive">
                       {t_base('common.actions.delete')}
@@ -89,5 +106,22 @@ export function UsersTable({ agents }: UsersTableProps) {
     },
   ];
 
-  return <DataTable<BaseAgent, unknown> columns={columns} data={agents} />;
+  const handleEditSuccess = () => {
+    // Recharger la page pour mettre à jour les données
+    window.location.reload();
+  };
+
+  return (
+    <>
+      <DataTable<BaseAgent, unknown> columns={columns} data={agents as BaseAgent[]} />
+      {selectedAgent && (
+        <EditAgentDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          agent={selectedAgent}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+    </>
+  );
 }
