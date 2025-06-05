@@ -20,7 +20,7 @@ import { MultiSelectCountries } from '@/components/ui/multi-select-countries';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { AgentFormData, AgentSchema } from '@/schemas/user';
 import { useToast } from '@/hooks/use-toast';
-import { ServiceCategory } from '@prisma/client';
+
 import { createNewAgent } from '@/actions/organizations';
 import { Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
@@ -30,10 +30,16 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
   countries: Organization['countries'];
+  services: { id: string; name: string }[];
   onSuccess?: () => void;
 }
 
-export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps) {
+export function AgentForm({
+  initialData,
+  countries,
+  services,
+  onSuccess,
+}: AgentFormProps) {
   const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
@@ -45,7 +51,7 @@ export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps)
     defaultValues: {
       ...initialData,
       countryIds: initialData?.countryIds ?? [],
-      serviceCategories: initialData?.serviceCategories ?? [],
+      serviceIds: initialData?.serviceIds ?? [],
       phoneNumber: initialData?.phoneNumber ?? '+33-',
     },
     mode: 'onSubmit',
@@ -169,16 +175,16 @@ export function AgentForm({ initialData, countries, onSuccess }: AgentFormProps)
 
         <FormField
           control={form.control}
-          name="serviceCategories"
+          name="serviceIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t_inputs('serviceCategory.label')}</FormLabel>
+              <FormLabel>Services</FormLabel>
               <FormControl>
-                <MultiSelect<ServiceCategory>
-                  placeholder="Sélectionner les catégories"
-                  options={Object.values(ServiceCategory).map((cat) => ({
-                    label: t_inputs(`serviceCategory.options.${cat}`),
-                    value: cat,
+                <MultiSelect<string>
+                  placeholder="Sélectionner les services"
+                  options={services.map((service) => ({
+                    label: service.name,
+                    value: service.id,
                   }))}
                   selected={field.value}
                   onChange={field.onChange}

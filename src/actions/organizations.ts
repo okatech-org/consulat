@@ -279,16 +279,18 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
 
   const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-  const { countryIds, serviceCategories, firstName, lastName, ...rest } = data;
+  const { countryIds, serviceIds, firstName, lastName, ...rest } = data;
 
   const agent = await db.user.create({
     data: {
       ...rest,
       name: `${firstName} ${lastName}`,
       roles: [UserRole.AGENT],
-      specializations: serviceCategories,
       linkedCountries: {
         connect: countryIds.map((id) => ({ id })),
+      },
+      assignedServices: {
+        connect: serviceIds.map((id) => ({ id })),
       },
     },
     include: {
@@ -322,7 +324,7 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
     metadata: {
       createdBy: currentUser?.id,
       createdByName: `${currentUser?.name || ''}`.trim(),
-      specializations: serviceCategories,
+      assignedServices: serviceIds,
       countries: countryNames,
       organization: organizationName,
     },

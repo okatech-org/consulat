@@ -26,9 +26,8 @@ export const AgentSchema = z.object({
   countryIds: z.array(z.string()).min(1, {
     message: 'Vous devez sélectionner au moins un pays.',
   }),
-  serviceCategories: z.array(z.nativeEnum(ServiceCategory)).min(1, {
-    // Utiliser directement l'enum
-    message: 'Vous devez sélectionner au moins une catégorie de service.',
+  serviceIds: z.array(z.string()).min(1, {
+    message: 'Vous devez sélectionner au moins un service.',
   }),
   assignedOrganizationId: z.string(),
 });

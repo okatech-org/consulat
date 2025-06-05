@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -15,7 +15,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Organization } from '@/types/organization';
-import { useRouter } from 'next/navigation';
+
+import { getServicesForOrganization } from '@/actions/agents';
+import { tryCatch } from '@/lib/utils';
 
 interface CreateAgentButtonProps {
   initialData?: Partial<AgentFormData>;
@@ -23,9 +25,23 @@ interface CreateAgentButtonProps {
 }
 
 export function CreateAgentButton({ initialData, countries }: CreateAgentButtonProps) {
-  const router = useRouter();
   const t = useTranslations('organization.settings.agents');
   const [open, setOpen] = useState(false);
+  const [services, setServices] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    async function loadServices() {
+      if (initialData?.assignedOrganizationId) {
+        const result = await tryCatch(
+          getServicesForOrganization(initialData.assignedOrganizationId),
+        );
+        if (result.data) {
+          setServices(result.data);
+        }
+      }
+    }
+    loadServices();
+  }, [initialData?.assignedOrganizationId]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -43,6 +59,7 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
         <AgentForm
           initialData={initialData}
           countries={countries}
+          services={services}
           onSuccess={() => {
             setOpen(false);
             window.location.reload();
