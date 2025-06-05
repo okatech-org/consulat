@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MultiSelectCountries } from '@/components/ui/multi-select-countries';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { AgentFormData, AgentSchema } from '@/schemas/user';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +25,13 @@ import { Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
 import { PhoneNumberInput } from '../ui/phone-number';
 import { CountryCode } from '@/lib/autocomplete-datas';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '../ui/select';
 
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
@@ -161,12 +167,22 @@ export function AgentForm({
             <FormItem>
               <FormLabel>{t_inputs('country.label')}</FormLabel>
               <FormControl>
-                <MultiSelectCountries
-                  placeholder={t_inputs('country.select_placeholder')}
-                  countries={countries}
-                  selected={field.value}
-                  onChangeAction={field.onChange}
-                />
+                <Select
+                  value={field.value?.[0] || ''}
+                  onValueChange={(value) => field.onChange([value])}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t_inputs('country.select_placeholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.id} value={country.id}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
