@@ -377,6 +377,25 @@ const AgentDetailsSelect: Prisma.UserSelect = {
   availability: true,
   completedRequests: true,
   averageProcessingTime: true,
+  managedAgents: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+      linkedCountries: true,
+      assignedServices: true,
+      completedRequests: true,
+      averageProcessingTime: true,
+      assignedRequests: {
+        where: {
+          status: {
+            notIn: ['COMPLETED', 'REJECTED'],
+          },
+        },
+      },
+    },
+  },
 };
 
 export type AgentDetails = Prisma.UserGetPayload<{
