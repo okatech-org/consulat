@@ -141,6 +141,13 @@ export const BaseAgentInclude = {
         flag: true,
       },
     },
+    assignedServices: {
+      select: {
+        id: true,
+        name: true,
+        category: true,
+      },
+    },
   },
 } as const;
 

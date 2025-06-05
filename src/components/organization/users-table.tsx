@@ -1,26 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import { Trash } from 'lucide-react';
 import { DataTable } from '@/components/data-table/data-table';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { BaseAgent, FullOrganization } from '@/types/organization';
 import { Country, ServiceCategory } from '@prisma/client';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { CollapseList } from '../ui/collapse-list';
+import { ROUTES } from '@/schemas/routes';
+import { Eye } from 'lucide-react';
+import { EditAgentDialog } from './edit-agent-dialog';
+
+import { useRouter } from 'next/navigation';
 
 interface UsersTableProps {
   agents: FullOrganization['agents'];
   countries: Country[];
 }
 
-export function UsersTable({ agents, countries }: UsersTableProps) {
+export function UsersTable({ agents }: UsersTableProps) {
+  const router = useRouter();
   const t = useTranslations('organization.settings.agents');
   const t_base = useTranslations();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<BaseAgent | null>(null);
 
   const columns: ColumnDef<BaseAgent>[] = [
     {
@@ -49,14 +56,14 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
       ),
     },
     {
-      accessorKey: 'specializations',
+      accessorKey: 'assignedServices',
       header: () => <>{t('table.specializations')}</>,
       cell: ({ row }) => (
-        <CollapseList<ServiceCategory>
-          items={row.original.specializations}
-          renderItem={(cat) => (
+        <CollapseList<{ id: string; name: string; category: ServiceCategory }>
+          items={row.original.assignedServices || []}
+          renderItem={(service) => (
             <Badge variant="secondary" className="rounded-full !px-0.5 font-normal">
-              {t_base(`services.categories.${cat}`)}
+              {service.name}
             </Badge>
           )}
         />
@@ -69,6 +76,15 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
         <RoleGuard roles={['SUPER_ADMIN', 'ADMIN']}>
           <DataTableRowActions<BaseAgent>
             actions={[
+              {
+                label: (
+                  <>
+                    <Eye className="size-icon" />
+                    <span>{t_base('common.actions.consult')}</span>
+                  </>
+                ),
+                onClick: (row) => router.push(ROUTES.dashboard.agent_detail(row.id)),
+              },
               {
                 label: (
                   <>
@@ -90,37 +106,22 @@ export function UsersTable({ agents, countries }: UsersTableProps) {
     },
   ];
 
-  const localFilters: FilterOption<BaseAgent>[] = [
-    {
-      type: 'search',
-      property: 'name',
-      label: t('table.name'),
-    },
-    {
-      type: 'checkbox',
-      property: 'specializations',
-      label: t('table.specializations'),
-      options: Object.values(ServiceCategory).map((category) => ({
-        label: t_base(`services.categories.${category}`),
-        value: category,
-      })),
-    },
-    {
-      type: 'checkbox',
-      property: 'linkedCountries',
-      label: t('table.countries'),
-      options: countries.map((country) => ({
-        label: country.name,
-        value: country.id,
-      })),
-    },
-  ];
+  const handleEditSuccess = () => {
+    // Recharger la page pour mettre à jour les données
+    window.location.reload();
+  };
 
   return (
-    <DataTable<BaseAgent, unknown>
-      filters={localFilters}
-      columns={columns}
-      data={agents}
-    />
+    <>
+      <DataTable<BaseAgent, unknown> columns={columns} data={agents as BaseAgent[]} />
+      {selectedAgent && (
+        <EditAgentDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          agent={selectedAgent}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+    </>
   );
 }

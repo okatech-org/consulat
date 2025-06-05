@@ -128,6 +128,10 @@ export default function AgentsListingPage() {
   useEffect(() => {
     setIsLoading(true);
     const fetch = async () => {
+      const organizationId = isSuperAdmin
+        ? params.assignedOrganizationId
+        : currentUser?.organizationId;
+
       const options: AgentsListRequestOptions = {
         search: params.search as string,
         page: pagination.page,
@@ -143,7 +147,8 @@ export default function AgentsListingPage() {
           : undefined,
         assignedServices: (params.assignedServices as string[]) ?? undefined,
         country: (params.linkedCountries as string[]) ?? undefined,
-        organizationId: (params.assignedOrganizationId as string[]) ?? undefined,
+        organizationId:
+          params.assignedOrganizationId ?? (isSuperAdmin ? undefined : [organizationId]),
       };
 
       const result = await tryCatch(getAgentsList(options));
@@ -294,8 +299,6 @@ export default function AgentsListingPage() {
 
     return params;
   }
-
-  console.log({ params, pagination, sorting });
 
   return (
     <PageContainer title="Agents">
