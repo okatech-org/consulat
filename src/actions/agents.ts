@@ -385,6 +385,7 @@ export async function getAgentDetails(id: string): Promise<AgentDetails> {
 }
 
 interface UpdateAgentData {
+  name?: string;
   email?: string;
   phoneNumber?: string;
   countryIds?: string[];
@@ -396,6 +397,10 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
 
   try {
     const updateData: Prisma.UserUpdateInput = {};
+
+    if (data.name !== undefined) {
+      updateData.name = data.name;
+    }
 
     if (data.email !== undefined) {
       updateData.email = data.email;
