@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { MultiSelect } from '@/components/ui/multi-select';
 
 const editAgentSchema = z.object({
+  name: z.string().min(1, 'Le nom est requis'),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   phoneNumber: z.string().optional(),
   linkedCountryIds: z.array(z.string()).min(1, 'Au moins un pays doit être sélectionné'),
@@ -54,6 +55,7 @@ export function EditAgentForm({ agent, onSuccess, onCancel }: EditAgentFormProps
     resolver: zodResolver(editAgentSchema),
     defaultValues: {
       email: agent.email || '',
+      name: agent.name || '',
       phoneNumber: agent.phoneNumber || '',
       linkedCountryIds: agent.linkedCountries?.map((c) => c.id) || [],
       assignedServiceIds: agent.assignedServices?.map((s) => s.id) || [],
@@ -94,6 +96,7 @@ export function EditAgentForm({ agent, onSuccess, onCancel }: EditAgentFormProps
     try {
       const updateData = {
         email: data.email || undefined,
+        name: data.name || undefined,
         phoneNumber: data.phoneNumber || undefined,
         countryIds: data.linkedCountryIds,
         serviceIds: data.assignedServiceIds,
@@ -127,6 +130,11 @@ export function EditAgentForm({ agent, onSuccess, onCancel }: EditAgentFormProps
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6">
+      <div className="space-y-2">
+        <Label htmlFor="name">Nom Complet</Label>
+        <Input id="name" type="text" placeholder="John Doe" {...register('name')} />
+        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+      </div>
       {/* Email */}
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
