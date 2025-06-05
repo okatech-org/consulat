@@ -19,7 +19,6 @@ import { getActiveCountries } from '@/actions/countries';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Loader2, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { MultiSelect } from '@/components/ui/multi-select';
 
 const editAgentSchema = z.object({
   email: z.string().email('Email invalide').optional().or(z.literal('')),
@@ -158,17 +157,27 @@ export function EditAgentForm({ agent, onSuccess, onCancel }: EditAgentFormProps
       {/* Pays liés */}
       <div className="space-y-2">
         <Label>Pays liés</Label>
-        <MultiSelect<string>
-          className="w-full"
-          options={countries.map((c) => ({
-            value: c.id,
-            label: c.name,
-          }))}
-          selected={watchedCountryIds}
-          type="multiple"
-          onChange={(ids: string[]) => setValue('linkedCountryIds', ids)}
-          placeholder="Sélectionner les pays"
-        />
+        {countries.map((country) => (
+          <div key={country.id} className="flex items-center space-x-2">
+            <Checkbox
+              id={`country-${country.id}`}
+              checked={watchedCountryIds.includes(country.id)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setValue('linkedCountryIds', [...watchedCountryIds, country.id]);
+                } else {
+                  setValue(
+                    'linkedCountryIds',
+                    watchedCountryIds.filter((id) => id !== country.id),
+                  );
+                }
+              }}
+            />
+            <Label htmlFor={`country-${country.id}`} className="text-sm">
+              {country.name}
+            </Label>
+          </div>
+        ))}
         {errors.linkedCountryIds && (
           <p className="text-sm text-destructive">{errors.linkedCountryIds.message}</p>
         )}

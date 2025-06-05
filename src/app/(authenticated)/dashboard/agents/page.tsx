@@ -126,11 +126,24 @@ export default function AgentsListingPage() {
 
   // Fetch agents à chaque changement de params
   useEffect(() => {
+    function getOrganizationId() {
+      if (currentUser?.roles.includes('SUPER_ADMIN')) {
+        return undefined;
+      }
+
+      if (currentUser?.organizationId) {
+        return currentUser.organizationId;
+      }
+
+      if (currentUser?.assignedOrganizationId) {
+        return currentUser.assignedOrganizationId;
+      }
+
+      return undefined;
+    }
     setIsLoading(true);
     const fetch = async () => {
-      const organizationId = isSuperAdmin
-        ? params.assignedOrganizationId
-        : currentUser?.organizationId;
+      const organizationId = getOrganizationId();
 
       const options: AgentsListRequestOptions = {
         search: params.search as string,
@@ -148,7 +161,8 @@ export default function AgentsListingPage() {
         assignedServices: (params.assignedServices as string[]) ?? undefined,
         country: (params.linkedCountries as string[]) ?? undefined,
         organizationId:
-          params.assignedOrganizationId ?? (isSuperAdmin ? undefined : [organizationId]),
+          params.assignedOrganizationId ??
+          (organizationId ? [organizationId] : undefined),
       };
 
       const result = await tryCatch(getAgentsList(options));
@@ -158,7 +172,7 @@ export default function AgentsListingPage() {
       setIsLoading(false);
     };
     fetch();
-  }, [params, pagination, sorting]);
+  }, [params, pagination, sorting, currentUser]);
 
   // Colonnes du tableau
   const columns = useMemo<ColumnDef<AgentListItem>[]>(
