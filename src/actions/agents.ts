@@ -268,6 +268,7 @@ export interface AgentsListRequestOptions {
   assignedServices: string[];
   country: string[];
   organizationId?: string[];
+  managedByUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: {
@@ -281,6 +282,7 @@ const AgentListItemSelect: Prisma.UserSelect = {
   name: true,
   email: true,
   phoneNumber: true,
+  roles: true,
   assignedServices: true,
   linkedCountries: true,
   assignedOrganizationId: true,
@@ -301,21 +303,33 @@ export interface AgentsListResult {
 export async function getAgentsList(
   options?: AgentsListRequestOptions,
 ): Promise<AgentsListResult> {
-  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+  const { user } = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
 
   const {
     search,
     assignedServices,
     country,
     organizationId,
+    managedByUserId,
     page = 1,
     limit = 10,
     sortBy,
   } = options || {};
 
   const where: Prisma.UserWhereInput = {
-    roles: { has: 'AGENT' },
+    OR: [
+      { roles: { has: 'AGENT' } },
+      { roles: { has: 'MANAGER' } }
+    ]
   };
+
+  // If user is MANAGER, only show agents they manage
+  if (user.roles.includes('MANAGER' as any)) {
+    where.managedByUserId = user.id;
+    where.roles = { has: 'AGENT' }; // Managers only see agents, not other managers
+  } else if (managedByUserId) {
+    where.managedByUserId = managedByUserId;
+  }
 
   if (assignedServices)
     where.assignedServices = { some: { id: { in: assignedServices } } };

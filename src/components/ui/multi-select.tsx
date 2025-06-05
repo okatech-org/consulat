@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 import {
-  CommandDialog,
+  Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -61,6 +61,7 @@ export function MultiSelect<T>({
 }: MultiSelectMultipleProps<T> | MultiSelectSingleProps<T>) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Create a safe array of selected values regardless of type
   const selectedValues = React.useMemo(() => {
@@ -94,87 +95,130 @@ export function MultiSelect<T>({
     }
   };
 
+  const removeOption = (value: T, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (type === 'multiple') {
+      const multipleOnChange = onChange as (values: T[]) => void;
+      const newValues = selectedValues.filter((v) => v !== value);
+      multipleOnChange(newValues);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [open]);
+
   return (
-    <>
-      <Button
-        type="button"
-        variant="outline"
-        role="combobox"
-        aria-expanded={open}
-        className={cn('min-w-max justify-between px-2', className)}
-        disabled={disabled}
-        onClick={() => setOpen(true)}
-      >
-        <div className="flex flex-wrap gap-1">
-          {type === 'multiple' && <span className="opacity-50">{placeholder}</span>}
-          {type === 'single' && (
-            <>
-              {selectedOptions.length > 0 ? (
-                <>
-                  {selectedOptions[0]?.component ? (
-                    selectedOptions[0]?.component
-                  ) : (
-                    <Badge variant={'secondary'}>{selectedOptions[0]?.label}</Badge>
-                  )}
-                </>
+    <div className="space-y-2">
+      <div className="relative" ref={containerRef}>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn('min-h-10 w-full justify-between px-3 py-2', className)}
+          disabled={disabled}
+          onClick={() => setOpen(!open)}
+        >
+          <div className="flex flex-1 items-center overflow-hidden">
+            {type === 'single' ? (
+              // Single selection display - show selected option in button
+              selectedOptions.length > 0 ? (
+                selectedOptions[0]?.component ? (
+                  selectedOptions[0]?.component
+                ) : (
+                  <span className="truncate">{selectedOptions[0]?.label}</span>
+                )
               ) : (
-                <span className="opacity-50">{placeholder}</span>
-              )}
-            </>
-          )}
-        </div>
-        <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
-      </Button>
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder={searchPlaceholder}
-          value={searchValue}
-          onValueChange={setSearchValue}
-          autoComplete={autoComplete}
-        />
-        <CommandList>
-          <CommandEmpty>{emptyText}</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
-            {filteredOptions.map((option) => (
-              <CommandItem
-                key={String(option.value)}
-                value={option.label}
-                onSelect={() => {
-                  toggleOption(option.value);
-                  if (type === 'single') {
-                    setOpen(false);
-                  }
-                }}
-                disabled={option.disabled}
-              >
-                <Check
-                  className={cn(
-                    'mr-2 h-4 w-4',
-                    selectedValues.includes(option.value) ? 'opacity-100' : 'opacity-0',
-                  )}
-                />
-                {option.component ? option.component : <span>{option.label}</span>}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
-      </CommandDialog>
-      {type === 'multiple' && (
+                <span className="text-muted-foreground">{placeholder}</span>
+              )
+            ) : // Multiple selection display - show count or placeholder in button
+            selectedOptions.length > 0 ? (
+              <span className="text-sm">
+                {selectedOptions.length} élément{selectedOptions.length > 1 ? 's' : ''}{' '}
+                sélectionné{selectedOptions.length > 1 ? 's' : ''}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">{placeholder}</span>
+            )}
+          </div>
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+
+        {open && (
+          <div className="absolute top-full z-50 w-full rounded-md border bg-popover p-0 text-popover-foreground shadow-md outline-none animate-in">
+            <Command>
+              <CommandInput
+                placeholder={searchPlaceholder}
+                value={searchValue}
+                onValueChange={setSearchValue}
+                autoComplete={autoComplete}
+              />
+              <CommandList>
+                <CommandEmpty>{emptyText}</CommandEmpty>
+                <CommandGroup className="max-h-64 overflow-auto">
+                  {filteredOptions.map((option) => (
+                    <CommandItem
+                      key={String(option.value)}
+                      value={option.label}
+                      onSelect={() => {
+                        toggleOption(option.value);
+                        if (type === 'single') {
+                          setOpen(false);
+                        }
+                      }}
+                      disabled={option.disabled}
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          selectedValues.includes(option.value)
+                            ? 'opacity-100'
+                            : 'opacity-0',
+                        )}
+                      />
+                      {option.component ? option.component : <span>{option.label}</span>}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </div>
+        )}
+      </div>
+
+      {/* Display selected options below the button for multiple selection */}
+      {type === 'multiple' && selectedOptions.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {selectedOptions.map((option) => (
             <Badge
-              onClick={() => {
-                toggleOption(option.value);
-              }}
               key={String(option.value)}
-              variant={'secondary'}
-              className="mr-1"
+              variant="secondary"
+              className="flex items-center gap-1 pr-1"
             >
-              {option.label}
+              {option.component ? option.component : option.label}
+              <button
+                type="button"
+                className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                onClick={(e) => removeOption(option.value, e)}
+              >
+                <X className="h-3 w-3" />
+                <span className="sr-only">Remove {option.label}</span>
+              </button>
             </Badge>
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

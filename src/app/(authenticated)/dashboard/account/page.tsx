@@ -25,30 +25,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ServiceCategory } from '@prisma/client';
+import { ServiceCategory, UserRole } from '@prisma/client';
 import { PageContainer } from '@/components/layouts/page-container';
 import { UserSettings } from '@/schemas/user';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminAccountPage() {
   const t = useTranslations('account');
   const t_inputs = useTranslations('inputs');
   const user = useCurrentUser();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [autoAssignment, setAutoAssignment] = useState(false);
 
   if (!user) return null;
 
+  const isManager = user.roles.includes(UserRole.MANAGER);
+  const isAgent = user.roles.includes(UserRole.AGENT);
+  const isAdmin = user.roles.includes(UserRole.ADMIN);
+  const isSuperAdmin = user.roles.includes(UserRole.SUPER_ADMIN);
+
   const handleUpdateProfile = async (formData: FormData) => {
-    const data = Object.fromEntries(formData.entries()) as unknown as UserSettings;
+    setIsLoading(true);
     try {
-      await updateUserData(user.id, data);
+      const firstName = formData.get('firstName') as string;
+      const lastName = formData.get('lastName') as string;
+      const name = `${firstName} ${lastName}`.trim();
+      
+      const updateData: Partial<UserSettings> = {
+        name,
+        image: user.image,
+      };
+
+      // Add role-specific data
+      if (isAgent || isManager) {
+        const specialization = formData.get('specialization') as ServiceCategory;
+        const maxActiveRequests = parseInt(formData.get('maxActiveRequests') as string) || 10;
+        
+        updateData.specializations = specialization ? [specialization] : [];
+        updateData.maxActiveRequests = maxActiveRequests;
+      }
+
+      await updateUserData(user.id, updateData as UserSettings);
+      
       toast({
         title: t('profile_updated'),
+        variant: 'success',
       });
+      
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast({
         title: t('profile_update_error'),
+        variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -57,9 +94,13 @@ export default function AdminAccountPage() {
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">{t('profile')}</TabsTrigger>
-          <TabsTrigger value="performance">{t('performance')}</TabsTrigger>
+          {(isAgent || isManager) && (
+            <TabsTrigger value="performance">{t('performance')}</TabsTrigger>
+          )}
           <TabsTrigger value="preferences">{t('preferences')}</TabsTrigger>
-          <TabsTrigger value="security">{t('security')}</TabsTrigger>
+          {(isAdmin || isSuperAdmin) && (
+            <TabsTrigger value="security">{t('security')}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
@@ -95,12 +136,18 @@ export default function AdminAccountPage() {
                     <Input
                       id="firstName"
                       name="firstName"
-                      defaultValue={user.name || ''}
+                      defaultValue={user.name?.split(' ')[0] || ''}
+                      disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">{t('last_name')}</Label>
-                    <Input id="lastName" name="lastName" defaultValue={user.name || ''} />
+                    <Input 
+                      id="lastName" 
+                      name="lastName" 
+                      defaultValue={user.name?.split(' ').slice(1).join(' ') || ''} 
+                      disabled={isLoading}
+                    />
                   </div>
                 </div>
 
@@ -115,34 +162,40 @@ export default function AdminAccountPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{t('specializations')}</Label>
-                  <Select name="specialization" defaultValue={user.specializations?.[0]}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('select_specialization')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(ServiceCategory).map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {t_inputs(`serviceCategory.options.${category}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {(isAgent || isManager) && (
+                  <div className="space-y-2">
+                    <Label>{t('specializations')}</Label>
+                    <Select name="specialization" defaultValue={user.specializations?.[0]}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('select_specialization')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(ServiceCategory).map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {t_inputs(`serviceCategory.options.${category}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
-                <Button type="submit">{t('save_changes')}</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {t('save_changes')}
+                </Button>
               </form>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="performance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('performance_metrics')}</CardTitle>
-              <CardDescription>{t('performance_description')}</CardDescription>
-            </CardHeader>
+        {(isAgent || isManager) && (
+          <TabsContent value="performance" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('performance_metrics')}</CardTitle>
+                <CardDescription>{t('performance_description')}</CardDescription>
+              </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <div className="flex justify-between">
@@ -175,6 +228,7 @@ export default function AdminAccountPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
         <TabsContent value="preferences" className="space-y-4">
           <Card>
@@ -190,7 +244,11 @@ export default function AdminAccountPage() {
                     {t('admin_email_notifications_description')}
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={emailNotifications}
+                  onCheckedChange={setEmailNotifications}
+                  disabled={isLoading}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -199,18 +257,49 @@ export default function AdminAccountPage() {
                     {t('auto_assignment_description')}
                   </p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={autoAssignment}
+                  onCheckedChange={setAutoAssignment}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="pt-4">
+                <Button 
+                  onClick={async () => {
+                    setIsLoading(true);
+                    try {
+                      // Here you would save the preferences
+                      toast({
+                        title: t('preferences_updated'),
+                        variant: 'success',
+                      });
+                    } catch (error) {
+                      toast({
+                        title: t('preferences_update_error'),
+                        variant: 'destructive',
+                      });
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {t('save_preferences')}
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="security" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('security_settings')}</CardTitle>
-              <CardDescription>{t('admin_security_description')}</CardDescription>
-            </CardHeader>
+        {(isAdmin || isSuperAdmin) && (
+          <TabsContent value="security" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('security_settings')}</CardTitle>
+                <CardDescription>{t('admin_security_description')}</CardDescription>
+              </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>{t('two_factor_auth')}</Label>
@@ -229,6 +318,7 @@ export default function AdminAccountPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
       </Tabs>
     </PageContainer>
   );

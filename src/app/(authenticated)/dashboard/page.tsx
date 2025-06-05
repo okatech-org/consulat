@@ -3,6 +3,7 @@ import SuperAdminDashboard from '../../../components/dashboards/superadmin-dashb
 import { getCurrentUser } from '@/actions/user';
 import AgentDashboard from '../../../components/dashboards/agent-dashboard';
 import AdminDashboard from '../../../components/dashboards/admin-dashboard';
+import { ManagerDashboard } from '../../../components/dashboards/manager-dashboard';
 import { SessionUser } from '@/types/user';
 
 export default async function DashboardPage() {
@@ -15,6 +16,9 @@ export default async function DashboardPage() {
       </ServerRoleGuard>
       <ServerRoleGuard roles={['ADMIN']} user={user}>
         <AdminDashboard />
+      </ServerRoleGuard>
+      <ServerRoleGuard roles={['MANAGER']} user={user}>
+        <ManagerDashboard />
       </ServerRoleGuard>
       <ServerRoleGuard roles={['AGENT']} user={user}>
         <AgentDashboard />
