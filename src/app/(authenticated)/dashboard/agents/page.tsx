@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   getAgentsList,
   AgentsListRequestOptions,
@@ -24,6 +24,8 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
 import { getServices } from '../(superadmin)/_utils/actions/services';
+import { CreateAgentButton } from '@/components/organization/CreateAgentButton';
+import { Country } from '@prisma/client';
 
 interface SearchParams {
   search?: string;
@@ -124,23 +126,24 @@ export default function AgentsListingPage() {
     [countries, organizations, services, isSuperAdmin, handleParamsChange, params],
   );
 
-  // Fetch agents à chaque changement de params
-  useEffect(() => {
-    function getOrganizationId() {
-      if (currentUser?.roles.includes('SUPER_ADMIN')) {
-        return undefined;
-      }
-
-      if (currentUser?.organizationId) {
-        return currentUser.organizationId;
-      }
-
-      if (currentUser?.assignedOrganizationId) {
-        return currentUser.assignedOrganizationId;
-      }
-
+  const getOrganizationId = useCallback(() => {
+    if (currentUser?.roles.includes('SUPER_ADMIN')) {
       return undefined;
     }
+
+    if (currentUser?.organizationId) {
+      return currentUser.organizationId;
+    }
+
+    if (currentUser?.assignedOrganizationId) {
+      return currentUser.assignedOrganizationId;
+    }
+
+    return undefined;
+  }, [currentUser]);
+
+  // Fetch agents à chaque changement de params
+  useEffect(() => {
     setIsLoading(true);
     const fetch = async () => {
       const organizationId = getOrganizationId();
@@ -172,7 +175,7 @@ export default function AgentsListingPage() {
       setIsLoading(false);
     };
     fetch();
-  }, [params, pagination, sorting, currentUser]);
+  }, [params, pagination, sorting, currentUser, getOrganizationId]);
 
   // Colonnes du tableau
   const columns = useMemo<ColumnDef<AgentListItem>[]>(
@@ -315,7 +318,17 @@ export default function AgentsListingPage() {
   }
 
   return (
-    <PageContainer title="Agents">
+    <PageContainer
+      title="Agents"
+      action={
+        <CreateAgentButton
+          initialData={{
+            assignedOrganizationId: getOrganizationId(),
+          }}
+          countries={countries as Country[]}
+        />
+      }
+    >
       <DataTable
         isLoading={isLoading}
         columns={columns}
