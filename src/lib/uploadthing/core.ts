@@ -9,7 +9,7 @@ export const ourFileRouter = {
   // Route spécifique pour les PDFs
   pdfUploader: f({
     pdf: {
-      maxFileSize: '2GB',
+      maxFileSize: '64MB',
       maxFileCount: 1,
     },
   })
@@ -26,7 +26,7 @@ export const ourFileRouter = {
     }),
   imageUploader: f({
     image: {
-      maxFileSize: '2GB',
+      maxFileSize: '64MB',
       maxFileCount: 1,
     },
   })
