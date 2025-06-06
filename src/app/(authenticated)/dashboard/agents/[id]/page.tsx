@@ -669,32 +669,34 @@ export default function AgentDetailPage() {
                         Modifiez les informations de l&apos;agent {agent.name}
                       </SheetDescription>
                     </SheetHeader>
-                    <AgentForm
-                      initialData={{
-                        firstName: agent.name?.split(' ')[0] || '',
-                        lastName: agent.name?.split(' ').slice(1).join(' ') || '',
-                        email: agent.email || '',
-                        phoneNumber: agent.phoneNumber || '',
-                        countryIds: agent.linkedCountries?.map((c) => c.id) || [],
-                        serviceIds: agent.assignedServices?.map((s) => s.id) || [],
-                        assignedOrganizationId: agent.assignedOrganizationId || '',
-                        role: agent.roles.includes(UserRole.MANAGER)
-                          ? UserRole.MANAGER
-                          : UserRole.AGENT,
-                        managedByUserId: agent.managedByUserId || undefined,
-                        managedAgentIds: agent.managedAgents?.map((a) => a.id) || [],
-                      }}
-                      isEditMode={true}
-                      agentId={agent.id}
-                      onSuccess={() => {
-                        setIsEditSheetOpen(false);
-                        router.refresh();
-                      }}
-                      countries={formListDatas.countries}
-                      services={formListDatas.services}
-                      managers={formListDatas.managers}
-                      agents={formListDatas.agents}
-                    />
+                    <div className="mt-4 h-full overflow-y-auto">
+                      <AgentForm
+                        initialData={{
+                          firstName: agent.name?.split(' ')[0] || '',
+                          lastName: agent.name?.split(' ').slice(1).join(' ') || '',
+                          email: agent.email || '',
+                          phoneNumber: agent.phoneNumber || '',
+                          countryIds: agent.linkedCountries?.map((c) => c.id) || [],
+                          serviceIds: agent.assignedServices?.map((s) => s.id) || [],
+                          assignedOrganizationId: agent.assignedOrganizationId || '',
+                          role: agent.roles.includes(UserRole.MANAGER)
+                            ? UserRole.MANAGER
+                            : UserRole.AGENT,
+                          managedByUserId: agent.managedByUserId || undefined,
+                          managedAgentIds: agent.managedAgents?.map((a) => a.id) || [],
+                        }}
+                        isEditMode={true}
+                        agentId={agent.id}
+                        onSuccess={() => {
+                          setIsEditSheetOpen(false);
+                          router.refresh();
+                        }}
+                        countries={formListDatas.countries}
+                        services={formListDatas.services}
+                        managers={formListDatas.managers}
+                        agents={formListDatas.agents}
+                      />
+                    </div>
                   </SheetContent>
                 </Sheet>
               </div>

@@ -298,15 +298,18 @@ export function AgentForm({
                         <FormLabel>Manager (optionnel)</FormLabel>
                         <FormControl>
                           <Select
-                            value={field.value || ''}
-                            onValueChange={field.onChange}
+                            value={field.value || 'none'}
+                            onValueChange={(value) => {
+                              // Handle clearing selection
+                              field.onChange(value === 'none' ? undefined : value);
+                            }}
                             disabled={isLoading}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Sélectionner un manager" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Aucun manager</SelectItem>
+                              <SelectItem value="none">Aucun manager</SelectItem>
                               {managers.map((manager) => (
                                 <SelectItem key={manager.id} value={manager.id}>
                                   {manager.name}
