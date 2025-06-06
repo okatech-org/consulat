@@ -115,12 +115,19 @@ export const applyApiSecurityHeaders = (response: NextResponse): NextResponse =>
  * @returns Un nonce unique pour CSP
  */
 export const generateCSPNonce = (): string => {
-  // Utilisation de crypto.randomUUID si disponible, sinon fallback
+  // Utilisation de crypto.randomUUID si disponible (Edge Runtime compatible)
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }
 
-  // Fallback pour les environnements sans crypto.randomUUID
+  // Fallback compatible Edge Runtime
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Dernier fallback (moins sécurisé mais compatible)
   return (
     Math.random().toString(36).substring(2, 15) +
     Math.random().toString(36).substring(2, 15)

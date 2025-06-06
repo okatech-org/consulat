@@ -70,17 +70,21 @@ export default async function ProfilePage() {
   return (
     <PageContainer>
       <Suspense fallback={<LoadingSkeleton />}>
-        <div className="flex flex-col gap-4">
-          <ProfileHeader profile={profile} inMySpace={true} />
-          <ProfileStatusAlert
-            status={profile.status}
-            notes={
-              registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content
-            }
-            organizationName={organisationInfos?.name}
-            organizationAddress={organisationInfos?.settings?.contact?.address}
-            requestId={registrationRequest?.id}
-          />
+        <div className="grid grid-cols-8 gap-4">
+          <div className="col-span-full lg:col-span-5">
+            <ProfileHeader profile={profile} inMySpace={true} />
+          </div>
+          <div className="col-span-full lg:col-span-3">
+            <ProfileStatusAlert
+              status={profile.status}
+              notes={
+                registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content
+              }
+              organizationName={organisationInfos?.name}
+              organizationAddress={organisationInfos?.settings?.contact?.address}
+              requestId={registrationRequest?.id}
+            />
+          </div>
         </div>
         <div className="grid grid-cols-8 gap-4">
           {profile && (

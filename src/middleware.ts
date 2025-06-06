@@ -4,6 +4,10 @@ import { auth } from '@/auth';
 import type { NextRequest } from 'next/server';
 import { applySecurityHeaders, generateCSPNonce } from '@/lib/security/headers';
 import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
+import {
+  logEdgeUnauthorizedAccess,
+  logEdgeRateLimitExceeded,
+} from '@/lib/security/edge-logger';
 
 // Routes publiques qui ne nécessitent pas d'authentification
 const publicRoutes = [
@@ -27,6 +31,7 @@ export default auth(async (req) => {
   // Vérification du rate limiting global par IP
   const rateLimitResult = await checkRateLimit(globalLimiter, clientIP);
   if (!rateLimitResult.allowed) {
+    logEdgeRateLimitExceeded(clientIP, 'global', clientIP);
     return new NextResponse('Rate limit exceeded', {
       status: 429,
       headers: {
@@ -48,6 +53,11 @@ export default auth(async (req) => {
 
   // Si ce n'est pas une route publique et que l'utilisateur n'est pas authentifié
   if (!isPublicRoute && !isPublicApiRoute && !req.auth) {
+    logEdgeUnauthorizedAccess(
+      pathname,
+      clientIP,
+      req.headers.get('user-agent') || 'unknown',
+    );
     const newUrl = new URL('/auth/login', req.nextUrl.origin);
     newUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(newUrl);

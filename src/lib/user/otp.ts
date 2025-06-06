@@ -10,6 +10,7 @@ import {
   getRateLimitKey,
   formatWaitTime,
 } from '@/lib/security/rate-limiter';
+import { logOTPGeneration, logRateLimitExceeded, logError } from '@/lib/security/logger';
 
 /**
  * Génère un OTP sécurisé de 6 chiffres
@@ -42,9 +43,10 @@ export const saveHashedOTP = async ({
 
     if (!rateLimitResult.allowed) {
       const waitTime = formatWaitTime(rateLimitResult.msBeforeNext || 0);
+      logRateLimitExceeded(identifier, 'otp_generation', 'unknown');
       return {
         success: false,
-        error: `Trop de tentatives de génération d'OTP. Réessayez dans ${waitTime}.`,
+        error: `messages.errors.otp_generation_rate_limit`,
         waitTime,
       };
     }
@@ -70,10 +72,11 @@ export const saveHashedOTP = async ({
       },
     });
 
+    logOTPGeneration(identifier, type, 'unknown');
     return { success: true };
   } catch (error) {
-    console.error("Erreur lors de la sauvegarde de l'OTP:", error);
-    return { success: false, error: "Erreur interne lors de la génération de l'OTP" };
+    logError("Erreur lors de la sauvegarde de l'OTP", error, { identifier, type });
+    return { success: false, error: 'messages.errors.otp_generation_error' };
   }
 };
 
@@ -84,7 +87,7 @@ export const saveHashedOTP = async ({
  * @param type - Type d'identifier (EMAIL ou PHONE)
  * @returns true si l'OTP est valide, false sinon
  */
-export const validateOTP = async ({
+export const authenticateWithOTP = async ({
   identifier,
   otp,
   type,
@@ -97,7 +100,7 @@ export const validateOTP = async ({
     // Vérification des paramètres d'entrée
     if (!identifier || !otp || !type) {
       console.error('OTP Validation Error: Paramètres manquants');
-      return { valid: false, error: 'Paramètres manquants' };
+      return { valid: false, error: 'messages.errors.missing_otp' };
     }
 
     // Vérification du rate limiting pour les tentatives de validation d'OTP
@@ -106,9 +109,10 @@ export const validateOTP = async ({
 
     if (!rateLimitResult.allowed) {
       const waitTime = formatWaitTime(rateLimitResult.msBeforeNext || 0);
+      logRateLimitExceeded(identifier, 'otp_validation', 'unknown');
       return {
         valid: false,
-        error: `Trop de tentatives de validation d'OTP. Réessayez dans ${waitTime}.`,
+        error: `messages.errors.otp_validation_rate_limit`,
         waitTime,
       };
     }
@@ -126,7 +130,7 @@ export const validateOTP = async ({
 
     if (!tokenVerification) {
       console.error('OTP Validation Error: Token non trouvé ou expiré');
-      return { valid: false, error: 'OTP expiré ou invalide' };
+      return { valid: false, error: 'messages.errors.otp_expired_or_invalid' };
     }
 
     // Comparaison sécurisée avec le hash
@@ -134,7 +138,7 @@ export const validateOTP = async ({
 
     if (!isValid) {
       console.error('OTP Validation Error: OTP invalide');
-      return { valid: false, error: 'OTP invalide' };
+      return { valid: false, error: 'messages.errors.otp_invalid' };
     }
 
     // Suppression du token après validation réussie (usage unique)
@@ -145,6 +149,6 @@ export const validateOTP = async ({
     return { valid: true };
   } catch (error) {
     console.error('OTP Validation Error:', error);
-    return { valid: false, error: 'Erreur interne lors de la validation' };
+    return { valid: false, error: 'messages.errors.otp_validation_error' };
   }
 };
