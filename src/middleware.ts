@@ -2,18 +2,68 @@ import { nanoid } from 'nanoid';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import type { NextRequest } from 'next/server';
+import { applySecurityHeaders, generateCSPNonce } from '@/lib/security/headers';
+import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
 
-export default auth((req) => {
-  // Setup nonce pour la sécurité
+// Routes publiques qui ne nécessitent pas d'authentification
+const publicRoutes = [
+  '/auth/login',
+  '/auth/register',
+  '/registration',
+  '/feedback',
+  '/legal',
+  '/api/auth',
+  '/',
+];
+
+// Routes API publiques
+const publicApiRoutes = ['/api/auth', '/api/uploadthing'];
+
+export default auth(async (req) => {
+  const { pathname } = req.nextUrl;
+  const clientIP =
+    req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+
+  // Vérification du rate limiting global par IP
+  const rateLimitResult = await checkRateLimit(globalLimiter, clientIP);
+  if (!rateLimitResult.allowed) {
+    return new NextResponse('Rate limit exceeded', {
+      status: 429,
+      headers: {
+        'Retry-After': String(Math.ceil((rateLimitResult.msBeforeNext || 0) / 1000)),
+      },
+    });
+  }
+
+  // Setup nonce pour la sécurité CSP
   const nonce = nanoid();
+  const cspNonce = generateCSPNonce();
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('x-csp-nonce', cspNonce);
 
-  // Autoriser l'accès pour toutes les autres routes
-  return NextResponse.next({
+  // Vérifier si la route est publique
+  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  const isPublicApiRoute = publicApiRoutes.some((route) => pathname.startsWith(route));
+
+  // Si ce n'est pas une route publique et que l'utilisateur n'est pas authentifié
+  if (!isPublicRoute && !isPublicApiRoute && !req.auth) {
+    const newUrl = new URL('/auth/login', req.nextUrl.origin);
+    newUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(newUrl);
+  }
+
+  // Créer la réponse avec headers sécurisés
+  const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
+  });
+
+  // Appliquer les headers de sécurité
+  return applySecurityHeaders(response, {
+    'X-CSP-Nonce': cspNonce,
+    'X-Client-IP': clientIP,
   });
 });
 
