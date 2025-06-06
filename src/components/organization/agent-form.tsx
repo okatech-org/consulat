@@ -21,6 +21,7 @@ import { AgentFormData, AgentSchema } from '@/schemas/user';
 import { useToast } from '@/hooks/use-toast';
 
 import { createNewAgent } from '@/actions/organizations';
+import { updateAgent } from '@/actions/agents';
 import { Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
 import { PhoneNumberInput } from '../ui/phone-number';
@@ -39,7 +40,10 @@ interface AgentFormProps {
   countries: Organization['countries'];
   services: { id: string; name: string }[];
   managers?: { id: string; name: string }[];
+  agents?: { id: string; name: string }[];
   onSuccess?: () => void;
+  isEditMode?: boolean;
+  agentId?: string;
 }
 
 export function AgentForm({
@@ -47,13 +51,19 @@ export function AgentForm({
   countries,
   services,
   managers = [],
+  agents = [],
   onSuccess,
+  isEditMode = false,
+  agentId,
 }: AgentFormProps) {
   const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [managedAgents, setManagedAgents] = React.useState<string[]>(
+    initialData?.managedAgentIds ?? []
+  );
 
   const form = useForm<AgentFormData>({
     resolver: zodResolver(AgentSchema),
@@ -67,28 +77,72 @@ export function AgentForm({
     mode: 'onSubmit',
   });
 
+  const watchedRole = form.watch('role');
+
   async function onSubmit(data: AgentFormData) {
     setIsLoading(true);
 
-    const result = await tryCatch(createNewAgent(data));
+    try {
+      if (isEditMode && agentId) {
+        // Update existing agent
+        const updateData = {
+          name: `${data.firstName} ${data.lastName}`,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          countryIds: data.countryIds,
+          serviceIds: watchedRole === UserRole.AGENT ? data.serviceIds : [],
+          managedByUserId: watchedRole === UserRole.AGENT ? data.managedByUserId : undefined,
+          role: data.role,
+          managedAgentIds: watchedRole === UserRole.MANAGER ? managedAgents : [],
+        };
 
-    if (result.data) {
-      toast({
-        title: t_messages('success.create'),
-        variant: 'success',
-      });
-      onSuccess?.();
-    }
+        const result = await tryCatch(updateAgent(agentId, updateData));
 
-    if (result.error) {
+        if (result.data) {
+          toast({
+            title: t_messages('success.update'),
+            variant: 'success',
+          });
+          onSuccess?.();
+        } else if (result.error) {
+          toast({
+            title: t_messages('errors.update'),
+            description: `${result.error.message}`,
+            variant: 'destructive',
+          });
+        }
+      } else {
+        // Create new agent
+        const createData = {
+          ...data,
+          managedAgentIds: watchedRole === UserRole.MANAGER ? managedAgents : [],
+        };
+        
+        const result = await tryCatch(createNewAgent(createData));
+
+        if (result.data) {
+          toast({
+            title: t_messages('success.create'),
+            variant: 'success',
+          });
+          onSuccess?.();
+        } else if (result.error) {
+          toast({
+            title: t_messages('errors.create'),
+            description: `${result.error.message}`,
+            variant: 'destructive',
+          });
+        }
+      }
+    } catch {
       toast({
-        title: t_messages('errors.create'),
-        description: `${result.error.message}`,
+        title: isEditMode ? t_messages('errors.update') : t_messages('errors.create'),
+        description: t_messages('errors.create'),
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }
 
   return (
@@ -190,7 +244,7 @@ export function AgentForm({
           )}
         />
 
-        {form.watch('role') === UserRole.AGENT && managers.length > 0 && (
+        {watchedRole === UserRole.AGENT && managers.length > 0 && (
           <FormField
             control={form.control}
             name="managedByUserId"
@@ -214,6 +268,32 @@ export function AgentForm({
                       ))}
                     </SelectContent>
                   </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {watchedRole === UserRole.MANAGER && agents.length > 0 && (
+          <FormField
+            control={form.control}
+            name="managedAgentIds"
+            render={() => (
+              <FormItem className="col-span-full">
+                <FormLabel>Agents à superviser</FormLabel>
+                <FormControl>
+                  <MultiSelect<string>
+                    placeholder="Sélectionner les agents"
+                    options={agents.map((agent) => ({
+                      label: agent.name,
+                      value: agent.id,
+                    }))}
+                    selected={managedAgents}
+                    onChange={setManagedAgents}
+                    type={'multiple'}
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -245,7 +325,7 @@ export function AgentForm({
           )}
         />
 
-        {form.watch('role') === 'AGENT' && (
+        {watchedRole === UserRole.AGENT && (
           <FormField
             control={form.control}
             name="serviceIds"
@@ -274,7 +354,7 @@ export function AgentForm({
         <div className="col-span-full flex flex-end">
           <Button type="submit" className="ml-2" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
-            {t_common('actions.create')}
+            {isEditMode ? t_common('actions.update') : t_common('actions.create')}
           </Button>
         </div>
       </form>

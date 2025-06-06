@@ -279,7 +279,7 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
 
   const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-  const { countryIds, serviceIds, firstName, lastName, role, managedByUserId, ...rest } = data;
+  const { countryIds, serviceIds, firstName, lastName, role, managedByUserId, managedAgentIds, ...rest } = data;
 
   const agent = await db.user.create({
     data: {
@@ -301,6 +301,18 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
       assignedOrganization: true,
     },
   });
+
+  // If creating a manager, assign the agents to them
+  if (role === UserRole.MANAGER && managedAgentIds && managedAgentIds.length > 0) {
+    await db.user.updateMany({
+      where: {
+        id: { in: managedAgentIds }
+      },
+      data: {
+        managedByUserId: agent.id
+      }
+    });
+  }
 
   const countryNames = agent.linkedCountries.map((country) => country.name).join(', ');
 
@@ -444,6 +456,34 @@ export async function getAgentsByManager(managerId: string): Promise<{
     return { data: agents };
   } catch (error) {
     console.error('Error fetching agents by manager:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function getAvailableAgentsForManager(organizationId: string): Promise<{
+  data?: { id: string; name: string | null }[];
+  error?: string;
+}> {
+  try {
+    const agents = await db.user.findMany({
+      where: {
+        assignedOrganizationId: organizationId,
+        roles: {
+          has: UserRole.AGENT,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return { data: agents };
+  } catch (error) {
+    console.error('Error fetching available agents:', error);
     return { error: 'messages.error.fetch' };
   }
 }

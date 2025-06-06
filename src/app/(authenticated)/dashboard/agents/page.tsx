@@ -24,7 +24,7 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
 import { getServices } from '../(superadmin)/_utils/actions/services';
-import { CreateAgentButton } from '@/components/organization/CreateAgentButton';
+import { CreateAgentButton } from '@/components/organization/create-agent-button';
 import { Country, UserRole } from '@prisma/client';
 
 interface SearchParams {

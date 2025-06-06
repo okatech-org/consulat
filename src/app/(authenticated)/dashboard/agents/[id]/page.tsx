@@ -573,6 +573,12 @@ export default function AgentDetailPage() {
                       <span>{agent.phoneNumber}</span>
                     </div>
                   )}
+                  {agent.managedByUserId && !isManager && (
+                    <div className="flex items-center space-x-2">
+                      <Users className="h-4 w-4" />
+                      <span>Managé par un superviseur</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -6,7 +6,7 @@ import { OrganizationSettings } from '@/components/organization/organization-set
 import { CreateServiceButton } from '@/components/organization/create-service-button';
 import { ServicesTable } from '@/components/organization/services-table';
 import CardContainer from '@/components/layouts/card-container';
-import { CreateAgentButton } from '@/components/organization/CreateAgentButton';
+import { CreateAgentButton } from '@/components/organization/create-agent-button';
 import { AgentsTableWithFilters } from '@/components/organization/agents-table-with-filters';
 import * as React from 'react';
 import { Organization } from '@/types/organization';

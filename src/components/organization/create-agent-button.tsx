@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { AgentForm } from './AgentForm'; // Import AgentForm
+import { AgentForm } from './agent-form'; // Import AgentForm
 import { AgentFormData } from '@/schemas/user';
 import {
   Dialog,
@@ -16,7 +16,7 @@ import {
 import { Organization } from '@/types/organization';
 
 import { getServicesForOrganization } from '@/actions/agents';
-import { getOrganizationManagers } from '@/actions/organizations';
+import { getOrganizationManagers, getAvailableAgentsForManager } from '@/actions/organizations';
 import { tryCatch } from '@/lib/utils';
 
 interface CreateAgentButtonProps {
@@ -27,23 +27,32 @@ interface CreateAgentButtonProps {
 export function CreateAgentButton({ initialData, countries }: CreateAgentButtonProps) {
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
-  const [managers, setManagers] = useState<{ id: string; name: string | null }[]>([]);
+  const [managers, setManagers] = useState<{ id: string; name: string }[]>([]);
+  const [agents, setAgents] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     async function loadData() {
       if (initialData?.assignedOrganizationId) {
-        const [servicesResult, managersResult] = await Promise.all([
+        const [servicesResult, managersResult, agentsResult] = await Promise.all([
           tryCatch(getServicesForOrganization(initialData.assignedOrganizationId)),
           tryCatch(getOrganizationManagers(initialData.assignedOrganizationId)),
+          tryCatch(getAvailableAgentsForManager(initialData.assignedOrganizationId)),
         ]);
-        
+
         if (servicesResult.data) {
           setServices(servicesResult.data);
         }
         if (managersResult.data) {
-          const validManagers = managersResult.data
-            .filter((m): m is { id: string; name: string } => m.name !== null);
+          const validManagers = managersResult.data.filter(
+            (m): m is { id: string; name: string } => m.name !== null,
+          );
           setManagers(validManagers);
+        }
+        if (agentsResult.data) {
+          const validAgents = agentsResult.data.filter(
+            (a): a is { id: string; name: string } => a.name !== null,
+          );
+          setAgents(validAgents);
         }
       }
     }
@@ -61,13 +70,16 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
       <DialogContent className="w-full max-w-xl">
         <DialogHeader>
           <DialogTitle>Créer un utilisateur</DialogTitle>
-          <DialogDescription>Ajouter un nouvel agent ou manager à votre organisation</DialogDescription>
+          <DialogDescription>
+            Ajouter un nouvel agent ou manager à votre organisation
+          </DialogDescription>
         </DialogHeader>
         <AgentForm
           initialData={initialData}
           countries={countries}
           services={services}
           managers={managers}
+          agents={agents}
           onSuccess={() => {
             setOpen(false);
             window.location.reload();

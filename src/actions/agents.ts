@@ -377,6 +377,7 @@ const AgentDetailsSelect: Prisma.UserSelect = {
   availability: true,
   completedRequests: true,
   averageProcessingTime: true,
+  managedByUserId: true,
   managedAgents: {
     select: {
       id: true,
@@ -423,6 +424,9 @@ interface UpdateAgentData {
   phoneNumber?: string;
   countryIds?: string[];
   serviceIds?: string[];
+  managedByUserId?: string | null;
+  role?: UserRole;
+  managedAgentIds?: string[];
 }
 
 export async function updateAgent(id: string, data: UpdateAgentData) {
@@ -443,6 +447,14 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
       updateData.phoneNumber = data.phoneNumber;
     }
 
+    if (data.managedByUserId !== undefined) {
+      updateData.managedByUserId = data.managedByUserId;
+    }
+
+    if (data.role !== undefined) {
+      updateData.roles = [data.role];
+    }
+
     if (data.countryIds) {
       updateData.linkedCountries = {
         set: data.countryIds.map((id) => ({ id })),
@@ -453,6 +465,40 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
       updateData.assignedServices = {
         set: data.serviceIds.map((id) => ({ id })),
       };
+    }
+
+    // Handle managed agents for managers
+    if (data.managedAgentIds && data.role === 'MANAGER') {
+      // Update the managed agents to have this manager
+      await db.user.updateMany({
+        where: {
+          id: { in: data.managedAgentIds }
+        },
+        data: {
+          managedByUserId: id
+        }
+      });
+
+      // Remove manager from agents no longer managed
+      const currentManagedAgents = await db.user.findMany({
+        where: { managedByUserId: id },
+        select: { id: true }
+      });
+      
+      const agentsToRemove = currentManagedAgents
+        .filter(agent => !data.managedAgentIds!.includes(agent.id))
+        .map(agent => agent.id);
+      
+      if (agentsToRemove.length > 0) {
+        await db.user.updateMany({
+          where: {
+            id: { in: agentsToRemove }
+          },
+          data: {
+            managedByUserId: null
+          }
+        });
+      }
     }
 
     const updatedAgent = await db.user.update({
