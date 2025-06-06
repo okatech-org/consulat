@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { useTableSearchParams } from '@/components/utils/table-hooks';
 import { tryCatch, useDateLocale } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import {
@@ -42,71 +41,98 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
-import { RequestStatus, ServiceCategory, ServicePriority, UserRole } from '@prisma/client';
-import { EditAgentForm } from './components/edit-agent-form';
+import {
+  Country,
+  RequestStatus,
+  ServiceCategory,
+  ServicePriority,
+  User,
+  UserRole,
+} from '@prisma/client';
+import { AgentForm } from '@/components/organization/agent-form';
+import { useTableSearchParams } from '@/hooks/use-table-search-params';
+import { ConsularServiceListingItem } from '@/types/consular-service';
+import { OrganizationListingItem } from '@/types/organization';
+import { getActiveCountries } from '@/actions/countries';
+import {
+  getOrganizations,
+  getOrganizationManagers,
+  getOrganizationAgents,
+} from '@/actions/organizations';
+import { getServices } from '../../(superadmin)/_utils/actions/services';
 
 interface RequestFilters {
   search?: string;
-  status?: string[];
-  serviceCategory?: string[];
-  priority?: string[];
-  page?: number;
-  limit?: number;
+  status?: RequestStatus[];
+  serviceCategory?: ServiceCategory[];
+  priority?: ServicePriority[];
 }
 
-export default function AgentDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const currentUser = useCurrentUser();
+// Type pour les agents managés du AgentDetails
+type ManagedAgent = NonNullable<AgentDetails['managedAgents']>[0];
+
+// Type pour les demandes assignées du AgentDetails
+type AssignedRequest = NonNullable<AgentDetails['assignedRequests']>[0];
+
+// Simple component for managed agents list
+function ManagedAgentsList({ agents }: { agents: ManagedAgent[] }) {
+  return (
+    <div className="space-y-4">
+      {agents.map((agent) => (
+        <div
+          key={agent.id}
+          className="flex items-center justify-between p-4 border rounded-lg"
+        >
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={undefined} alt={agent.name || 'Agent'} />
+              <AvatarFallback>{agent.name?.[0] || 'A'}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">{agent.name || 'Sans nom'}</p>
+              <p className="text-sm text-muted-foreground">
+                {agent.email || "Pas d'email"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">
+              {agent.assignedRequests?.length || 0} demandes
+            </Badge>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={ROUTES.dashboard.agent_detail(agent.id)}>
+                <Eye className="h-4 w-4 mr-2" />
+                Voir
+              </Link>
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Component for assigned requests table
+function AssignedRequestsTable({
+  requests,
+  onParamsChange,
+  onSortingChange,
+  onPaginationChange,
+  tableParams,
+  pagination,
+  sorting,
+}: {
+  requests: AssignedRequest[];
+  onParamsChange: (key: string, value: any) => void;
+  onSortingChange: (sorting: { field: string; order: 'asc' | 'desc' }) => void;
+  onPaginationChange: (key: string, value: number) => void;
+  tableParams: RequestFilters;
+  pagination: { page: number; limit: number };
+  sorting: { field?: string; order?: 'asc' | 'desc' };
+}) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
-  const agentId = params.id as string;
-
-  const [agent, setAgent] = useState<AgentDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filteredRequests, setFilteredRequests] = useState<
-    AgentDetails['assignedRequests']
-  >([]);
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-
-  // Table state management
-  const {
-    params: tableParams,
-    pagination,
-    sorting,
-    handleParamsChange,
-    handleSortingChange,
-    handlePaginationChange,
-  } = useTableSearchParams<AgentDetails['assignedRequests'][0], RequestFilters>(
-    adaptSearchParams,
-  );
-
-  function adaptSearchParams(urlSearchParams: URLSearchParams): RequestFilters {
-    const params: RequestFilters = {};
-    const paramsKeys: (keyof RequestFilters)[] = [
-      'search',
-      'status',
-      'serviceCategory',
-      'priority',
-    ];
-
-    paramsKeys.forEach((key) => {
-      const value = urlSearchParams.get(key);
-      if (value) {
-        if (key === 'status' || key === 'serviceCategory' || key === 'priority') {
-          const arr = value.split(',');
-          if (arr.length > 0 && arr[0] !== '') {
-            params[key] = arr as any;
-          }
-        } else {
-          params[key] = value as any;
-        }
-      }
-    });
-
-    return params;
-  }
+  const [filteredRequests, setFilteredRequests] = useState<AssignedRequest[]>([]);
 
   // Définition des statuses pour les filtres
   const statuses = useMemo(
@@ -119,14 +145,14 @@ export default function AgentDetailPage() {
   );
 
   // Définition des filtres pour le tableau des demandes
-  const requestFilters = useMemo<FilterOption<AgentDetails['assignedRequests'][0]>[]>(
+  const requestFilters = useMemo<FilterOption<AssignedRequest>[]>(
     () => [
       {
         type: 'search',
         property: 'search',
         label: t('requests.filters.search'),
         defaultValue: tableParams.search || '',
-        onChange: (value: string) => handleParamsChange('search', value),
+        onChange: (value: string) => onParamsChange('search', value),
       },
       {
         type: 'checkbox',
@@ -134,7 +160,7 @@ export default function AgentDetailPage() {
         label: t('inputs.status.label'),
         defaultValue: (tableParams.status as string[]) || [],
         options: statuses,
-        onChange: (value: string[]) => handleParamsChange('status', value),
+        onChange: (value: string[]) => onParamsChange('status', value as RequestStatus[]),
       },
       {
         type: 'checkbox',
@@ -145,7 +171,8 @@ export default function AgentDetailPage() {
           value: category,
           label: t(`inputs.serviceCategory.options.${category}`),
         })),
-        onChange: (value: string[]) => handleParamsChange('serviceCategory', value),
+        onChange: (value: string[]) =>
+          onParamsChange('serviceCategory', value as ServiceCategory[]),
       },
       {
         type: 'checkbox',
@@ -156,92 +183,15 @@ export default function AgentDetailPage() {
           value: priority,
           label: t(`common.priority.${priority}`),
         })),
-        onChange: (value: string[]) => handleParamsChange('priority', value),
+        onChange: (value: string[]) =>
+          onParamsChange('priority', value as ServicePriority[]),
       },
     ],
-    [t, tableParams, statuses, handleParamsChange],
-  );
-
-  // Définition des colonnes pour les agents managés
-  const managedAgentsColumns: ColumnDef<NonNullable<AgentDetails['managedAgents']>[0]>[] = useMemo(
-    () => [
-      {
-        accessorKey: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Nom" />,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={undefined} alt={row.original.name || '-'} />
-              <AvatarFallback>{row.original.name?.[0] || 'A'}</AvatarFallback>
-            </Avatar>
-            <Link
-              href={ROUTES.dashboard.agent_detail(row.original.id)}
-              className="font-medium hover:underline"
-            >
-              {row.original.name || 'Sans nom'}
-            </Link>
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'email',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
-        cell: ({ row }) => row.original.email || '-',
-      },
-      {
-        accessorKey: 'phoneNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Téléphone" />,
-        cell: ({ row }) => row.original.phoneNumber || '-',
-      },
-      {
-        accessorKey: 'linkedCountries',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Pays" />,
-        cell: ({ row }) =>
-          row.original.linkedCountries && row.original.linkedCountries.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
-              {row.original.linkedCountries.map((c: any) => (
-                <Badge key={c.code} variant="outline">{c.name}</Badge>
-              ))}
-            </div>
-          ) : (
-            '-'
-          ),
-      },
-      {
-        accessorKey: 'assignedRequests',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Demandes actives" />,
-        cell: ({ row }) => {
-          const activeRequests = row.original.assignedRequests?.length || 0;
-          return (
-            <Badge variant={activeRequests > 5 ? 'destructive' : 'secondary'}>
-              {activeRequests}
-            </Badge>
-          );
-        },
-      },
-      {
-        accessorKey: 'completedRequests',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Complétées" />,
-        cell: ({ row }) => row.original.completedRequests || 0,
-      },
-      {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={ROUTES.dashboard.agent_detail(row.original.id)}>
-              <Eye className="h-4 w-4 mr-2" />
-              {t('common.actions.consult')}
-            </Link>
-          </Button>
-        ),
-      },
-    ],
-    [t],
+    [t, tableParams, statuses, onParamsChange],
   );
 
   // Définition des colonnes pour les demandes assignées
-  const requestsColumns: ColumnDef<AgentDetails['assignedRequests'][0]>[] = useMemo(
+  const requestsColumns: ColumnDef<AssignedRequest>[] = useMemo(
     () => [
       {
         accessorKey: 'id',
@@ -250,7 +200,7 @@ export default function AgentDetailPage() {
             column={column}
             title="ID"
             sortHandler={(direction) =>
-              handleSortingChange({
+              onSortingChange({
                 field: 'id',
                 order: direction,
               })
@@ -273,7 +223,7 @@ export default function AgentDetailPage() {
             column={column}
             title={t('inputs.serviceCategory.label')}
             sortHandler={(direction) =>
-              handleSortingChange({
+              onSortingChange({
                 field: 'serviceCategory',
                 order: direction,
               })
@@ -293,7 +243,7 @@ export default function AgentDetailPage() {
             column={column}
             title={t('inputs.status.label')}
             sortHandler={(direction) =>
-              handleSortingChange({
+              onSortingChange({
                 field: 'status',
                 order: direction,
               })
@@ -329,7 +279,7 @@ export default function AgentDetailPage() {
             column={column}
             title={t('inputs.priority.label')}
             sortHandler={(direction) =>
-              handleSortingChange({
+              onSortingChange({
                 field: 'priority',
                 order: direction,
               })
@@ -349,7 +299,7 @@ export default function AgentDetailPage() {
             column={column}
             title={t('requests.table.submitted_at')}
             sortHandler={(direction) =>
-              handleSortingChange({
+              onSortingChange({
                 field: 'createdAt',
                 order: direction,
               })
@@ -365,7 +315,7 @@ export default function AgentDetailPage() {
             column={column}
             title="Assigné le"
             sortHandler={(direction) =>
-              handleSortingChange({
+              onSortingChange({
                 field: 'assignedAt',
                 order: direction,
               })
@@ -390,54 +340,17 @@ export default function AgentDetailPage() {
         ),
       },
     ],
-    [t, statuses, formatDate, handleSortingChange],
+    [t, statuses, formatDate, onSortingChange],
   );
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
-  const canManageAgent = isSuperAdmin || currentUser?.roles?.includes('ADMIN');
-  const isManager = agent?.roles?.includes(UserRole.MANAGER);
-
-  const handleAgentUpdate = (updatedAgent: AgentDetails) => {
-    setAgent(updatedAgent);
-    setIsEditSheetOpen(false);
-  };
-
-  useEffect(() => {
-    async function fetchAgentDetails() {
-      if (!agentId) return;
-
-      setIsLoading(true);
-      const result = await tryCatch(getAgentDetails(agentId));
-
-      if (result.error) {
-        setError(result.error.message || 'Failed to fetch agent details');
-      } else if (result.data) {
-        setAgent(result.data);
-      }
-
-      setIsLoading(false);
-    }
-
-    fetchAgentDetails();
-  }, [agentId]);
 
   // Filter and paginate requests
   useEffect(() => {
-    if (!agent?.assignedRequests) {
+    if (!requests) {
       setFilteredRequests([]);
       return;
     }
 
-    let filtered = [...agent.assignedRequests];
+    let filtered = [...requests];
 
     // Apply search filter
     if (tableParams.search) {
@@ -473,8 +386,8 @@ export default function AgentDetailPage() {
     // Apply sorting
     if (sorting.field && sorting.order) {
       filtered.sort((a, b) => {
-        const aValue = a[sorting.field as keyof typeof a];
-        const bValue = b[sorting.field as keyof typeof b];
+        const aValue = a[sorting.field as keyof AssignedRequest];
+        const bValue = b[sorting.field as keyof AssignedRequest];
 
         // Handle null values
         if (aValue == null && bValue == null) return 0;
@@ -488,7 +401,167 @@ export default function AgentDetailPage() {
     }
 
     setFilteredRequests(filtered);
-  }, [agent?.assignedRequests, tableParams, sorting]);
+  }, [requests, tableParams, sorting]);
+
+  // Paginate filtered requests
+  const startIndex = (pagination.page - 1) * pagination.limit;
+  const endIndex = startIndex + pagination.limit;
+  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
+
+  return (
+    <DataTable
+      columns={requestsColumns}
+      data={paginatedRequests}
+      filters={requestFilters}
+      totalCount={filteredRequests.length}
+      pageIndex={pagination.page - 1}
+      pageSize={pagination.limit}
+      onPageChange={(page) => onPaginationChange('page', page + 1)}
+      onLimitChange={(limit) => onPaginationChange('limit', limit)}
+      activeSorting={sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined}
+    />
+  );
+}
+
+export default function AgentDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const currentUser = useCurrentUser();
+  const agentId = params.id as string;
+
+  const [agent, setAgent] = useState<AgentDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [formListDatas, setFormListDatas] = useState<{
+    countries: Country[];
+    services: ConsularServiceListingItem[];
+    organizations: OrganizationListingItem[];
+    managers: {
+      id: string;
+      name: string;
+    }[];
+    agents: {
+      id: string;
+      name: string;
+    }[];
+  }>({ countries: [], services: [], organizations: [], managers: [], agents: [] });
+
+  // Table state management
+  const {
+    params: tableParams,
+    pagination,
+    sorting,
+    handleParamsChange,
+    handleSortingChange,
+    handlePaginationChange,
+  } = useTableSearchParams<AssignedRequest, RequestFilters>(adaptSearchParams);
+
+  function adaptSearchParams(urlSearchParams: URLSearchParams): RequestFilters {
+    const filters: RequestFilters = {};
+
+    const search = urlSearchParams.get('search');
+    if (search) filters.search = search;
+
+    const status = urlSearchParams.get('status');
+    if (status) {
+      const statusArray = status.split(',').filter(Boolean);
+      if (statusArray.length > 0) {
+        filters.status = statusArray as RequestStatus[];
+      }
+    }
+
+    const serviceCategory = urlSearchParams.get('serviceCategory');
+    if (serviceCategory) {
+      const categoryArray = serviceCategory.split(',').filter(Boolean);
+      if (categoryArray.length > 0) {
+        filters.serviceCategory = categoryArray as ServiceCategory[];
+      }
+    }
+
+    const priority = urlSearchParams.get('priority');
+    if (priority) {
+      const priorityArray = priority.split(',').filter(Boolean);
+      if (priorityArray.length > 0) {
+        filters.priority = priorityArray as ServicePriority[];
+      }
+    }
+
+    return filters;
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
+  const canManageAgent = isSuperAdmin || currentUser?.roles?.includes('ADMIN');
+  const isManager = agent?.roles?.includes(UserRole.MANAGER);
+
+  useEffect(() => {
+    async function fetchAgentDetails() {
+      if (!agentId) return;
+
+      setIsLoading(true);
+      const result = await tryCatch(getAgentDetails(agentId));
+
+      if (result.error) {
+        setError(result.error.message || 'Failed to fetch agent details');
+      } else if (result.data) {
+        setAgent(result.data);
+      }
+
+      const [countriesData, services, organizations, managers, agents] =
+        await Promise.all([
+          getActiveCountries(result.data?.assignedOrganizationId ?? undefined),
+          getServices(result.data?.assignedOrganizationId ?? undefined),
+          getOrganizations(result.data?.assignedOrganizationId ?? undefined),
+          getOrganizationManagers(result.data?.assignedOrganizationId ?? undefined),
+          getOrganizationAgents(result.data?.assignedOrganizationId ?? ''),
+        ]);
+
+      setFormListDatas({
+        countries: countriesData ?? [],
+        services: services ?? [],
+        organizations: organizations ?? [],
+        managers:
+          managers.data?.map((manager) => ({
+            id: manager.id,
+            name: manager.name || '',
+          })) || [],
+        agents:
+          agents.data?.map((agent) => ({
+            id: agent.id,
+            name: agent.name || '',
+          })) || [],
+      });
+
+      console.log({
+        countries: countriesData ?? [],
+        services: services ?? [],
+        organizations: organizations ?? [],
+        managers:
+          managers.data?.map((manager) => ({
+            id: manager.id,
+            name: manager.name || '',
+          })) || [],
+        agents:
+          agents.data?.map((agent) => ({
+            id: agent.id,
+            name: agent.name || '',
+          })) || [],
+      });
+
+      setIsLoading(false);
+    }
+
+    fetchAgentDetails();
+  }, [agentId]);
 
   if (isLoading) {
     return (
@@ -538,15 +611,11 @@ export default function AgentDetailPage() {
     agent.assignedRequests?.filter((r) => r.status === 'COMPLETED').length || 0;
   const averageProcessingTime = agent.averageProcessingTime || 0;
 
-  // Paginate filtered requests
-  const startIndex = (pagination.page - 1) * pagination.limit;
-  const endIndex = startIndex + pagination.limit;
-  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
-
   return (
-    <PageContainer 
-      title={isManager ? "Détail du manager" : "Détail de l'agent"} 
-      description={agent.name}>
+    <PageContainer
+      title={isManager ? 'Détail du manager' : "Détail de l'agent"}
+      description={agent.name}
+    >
       <div className="space-y-6">
         {/* Header avec informations de base */}
         <CardContainer
@@ -600,10 +669,31 @@ export default function AgentDetailPage() {
                         Modifiez les informations de l&apos;agent {agent.name}
                       </SheetDescription>
                     </SheetHeader>
-                    <EditAgentForm
-                      agent={agent}
-                      onSuccess={handleAgentUpdate}
-                      onCancel={() => setIsEditSheetOpen(false)}
+                    <AgentForm
+                      initialData={{
+                        firstName: agent.name?.split(' ')[0] || '',
+                        lastName: agent.name?.split(' ').slice(1).join(' ') || '',
+                        email: agent.email || '',
+                        phoneNumber: agent.phoneNumber || '',
+                        countryIds: agent.linkedCountries?.map((c) => c.id) || [],
+                        serviceIds: agent.assignedServices?.map((s) => s.id) || [],
+                        assignedOrganizationId: agent.assignedOrganizationId || '',
+                        role: agent.roles.includes(UserRole.MANAGER)
+                          ? UserRole.MANAGER
+                          : UserRole.AGENT,
+                        managedByUserId: agent.managedByUserId || undefined,
+                        managedAgentIds: agent.managedAgents?.map((a) => a.id) || [],
+                      }}
+                      isEditMode={true}
+                      agentId={agent.id}
+                      onSuccess={() => {
+                        setIsEditSheetOpen(false);
+                        router.refresh();
+                      }}
+                      countries={formListDatas.countries}
+                      services={formListDatas.services}
+                      managers={formListDatas.managers}
+                      agents={formListDatas.agents}
                     />
                   </SheetContent>
                 </Sheet>
@@ -664,7 +754,10 @@ export default function AgentDetailPage() {
             <StatsCard
               title="Demandes actives"
               value={
-                agent.managedAgents?.reduce((sum, a) => sum + (a.assignedRequests?.length || 0), 0) || 0
+                agent.managedAgents?.reduce(
+                  (sum, a) => sum + (a.assignedRequests?.length || 0),
+                  0,
+                ) || 0
               }
               description="Total des agents"
               icon={FileText}
@@ -675,7 +768,10 @@ export default function AgentDetailPage() {
             <StatsCard
               title="Total complétées"
               value={
-                agent.managedAgents?.reduce((sum, a) => sum + (a.completedRequests || 0), 0) || 0
+                agent.managedAgents?.reduce(
+                  (sum, a) => sum + (a.completedRequests || 0),
+                  0,
+                ) || 0
               }
               description="Par tous les agents"
               icon={CheckCircle}
@@ -688,8 +784,10 @@ export default function AgentDetailPage() {
               value={
                 agent.managedAgents && agent.managedAgents.length > 0
                   ? `${Math.round(
-                      agent.managedAgents.reduce((sum, a) => sum + (a.averageProcessingTime || 0), 0) /
-                        agent.managedAgents.length
+                      agent.managedAgents.reduce(
+                        (sum, a) => sum + (a.averageProcessingTime || 0),
+                        0,
+                      ) / agent.managedAgents.length,
                     )}j`
                   : '0j'
               }
@@ -761,13 +859,7 @@ export default function AgentDetailPage() {
             }
           >
             {agent.managedAgents && agent.managedAgents.length > 0 ? (
-              <DataTable
-                columns={managedAgentsColumns}
-                data={agent.managedAgents}
-                totalCount={agent.managedAgents.length}
-                pageIndex={0}
-                pageSize={10}
-              />
+              <ManagedAgentsList agents={agent.managedAgents} />
             ) : (
               <div className="text-center py-8">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -798,18 +890,14 @@ export default function AgentDetailPage() {
             }
           >
             {agent.assignedRequests && agent.assignedRequests.length > 0 ? (
-              <DataTable
-                columns={requestsColumns}
-                data={paginatedRequests}
-                filters={requestFilters}
-                totalCount={filteredRequests.length}
-                pageIndex={pagination.page - 1}
-                pageSize={pagination.limit}
-                onPageChange={(page) => handlePaginationChange('page', page + 1)}
-                onLimitChange={(limit) => handlePaginationChange('limit', limit)}
-                activeSorting={
-                  sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
-                }
+              <AssignedRequestsTable
+                requests={agent.assignedRequests}
+                onParamsChange={handleParamsChange}
+                onSortingChange={handleSortingChange}
+                onPaginationChange={handlePaginationChange}
+                tableParams={tableParams}
+                pagination={pagination}
+                sorting={sorting}
               />
             ) : (
               <div className="text-center py-8">

@@ -37,9 +37,14 @@ export async function getCountries(): Promise<CountryWithCount[]> {
   }));
 }
 
-export async function getActiveCountries(): Promise<Country[]> {
+export async function getActiveCountries(organizationId?: string): Promise<Country[]> {
   return await db.country.findMany({
-    where: { status: 'ACTIVE' },
+    where: {
+      status: 'ACTIVE',
+      ...(organizationId && {
+        organizations: { some: { id: organizationId } },
+      }),
+    },
   });
 }
 

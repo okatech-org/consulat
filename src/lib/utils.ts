@@ -1,8 +1,8 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Profile } from '@prisma/client';
+import { Profile, User } from '@prisma/client';
 import { CountryIndicator, phoneCountries } from '@/lib/autocomplete-datas';
-import { FullProfile } from '@/types';
+import { FullProfile, SessionUser } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
 import { DateTimeFormatOptions, useLocale } from 'next-intl';
 import { es, fr, enUS, Locale } from 'date-fns/locale';
@@ -1060,4 +1060,26 @@ export async function downloadFilesAsZip(
   } finally {
     setIsLoading(false);
   }
+}
+
+export function getOrganizationIdFromUser(
+  currentUser: SessionUser | null,
+): string | undefined {
+  if (!currentUser) {
+    return undefined;
+  }
+
+  if (currentUser.roles.includes('SUPER_ADMIN')) {
+    return undefined;
+  }
+
+  if (currentUser.organizationId) {
+    return currentUser.organizationId;
+  }
+
+  if (currentUser.assignedOrganizationId) {
+    return currentUser.assignedOrganizationId;
+  }
+
+  return undefined;
 }
