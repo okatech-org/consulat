@@ -15,6 +15,7 @@ import {
   ServiceCategory,
   UserRole,
   Prisma,
+  User,
 } from '@prisma/client';
 
 import { AgentFormData } from '@/schemas/user';
@@ -279,7 +280,16 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
 
   const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
 
-  const { countryIds, serviceIds, firstName, lastName, role, managedByUserId, ...rest } = data;
+  const {
+    countryIds,
+    serviceIds,
+    firstName,
+    lastName,
+    role,
+    managedByUserId,
+    managedAgentIds,
+    ...rest
+  } = data;
 
   const agent = await db.user.create({
     data: {
@@ -290,17 +300,30 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
       linkedCountries: {
         connect: countryIds.map((id) => ({ id })),
       },
-      ...(serviceIds && serviceIds.length > 0 && {
-        assignedServices: {
-          connect: serviceIds.map((id) => ({ id })),
-        },
-      }),
+      ...(serviceIds &&
+        serviceIds.length > 0 && {
+          assignedServices: {
+            connect: serviceIds.map((id) => ({ id })),
+          },
+        }),
     },
     include: {
       ...BaseAgentInclude.include,
       assignedOrganization: true,
     },
   });
+
+  // If creating a manager, assign the agents to them
+  if (role === UserRole.MANAGER && managedAgentIds && managedAgentIds.length > 0) {
+    await db.user.updateMany({
+      where: {
+        id: { in: managedAgentIds },
+      },
+      data: {
+        managedByUserId: agent.id,
+      },
+    });
+  }
 
   const countryNames = agent.linkedCountries.map((country) => country.name).join(', ');
 
@@ -362,7 +385,10 @@ export async function updateAgent(id: string, data: Partial<AgentFormData>) {
   }
 }
 
-export async function getOrganizationAgents(id: string, managerId?: string): Promise<{
+export async function getOrganizationAgents(
+  id: string,
+  managerId?: string,
+): Promise<{
   data?: BaseAgent[];
   error?: string;
 }> {
@@ -388,10 +414,16 @@ export async function getOrganizationAgents(id: string, managerId?: string): Pro
   }
 }
 
-export async function getOrganizationManagers(id: string): Promise<{
-  data?: { id: string; name: string | null }[];
+export async function getOrganizationManagers(id?: string): Promise<{
+  data?: User[];
   error?: string;
 }> {
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+
+  if (!id) {
+    return { data: [] };
+  }
+
   try {
     const managers = await db.user.findMany({
       where: {
@@ -399,10 +431,6 @@ export async function getOrganizationManagers(id: string): Promise<{
         roles: {
           has: UserRole.MANAGER,
         },
-      },
-      select: {
-        id: true,
-        name: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -420,8 +448,12 @@ export async function getAgentsByManager(managerId: string): Promise<{
   data?: BaseAgent[];
   error?: string;
 }> {
-  const { user } = await checkAuth([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]);
-  
+  const { user } = await checkAuth([
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+  ]);
+
   // Verify the manager can only see their own agents
   if (user.roles.includes(UserRole.MANAGER) && user.id !== managerId) {
     return { error: 'messages.error.unauthorized' };
@@ -444,6 +476,34 @@ export async function getAgentsByManager(managerId: string): Promise<{
     return { data: agents };
   } catch (error) {
     console.error('Error fetching agents by manager:', error);
+    return { error: 'messages.error.fetch' };
+  }
+}
+
+export async function getAvailableAgentsForManager(organizationId: string): Promise<{
+  data?: { id: string; name: string | null }[];
+  error?: string;
+}> {
+  try {
+    const agents = await db.user.findMany({
+      where: {
+        assignedOrganizationId: organizationId,
+        roles: {
+          has: UserRole.AGENT,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return { data: agents };
+  } catch (error) {
+    console.error('Error fetching available agents:', error);
     return { error: 'messages.error.fetch' };
   }
 }

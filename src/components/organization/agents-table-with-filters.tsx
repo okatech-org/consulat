@@ -9,7 +9,7 @@ import {
 } from '@/actions/agents';
 import { DataTable } from '@/components/data-table/data-table';
 import { FilterOption } from '@/components/data-table/data-table-toolbar';
-import { useTableSearchParams } from '@/components/utils/table-hooks';
+import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { Column, ColumnDef, Row } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
@@ -80,9 +80,10 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
   useEffect(() => {
     async function loadServices() {
       const servicesRes = await getServices(
-        organizationId || (isSuperAdmin
-          ? undefined
-          : (currentUser?.organizationId ?? currentUser?.assignedOrganizationId)),
+        organizationId ||
+          (isSuperAdmin
+            ? undefined
+            : (currentUser?.organizationId ?? currentUser?.assignedOrganizationId)),
       );
       setServices(servicesRes.map((s) => ({ id: s.id, name: s.name })));
     }
@@ -134,12 +135,20 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
           ]
         : []),
     ],
-    [countries, organizations, services, isSuperAdmin, handleParamsChange, params, organizationId],
+    [
+      countries,
+      organizations,
+      services,
+      isSuperAdmin,
+      handleParamsChange,
+      params,
+      organizationId,
+    ],
   );
 
   const getOrganizationId = useCallback(() => {
     if (organizationId) return organizationId;
-    
+
     if (currentUser?.roles.includes('SUPER_ADMIN')) {
       return undefined;
     }
@@ -176,9 +185,7 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
           : undefined,
         assignedServices: (params.assignedServices as string[]) ?? undefined,
         country: (params.linkedCountries as string[]) ?? undefined,
-        organizationId:
-          params.assignedOrganizationId ??
-          (orgId ? [orgId] : undefined),
+        organizationId: params.assignedOrganizationId ?? (orgId ? [orgId] : undefined),
       };
 
       const result = await tryCatch(getAgentsList(options));
@@ -247,7 +254,7 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
         cell: ({ row }) => {
           const user = row.original as any;
           if (!user.roles) return '-';
-          
+
           if (user.roles.includes(UserRole.MANAGER)) {
             return <Badge>Manager</Badge>;
           } else if (user.roles.includes(UserRole.AGENT)) {
@@ -279,7 +286,9 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
           row.original.linkedCountries && row.original.linkedCountries.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {row.original.linkedCountries.map((c) => (
-                <Badge key={c.code} variant="outline">{c.name}</Badge>
+                <Badge key={c.code} variant="outline">
+                  {c.name}
+                </Badge>
               ))}
             </div>
           ) : (
@@ -295,7 +304,9 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
           row.original.assignedServices && row.original.assignedServices.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {row.original.assignedServices.map((s: { name: string; id: string }) => (
-                <Badge key={s.id} variant="secondary">{s.name}</Badge>
+                <Badge key={s.id} variant="secondary">
+                  {s.name}
+                </Badge>
               ))}
             </div>
           ) : (
@@ -317,17 +328,21 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
                 ),
                 onClick: (row) => router.push(ROUTES.dashboard.agent_detail(row.id)),
               },
-              ...((isAdmin || isSuperAdmin) ? [{
-                label: (
-                  <>
-                    <Trash className="mr-1 size-4 text-destructive" />
-                    <span className="text-destructive">Supprimer</span>
-                  </>
-                ),
-                onClick: (row: AgentListItem) => {
-                  console.log("Supprimer l'agent", row);
-                },
-              }] : []),
+              ...(isAdmin || isSuperAdmin
+                ? [
+                    {
+                      label: (
+                        <>
+                          <Trash className="mr-1 size-4 text-destructive" />
+                          <span className="text-destructive">Supprimer</span>
+                        </>
+                      ),
+                      onClick: (row: AgentListItem) => {
+                        console.log("Supprimer l'agent", row);
+                      },
+                    },
+                  ]
+                : []),
             ]}
             row={row}
           />

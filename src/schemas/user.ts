@@ -30,6 +30,7 @@ export const AgentSchema = z.object({
   }),
   serviceIds: z.array(z.string()).default([]),
   assignedOrganizationId: z.string(),
+  managedAgentIds: z.array(z.string()).optional(),
 });
 
 export type AgentFormData = z.infer<typeof AgentSchema>;

@@ -9,6 +9,7 @@ import {
   NotificationType,
   PrismaClient,
   Prisma,
+  UserRole,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
@@ -265,12 +266,12 @@ export async function getAvailableAgents(
 // Options pour la récupération des demandes
 export interface AgentsListRequestOptions {
   search?: string;
-  assignedServices: string[];
-  country: string[];
-  organizationId?: string[];
-  managedByUserId?: string;
-  page?: number;
-  limit?: number;
+  assignedServices?: string[];
+  linkedCountries?: string[];
+  assignedOrganizationId?: string[];
+  managedByUserId?: string[];
+  page: number;
+  limit: number;
   sortBy?: {
     direction: 'asc' | 'desc';
     field: 'assignedServices' | 'country' | 'organizationId';
@@ -286,6 +287,7 @@ const AgentListItemSelect: Prisma.UserSelect = {
   assignedServices: true,
   linkedCountries: true,
   assignedOrganizationId: true,
+  managedByUserId: true,
 };
 
 export type AgentListItem = Prisma.UserGetPayload<{
@@ -303,13 +305,13 @@ export interface AgentsListResult {
 export async function getAgentsList(
   options?: AgentsListRequestOptions,
 ): Promise<AgentsListResult> {
-  const { user } = await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
 
   const {
     search,
     assignedServices,
-    country,
-    organizationId,
+    linkedCountries,
+    assignedOrganizationId,
     managedByUserId,
     page = 1,
     limit = 10,
@@ -317,24 +319,19 @@ export async function getAgentsList(
   } = options || {};
 
   const where: Prisma.UserWhereInput = {
-    OR: [
-      { roles: { has: 'AGENT' } },
-      { roles: { has: 'MANAGER' } }
-    ]
+    OR: [{ roles: { has: 'AGENT' } }, { roles: { has: 'MANAGER' } }],
   };
 
-  // If user is MANAGER, only show agents they manage
-  if (user.roles.includes('MANAGER' as any)) {
-    where.managedByUserId = user.id;
-    where.roles = { has: 'AGENT' }; // Managers only see agents, not other managers
-  } else if (managedByUserId) {
-    where.managedByUserId = managedByUserId;
+  if (managedByUserId) {
+    where.managedByUserId = { in: managedByUserId };
   }
 
   if (assignedServices)
     where.assignedServices = { some: { id: { in: assignedServices } } };
-  if (country) where.linkedCountries = { some: { code: { in: country } } };
-  if (organizationId) where.assignedOrganizationId = { in: organizationId };
+  if (linkedCountries)
+    where.linkedCountries = { some: { code: { in: linkedCountries } } };
+  if (assignedOrganizationId)
+    where.assignedOrganizationId = { in: assignedOrganizationId };
 
   if (search) {
     where.OR = [
@@ -372,19 +369,40 @@ export async function getAgentsList(
 
 const AgentDetailsSelect: Prisma.UserSelect = {
   ...AgentListItemSelect,
-  assignedRequests: true,
+  assignedRequests: {
+    select: {
+      id: true,
+      status: true,
+      priority: true,
+      serviceCategory: true,
+      createdAt: true,
+      assignedAt: true,
+    },
+  },
   specializations: true,
   availability: true,
   completedRequests: true,
   averageProcessingTime: true,
+  managedByUserId: true,
   managedAgents: {
     select: {
       id: true,
       name: true,
       email: true,
       phoneNumber: true,
-      linkedCountries: true,
-      assignedServices: true,
+      linkedCountries: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+        },
+      },
+      assignedServices: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       completedRequests: true,
       averageProcessingTime: true,
       assignedRequests: {
@@ -392,6 +410,10 @@ const AgentDetailsSelect: Prisma.UserSelect = {
           status: {
             notIn: ['COMPLETED', 'REJECTED'],
           },
+        },
+        select: {
+          id: true,
+          status: true,
         },
       },
     },
@@ -423,6 +445,9 @@ interface UpdateAgentData {
   phoneNumber?: string;
   countryIds?: string[];
   serviceIds?: string[];
+  managedByUserId?: string | null;
+  role?: UserRole;
+  managedAgentIds?: string[];
 }
 
 export async function updateAgent(id: string, data: UpdateAgentData) {
@@ -431,16 +456,28 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
   try {
     const updateData: Prisma.UserUpdateInput = {};
 
-    if (data.name !== undefined) {
+    if (data.name) {
       updateData.name = data.name;
     }
 
-    if (data.email !== undefined) {
+    if (data.email) {
       updateData.email = data.email;
     }
 
-    if (data.phoneNumber !== undefined) {
+    if (data.phoneNumber) {
       updateData.phoneNumber = data.phoneNumber;
+    }
+
+    if (data.managedByUserId) {
+      updateData.managedBy = {
+        connect: {
+          id: data.managedByUserId,
+        },
+      };
+    }
+
+    if (data.role) {
+      updateData.roles = [data.role];
     }
 
     if (data.countryIds) {
@@ -453,6 +490,40 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
       updateData.assignedServices = {
         set: data.serviceIds.map((id) => ({ id })),
       };
+    }
+
+    // Handle managed agents for managers
+    if (data.managedAgentIds && data.role === 'MANAGER') {
+      // Update the managed agents to have this manager
+      await db.user.updateMany({
+        where: {
+          id: { in: data.managedAgentIds },
+        },
+        data: {
+          managedByUserId: id,
+        },
+      });
+
+      // Remove manager from agents no longer managed
+      const currentManagedAgents = await db.user.findMany({
+        where: { managedByUserId: id },
+        select: { id: true },
+      });
+
+      const agentsToRemove = currentManagedAgents
+        .filter((agent) => !data.managedAgentIds!.includes(agent.id))
+        .map((agent) => agent.id);
+
+      if (agentsToRemove.length > 0) {
+        await db.user.updateMany({
+          where: {
+            id: { in: agentsToRemove },
+          },
+          data: {
+            managedByUserId: null,
+          },
+        });
+      }
     }
 
     const updatedAgent = await db.user.update({

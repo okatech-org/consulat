@@ -80,7 +80,7 @@ import {
 } from '@/components/ui/select';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { updateProfile } from '@/actions/profile';
-import { useTableSearchParams } from '@/components/utils/table-hooks';
+import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
 import {
   Sheet,
