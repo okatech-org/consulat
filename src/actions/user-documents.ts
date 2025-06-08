@@ -6,7 +6,7 @@ import { DocumentStatus, DocumentType, RequestActionType } from '@prisma/client'
 import { deleteFiles } from '@/actions/uploads';
 import { tryCatch } from '@/lib/utils';
 import { AppUserDocument } from '@/types';
-import { auth } from '@/next-auth';
+import { auth } from '@/auth';
 
 interface UpdateDocumentData {
   issuedAt?: string;

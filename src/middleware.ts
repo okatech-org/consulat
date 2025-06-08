@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { NextResponse } from 'next/server';
-import { auth } from '@/next-auth';
+import { auth } from '@/auth';
 import type { NextRequest } from 'next/server';
 import { applySecurityHeaders, generateCSPNonce } from '@/lib/security/headers';
 import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';

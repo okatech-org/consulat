@@ -1,6 +1,6 @@
 'use server';
 
-import { auth } from '@/next-auth';
+import { auth } from '@/auth';
 import { db } from '@/lib/prisma';
 import { AgentSettings, AdminSettings, UserSettings } from '@/schemas/user';
 import { SessionUser } from '@/types';

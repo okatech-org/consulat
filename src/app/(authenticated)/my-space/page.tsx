@@ -3,7 +3,7 @@ import { getUserAppointments } from '@/actions/appointments';
 import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { getUserFullProfileById } from '@/lib/user/getters';
-import { auth } from '@/next-auth';
+import { auth } from '@/auth';
 import { PageContainer } from '@/components/layouts/page-container';
 import { UserSpaceNavigation } from '@/components/layouts/user-space-navigation';
 import { ProfileStatusCard } from '@/components/user/profile-status-card';
