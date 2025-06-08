@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { SidebarProvider } from '../ui/sidebar';
 import { Analytics } from '@vercel/analytics/react';
-import { auth } from '@/auth';
+import { auth } from '@/next-auth';
 import { getMessages } from 'next-intl/server';
 import { Session } from 'next-auth';
 import { ChatProvider } from '@/contexts/chat-context';

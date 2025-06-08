@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { auth } from '@/next-auth';
 import { UserRole } from '@prisma/client';
 import { hasAnyRole } from '../permissions/utils';
 import { SessionUser } from '@/types/user';

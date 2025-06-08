@@ -1,7 +1,7 @@
 'use server';
 
 import { feedbackSchema } from '@/schemas/feedback';
-import { auth } from '@/auth';
+import { auth } from '@/next-auth';
 import { env } from '@/lib/env/index';
 import { sendFeedbackEmail } from '@/lib/services/notifications/providers/emails';
 

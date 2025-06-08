@@ -1,5 +1,5 @@
 import { getProfileById } from '@/actions/profiles';
-import { auth } from '@/auth';
+import { auth } from '@/next-auth';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';

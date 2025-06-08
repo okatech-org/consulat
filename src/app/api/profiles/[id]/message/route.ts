@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { auth } from '@/next-auth';
 import { db } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';

@@ -1,6 +1,6 @@
 'use server';
 
-import { signOut } from '@/auth';
+import { signOut } from '@/next-auth';
 import { db } from '@/lib/prisma';
 
 export const logUserOut = async () => {

@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { auth } from '@/next-auth';
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { UploadThingError } from 'uploadthing/server';
 
