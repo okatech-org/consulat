@@ -1,8 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
 import {
   Card,
   CardContent,
@@ -72,10 +71,10 @@ export function DocumentCard({ document }: DocumentCardProps) {
           <Badge
             variant={
               document.status === 'VALIDATED'
-                ? 'success'
+                ? 'default'
                 : document.status === 'REJECTED'
                   ? 'destructive'
-                  : 'info'
+                  : 'default'
             }
             className="flex gap-1"
           >

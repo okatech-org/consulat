@@ -26,6 +26,16 @@ export default {
     update_profile_failed: 'Échec de la mise à jour du profil',
     otp_required: 'Le code OTP est requis',
     otp_length: 'Le code OTP doit contenir 6 chiffres',
+    otp_generation_rate_limit:
+      'Trop de tentatives de génération de code. Veuillez patienter avant de redemander un code.',
+    otp_generation_error: 'Erreur lors de la génération du code OTP. Veuillez réessayer.',
+    missing_otp: 'Paramètres manquants pour la validation du code OTP',
+    otp_validation_rate_limit:
+      'Trop de tentatives de validation. Veuillez patienter avant de réessayer.',
+    otp_expired_or_invalid:
+      'Ce code OTP est expiré ou invalide. Veuillez demander un nouveau code.',
+    otp_invalid: 'Le code OTP saisi est incorrect',
+    otp_validation_error: 'Erreur lors de la validation du code OTP. Veuillez réessayer.',
     been_error: 'Une erreur est survenue',
     been_error_description: "Votre demande n'a pas été traitée. Veuillez réessayer.",
     profile_creation_failed: 'Problème lors de la création de votre compte',

@@ -2,25 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  ChevronRight,
-  Home,
-  User,
-  FileText,
-  Calendar,
-  Bell,
-  Settings,
-  HelpCircle,
-} from 'lucide-react';
+import { Home, User, FileText, Calendar, Bell, Settings } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -89,86 +72,10 @@ export function UserSpaceNavigation({
     },
   ];
 
-  // Génération des breadcrumbs basés sur le pathname
-  const generateBreadcrumbs = () => {
-    const segments = pathname.split('/').filter(Boolean);
-    const breadcrumbs = [
-      {
-        label: 'Accueil',
-        href: '/',
-        isActive: false,
-      },
-    ];
-
-    if (segments.includes('my-space')) {
-      breadcrumbs.push({
-        label: 'Mon Espace',
-        href: ROUTES.user.dashboard,
-        isActive: segments.length === 1 || segments[segments.length - 1] === 'my-space',
-      });
-
-      // Ajouter des breadcrumbs spécifiques selon la section
-      const currentSection = segments[segments.length - 1];
-      if (currentSection) {
-        const sectionItem = navigationItems.find(
-          (item) => item.href.includes(currentSection) || item.key === currentSection,
-        );
-
-        if (sectionItem && !breadcrumbs.some((b) => b.href === sectionItem.href)) {
-          breadcrumbs.push({
-            label: sectionItem.label,
-            href: sectionItem.href,
-            isActive: true,
-          });
-        }
-      }
-    }
-
-    return breadcrumbs;
-  };
-
-  const breadcrumbs = generateBreadcrumbs();
   const currentSection = navigationItems.find((item) => pathname.startsWith(item.href));
 
   return (
     <div className={cn('space-y-4', className)}>
-      {/* Breadcrumbs contextuels */}
-      <div className="flex items-center justify-between">
-        <Breadcrumb>
-          <BreadcrumbList>
-            {breadcrumbs.map((breadcrumb, index) => (
-              <BreadcrumbItem key={breadcrumb.href}>
-                {index === breadcrumbs.length - 1 || breadcrumb.isActive ? (
-                  <BreadcrumbPage className="font-medium">
-                    {breadcrumb.label}
-                  </BreadcrumbPage>
-                ) : (
-                  <>
-                    <BreadcrumbLink asChild>
-                      <Link
-                        href={breadcrumb.href}
-                        className="hover:text-primary transition-colors"
-                      >
-                        {breadcrumb.label}
-                      </Link>
-                    </BreadcrumbLink>
-                    <BreadcrumbSeparator>
-                      <ChevronRight className="h-4 w-4" />
-                    </BreadcrumbSeparator>
-                  </>
-                )}
-              </BreadcrumbItem>
-            ))}
-          </BreadcrumbList>
-        </Breadcrumb>
-
-        {/* Aide contextuelle */}
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
-          <HelpCircle className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Aide</span>
-        </Button>
-      </div>
-
       {/* Navigation rapide entre sections (optionnelle) */}
       {showQuickActions && (
         <div className="hidden md:flex items-center gap-2 p-3 bg-muted/30 rounded-lg border">

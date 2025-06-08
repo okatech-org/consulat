@@ -112,6 +112,7 @@
     "pdf-lib": "^1.17.1",
     "pica": "^9.0.1",
     "qrcode.react": "^3.2.0",
+    "rate-limiter-flexible": "^7.1.1",
     "react": "^18.3.1",
     "react-avatar-editor": "^13.0.2",
     "react-day-picker": "^8.10.1",
@@ -135,6 +136,7 @@
     "uploadthing": "^7.5.2",
     "uuid": "^9.0.1",
     "vaul": "^1.1.2",
+    "winston": "^3.17.0",
     "xlsx": "^0.18.5",
     "zod": "^3.25.26",
     "zustand": "^5.0.3"
