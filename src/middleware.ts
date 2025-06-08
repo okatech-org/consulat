@@ -8,7 +8,7 @@ import { headers } from 'next/headers';
 import { auth } from './lib/auth/auth';
 
 // Routes protégées qui nécessitent une authentification
-const protectedRoutes = ['/dashboard', '/my-space'];
+const protectedRoutes = ['/dashboard', '/my-space'] as const;
 
 /**
  * Vérifie si une route nécessite une authentification
@@ -19,75 +19,94 @@ const isProtectedRoute = (pathname: string): boolean => {
   return protectedRoutes.some((route) => pathname.startsWith(route));
 };
 
-export async function middleware(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  const { pathname } = request.nextUrl;
+/**
+ * Extrait l'adresse IP du client depuis les headers de la requête
+ * @param request - La requête Next.js
+ * @returns L'adresse IP du client ou 'unknown'
+ */
+const getClientIP = (request: NextRequest): string => {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    request.headers.get('cf-connecting-ip') ||
+    request.headers.get('x-client-ip') ||
+    'unknown'
+  );
+};
 
-  // Vérifier le statut d'authentification de la route
+/**
+ * Gère les redirections d'authentification
+ * @param request - La requête Next.js
+ * @param session - La session utilisateur
+ * @param pathname - Le chemin de la route
+ * @returns NextResponse de redirection ou null
+ */
+const handleAuthRedirects = (
+  request: NextRequest,
+  session: any,
+  pathname: string,
+): NextResponse | null => {
   const isProtected = isProtectedRoute(pathname);
 
   // Redirection si route protégée sans session
   if (isProtected && !session) {
-    return NextResponse.redirect(
-      new URL('/login?callbackUrl=' + encodeURIComponent(pathname), request.url),
-    );
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // Rediction for logged in users in login page
+  // Redirection pour les utilisateurs connectés sur la page de login
   if (session && pathname === '/login') {
-    const searchParams = new URLSearchParams(request.nextUrl.searchParams);
-    const callbackUrl = searchParams.get('callbackUrl');
-
-    if (callbackUrl) {
-      return NextResponse.redirect(new URL(callbackUrl, request.url));
-    }
-
-    return NextResponse.redirect(new URL('/', request.url));
+    const callbackUrl = request.nextUrl.searchParams.get('callbackUrl');
+    const redirectUrl = callbackUrl
+      ? new URL(callbackUrl, request.url)
+      : new URL('/', request.url);
+    return NextResponse.redirect(redirectUrl);
   }
 
-  // Setup nonce pour la sécurité CSP
-  const nonce = nanoid();
-  const cspNonce = generateCSPNonce();
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('x-csp-nonce', cspNonce);
+  return null;
+};
 
-  // Créer la réponse avec headers sécurisés
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-
+/**
+ * Configure les headers de sécurité et de contexte
+ * @param request - La requête Next.js
+ * @param response - La réponse Next.js
+ * @param nonce - Le nonce généré
+ * @param cspNonce - Le nonce CSP
+ * @param clientIP - L'adresse IP du client
+ */
+const configureHeaders = (
+  request: NextRequest,
+  response: NextResponse,
+  nonce: string,
+  cspNonce: string,
+  clientIP: string,
+): void => {
   const searchParams = request.nextUrl.searchParams.toString();
 
-  // Check for viewport cookie - prioritize it over User-Agent detection
-  const viewportCookie = request.cookies.get('x-is-mobile');
-
-  // Set mobile flag based on cookie or User-Agent as fallback
-  let isMobile = false;
-
-  if (viewportCookie) {
-    // Use the cookie value if it exists
-    isMobile = viewportCookie.value === 'true';
-  }
-
-  // Set headers
-  response.headers.set('x-is-mobile', isMobile ? 'true' : 'false');
+  // Headers de contexte
   response.headers.set(
     'x-current-path',
     request.nextUrl.pathname + (searchParams ? `?${searchParams}` : ''),
   );
-  response.headers.set('x-params-string', request.nextUrl.searchParams.toString());
+  response.headers.set('x-params-string', searchParams);
 
-  const clientIP =
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  // Gestion du viewport mobile via cookie
+  const viewportCookie = request.cookies.get('x-is-mobile');
+  const isMobile = viewportCookie?.value === 'true';
+  response.headers.set('x-is-mobile', isMobile ? 'true' : 'false');
 
-  // Vérification du rate limiting global par IP
+  // Headers de sécurité
+  response.headers.set('x-nonce', nonce);
+  response.headers.set('x-csp-nonce', cspNonce);
+  response.headers.set('x-client-ip', clientIP);
+};
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const clientIP = getClientIP(request);
+
+  // Vérification du rate limiting global par IP en premier
   const rateLimitResult = await checkRateLimit(globalLimiter, clientIP);
   if (!rateLimitResult.allowed) {
     logEdgeRateLimitExceeded(clientIP, 'global', clientIP);
@@ -95,11 +114,42 @@ export async function middleware(request: NextRequest) {
       status: 429,
       headers: {
         'Retry-After': String(Math.ceil((rateLimitResult.msBeforeNext || 0) / 1000)),
+        'Content-Type': 'text/plain',
       },
     });
   }
 
-  // Appliquer les headers de sécurité
+  // Vérification de la session utilisateur
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // Gestion des redirections d'authentification
+  const authRedirect = handleAuthRedirects(request, session, pathname);
+  if (authRedirect) {
+    return authRedirect;
+  }
+
+  // Génération des nonces de sécurité
+  const nonce = nanoid();
+  const cspNonce = generateCSPNonce();
+
+  // Configuration des headers de requête
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('x-csp-nonce', cspNonce);
+
+  // Création de la réponse avec headers modifiés
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  // Configuration des headers de réponse
+  configureHeaders(request, response, nonce, cspNonce, clientIP);
+
+  // Application des headers de sécurité
   return applySecurityHeaders(response, {
     'X-CSP-Nonce': cspNonce,
     'X-Client-IP': clientIP,
@@ -107,5 +157,15 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder files
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
