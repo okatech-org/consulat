@@ -34,7 +34,6 @@ export const env = createEnv({
     VONAGE_API_KEY: z.string().min(1),
     VONAGE_API_SECRET: z.string().min(1),
     VONAGE_PHONE_NUMBER: z.string().startsWith('+'),
-    NEXT_ORG_LOGO: z.string().url(),
   },
 
   /**
@@ -83,8 +82,6 @@ export const env = createEnv({
     VONAGE_API_KEY: process.env.VONAGE_API_KEY,
     VONAGE_API_SECRET: process.env.VONAGE_API_SECRET,
     VONAGE_PHONE_NUMBER: process.env.VONAGE_PHONE_NUMBER,
-
-    NEXT_ORG_LOGO: process.env.NEXT_ORG_LOGO,
 
     // Public variables
     NEXT_PUBLIC_BASE_COUNTRY_CODE: process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE,

@@ -29,12 +29,12 @@ import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
-import { isUserExists } from '@/actions/auth';
+import { sendOTP, isUserExists } from '@/actions/auth';
 import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ErrorCard } from '../ui/error-card';
 import { toast } from '@/hooks/use-toast';
 import { signIn } from 'next-auth/react';
-import { authenticateWithOTP, sendOTP } from '@/lib/user/otp';
+import { validateOTP } from '@/lib/user/otp';
 import { createUserWithProfile } from '@/actions/profile';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 import { useRouter } from 'next/navigation';
@@ -187,13 +187,13 @@ export function NewProfileForm({
     }
 
     if (showOTP) {
-      const isOTPValid = await authenticateWithOTP({
+      const isOTPValid = await validateOTP({
         identifier: identifier ?? '',
         otp: data.otp ?? '',
         type: data.type,
       });
 
-      if (!isOTPValid.valid) {
+      if (!isOTPValid) {
         form.setError('otp', {
           message: 'messages.errors.invalid_otp',
         });
@@ -201,7 +201,7 @@ export function NewProfileForm({
         return;
       }
 
-      if (isOTPValid.valid) {
+      if (isOTPValid) {
         const newProfile = await tryCatch(createUserWithProfile(data));
 
         if (newProfile.error) {

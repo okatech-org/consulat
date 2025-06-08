@@ -232,9 +232,9 @@ export function ProfileStatusCard({
       className={cn(
         'relative overflow-hidden transition-all duration-200',
         !isProfileComplete &&
-          'border-orange-200 light:bg-gradient-to-br from-orange-50/50 light:to-background dark:bg-orange-950/50',
+          'border-orange-200 bg-gradient-to-br from-orange-50/50 to-background',
         isProfileComplete &&
-          'border-green-200 light:bg-gradient-to-br from-green-50/50 light:to-background dark:bg-green-950/50',
+          'border-green-200 bg-gradient-to-br from-green-50/50 to-background',
         className,
       )}
     >
