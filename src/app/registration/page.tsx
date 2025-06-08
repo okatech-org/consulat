@@ -10,7 +10,7 @@ import { getCurrentUser } from '@/actions/user';
 import { SessionUser } from '@/types/user';
 import { BetaBanner } from '@/components/ui/beta-banner';
 
-const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
+const appLogo = env.NEXT_ORG_LOGO;
 
 export default async function RegistrationPage() {
   const currentUser = await getCurrentUser();
