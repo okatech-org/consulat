@@ -10,7 +10,11 @@ import {
   getRateLimitKey,
   formatWaitTime,
 } from '@/lib/security/rate-limiter';
-import { logOTPGeneration, logRateLimitExceeded, logError } from '@/lib/security/logger';
+import {
+  logOTPGeneration,
+  logRateLimitExceeded,
+  logError,
+} from '@/lib/security/production-logger';
 import { tryCatch } from '../utils';
 import { notifyValidationCode } from '../services/notifications';
 
