@@ -64,12 +64,8 @@ export function middleware(request: NextRequest) {
 
   const sessionCookie = getSessionCookie(request);
 
-  console.log('sessionCookie', sessionCookie);
-  console.log('isProtected', isProtected);
-
   // Redirection si route protégée sans session
   if (isProtected && !sessionCookie) {
-    console.log('Redirecting to home - protected route without session');
     return NextResponse.redirect(
       new URL('/login?callbackUrl=' + encodeURIComponent(pathname), request.url),
     );
