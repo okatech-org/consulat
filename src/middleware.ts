@@ -8,6 +8,7 @@ import {
   logEdgeUnauthorizedAccess,
   logEdgeRateLimitExceeded,
 } from '@/lib/security/edge-logger';
+import { getSessionCookie } from 'better-auth/cookies';
 
 // Routes publiques qui ne nécessitent pas d'authentification
 const publicRoutes = [
@@ -78,6 +79,18 @@ export default auth(async (req) => {
 });
 
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Vérifier si la route est publique
+  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  const isPublicApiRoute = publicApiRoutes.some((route) => pathname.startsWith(route));
+
+  const sessionCookie = getSessionCookie(request);
+
+  if (!sessionCookie && !isPublicRoute && !isPublicApiRoute) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   const response = NextResponse.next();
   const searchParams = request.nextUrl.searchParams.toString();
 

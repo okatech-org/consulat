@@ -5,6 +5,7 @@ import { phoneNumber, emailOTP } from 'better-auth/plugins';
 import { sendSMSOTP } from '@/actions/email';
 import { tryCatch } from '../utils';
 import { sendOTPEmail } from '../services/notifications/providers/emails';
+import { nextCookies } from 'better-auth/next-js';
 
 export const auth = betterAuth({
   emailAndPassword: {
@@ -36,5 +37,6 @@ export const auth = betterAuth({
       allowedAttempts: 5,
       expiresIn: 300,
     }),
+    nextCookies(),
   ],
 });
