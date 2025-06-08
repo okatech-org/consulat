@@ -11,6 +11,8 @@ import {
   formatWaitTime,
 } from '@/lib/security/rate-limiter';
 import { logOTPGeneration, logRateLimitExceeded, logError } from '@/lib/security/logger';
+import { tryCatch } from '../utils';
+import { notifyValidationCode } from '../services/notifications';
 
 /**
  * Génère un OTP sécurisé de 6 chiffres
@@ -152,3 +154,39 @@ export const authenticateWithOTP = async ({
     return { valid: false, error: 'messages.errors.otp_validation_error' };
   }
 };
+
+export type AuthType = 'EMAIL' | 'PHONE';
+
+export async function sendOTP(identifier: string, type: AuthType) {
+  try {
+    const generatedOTP = await generateOTP();
+
+    const saveResult = await saveHashedOTP({
+      identifier,
+      otp: generatedOTP,
+      type,
+    });
+
+    if (!saveResult.success) {
+      console.error('Error saving OTP:', saveResult.error);
+      return { error: saveResult.error, waitTime: saveResult.waitTime };
+    }
+
+    const notificationResult = await tryCatch(
+      notifyValidationCode(generatedOTP, {
+        ...(type === 'EMAIL' && { email: identifier }),
+        ...(type === 'PHONE' && { phoneNumber: identifier.replaceAll('-', '') }),
+      }),
+    );
+
+    if (notificationResult.error) {
+      console.error('Error sending OTP:', notificationResult.error);
+      return { error: 'Failed to send verification code' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    return { error: 'Failed to send verification code' };
+  }
+}

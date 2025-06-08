@@ -4,8 +4,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 import { useTranslations } from 'next-intl';
-import { sendOTP, isUserExists } from '@/actions/auth';
-import { authenticateWithOTP } from '@/lib/user/otp';
+import { isUserExists } from '@/actions/auth';
+import { authenticateWithOTP, sendOTP } from '@/lib/user/otp';
 import { tryCatch } from '@/lib/utils';
 import { signIn } from 'next-auth/react';
 
@@ -42,8 +42,9 @@ interface UseAuthOTPReturn {
   canResend: boolean;
 
   // Actions
+  setState: (state: AuthState) => void;
   sendOTPCode: (identifier: string, type: AuthType) => Promise<void>;
-  validateOTP: (otp: string) => Promise<void>;
+  validateOTP: (otp: string, autoLogin?: boolean) => Promise<void>;
   resendOTP: () => Promise<void>;
   reset: () => void;
   goBack: () => void;
@@ -140,7 +141,7 @@ export function useAuthOTP(options: UseAuthOTPOptions = {}): UseAuthOTPReturn {
 
   // Fonction pour valider l'OTP
   const validateOTP = useCallback(
-    async (otp: string) => {
+    async (otp: string, autoLogin = true) => {
       if (!identifier || !authType) {
         setError('messages.errors.missing_otp');
         setState('error');
@@ -160,15 +161,17 @@ export function useAuthOTP(options: UseAuthOTPOptions = {}): UseAuthOTPReturn {
         if (!otpValidation?.valid) {
           const errorMessage = otpValidation?.error || 'messages.errors.invalid_otp';
           setError(errorMessage);
-          setState('otp-sent'); // Rester sur l'écran OTP pour permettre de réessayer
+          setState('otp-sent');
           return;
         }
 
-        await signIn('credentials', {
-          identifier,
-          type: authType,
-          redirect: false,
-        });
+        if (autoLogin) {
+          await signIn('credentials', {
+            identifier,
+            type: authType,
+            redirect: false,
+          });
+        }
 
         setState('success');
 
@@ -235,6 +238,7 @@ export function useAuthOTP(options: UseAuthOTPOptions = {}): UseAuthOTPReturn {
     canResend,
 
     // Actions
+    setState,
     sendOTPCode,
     validateOTP,
     resendOTP,

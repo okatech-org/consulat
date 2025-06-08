@@ -30,17 +30,30 @@ import { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { isUserExists } from '@/actions/auth';
+import { ErrorMessageKey, tryCatch } from '@/lib/utils';
+import { ErrorCard } from '../ui/error-card';
+import { toast } from '@/hooks/use-toast';
+import { signIn } from 'next-auth/react';
+import { authenticateWithOTP, sendOTP } from '@/lib/user/otp';
+import { createUserWithProfile } from '@/actions/profile';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
+import { useRouter } from 'next/navigation';
 import { PhoneNumberInput } from '../ui/phone-number';
-import { useAuthOTP } from '@/hooks/use-auth-otp';
 
 export function NewProfileForm({
   availableCountries,
 }: {
   availableCountries: Country[];
 }) {
+  const router = useRouter();
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
+  const tErrors = useTranslations('messages.errors');
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+
+  const [showOTP, setShowOTP] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<ErrorMessageKey | null>(null);
 
   const CreateProfileSchema = z.object({
     firstName: NameSchema,
@@ -56,26 +69,9 @@ export function NewProfileForm({
 
   type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 
-  const {
-    state,
-    error,
-    isLoading,
-    isOTPSent,
-    authType,
-    resendCooldown,
-    canResend,
-    sendOTPCode,
-    validateOTP,
-    resendOTP,
-    goBack,
-  } = useAuthOTP({
-    checkUserExists: false,
-    redirectOnSuccess: true,
-  });
-
   const form = useForm<CreateProfileInput>({
     resolver: zodResolver(
-      isOTPSent
+      showOTP
         ? CreateProfileSchema.extend({
             otp: z
               .string({
@@ -98,17 +94,56 @@ export function NewProfileForm({
     mode: 'onBlur',
   });
 
-  const onFinalSubmit = async (data: CreateProfileInput) => {
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) return;
+
+    const data = form.getValues();
     const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
-    if (!isOTPSent) {
-      // Vérifications pour l'inscription uniquement
+    setIsLoading(true);
+    const { error: sendOTPError, data: sendOTPData } = await tryCatch(
+      sendOTP(identifier ?? '', data.type),
+    );
+
+    if (sendOTPError) {
+      toast({
+        title: tAuth('messages.code_not_sent_otp'),
+        variant: 'destructive',
+      });
+    }
+
+    if (sendOTPData) {
+      toast({
+        title: tAuth('messages.otp_sent'),
+        variant: 'success',
+      });
+      setResendCooldown(60); // 60 seconds cooldown
+    }
+
+    setIsLoading(false);
+  };
+
+  const onFinalSubmit = async (data: CreateProfileInput) => {
+    setIsLoading(true);
+
+    const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
+
+    if (!showOTP) {
       const isEmailExist = await isUserExists(undefined, data.email);
       if (isEmailExist) {
         form.setError('email', {
           message: 'messages.errors.user_email_already_exists',
         });
-        return;
       }
 
       const isPhoneExist = await isUserExists(undefined, undefined, data.phoneNumber);
@@ -116,26 +151,75 @@ export function NewProfileForm({
         form.setError('phoneNumber', {
           message: 'messages.errors.user_phone_already_exists',
         });
+      }
+
+      if (isEmailExist || isPhoneExist) {
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    if (!showOTP) {
+      // Envoyer l'OTP
+      const { error: sendOTPError, data: sendOTPData } = await tryCatch(
+        sendOTP(identifier ?? '', data.type),
+      );
+
+      if (sendOTPError) {
+        toast({
+          title: tErrors('code_not_sent_otp'),
+          variant: 'destructive',
+        });
+      }
+
+      if (sendOTPData) {
+        setShowOTP(true);
+        toast({
+          title: tAuth('messages.otp_sent'),
+          variant: 'success',
+        });
+        setResendCooldown(60); // 60 seconds cooldown
+      }
+
+      setIsLoading(false);
+
+      return;
+    }
+
+    if (showOTP) {
+      const isOTPValid = await authenticateWithOTP({
+        identifier: identifier ?? '',
+        otp: data.otp ?? '',
+        type: data.type,
+      });
+
+      if (!isOTPValid.valid) {
+        form.setError('otp', {
+          message: 'messages.errors.invalid_otp',
+        });
+        setIsLoading(false);
         return;
       }
 
-      // Première étape : envoyer l'OTP
-      await sendOTPCode(identifier ?? '', data.type);
-    } else {
-      // Deuxième étape : valider l'OTP
-      if (data.otp) {
-        await validateOTP(data.otp);
+      if (isOTPValid.valid) {
+        const newProfile = await tryCatch(createUserWithProfile(data));
+
+        if (newProfile.error) {
+          setError(newProfile.error.message);
+        }
+
+        await signIn('credentials', {
+          identifier,
+          type: data.type,
+          redirect: false,
+        });
+
+        router.refresh();
       }
     }
-  };
 
-  // Afficher les erreurs du hook dans le formulaire
-  React.useEffect(() => {
-    if (error && isOTPSent) {
-      // Erreur lors de la validation de l'OTP
-      form.setError('otp', { message: error });
-    }
-  }, [error, isOTPSent, form]);
+    setIsLoading(false);
+  };
 
   return (
     <Form {...form}>
@@ -144,7 +228,7 @@ export function NewProfileForm({
         className={'w-full flex flex-col gap-6'}
       >
         <div className="grid gap-4 lg:grid-cols-2">
-          {!isOTPSent && (
+          {!showOTP && (
             <>
               <FormField
                 control={form.control}
@@ -243,8 +327,7 @@ export function NewProfileForm({
               />
             </>
           )}
-
-          {isOTPSent && (
+          {showOTP && (
             <div className="otp">
               <FormField
                 control={form.control}
@@ -255,13 +338,7 @@ export function NewProfileForm({
                       {t('otp.label')}
                     </FormLabel>
                     <FormControl>
-                      <InputOTP
-                        maxLength={6}
-                        {...field}
-                        autoComplete="one-time-code"
-                        disabled={isLoading}
-                        autoFocus
-                      >
+                      <InputOTP maxLength={6} {...field} autoComplete="one-time-code">
                         <InputOTPGroup>
                           <InputOTPSlot className="w-12" index={0} />
                           <InputOTPSlot className="w-12" index={1} />
@@ -273,7 +350,7 @@ export function NewProfileForm({
                       </InputOTP>
                     </FormControl>
                     <FormDescription>
-                      {authType === 'PHONE'
+                      {form.watch('type') === 'PHONE'
                         ? t('otp.phone_description')
                         : t('otp.email_description')}
                     </FormDescription>
@@ -289,10 +366,10 @@ export function NewProfileForm({
           <Button
             variant="default"
             type="submit"
-            disabled={isLoading || !form.formState.isValid || state === 'success'}
+            disabled={isLoading || !form.formState.isValid}
           >
             <span>
-              {isOTPSent
+              {showOTP
                 ? 'Continuer mon inscription'
                 : "Recevoir un code d'accès" +
                   (form.watch('type') === 'EMAIL' ? ' par email' : ' par SMS')}
@@ -301,7 +378,7 @@ export function NewProfileForm({
             {isLoading && <Loader2 className="size-icon animate-spin" />}
           </Button>
 
-          {isOTPSent && (
+          {showOTP && (
             <div className="flex justify-between items-center">
               <Button
                 type="button"
@@ -309,7 +386,7 @@ export function NewProfileForm({
                 className="text-muted-foreground p-0"
                 disabled={isLoading}
                 onClick={() => {
-                  goBack();
+                  setShowOTP(false);
                   form.trigger();
                 }}
               >
@@ -319,8 +396,8 @@ export function NewProfileForm({
               <Button
                 variant="link"
                 className="text-muted-foreground p-0"
-                disabled={!canResend || isLoading}
-                onClick={resendOTP}
+                disabled={isLoading || resendCooldown > 0}
+                onClick={handleResendOTP}
               >
                 {'Renvoyer le code'}
                 {resendCooldown > 0 && (
@@ -331,8 +408,7 @@ export function NewProfileForm({
               </Button>
             </div>
           )}
-
-          {!isOTPSent && (
+          {!showOTP && (
             <Button
               type="submit"
               variant="link"
@@ -351,6 +427,7 @@ export function NewProfileForm({
         </div>
 
         <div className="subactions flex justify-center">
+          {error && <ErrorCard description={tErrors(error)} />}
           <p className="text-sm text-muted-foreground">
             <span>Vous avez déjà une demande en cours ?</span>
             <Link
