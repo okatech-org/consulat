@@ -87,7 +87,7 @@ CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "phone" TEXT,
+    "phoneNumber" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'USER',
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "phoneVerified" BOOLEAN NOT NULL DEFAULT false,
@@ -636,7 +636,7 @@ CREATE UNIQUE INDEX "user_profileId_key" ON "user"("profileId");
 CREATE UNIQUE INDEX "user_organizationId_key" ON "user"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_phone_key" ON "user"("phone");
+CREATE UNIQUE INDEX "user_phoneNumber_key" ON "user"("phoneNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
