@@ -6,10 +6,10 @@ const f = createUploadthing();
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
-  // Route spécifique pour les PDFs - Limite réduite pour la sécurité
+  // Route spécifique pour les PDFs
   pdfUploader: f({
     pdf: {
-      maxFileSize: '32MB',
+      maxFileSize: '2GB',
       maxFileCount: 1,
     },
   })
@@ -24,10 +24,9 @@ export const ourFileRouter = {
         fileUrl: file.ufsUrl,
       };
     }),
-  // Route pour les images - Limite réduite pour la sécurité
   imageUploader: f({
     image: {
-      maxFileSize: '16MB',
+      maxFileSize: '2GB',
       maxFileCount: 1,
     },
   })
