@@ -4,28 +4,22 @@ import { auth } from '@/auth';
 import type { NextRequest } from 'next/server';
 import { applySecurityHeaders, generateCSPNonce } from '@/lib/security/headers';
 import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
-import {
-  logEdgeUnauthorizedAccess,
-  logEdgeRateLimitExceeded,
-} from '@/lib/security/edge-logger';
+import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
 import { getSessionCookie } from 'better-auth/cookies';
 
-// Routes publiques qui ne nécessitent pas d'authentification
-const publicRoutes = [
-  '/auth/login',
-  '/auth/register',
-  '/registration',
-  '/feedback',
-  '/legal',
-  '/api/auth',
-  '/',
-];
+// Routes protégées qui nécessitent une authentification
+const protectedRoutes = ['/dashboard', '/my-space'];
 
-// Routes API publiques
-const publicApiRoutes = ['/api/auth', '/api/uploadthing'];
+/**
+ * Vérifie si une route nécessite une authentification
+ * @param pathname - Le chemin de la route
+ * @returns true si la route est protégée, false sinon
+ */
+const isProtectedRoute = (pathname: string): boolean => {
+  return protectedRoutes.some((route) => pathname.startsWith(route));
+};
 
 export default auth(async (req) => {
-  const { pathname } = req.nextUrl;
   const clientIP =
     req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
 
@@ -48,22 +42,6 @@ export default auth(async (req) => {
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('x-csp-nonce', cspNonce);
 
-  // Vérifier si la route est publique
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
-  const isPublicApiRoute = publicApiRoutes.some((route) => pathname.startsWith(route));
-
-  // Si ce n'est pas une route publique et que l'utilisateur n'est pas authentifié
-  if (!isPublicRoute && !isPublicApiRoute && !req.auth) {
-    logEdgeUnauthorizedAccess(
-      pathname,
-      clientIP,
-      req.headers.get('user-agent') || 'unknown',
-    );
-    const newUrl = new URL('/auth/login', req.nextUrl.origin);
-    newUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(newUrl);
-  }
-
   // Créer la réponse avec headers sécurisés
   const response = NextResponse.next({
     request: {
@@ -81,13 +59,31 @@ export default auth(async (req) => {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Vérifier si la route est publique
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
-  const isPublicApiRoute = publicApiRoutes.some((route) => pathname.startsWith(route));
+  // Vérifier le statut d'authentification de la route
+  const isProtected = isProtectedRoute(pathname);
 
   const sessionCookie = getSessionCookie(request);
 
-  if (!sessionCookie && !isPublicRoute && !isPublicApiRoute) {
+  console.log('sessionCookie', sessionCookie);
+  console.log('isProtected', isProtected);
+
+  // Redirection si route protégée sans session
+  if (isProtected && !sessionCookie) {
+    console.log('Redirecting to home - protected route without session');
+    return NextResponse.redirect(
+      new URL('/login?callbackUrl=' + encodeURIComponent(pathname), request.url),
+    );
+  }
+
+  // Rediction for logged in users in login page
+  if (sessionCookie && pathname === '/login') {
+    const searchParams = new URLSearchParams(request.nextUrl.searchParams);
+    const callbackUrl = searchParams.get('callbackUrl');
+
+    if (callbackUrl) {
+      return NextResponse.redirect(new URL(callbackUrl, request.url));
+    }
+
     return NextResponse.redirect(new URL('/', request.url));
   }
 
