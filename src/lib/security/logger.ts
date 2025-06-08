@@ -101,21 +101,31 @@ export const logger = winston.createLogger({
     service: 'consulat-app',
     environment: process.env.NODE_ENV || 'development',
   },
-  transports: [
-    // Logs d'erreur dans un fichier dédié
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-    // Tous les logs dans un fichier général
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-      maxsize: 5242880, // 5MB
-      maxFiles: 10,
-    }),
-  ],
+  transports:
+    process.env.NODE_ENV === 'production'
+      ? [
+          // En production, utiliser uniquement la console (compatible avec tous les hébergeurs)
+          new winston.transports.Console({
+            format: winston.format.combine(
+              winston.format.colorize(),
+              winston.format.simple(),
+            ),
+          }),
+        ]
+      : [
+          // En développement, utiliser les fichiers locaux
+          new winston.transports.File({
+            filename: 'logs/error.log',
+            level: 'error',
+            maxsize: 5242880, // 5MB
+            maxFiles: 5,
+          }),
+          new winston.transports.File({
+            filename: 'logs/combined.log',
+            maxsize: 5242880, // 5MB
+            maxFiles: 10,
+          }),
+        ],
   // Ne pas quitter sur les erreurs non gérées
   exitOnError: false,
 });
@@ -143,13 +153,26 @@ export const securityLogger = winston.createLogger({
     service: 'consulat-security',
     type: 'security_event',
   },
-  transports: [
-    new winston.transports.File({
-      filename: 'logs/security.log',
-      maxsize: 5242880, // 5MB
-      maxFiles: 20, // Garder plus d'historique pour la sécurité
-    }),
-  ],
+  transports:
+    process.env.NODE_ENV === 'production'
+      ? [
+          // En production, logs sécurité dans la console avec préfixe [SECURITY]
+          new winston.transports.Console({
+            format: winston.format.combine(
+              winston.format.label({ label: '[SECURITY]' }),
+              winston.format.colorize(),
+              winston.format.simple(),
+            ),
+          }),
+        ]
+      : [
+          // En développement, fichier de sécurité dédié
+          new winston.transports.File({
+            filename: 'logs/security.log',
+            maxsize: 5242880, // 5MB
+            maxFiles: 20, // Garder plus d'historique pour la sécurité
+          }),
+        ],
 });
 
 /**
