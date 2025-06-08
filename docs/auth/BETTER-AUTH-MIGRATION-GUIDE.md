@@ -10,20 +10,22 @@ This guide provides a comprehensive roadmap for migrating from NextAuth v5 to Be
 
 1. **Framework Agnostic** - More flexible than NextAuth's Next.js coupling
 2. **TypeScript First** - Better type safety and developer experience
-3. **Plugin Ecosystem** - Extensible architecture
+3. **Plugin Ecosystem** - Extensible architecture (including official 2FA plugin)
 4. **Built-in Features** - Rate limiting, automatic migrations, multi-session support
 5. **Modern Architecture** - Cleaner API and better performance
+6. **Better 2FA Support** - Official two-factor authentication plugin with OTP support
 
 ### Current Implementation Comparison
 
 | Feature | NextAuth v5 (Current) | Better Auth (Target) |
 |---------|---------------------|-------------------|
 | Session Strategy | JWT | JWT + Database Sessions |
-| OTP Support | Custom Implementation | Plugin or Custom |
-| Rate Limiting | Custom Middleware | Built-in |
+| OTP Support | Custom Implementation | Official 2FA Plugin |
+| Rate Limiting | Custom Middleware | Built-in + Configurable |
 | Database | Prisma Adapter | Native Prisma Support |
 | Type Safety | Partial | Full TypeScript |
 | Multi-Session | No | Yes |
+| 2FA Methods | OTP only | OTP, TOTP, SMS, Email |
 
 ## Migration Strategy
 
@@ -49,7 +51,7 @@ This guide provides a comprehensive roadmap for migrating from NextAuth v5 to Be
 #### 1. Install Better Auth
 
 ```bash
-npm install better-auth @better-auth/prisma
+npm install better-auth @better-auth/prisma @better-auth/react
 ```
 
 #### 2. Create Better Auth Configuration
@@ -58,7 +60,9 @@ npm install better-auth @better-auth/prisma
 // src/lib/auth/better-auth.config.ts
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "@better-auth/prisma";
+import { twoFactor } from "better-auth/plugins";
 import { db } from "@/lib/prisma";
+import { sendOTPEmail, sendOTPSMS } from "@/lib/services/notifications";
 
 export const auth = betterAuth({
   database: prismaAdapter(db),
@@ -67,103 +71,113 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
   },
   emailAndPassword: {
-    enabled: false, // We use OTP
+    enabled: false, // We use OTP-based 2FA only
   },
   plugins: [
-    // Custom OTP plugin (see below)
+    twoFactor({
+      // Use OTP as the primary authentication method
+      totpIssuer: "Consulat App",
+      // Configure to send OTP codes instead of using authenticator apps
+      sendOTP: async (user, otp) => {
+        // Send OTP based on user's preferred method
+        if (user.email) {
+          await sendOTPEmail(user.email, otp);
+        } else if (user.phoneNumber) {
+          await sendOTPSMS(user.phoneNumber, otp);
+        }
+      },
+      // OTP configuration
+      otpOptions: {
+        // 6-digit codes like the current system
+        digits: 6,
+        // 5-minute expiration
+        period: 300,
+        // Custom rate limiting can be added here
+      },
+    }),
   ],
+  // Custom rate limiting configuration
+  rateLimit: {
+    // Match existing rate limits
+    window: 15 * 60, // 15 minutes
+    max: 3, // 3 attempts
+    // Custom rate limit for OTP validation
+    custom: {
+      "twoFactor.sendOtp": {
+        window: 15 * 60,
+        max: 3,
+      },
+      "twoFactor.verifyOtp": {
+        window: 5 * 60,
+        max: 5,
+      },
+    },
+  },
 });
 ```
 
-#### 3. Implement OTP Plugin
+#### 3. Implement Authentication Flow with 2FA Plugin
 
 ```typescript
-// src/lib/auth/plugins/otp-plugin.ts
-import { BetterAuthPlugin } from "better-auth";
-import bcrypt from "bcryptjs";
-import { customAlphabet } from "nanoid";
+// src/lib/auth/auth-flow.ts
+import { auth } from "./better-auth.config";
 
-export const otpPlugin: BetterAuthPlugin = {
-  id: "otp",
-  endpoints: {
-    sendOTP: {
-      method: "POST",
-      path: "/otp/send",
-      handler: async ({ body, context }) => {
-        const { identifier, type } = body;
-        
-        // Generate OTP
-        const nanoid = customAlphabet('0123456789', 6);
-        const otp = nanoid();
-        
-        // Hash and store OTP
-        const hashedOTP = await bcrypt.hash(otp, 12);
-        
-        await context.database.verificationToken.create({
-          data: {
-            identifier,
-            token: hashedOTP,
-            type,
-            expires: new Date(Date.now() + 5 * 60 * 1000),
-          },
-        });
-        
-        // Send OTP via notification service
-        await sendNotification(identifier, otp, type);
-        
-        return { success: true };
-      },
-    },
-    validateOTP: {
-      method: "POST",
-      path: "/otp/validate",
-      handler: async ({ body, context }) => {
-        const { identifier, otp, type } = body;
-        
-        // Find token
-        const token = await context.database.verificationToken.findFirst({
-          where: {
-            identifier,
-            type,
-            expires: { gt: new Date() },
-          },
-        });
-        
-        if (!token) {
-          throw new Error("Invalid or expired OTP");
-        }
-        
-        // Validate OTP
-        const isValid = await bcrypt.compare(otp, token.token);
-        
-        if (!isValid) {
-          throw new Error("Invalid OTP");
-        }
-        
-        // Delete token
-        await context.database.verificationToken.delete({
-          where: { id: token.id },
-        });
-        
-        // Create or get user
-        const user = await context.database.user.findUnique({
-          where: type === "EMAIL" 
-            ? { email: identifier }
-            : { phoneNumber: identifier },
-        });
-        
-        if (!user) {
-          throw new Error("User not found");
-        }
-        
-        // Create session
-        const session = await context.auth.createSession(user.id);
-        
-        return { user, session };
-      },
-    },
-  },
-};
+export async function initiateLogin(identifier: string, type: 'EMAIL' | 'PHONE') {
+  try {
+    // First, find or create the user
+    let user = await findUserByIdentifier(identifier, type);
+    
+    if (!user) {
+      // Create user if doesn't exist (for registration flow)
+      user = await createUser({
+        email: type === 'EMAIL' ? identifier : undefined,
+        phoneNumber: type === 'PHONE' ? identifier : undefined,
+      });
+    }
+    
+    // Enable 2FA for the user if not already enabled
+    if (!user.twoFactorEnabled) {
+      await auth.twoFactor.enable({
+        userId: user.id,
+        type: "totp", // Using TOTP for OTP codes
+      });
+    }
+    
+    // Send OTP code
+    const result = await auth.twoFactor.sendOTP({
+      userId: user.id,
+    });
+    
+    return { success: true, userId: user.id };
+  } catch (error) {
+    console.error('Login initiation error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function verifyLoginOTP(userId: string, otp: string) {
+  try {
+    // Verify the OTP using the 2FA plugin
+    const result = await auth.twoFactor.verifyOTP({
+      userId,
+      code: otp,
+    });
+    
+    if (result.valid) {
+      // Create session after successful OTP verification
+      const session = await auth.createSession({
+        userId,
+      });
+      
+      return { success: true, session };
+    }
+    
+    return { success: false, error: "Invalid OTP" };
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    return { success: false, error: error.message };
+  }
+}
 ```
 
 #### 4. Create Migration Middleware
@@ -389,10 +403,14 @@ pg_dump -U user -d database > backup_before_migration.sql
 **Challenge**: Different session formats between NextAuth and Better Auth
 **Solution**: Use migration middleware to transform sessions
 
-### 2. OTP Rate Limiting
+### 2. OTP Implementation Differences
 
-**Challenge**: Better Auth's built-in rate limiting differs from custom implementation
-**Solution**: Configure Better Auth rate limiting to match existing limits
+**Challenge**: Moving from custom OTP to Better Auth's 2FA plugin
+**Solution**: The 2FA plugin provides all needed functionality:
+- Built-in OTP generation and validation
+- Configurable expiration and digit length
+- Rate limiting support
+- Secure token storage
 
 ### 3. Type Definitions
 
@@ -406,7 +424,26 @@ type UnifiedUser = NextAuthUser | BetterAuthUser;
 ### 4. Client-Side Hooks
 
 **Challenge**: Different hook APIs
-**Solution**: Create wrapper hooks that work with both
+**Solution**: Update hooks to use Better Auth's 2FA methods:
+
+```typescript
+// Updated OTP hook
+import { useTwoFactor } from "@better-auth/react";
+
+export function useAuthOTP() {
+  const { sendOTP, verifyOTP, isLoading } = useTwoFactor();
+  
+  return {
+    sendOTP: async (identifier: string, type: 'EMAIL' | 'PHONE') => {
+      // Find user and send OTP
+      const user = await findUserByIdentifier(identifier, type);
+      return sendOTP({ userId: user.id });
+    },
+    verifyOTP,
+    isLoading,
+  };
+}
+```
 
 ## Performance Considerations
 
@@ -446,6 +483,28 @@ Users can manage multiple active sessions
 
 Automatic token rotation for enhanced security
 
+## Advantages of Using Better Auth's 2FA Plugin
+
+### 1. **Less Code to Maintain**
+- No need for custom OTP generation logic
+- Built-in rate limiting for 2FA operations
+- Automatic token management and expiration
+
+### 2. **Enhanced Security**
+- Battle-tested implementation
+- Secure token storage with automatic cleanup
+- Protection against timing attacks
+
+### 3. **Better User Experience**
+- Support for backup codes
+- Option to use authenticator apps (Google Authenticator, etc.)
+- Flexible delivery methods (SMS, Email, App)
+
+### 4. **Easier Testing**
+- Built-in test utilities for 2FA flows
+- Mock providers for development
+- Consistent API across different 2FA methods
+
 ## Post-Migration Checklist
 
 - [ ] All routes migrated
@@ -456,6 +515,8 @@ Automatic token rotation for enhanced security
 - [ ] Team trained on Better Auth
 - [ ] Monitoring configured
 - [ ] Rollback plan tested
+- [ ] 2FA plugin properly configured
+- [ ] OTP delivery methods tested
 
 ## Resources
 
