@@ -1,11 +1,11 @@
 import { nanoid } from 'nanoid';
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import type { NextRequest } from 'next/server';
 import { applySecurityHeaders, generateCSPNonce } from '@/lib/security/headers';
 import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
 import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
-import { getSessionCookie } from 'better-auth/cookies';
+import { headers } from 'next/headers';
+import { auth } from './lib/auth/auth';
 
 // Routes protégées qui nécessitent une authentification
 const protectedRoutes = ['/dashboard', '/my-space'];
@@ -19,60 +19,24 @@ const isProtectedRoute = (pathname: string): boolean => {
   return protectedRoutes.some((route) => pathname.startsWith(route));
 };
 
-export default auth(async (req) => {
-  const clientIP =
-    req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-
-  // Vérification du rate limiting global par IP
-  const rateLimitResult = await checkRateLimit(globalLimiter, clientIP);
-  if (!rateLimitResult.allowed) {
-    logEdgeRateLimitExceeded(clientIP, 'global', clientIP);
-    return new NextResponse('Rate limit exceeded', {
-      status: 429,
-      headers: {
-        'Retry-After': String(Math.ceil((rateLimitResult.msBeforeNext || 0) / 1000)),
-      },
-    });
-  }
-
-  // Setup nonce pour la sécurité CSP
-  const nonce = nanoid();
-  const cspNonce = generateCSPNonce();
-  const requestHeaders = new Headers(req.headers);
-  requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('x-csp-nonce', cspNonce);
-
-  // Créer la réponse avec headers sécurisés
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+export async function middleware(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
   });
-
-  // Appliquer les headers de sécurité
-  return applySecurityHeaders(response, {
-    'X-CSP-Nonce': cspNonce,
-    'X-Client-IP': clientIP,
-  });
-});
-
-export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Vérifier le statut d'authentification de la route
   const isProtected = isProtectedRoute(pathname);
 
-  const sessionCookie = getSessionCookie(request);
-
   // Redirection si route protégée sans session
-  if (isProtected && !sessionCookie) {
+  if (isProtected && !session) {
     return NextResponse.redirect(
       new URL('/login?callbackUrl=' + encodeURIComponent(pathname), request.url),
     );
   }
 
   // Rediction for logged in users in login page
-  if (sessionCookie && pathname === '/login') {
+  if (session && pathname === '/login') {
     const searchParams = new URLSearchParams(request.nextUrl.searchParams);
     const callbackUrl = searchParams.get('callbackUrl');
 
@@ -83,7 +47,20 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  const response = NextResponse.next();
+  // Setup nonce pour la sécurité CSP
+  const nonce = nanoid();
+  const cspNonce = generateCSPNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('x-csp-nonce', cspNonce);
+
+  // Créer la réponse avec headers sécurisés
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
   const searchParams = request.nextUrl.searchParams.toString();
 
   // Check for viewport cookie - prioritize it over User-Agent detection
@@ -105,7 +82,28 @@ export function middleware(request: NextRequest) {
   );
   response.headers.set('x-params-string', request.nextUrl.searchParams.toString());
 
-  return response;
+  const clientIP =
+    request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
+
+  // Vérification du rate limiting global par IP
+  const rateLimitResult = await checkRateLimit(globalLimiter, clientIP);
+  if (!rateLimitResult.allowed) {
+    logEdgeRateLimitExceeded(clientIP, 'global', clientIP);
+    return new NextResponse('Rate limit exceeded', {
+      status: 429,
+      headers: {
+        'Retry-After': String(Math.ceil((rateLimitResult.msBeforeNext || 0) / 1000)),
+      },
+    });
+  }
+
+  // Appliquer les headers de sécurité
+  return applySecurityHeaders(response, {
+    'X-CSP-Nonce': cspNonce,
+    'X-Client-IP': clientIP,
+  });
 }
 
 export const config = {
