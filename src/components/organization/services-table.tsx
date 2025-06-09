@@ -1,16 +1,18 @@
 'use client';
 
 import {
-  getServices,
+  getServicesList,
   deleteService,
   duplicateService,
   updateServiceStatus,
+  ServicesListRequestOptions,
+  ServicesListResult,
 } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { OrganizationListingItem } from '@/types/organization';
 import { ServiceCategory, UserRole } from '@prisma/client';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { ROUTES } from '@/schemas/routes';
@@ -42,11 +44,6 @@ interface SearchParams {
   category?: ServiceCategory[];
   organizationId?: string[];
   isActive?: boolean[];
-}
-
-interface ServicesListResult {
-  items: ConsularServiceListingItem[];
-  total: number;
 }
 
 export function ServicesTable({ organizations }: ServicesTablesProps) {
@@ -81,68 +78,13 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
     useTableSearchParams<ConsularServiceListingItem, SearchParams>(adaptSearchParams);
 
   useEffect(() => {
+    const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+
     async function fetchItems() {
       setIsLoading(true);
-      const result = await tryCatch(getServices(defaultValues.organizationId?.[0]));
+      const result = await tryCatch(getServicesList(options));
 
-      if (result.data) {
-        // Apply client-side filtering since getServices doesn't support all filters yet
-        let filteredData = result.data;
-
-        // Apply search filter
-        if (params.search) {
-          const searchLower = params.search.toLowerCase();
-          filteredData = filteredData.filter(
-            (service) =>
-              service.name.toLowerCase().includes(searchLower) ||
-              (service.description &&
-                service.description.toLowerCase().includes(searchLower)),
-          );
-        }
-
-        // Apply category filter
-        if (params.category && params.category.length > 0) {
-          filteredData = filteredData.filter((service) =>
-            params.category!.includes(service.category),
-          );
-        }
-
-        // Apply organization filter
-        if (params.organizationId && params.organizationId.length > 0) {
-          filteredData = filteredData.filter((service) =>
-            params.organizationId!.includes(service.organizationId || ''),
-          );
-        }
-
-        // Apply active status filter
-        if (params.isActive && params.isActive.length > 0) {
-          filteredData = filteredData.filter((service) =>
-            params.isActive!.includes(service.isActive),
-          );
-        }
-
-        // Apply sorting
-        if (sorting.field) {
-          filteredData.sort((a, b) => {
-            const aValue = a[sorting.field as keyof ConsularServiceListingItem];
-            const bValue = b[sorting.field as keyof ConsularServiceListingItem];
-
-            if (aValue < bValue) return sorting.order === 'asc' ? -1 : 1;
-            if (aValue > bValue) return sorting.order === 'asc' ? 1 : -1;
-            return 0;
-          });
-        }
-
-        // Apply pagination
-        const startIndex = (pagination.page - 1) * pagination.limit;
-        const endIndex = startIndex + pagination.limit;
-        const paginatedData = filteredData.slice(startIndex, endIndex);
-
-        setData({
-          items: paginatedData,
-          total: filteredData.length,
-        });
-      }
+      if (result.data) setData(result.data);
 
       setIsLoading(false);
     }
@@ -150,98 +92,166 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
     fetchItems();
   }, [params, pagination, sorting, defaultValues]);
 
-  const handleStatusChange = async (serviceId: string, status: boolean) => {
-    setIsLoading(true);
-    try {
-      const result = await updateServiceStatus(serviceId, status);
+  const handleStatusChange = useCallback(
+    async (serviceId: string, status: boolean) => {
+      setIsLoading(true);
+      try {
+        const result = await updateServiceStatus(serviceId, status);
 
-      if (result.error) throw new Error(result.error);
+        if (result.error) throw new Error(result.error);
 
-      toast({
-        title: t('messages.updateSuccess'),
-        variant: 'success',
-      });
-
-      // Refresh data
-      const refreshResult = await tryCatch(
-        getServices(defaultValues.organizationId?.[0]),
-      );
-      if (refreshResult.data) {
-        setData({ items: refreshResult.data, total: refreshResult.data.length });
-      }
-    } catch (error) {
-      toast({
-        title: t('messages.error.update'),
-        variant: 'destructive',
-        description: `${error}`,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (serviceId: string) => {
-    setIsLoading(true);
-    try {
-      const result = await deleteService(serviceId);
-
-      if (result.error) throw new Error(result.error);
-
-      toast({
-        title: t('messages.deleteSuccess'),
-        variant: 'success',
-      });
-
-      // Refresh data
-      const refreshResult = await tryCatch(
-        getServices(defaultValues.organizationId?.[0]),
-      );
-      if (refreshResult.data) {
-        setData({ items: refreshResult.data, total: refreshResult.data.length });
-      }
-    } catch (error) {
-      toast({
-        title: t('messages.error.delete'),
-        variant: 'destructive',
-        description: `${error}`,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDuplicateService = async (serviceId: string) => {
-    setIsLoading(true);
-    try {
-      const result = await duplicateService(serviceId);
-      if (result.error) {
         toast({
-          title: t_messages('errors.duplicate'),
-          description: result.error,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: t_messages('success.duplicate'),
+          title: t('messages.updateSuccess'),
           variant: 'success',
         });
 
         // Refresh data
-        const refreshResult = await tryCatch(
-          getServices(defaultValues.organizationId?.[0]),
-        );
+        const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+        const refreshResult = await tryCatch(getServicesList(options));
         if (refreshResult.data) {
-          setData({ items: refreshResult.data, total: refreshResult.data.length });
+          setData(refreshResult.data);
         }
+      } catch (error) {
+        toast({
+          title: t('messages.error.update'),
+          variant: 'destructive',
+          description: `${error}`,
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [params, pagination, sorting, defaultValues, t, toast],
+  );
+
+  const handleDelete = useCallback(
+    async (serviceId: string) => {
+      setIsLoading(true);
+      try {
+        const result = await deleteService(serviceId);
+
+        if (result.error) throw new Error(result.error);
+
+        toast({
+          title: t('messages.deleteSuccess'),
+          variant: 'success',
+        });
+
+        // Refresh data
+        const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+        const refreshResult = await tryCatch(getServicesList(options));
+        if (refreshResult.data) {
+          setData(refreshResult.data);
+        }
+      } catch (error) {
+        toast({
+          title: t('messages.error.delete'),
+          variant: 'destructive',
+          description: `${error}`,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params, pagination, sorting, defaultValues, t, toast],
+  );
+
+  const handleDuplicateService = useCallback(
+    async (serviceId: string) => {
+      setIsLoading(true);
+      try {
+        const result = await duplicateService(serviceId);
+        if (result.error) {
+          toast({
+            title: t_messages('errors.duplicate'),
+            description: result.error,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: t_messages('success.duplicate'),
+            variant: 'success',
+          });
+
+          // Refresh data
+          const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+          const refreshResult = await tryCatch(getServicesList(options));
+          if (refreshResult.data) {
+            setData(refreshResult.data);
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params, pagination, sorting, defaultValues, t_messages, toast],
+  );
 
   // Colonnes du tableau
-  const columns = useMemo<ColumnDef<ConsularServiceListingItem>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<ConsularServiceListingItem>[]>(() => {
+    function getActions(
+      row: Row<ConsularServiceListingItem>,
+    ): RowAction<ConsularServiceListingItem>[] {
+      const actions = [
+        {
+          label: (
+            <>
+              <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
+            </>
+          ),
+          onClick: () => {
+            router.push(ROUTES.dashboard.edit_service(row.original.id));
+          },
+        },
+        {
+          label: (
+            <>
+              <Copy className="mr-1 size-4" />
+              {t_common('actions.duplicate')}
+            </>
+          ),
+          onClick: () => {
+            handleDuplicateService(row.original.id);
+          },
+        },
+        {
+          label: (
+            <>
+              {row.original.isActive ? (
+                <>
+                  <Ban className="mr-1 size-4" />
+                  {t_common('actions.deactivate')}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 size-4" />
+                  {t_common('actions.activate')}
+                </>
+              )}
+            </>
+          ),
+          onClick: () => {
+            handleStatusChange(row.original.id, !row.original.isActive);
+          },
+        },
+        {
+          label: (
+            <>
+              <Trash className="mr-1 size-4 text-destructive" />
+              <span className="text-destructive"> {t_common('actions.delete')}</span>
+            </>
+          ),
+          onClick: () => {
+            setSelectedService(row.original);
+            setShowDeleteDialog(true);
+          },
+        },
+      ];
+
+      return actions;
+    }
+
+    return [
       {
         id: 'select',
         header: ({ table }) => (
@@ -313,7 +323,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
           <DataTableColumnHeader column={column} title={t('table.status')} />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.isActive ? 'success' : 'outline'}>
+          <Badge variant={row.original.isActive ? 'default' : 'outline'}>
             {t_common(`status.${row.original.isActive ? 'ACTIVE' : 'INACTIVE'}`)}
           </Badge>
         ),
@@ -325,71 +335,19 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
         header: 'Actions',
         cell: ({ row }) => <DataTableRowActions actions={getActions(row)} row={row} />,
       },
-    ],
-    [currentUser, organizations, t, t_inputs, t_common, isSuperAdmin],
-  );
-
-  function getActions(
-    row: Row<ConsularServiceListingItem>,
-  ): RowAction<ConsularServiceListingItem>[] {
-    const actions = [
-      {
-        label: (
-          <>
-            <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
-          </>
-        ),
-        onClick: () => {
-          router.push(ROUTES.dashboard.edit_service(row.original.id));
-        },
-      },
-      {
-        label: (
-          <>
-            <Copy className="mr-1 size-4" />
-            {t_common('actions.duplicate')}
-          </>
-        ),
-        onClick: () => {
-          handleDuplicateService(row.original.id);
-        },
-      },
-      {
-        label: (
-          <>
-            {row.original.isActive ? (
-              <>
-                <Ban className="mr-1 size-4" />
-                {t_common('actions.deactivate')}
-              </>
-            ) : (
-              <>
-                <CheckCircle className="mr-2 size-4" />
-                {t_common('actions.activate')}
-              </>
-            )}
-          </>
-        ),
-        onClick: () => {
-          handleStatusChange(row.original.id, !row.original.isActive);
-        },
-      },
-      {
-        label: (
-          <>
-            <Trash className="mr-1 size-4 text-destructive" />
-            <span className="text-destructive"> {t_common('actions.delete')}</span>
-          </>
-        ),
-        onClick: () => {
-          setSelectedService(row.original);
-          setShowDeleteDialog(true);
-        },
-      },
     ];
-
-    return actions;
-  }
+  }, [
+    isSuperAdmin,
+    t,
+    t_inputs,
+    organizations,
+    t_common,
+    router,
+    handleDuplicateService,
+    handleStatusChange,
+    setSelectedService,
+    setShowDeleteDialog,
+  ]);
 
   // Définir les filtres disponibles
   const filters: FilterOption<ConsularServiceListingItem>[] = useMemo(
@@ -409,8 +367,8 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
           value: category,
           label: t_inputs(`serviceCategory.options.${category}`),
         })),
-        defaultValue: params.category as ServiceCategory[],
-        onChange: (value: ServiceCategory[]) => handleParamsChange('category', value),
+        defaultValue: (params.category || []) as string[],
+        onChange: (value) => handleParamsChange('category', value as ServiceCategory[]),
       },
       ...(isSuperAdmin
         ? [
@@ -432,23 +390,18 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
         property: 'isActive',
         label: t('table.status'),
         options: [
-          { value: true, label: t_common('status.ACTIVE') },
-          { value: false, label: t_common('status.INACTIVE') },
+          { value: 'true', label: t_common('status.ACTIVE') },
+          { value: 'false', label: t_common('status.INACTIVE') },
         ],
-        defaultValue: params.isActive as boolean[],
-        onChange: (value: boolean[]) => handleParamsChange('isActive', value),
+        defaultValue: (params.isActive || []).map(String) as string[],
+        onChange: (value: string[]) =>
+          handleParamsChange(
+            'isActive',
+            value.map((v) => v === 'true'),
+          ),
       },
     ],
-    [
-      organizations,
-      currentUser,
-      handleParamsChange,
-      params,
-      t,
-      t_inputs,
-      t_common,
-      isSuperAdmin,
-    ],
+    [organizations, handleParamsChange, params, t, t_inputs, t_common, isSuperAdmin],
   );
 
   return (
@@ -498,17 +451,20 @@ function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
     const value = urlSearchParams.get(key);
     if (value) {
       if (key === 'category') {
-        const arr = value.split(',') as ServiceCategory[];
-        if (arr.length > 0 && arr[0] !== '') {
+        const arr = value.split(',').filter(Boolean) as ServiceCategory[];
+        if (arr.length > 0) {
           params[key] = arr;
         }
       } else if (key === 'organizationId') {
-        const arr = value.split(',');
-        if (arr.length > 0 && arr[0] !== '') {
+        const arr = value.split(',').filter(Boolean);
+        if (arr.length > 0) {
           params[key] = arr;
         }
       } else if (key === 'isActive') {
-        const arr = value.split(',').map((v) => v === 'true');
+        const arr = value
+          .split(',')
+          .filter(Boolean)
+          .map((v) => v === 'true');
         if (arr.length > 0) {
           params[key] = arr;
         }
@@ -519,4 +475,42 @@ function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
   });
 
   return params;
+}
+
+function buildQueryOptions(
+  params: SearchParams,
+  pagination: { page: number; limit: number },
+  sorting: { field?: string; order?: 'asc' | 'desc' },
+  defaultValues: SearchParams,
+): ServicesListRequestOptions {
+  const options: ServicesListRequestOptions = {
+    ...defaultValues,
+    page: pagination.page ?? 1,
+    limit: pagination.limit ?? 10,
+  };
+
+  if (sorting.field) {
+    options.sortBy = {
+      field: sorting.field as 'name' | 'category' | 'isActive' | 'createdAt',
+      direction: sorting.order || 'asc',
+    };
+  }
+
+  if (params.search) {
+    options.search = params.search;
+  }
+
+  if (params.category) {
+    options.category = params.category;
+  }
+
+  if (params.organizationId) {
+    options.organizationId = params.organizationId;
+  }
+
+  if (params.isActive) {
+    options.isActive = params.isActive;
+  }
+
+  return options;
 }
