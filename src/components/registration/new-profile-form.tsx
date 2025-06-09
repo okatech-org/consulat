@@ -115,45 +115,34 @@ export function NewProfileForm({
     setIsLoading(true);
     setError(null);
 
-    try {
-      if (type === 'EMAIL') {
-        const response = await tryCatch(
-          authClient.emailOtp.sendVerificationOtp({
+    const response =
+      type === 'EMAIL'
+        ? await authClient.emailOtp.sendVerificationOtp({
             email: identifier,
             type: 'sign-in',
-          }),
-        );
-
-        if (response.error) {
-          setError('code_not_sent_otp');
-          return false;
-        }
-      }
-
-      if (type === 'PHONE') {
-        const response = await tryCatch(
-          authClient.phoneNumber.sendOtp({
+          })
+        : await authClient.phoneNumber.sendOtp({
             phoneNumber: identifier,
-          }),
-        );
+          });
 
-        if (response.error) {
-          setError('code_not_sent_otp');
-          return false;
-        }
-      }
-
-      setShowOTP(true);
-      setCanResend(false);
-      setResendCooldown(60);
-      toast({
-        title: tAuth('messages.otp_sent'),
-        variant: 'success',
+    if (response.error) {
+      form.setError('otp', {
+        message: 'messages.errors.code_not_sent_otp',
       });
-      return true;
-    } finally {
       setIsLoading(false);
+      return false;
     }
+
+    setShowOTP(true);
+    setCanResend(false);
+    setResendCooldown(60);
+    toast({
+      title: tAuth('messages.otp_sent'),
+      variant: 'success',
+    });
+
+    setIsLoading(false);
+    return true;
   };
 
   const validateOTPAndCreateProfile = async (data: CreateProfileInput) => {
