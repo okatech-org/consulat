@@ -1,5 +1,4 @@
 import { getProfileById } from '@/actions/profiles';
-import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
@@ -9,6 +8,8 @@ import {
   getServiceRequestsByProfileId,
   getUserFullProfileById,
 } from '@/lib/user/getters';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 interface ProfilePageProps {
   params: {
@@ -36,7 +37,9 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const awaitedParams = await params;
   const profileId = awaitedParams.id;
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   const profile = await getUserFullProfileById(profileId);
 

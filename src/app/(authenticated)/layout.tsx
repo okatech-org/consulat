@@ -13,13 +13,6 @@ export default async function AuthenticatedLayout({
   children: React.ReactNode;
 }>) {
   const currentUser = await getCurrentUser();
-  const headersList = await headers();
-  const pathname = headersList.get('x-current-path') || '/';
-  const fallbackUrl = `${ROUTES.auth.login}?callbackUrl=${encodeURIComponent(pathname)}`;
-
-  if (!currentUser) {
-    redirect(fallbackUrl);
-  }
 
   return (
     <>

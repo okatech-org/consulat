@@ -26,27 +26,28 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useTranslations } from 'next-intl';
-import { logUserOut } from '@/actions/auth';
 import { useTheme } from 'next-themes';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
 import { UserRole } from '@prisma/client';
-import { SessionUser } from '@/types/user';
+import { Session } from '@/lib/auth/auth-client';
 import Link from 'next/link';
 import { NotificationBell } from '../notifications/notification-bell';
 import { ChatToggle } from '../chat/chat-toggle';
+import { authClient } from '@/lib/auth/auth-client';
 
 export function NavUser({
   user,
   showFeedback = true,
 }: {
-  user: SessionUser;
+  user: Session['user'];
   showFeedback?: boolean;
 }) {
   const { isMobile } = useSidebar();
   const { setTheme, resolvedTheme } = useTheme();
   const t = useTranslations();
   const isAdmin = hasAnyRole(user, [
+    UserRole.MANAGER,
     UserRole.SUPER_ADMIN,
     UserRole.ADMIN,
     UserRole.AGENT,
@@ -58,7 +59,7 @@ export function NavUser({
         {showFeedback && (
           <SidebarMenuButton
             tooltip={t('common.actions.feedback')}
-            size="md"
+            size="lg"
             className="flex items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             asChild
           >
@@ -83,7 +84,7 @@ export function NavUser({
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={'Notifications'}
-              size="md"
+              size="lg"
               className="flex w-full items-center gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <NotificationBell />
@@ -95,7 +96,7 @@ export function NavUser({
             <DropdownMenuTrigger asChild className="hidden md:flex">
               <SidebarMenuButton
                 tooltip={'Mon compte'}
-                size="md"
+                size="lg"
                 className="flex w-full items-center gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
                 {!showFeedback && (
@@ -159,7 +160,7 @@ export function NavUser({
                 <DropdownMenuItem asChild>
                   <SidebarMenuButton
                     tooltip={t('navigation.my_space')}
-                    size="md"
+                    size="lg"
                     className="flex items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     asChild
                   >
@@ -172,7 +173,7 @@ export function NavUser({
                 <DropdownMenuItem asChild className="hidden md:flex">
                   <SidebarMenuButton
                     tooltip={t('navigation.my_account')}
-                    size="md"
+                    size="lg"
                     className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     asChild
                   >
@@ -189,7 +190,7 @@ export function NavUser({
                 <DropdownMenuItem asChild className="hidden md:flex">
                   <SidebarMenuButton
                     tooltip={'Dark mode'}
-                    size="md"
+                    size="lg"
                     className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     onClick={() => {
                       if (resolvedTheme === 'dark') {
@@ -216,7 +217,7 @@ export function NavUser({
                 <DropdownMenuItem asChild className="hidden md:flex">
                   <SidebarMenuButton
                     tooltip={t('common.actions.feedback')}
-                    size="md"
+                    size="lg"
                     className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     asChild
                   >
@@ -236,7 +237,7 @@ export function NavUser({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={async () => {
-                  await logUserOut();
+                  await authClient.signOut();
                 }}
               >
                 <LogOut className="size-icon" />

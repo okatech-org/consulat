@@ -1,11 +1,12 @@
 'use server';
 
-import { auth } from '@/auth';
 import { db } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { tryCatch } from '@/lib/utils';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 /**
  * Send a message to a profile and notify the profile owner
@@ -17,7 +18,9 @@ export async function sendProfileMessage(
   from: string,
   contact: string,
 ) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const notificationContent = `${from} vous a envoyé un message. \n\n${message} \n\nVous pouvez le contacter via : ${contact}`;
 
   // Create the message in the database

@@ -6,20 +6,21 @@ import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
 import { useNavigation } from '@/hooks/use-navigation';
-import { SessionUser } from '@/types/user';
 import { MobileDrawer } from './mobile-drawer';
 import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
 import { NavMainItem } from '@/hooks/use-navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { User } from '@prisma/client';
 
 export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
-  user: SessionUser;
   showLabels?: boolean;
 }
 
 const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
-  ({ className, showLabels = true, user, ...props }, ref) => {
-    const { mobileMenu } = useNavigation(user);
+  ({ className, showLabels = true, ...props }, ref) => {
+    const currentUser = useCurrentUser();
+    const { mobileMenu } = useNavigation(currentUser as User);
     const pathname = usePathname();
 
     const isActive = React.useCallback(

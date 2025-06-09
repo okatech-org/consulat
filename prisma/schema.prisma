@@ -8,18 +8,18 @@ generator client {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  phoneNumber   String?
-  role          UserRole  @default(USER)
-  emailVerified Boolean   @default(false)
-  phoneVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
+  id                  String     @id
+  name                String
+  roles               UserRole[] @default([USER])
+  email               String
+  phoneNumber         String?
+  phoneNumberVerified Boolean    @default(false)
+  emailVerified       Boolean    @default(false)
+  image               String?
+  createdAt           DateTime
+  updatedAt           DateTime
+  sessions            Session[]
+  accounts            Account[]
 
   // Relations
   profile   Profile? @relation(fields: [profileId], references: [id])
@@ -72,7 +72,6 @@ model User {
 
   @@unique([phoneNumber])
   @@unique([email])
-  @@map("user")
 }
 
 model Session {

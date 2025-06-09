@@ -2,11 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { logUserOut } from '@/actions/auth';
 import * as React from 'react';
 import { LogOutIcon, LoaderIcon } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth/auth-client';
 
 type LogoutButtonProps = {
   customClass?: string;
@@ -26,8 +26,8 @@ export function LogoutButton({ customClass }: LogoutButtonProps) {
     <Button
       onClick={() => {
         startTransition(async () => {
-          await logUserOut().then(() => {
-            router.refresh();
+          await authClient.signOut().then(() => {
+            router.push('/');
           });
         });
       }}

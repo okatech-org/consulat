@@ -1,19 +1,11 @@
-import { useSession } from 'next-auth/react';
-import { unstable_cache } from 'next/cache';
+import { authClient } from '@/lib/auth/auth-client';
 
 export const useCurrentUser = () => {
-  const session = useSession();
-
-  return session.data?.user;
+  const { data: session } = authClient.useSession();
+  console.log('useCurrentUser', session);
+  return session?.user;
 };
 
-export const useCachedSession = unstable_cache(
-  async () => {
-    return useSession();
-  },
-  ['user-session'],
-  {
-    revalidate: 60, // Cache for 1 minute
-    tags: ['user-session-client'],
-  },
-);
+export const useCurrentSession = () => {
+  return authClient.useSession();
+};

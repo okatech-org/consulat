@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button"
 import { getCurrentUser } from "@/actions/user"
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 import Image from 'next/image';
-import { SessionUser } from "@/types";
 import { NavUser } from "../layouts/nav-user"
 import { ChatToggle } from "../chat/chat-toggle"
+import { env } from "@/lib/env"
 
-const logo = process.env.NEXT_PUBLIC_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
-const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
+const logo = env.NEXT_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
+const appName = env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
 
 
 export async function PublicHeader() {
@@ -45,7 +45,7 @@ export async function PublicHeader() {
           
           {!user && <ThemeToggleSingle />}
 
-          {isAuth ? <NavUser showFeedback={false} user={user as SessionUser} /> : (<Button variant="default" asChild>
+          {isAuth ? <NavUser showFeedback={false} user={user} /> : (<Button variant="default" asChild>
             <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base}>
               {t('nav.login')}
             </Link>

@@ -29,7 +29,7 @@ export type NavMainItem = {
 
 export function useNavigation(user: SessionUser) {
   const t = useTranslations('navigation.menu');
-  const currentUserRoles = user.roles ?? [];
+  const currentUserRoles = user?.roles ?? [];
   const isAdmin = hasAnyRole(user, [
     UserRole.ADMIN,
     UserRole.SUPER_ADMIN,

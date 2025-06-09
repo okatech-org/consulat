@@ -1,15 +1,17 @@
 'use server';
 
-import { auth } from '@/auth';
+import { auth } from '@/lib/auth/auth';
 import { db } from '@/lib/prisma';
 import { AgentSettings, AdminSettings, UserSettings } from '@/schemas/user';
-import { SessionUser } from '@/types';
 import { User } from '@prisma/client';
+import { headers } from 'next/headers';
 
-export const getCurrentUser = async (): Promise<SessionUser | null> => {
-  const session = await auth();
+export const getCurrentUser = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  return session?.user as SessionUser;
+  return session?.user;
 };
 
 export const checkUserExist = async (userId?: string) => {

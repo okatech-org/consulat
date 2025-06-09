@@ -1,10 +1,12 @@
-import { auth } from '@/auth';
 import { UserRole } from '@prisma/client';
 import { hasAnyRole } from '../permissions/utils';
-import { SessionUser } from '@/types/user';
+import { auth } from './auth';
+import { headers } from 'next/headers';
 
 export async function checkAuth(roles?: UserRole[]) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user) {
     throw new Error('unauthorized');
@@ -14,5 +16,5 @@ export async function checkAuth(roles?: UserRole[]) {
     throw new Error('forbidden');
   }
 
-  return { user: session.user as SessionUser };
+  return { user: session.user };
 }

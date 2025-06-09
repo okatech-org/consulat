@@ -4,8 +4,7 @@ import type { NextRequest } from 'next/server';
 import { applySecurityHeaders, generateCSPNonce } from '@/lib/security/headers';
 import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
 import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
-import { headers } from 'next/headers';
-import { auth } from './lib/auth/auth';
+import { getSessionCookie } from 'better-auth/cookies';
 
 // Routes protégées qui nécessitent une authentification
 const protectedRoutes = ['/dashboard', '/my-space'] as const;
@@ -43,7 +42,7 @@ const getClientIP = (request: NextRequest): string => {
  */
 const handleAuthRedirects = (
   request: NextRequest,
-  session: any,
+  session: string | null,
   pathname: string,
 ): NextResponse | null => {
   const isProtected = isProtectedRoute(pathname);
@@ -120,9 +119,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Vérification de la session utilisateur
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = getSessionCookie(request);
 
   // Gestion des redirections d'authentification
   const authRedirect = handleAuthRedirects(request, session, pathname);

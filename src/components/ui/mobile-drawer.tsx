@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { LogOut, Menu } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
@@ -18,8 +18,8 @@ import {
 
 import { NavMainItem } from '@/hooks/use-navigation';
 import { ThemeToggleSingle } from '../layouts/theme-toggle-single';
-import { logUserOut } from '@/actions/auth';
 import { NotificationBell } from '../notifications/notification-bell';
+import { authClient } from '@/lib/auth/auth-client';
 
 export interface MobileDrawerProps extends React.HTMLAttributes<HTMLDivElement> {
   items: NavMainItem[];
@@ -42,6 +42,7 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
     },
     ref,
   ) => {
+    const router = useRouter();
     const pathname = usePathname();
     const [open, setOpen] = React.useState(false);
 
@@ -118,7 +119,9 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
             <Button
               variant="ghost"
               onClick={async () => {
-                await logUserOut();
+                await authClient.signOut().then(() => {
+                  router.push('/');
+                });
               }}
             >
               <LogOut className="size-icon" />

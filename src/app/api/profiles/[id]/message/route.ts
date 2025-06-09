@@ -1,13 +1,16 @@
-import { auth } from '@/auth';
 import { db } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
     if (!session?.user) {
       return NextResponse.json(
         { error: 'You must be logged in to send a message' },
