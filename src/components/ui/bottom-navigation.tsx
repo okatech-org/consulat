@@ -11,7 +11,7 @@ import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
 import { NavMainItem } from '@/hooks/use-navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { User } from '@prisma/client';
+import { SessionUser } from '@/types';
 
 export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
   showLabels?: boolean;
@@ -20,7 +20,7 @@ export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement>
 const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
   ({ className, showLabels = true, ...props }, ref) => {
     const currentUser = useCurrentUser();
-    const { mobileMenu } = useNavigation(currentUser as User);
+    const { mobileMenu } = useNavigation(currentUser as SessionUser);
     const pathname = usePathname();
 
     const isActive = React.useCallback(
@@ -50,6 +50,10 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       thirdItem,
     ] as Array<NavMainItem & { component?: React.ReactNode }>;
 
+    if (!currentUser) {
+      return undefined;
+    }
+
     return (
       <nav
         ref={ref}
@@ -77,7 +81,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                   : 'text-muted-foreground',
               )}
             >
-              {item.icon && <item.icon className="size-icon" />}
+              {item?.icon && <item.icon className="size-icon" />}
               {showLabels && (
                 <span
                   className={cn('text-[9px] truncate w-full uppercase transition-all')}

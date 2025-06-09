@@ -5,13 +5,14 @@ import { db } from '@/lib/prisma';
 import { AgentSettings, AdminSettings, UserSettings } from '@/schemas/user';
 import { User } from '@prisma/client';
 import { headers } from 'next/headers';
+import { SessionUser } from '@/types';
 
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (): Promise<SessionUser | null> => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  return session?.user;
+  return session?.user as unknown as SessionUser | null;
 };
 
 export const checkUserExist = async (userId?: string) => {

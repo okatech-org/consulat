@@ -7,9 +7,8 @@ import { tryCatch } from '../utils';
 import { sendOTPEmail } from '../services/notifications/providers/emails';
 import { nextCookies } from 'better-auth/next-js';
 import { getUserSession } from '../user/getters';
-import { UserRole, Session as PrismaSession } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { env } from '../env';
-import { SessionUser } from '@/types';
 
 export const auth = betterAuth({
   emailAndPassword: {
@@ -70,8 +69,25 @@ async function sessionCustomizer({
   session,
   user,
 }: {
-  session: PrismaSession;
-  user: SessionUser;
+  session: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    expiresAt: Date;
+    token: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+  };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    emailVerified: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    image?: string | null;
+  };
 }) {
   const userRoles = await db.user.findUnique({
     where: {

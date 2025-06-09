@@ -1,68 +1,61 @@
 import { Prisma } from '@prisma/client';
 
-export const SessionUserInclude = {
-  select: {
-    id: true,
-    profileId: true,
-    organizationId: true,
-    assignedOrganizationId: true,
-    name: true,
-    email: true,
-    phoneNumber: true,
-    roles: true,
-    image: true,
-    emailVerified: true,
-    countryCode: true,
-    specializations: true,
-    linkedCountries: true,
-  },
+export const UserSessionInclude: Prisma.UserSelect = {
+  id: true,
+  profileId: true,
+  name: true,
+  email: true,
+  phoneNumber: true,
+  roles: true,
+  image: true,
+  emailVerified: true,
+  phoneNumberVerified: true,
+  countryCode: true,
 } as const;
 
-export const UserSessionInclude = {
-  select: {
-    id: true,
-    profileId: true,
-    name: true,
-    email: true,
-    phoneNumber: true,
-    roles: true,
-    image: true,
-    emailVerified: true,
-    phoneVerified: true,
-    countryCode: true,
-    lastLogin: true,
-  },
+export const AgentSessionInclude: Prisma.UserSelect = {
+  ...UserSessionInclude,
+  specializations: true,
+  linkedCountries: true,
+  assignedOrganizationId: true,
+  maxActiveRequests: true,
+  completedRequests: true,
+  averageProcessingTime: true,
 } as const;
 
-export const AgentSessionInclude = {
-  select: {
-    ...UserSessionInclude.select,
-    specializations: true,
-    linkedCountries: true,
-    assignedOrganizationId: true,
-    maxActiveRequests: true,
-    completedRequests: true,
-    averageProcessingTime: true,
-  },
+export const AdminSessionInclude: Prisma.UserSelect = {
+  ...UserSessionInclude,
+  organizationId: true,
 } as const;
 
-export const AdminSessionInclude = {
-  select: {
-    ...UserSessionInclude.select,
-    organizationId: true,
-  },
+export const ManagerSessionSelect: Prisma.UserSelect = {
+  ...UserSessionInclude,
+  assignedOrganizationId: true,
+  managedAgents: true,
+};
+
+export const AllSessionInclude: Prisma.UserSelect = {
+  ...UserSessionInclude,
+  ...AgentSessionInclude,
+  ...AdminSessionInclude,
+  ...ManagerSessionSelect,
 } as const;
 
-export const AllSessionInclude = {
-  select: {
-    ...UserSessionInclude.select,
-    ...AgentSessionInclude.select,
-    ...AdminSessionInclude.select,
-  },
-} as const;
+export type AgentSession = Prisma.UserGetPayload<{
+  select: typeof AgentSessionInclude;
+}>;
+export type AdminSession = Prisma.UserGetPayload<{
+  select: typeof AdminSessionInclude;
+}>;
+export type ManagerSession = Prisma.UserGetPayload<{
+  select: typeof ManagerSessionSelect;
+}>;
+export type SuperAdminSession = Prisma.UserGetPayload<{
+  select: typeof UserSessionInclude;
+}>;
 
-export type SessionUser = Prisma.UserGetPayload<typeof AllSessionInclude>;
-export type UserSession = Prisma.UserGetPayload<typeof UserSessionInclude>;
-export type AgentSession = Prisma.UserGetPayload<typeof AgentSessionInclude>;
-export type AdminSession = Prisma.UserGetPayload<typeof AdminSessionInclude>;
-export type SuperAdminSession = Prisma.UserGetPayload<typeof UserSessionInclude>;
+export type SessionUser =
+  | AgentSession
+  | AdminSession
+  | ManagerSession
+  | SuperAdminSession;

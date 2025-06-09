@@ -11,25 +11,49 @@ import {
   UserSessionInclude,
 } from '@/types';
 import { ServiceCategory, ServiceRequest, UserRole } from '@prisma/client';
-import { SessionUser } from '@/types/user';
+import { ManagerSessionSelect, SessionUser } from '@/types/user';
 import { FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
+import { Prisma } from '@prisma/client';
+
+function getSelectForRoles(roles: UserRole[]): Prisma.UserSelect {
+  const isSuperAdmin = roles.includes(UserRole.SUPER_ADMIN);
+  const isAdmin = roles.includes(UserRole.ADMIN);
+  const isAgent = roles.includes(UserRole.AGENT);
+  const isUser = roles.includes(UserRole.USER);
+  const isManager = roles.includes(UserRole.MANAGER);
+
+  if (isSuperAdmin) {
+    return { ...UserSessionInclude };
+  }
+
+  if (isAdmin) {
+    return { ...AdminSessionInclude };
+  }
+
+  if (isAgent) {
+    return { ...AgentSessionInclude };
+  }
+
+  if (isUser) {
+    return { ...UserSessionInclude };
+  }
+
+  if (isManager) {
+    return { ...ManagerSessionSelect };
+  }
+
+  return { ...UserSessionInclude };
+}
 
 export async function getUserSession(
   id: string,
   roles: UserRole[],
 ): Promise<SessionUser | null> {
-  const isSuperAdmin = roles.includes(UserRole.SUPER_ADMIN);
-  const isAdmin = roles.includes(UserRole.ADMIN);
-  const isAgent = roles.includes(UserRole.AGENT);
-  const isUser = roles.includes(UserRole.USER);
+  const select = getSelectForRoles(roles);
 
-  // @ts-expect-error - We need to handle the case where the user is not in any role
   return await db.user.findUnique({
     where: { id: id },
-    ...(isSuperAdmin && { ...UserSessionInclude }),
-    ...(isAdmin && { ...AdminSessionInclude }),
-    ...(isAgent && { ...AgentSessionInclude }),
-    ...(isUser && { ...UserSessionInclude }),
+    select,
   });
 }
 

@@ -47,7 +47,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const createdMessage = await db.message.create({
       data: {
         content: message,
-        userId: session.user.id,
+        senderId: session.user.id,
+        receiverId: profile.user?.id ?? '',
         // We don't have a direct link to the profile in the Message model,
         // so we leave it unlinked at this stage
       },
