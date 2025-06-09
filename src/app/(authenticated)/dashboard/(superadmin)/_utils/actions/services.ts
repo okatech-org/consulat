@@ -8,11 +8,112 @@ import type {
   ConsularServiceItem,
   ConsularServiceListingItem,
 } from '@/types/consular-service';
-import { UserRole, Prisma } from '@prisma/client';
+import { UserRole, Prisma, ServiceCategory } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
+// Options pour la récupération des services
+export interface ServicesListRequestOptions {
+  search?: string;
+  category?: string[];
+  organizationId?: string[];
+  isActive?: boolean[];
+  page: number;
+  limit: number;
+  sortBy?: {
+    direction: 'asc' | 'desc';
+    field: 'name' | 'category' | 'isActive' | 'createdAt';
+  };
+}
+
+const ServiceListItemSelect: Prisma.ConsularServiceSelect = {
+  id: true,
+  name: true,
+  description: true,
+  category: true,
+  isActive: true,
+  organizationId: true,
+  countryCode: true,
+};
+
+export type ServiceListItem = Prisma.ConsularServiceGetPayload<{
+  select: typeof ServiceListItemSelect;
+}>;
+
+export interface ServicesListResult {
+  items: ServiceListItem[];
+  total: number;
+}
+
 /**
- * Récupérer tous les services
+ * Récupérer les services avec filtres et pagination
+ */
+export async function getServicesList(
+  options?: ServicesListRequestOptions,
+): Promise<ServicesListResult> {
+  await checkAuth(['ADMIN', 'SUPER_ADMIN', 'MANAGER']);
+
+  const {
+    search,
+    category,
+    organizationId,
+    isActive,
+    page = 1,
+    limit = 10,
+    sortBy,
+  } = options || {};
+
+  const where: Prisma.ConsularServiceWhereInput = {};
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  if (category && category.length > 0) {
+    where.category = { in: category as ServiceCategory[] };
+  }
+
+  if (organizationId && organizationId.length > 0) {
+    where.organizationId = { in: organizationId };
+  }
+
+  if (isActive && isActive.length > 0) {
+    if (isActive.length === 1) {
+      where.isActive = isActive[0];
+    }
+    // If both true and false are selected, don't filter (show all)
+  }
+
+  try {
+    const [items, total] = await Promise.all([
+      db.consularService.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        select: ServiceListItemSelect,
+        ...(sortBy && {
+          orderBy: {
+            [sortBy.field]: sortBy.direction,
+          },
+        }),
+      }),
+      db.consularService.count({ where }),
+    ]);
+
+    return {
+      items,
+      total,
+    };
+  } catch (error) {
+    console.error('Error fetching services:', error);
+    throw new Error('Failed to fetch services');
+  }
+}
+
+/**
+ * Récupérer tous les services (legacy function for backward compatibility)
  */
 export async function getServices(
   organizationId?: string,
@@ -62,7 +163,7 @@ export async function createService(data: NewServiceSchemaInput) {
  * Mettre à jour un service
  */
 export async function updateService(data: Partial<ConsularServiceItem>) {
-  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.Manager]);
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]);
 
   if (!data.id) {
     return { error: 'Service ID is required' };

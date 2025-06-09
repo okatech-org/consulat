@@ -1,283 +1,427 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { ColumnDef, Row } from '@tanstack/react-table';
-import { Badge } from '@/components/ui/badge';
-import { DataTable } from '@/components/data-table/data-table';
-import { ConsularServiceListingItem } from '@/types/consular-service';
-import { Country, ServiceCategory, UserRole } from '@prisma/client';
-import { OrganizationListingItem } from '@/types/organization';
 import {
+  getServicesList,
   deleteService,
   duplicateService,
   updateServiceStatus,
+  ServicesListRequestOptions,
+  ServicesListResult,
 } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
+import { useTableSearchParams } from '@/hooks/use-table-search-params';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { OrganizationListingItem } from '@/types/organization';
+import { ServiceCategory, UserRole } from '@prisma/client';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
+import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
+import { ROUTES } from '@/schemas/routes';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ColumnDef, Column, Row } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import { DataTable } from '@/components/data-table/data-table';
+import { ConsularServiceListingItem } from '@/types/consular-service';
+import { SessionUser } from '@/types';
+import { useTranslations } from 'next-intl';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DataTableRowActions,
   RowAction,
 } from '@/components/data-table/data-table-row-actions';
-import { ROUTES } from '@/schemas/routes';
 import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react';
 import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getOrganizationFromId } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/services';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
-import { DataTableColumnHeader } from '../data-table/data-table-column-header';
-import { useCurrentUser } from '@/hooks/use-current-user';
 
-export function ServicesTable({
-  services,
-  organizations = [],
-  columns,
-  countries = [],
-}: {
-  services: ConsularServiceListingItem[];
+type ServicesTablesProps = {
   organizations: OrganizationListingItem[];
-  columns?: ColumnDef<ConsularServiceListingItem>[];
-  countries: Country[];
-}) {
+};
+
+interface SearchParams {
+  search?: string;
+  category?: ServiceCategory[];
+  organizationId?: string[];
+  isActive?: boolean[];
+}
+
+export function ServicesTable({ organizations }: ServicesTablesProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const currentUser = useCurrentUser();
+  const organizationId = getOrganizationIdFromUser(currentUser as SessionUser);
   const isSuperAdmin = currentUser?.roles.includes(UserRole.SUPER_ADMIN);
+
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('services');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
   const [selectedService, setSelectedService] =
     useState<ConsularServiceListingItem | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleStatusChange = async (serviceId: string, status: boolean) => {
-    setIsLoading(true);
-    try {
-      const result = await updateServiceStatus(serviceId, status);
+  const defaultValues: SearchParams = useMemo(
+    () => ({
+      ...(organizationId && !isSuperAdmin ? { organizationId: [organizationId] } : {}),
+    }),
+    [organizationId, isSuperAdmin],
+  );
 
-      if (result.error) throw new Error(result.error);
+  const [data, setData] = useState<ServicesListResult>({
+    items: [],
+    total: 0,
+  });
 
-      toast({
-        title: t('messages.updateSuccess'),
-        variant: 'success',
-      });
-    } catch (error) {
-      toast({
-        title: t('messages.error.update'),
-        variant: 'destructive',
-        description: `${error}`,
-      });
-    } finally {
+  const { params, pagination, sorting, handleParamsChange, handlePaginationChange } =
+    useTableSearchParams<ConsularServiceListingItem, SearchParams>(adaptSearchParams);
+
+  useEffect(() => {
+    const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+
+    async function fetchItems() {
+      setIsLoading(true);
+      const result = await tryCatch(getServicesList(options));
+
+      if (result.data) setData(result.data);
+
       setIsLoading(false);
     }
-  };
 
-  const handleDelete = async (serviceId: string) => {
-    setIsLoading(true);
-    try {
-      const result = await deleteService(serviceId);
+    fetchItems();
+  }, [params, pagination, sorting, defaultValues]);
 
-      if (result.error) throw new Error(result.error);
+  const handleStatusChange = useCallback(
+    async (serviceId: string, status: boolean) => {
+      setIsLoading(true);
+      try {
+        const result = await updateServiceStatus(serviceId, status);
 
-      toast({
-        title: t('messages.deleteSuccess'),
-        variant: 'success',
-      });
-    } catch (error) {
-      toast({
-        title: t('messages.error.delete'),
-        variant: 'destructive',
-        description: `${error}`,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        if (result.error) throw new Error(result.error);
 
-  const handleDuplicateService = async (serviceId: string) => {
-    setIsLoading(true);
-    try {
-      const result = await duplicateService(serviceId);
-      if (result.error) {
         toast({
-          title: t_messages('errors.duplicate'),
-          description: result.error,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: t_messages('success.duplicate'),
+          title: t('messages.updateSuccess'),
           variant: 'success',
         });
-        router.refresh();
+
+        // Refresh data
+        const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+        const refreshResult = await tryCatch(getServicesList(options));
+        if (refreshResult.data) {
+          setData(refreshResult.data);
+        }
+      } catch (error) {
+        toast({
+          title: t('messages.error.update'),
+          variant: 'destructive',
+          description: `${error}`,
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
+    },
+    [params, pagination, sorting, defaultValues, t, toast],
+  );
+
+  const handleDelete = useCallback(
+    async (serviceId: string) => {
+      setIsLoading(true);
+      try {
+        const result = await deleteService(serviceId);
+
+        if (result.error) throw new Error(result.error);
+
+        toast({
+          title: t('messages.deleteSuccess'),
+          variant: 'success',
+        });
+
+        // Refresh data
+        const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+        const refreshResult = await tryCatch(getServicesList(options));
+        if (refreshResult.data) {
+          setData(refreshResult.data);
+        }
+      } catch (error) {
+        toast({
+          title: t('messages.error.delete'),
+          variant: 'destructive',
+          description: `${error}`,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params, pagination, sorting, defaultValues, t, toast],
+  );
+
+  const handleDuplicateService = useCallback(
+    async (serviceId: string) => {
+      setIsLoading(true);
+      try {
+        const result = await duplicateService(serviceId);
+        if (result.error) {
+          toast({
+            title: t_messages('errors.duplicate'),
+            description: result.error,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: t_messages('success.duplicate'),
+            variant: 'success',
+          });
+
+          // Refresh data
+          const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+          const refreshResult = await tryCatch(getServicesList(options));
+          if (refreshResult.data) {
+            setData(refreshResult.data);
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params, pagination, sorting, defaultValues, t_messages, toast],
+  );
+
+  // Colonnes du tableau
+  const columns = useMemo<ColumnDef<ConsularServiceListingItem>[]>(() => {
+    function getActions(
+      row: Row<ConsularServiceListingItem>,
+    ): RowAction<ConsularServiceListingItem>[] {
+      const actions = [
+        {
+          label: (
+            <>
+              <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
+            </>
+          ),
+          onClick: () => {
+            router.push(ROUTES.dashboard.edit_service(row.original.id));
+          },
+        },
+        {
+          label: (
+            <>
+              <Copy className="mr-1 size-4" />
+              {t_common('actions.duplicate')}
+            </>
+          ),
+          onClick: () => {
+            handleDuplicateService(row.original.id);
+          },
+        },
+        {
+          label: (
+            <>
+              {row.original.isActive ? (
+                <>
+                  <Ban className="mr-1 size-4" />
+                  {t_common('actions.deactivate')}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 size-4" />
+                  {t_common('actions.activate')}
+                </>
+              )}
+            </>
+          ),
+          onClick: () => {
+            handleStatusChange(row.original.id, !row.original.isActive);
+          },
+        },
+        {
+          label: (
+            <>
+              <Trash className="mr-1 size-4 text-destructive" />
+              <span className="text-destructive"> {t_common('actions.delete')}</span>
+            </>
+          ),
+          onClick: () => {
+            setSelectedService(row.original);
+            setShowDeleteDialog(true);
+          },
+        },
+      ];
+
+      return actions;
     }
-  };
 
-  const localColumns: ColumnDef<ConsularServiceListingItem>[] = [
-    {
-      accessorKey: 'name',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('table.name')} />
-      ),
-      enableSorting: true,
-    },
-    {
-      accessorKey: 'category',
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title={t_inputs('serviceCategory.label')}
-        />
-      ),
-      cell: ({ row }) => t_inputs(`serviceCategory.options.${row.original.category}`),
-      filterFn: 'arrIncludesSome',
-    },
-    {
-      accessorKey: 'organization',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('table.organization')} />
-      ),
-      cell: ({ row }) =>
-        getOrganizationFromId(organizations, row.original.organizationId)?.name || (
-          <Badge variant="default">{t_common('status.NOT_ASSIGNED')}</Badge>
-        ),
-    },
-    {
-      accessorKey: 'isActive',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('table.status')} />
-      ),
-      cell: ({ row }) => (
-        <Badge variant={row.original.isActive ? 'success' : 'outline'}>
-          {t_common(`status.${row.original.isActive ? 'ACTIVE' : 'INACTIVE'}`)}
-        </Badge>
-      ),
-      enableSorting: true,
-      sortingFn: 'auto',
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => <DataTableRowActions actions={getActions(row)} row={row} />,
-    },
-  ];
-
-  function getActions(
-    row: Row<ConsularServiceListingItem>,
-  ): RowAction<ConsularServiceListingItem>[] {
-    const actions = [
+    return [
       {
-        label: (
-          <>
-            <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
-          </>
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
         ),
-        onClick: () => {
-          router.push(ROUTES.dashboard.edit_service(row.original.id));
-        },
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            className="translate-y-[2px]"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
       },
       {
-        label: (
-          <>
-            <Copy className="mr-1 size-4" />
-            {t_common('actions.duplicate')}
-          </>
+        accessorKey: 'name',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('table.name')} />
         ),
-        onClick: () => {
-          handleDuplicateService(row.original.id);
-        },
+        enableSorting: true,
       },
       {
-        label: (
-          <>
-            {row.original.isActive ? (
-              <>
-                <Ban className="mr-1 size-4" />
-                {t_common('actions.deactivate')}
-              </>
-            ) : (
-              <>
-                <CheckCircle className="mr-2 size-4" />
-                {t_common('actions.activate')}
-              </>
-            )}
-          </>
+        accessorKey: 'category',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t_inputs('serviceCategory.label')}
+          />
         ),
-        onClick: () => {
-          handleStatusChange(row.original.id, !row.original.isActive);
-        },
+        cell: ({ row }) => (
+          <Badge variant="outline">
+            {t_inputs(`serviceCategory.options.${row.original.category}`)}
+          </Badge>
+        ),
+        filterFn: 'arrIncludesSome',
+      },
+      ...(isSuperAdmin
+        ? [
+            {
+              accessorKey: 'organizationId',
+              header: ({
+                column,
+              }: {
+                column: Column<ConsularServiceListingItem, unknown>;
+              }) => (
+                <DataTableColumnHeader column={column} title={t('table.organization')} />
+              ),
+              cell: ({ row }: { row: Row<ConsularServiceListingItem> }) =>
+                getOrganizationFromId(organizations, row.original.organizationId)
+                  ?.name || (
+                  <Badge variant="default">{t_common('status.NOT_ASSIGNED')}</Badge>
+                ),
+            },
+          ]
+        : []),
+      {
+        accessorKey: 'isActive',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('table.status')} />
+        ),
+        cell: ({ row }) => (
+          <Badge variant={row.original.isActive ? 'default' : 'outline'}>
+            {t_common(`status.${row.original.isActive ? 'ACTIVE' : 'INACTIVE'}`)}
+          </Badge>
+        ),
+        enableSorting: true,
+        sortingFn: 'auto',
       },
       {
-        label: (
-          <>
-            <Trash className="mr-1 size-4 text-destructive" />
-            <span className="text-destructive"> {t_common('actions.delete')}</span>
-          </>
-        ),
-        onClick: () => {
-          setSelectedService(row.original);
-          setShowDeleteDialog(true);
-        },
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => <DataTableRowActions actions={getActions(row)} row={row} />,
       },
     ];
+  }, [
+    isSuperAdmin,
+    t,
+    t_inputs,
+    organizations,
+    t_common,
+    router,
+    handleDuplicateService,
+    handleStatusChange,
+    setSelectedService,
+    setShowDeleteDialog,
+  ]);
 
-    return actions;
-  }
-
-  const localFilters: FilterOption<ConsularServiceListingItem>[] = [
-    {
-      type: 'search',
-      property: 'name',
-      label: t('table.name'),
-      defaultValue: '',
-      onChange: (value) => {
-        console.log(value);
+  // Définir les filtres disponibles
+  const filters: FilterOption<ConsularServiceListingItem>[] = useMemo(
+    () => [
+      {
+        type: 'search',
+        property: 'search',
+        label: t('table.name'),
+        defaultValue: params.search as string,
+        onChange: (value: string) => handleParamsChange('search', value),
       },
-    },
-    {
-      type: 'checkbox',
-      property: 'category',
-      label: t('table.category'),
-      options: Object.values(ServiceCategory).map((category) => ({
-        value: category,
-        label: t_inputs(`serviceCategory.options.${category}`),
-      })),
-      defaultValue: [],
-      onChange: (value) => {
-        console.log(value);
+      {
+        type: 'checkbox' as const,
+        property: 'category',
+        label: t('table.category'),
+        options: Object.values(ServiceCategory).map((category) => ({
+          value: category,
+          label: t_inputs(`serviceCategory.options.${category}`),
+        })),
+        defaultValue: (params.category || []) as string[],
+        onChange: (value) => handleParamsChange('category', value as ServiceCategory[]),
       },
-    },
-    {
-      type: 'checkbox',
-      property: 'isActive',
-      label: t('table.status'),
-      options: [
-        { value: true, label: t_common('status.ACTIVE') },
-        { value: false, label: t_common('status.INACTIVE') },
-      ],
-      defaultValue: [],
-      onChange: (value) => {
-        console.log(value);
+      ...(isSuperAdmin
+        ? [
+            {
+              type: 'checkbox' as const,
+              property: 'organizationId',
+              label: t('table.organization'),
+              options: organizations.map((org) => ({
+                value: org.id,
+                label: org.name || org.id,
+              })),
+              defaultValue: params.organizationId as string[],
+              onChange: (value: string[]) => handleParamsChange('organizationId', value),
+            },
+          ]
+        : []),
+      {
+        type: 'checkbox' as const,
+        property: 'isActive',
+        label: t('table.status'),
+        options: [
+          { value: 'true', label: t_common('status.ACTIVE') },
+          { value: 'false', label: t_common('status.INACTIVE') },
+        ],
+        defaultValue: (params.isActive || []).map(String) as string[],
+        onChange: (value: string[]) =>
+          handleParamsChange(
+            'isActive',
+            value.map((v) => v === 'true'),
+          ),
       },
-    },
-  ];
+    ],
+    [organizations, handleParamsChange, params, t, t_inputs, t_common, isSuperAdmin],
+  );
 
   return (
     <>
-      <DataTable<ConsularServiceListingItem, unknown>
-        columns={columns ?? localColumns}
-        data={services}
-        filters={localFilters}
+      <DataTable
+        isLoading={isLoading}
+        columns={columns}
+        data={data.items}
+        filters={filters}
+        totalCount={data.total}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
+        onPageChange={(page) => handlePaginationChange('page', page + 1)}
+        onLimitChange={(limit) => handlePaginationChange('limit', limit)}
+        activeSorting={
+          sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
+        }
         onRowClick={(row) => {
-          setSelectedService(row.original);
-          setShowEditDialog(true);
+          router.push(ROUTES.dashboard.edit_service(row.original.id));
         }}
-        hiddenColumns={isSuperAdmin ? [] : ['organization']}
       />
 
       {selectedService && (
@@ -292,4 +436,81 @@ export function ServicesTable({
       )}
     </>
   );
+}
+
+function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
+  const params: SearchParams = {};
+  const paramsKeys: (keyof SearchParams)[] = [
+    'search',
+    'category',
+    'organizationId',
+    'isActive',
+  ];
+
+  paramsKeys.forEach((key) => {
+    const value = urlSearchParams.get(key);
+    if (value) {
+      if (key === 'category') {
+        const arr = value.split(',').filter(Boolean) as ServiceCategory[];
+        if (arr.length > 0) {
+          params[key] = arr;
+        }
+      } else if (key === 'organizationId') {
+        const arr = value.split(',').filter(Boolean);
+        if (arr.length > 0) {
+          params[key] = arr;
+        }
+      } else if (key === 'isActive') {
+        const arr = value
+          .split(',')
+          .filter(Boolean)
+          .map((v) => v === 'true');
+        if (arr.length > 0) {
+          params[key] = arr;
+        }
+      } else {
+        params[key] = value;
+      }
+    }
+  });
+
+  return params;
+}
+
+function buildQueryOptions(
+  params: SearchParams,
+  pagination: { page: number; limit: number },
+  sorting: { field?: string; order?: 'asc' | 'desc' },
+  defaultValues: SearchParams,
+): ServicesListRequestOptions {
+  const options: ServicesListRequestOptions = {
+    ...defaultValues,
+    page: pagination.page ?? 1,
+    limit: pagination.limit ?? 10,
+  };
+
+  if (sorting.field) {
+    options.sortBy = {
+      field: sorting.field as 'name' | 'category' | 'isActive' | 'createdAt',
+      direction: sorting.order || 'asc',
+    };
+  }
+
+  if (params.search) {
+    options.search = params.search;
+  }
+
+  if (params.category) {
+    options.category = params.category;
+  }
+
+  if (params.organizationId) {
+    options.organizationId = params.organizationId;
+  }
+
+  if (params.isActive) {
+    options.isActive = params.isActive;
+  }
+
+  return options;
 }

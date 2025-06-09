@@ -6,6 +6,7 @@ import {
   ServiceRequest,
   RequestStatus,
   UserDocument,
+  GenerateDocumentSettings,
   DocumentType,
 } from '@prisma/client';
 import { FullProfile } from '@/types/profile';
@@ -141,7 +142,7 @@ export interface ServiceStep {
 export interface ConsularServiceItem extends Omit<ConsularService, 'fields'> {
   steps: ServiceStep[];
   organization: Organization | null;
-  generateDocumentSettings: GenerateDocumentSettings;
+  generateDocumentSettings: GenerateDocumentSettings[];
 }
 
 export type UpdateServiceInput = Partial<ConsularServiceItem>;
