@@ -100,7 +100,7 @@ export function AgentForm({
           email: data.email,
           phoneNumber: data.phoneNumber,
           countryIds: data.countryIds,
-          serviceIds: watchedRole === UserRole.AGENT ? data.serviceIds : [],
+          serviceIds: data.serviceIds || [],
           managedByUserId:
             watchedRole === UserRole.AGENT ? data.managedByUserId : undefined,
           role: data.role,
