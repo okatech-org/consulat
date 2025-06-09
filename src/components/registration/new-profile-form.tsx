@@ -185,7 +185,7 @@ export function NewProfileForm({
     }
 
     setIsLoading(false);
-    router.push(ROUTES.registration);
+    router.push(ROUTES.registration_form);
   };
 
   const handleResendOTP = async () => {
