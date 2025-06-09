@@ -2,7 +2,6 @@ import React, { Suspense } from 'react';
 import { getProfileRegistrationRequest, getUserFullProfile } from '@/lib/user/getters';
 import { getCurrentUser } from '@/actions/user';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { getTranslations } from 'next-intl/server';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { NotesList } from '@/components/requests/review-notes';
 import { ProfileProgressBar } from './_utils/components/profile-progress-bar';
