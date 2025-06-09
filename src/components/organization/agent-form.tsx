@@ -402,31 +402,29 @@ export function AgentForm({
               )}
             />
 
-            {watchedRole === UserRole.AGENT && (
-              <FormField
-                control={form.control}
-                name="serviceIds"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Services (optionnel)</FormLabel>
-                    <FormControl>
-                      <MultiSelect<string>
-                        placeholder="Sélectionner les services"
-                        options={services.map((service) => ({
-                          label: service.name,
-                          value: service.id,
-                        }))}
-                        selected={field.value || []}
-                        onChange={field.onChange}
-                        type={'multiple'}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="serviceIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Services (optionnel)</FormLabel>
+                  <FormControl>
+                    <MultiSelect<string>
+                      placeholder="Sélectionner les services"
+                      options={services.map((service) => ({
+                        label: service.name,
+                        value: service.id,
+                      }))}
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      type={'multiple'}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </CardContainer>
 

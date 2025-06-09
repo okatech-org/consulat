@@ -28,6 +28,7 @@ import { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTable } from '@/components/data-table/data-table';
 import { ConsularServiceListingItem } from '@/types/consular-service';
 import { SessionUser } from '@/types';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type AgentsTablesProps = {
   countries: Country[];
@@ -191,9 +192,26 @@ export function AgentsTable({
         cell: ({ row }) =>
           row.original.assignedServices && row.original.assignedServices.length > 0 ? (
             <div className="flex flex-wrap gap-1">
-              {row.original.assignedServices.map((s: { name: string; id: string }) => (
-                <Badge key={s.id}>{s.name}</Badge>
-              ))}
+              {
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="cursor-help">
+                      {row.original.assignedServices.length} services
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      {row.original.assignedServices.map(
+                        (s: { name: string; id: string }) => (
+                          <div key={s.id} className="text-xs">
+                            {s.name}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              }
             </div>
           ) : (
             '-'
