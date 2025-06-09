@@ -18,12 +18,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { logUserOut } from '@/actions/auth';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { UserRole } from '@prisma/client';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
+import { authClient } from '@/lib/auth/auth-client';
+import { useRouter } from 'next/navigation';
 
 export function NavUser({
   user,
@@ -35,6 +36,7 @@ export function NavUser({
     roles: UserRole[];
   };
 }) {
+  const router = useRouter();
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
@@ -131,7 +133,9 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () => {
-                await logUserOut();
+                await authClient.signOut().then(() => {
+                  router.push('/');
+                });
               }}
             >
               <LogOut className="size-icon" />

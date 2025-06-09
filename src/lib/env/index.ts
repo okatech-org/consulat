@@ -35,6 +35,10 @@ export const env = createEnv({
     VONAGE_API_SECRET: z.string().min(1),
     VONAGE_PHONE_NUMBER: z.string().startsWith('+'),
     NEXT_ORG_LOGO: z.string().url(),
+
+    // BetterAuth configuration
+    BETTER_AUTH_SECRET: z.string().min(1),
+    BETTER_AUTH_URL: z.string().url(),
   },
 
   /**
@@ -83,6 +87,10 @@ export const env = createEnv({
     VONAGE_API_KEY: process.env.VONAGE_API_KEY,
     VONAGE_API_SECRET: process.env.VONAGE_API_SECRET,
     VONAGE_PHONE_NUMBER: process.env.VONAGE_PHONE_NUMBER,
+
+    // BetterAuth configuration
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
 
     NEXT_ORG_LOGO: process.env.NEXT_ORG_LOGO,
 

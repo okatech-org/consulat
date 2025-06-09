@@ -2,6 +2,7 @@ import { UserRole } from '@prisma/client';
 import { ROLES } from './roles';
 import { ResourceType } from './types';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { Session } from '../auth/auth';
 import { SessionUser } from '@/types';
 
 export function hasPermission<Resource extends keyof ResourceType>(

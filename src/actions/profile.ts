@@ -19,73 +19,45 @@ import {
   NameSchema,
   CountryCodeSchema,
   EmailSchema,
-  DateSchema,
   PhoneNumberSchema,
 } from '@/schemas/inputs';
 import { z } from 'zod';
-import { isUserExists } from './auth';
 
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 
-const CreateProfileAsyncSchema = z
-  .object({
-    firstName: NameSchema,
-    lastName: NameSchema,
-    residenceCountyCode: CountryCodeSchema,
-    email: EmailSchema.optional(),
-    phoneNumber: PhoneNumberSchema.refine(async (phone) => {
-      const existingPhoneUser = await db.user.findUnique({
-        where: {
-          phoneNumber: phone,
-        },
-      });
+const CreateProfileAsyncSchema = z.object({
+  firstName: NameSchema,
+  lastName: NameSchema,
+  residenceCountyCode: CountryCodeSchema,
+  email: EmailSchema,
+  phoneNumber: PhoneNumberSchema,
+  otp: z.string().length(6, { message: 'messages.errors.otp_length' }).optional(),
+});
 
-      return !existingPhoneUser;
-    }),
-    emailVerified: DateSchema.optional(),
-    phoneVerified: DateSchema.optional(),
-    otp: z.string().length(6, { message: 'messages.errors.otp_length' }).optional(),
-  })
-  .superRefine(async (data) => {
-    const [existingUser, existingPhone] = await Promise.all([
-      isUserExists(undefined, data.email, data.phoneNumber),
-      isUserExists(undefined, undefined, data.phoneNumber),
-    ]);
+export async function createUserProfile(input: CreateProfileInput, userId: string) {
+  const { success, data } = CreateProfileAsyncSchema.safeParse(input);
 
-    if (existingUser) {
-      throw new Error('email-user_email_already_exists');
-    }
+  if (!success) {
+    throw new Error('messages.errors.invalid_field');
+  }
 
-    if (existingPhone) {
-      throw new Error('phone.number-user_phone_already_exists');
-    }
-  });
-
-export async function createUserWithProfile(input: CreateProfileInput) {
-  const {
-    firstName,
-    lastName,
-    residenceCountyCode,
-    email,
-    phoneNumber,
-    emailVerified,
-    phoneVerified,
-  } = await CreateProfileAsyncSchema.parseAsync(input);
+  const { firstName, lastName, residenceCountyCode, email, phoneNumber } = data;
 
   await db.$transaction(async (tx) => {
-    const user = await tx.user.create({
+    const user = await tx.user.update({
+      where: {
+        id: userId,
+      },
       data: {
         name: `${firstName ?? ''} ${lastName ?? ''}`,
         email,
-        emailVerified,
-        phoneVerified,
         phoneNumber,
         countryCode: residenceCountyCode,
       },
     });
 
     if (!user) {
-      throw new Error('user_creation_failed');
+      throw new Error('messages.errors.user_creation_failed');
     }
 
     await tx.profile.create({
@@ -114,7 +86,7 @@ export async function updateProfile(
   const { user } = await checkAuth();
 
   if (!user || !user?.id) {
-    throw new Error('unauthorized');
+    throw new Error('messages.errors.unauthorized');
   }
 
   // Récupérer le profil existant avec toutes les relations nécessaires
@@ -124,7 +96,7 @@ export async function updateProfile(
   });
 
   if (!existingProfile) {
-    throw new Error('profile_not_found');
+    throw new Error('messages.errors.profile_not_found');
   }
 
   // Préparer les données déstructurées

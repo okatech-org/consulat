@@ -1,5 +1,6 @@
 export default {
   errors: {
+    OTP_NOT_FOUND: "Le code OTP n'est pas valide",
     invalid_document: 'Un document valide est requis',
     profile_update_failed: 'Échec de la mise à jour du profil',
     email_user_email_already_exists: 'Un utilisateur avec cet email existe déjà',

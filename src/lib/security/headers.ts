@@ -7,16 +7,21 @@ export const securityHeaders = {
   // Content Security Policy - Protection contre XSS
   'Content-Security-Policy': `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' data: https: blob:;
-    connect-src 'self' https://api.uploadthing.com https://*.uploadthing.com;
-    frame-src 'none';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    upgrade-insecure-requests;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://uploadthing.com https://placehold.co https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://*.vercel-scripts.com;
+  child-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
+  frame-src 'self' https://rbvj2i3urx.ufs.sh https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://utfs.io https://utfs.io/f;
+  style-src 'self' 'unsafe-inline';
+  font-src 'self' data:;
+  img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io https://rbvj2i3urx.ufs.sh https://qld7pfnhxe.ufs.sh https://i.ytimg.com blob: data:;
+  object-src 'self' data:;
+  media-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
+  connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.resend.com https://uploadthing.com https://*.uploadthing.com https://utfs.io https://utfs.io/f/* https://api.twilio.com https://lottie.host https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://flagcdn.com https://*.vercel-scripts.com https://*.vercel-insights.com https://*.vercel-analytics.com https://*.ufs.sh https://*.ufs.sh/f/* ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''} wss://*.uploadthing.com;
+  frame-ancestors 'none';
+  base-uri 'self';
+  form-action 'self';
+  manifest-src 'self';
+  worker-src 'self' blob:;
+  upgrade-insecure-requests;
   `
     .replace(/\n/g, ' ')
     .replace(/\s+/g, ' ')
@@ -54,11 +59,6 @@ export const securityHeaders = {
     'accelerometer=()',
     'gyroscope=()',
   ].join(', '),
-
-  // Protection contre les attaques de timing
-  'Cross-Origin-Embedder-Policy': 'require-corp',
-  'Cross-Origin-Opener-Policy': 'same-origin',
-  'Cross-Origin-Resource-Policy': 'same-origin',
 };
 
 /**

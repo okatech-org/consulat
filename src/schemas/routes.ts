@@ -12,7 +12,7 @@ export const ROUTES = {
 
   auth: {
     base: '/auth' as Route<string>,
-    login: '/auth/login' as Route<string>,
+    login: '/login' as Route<string>,
     auth_error: '/auth/error' as Route<string>,
     unauthorized: '/auth/unauthorized' as Route<string>,
   },
@@ -100,6 +100,7 @@ export const ROUTES = {
 
   unauthorized: '/unauthorized' as Route<string>,
   registration: '/registration' as Route<string>,
+  registration_form: '/registration?form=true' as Route<string>,
   privacy_policy: '#' as Route<string>,
   terms: '#' as Route<string>,
 } as const;

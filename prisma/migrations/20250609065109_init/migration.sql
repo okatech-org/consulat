@@ -2,7 +2,7 @@
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT', 'USER');
 
 -- CreateEnum
-CREATE TYPE "ServiceCategory" AS ENUM ('IDENTITY', 'CIVIL_STATUS', 'VISA', 'CERTIFICATION', 'REGISTRATION', 'OTHER');
+CREATE TYPE "ServiceCategory" AS ENUM ('IDENTITY', 'CIVIL_STATUS', 'VISA', 'CERTIFICATION', 'TRANSCRIPT', 'REGISTRATION', 'ASSISTANCE', 'TRAVEL_DOCUMENT', 'OTHER');
 
 -- CreateEnum
 CREATE TYPE "RequestType" AS ENUM ('FIRST_REQUEST', 'RENEWAL', 'MODIFICATION', 'CONSULAR_REGISTRATION', 'PASSPORT_REQUEST', 'ID_CARD_REQUEST');
@@ -32,7 +32,7 @@ CREATE TYPE "NationalityAcquisition" AS ENUM ('BIRTH', 'NATURALIZATION', 'MARRIA
 CREATE TYPE "DocumentStatus" AS ENUM ('PENDING', 'VALIDATED', 'REJECTED', 'EXPIRED', 'EXPIRING');
 
 -- CreateEnum
-CREATE TYPE "RequestStatus" AS ENUM ('EDITED', 'DRAFT', 'SUBMITTED', 'PENDING', 'PENDING_COMPLETION', 'VALIDATED', 'REJECTED', 'CARD_IN_PRODUCTION', 'READY_FOR_PICKUP', 'APPOINTMENT_SCHEDULED', 'COMPLETED');
+CREATE TYPE "RequestStatus" AS ENUM ('EDITED', 'DRAFT', 'SUBMITTED', 'PENDING', 'PENDING_COMPLETION', 'VALIDATED', 'REJECTED', 'CARD_IN_PRODUCTION', 'DOCUMENT_IN_PRODUCTION', 'READY_FOR_PICKUP', 'APPOINTMENT_SCHEDULED', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "DocumentType" AS ENUM ('PASSPORT', 'IDENTITY_CARD', 'BIRTH_CERTIFICATE', 'RESIDENCE_PERMIT', 'PROOF_OF_ADDRESS', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONALITY_CERTIFICATE', 'OTHER', 'VISA_PAGES', 'EMPLOYMENT_PROOF', 'NATURALIZATION_DECREE', 'IDENTITY_PHOTO', 'CONSULAR_CARD');
@@ -53,7 +53,7 @@ CREATE TYPE "ConsularServiceType" AS ENUM ('PASSPORT_REQUEST', 'CONSULAR_CARD', 
 CREATE TYPE "ServicePriority" AS ENUM ('STANDARD', 'URGENT');
 
 -- CreateEnum
-CREATE TYPE "ServiceStepType" AS ENUM ('FORM', 'DOCUMENTS', 'APPOINTMENT', 'PAYMENT', 'REVIEW');
+CREATE TYPE "ServiceStepType" AS ENUM ('FORM', 'DOCUMENTS', 'APPOINTMENT', 'PAYMENT', 'REVIEW', 'DELIVERY');
 
 -- CreateEnum
 CREATE TYPE "AppointmentType" AS ENUM ('DOCUMENT_SUBMISSION', 'DOCUMENT_COLLECTION', 'INTERVIEW', 'MARRIAGE_CEREMONY', 'EMERGENCY', 'OTHER');
@@ -80,85 +80,77 @@ CREATE TYPE "OrganizationType" AS ENUM ('EMBASSY', 'CONSULATE', 'GENERAL_CONSULA
 CREATE TYPE "OrganizationStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED');
 
 -- CreateEnum
-CREATE TYPE "RequestActionType" AS ENUM ('ASSIGNMENT', 'STATUS_CHANGE', 'NOTE_ADDED', 'DOCUMENT_ADDED', 'DOCUMENT_VALIDATED', 'APPOINTMENT_SCHEDULED', 'PAYMENT_RECEIVED', 'COMPLETED');
-
--- CreateTable
-CREATE TABLE "Account" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "provider" TEXT NOT NULL,
-    "providerAccountId" TEXT NOT NULL,
-    "refresh_token" TEXT,
-    "access_token" TEXT,
-    "expires_at" INTEGER,
-    "token_type" TEXT,
-    "scope" TEXT,
-    "id_token" TEXT,
-    "session_state" TEXT,
-
-    CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Session" (
-    "id" TEXT NOT NULL,
-    "sessionToken" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "expires" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "VerificationToken" (
-    "id" TEXT NOT NULL,
-    "identifier" TEXT NOT NULL,
-    "token" TEXT NOT NULL,
-    "expires" TIMESTAMP(3) NOT NULL,
-    "type" TEXT NOT NULL,
-
-    CONSTRAINT "VerificationToken_pkey" PRIMARY KEY ("id")
-);
+CREATE TYPE "RequestActionType" AS ENUM ('ASSIGNMENT', 'STATUS_CHANGE', 'NOTE_ADDED', 'DOCUMENT_ADDED', 'DOCUMENT_VALIDATED', 'APPOINTMENT_SCHEDULED', 'PAYMENT_RECEIVED', 'COMPLETED', 'PROFILE_UPDATE', 'DOCUMENT_UPDATED', 'DOCUMENT_DELETED');
 
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
-    "email" TEXT,
-    "phoneId" TEXT,
-    "name" TEXT,
-    "firstName" TEXT,
-    "lastName" TEXT,
+    "name" TEXT NOT NULL,
     "roles" "UserRole"[] DEFAULT ARRAY['USER']::"UserRole"[],
-    "image" TEXT NOT NULL DEFAULT 'https://utfs.io/f/yMD4lMLsSKvz63VKXPrFYcTlqQfXhaODoCd39tubxyKnImiE',
-    "emailVerified" TIMESTAMP(3),
-    "phoneVerified" TIMESTAMP(3),
-    "lastLogin" TIMESTAMP(3),
+    "email" TEXT NOT NULL,
+    "phoneNumber" TEXT,
+    "phoneNumberVerified" BOOLEAN NOT NULL DEFAULT false,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "image" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "profileId" TEXT,
     "countryCode" TEXT,
     "organizationId" TEXT,
     "assignedOrganizationId" TEXT,
+    "managedByUserId" TEXT,
     "maxActiveRequests" INTEGER,
     "specializations" "ServiceCategory"[],
     "availability" JSONB,
     "completedRequests" INTEGER NOT NULL DEFAULT 0,
     "averageProcessingTime" DOUBLE PRECISION,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Phone" (
+CREATE TABLE "session" (
     "id" TEXT NOT NULL,
-    "number" TEXT NOT NULL,
-    "countryCode" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "token" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" TEXT,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "userId" TEXT NOT NULL,
 
-    CONSTRAINT "Phone_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "account" (
+    "id" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
+    "providerId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "accessToken" TEXT,
+    "refreshToken" TEXT,
+    "idToken" TEXT,
+    "accessTokenExpiresAt" TIMESTAMP(3),
+    "refreshTokenExpiresAt" TIMESTAMP(3),
+    "scope" TEXT,
+    "password" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "account_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "verification" (
+    "id" TEXT NOT NULL,
+    "identifier" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3),
+
+    CONSTRAINT "verification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -166,7 +158,7 @@ CREATE TABLE "Profile" (
     "id" TEXT NOT NULL,
     "userId" TEXT,
     "category" "ProfileCategory" NOT NULL DEFAULT 'ADULT',
-    "requestedForId" TEXT,
+    "validationRequestId" TEXT,
     "firstName" TEXT,
     "lastName" TEXT,
     "gender" "Gender",
@@ -187,7 +179,7 @@ CREATE TABLE "Profile" (
     "residencePermitId" TEXT,
     "addressProofId" TEXT,
     "addressId" TEXT,
-    "phoneId" TEXT,
+    "phoneNumber" TEXT,
     "email" TEXT,
     "residentContactId" TEXT,
     "homeLandContactId" TEXT,
@@ -222,7 +214,7 @@ CREATE TABLE "EmergencyContact" (
     "lastName" TEXT NOT NULL,
     "email" TEXT,
     "relationship" "FamilyLink" NOT NULL,
-    "phoneId" TEXT,
+    "phoneNumber" TEXT,
     "addressId" TEXT,
     "residentProfileId" TEXT,
     "homeLandProfileId" TEXT,
@@ -266,10 +258,54 @@ CREATE TABLE "UserDocument" (
 );
 
 -- CreateTable
+CREATE TABLE "GeneratedDocument" (
+    "id" TEXT NOT NULL,
+    "type" "DocumentType" NOT NULL,
+    "fileUrl" TEXT NOT NULL,
+    "fileType" TEXT NOT NULL,
+    "issuedAt" TIMESTAMP(3),
+    "expiresAt" TIMESTAMP(3),
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "serviceRequestId" TEXT,
+    "templateId" TEXT NOT NULL,
+
+    CONSTRAINT "GeneratedDocument_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "DocumentTemplate" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "type" "DocumentType" NOT NULL,
+    "content" JSONB NOT NULL,
+    "metadata" JSONB,
+    "organizationId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "DocumentTemplate_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "GenerateDocumentSettings" (
+    "id" TEXT NOT NULL,
+    "serviceId" TEXT NOT NULL,
+    "settings" JSONB,
+    "templateId" TEXT NOT NULL,
+    "generateOnStatus" "RequestStatus"[],
+
+    CONSTRAINT "GenerateDocumentSettings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Message" (
     "id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "receiverId" TEXT NOT NULL,
+    "senderId" TEXT,
     "serviceRequestId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -297,6 +333,7 @@ CREATE TABLE "ConsularService" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "requiredDocuments" "DocumentType"[],
     "optionalDocuments" "DocumentType"[],
+    "toGenerateDocuments" "DocumentType"[],
     "requiresAppointment" BOOLEAN NOT NULL DEFAULT false,
     "appointmentDuration" INTEGER,
     "appointmentInstructions" TEXT,
@@ -548,6 +585,27 @@ CREATE TABLE "ParentalAuthority" (
 );
 
 -- CreateTable
+CREATE TABLE "Sequence" (
+    "id" TEXT NOT NULL,
+    "value" TEXT NOT NULL DEFAULT '00000',
+    "countryCode" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "profileId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Sequence_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_AssignedServices" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_AssignedServices_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateTable
 CREATE TABLE "_managedCountries" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -572,43 +630,22 @@ CREATE TABLE "_SharedWithParents" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
-
--- CreateIndex
-CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token");
-
--- CreateIndex
-CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_phoneId_key" ON "User"("phoneId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "User_profileId_key" ON "User"("profileId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_organizationId_key" ON "User"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "User_roles_idx" ON "User"("roles");
+CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User"("phoneNumber");
 
 -- CreateIndex
-CREATE INDEX "User_organizationId_idx" ON "User"("organizationId");
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Phone_number_key" ON "Phone"("number");
+CREATE UNIQUE INDEX "session_token_key" ON "session"("token");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Profile_requestedForId_key" ON "Profile"("requestedForId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Profile_identityPictureId_key" ON "Profile"("identityPictureId");
@@ -638,9 +675,6 @@ CREATE UNIQUE INDEX "EmergencyContact_residentProfileId_key" ON "EmergencyContac
 CREATE UNIQUE INDEX "EmergencyContact_homeLandProfileId_key" ON "EmergencyContact"("homeLandProfileId");
 
 -- CreateIndex
-CREATE INDEX "EmergencyContact_phoneId_idx" ON "EmergencyContact"("phoneId");
-
--- CreateIndex
 CREATE INDEX "EmergencyContact_addressId_idx" ON "EmergencyContact"("addressId");
 
 -- CreateIndex
@@ -653,7 +687,7 @@ CREATE INDEX "UserDocument_userId_idx" ON "UserDocument"("userId");
 CREATE INDEX "UserDocument_serviceRequestId_idx" ON "UserDocument"("serviceRequestId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ServiceRequest_requestedForId_key" ON "ServiceRequest"("requestedForId");
+CREATE INDEX "GeneratedDocument_serviceRequestId_idx" ON "GeneratedDocument"("serviceRequestId");
 
 -- CreateIndex
 CREATE INDEX "ServiceRequest_submittedById_idx" ON "ServiceRequest"("submittedById");
@@ -672,9 +706,6 @@ CREATE INDEX "ServiceRequest_lastActionAt_idx" ON "ServiceRequest"("lastActionAt
 
 -- CreateIndex
 CREATE INDEX "ServiceRequest_deadline_idx" ON "ServiceRequest"("deadline");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Appointment_requestId_key" ON "Appointment"("requestId");
 
 -- CreateIndex
 CREATE INDEX "Appointment_attendeeId_idx" ON "Appointment"("attendeeId");
@@ -767,6 +798,9 @@ CREATE INDEX "ParentalAuthority_profileId_idx" ON "ParentalAuthority"("profileId
 CREATE UNIQUE INDEX "ParentalAuthority_profileId_role_key" ON "ParentalAuthority"("profileId", "role");
 
 -- CreateIndex
+CREATE INDEX "_AssignedServices_B_index" ON "_AssignedServices"("B");
+
+-- CreateIndex
 CREATE INDEX "_managedCountries_B_index" ON "_managedCountries"("B");
 
 -- CreateIndex
@@ -774,15 +808,6 @@ CREATE INDEX "_CountryToOrganization_B_index" ON "_CountryToOrganization"("B");
 
 -- CreateIndex
 CREATE INDEX "_SharedWithParents_B_index" ON "_SharedWithParents"("B");
-
--- AddForeignKey
-ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_phoneId_fkey" FOREIGN KEY ("phoneId") REFERENCES "Phone"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -795,6 +820,15 @@ ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organ
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_assignedOrganizationId_fkey" FOREIGN KEY ("assignedOrganizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_managedByUserId_fkey" FOREIGN KEY ("managedByUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_identityPictureId_fkey" FOREIGN KEY ("identityPictureId") REFERENCES "UserDocument"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -815,13 +849,7 @@ ALTER TABLE "Profile" ADD CONSTRAINT "Profile_addressProofId_fkey" FOREIGN KEY (
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_addressId_fkey" FOREIGN KEY ("addressId") REFERENCES "Address"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Profile" ADD CONSTRAINT "Profile_phoneId_fkey" FOREIGN KEY ("phoneId") REFERENCES "Phone"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_assignedOrganizationId_fkey" FOREIGN KEY ("assignedOrganizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "EmergencyContact" ADD CONSTRAINT "EmergencyContact_phoneId_fkey" FOREIGN KEY ("phoneId") REFERENCES "Phone"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "EmergencyContact" ADD CONSTRAINT "EmergencyContact_addressId_fkey" FOREIGN KEY ("addressId") REFERENCES "Address"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -842,7 +870,25 @@ ALTER TABLE "UserDocument" ADD CONSTRAINT "UserDocument_serviceRequestId_fkey" F
 ALTER TABLE "UserDocument" ADD CONSTRAINT "UserDocument_validatedById_fkey" FOREIGN KEY ("validatedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Message" ADD CONSTRAINT "Message_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GeneratedDocument" ADD CONSTRAINT "GeneratedDocument_serviceRequestId_fkey" FOREIGN KEY ("serviceRequestId") REFERENCES "ServiceRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GeneratedDocument" ADD CONSTRAINT "GeneratedDocument_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "DocumentTemplate"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DocumentTemplate" ADD CONSTRAINT "DocumentTemplate_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GenerateDocumentSettings" ADD CONSTRAINT "GenerateDocumentSettings_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "ConsularService"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GenerateDocumentSettings" ADD CONSTRAINT "GenerateDocumentSettings_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "DocumentTemplate"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_serviceRequestId_fkey" FOREIGN KEY ("serviceRequestId") REFERENCES "ServiceRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -896,6 +942,9 @@ ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_agentId_fkey" FOREIGN KEY 
 ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "ServiceRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "ConsularService"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -930,6 +979,12 @@ ALTER TABLE "ParentalAuthority" ADD CONSTRAINT "ParentalAuthority_profileId_fkey
 
 -- AddForeignKey
 ALTER TABLE "ParentalAuthority" ADD CONSTRAINT "ParentalAuthority_parentUserId_fkey" FOREIGN KEY ("parentUserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_AssignedServices" ADD CONSTRAINT "_AssignedServices_A_fkey" FOREIGN KEY ("A") REFERENCES "ConsularService"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_AssignedServices" ADD CONSTRAINT "_AssignedServices_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_managedCountries" ADD CONSTRAINT "_managedCountries_A_fkey" FOREIGN KEY ("A") REFERENCES "Country"("id") ON DELETE CASCADE ON UPDATE CASCADE;

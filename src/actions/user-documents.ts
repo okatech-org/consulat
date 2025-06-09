@@ -6,7 +6,8 @@ import { DocumentStatus, DocumentType, RequestActionType } from '@prisma/client'
 import { deleteFiles } from '@/actions/uploads';
 import { tryCatch } from '@/lib/utils';
 import { AppUserDocument } from '@/types';
-import { auth } from '@/auth';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 interface UpdateDocumentData {
   issuedAt?: string;
@@ -120,7 +121,9 @@ export async function createUserDocument(data: {
   profileId?: string;
   requestId?: string;
 }): Promise<AppUserDocument | null> {
-  const authResult = await auth();
+  const authResult = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!authResult?.user) {
     throw new Error('Vous devez être connecté pour créer un document');

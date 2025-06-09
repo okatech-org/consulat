@@ -33,12 +33,11 @@ import { isUserExists } from '@/actions/auth';
 import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ErrorCard } from '../ui/error-card';
 import { toast } from '@/hooks/use-toast';
-import { signIn } from 'next-auth/react';
-import { authenticateWithOTP, sendOTP } from '@/lib/user/otp';
-import { createUserWithProfile } from '@/actions/profile';
+import { createUserProfile } from '@/actions/profile';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 import { useRouter } from 'next/navigation';
 import { PhoneNumberInput } from '../ui/phone-number';
+import { authClient } from '@/lib/auth/auth-client';
 
 export function NewProfileForm({
   availableCountries,
@@ -50,6 +49,7 @@ export function NewProfileForm({
   const tAuth = useTranslations('auth.login');
   const tErrors = useTranslations('messages.errors');
   const [resendCooldown, setResendCooldown] = React.useState(0);
+  const [canResend, setCanResend] = React.useState(true);
 
   const [showOTP, setShowOTP] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -94,56 +94,120 @@ export function NewProfileForm({
     mode: 'onBlur',
   });
 
+  // Cooldown timer for resend
   React.useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let interval: NodeJS.Timeout;
     if (resendCooldown > 0) {
-      timer = setInterval(() => {
-        setResendCooldown((prev) => prev - 1);
+      interval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => clearInterval(interval);
   }, [resendCooldown]);
 
+  const sendOTPCode = async (identifier: string, type: 'EMAIL' | 'PHONE') => {
+    setIsLoading(true);
+    setError(null);
+
+    const response =
+      type === 'EMAIL'
+        ? await authClient.emailOtp.sendVerificationOtp({
+            email: identifier,
+            type: 'sign-in',
+          })
+        : await authClient.phoneNumber.sendOtp({
+            phoneNumber: identifier,
+          });
+
+    if (response.error) {
+      form.setError('otp', {
+        message: 'messages.errors.code_not_sent_otp',
+      });
+      setIsLoading(false);
+      return false;
+    }
+
+    setShowOTP(true);
+    setCanResend(false);
+    setResendCooldown(60);
+    toast({
+      title: tAuth('messages.otp_sent'),
+      variant: 'success',
+    });
+
+    setIsLoading(false);
+    return true;
+  };
+
+  const validateOTPAndCreateProfile = async (data: CreateProfileInput) => {
+    setIsLoading(true);
+    setError(null);
+
+    const response =
+      data.type === 'PHONE'
+        ? await authClient.phoneNumber.verify({
+            phoneNumber: data.phoneNumber,
+            code: data.otp!,
+          })
+        : await authClient.signIn.emailOtp({
+            email: data.email!,
+            otp: data.otp!,
+          });
+
+    if (response.error) {
+      form.setError('otp', {
+        message: `messages.errors.${response.error.code}`,
+      });
+      return;
+    }
+
+    const userId = response.data?.user?.id;
+
+    if (!userId) {
+      form.setError('otp', {
+        message: 'messages.errors.user_creation_failed',
+      });
+      return;
+    }
+
+    const profileResult = await tryCatch(createUserProfile(data, userId));
+
+    if (profileResult.error) {
+      setError(profileResult.error.message as ErrorMessageKey);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(false);
+    router.push(ROUTES.registration_form);
+  };
+
   const handleResendOTP = async () => {
-    if (resendCooldown > 0) return;
+    if (!canResend) return;
 
     const data = form.getValues();
     const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
-    setIsLoading(true);
-    const { error: sendOTPError, data: sendOTPData } = await tryCatch(
-      sendOTP(identifier ?? '', data.type),
-    );
-
-    if (sendOTPError) {
-      toast({
-        title: tAuth('messages.code_not_sent_otp'),
-        variant: 'destructive',
-      });
-    }
-
-    if (sendOTPData) {
-      toast({
-        title: tAuth('messages.otp_sent'),
-        variant: 'success',
-      });
-      setResendCooldown(60); // 60 seconds cooldown
-    }
-
-    setIsLoading(false);
+    await sendOTPCode(identifier!, data.type);
   };
 
   const onFinalSubmit = async (data: CreateProfileInput) => {
-    setIsLoading(true);
-
     const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
     if (!showOTP) {
-      const isEmailExist = await isUserExists(undefined, data.email);
+      // Check if user already exists
+      const isEmailExist = data.email ? await isUserExists(undefined, data.email) : false;
       if (isEmailExist) {
         form.setError('email', {
           message: 'messages.errors.user_email_already_exists',
         });
+        return;
       }
 
       const isPhoneExist = await isUserExists(undefined, undefined, data.phoneNumber);
@@ -151,75 +215,36 @@ export function NewProfileForm({
         form.setError('phoneNumber', {
           message: 'messages.errors.user_phone_already_exists',
         });
-      }
-
-      if (isEmailExist || isPhoneExist) {
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    if (!showOTP) {
-      // Envoyer l'OTP
-      const { error: sendOTPError, data: sendOTPData } = await tryCatch(
-        sendOTP(identifier ?? '', data.type),
-      );
-
-      if (sendOTPError) {
-        toast({
-          title: tErrors('code_not_sent_otp'),
-          variant: 'destructive',
-        });
-      }
-
-      if (sendOTPData) {
-        setShowOTP(true);
-        toast({
-          title: tAuth('messages.otp_sent'),
-          variant: 'success',
-        });
-        setResendCooldown(60); // 60 seconds cooldown
-      }
-
-      setIsLoading(false);
-
-      return;
-    }
-
-    if (showOTP) {
-      const isOTPValid = await authenticateWithOTP({
-        identifier: identifier ?? '',
-        otp: data.otp ?? '',
-        type: data.type,
-      });
-
-      if (!isOTPValid.valid) {
-        form.setError('otp', {
-          message: 'messages.errors.invalid_otp',
-        });
-        setIsLoading(false);
         return;
       }
 
-      if (isOTPValid.valid) {
-        const newProfile = await tryCatch(createUserWithProfile(data));
-
-        if (newProfile.error) {
-          setError(newProfile.error.message);
-        }
-
-        await signIn('credentials', {
-          identifier,
-          type: data.type,
-          redirect: false,
-        });
-
-        router.refresh();
-      }
+      // Send OTP
+      await sendOTPCode(identifier!, data.type);
+    } else {
+      // Validate OTP and create profile
+      await validateOTPAndCreateProfile(data);
     }
-
-    setIsLoading(false);
   };
+
+  const goBack = () => {
+    setShowOTP(false);
+    setError(null);
+    form.clearErrors();
+  };
+
+  // Display errors in the form
+  React.useEffect(() => {
+    if (error) {
+      if (!showOTP) {
+        // Error when sending OTP
+        const fieldName = form.watch('type') === 'EMAIL' ? 'email' : 'phoneNumber';
+        form.setError(fieldName, { message: error });
+      } else if (showOTP) {
+        // Error when validating OTP
+        form.setError('otp', { message: error });
+      }
+    }
+  }, [error, showOTP, form]);
 
   return (
     <Form {...form}>
@@ -328,17 +353,23 @@ export function NewProfileForm({
             </>
           )}
           {showOTP && (
-            <div className="otp">
+            <div className="otp lg:col-span-2">
               <FormField
                 control={form.control}
                 name="otp"
                 render={({ field }) => (
-                  <FormItem className="space-y-4 lg:col-span-2">
+                  <FormItem className="space-y-4">
                     <FormLabel className="text-xl font-semibold">
                       {t('otp.label')}
                     </FormLabel>
                     <FormControl>
-                      <InputOTP maxLength={6} {...field} autoComplete="one-time-code">
+                      <InputOTP
+                        maxLength={6}
+                        {...field}
+                        autoComplete="one-time-code"
+                        disabled={isLoading}
+                        autoFocus
+                      >
                         <InputOTPGroup>
                           <InputOTPSlot className="w-12" index={0} />
                           <InputOTPSlot className="w-12" index={1} />
@@ -385,10 +416,7 @@ export function NewProfileForm({
                 variant="link"
                 className="text-muted-foreground p-0"
                 disabled={isLoading}
-                onClick={() => {
-                  setShowOTP(false);
-                  form.trigger();
-                }}
+                onClick={goBack}
               >
                 <ArrowLeft className="size-icon" />
                 {'Retour'}
@@ -396,7 +424,7 @@ export function NewProfileForm({
               <Button
                 variant="link"
                 className="text-muted-foreground p-0"
-                disabled={isLoading || resendCooldown > 0}
+                disabled={!canResend || isLoading}
                 onClick={handleResendOTP}
               >
                 {'Renvoyer le code'}
@@ -410,7 +438,7 @@ export function NewProfileForm({
           )}
           {!showOTP && (
             <Button
-              type="submit"
+              type="button"
               variant="link"
               disabled={isLoading}
               onClick={() => {

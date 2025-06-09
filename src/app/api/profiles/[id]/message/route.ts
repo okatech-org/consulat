@@ -1,13 +1,16 @@
-import { auth } from '@/auth';
 import { db } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
     if (!session?.user) {
       return NextResponse.json(
         { error: 'You must be logged in to send a message' },
@@ -44,7 +47,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const createdMessage = await db.message.create({
       data: {
         content: message,
-        userId: session.user.id,
+        senderId: session.user.id,
+        receiverId: profile.user?.id ?? '',
         // We don't have a direct link to the profile in the Message model,
         // so we leave it unlinked at this stage
       },

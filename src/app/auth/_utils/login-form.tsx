@@ -20,17 +20,17 @@ import {
   LoginWithEmailSchema,
   type LoginInput,
 } from '@/schemas/user';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ErrorMessageKey } from '@/lib/utils';
+import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { ErrorCard } from '@/components/ui/error-card';
 import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
-import { useAuthOTP } from '@/hooks/use-auth-otp';
+import { authClient } from '@/lib/auth/auth-client';
 
 function getLoginSchema(type: 'EMAIL' | 'PHONE', showOTP: boolean) {
   if (type === 'EMAIL') {
@@ -72,26 +72,16 @@ function getLoginSchema(type: 'EMAIL' | 'PHONE', showOTP: boolean) {
 export function LoginForm() {
   const t = useTranslations('auth.login');
   const tError = useTranslations('messages.errors');
+  const router = useRouter();
   const searchParams = useSearchParams();
   const authError = searchParams.get('error') as ErrorMessageKey | null;
-  const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('PHONE');
 
-  const {
-    state,
-    error,
-    isLoading,
-    isOTPSent,
-    authType,
-    resendCooldown,
-    canResend,
-    sendOTPCode,
-    validateOTP,
-    resendOTP,
-    goBack,
-  } = useAuthOTP({
-    checkUserExists: true,
-    redirectOnSuccess: true,
-  });
+  const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('PHONE');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isOTPSent, setIsOTPSent] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+  const [canResend, setCanResend] = React.useState(true);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(getLoginSchema(method, isOTPSent)),
@@ -102,6 +92,122 @@ export function LoginForm() {
       phoneNumber: '+33-',
     },
   });
+
+  // Cooldown timer for resend
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      interval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  const sendOTPCode = async (identifier: string, type: 'EMAIL' | 'PHONE') => {
+    setIsLoading(true);
+    setError(null);
+
+    if (type === 'EMAIL') {
+      const response = await tryCatch(
+        authClient.emailOtp.sendVerificationOtp({
+          email: identifier,
+          type: 'sign-in',
+        }),
+      );
+
+      if (response.error) {
+        setError(
+          response.error instanceof Error ? response.error.message : 'Failed to send OTP',
+        );
+        setIsLoading(false);
+      }
+    }
+
+    if (type === 'PHONE') {
+      const response = await tryCatch(
+        authClient.phoneNumber.sendOtp({
+          phoneNumber: identifier,
+        }),
+      );
+
+      if (response.error) {
+        setError(
+          response.error instanceof Error ? response.error.message : 'Failed to send OTP',
+        );
+        setIsLoading(false);
+      }
+    }
+
+    setIsOTPSent(true);
+    setCanResend(false);
+    setResendCooldown(60);
+    setIsLoading(false);
+  };
+
+  const validateOTP = async (otp: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    if (method === 'EMAIL') {
+      const response = await tryCatch(
+        authClient.signIn.emailOtp({
+          email: form.getValues('email'),
+          otp,
+        }),
+      );
+
+      if (response.error) {
+        setError(
+          response.error instanceof Error
+            ? response.error.message
+            : 'Failed to validate OTP',
+        );
+        setIsLoading(false);
+      }
+    }
+
+    if (method === 'PHONE') {
+      const response = await tryCatch(
+        authClient.phoneNumber.verify({
+          phoneNumber: form.getValues('phoneNumber'),
+          code: otp,
+        }),
+      );
+
+      if (response.error) {
+        setError(
+          response.error instanceof Error
+            ? response.error.message
+            : 'Failed to validate OTP',
+        );
+        setIsLoading(false);
+      }
+    }
+
+    setIsLoading(false);
+    router.refresh();
+  };
+
+  const resendOTP = async () => {
+    if (!canResend) return;
+
+    const identifier =
+      method === 'EMAIL' ? form.getValues('email') : form.getValues('phoneNumber');
+    await sendOTPCode(identifier, method);
+  };
+
+  const goBack = () => {
+    setIsOTPSent(false);
+    setError(null);
+    form.clearErrors();
+  };
 
   const onSubmit = async (data: LoginInput) => {
     if (!isOTPSent) {
@@ -114,9 +220,11 @@ export function LoginForm() {
     }
   };
 
-  // Gérer le changement de méthode
+  // Handle method change
   const handleMethodChange = (value: string) => {
     setMethod(value as 'EMAIL' | 'PHONE');
+    setIsOTPSent(false);
+    setError(null);
     form.reset();
     if (value === 'EMAIL') {
       form.setValue('type', 'EMAIL');
@@ -127,19 +235,19 @@ export function LoginForm() {
     }
   };
 
-  // Afficher les erreurs du hook dans le formulaire
+  // Display errors in the form
   React.useEffect(() => {
     if (error) {
-      if (!isOTPSent || state === 'error') {
-        // Erreur lors de l'envoi de l'OTP
+      if (!isOTPSent) {
+        // Error when sending OTP
         const fieldName = method === 'EMAIL' ? 'email' : 'phoneNumber';
         form.setError(fieldName, { message: error });
       } else if (isOTPSent) {
-        // Erreur lors de la validation de l'OTP
+        // Error when validating OTP
         form.setError('otp', { message: error });
       }
     }
-  }, [error, state, isOTPSent, method, form]);
+  }, [error, isOTPSent, method, form]);
 
   return (
     <Form {...form}>
@@ -228,7 +336,7 @@ export function LoginForm() {
                       </InputOTP>
                     </FormControl>
                     <FormDescription>
-                      {authType === 'PHONE'
+                      {method === 'PHONE'
                         ? t('access_code_phone_description')
                         : t('access_code_email_description')}
                     </FormDescription>
@@ -243,7 +351,7 @@ export function LoginForm() {
             <Button
               variant="default"
               type="submit"
-              disabled={isLoading || !form.formState.isValid || state === 'success'}
+              disabled={isLoading || !form.formState.isValid}
             >
               <span>{isOTPSent ? t('access_space') : t('login_button')}</span>
               {!isLoading && <ArrowRight className="size-icon" />}

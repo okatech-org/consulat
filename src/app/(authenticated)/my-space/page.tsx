@@ -3,7 +3,6 @@ import { getUserAppointments } from '@/actions/appointments';
 import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { getUserFullProfileById } from '@/lib/user/getters';
-import { auth } from '@/auth';
 import { PageContainer } from '@/components/layouts/page-container';
 import { UserSpaceNavigation } from '@/components/layouts/user-space-navigation';
 import { ProfileStatusCard } from '@/components/user/profile-status-card';
@@ -16,9 +15,13 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 export default async function UserDashboard() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user) {
     return null;

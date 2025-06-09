@@ -423,7 +423,7 @@ export function RegistrationForm({
   };
 
   return (
-    <div className="w-full overflow-x-hidden max-w-3xl mx-auto flex flex-col pb-safe md:pb-0">
+    <div className="w-full overflow-x-hidden max-w-3xl mx-auto flex flex-col md:pb-0">
       <header className="w-full border-b border-border pb-6">
         <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
           <Image

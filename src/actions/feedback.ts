@@ -1,9 +1,10 @@
 'use server';
 
 import { feedbackSchema } from '@/schemas/feedback';
-import { auth } from '@/auth';
 import { env } from '@/lib/env/index';
 import { sendFeedbackEmail } from '@/lib/services/notifications/providers/emails';
+import { auth } from '@/lib/auth/auth';
+import { headers } from 'next/headers';
 
 export const submitFeedback = async (formData: unknown) => {
   try {
@@ -11,7 +12,9 @@ export const submitFeedback = async (formData: unknown) => {
     const validatedFields = feedbackSchema.parse(formData);
 
     // Get current user if authenticated
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
     const userId = session?.user?.id;
     const userEmail = session?.user?.email || validatedFields.email;
 
@@ -66,7 +69,9 @@ export const submitFeedback = async (formData: unknown) => {
 
 export const getFeedbacksByUser = async () => {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
     if (!session?.user?.id) {
       throw new Error('Unauthorized');

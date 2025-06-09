@@ -1,4 +1,4 @@
-import { LoginForm } from '../_utils/login-form';
+import { LoginForm } from '../auth/_utils/login-form';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';

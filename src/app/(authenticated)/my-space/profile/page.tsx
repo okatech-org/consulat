@@ -1,71 +1,52 @@
 import React, { Suspense } from 'react';
 import { getProfileRegistrationRequest, getUserFullProfile } from '@/lib/user/getters';
 import { getCurrentUser } from '@/actions/user';
-import { ROUTES } from '@/schemas/routes';
-
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { InfoIcon, Plus } from 'lucide-react';
-import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
-import { buttonVariants } from '@/components/ui/button';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { NotesList } from '@/components/requests/review-notes';
 import { ProfileProgressBar } from './_utils/components/profile-progress-bar';
 import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
-import CardContainer from '@/components/layouts/card-container';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { getOrganisationCountryInfos } from '@/actions/organizations';
 import { PageContainer } from '@/components/layouts/page-container';
+import { RegistrationForm } from '@/components/registration/registration-form';
+import { getActiveCountries } from '@/actions/countries';
 
-export default async function ProfilePage() {
-  const user = await getCurrentUser();
-  const t = await getTranslations('profile');
+type ProfilePageProps = {
+  searchParams: Promise<{
+    form: string;
+  }>;
+};
 
-  if (!user) return undefined;
+export default async function ProfilePage({ searchParams }: ProfilePageProps) {
+  const [currentUser, searchParamsResult] = await Promise.all([
+    getCurrentUser(),
+    searchParams,
+  ]);
 
-  const profile = await getUserFullProfile(user.id);
+  if (!currentUser) return undefined;
+
+  const profile = await getUserFullProfile(currentUser.id);
 
   if (!profile) return undefined;
 
+  if (searchParamsResult.form) {
+    const availableCountries = await getActiveCountries();
+    return <RegistrationForm availableCountries={availableCountries} profile={profile} />;
+  }
+
   const registrationRequest = await getProfileRegistrationRequest(profile.id);
-
-  const organisationInfos =
-    registrationRequest?.organizationId && user.countryCode
-      ? await getOrganisationCountryInfos(
-          registrationRequest?.organizationId,
-          user.countryCode,
-        )
-      : null;
-
   const completionRate = calculateProfileCompletion(profile);
 
-  if (!profile) {
-    return (
-      <CardContainer title={t('title')} contentClass="flex flex-col items-center gap-4">
-        <div className="flex flex-col items-center gap-4">
-          <p className="text-muted-foreground">{t('no_profile')}</p>
-          <Link
-            href={ROUTES.registration}
-            className={
-              buttonVariants({
-                variant: 'default',
-              }) + 'w-max'
-            }
-          >
-            <Plus className="size-4" />
-            {t('actions.create')}
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <InfoIcon className="size-5 text-primary" />
-          <h3 className="font-medium">{t('no_profile_help')}</h3>
-        </div>
-      </CardContainer>
-    );
-  }
+  const organisationInfos =
+    registrationRequest?.organizationId && currentUser.countryCode
+      ? await getOrganisationCountryInfos(
+          registrationRequest?.organizationId,
+          currentUser.countryCode,
+        )
+      : null;
 
   return (
     <PageContainer>
