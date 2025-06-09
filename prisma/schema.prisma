@@ -8,18 +8,18 @@ generator client {
 }
 
 model User {
-  id            String     @id
-  name          String?
-  roles         UserRole[] @default([USER])
-  email         String
-  phoneNumber   String?
-  phoneVerified Boolean    @default(false)
-  emailVerified Boolean    @default(false)
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
+  id                  String     @id
+  name                String?
+  roles               UserRole[] @default([USER])
+  email               String
+  phoneNumber         String?
+  phoneNumberVerified Boolean    @default(false)
+  emailVerified       Boolean    @default(false)
+  image               String?
+  createdAt           DateTime
+  updatedAt           DateTime
+  sessions            Session[]
+  accounts            Account[]
 
   // Relations
   profile   Profile? @relation(fields: [profileId], references: [id])
