@@ -38,10 +38,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     return <RegistrationForm availableCountries={availableCountries} profile={profile} />;
   }
 
-  const [t, registrationRequest] = await Promise.all([
-    getTranslations('profile'),
-    getProfileRegistrationRequest(profile.id),
-  ]);
+  const registrationRequest = await getProfileRegistrationRequest(profile.id);
   const completionRate = calculateProfileCompletion(profile);
 
   const organisationInfos =

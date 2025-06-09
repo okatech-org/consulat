@@ -245,9 +245,9 @@ export function UserDocument({
     if (uploadResult.error) {
       toast({
         title: t_messages('errors.update_failed'),
-        description: t_errors(uploadResult.error.message),
         variant: 'destructive',
       });
+      console.error(uploadResult.error);
       setIsLoading(false);
       return;
     }
@@ -317,9 +317,9 @@ export function UserDocument({
       if (uploadResult.error) {
         toast({
           title: t_messages('errors.update_failed'),
-          description: t_errors(uploadResult.error.message),
           variant: 'destructive',
         });
+        console.error(uploadResult.error);
         setIsLoading(false);
         return;
       }
