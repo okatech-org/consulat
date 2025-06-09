@@ -9,7 +9,7 @@ generator client {
 
 model User {
   id                  String     @id
-  name                String
+  name                String?
   roles               UserRole[] @default([USER])
   email               String
   phoneNumber         String?

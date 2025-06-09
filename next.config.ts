@@ -1,6 +1,5 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
-import { securityHeaders } from './scripts/security';
 import withSerwistInit from '@serwist/next';
 
 const withNextIntl = createNextIntlPlugin();
@@ -60,10 +59,6 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      {
-        source: '/(.*)',
-        headers: securityHeaders,
-      },
       {
         source: '/sw.js',
         headers: [
