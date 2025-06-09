@@ -662,14 +662,14 @@ export default function AgentDetailPage() {
                       Modifier
                     </Button>
                   </SheetTrigger>
-                  <SheetContent className="!w-full xs:max-w-xl md:max-w-2xl">
+                  <SheetContent className="!w-full xs:max-w-xl md:max-w-2xl overflow-y-auto">
                     <SheetHeader>
                       <SheetTitle>Modifier l&apos;agent</SheetTitle>
                       <SheetDescription>
                         Modifiez les informations de l&apos;agent {agent.name}
                       </SheetDescription>
                     </SheetHeader>
-                    <div className="mt-4 h-full overflow-y-auto">
+                    <div className="mt-4">
                       <AgentForm
                         initialData={{
                           firstName: agent.name?.split(' ')[0] || '',
