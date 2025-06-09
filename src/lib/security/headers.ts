@@ -59,11 +59,6 @@ export const securityHeaders = {
     'accelerometer=()',
     'gyroscope=()',
   ].join(', '),
-
-  // Protection contre les attaques de timing
-  'Cross-Origin-Embedder-Policy': 'require-corp',
-  'Cross-Origin-Opener-Policy': 'same-origin',
-  'Cross-Origin-Resource-Policy': 'same-origin',
 };
 
 /**
