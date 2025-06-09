@@ -243,6 +243,7 @@ export default {
           name: 'Nom du champ',
           label: 'Label affiché',
           type: 'Type de champ',
+          description: 'Description du champ',
           required: 'Champ obligatoire',
           types: {
             text: 'Texte',
