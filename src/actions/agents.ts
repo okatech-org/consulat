@@ -236,7 +236,6 @@ export async function getAvailableAgents(
   const agents = await db.user.findMany({
     where: {
       assignedOrganizationId: organizationId,
-      roles: { has: 'AGENT' },
       linkedCountries: {
         some: {
           code: countryCode,
