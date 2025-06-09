@@ -62,7 +62,7 @@ export async function createService(data: NewServiceSchemaInput) {
  * Mettre à jour un service
  */
 export async function updateService(data: Partial<ConsularServiceItem>) {
-  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.Manager]);
 
   if (!data.id) {
     return { error: 'Service ID is required' };

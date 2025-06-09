@@ -210,6 +210,20 @@ export function DynamicFieldsEditor({
 
               <FormField
                 control={fieldForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.steps.step.fields.description')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={fieldForm.control}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
