@@ -37,7 +37,7 @@ export function PhoneNumberInput({
           label: `${t_countries(country.countryCode)} (${country.value})`,
           value: country.value,
           component: (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-max">
               <FlagIcon countryCode={country.countryCode} />
               {country.value}
             </div>
