@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { applySecurityHeaders, generateCSPNonce } from '@/lib/security/headers';
+import { generateCSPNonce } from '@/lib/security/headers';
 import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
 import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
 import { getSessionCookie } from 'better-auth/cookies';
@@ -147,10 +147,11 @@ export async function middleware(request: NextRequest) {
   configureHeaders(request, response, nonce, cspNonce, clientIP);
 
   // Application des headers de sécurité
-  return applySecurityHeaders(response, {
+  // TODO: Uncomment this when we have a proper CSP policy
+  /**return applySecurityHeaders(response, {
     'X-CSP-Nonce': cspNonce,
     'X-Client-IP': clientIP,
-  });
+  });*/
 }
 
 export const config = {

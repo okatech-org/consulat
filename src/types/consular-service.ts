@@ -139,10 +139,19 @@ export interface ServiceStep {
   validations: Record<string, unknown> | null;
 }
 
-export interface ConsularServiceItem extends Omit<ConsularService, 'fields'> {
+export type ProfileDocument =
+  | 'passport'
+  | 'birthCertificate'
+  | 'residencePermit'
+  | 'addressProof'
+  | 'identityPicture';
+
+export interface ConsularServiceItem
+  extends Omit<ConsularService, 'fields' | 'profileDocuments'> {
   steps: ServiceStep[];
   organization: Organization | null;
   generateDocumentSettings: GenerateDocumentSettings[];
+  profileDocuments: ProfileDocument[];
 }
 
 export type UpdateServiceInput = Partial<ConsularServiceItem>;

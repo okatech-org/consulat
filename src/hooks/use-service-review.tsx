@@ -45,8 +45,6 @@ export default function useServiceReview(request: FullServiceRequest) {
 
   const tabs: ServiceReviewTab[] = [];
 
-  console.log({ request });
-
   if (service.requiredDocuments.length > 0 || service.optionalDocuments.length > 0) {
     tabs.push({
       value: 'documents',
