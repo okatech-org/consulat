@@ -515,6 +515,7 @@ model ConsularService {
   isActive    Boolean         @default(false)
 
   // Configuration
+  profileDocuments            String[]
   requiredDocuments           DocumentType[] // Types de documents requis
   optionalDocuments           DocumentType[] // Types de documents optionnels
   toGenerateDocuments         DocumentType[] // Types de documents à générer

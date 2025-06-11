@@ -19,22 +19,14 @@ export function RouteAuthGuard({
   fallbackUrl,
   fallbackComponent,
 }: BaseLayoutProps) {
-  if (!user) {
+  if (!user) redirect(ROUTES.auth.login);
+
+  if (!hasAnyRole(user, roles)) {
     if (fallbackComponent) {
       return fallbackComponent;
     }
     if (fallbackUrl) {
       redirect(fallbackUrl);
-    } else {
-      return redirect(ROUTES.auth.login);
-    }
-  }
-
-  if (roles && !hasAnyRole(user, roles)) {
-    if (fallbackUrl) {
-      redirect(fallbackUrl);
-    } else {
-      return redirect(ROUTES.auth.login);
     }
   }
 
