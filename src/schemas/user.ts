@@ -36,6 +36,7 @@ export const AgentSchema = z.object({
 export type AgentFormData = z.infer<typeof AgentSchema>;
 
 export const UserSettingsSchema = z.object({
+  name: NameSchema.optional(),
   id: z.string(),
   email: EmailSchema.optional(),
   phoneNumber: PhoneNumberSchema.optional(),

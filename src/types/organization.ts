@@ -155,13 +155,8 @@ export const FullAgentInclude = {
   include: {
     ...BaseAgentInclude.include,
     serviceCategories: true,
-    organization: {
-      select: {
-        id: true,
-        name: true,
-        type: true,
-      },
-    },
+
+    assignedOrganization: true,
   },
 } as const;
 

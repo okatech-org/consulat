@@ -85,9 +85,11 @@ export async function createOrganization(data: CreateOrganizationInput) {
         data: {
           email: data.adminEmail,
           roles: [UserRole.ADMIN],
+          role: UserRole.ADMIN,
           managedOrganization: {
             connect: { id: organization.id },
           },
+          countryCode: data.countryIds[0],
         },
       });
 
@@ -296,21 +298,18 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
       ...rest,
       name: `${firstName} ${lastName}`,
       roles: [role || UserRole.AGENT],
+      role: role || UserRole.AGENT,
       ...(managedByUserId && { managedByUserId }),
       linkedCountries: {
         connect: countryIds.map((id) => ({ id })),
       },
-      ...(serviceIds &&
-        serviceIds.length > 0 && {
-          assignedServices: {
-            connect: serviceIds.map((id) => ({ id })),
-          },
-        }),
+      ...(serviceIds[0] && {
+        assignedServices: {
+          connect: serviceIds.map((id) => ({ id })),
+        },
+      }),
     },
-    include: {
-      ...BaseAgentInclude.include,
-      assignedOrganization: true,
-    },
+    ...FullAgentInclude,
   });
 
   // If creating a manager, assign the agents to them
@@ -325,17 +324,12 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
     });
   }
 
-  const countryNames = agent.linkedCountries.map((country) => country.name).join(', ');
-
-  // Récupérer les informations de l'organisation assignée si elle existe
-  const organizationName = agent.assignedOrganization?.name ?? 'N/A';
-
   await notify({
     userId: agent.id,
     type: 'FEEDBACK', // Utiliser un type existant approprié
     title: t('welcome.title'),
     message: t('welcome.message', {
-      organization: agent.assignedOrganization?.name ?? organizationName,
+      organization: agent.assignedOrganization?.name ?? 'N/A',
     }),
     channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
     email: agent.email || undefined,
@@ -351,8 +345,7 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
       createdBy: currentUser?.id,
       createdByName: `${currentUser?.name || ''}`.trim(),
       assignedServices: serviceIds,
-      countries: countryNames,
-      organization: organizationName,
+      organization: agent.assignedOrganization?.name ?? 'N/A',
     },
   });
 
