@@ -98,7 +98,9 @@ type StepReviewProps = {
 
 function StepReview({ fields }: StepReviewProps) {
   const { formatDate } = useDateLocale();
-  const [previewDoc, setPreviewDoc] = useState<{url: string, title: string} | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string } | null>(
+    null,
+  );
 
   function renderFieldValue(field: ReviewStepField) {
     switch (field.type) {
@@ -111,32 +113,24 @@ function StepReview({ fields }: StepReviewProps) {
           />
         );
       case 'address':
-        return field.value ? <DisplayAddress address={field.value} title={field.label} /> : <span className="text-muted-foreground">Non renseigné</span>;
+        return field.value ? (
+          <DisplayAddress address={field.value} title={field.label} />
+        ) : (
+          <span className="text-muted-foreground">Non renseigné</span>
+        );
       case 'document':
       case 'photo':
       case 'file':
         if (field.value && typeof field.value === 'object' && 'fileUrl' in field.value) {
-          return (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewDoc({url: field.value.fileUrl, title: field.label})}
-              >
-                <Eye className="size-4 mr-1" />
-                Voir
-              </Button>
-              <DocumentReview document={field.value} />
-            </div>
-          );
+          return <DocumentReview document={field.value} />;
         }
         return <span className="text-muted-foreground">Non fourni</span>;
       default:
         return (
-          <InfoField 
-            label={field.label} 
-            value={field.value || 'Non renseigné'} 
-            required={field.required} 
+          <InfoField
+            label={field.label}
+            value={field.value || 'Non renseigné'}
+            required={field.required}
           />
         );
     }
@@ -252,9 +246,13 @@ function AppointmentReview({ request }: AppointmentReviewProps) {
       <div className="flex items-center gap-3">
         <Badge
           variant={
-            appointment.status === 'VALIDATED' ? 'default' :
-            appointment.status === 'CANCELLED' ? 'destructive' :
-            appointment.status === 'PENDING' ? 'secondary' : 'outline'
+            appointment.status === 'VALIDATED'
+              ? 'default'
+              : appointment.status === 'CANCELLED'
+                ? 'destructive'
+                : appointment.status === 'PENDING'
+                  ? 'secondary'
+                  : 'outline'
           }
         >
           {appointment.status}
@@ -270,7 +268,9 @@ type DeliveryReviewProps = {
 
 function DeliveryReview({ request }: DeliveryReviewProps) {
   const t_inputs = useTranslations('inputs');
-  const [previewDoc, setPreviewDoc] = useState<{url: string, title: string} | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string } | null>(
+    null,
+  );
 
   const getDeliveryModeIcon = (mode: DeliveryMode) => {
     switch (mode) {
@@ -289,123 +289,129 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
 
   return (
     <>
-    <CardContainer title="Option de livraison" contentClass="space-y-4">
-      <div className="flex items-center gap-3">
-        {getDeliveryModeIcon(request.chosenDeliveryMode)}
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground">Mode de livraison</p>
-          <p className="font-medium">
-            {t_inputs(`deliveryMode.options.${request.chosenDeliveryMode}`)}
+      <CardContainer title="Option de livraison" contentClass="space-y-4">
+        <div className="flex items-center gap-3">
+          {getDeliveryModeIcon(request.chosenDeliveryMode)}
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Mode de livraison</p>
+            <p className="font-medium">
+              {t_inputs(`deliveryMode.options.${request.chosenDeliveryMode}`)}
+            </p>
+          </div>
+          <CheckCircle2 className="text-success size-5" />
+        </div>
+
+        {request.chosenDeliveryMode === 'POSTAL' && request.deliveryAddress && (
+          <div className="flex items-start gap-3">
+            <MapPin className="mt-1 size-5 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Adresse de livraison</p>
+              <p className="whitespace-pre-line">{request.deliveryAddress}</p>
+            </div>
+            <CheckCircle2 className="text-success size-5" />
+          </div>
+        )}
+
+        {request.chosenDeliveryMode === 'BY_PROXY' && (
+          <>
+            {request.proxyName && (
+              <div className="flex items-center gap-3">
+                <UserCheck className="size-5 text-muted-foreground" />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Nom du mandataire</p>
+                  <p className="font-medium">{request.proxyName}</p>
+                </div>
+                <CheckCircle2 className="text-success size-5" />
+              </div>
+            )}
+
+            {request.proxyIdentityDoc && (
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">
+                    Pièce d&apos;identité du mandataire
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      request.proxyIdentityDoc &&
+                      setPreviewDoc({
+                        url: request.proxyIdentityDoc,
+                        title: "Pièce d'identité du mandataire",
+                      })
+                    }
+                  >
+                    <Eye className="size-4" />
+                    <span className="text-sm">Voir la pièce d&apos;identité</span>
+                  </Button>
+                </div>
+                <CheckCircle2 className="text-success size-5" />
+              </div>
+            )}
+
+            {request.proxyPowerOfAttorney && (
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Procuration</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      request.proxyPowerOfAttorney &&
+                      setPreviewDoc({
+                        url: request.proxyPowerOfAttorney,
+                        title: 'Procuration',
+                      })
+                    }
+                  >
+                    <Eye className="size-4" />
+                    <span className="text-sm">Voir la procuration</span>
+                  </Button>
+                </div>
+                <CheckCircle2 className="text-success size-5" />
+              </div>
+            )}
+          </>
+        )}
+
+        {request.trackingNumber && (
+          <div className="flex items-center gap-3">
+            <Package className="size-5 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Numéro de suivi</p>
+              <p className="font-medium">{request.trackingNumber}</p>
+            </div>
+            <CheckCircle2 className="text-success size-5" />
+          </div>
+        )}
+
+        {request.deliveryStatus && (
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Statut de livraison</p>
+              <p className="font-medium">{request.deliveryStatus}</p>
+            </div>
+            <CheckCircle2 className="text-success size-5" />
+          </div>
+        )}
+
+        <div className="pt-2 border-t">
+          <p className="text-sm font-medium">Mode de traitement</p>
+          <p className="text-sm text-muted-foreground">
+            {t_inputs(`processingMode.options.${request.chosenProcessingMode}`)}
           </p>
         </div>
-        <CheckCircle2 className="text-success size-5" />
-      </div>
-
-      {request.chosenDeliveryMode === 'POSTAL' && request.deliveryAddress && (
-        <div className="flex items-start gap-3">
-          <MapPin className="mt-1 size-5 text-muted-foreground" />
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Adresse de livraison</p>
-            <p className="whitespace-pre-line">{request.deliveryAddress}</p>
-          </div>
-          <CheckCircle2 className="text-success size-5" />
-        </div>
+      </CardContainer>
+      {previewDoc && (
+        <DocumentPreview
+          isOpen={!!previewDoc}
+          setIsOpenAction={() => setPreviewDoc(null)}
+          url={previewDoc.url}
+          title={previewDoc.title}
+          type={previewDoc.url.endsWith('.pdf') ? 'pdf' : 'image'}
+        />
       )}
-
-      {request.chosenDeliveryMode === 'BY_PROXY' && (
-        <>
-          {request.proxyName && (
-            <div className="flex items-center gap-3">
-              <UserCheck className="size-5 text-muted-foreground" />
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Nom du mandataire</p>
-                <p className="font-medium">{request.proxyName}</p>
-              </div>
-              <CheckCircle2 className="text-success size-5" />
-            </div>
-          )}
-
-          {request.proxyIdentityDoc && (
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  Pièce d&apos;identité du mandataire
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => request.proxyIdentityDoc && setPreviewDoc({
-                    url: request.proxyIdentityDoc,
-                    title: "Pièce d'identité du mandataire"
-                  })}
-                >
-                  <Eye className="size-4" />
-                  <span className="text-sm">Voir la pièce d&apos;identité</span>
-                </Button>
-              </div>
-              <CheckCircle2 className="text-success size-5" />
-            </div>
-          )}
-
-          {request.proxyPowerOfAttorney && (
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Procuration</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => request.proxyPowerOfAttorney && setPreviewDoc({
-                    url: request.proxyPowerOfAttorney,
-                    title: "Procuration"
-                  })}
-                >
-                  <Eye className="size-4" />
-                  <span className="text-sm">Voir la procuration</span>
-                </Button>
-              </div>
-              <CheckCircle2 className="text-success size-5" />
-            </div>
-          )}
-        </>
-      )}
-
-      {request.trackingNumber && (
-        <div className="flex items-center gap-3">
-          <Package className="size-5 text-muted-foreground" />
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Numéro de suivi</p>
-            <p className="font-medium">{request.trackingNumber}</p>
-          </div>
-          <CheckCircle2 className="text-success size-5" />
-        </div>
-      )}
-
-      {request.deliveryStatus && (
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Statut de livraison</p>
-            <p className="font-medium">{request.deliveryStatus}</p>
-          </div>
-          <CheckCircle2 className="text-success size-5" />
-        </div>
-      )}
-
-      <div className="pt-2 border-t">
-        <p className="text-sm font-medium">Mode de traitement</p>
-        <p className="text-sm text-muted-foreground">
-          {t_inputs(`processingMode.options.${request.chosenProcessingMode}`)}
-        </p>
-      </div>
-    </CardContainer>
-    {previewDoc && (
-      <DocumentPreview
-        isOpen={!!previewDoc}
-        setIsOpenAction={() => setPreviewDoc(null)}
-        url={previewDoc.url}
-        title={previewDoc.title}
-        type={previewDoc.url.endsWith('.pdf') ? 'pdf' : 'image'}
-      />
-    )}
     </>
   );
 }
@@ -473,21 +479,25 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
     url?: string;
     title?: string;
   } | null>(null);
-  const [previewDoc, setPreviewDoc] = useState<{url: string, title: string, type: 'pdf' | 'image'} | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{
+    url: string;
+    title: string;
+    type: 'pdf' | 'image';
+  } | null>(null);
 
   // Combine required and optional documents
   const allServiceDocuments = [
-    ...service.requiredDocuments.map(type => ({ type, required: true })),
-    ...service.optionalDocuments.map(type => ({ type, required: false }))
+    ...service.requiredDocuments.map((type) => ({ type, required: true })),
+    ...service.optionalDocuments.map((type) => ({ type, required: false })),
   ];
 
   // Map service documents to user documents
-  const documentsToDisplay = allServiceDocuments.map(serviceDoc => {
-    const userDoc = userDocuments.find(doc => doc.type === serviceDoc.type);
+  const documentsToDisplay = allServiceDocuments.map((serviceDoc) => {
+    const userDoc = userDocuments.find((doc) => doc.type === serviceDoc.type);
     return {
       type: serviceDoc.type,
       required: serviceDoc.required,
-      document: userDoc || null
+      document: userDoc || null,
     };
   });
 
@@ -498,7 +508,9 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
     >
       {documentsToDisplay.map((docItem) => {
         const { type, required, document } = docItem;
-        const validation = document ? validateDocument(document, true) : { isValid: false, errors: [] };
+        const validation = document
+          ? validateDocument(document, true)
+          : { isValid: false, errors: [] };
 
         return (
           <div
@@ -507,19 +519,21 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
           >
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <p className="font-medium">
-                  {t_inputs(`userDocument.options.${type}`)}
-                </p>
+                <p className="font-medium">{t_inputs(`userDocument.options.${type}`)}</p>
 
                 {required && (
                   <Badge variant="outline">{t_review('documents.required')}</Badge>
                 )}
                 {document?.status && (
-                  <Badge 
+                  <Badge
                     variant={
-                      document.status === 'VALIDATED' ? 'default' :
-                      document.status === 'REJECTED' ? 'destructive' :
-                      document.status === 'PENDING' ? 'secondary' : 'outline'
+                      document.status === 'VALIDATED'
+                        ? 'default'
+                        : document.status === 'REJECTED'
+                          ? 'destructive'
+                          : document.status === 'PENDING'
+                            ? 'secondary'
+                            : 'outline'
                     }
                   >
                     {t(`status.${document.status}`)}
@@ -544,7 +558,9 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
               )}
               {!document && (
                 <p className="text-sm text-muted-foreground">
-                  {required ? t_errors('not_provided') + ' (Requis)' : t_errors('not_provided') + ' (Optionnel)'}
+                  {required
+                    ? t_errors('not_provided') + ' (Requis)'
+                    : t_errors('not_provided') + ' (Optionnel)'}
                 </p>
               )}
             </div>
@@ -554,11 +570,13 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPreviewDoc({
-                      url: document.fileUrl,
-                      title: t_inputs(`userDocument.options.${type}`),
-                      type: document.fileUrl.endsWith('.pdf') ? 'pdf' : 'image'
-                    })}
+                    onClick={() =>
+                      setPreviewDoc({
+                        url: document.fileUrl,
+                        title: t_inputs(`userDocument.options.${type}`),
+                        type: document.fileUrl.endsWith('.pdf') ? 'pdf' : 'image',
+                      })
+                    }
                   >
                     <Eye className="size-4" />
                     <span className="text-sm">Voir</span>
@@ -569,7 +587,7 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
                     onClick={() =>
                       setSelectedDocument({
                         id: document.id,
-                        type: type
+                        type: type,
                       })
                     }
                   >
@@ -619,7 +637,9 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
           url={previewDoc.url}
           title={previewDoc.title}
           type={previewDoc.type}
-          onDownload={() => handleDownload(previewDoc.url, previewDoc.title || 'document')}
+          onDownload={() =>
+            handleDownload(previewDoc.url, previewDoc.title || 'document')
+          }
         />
       )}
     </CardContainer>
@@ -673,11 +693,15 @@ export function DocumentReview({ document: localDocument }: { document: UserDocu
             <Badge variant="outline">{t_review('documents.required')}</Badge>
           )}
           {localDocument?.status && (
-            <Badge 
+            <Badge
               variant={
-                localDocument.status === 'VALIDATED' ? 'default' :
-                localDocument.status === 'REJECTED' ? 'destructive' :
-                localDocument.status === 'PENDING' ? 'secondary' : 'outline'
+                localDocument.status === 'VALIDATED'
+                  ? 'default'
+                  : localDocument.status === 'REJECTED'
+                    ? 'destructive'
+                    : localDocument.status === 'PENDING'
+                      ? 'secondary'
+                      : 'outline'
               }
             >
               {t(`status.${localDocument.status}`)}
@@ -707,11 +731,7 @@ export function DocumentReview({ document: localDocument }: { document: UserDocu
       <div className="flex items-center gap-2">
         {localDocument && (
           <>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setPreviewOpen(true)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
               <Eye className="size-4" />
               <span className="text-sm">Voir</span>
             </Button>
@@ -753,10 +773,12 @@ export function DocumentReview({ document: localDocument }: { document: UserDocu
           url={localDocument.fileUrl}
           title={t_inputs(`userDocument.options.${localDocument.type}`)}
           type={localDocument.fileUrl.endsWith('.pdf') ? 'pdf' : 'image'}
-          onDownload={() => handleDownload(
-            localDocument.fileUrl,
-            `${localDocument.type.toLowerCase()}.${localDocument.fileUrl.split('.').pop()}`
-          )}
+          onDownload={() =>
+            handleDownload(
+              localDocument.fileUrl,
+              `${localDocument.type.toLowerCase()}.${localDocument.fileUrl.split('.').pop()}`,
+            )
+          }
         />
       )}
     </div>
