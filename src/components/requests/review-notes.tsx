@@ -51,9 +51,10 @@ interface NoteEditorProps {
     pendingCompletionStatus: boolean,
   ) => Promise<void>;
   isLoading: boolean;
+  canUpdate: boolean;
 }
 
-const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
+const NoteEditor = ({ type, onSubmit, isLoading, canUpdate = true }: NoteEditorProps) => {
   const [content, setContent] = useState('');
   const [pendingCompletionStatus, setPendingCompletionStatus] = useState(false);
   const t = useTranslations('admin.registrations.review.notes');
@@ -78,6 +79,7 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
       <div className="flex items-center gap-2">
         <div className="flex items-center space-x-2">
           <Checkbox
+            disabled={!canUpdate}
             id="pending-completion-status"
             checked={pendingCompletionStatus}
             onCheckedChange={(checked) =>
@@ -107,9 +109,14 @@ const NoteEditor = ({ type, onSubmit, isLoading }: NoteEditorProps) => {
 interface ReviewNotesProps {
   requestId: string;
   notes: FullServiceRequest['notes'];
+  canUpdate?: boolean;
 }
 
-export function ReviewNotes({ requestId, notes = [] }: ReviewNotesProps) {
+export function ReviewNotes({
+  requestId,
+  notes = [],
+  canUpdate = true,
+}: ReviewNotesProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const t = useTranslations('admin.registrations.review.notes');
@@ -179,7 +186,12 @@ export function ReviewNotes({ requestId, notes = [] }: ReviewNotesProps) {
                 <NoteItem key={note.id} note={note} />
               ))}
           </div>
-          <NoteEditor type="INTERNAL" onSubmit={handleAddNote} isLoading={isLoading} />
+          <NoteEditor
+            type="INTERNAL"
+            onSubmit={handleAddNote}
+            isLoading={isLoading}
+            canUpdate={canUpdate}
+          />
         </TabsContent>
 
         <TabsContent value="feedback" className="mt-4 space-y-4">

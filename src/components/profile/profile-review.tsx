@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
-import { RequestStatus } from '@prisma/client';
+import { RequestStatus, UserRole } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
   calculateProfileCompletion,
@@ -29,7 +29,7 @@ import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions'
 import { MultiSelect } from '@/components/ui/multi-select';
 import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { hasAnyRole } from '@/lib/permissions/utils';
+import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
 import { SessionUser } from '@/types';
 
 interface ProfileReviewProps {
@@ -38,6 +38,8 @@ interface ProfileReviewProps {
 
 export function ProfileReview({ request }: ProfileReviewProps) {
   const currentUser = useCurrentUser();
+  const cantUpdateRequest =
+    hasRole(currentUser, UserRole.AGENT) && request.assignedToId !== currentUser?.id;
   const isAdmin = hasAnyRole(currentUser as SessionUser, ['ADMIN', 'SUPER_ADMIN']);
   const t = useTranslations();
   const profile = request?.profile;
@@ -126,11 +128,15 @@ export function ProfileReview({ request }: ProfileReviewProps) {
       {/* Contenu principal */}
       <div className="grid gap-6 md:grid-cols-3">
         <div className="space-y-6 md:col-span-2">
-          {request.appointment && (
+          {request.appointments && request.appointments.length > 0 && (
             <CardContainer title={t('admin.registrations.review.appointment.title')}>
-              <div className="space-y-2">
-                <Label>{t('admin.registrations.review.appointment.date')}</Label>
-                <p>{formatDate(request.appointment.date)}</p>
+              <div className="space-y-4">
+                {request.appointments.map((appointment, index) => (
+                  <div key={appointment.id || index} className="space-y-2">
+                    <Label>{t('admin.registrations.review.appointment.date')}</Label>
+                    <p>{formatDate(appointment.date)}</p>
+                  </div>
+                ))}
               </div>
             </CardContainer>
           )}
@@ -139,7 +145,11 @@ export function ProfileReview({ request }: ProfileReviewProps) {
 
         {/* Panneau latéral pour les notes et validations */}
         <div className="space-y-4 col-span-1">
-          <ReviewNotes requestId={request.id} notes={request.notes} />
+          <ReviewNotes
+            requestId={request.id}
+            notes={request.notes}
+            canUpdate={!cantUpdateRequest}
+          />
           <CardContainer
             title={t('admin.registrations.review.validation.title')}
             contentClass="space-y-4"
@@ -217,7 +227,9 @@ export function ProfileReview({ request }: ProfileReviewProps) {
             {selectedStatus !== RequestStatus.VALIDATED && (
               <Button
                 className="w-full"
-                disabled={isLoading || selectedStatus === request.status}
+                disabled={
+                  isLoading || selectedStatus === request.status || cantUpdateRequest
+                }
                 onClick={async () => {
                   setIsLoading(true);
                   await updateConsularRegistrationStatus(

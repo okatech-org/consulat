@@ -105,8 +105,8 @@ export async function getServiceRequestsList(
       },
       select: { id: true },
     });
-    const managedAgentIds = managedAgents.map(agent => agent.id);
-    
+    const managedAgentIds = managedAgents.map((agent) => agent.id);
+
     // Include requests assigned to managed agents
     if (managedAgentIds.length > 0) {
       where.assignedToId = { in: managedAgentIds };
@@ -114,6 +114,10 @@ export async function getServiceRequestsList(
       // If no managed agents, return empty results
       return { items: [], total: 0 };
     }
+  }
+
+  if (user.roles.includes(UserRole.AGENT)) {
+    where.assignedToId = { in: [user.id] };
   }
 
   if (status) where.status = { in: status };

@@ -9,7 +9,7 @@ import { Clock, User, CheckCircle2, XCircle } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
-import { RequestStatus, ServicePriority, User as DbUser } from '@prisma/client';
+import { RequestStatus, ServicePriority, User as DbUser, UserRole } from '@prisma/client';
 import { toast } from '@/hooks/use-toast';
 import {
   assignServiceRequest,
@@ -17,7 +17,7 @@ import {
   updateServiceRequestStatus,
 } from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { hasAnyRole, RoleGuard } from '@/lib/permissions/utils';
+import { hasAnyRole, hasRole, RoleGuard } from '@/lib/permissions/utils';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { FullProfile } from '@/types/profile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,6 +36,8 @@ export function ServiceRequestReview({
   agents = [],
 }: ServiceRequestReviewProps) {
   const user = useCurrentUser();
+  const cantUpdateRequest =
+    hasRole(user, UserRole.AGENT) && request.assignedToId !== user?.id;
   const { formatDate } = useDateLocale();
   const t_common = useTranslations('common');
   const [notes, setNotes] = useState('');
@@ -169,7 +171,11 @@ export function ServiceRequestReview({
 
         <div className="space-y-6">
           {/* Notes historiques */}
-          <ReviewNotes requestId={request.id} notes={request.notes} />
+          <ReviewNotes
+            requestId={request.id}
+            notes={request.notes}
+            canUpdate={!cantUpdateRequest}
+          />
           {/* Paramètres de la demande */}
           <CardContainer title="Paramètres" contentClass="space-y-2">
             {/* Priorité */}
@@ -267,7 +273,9 @@ export function ServiceRequestReview({
             {/* Update button */}
             <Button
               className="w-full"
-              disabled={isUpdating || selectedStatus === request.status}
+              disabled={
+                isUpdating || selectedStatus === request.status || cantUpdateRequest
+              }
               onClick={async () => {
                 await handleStatusUpdate(selectedStatus);
               }}
