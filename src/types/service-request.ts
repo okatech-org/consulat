@@ -17,6 +17,7 @@ export const BaseServiceRequestInclude = {
         email: true,
         name: true,
         image: true,
+        documents: true,
       },
     },
     service: {
@@ -120,12 +121,11 @@ export const FullServiceRequestInclude = {
         },
       },
     },
-    requestedFor: {
+    service: {
       include: {
-        identityPicture: true,
+        steps: true,
       },
     },
-    service: true,
     appointments: {
       include: {
         location: true,

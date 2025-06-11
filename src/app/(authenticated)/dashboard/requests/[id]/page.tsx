@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation';
 import { getServiceRequest } from '@/actions/service-requests';
-import { hasPermission } from '@/lib/permissions/utils';
 import { getCurrentUser } from '@/actions/user';
 import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
@@ -9,8 +8,8 @@ import { getUserFullProfile, getUserFullProfileById } from '@/lib/user/getters';
 import { tryCatch } from '@/lib/utils';
 
 interface Props {
-  params: { id: string };
-  searchParams: { review?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ review?: string }>;
 }
 
 export default async function ViewRequest({ params, searchParams }: Props) {
