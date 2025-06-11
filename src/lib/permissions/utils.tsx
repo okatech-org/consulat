@@ -57,18 +57,20 @@ export function usePermission<Resource extends keyof ResourceType>(
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a un rôle spécifique
-export function hasRole(user: SessionUser, role: UserRole): boolean {
+export function hasRole(user: SessionUser | null, role: UserRole): boolean {
+  if (!user?.roles) return false;
   return user.roles.includes(role);
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a l'un des rôles spécifiés
-export function hasAnyRole(user: SessionUser, roles: UserRole[]): boolean {
+export function hasAnyRole(user: SessionUser | null, roles: UserRole[]): boolean {
   if (!user?.roles || !roles) return false;
   return user.roles.some((role) => roles.includes(role));
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a tous les rôles spécifiés
-export function hasAllRoles(user: SessionUser, roles: UserRole[]): boolean {
+export function hasAllRoles(user: SessionUser | null, roles: UserRole[]): boolean {
+  if (!user?.roles) return false;
   return roles.every((role) => user.roles.includes(role));
 }
 
