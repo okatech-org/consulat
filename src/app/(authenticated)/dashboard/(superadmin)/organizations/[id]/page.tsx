@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import * as React from 'react';
 import { SettingsTabs } from '@/components/organization/settings-tabs';
-import {getActiveCountries} from "@/actions/countries";
+import { getActiveCountries } from '@/actions/countries';
+import { UserRole } from '@prisma/client';
 
 export default async function OrganizationSettingsPage({
   params,
@@ -37,9 +38,14 @@ export default async function OrganizationSettingsPage({
         <SettingsTabs
           organization={{
             ...organization,
+            metadata: organization.metadata as Record<string, unknown> | null,
             countries: organization.countries ?? [],
             services: organization.services ?? [],
-            agents: organization.agents ?? [],
+            agents:
+              organization.agents.filter((agent) => agent.role === UserRole.AGENT) ?? [],
+            managers:
+              organization.agents.filter((agent) => agent.role === UserRole.MANAGER) ??
+              [],
           }}
           availableCountries={countries ?? []}
         />

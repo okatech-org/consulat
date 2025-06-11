@@ -9,7 +9,7 @@ import {
   ServiceRequestListItem,
   PaginatedServiceRequests,
 } from '@/actions/service-requests';
-import { cn, tryCatch } from '@/lib/utils';
+import { cn, getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { FullServiceRequest, ServiceRequestFilters } from '@/types/service-request';
@@ -104,6 +104,7 @@ export default function RequestsPage() {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
   const user = useCurrentUser() as SessionUser;
+  const organizationId = getOrganizationIdFromUser(user);
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [requestsData, setRequestsData] = useState<PaginatedServiceRequests>({
@@ -114,21 +115,22 @@ export default function RequestsPage() {
   // Load organization data if user is admin
   useEffect(() => {
     async function loadOrganizationData() {
-      if (user && hasAnyRole(user, ['ADMIN']) && user.managedOrganizationId) {
-        const result = await tryCatch(
-          getOrganizationWithSpecificIncludes(user.managedOrganizationId, ['agents']),
-        );
-        if (result.data && result.data.agents) {
-          setAgents(result.data.agents as unknown as User[]);
-        }
+      if (!organizationId) {
+        return;
+      }
+
+      const organization = await getOrganizationWithSpecificIncludes(organizationId, [
+        'agents',
+      ]);
+      if (organization && organization.agents) {
+        setAgents(organization.agents as unknown as User[]);
       }
     }
 
-    if (user) {
-      console.log('loadOrganizationData', { user });
+    if (user && organizationId) {
       loadOrganizationData();
     }
-  }, [user]);
+  }, [user, organizationId]);
 
   // Fetch requests data
   useEffect(() => {
@@ -750,6 +752,7 @@ function AssignToChangeForm({
     } catch (error) {
       toast({
         title: t('common.errors.save_failed'),
+        description: `Erreur lors de l'assignation`,
         variant: 'destructive',
       });
       console.error('Error updating request:', error);

@@ -7,6 +7,7 @@ import { SettingsTabs } from '@/components/organization/settings-tabs';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getActiveCountries } from '@/actions/countries';
 import { ServerRoleGuard } from '@/lib/permissions/utils';
+import { UserRole } from '@prisma/client';
 
 export default async function OrganizationSettingsPage() {
   const user = await getCurrentUser();
@@ -41,7 +42,11 @@ export default async function OrganizationSettingsPage() {
             metadata: organization.metadata as Record<string, unknown> | null,
             countries: organization.countries ?? [],
             services: organization.services ?? [],
-            agents: organization.agents ?? [],
+            agents:
+              organization.agents.filter((agent) => agent.role === UserRole.AGENT) ?? [],
+            managers:
+              organization.agents.filter((agent) => agent.role === UserRole.MANAGER) ??
+              [],
           }}
           availableCountries={countries}
         />

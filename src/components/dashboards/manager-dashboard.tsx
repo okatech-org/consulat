@@ -20,10 +20,11 @@ import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { RequestStatus } from '@prisma/client';
 
 export async function ManagerDashboard() {
   const t = await getTranslations('manager.dashboard');
-  const t_status = await getTranslations('common.status');
+  const t_status = await getTranslations('inputs.requestStatus.options');
 
   const currentUser = await getCurrentUser();
 
@@ -40,34 +41,15 @@ export async function ManagerDashboard() {
 
   const { stats, managedAgents, recentRequests, requestsByStatus } = dashboardData;
 
-  // Helper function to get status display name
-  const getStatusDisplay = (status: string) => {
-    switch (status) {
-      case 'DRAFT':
-        return t_status('DRAFT');
-      case 'SUBMITTED':
-        return t_status('SUBMITTED');
-      case 'PENDING':
-        return t_status('PENDING');
-      case 'PENDING_COMPLETION':
-        return t_status('PENDING_COMPLETION');
-      case 'VALIDATED':
-        return t_status('VALIDATED');
-      case 'REJECTED':
-        return t_status('REJECTED');
-      case 'CARD_IN_PRODUCTION':
-        return t_status('CARD_IN_PRODUCTION');
-      case 'DOCUMENT_IN_PRODUCTION':
-        return t_status('DOCUMENT_IN_PRODUCTION');
-      case 'READY_FOR_PICKUP':
-        return t_status('READY_FOR_PICKUP');
-      case 'APPOINTMENT_SCHEDULED':
-        return t_status('APPOINTMENT_SCHEDULED');
-      case 'COMPLETED':
-        return t_status('COMPLETED');
-      default:
-        return status;
-    }
+  const statusKeys: Record<string, RequestStatus> = {
+    submitted: 'SUBMITTED',
+    pending: 'PENDING',
+    pendingCompletion: 'PENDING_COMPLETION',
+    validated: 'VALIDATED',
+    rejected: 'REJECTED',
+    inProduction: 'DOCUMENT_IN_PRODUCTION',
+    readyForPickup: 'READY_FOR_PICKUP',
+    completed: 'COMPLETED',
   };
 
   return (
@@ -165,7 +147,7 @@ export async function ManagerDashboard() {
                                   : 'secondary'
                             }
                           >
-                            {getStatusDisplay(request.status)}
+                            {t_status(request.status)}
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -310,7 +292,7 @@ export async function ManagerDashboard() {
                   <div key={status} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium capitalize">
-                        {getStatusDisplay(status.toUpperCase())}
+                        {t_status(statusKeys[status] as RequestStatus)}
                       </span>
                       <span className="text-sm text-muted-foreground">{count}</span>
                     </div>

@@ -193,12 +193,7 @@ export async function getOrganizationById(id: string): Promise<{
   data?: FullOrganization | null;
   error?: string;
 }> {
-  await checkAuth([
-    UserRole.SUPER_ADMIN,
-    UserRole.ADMIN,
-    UserRole.AGENT,
-    UserRole.MANAGER,
-  ]);
+  await checkAuth();
 
   try {
     const organization = await db.organization.findUnique({

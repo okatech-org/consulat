@@ -127,7 +127,6 @@ export async function getManagerDashboardData() {
         managedAgents,
         recentRequests,
         requestsByStatus: {
-          draft: allRequests.filter((r) => r.status === 'DRAFT').length,
           submitted: allRequests.filter((r) => r.status === 'SUBMITTED').length,
           pending: allRequests.filter((r) => r.status === 'PENDING').length,
           pendingCompletion: allRequests.filter((r) => r.status === 'PENDING_COMPLETION')
