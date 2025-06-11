@@ -11,7 +11,7 @@ export async function getManagerDashboardData() {
     (async () => {
       const currentUser = await getCurrentUser();
 
-      if (!currentUser || currentUser.role !== UserRole.MANAGER) {
+      if (!currentUser) {
         throw new Error('Unauthorized');
       }
 

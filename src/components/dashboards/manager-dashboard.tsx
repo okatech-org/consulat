@@ -1,5 +1,3 @@
-'use client';
-
 import { getTranslations } from 'next-intl/server';
 import { StatsCard } from '@/components/ui/stats-card';
 import { getCurrentUser } from '@/actions/user';
