@@ -12,7 +12,6 @@ import { submitServiceRequest } from '@/actions/services';
 import { ServiceDocumentSection } from './service-document-section';
 import { useServiceForm } from '@/hooks/use-service-form';
 import { FullProfile } from '@/types/profile';
-import { NewAppointmentForm } from '../appointments/new-appointment-form';
 import { tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import { StepIndicator } from '../registration/step-indicator';
@@ -74,7 +73,7 @@ export function ServiceSubmissionForm({
     setIsLoading(true);
     setError(null);
 
-    const { documents, appointment, delivery, ...rest } = formData;
+    const { documents, delivery, ...rest } = formData;
 
     const requestData: ServiceRequest = {
       serviceId: service.id,
@@ -87,10 +86,6 @@ export function ServiceSubmissionForm({
       requiredDocuments: documents
         ? Object.values(documents as Record<string, UserDocument>)
         : [],
-      ...(appointment && {
-        appointmentDuration: appointment.duration,
-        appointmentTime: appointment.time,
-      }),
       ...(delivery && {
         chosenDeliveryMode: delivery.deliveryMode,
         ...(delivery.deliveryMode === DeliveryMode.POSTAL && {
@@ -112,7 +107,15 @@ export function ServiceSubmissionForm({
         description: t('messages.success.profile.update_description'),
         variant: 'success',
       });
-      router.push(ROUTES.user.service_request_details(result.data?.id ?? ''));
+
+      // Check if service requires appointment and redirect accordingly
+      if (service.requiresAppointment || service.deliveryAppointment) {
+        // Store the request ID in sessionStorage for the appointment form
+        sessionStorage.setItem('pendingAppointmentRequestId', result.data.id);
+        router.push(`${ROUTES.user.appointments_new}?requestId=${result.data.id}`);
+      } else {
+        router.push(ROUTES.user.service_request_details(result.data?.id ?? ''));
+      }
     }
 
     if (result.error) {
@@ -144,22 +147,6 @@ export function ServiceSubmissionForm({
           currentStepIndex={currentStepIndex}
           totalSteps={totalSteps}
           isLoading={isLoading}
-        />
-      );
-    }
-
-    if (currentStep === 'appointment') {
-      return (
-        <NewAppointmentForm
-          services={[service]}
-          countryCode={service.countryCode ?? ''}
-          organizationId={service.organizationId ?? ''}
-          attendeeId={userProfile.userId ?? ''}
-          preselectedData={{
-            serviceId: service.id,
-            type: 'appointment',
-            requestId: '',
-          }}
         />
       );
     }

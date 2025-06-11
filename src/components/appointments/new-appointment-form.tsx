@@ -34,7 +34,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 
 interface NewAppointmentFormProps {
-  serviceRequests: FullServiceRequest[];
+  serviceRequests?: FullServiceRequest[];
   countryCode: string;
   organizationId: string;
   attendeeId: string;
@@ -55,7 +55,7 @@ const stepTranslations = {
 } as const;
 
 export function NewAppointmentForm({
-  serviceRequests,
+  serviceRequests = [],
   countryCode,
   organizationId,
   attendeeId,

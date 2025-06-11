@@ -1,6 +1,8 @@
 export default {
   dashboard: {
-    title: 'Tableau de bord',
+    title: 'Tableau de bord Manager',
+    welcome: 'Bienvenue, {name}',
+    description: 'Gérez vos agents et suivez les performances de votre équipe',
     overview: {
       title: "Vue d'ensemble",
       pending_requests: 'Demandes en attente',
@@ -21,6 +23,14 @@ export default {
       time_description: 'Durée moyenne de traitement des demandes',
       completed_requests: 'Demandes traitées',
       completed_description: 'Demandes finalisées ce mois',
+      total_agents: 'Agents gérés',
+      agents_description: "Nombre total d'agents sous votre supervision",
+      processing_requests: 'En traitement',
+      processing_description: 'Demandes actuellement en cours de traitement',
+      recent_requests: 'Demandes récentes',
+      no_requests: 'Aucune demande récente',
+      agent_performance: 'Performance des agents',
+      no_agents: 'Aucun agent assigné',
     },
     queue: {
       title: "Files d'attente",
@@ -70,6 +80,20 @@ export default {
     performanceTrends: 'Tendances de performance',
     monthlyPerformance: 'Performance mensuelle',
     comingSoon: 'Bientôt disponible',
+    actions: {
+      see_all: 'Voir tout',
+      view_all_requests: 'Voir toutes les demandes',
+      view_all_agents: 'Voir tous les agents',
+      assign_request: 'Assigner la demande',
+      reassign: 'Réassigner',
+      view_details: 'Voir les détails',
+    },
+    tabs: {
+      overview: "Vue d'ensemble",
+      agents: 'Agents',
+      requests: 'Demandes',
+      analytics: 'Analytiques',
+    },
   },
   settings: {
     title: "Paramètres de l'organisation",

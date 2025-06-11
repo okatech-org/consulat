@@ -310,55 +310,6 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
     });
   });
 
-  if (service.requiresAppointment) {
-    forms.push({
-      id: 'appointment',
-      title: 'Rendez-vous de soumission',
-      description:
-        service.appointmentInstructions ??
-        'Veuillez choisir une date et un créneau pour votre rendez-vous pour soumettre votre demande',
-      schema: z.object({
-        appointmentDuration: z.number(),
-        appointmentTime: z.string(),
-      }),
-      defaultValues: {
-        appointmentDuration: service.appointmentDuration,
-        ...(formData?.appointment ?? {}),
-      },
-      stepData: {
-        id: 'appointment',
-        title: 'Rendez-vous de soumission',
-        fields: [
-          {
-            name: 'appointmentDuration',
-            type: 'select',
-            label: 'messages.appointment.duration',
-            required: true,
-            options: [
-              {
-                value: `${service.appointmentDuration ?? 15}`,
-                label: `${service.appointmentDuration ?? 15} minutes`,
-              },
-            ],
-            selectType: 'single',
-          },
-          {
-            name: 'appointmentTime',
-            type: 'date',
-            label: 'messages.appointment.time',
-            required: true,
-            minDate: new Date().toISOString(),
-          },
-        ],
-        order: 1,
-        description:
-          'Veuillez choisir une date et un créneau pour votre rendez-vous pour soumettre votre demande',
-        type: 'APPOINTMENT',
-        isRequired: true,
-        validations: {},
-      },
-    });
-  }
 
   forms.push({
     id: 'delivery',
