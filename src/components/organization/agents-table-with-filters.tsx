@@ -55,7 +55,6 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
   const [selectedAgent, setSelectedAgent] = useState<AgentListItem | null>(null);
   const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
   const isAdmin = currentUser?.roles?.includes('ADMIN');
-  const isManager = currentUser?.roles?.includes('MANAGER');
 
   useEffect(() => {
     async function loadOrganizations() {
@@ -184,8 +183,9 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
             }
           : undefined,
         assignedServices: (params.assignedServices as string[]) ?? undefined,
-        country: (params.linkedCountries as string[]) ?? undefined,
-        organizationId: params.assignedOrganizationId ?? (orgId ? [orgId] : undefined),
+        linkedCountries: (params.linkedCountries as string[]) ?? undefined,
+        assignedOrganizationId:
+          params.assignedOrganizationId ?? (orgId ? [orgId] : undefined),
       };
 
       const result = await tryCatch(getAgentsList(options));

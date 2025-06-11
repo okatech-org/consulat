@@ -126,7 +126,11 @@ export const FullServiceRequestInclude = {
       },
     },
     service: true,
-    appointments: true,
+    appointments: {
+      include: {
+        location: true,
+      },
+    },
   },
 } as const;
 
