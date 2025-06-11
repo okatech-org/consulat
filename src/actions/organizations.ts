@@ -42,7 +42,7 @@ import {
 export async function getOrganizations(
   organizationId?: string,
 ): Promise<OrganizationListingItem[]> {
-  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]);
   const where: Prisma.OrganizationWhereInput = {
     ...(organizationId && { id: organizationId }),
   };
@@ -418,7 +418,7 @@ export async function getOrganizationManagers(id?: string): Promise<{
   data?: User[];
   error?: string;
 }> {
-  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+  await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]);
 
   if (!id) {
     return { data: [] };

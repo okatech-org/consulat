@@ -2,7 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import { toast } from '@/hooks/use-toast';
-import { Address, DeliveryMode, ServiceRequest, UserDocument } from '@prisma/client';
+import {
+  Address,
+  AppointmentType,
+  DeliveryMode,
+  ServiceRequest,
+  UserDocument,
+} from '@prisma/client';
 import { Info } from 'lucide-react';
 import { ErrorCard } from '@/components/ui/error-card';
 import { useRouter } from 'next/navigation';
@@ -109,10 +115,16 @@ export function ServiceSubmissionForm({
       });
 
       // Check if service requires appointment and redirect accordingly
-      if (service.requiresAppointment || service.deliveryAppointment) {
+      if (service.requiresAppointment) {
         // Store the request ID in sessionStorage for the appointment form
         sessionStorage.setItem('pendingAppointmentRequestId', result.data.id);
-        router.push(`${ROUTES.user.appointments_new}?requestId=${result.data.id}`);
+        sessionStorage.setItem(
+          'pendingAppointmentType',
+          AppointmentType.DOCUMENT_SUBMISSION,
+        );
+        router.push(
+          `${ROUTES.user.appointments_new}?serviceRequestId=${result.data.id}&type=${AppointmentType.DOCUMENT_SUBMISSION}`,
+        );
       } else {
         router.push(ROUTES.user.service_request_details(result.data?.id ?? ''));
       }

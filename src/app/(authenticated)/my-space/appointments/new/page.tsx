@@ -14,7 +14,6 @@ import { AppointmentType } from '@prisma/client';
 interface NewAppointmentPageProps {
   searchParams: {
     serviceRequestId?: string;
-    requestId?: string; // Add support for requestId parameter
     type?: AppointmentType;
     serviceId?: string;
   };
@@ -38,10 +37,10 @@ export default async function NewAppointmentPage({
         type?: AppointmentType;
       }
     | undefined;
-  
+
   // Support both serviceRequestId and requestId parameters
-  const requestId = awaitedSearchParams.serviceRequestId || awaitedSearchParams.requestId;
-  
+  const requestId = awaitedSearchParams.serviceRequestId;
+
   if (requestId) {
     const request = await getServiceRequest(requestId);
     if (request) {

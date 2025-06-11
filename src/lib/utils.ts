@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Profile, User } from '@prisma/client';
+import { Profile } from '@prisma/client';
 import { CountryIndicator, phoneCountries } from '@/lib/autocomplete-datas';
 import { FullProfile, SessionUser } from '@/types';
 import { UseFormReturn } from 'react-hook-form';
