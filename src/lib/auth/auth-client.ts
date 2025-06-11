@@ -7,9 +7,5 @@ import {
 import { auth } from './auth';
 
 export const authClient = createAuthClient({
-  plugins: [
-    emailOTPClient(),
-    phoneNumberClient(),
-    inferAdditionalFields<typeof auth>({}),
-  ],
+  plugins: [emailOTPClient(), phoneNumberClient(), inferAdditionalFields<typeof auth>()],
 });
