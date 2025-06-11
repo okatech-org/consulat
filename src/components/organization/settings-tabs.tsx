@@ -7,14 +7,14 @@ import { CreateServiceButton } from '@/components/organization/create-service-bu
 import { ServicesTable } from '@/components/organization/services-table';
 import CardContainer from '@/components/layouts/card-container';
 import { CreateAgentButton } from '@/components/organization/create-agent-button';
-import { AgentsTableWithFilters } from '@/components/organization/agents-table-with-filters';
 import * as React from 'react';
 import { Organization } from '@/types/organization';
-import { Country } from '@prisma/client';
+import { Country, User } from '@prisma/client';
 import { useTabs } from '@/hooks/use-tabs';
+import { AgentsTable } from '@/app/(authenticated)/dashboard/agents/_components/agents-table';
 
 interface SettingsTabsProps {
-  organization: Organization;
+  organization: Organization & { managers: User[] };
   availableCountries: Country[];
 }
 
@@ -73,7 +73,12 @@ export function SettingsTabs({
             />
           }
         >
-          <AgentsTableWithFilters organizationId={organization.id} />
+          <AgentsTable
+            countries={availableCountries}
+            services={organization.services ?? []}
+            organizations={[organization]}
+            managers={organization.managers ?? []}
+          />
         </CardContainer>
       </TabsContent>
     </Tabs>

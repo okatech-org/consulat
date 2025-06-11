@@ -17,6 +17,7 @@ import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
 import { checkAuth } from '@/lib/auth/action';
+import { tryCatch } from '@/lib/utils';
 
 type Agent = User & { assignedRequests: ServiceRequest[] };
 
@@ -31,6 +32,13 @@ export async function assignAgentToRequest(
     where: { id: requestId },
     include: {
       assignedTo: true,
+      appointments: {
+        where: {
+          status: {
+            in: ['PENDING', 'CONFIRMED', 'RESCHEDULED'],
+          },
+        },
+      },
     },
   });
 
@@ -63,6 +71,24 @@ export async function assignAgentToRequest(
       lastActionBy: assignedAgent.id,
     },
   });
+
+  // Assign the request to the agent in the appointments
+  const appointmentsUpdatePromises = request.appointments.map((appointment) =>
+    dbTx.appointment.update({
+      where: { id: appointment.id },
+      data: {
+        agentId: assignedAgent.id,
+      },
+    }),
+  );
+
+  const appointmentsUpdateResult = await tryCatch(
+    Promise.all(appointmentsUpdatePromises),
+  );
+
+  if (appointmentsUpdateResult.error) {
+    throw new Error('failed_to_assign_agent_to_appointments');
+  }
 
   await Promise.all([
     // Créer une action pour tracer l'assignation
