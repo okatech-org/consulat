@@ -66,9 +66,7 @@ const STATUS_COLORS: Record<RequestStatus, string> = {
 };
 
 const PRIORITY_COLORS: Record<ServicePriority, string> = {
-  [ServicePriority.LOW]: COLORS.secondary,
-  [ServicePriority.NORMAL]: COLORS.primary,
-  [ServicePriority.HIGH]: COLORS.warning,
+  [ServicePriority.STANDARD]: COLORS.warning,
   [ServicePriority.URGENT]: COLORS.danger,
 };
 
