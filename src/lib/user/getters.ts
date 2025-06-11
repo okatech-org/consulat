@@ -15,41 +15,23 @@ import { ManagerSessionSelect, SessionUser } from '@/types/user';
 import { FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
 import { Prisma } from '@prisma/client';
 
-function getSelectForRoles(roles: UserRole[]): Prisma.UserSelect {
-  const isSuperAdmin = roles.includes(UserRole.SUPER_ADMIN);
-  const isAdmin = roles.includes(UserRole.ADMIN);
-  const isAgent = roles.includes(UserRole.AGENT);
-  const isUser = roles.includes(UserRole.USER);
-  const isManager = roles.includes(UserRole.MANAGER);
+function getSelectForRoles(role: UserRole): Prisma.UserSelect {
+  const includesByRole = {
+    [UserRole.SUPER_ADMIN]: { ...UserSessionInclude },
+    [UserRole.ADMIN]: { ...AdminSessionInclude },
+    [UserRole.AGENT]: { ...AgentSessionInclude },
+    [UserRole.USER]: { ...UserSessionInclude },
+    [UserRole.MANAGER]: { ...ManagerSessionSelect },
+  };
 
-  if (isSuperAdmin) {
-    return { ...UserSessionInclude };
-  }
-
-  if (isAdmin) {
-    return { ...AdminSessionInclude };
-  }
-
-  if (isAgent) {
-    return { ...AgentSessionInclude };
-  }
-
-  if (isUser) {
-    return { ...UserSessionInclude };
-  }
-
-  if (isManager) {
-    return { ...ManagerSessionSelect };
-  }
-
-  return { ...UserSessionInclude };
+  return includesByRole[role];
 }
 
 export async function getUserSession(
   id: string,
-  roles: UserRole[],
+  role: UserRole,
 ): Promise<SessionUser | null> {
-  const select = getSelectForRoles(roles);
+  const select = getSelectForRoles(role);
 
   return await db.user.findUnique({
     where: { id: id },

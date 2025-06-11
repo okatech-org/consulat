@@ -7,6 +7,7 @@ import { tryCatch } from '../utils';
 import { sendOTPEmail } from '../services/notifications/providers/emails';
 import { nextCookies } from 'better-auth/next-js';
 import { env } from '../env';
+import { getUserSession } from '../user/getters';
 
 const options = {
   emailAndPassword: {
@@ -19,7 +20,7 @@ const options = {
     modelName: 'User',
     additionalFields: {
       role: {
-        type: ['USER', 'ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT'],
+        type: ['USER', 'ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT'] as const,
         required: true,
       },
       phoneNumber: {
@@ -68,20 +69,14 @@ export const auth = betterAuth({
   plugins: [
     ...(options.plugins ?? []),
     customSession(async ({ session, user }) => {
+      const userSessionData = await getUserSession(user.id, user.role);
       return {
         session: {
           expiresAt: session.expiresAt,
           token: session.token,
           userAgent: session.userAgent,
         },
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phoneNumber: user.phoneNumber,
-          role: user.role,
-          createdAt: session.createdAt,
-        },
+        user: userSessionData,
       };
     }, options),
   ],

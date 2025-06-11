@@ -1,12 +1,17 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   BarChart,
   Bar,
@@ -58,8 +63,6 @@ const STATUS_COLORS: Record<RequestStatus, string> = {
   [RequestStatus.PENDING_COMPLETION]: COLORS.primary,
   [RequestStatus.COMPLETED]: COLORS.success,
   [RequestStatus.REJECTED]: COLORS.danger,
-  [RequestStatus.APPROVED]: COLORS.success,
-  [RequestStatus.IN_PROGRESS]: COLORS.primary,
 };
 
 const PRIORITY_COLORS: Record<ServicePriority, string> = {
@@ -101,33 +104,50 @@ export function ManagerDashboard() {
         const requests = requestsResult.items || [];
 
         // Calculate stats
-        const requestsByStatus = requests.reduce((acc, req) => {
-          acc[req.status] = (acc[req.status] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+        const requestsByStatus = requests.reduce(
+          (acc, req) => {
+            acc[req.status] = (acc[req.status] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
 
-        const requestsByPriority = requests.reduce((acc, req) => {
-          acc[req.priority] = (acc[req.priority] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+        const requestsByPriority = requests.reduce(
+          (acc, req) => {
+            acc[req.priority] = (acc[req.priority] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
 
-        const completedRequests = requests.filter(r => r.status === RequestStatus.COMPLETED).length;
-        const pendingRequests = requests.filter(r => 
-          [RequestStatus.PENDING, RequestStatus.PENDING_COMPLETION, RequestStatus.IN_PROGRESS].includes(r.status)
+        const completedRequests = requests.filter(
+          (r) => r.status === RequestStatus.COMPLETED,
+        ).length;
+        const pendingRequests = requests.filter((r) =>
+          [
+            RequestStatus.PENDING,
+            RequestStatus.PENDING_COMPLETION,
+            RequestStatus.IN_PROGRESS,
+          ].includes(r.status),
         ).length;
 
         // Calculate agent performance
-        const agentPerformance = agents.map(agent => ({
+        const agentPerformance = agents.map((agent) => ({
           id: agent.id,
           name: agent.name || 'Unknown',
           completedRequests: agent.completedRequests || 0,
           averageTime: agent.averageProcessingTime || 0,
         }));
 
-        const totalCompletedByAgents = agentPerformance.reduce((sum, a) => sum + a.completedRequests, 0);
-        const avgProcessingTime = agentPerformance.length > 0
-          ? agentPerformance.reduce((sum, a) => sum + a.averageTime, 0) / agentPerformance.length
-          : 0;
+        const totalCompletedByAgents = agentPerformance.reduce(
+          (sum, a) => sum + a.completedRequests,
+          0,
+        );
+        const avgProcessingTime =
+          agentPerformance.length > 0
+            ? agentPerformance.reduce((sum, a) => sum + a.averageTime, 0) /
+              agentPerformance.length
+            : 0;
 
         setStats({
           totalAgents: agents.length,
@@ -159,11 +179,13 @@ export function ManagerDashboard() {
     fill: STATUS_COLORS[status as RequestStatus],
   }));
 
-  const priorityData = Object.entries(stats.requestsByPriority).map(([priority, count]) => ({
-    name: t_common(`priority.${priority}`),
-    value: count,
-    fill: PRIORITY_COLORS[priority as ServicePriority],
-  }));
+  const priorityData = Object.entries(stats.requestsByPriority).map(
+    ([priority, count]) => ({
+      name: t_common(`priority.${priority}`),
+      value: count,
+      fill: PRIORITY_COLORS[priority as ServicePriority],
+    }),
+  );
 
   return (
     <div className="space-y-6">
@@ -194,13 +216,15 @@ export function ManagerDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('completedRequests')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('completedRequests')}
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.completedRequests}</div>
-            <Progress 
-              value={(stats.completedRequests / (stats.totalRequests || 1)) * 100} 
+            <Progress
+              value={(stats.completedRequests / (stats.totalRequests || 1)) * 100}
               className="mt-2"
             />
           </CardContent>
@@ -208,7 +232,9 @@ export function ManagerDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('avgProcessingTime')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('avgProcessingTime')}
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -245,7 +271,9 @@ export function ManagerDashboard() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) =>
+                        `${name} ${(percent * 100).toFixed(0)}%`
+                      }
                     >
                       {statusData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -286,7 +314,10 @@ export function ManagerDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {stats.agentPerformance.map((agent) => (
-                  <div key={agent.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={agent.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center space-x-4">
                       <Avatar>
                         <AvatarFallback>{agent.name[0]}</AvatarFallback>
