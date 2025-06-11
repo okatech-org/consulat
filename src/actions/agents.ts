@@ -476,7 +476,7 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
     }
 
     if (data.role) {
-      updateData.roles = [data.role];
+      updateData.role = data.role;
     }
 
     if (data.countryIds) {

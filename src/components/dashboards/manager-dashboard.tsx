@@ -1,335 +1,340 @@
-'use client';
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getTranslations } from 'next-intl/server';
+import { StatsCard } from '@/components/ui/stats-card';
+import { getCurrentUser } from '@/actions/user';
+import { getManagerDashboardData } from '@/actions/manager-dashboard';
+import { format } from 'date-fns';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
-import { RequestStatus, ServicePriority, UserRole } from '@prisma/client';
-import { getAgentsByManager } from '@/actions/organizations';
-import { getServiceRequestsList } from '@/actions/service-requests';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { Users, FileText, Clock, TrendingUp } from 'lucide-react';
+  ArrowRight,
+  Users,
+  Clock,
+  CheckCircle,
+  FileText,
+  TrendingUp,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/schemas/routes';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { PageContainer } from '@/components/layouts/page-container';
+import CardContainer from '@/components/layouts/card-container';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 
-interface ManagerStats {
-  totalAgents: number;
-  totalRequests: number;
-  pendingRequests: number;
-  completedRequests: number;
-  averageProcessingTime: number;
-  agentPerformance: {
-    id: string;
-    name: string;
-    completedRequests: number;
-    averageTime: number;
-  }[];
-  requestsByStatus: Record<string, number>;
-  requestsByPriority: Record<string, number>;
-}
+export async function ManagerDashboard() {
+  const t = await getTranslations('manager.dashboard');
+  const t_status = await getTranslations('common.status');
 
-const COLORS = {
-  primary: '#3b82f6',
-  success: '#10b981',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  secondary: '#6b7280',
-};
+  const currentUser = await getCurrentUser();
 
-const STATUS_COLORS: Record<RequestStatus, string> = {
-  [RequestStatus.SUBMITTED]: COLORS.secondary,
-  [RequestStatus.PENDING]: COLORS.warning,
-  [RequestStatus.PENDING_COMPLETION]: COLORS.primary,
-  [RequestStatus.COMPLETED]: COLORS.success,
-  [RequestStatus.REJECTED]: COLORS.danger,
-  [RequestStatus.APPROVED]: COLORS.success,
-  [RequestStatus.IN_PROGRESS]: COLORS.primary,
-};
-
-const PRIORITY_COLORS: Record<ServicePriority, string> = {
-  [ServicePriority.LOW]: COLORS.secondary,
-  [ServicePriority.NORMAL]: COLORS.primary,
-  [ServicePriority.HIGH]: COLORS.warning,
-  [ServicePriority.URGENT]: COLORS.danger,
-};
-
-export function ManagerDashboard() {
-  const t = useTranslations('manager.dashboard');
-  const t_common = useTranslations('common');
-  const user = useCurrentUser();
-  const [stats, setStats] = useState<ManagerStats>({
-    totalAgents: 0,
-    totalRequests: 0,
-    pendingRequests: 0,
-    completedRequests: 0,
-    averageProcessingTime: 0,
-    agentPerformance: [],
-    requestsByStatus: {},
-    requestsByPriority: {},
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadStats() {
-      if (!user || !user.roles.includes(UserRole.MANAGER)) return;
-
-      try {
-        // Get managed agents
-        const agentsResult = await getAgentsByManager(user.id);
-        const agents = agentsResult.data || [];
-
-        // Get requests for managed agents
-        const requestsResult = await getServiceRequestsList({
-          limit: 1000, // Get all requests
-        });
-        const requests = requestsResult.items || [];
-
-        // Calculate stats
-        const requestsByStatus = requests.reduce((acc, req) => {
-          acc[req.status] = (acc[req.status] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-
-        const requestsByPriority = requests.reduce((acc, req) => {
-          acc[req.priority] = (acc[req.priority] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-
-        const completedRequests = requests.filter(r => r.status === RequestStatus.COMPLETED).length;
-        const pendingRequests = requests.filter(r => 
-          [RequestStatus.PENDING, RequestStatus.PENDING_COMPLETION, RequestStatus.IN_PROGRESS].includes(r.status)
-        ).length;
-
-        // Calculate agent performance
-        const agentPerformance = agents.map(agent => ({
-          id: agent.id,
-          name: agent.name || 'Unknown',
-          completedRequests: agent.completedRequests || 0,
-          averageTime: agent.averageProcessingTime || 0,
-        }));
-
-        const totalCompletedByAgents = agentPerformance.reduce((sum, a) => sum + a.completedRequests, 0);
-        const avgProcessingTime = agentPerformance.length > 0
-          ? agentPerformance.reduce((sum, a) => sum + a.averageTime, 0) / agentPerformance.length
-          : 0;
-
-        setStats({
-          totalAgents: agents.length,
-          totalRequests: requests.length,
-          pendingRequests,
-          completedRequests,
-          averageProcessingTime: avgProcessingTime,
-          agentPerformance,
-          requestsByStatus,
-          requestsByPriority,
-        });
-      } catch (error) {
-        console.error('Error loading manager stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadStats();
-  }, [user]);
-
-  if (!user || !user.roles.includes(UserRole.MANAGER)) {
+  if (!currentUser) {
     return null;
   }
 
-  const statusData = Object.entries(stats.requestsByStatus).map(([status, count]) => ({
-    name: t_common(`status.${status}`),
-    value: count,
-    fill: STATUS_COLORS[status as RequestStatus],
-  }));
+  // Fetch manager dashboard data
+  const dashboardData = await getManagerDashboardData();
 
-  const priorityData = Object.entries(stats.requestsByPriority).map(([priority, count]) => ({
-    name: t_common(`priority.${priority}`),
-    value: count,
-    fill: PRIORITY_COLORS[priority as ServicePriority],
-  }));
+  if (!dashboardData) {
+    return null;
+  }
+
+  const { stats, managedAgents, recentRequests, requestsByStatus } = dashboardData;
+
+  // Helper function to get status display name
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'DRAFT':
+        return t_status('DRAFT');
+      case 'SUBMITTED':
+        return t_status('SUBMITTED');
+      case 'PENDING':
+        return t_status('PENDING');
+      case 'PENDING_COMPLETION':
+        return t_status('PENDING_COMPLETION');
+      case 'VALIDATED':
+        return t_status('VALIDATED');
+      case 'REJECTED':
+        return t_status('REJECTED');
+      case 'CARD_IN_PRODUCTION':
+        return t_status('CARD_IN_PRODUCTION');
+      case 'DOCUMENT_IN_PRODUCTION':
+        return t_status('DOCUMENT_IN_PRODUCTION');
+      case 'READY_FOR_PICKUP':
+        return t_status('READY_FOR_PICKUP');
+      case 'APPOINTMENT_SCHEDULED':
+        return t_status('APPOINTMENT_SCHEDULED');
+      case 'COMPLETED':
+        return t_status('COMPLETED');
+      default:
+        return status;
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('totalAgents')}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAgents}</div>
-            <p className="text-xs text-muted-foreground">{t('managedAgents')}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('totalRequests')}</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRequests}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingRequests} {t('pending')}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('completedRequests')}</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completedRequests}</div>
-            <Progress 
-              value={(stats.completedRequests / (stats.totalRequests || 1)) * 100} 
-              className="mt-2"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('avgProcessingTime')}</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(stats.averageProcessingTime)} {t('hours')}
-            </div>
-            <p className="text-xs text-muted-foreground">{t('averageTime')}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
-          <TabsTrigger value="agents">{t('agents')}</TabsTrigger>
-          <TabsTrigger value="analytics">{t('analytics')}</TabsTrigger>
+    <PageContainer title={t('title')} description={t('description')}>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+          <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="agents">{t('tabs.agents')}</TabsTrigger>
+          <TabsTrigger value="requests">{t('tabs.requests')}</TabsTrigger>
+          <TabsTrigger value="analytics">{t('tabs.analytics')}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('requestsByStatus')}</CardTitle>
-                <CardDescription>{t('statusDistribution')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={statusData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('requestsByPriority')}</CardTitle>
-                <CardDescription>{t('priorityDistribution')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={priorityData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill={COLORS.primary} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+        <TabsContent value="overview" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatsCard
+              title={t('stats.total_agents')}
+              value={stats.totalAgents}
+              description={t('stats.agents_description')}
+              icon={Users}
+              className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm"
+              iconClassName="bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400"
+            />
+            <StatsCard
+              title={t('stats.pending_requests')}
+              value={stats.pendingRequests}
+              description={t('stats.pending_description')}
+              icon={Clock}
+              className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30 shadow-sm"
+              iconClassName="bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400"
+            />
+            <StatsCard
+              title={t('stats.processing_requests')}
+              value={stats.processingRequests}
+              description={t('stats.processing_description')}
+              icon={FileText}
+              className="bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm"
+              iconClassName="bg-white dark:bg-neutral-900 text-indigo-500 dark:text-indigo-400"
+            />
+            <StatsCard
+              title={t('stats.completed_requests')}
+              value={stats.completedRequests}
+              description={t('stats.completed_description')}
+              icon={CheckCircle}
+              trend={stats.trend}
+              className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm"
+              iconClassName="bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400"
+            />
           </div>
-        </TabsContent>
 
-        <TabsContent value="agents" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('agentPerformance')}</CardTitle>
-              <CardDescription>{t('performanceMetrics')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {stats.agentPerformance.map((agent) => (
-                  <div key={agent.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Avatar>
-                        <AvatarFallback>{agent.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{agent.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {agent.completedRequests} {t('requestsCompleted')}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Requests */}
+            <CardContainer
+              title={t('stats.recent_requests')}
+              action={
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={ROUTES.dashboard.requests}>{t('actions.see_all')}</Link>
+                </Button>
+              }
+              className="lg:col-span-1"
+              footerContent={
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link href={ROUTES.dashboard.requests}>
+                    {t('actions.view_all_requests')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              }
+            >
+              {recentRequests.length > 0 ? (
+                <div className="space-y-4">
+                  {recentRequests.slice(0, 5).map((request) => (
+                    <div
+                      key={request.id}
+                      className="flex items-start space-x-3 border-b pb-3 last:border-0"
+                    >
+                      <div className="rounded-md bg-primary/10 p-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">{request.service.name}</p>
+                          <Badge
+                            variant={
+                              request.status === 'COMPLETED'
+                                ? 'default'
+                                : [
+                                      'VALIDATED',
+                                      'CARD_IN_PRODUCTION',
+                                      'DOCUMENT_IN_PRODUCTION',
+                                      'READY_FOR_PICKUP',
+                                      'APPOINTMENT_SCHEDULED',
+                                    ].includes(request.status)
+                                  ? 'default'
+                                  : 'secondary'
+                            }
+                          >
+                            {getStatusDisplay(request.status)}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>
+                            {format(new Date(request.createdAt), 'dd MMM yyyy')}
+                          </span>
+                          {request.assignedTo && (
+                            <span className="flex items-center">
+                              <User className="mr-1 h-3 w-3" />
+                              {request.assignedTo.name || 'Agent'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground">{t('stats.no_requests')}</p>
+                </div>
+              )}
+            </CardContainer>
+
+            {/* Agent Performance */}
+            <CardContainer
+              title={t('stats.agent_performance')}
+              action={
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={ROUTES.dashboard.agents}>{t('actions.see_all')}</Link>
+                </Button>
+              }
+              className="lg:col-span-1"
+              footerContent={
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link href={ROUTES.dashboard.agents}>
+                    {t('actions.view_all_agents')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              }
+            >
+              {managedAgents.length > 0 ? (
+                <div className="space-y-4">
+                  {managedAgents.slice(0, 5).map((agent) => (
+                    <div
+                      key={agent.id}
+                      className="flex items-center justify-between space-x-3"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="rounded-md bg-primary/10 p-2">
+                          <User className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{agent.name || 'Agent'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {agent._count.assignedRequests} {t('requestsCompleted')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">
+                          {agent.completedRequests || 0}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('completedRequests')}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">
-                        {Math.round(agent.averageTime)} {t('hours')}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{t('avgTime')}</p>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground">{t('stats.no_agents')}</p>
+                </div>
+              )}
+            </CardContainer>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="agents" className="space-y-6">
+          <CardContainer title={t('agents')} subtitle={t('managedAgents')}>
+            {managedAgents.length > 0 ? (
+              <div className="space-y-4">
+                {managedAgents.map((agent) => (
+                  <div
+                    key={agent.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="rounded-md bg-primary/10 p-2">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{agent.name || 'Agent'}</p>
+                        <p className="text-sm text-muted-foreground">{agent.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">
+                          {agent._count.assignedRequests}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('totalRequests')}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">
+                          {agent.completedRequests || 0}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('completedRequests')}
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`${ROUTES.dashboard.agents}/${agent.id}`}>
+                          {t('actions.view_details')}
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4">
-                <Button asChild className="w-full">
-                  <Link href={ROUTES.dashboard.agents}>{t('viewAllAgents')}</Link>
-                </Button>
+            ) : (
+              <div className="text-center py-12">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                <p className="mt-4 text-muted-foreground">{t('stats.no_agents')}</p>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContainer>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('performanceTrends')}</CardTitle>
-              <CardDescription>{t('monthlyPerformance')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                {t('comingSoon')}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="requests" className="space-y-6">
+          <CardContainer title={t('requestsByStatus')} subtitle={t('statusDistribution')}>
+            <div className="space-y-4">
+              {Object.entries(requestsByStatus).map(([status, count]) => {
+                const total = Object.values(requestsByStatus).reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? (count / total) * 100 : 0;
+
+                return (
+                  <div key={status} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium capitalize">
+                        {getStatusDisplay(status.toUpperCase())}
+                      </span>
+                      <span className="text-sm text-muted-foreground">{count}</span>
+                    </div>
+                    <Progress value={percentage} className="h-2" />
+                  </div>
+                );
+              })}
+            </div>
+          </CardContainer>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <CardContainer
+            title={t('performanceTrends')}
+            subtitle={t('monthlyPerformance')}
+            className="h-[400px] flex items-center justify-center"
+          >
+            <div className="text-center">
+              <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground" />
+              <p className="mt-4 text-muted-foreground">{t('comingSoon')}</p>
+            </div>
+          </CardContainer>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

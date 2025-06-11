@@ -44,20 +44,11 @@ export type ServiceForm = {
   stepData?: ServiceStep;
 };
 export function useServiceForm(service: ConsularServiceItem, userProfile: FullProfile) {
-  const { loadSavedData, clearData, saveData } = createFormStorage(
-    'consular_form_data' + service.id,
-  );
+  const { clearData, saveData } = createFormStorage('consular_form_data' + service.id);
   const tInputs = useTranslations('inputs');
   const [formData, setFormData] = useState<Record<string, StepFormValues>>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const savedData = loadSavedData();
-    if (savedData) {
-      setFormData(savedData);
-    }
-  }, [loadSavedData]);
 
   // Fonction pour créer un schéma dynamique basé sur les champs du formulaire
   const createDynamicSchema = useMemo(() => {
@@ -309,56 +300,6 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       stepData: step,
     });
   });
-
-  if (service.requiresAppointment) {
-    forms.push({
-      id: 'appointment',
-      title: 'Rendez-vous de soumission',
-      description:
-        service.appointmentInstructions ??
-        'Veuillez choisir une date et un créneau pour votre rendez-vous pour soumettre votre demande',
-      schema: z.object({
-        appointmentDuration: z.number(),
-        appointmentTime: z.string(),
-      }),
-      defaultValues: {
-        appointmentDuration: service.appointmentDuration,
-        ...(formData?.appointment ?? {}),
-      },
-      stepData: {
-        id: 'appointment',
-        title: 'Rendez-vous de soumission',
-        fields: [
-          {
-            name: 'appointmentDuration',
-            type: 'select',
-            label: 'messages.appointment.duration',
-            required: true,
-            options: [
-              {
-                value: `${service.appointmentDuration ?? 15}`,
-                label: `${service.appointmentDuration ?? 15} minutes`,
-              },
-            ],
-            selectType: 'single',
-          },
-          {
-            name: 'appointmentTime',
-            type: 'date',
-            label: 'messages.appointment.time',
-            required: true,
-            minDate: new Date().toISOString(),
-          },
-        ],
-        order: 1,
-        description:
-          'Veuillez choisir une date et un créneau pour votre rendez-vous pour soumettre votre demande',
-        type: 'APPOINTMENT',
-        isRequired: true,
-        validations: {},
-      },
-    });
-  }
 
   forms.push({
     id: 'delivery',

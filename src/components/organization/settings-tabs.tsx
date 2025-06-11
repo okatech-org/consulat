@@ -53,11 +53,7 @@ export function SettingsTabs({
             />
           }
         >
-          <ServicesTable
-            organizations={[organization]}
-            services={organization.services ?? []}
-            countries={organization.countries ?? []}
-          />
+          <ServicesTable organizations={[organization]} />
         </CardContainer>
       </TabsContent>
 

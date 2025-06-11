@@ -13,11 +13,13 @@ export default async function OrganizationSettingsPage() {
   const t = await getTranslations();
   const countries = await getActiveCountries();
 
-  if (!user?.organizationId) {
+  if (!user?.organizationId || !user.assignedOrganizationId) {
     notFound();
   }
 
-  const { data: organization, error } = await getOrganizationById(user.organizationId);
+  const { data: organization, error } = await getOrganizationById(
+    user.organizationId || user.assignedOrganizationId,
+  );
 
   if (!organization || error) {
     notFound();
@@ -29,9 +31,9 @@ export default async function OrganizationSettingsPage() {
       description={t('organization.settings.description')}
     >
       <ServerRoleGuard
-        roles={['ADMIN', 'SUPER_ADMIN']}
+        roles={['ADMIN', 'SUPER_ADMIN', 'MANAGER']}
         user={user}
-        fallback={<div>You are not authorized to access this page</div>}
+        fallback={<div>Vous n&apos;êtes pas autorisé à accéder à cette page</div>}
       >
         <SettingsTabs
           organization={{

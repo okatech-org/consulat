@@ -61,6 +61,7 @@ export const ROUTES = {
     requests: '/my-space/services/requests' as Route<string>,
     profile: '/my-space/profile' as Route<string>,
     appointments: '/my-space/appointments' as Route<string>,
+    appointments_new: '/my-space/appointments/new' as Route<string>,
     new_appointment: '/my-space/appointments/new' as Route<string>,
     documents: '/my-space/documents' as Route<string>,
     services: '/my-space/services' as Route<string>,

@@ -66,7 +66,7 @@ export function useNavigation(user: SessionUser) {
       title: t('services'),
       url: ROUTES.dashboard.services,
       icon: FileText,
-      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MANAGER],
+      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: t('profiles'),
@@ -96,13 +96,13 @@ export function useNavigation(user: SessionUser) {
       title: t('document-templates'),
       url: ROUTES.dashboard.doc_templates,
       icon: FileIcon,
-      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MANAGER],
+      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
       title: t('settings'),
       url: ROUTES.dashboard.settings,
       icon: Settings,
-      roles: [UserRole.ADMIN, UserRole.MANAGER],
+      roles: [UserRole.ADMIN],
     },
   ];
 

@@ -3,7 +3,7 @@ import { SessionUser } from '@/types';
 
 export const useCurrentUser = (): SessionUser | null => {
   const { data: session } = authClient.useSession();
-  return session?.user as unknown as SessionUser | null;
+  return session?.user as SessionUser;
 };
 
 export const useCurrentSession = () => {

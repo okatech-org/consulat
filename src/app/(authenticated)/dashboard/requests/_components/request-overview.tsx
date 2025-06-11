@@ -182,29 +182,35 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
           </div>
 
           {/* Appointment Info if exists */}
-          {request.appointment && (
+          {request.appointments && request.appointments.length > 0 && (
             <div className="space-y-4">
               <CardTitle className="text-xl">{t('requests.view.appointment')}</CardTitle>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="size-4" />
-                  {formatDate(request.appointment.date, 'PPP')}
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="size-4" />
-                  {t('common.duration.in_minutes', {
-                    minutes: request.appointment.duration,
-                  })}
-                </div>
-                {request.appointment.location && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="size-4" />
-                    <span>
-                      {`${request.appointment.location.firstLine}, ${request.appointment.location.secondLine}, ${request.appointment.location.zipCode} ${request.appointment.location.city}`}
-                    </span>
+              {request.appointments.map((appointment) => (
+                <CardContainer
+                  key={appointment.id}
+                  className="border-l-4 border-l-primary"
+                  contentClass="space-y-2"
+                >
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="size-4" />
+                    {formatDate(appointment.date, 'PPP')}
                   </div>
-                )}
-              </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="size-4" />
+                    {t('common.duration.in_minutes', {
+                      minutes: appointment.duration,
+                    })}
+                  </div>
+                  {appointment.location && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="size-4" />
+                      <span>
+                        {`${appointment.location.firstLine}, ${appointment.location.secondLine}, ${appointment.location.zipCode} ${appointment.location.city}`}
+                      </span>
+                    </div>
+                  )}
+                </CardContainer>
+              ))}
               <Separator className="my-4" />
             </div>
           )}

@@ -34,6 +34,8 @@ import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminAccountPage() {
+  const t_messages = useTranslations('messages');
+  const t_actions = useTranslations('common.actions');
   const t = useTranslations('account');
   const t_inputs = useTranslations('inputs');
   const user = useCurrentUser();
@@ -55,28 +57,19 @@ export default function AdminAccountPage() {
       const firstName = formData.get('firstName') as string;
       const lastName = formData.get('lastName') as string;
       const name = `${firstName} ${lastName}`.trim();
-      
+
       const updateData: Partial<UserSettings> = {
-        name,
-        image: user.image,
+        name: name,
+        image: user.image ?? undefined,
       };
 
-      // Add role-specific data
-      if (isAgent || isManager) {
-        const specialization = formData.get('specialization') as ServiceCategory;
-        const maxActiveRequests = parseInt(formData.get('maxActiveRequests') as string) || 10;
-        
-        updateData.specializations = specialization ? [specialization] : [];
-        updateData.maxActiveRequests = maxActiveRequests;
-      }
-
       await updateUserData(user.id, updateData as UserSettings);
-      
+
       toast({
         title: t('profile_updated'),
         variant: 'success',
       });
-      
+
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -113,7 +106,7 @@ export default function AdminAccountPage() {
               <form action={handleUpdateProfile} className="space-y-4">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={user.image} alt={user.name || ''} />
+                    <AvatarImage src={user.image ?? undefined} alt={user.name || ''} />
                     <AvatarFallback>{user.name?.[0]}</AvatarFallback>
                   </Avatar>
                   <div className="space-y-2">
@@ -142,10 +135,10 @@ export default function AdminAccountPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">{t('last_name')}</Label>
-                    <Input 
-                      id="lastName" 
-                      name="lastName" 
-                      defaultValue={user.name?.split(' ').slice(1).join(' ') || ''} 
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      defaultValue={user.name?.split(' ').slice(1).join(' ') || ''}
                       disabled={isLoading}
                     />
                   </div>
@@ -165,7 +158,10 @@ export default function AdminAccountPage() {
                 {(isAgent || isManager) && (
                   <div className="space-y-2">
                     <Label>{t('specializations')}</Label>
-                    <Select name="specialization" defaultValue={user.specializations?.[0]}>
+                    <Select
+                      name="specialization"
+                      defaultValue={user.specializations?.[0]}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_specialization')} />
                       </SelectTrigger>
@@ -196,38 +192,38 @@ export default function AdminAccountPage() {
                 <CardTitle>{t('performance_metrics')}</CardTitle>
                 <CardDescription>{t('performance_description')}</CardDescription>
               </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Label>{t('completed_requests')}</Label>
-                  <span className="font-medium">{user.completedRequests}</span>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label>{t('completed_requests')}</Label>
+                    <span className="font-medium">{user.completedRequests}</span>
+                  </div>
+                  <Progress value={75} />
                 </div>
-                <Progress value={75} />
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Label>{t('average_processing_time')}</Label>
-                  <span className="font-medium">
-                    {user.averageProcessingTime
-                      ? `${Math.round(user.averageProcessingTime)} ${t('hours')}`
-                      : t('not_available')}
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label>{t('average_processing_time')}</Label>
+                    <span className="font-medium">
+                      {user.averageProcessingTime
+                        ? `${Math.round(user.averageProcessingTime)} ${t('hours')}`
+                        : t('not_available')}
+                    </span>
+                  </div>
+                  <Progress value={85} />
                 </div>
-                <Progress value={85} />
-              </div>
 
-              <div className="space-y-2">
-                <Label>{t('active_requests_limit')}</Label>
-                <Input
-                  type="number"
-                  name="maxActiveRequests"
-                  defaultValue={user.maxActiveRequests || 10}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                <div className="space-y-2">
+                  <Label>{t('active_requests_limit')}</Label>
+                  <Input
+                    type="number"
+                    name="maxActiveRequests"
+                    defaultValue={user.maxActiveRequests || 10}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         )}
 
         <TabsContent value="preferences" className="space-y-4">
@@ -244,7 +240,7 @@ export default function AdminAccountPage() {
                     {t('admin_email_notifications_description')}
                   </p>
                 </div>
-                <Switch 
+                <Switch
                   checked={emailNotifications}
                   onCheckedChange={setEmailNotifications}
                   disabled={isLoading}
@@ -257,26 +253,27 @@ export default function AdminAccountPage() {
                     {t('auto_assignment_description')}
                   </p>
                 </div>
-                <Switch 
+                <Switch
                   checked={autoAssignment}
                   onCheckedChange={setAutoAssignment}
                   disabled={isLoading}
                 />
               </div>
-              
+
               <div className="pt-4">
-                <Button 
+                <Button
                   onClick={async () => {
                     setIsLoading(true);
                     try {
                       // Here you would save the preferences
                       toast({
-                        title: t('preferences_updated'),
+                        title: t_messages('success.update'),
                         variant: 'success',
                       });
                     } catch (error) {
+                      console.error(error);
                       toast({
-                        title: t('preferences_update_error'),
+                        title: t_messages('errors.update'),
                         variant: 'destructive',
                       });
                     } finally {
@@ -286,7 +283,7 @@ export default function AdminAccountPage() {
                   disabled={isLoading}
                 >
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {t('save_preferences')}
+                  {t_actions('save')}
                 </Button>
               </div>
             </CardContent>
@@ -300,24 +297,24 @@ export default function AdminAccountPage() {
                 <CardTitle>{t('security_settings')}</CardTitle>
                 <CardDescription>{t('admin_security_description')}</CardDescription>
               </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('two_factor_auth')}</Label>
-                <p className="text-sm text-muted-foreground">
-                  {t('two_factor_description')}
-                </p>
-                <Button variant="outline">{t('enable_2fa')}</Button>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('api_access')}</Label>
-                <p className="text-sm text-muted-foreground">
-                  {t('api_access_description')}
-                </p>
-                <Button variant="outline">{t('manage_api_keys')}</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t('two_factor_auth')}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('two_factor_description')}
+                  </p>
+                  <Button variant="outline">{t('enable_2fa')}</Button>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('api_access')}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('api_access_description')}
+                  </p>
+                  <Button variant="outline">{t('manage_api_keys')}</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         )}
       </Tabs>
     </PageContainer>

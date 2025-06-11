@@ -37,12 +37,16 @@ export default async function NewAppointmentPage({
         type?: AppointmentType;
       }
     | undefined;
-  if (awaitedSearchParams.serviceRequestId) {
-    const request = await getServiceRequest(awaitedSearchParams.serviceRequestId);
+
+  // Support both serviceRequestId and requestId parameters
+  const requestId = awaitedSearchParams.serviceRequestId;
+
+  if (requestId) {
+    const request = await getServiceRequest(requestId);
     if (request) {
       preselectedData = {
         request,
-        type: awaitedSearchParams.type,
+        type: awaitedSearchParams.type || AppointmentType.DOCUMENT_SUBMISSION,
       };
     }
   }

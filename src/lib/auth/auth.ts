@@ -1,4 +1,4 @@
-import { betterAuth } from 'better-auth';
+import { betterAuth, type BetterAuthOptions } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { db } from '@/lib/prisma';
 import { phoneNumber, emailOTP, customSession } from 'better-auth/plugins';
@@ -6,11 +6,10 @@ import { sendSMSOTP } from '@/actions/email';
 import { tryCatch } from '../utils';
 import { sendOTPEmail } from '../services/notifications/providers/emails';
 import { nextCookies } from 'better-auth/next-js';
-import { getUserSession } from '../user/getters';
-import { UserRole } from '@prisma/client';
 import { env } from '../env';
+import { getUserSession } from '../user/getters';
 
-export const auth = betterAuth({
+const options = {
   emailAndPassword: {
     enabled: false,
   },
@@ -20,9 +19,12 @@ export const auth = betterAuth({
   user: {
     modelName: 'User',
     additionalFields: {
-      roles: {
+      role: {
+        type: ['USER', 'ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT'] as const,
+        required: true,
+      },
+      phoneNumber: {
         type: 'string',
-        enum: UserRole,
         required: true,
       },
     },
@@ -59,52 +61,25 @@ export const auth = betterAuth({
       expiresIn: 300,
     }),
     nextCookies(),
-    customSession(sessionCustomizer),
+  ],
+} satisfies BetterAuthOptions;
+
+export const auth = betterAuth({
+  ...options,
+  plugins: [
+    ...(options.plugins ?? []),
+    customSession(async ({ session, user }) => {
+      const userSessionData = await getUserSession(user.id, user.role);
+      return {
+        session: {
+          expiresAt: session.expiresAt,
+          token: session.token,
+          userAgent: session.userAgent,
+        },
+        user: userSessionData,
+      };
+    }, options),
   ],
 });
 
 export type Session = typeof auth.$Infer.Session;
-
-async function sessionCustomizer({
-  session,
-  user,
-}: {
-  session: {
-    id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    userId: string;
-    expiresAt: Date;
-    token: string;
-    ipAddress?: string | null;
-    userAgent?: string | null;
-  };
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    emailVerified: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    image?: string | null;
-  };
-}) {
-  const userRoles = await db.user.findUnique({
-    where: {
-      id: user.id,
-    },
-    select: {
-      roles: true,
-    },
-  });
-
-  const userSessionData = await getUserSession(user.id, userRoles?.roles ?? []);
-
-  return {
-    ...session,
-    user: {
-      ...user,
-      ...userSessionData,
-    },
-  };
-}
