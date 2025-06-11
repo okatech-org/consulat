@@ -43,8 +43,8 @@ export const DaySchedule = ({
             if (checked) {
               form.setValue(`metadata.${countryCode}.settings.schedule.${day}.slots`, [
                 {
-                  start: '09:00',
-                  end: '17:00',
+                  start: '07:00',
+                  end: '20:00',
                 },
               ]);
             }
@@ -70,6 +70,9 @@ export const DaySchedule = ({
                             onValueChange={(value) => {
                               field.onChange(value);
                             }}
+                            interval={15}
+                            startTime="07:00"
+                            endTime="20:00"
                           />
                         </FormControl>
                         <TradFormMessage />
@@ -86,6 +89,9 @@ export const DaySchedule = ({
                         <FormLabel>{t('common.schedule.to')}</FormLabel>
                         <FormControl>
                           <TimeSelect
+                            interval={15}
+                            startTime="07:00"
+                            endTime="20:00"
                             value={field.value}
                             onValueChange={(value) => {
                               field.onChange(value);
