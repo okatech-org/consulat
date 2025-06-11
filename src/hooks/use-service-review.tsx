@@ -438,7 +438,8 @@ interface ServiceRequestDocumentsProps {
 }
 
 export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProps) {
-  const documents = request.requiredDocuments;
+  const service = request.service;
+  const userDocuments = request.submittedBy?.documents || [];
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('common');
   const t_errors = useTranslations('messages.errors');
@@ -474,26 +475,43 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
   } | null>(null);
   const [previewDoc, setPreviewDoc] = useState<{url: string, title: string, type: 'pdf' | 'image'} | null>(null);
 
+  // Combine required and optional documents
+  const allServiceDocuments = [
+    ...service.requiredDocuments.map(type => ({ type, required: true })),
+    ...service.optionalDocuments.map(type => ({ type, required: false }))
+  ];
+
+  // Map service documents to user documents
+  const documentsToDisplay = allServiceDocuments.map(serviceDoc => {
+    const userDoc = userDocuments.find(doc => doc.type === serviceDoc.type);
+    return {
+      type: serviceDoc.type,
+      required: serviceDoc.required,
+      document: userDoc || null
+    };
+  });
+
   return (
     <CardContainer
       title={t_review('sections.documents')}
       contentClass="grid sm:grid-cols-2 gap-4 sm:gap-6"
     >
-      {documents.map((document) => {
-        const validation = validateDocument(document, true);
+      {documentsToDisplay.map((docItem) => {
+        const { type, required, document } = docItem;
+        const validation = document ? validateDocument(document, true) : { isValid: false, errors: [] };
 
         return (
           <div
-            key={document.id}
+            key={type}
             className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
           >
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <p className="font-medium">
-                  {t_inputs(`userDocument.options.${document.type}`)}
+                  {t_inputs(`userDocument.options.${type}`)}
                 </p>
 
-                {documentValidations?.[document?.type as DocumentType]?.required && (
+                {required && (
                   <Badge variant="outline">{t_review('documents.required')}</Badge>
                 )}
                 {document?.status && (
@@ -524,21 +542,21 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
                   )}
                 </div>
               )}
-              {!document && validation.errors.length === 0 && (
+              {!document && (
                 <p className="text-sm text-muted-foreground">
-                  {t_errors('not_provided')}
+                  {required ? t_errors('not_provided') + ' (Requis)' : t_errors('not_provided') + ' (Optionnel)'}
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2">
-              {document && (
+              {document ? (
                 <>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPreviewDoc({
                       url: document.fileUrl,
-                      title: t_inputs(`userDocument.options.${document.type}`),
+                      title: t_inputs(`userDocument.options.${type}`),
                       type: document.fileUrl.endsWith('.pdf') ? 'pdf' : 'image'
                     })}
                   >
@@ -551,7 +569,7 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
                     onClick={() =>
                       setSelectedDocument({
                         id: document.id,
-                        type: document.type
+                        type: type
                       })
                     }
                   >
@@ -573,6 +591,10 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
                     </TooltipContent>
                   </Tooltip>
                 </>
+              ) : required ? (
+                <XCircle className="size-5 text-destructive" />
+              ) : (
+                <Badge variant="outline">Non fourni</Badge>
               )}
             </div>
           </div>
