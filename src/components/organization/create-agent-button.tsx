@@ -16,7 +16,10 @@ import {
 import { Organization } from '@/types/organization';
 
 import { getServicesForOrganization } from '@/actions/agents';
-import { getOrganizationManagers, getAvailableAgentsForManager } from '@/actions/organizations';
+import {
+  getOrganizationManagers,
+  getAvailableAgentsForManager,
+} from '@/actions/organizations';
 import { tryCatch } from '@/lib/utils';
 
 interface CreateAgentButtonProps {
@@ -43,13 +46,13 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
           setServices(servicesResult.data);
         }
         if (managersResult.data) {
-          const validManagers = managersResult.data.filter(
+          const validManagers = managersResult.data?.filter(
             (m): m is { id: string; name: string } => m.name !== null,
           );
           setManagers(validManagers);
         }
         if (agentsResult.data) {
-          const validAgents = agentsResult.data.filter(
+          const validAgents = agentsResult.data?.filter(
             (a): a is { id: string; name: string } => a.name !== null,
           );
           setAgents(validAgents);
