@@ -33,7 +33,7 @@ export default async function OrganizationSettingsPage() {
       <ServerRoleGuard
         roles={['ADMIN', 'SUPER_ADMIN', 'MANAGER']}
         user={user}
-        fallback={<div>You are not authorized to access this page</div>}
+        fallback={<div>Vous n&apos;êtes pas autorisé à accéder à cette page</div>}
       >
         <SettingsTabs
           organization={{

@@ -368,7 +368,8 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
           label: t_inputs(`serviceCategory.options.${category}`),
         })),
         defaultValue: (params.category || []) as string[],
-        onChange: (value) => handleParamsChange('category', value as ServiceCategory[]),
+        onChange: (value: string[]) =>
+          handleParamsChange('category', value as ServiceCategory[]),
       },
       ...(isSuperAdmin
         ? [
