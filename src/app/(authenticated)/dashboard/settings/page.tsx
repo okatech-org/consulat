@@ -8,19 +8,19 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { getActiveCountries } from '@/actions/countries';
 import { ServerRoleGuard } from '@/lib/permissions/utils';
 import { UserRole } from '@prisma/client';
+import { getOrganizationIdFromUser } from '@/lib/utils';
 
 export default async function OrganizationSettingsPage() {
   const user = await getCurrentUser();
+  const organizationId = getOrganizationIdFromUser(user);
   const t = await getTranslations();
   const countries = await getActiveCountries();
 
-  if (!user?.organizationId || !user.assignedOrganizationId) {
+  if (!organizationId || !user) {
     notFound();
   }
 
-  const { data: organization, error } = await getOrganizationById(
-    user.organizationId || user.assignedOrganizationId,
-  );
+  const { data: organization, error } = await getOrganizationById(organizationId);
 
   if (!organization || error) {
     notFound();
