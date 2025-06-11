@@ -248,9 +248,7 @@ export function ServiceRequestReview({
                 placeholder="Sélectionner un statut"
                 disabled={
                   request.status === 'COMPLETED' &&
-                  user &&
-                  // @ts-expect-error - The user type from useCurrentUser is compatible
-                  !hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN'])
+                  !hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
                 }
               />
             </div>

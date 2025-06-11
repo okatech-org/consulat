@@ -4,8 +4,6 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    console.log('🌱 Starting seed...');
-
     console.log('✅ Seed completed successfully!');
   } catch (error) {
     console.error('❌ Error during seed:', error);

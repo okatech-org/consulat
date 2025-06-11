@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Shield,
 } from 'lucide-react';
-import { Badge, BadgeVariant } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { DisplayAddress } from '@/components/ui/display-address';
 import { DocumentPreview } from '@/components/ui/document-preview';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -41,7 +41,10 @@ export type ReviewStepField = ServiceField & {
 
 export default function useServiceReview(request: FullServiceRequest) {
   const service = request.service;
+
   const tabs: ServiceReviewTab[] = [];
+
+  console.log({ request });
 
   if (service.requiredDocuments.length > 0 || service.optionalDocuments.length > 0) {
     tabs.push({
