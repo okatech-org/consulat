@@ -28,6 +28,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { CardTitle } from '@/components/ui/card';
 import { SessionUser } from '@/types';
+import Link from 'next/link';
 
 interface RequestOverviewProps {
   request: FullServiceRequest & { profile?: FullProfile | null };
@@ -38,10 +39,7 @@ interface RequestOverviewProps {
 export function RequestOverview({ request, user, agents = [] }: RequestOverviewProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
-  const router = useRouter();
 
-  const isProcessable = !['COMPLETED', 'CANCELLED'].includes(request.status);
-  const isAgent = hasRole(user, UserRole.AGENT);
   const isAdmin = hasAnyRole(user, ['ADMIN', 'MANAGER']);
 
   const getActionButton = () => {
@@ -50,28 +48,12 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
       ? t('requests.actions.start_processing')
       : t('requests.actions.continue_processing');
 
-    if (isProcessable && isAgent) {
-      return (
-        <Button
-          onClick={async () => {
-            await assignServiceRequest(request.id, user.id);
-            router.push(ROUTES.dashboard.service_request_review(request.id));
-          }}
-        >
+    return (
+      <Button asChild>
+        <Link href={ROUTES.dashboard.service_request_review(request.id)}>
           <FileText className="size-4" />
           {label}
-        </Button>
-      );
-    }
-
-    return (
-      <Button
-        onClick={async () => {
-          router.push(ROUTES.dashboard.service_request_review(request.id));
-        }}
-      >
-        <FileText className="size-4" />
-        {label}
+        </Link>
       </Button>
     );
   };
