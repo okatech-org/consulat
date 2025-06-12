@@ -317,7 +317,7 @@ export function NewAppointmentForm({
     endOfDay.setHours(23, 59, 59, 999);
 
     getAvailableTimeSlots(
-      selectedRequest.service.category,
+      selectedRequest.service.id,
       organizationId,
       countryCode,
       startOfDay,

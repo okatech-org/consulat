@@ -48,7 +48,7 @@ interface GenerateTimeSlotsParams {
 }
 
 export async function getAvailableTimeSlots(
-  serviceCategory: ServiceCategory,
+  serviceId: string,
   organizationId: string,
   countryCode: string,
   startDate: Date,
@@ -59,16 +59,14 @@ export async function getAvailableTimeSlots(
   const [agentsData, countryData, organizationData] = await Promise.all([
     db.user.findMany({
       where: {
-        roles: {
-          has: UserRole.AGENT,
-        },
         assignedOrganizationId: organizationId,
-        specializations: {
-          has: serviceCategory,
+        assignedServices: {
+          in: serviceId,
         },
         ...(agentId && { id: agentId }),
       },
       include: {
+        assignedServices: true,
         assignedAppointments: {
           where: {
             startTime: { gte: startDate, lte: endDate },
