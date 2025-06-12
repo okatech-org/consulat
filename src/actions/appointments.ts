@@ -61,7 +61,9 @@ export async function getAvailableTimeSlots(
       where: {
         assignedOrganizationId: organizationId,
         assignedServices: {
-          in: serviceId,
+          some: {
+            id: serviceId,
+          },
         },
         ...(agentId && { id: agentId }),
       },
