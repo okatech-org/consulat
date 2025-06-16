@@ -105,19 +105,6 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const clientIP = getClientIP(request);
 
-  // Vérification du rate limiting global par IP en premier
-  const rateLimitResult = await checkRateLimit(globalLimiter, clientIP);
-  if (!rateLimitResult.allowed) {
-    logEdgeRateLimitExceeded(clientIP, 'global', clientIP);
-    return new NextResponse('Rate limit exceeded', {
-      status: 429,
-      headers: {
-        'Retry-After': String(Math.ceil((rateLimitResult.msBeforeNext || 0) / 1000)),
-        'Content-Type': 'text/plain',
-      },
-    });
-  }
-
   // Vérification de la session utilisateur
   const session = getSessionCookie(request);
 

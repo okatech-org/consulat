@@ -2,7 +2,12 @@ import { FullServiceRequest } from '@/types/service-request';
 import { useStoredTabs } from './use-tabs';
 import { ServiceField } from '@/types/consular-service';
 import CardContainer from '@/components/layouts/card-container';
-import { DocumentType, DeliveryMode, UserDocument } from '@prisma/client';
+import {
+  DocumentType,
+  DeliveryMode,
+  UserDocument,
+  AppointmentStatus,
+} from '@prisma/client';
 import { useDateLocale } from '@/lib/utils';
 import {
   CheckCircle2,
@@ -244,7 +249,7 @@ function AppointmentReview({ request }: AppointmentReviewProps) {
       <div className="flex items-center gap-3">
         <Badge
           variant={
-            appointment.status === 'VALIDATED'
+            appointment.status === AppointmentStatus.CONFIRMED
               ? 'default'
               : appointment.status === 'CANCELLED'
                 ? 'destructive'
