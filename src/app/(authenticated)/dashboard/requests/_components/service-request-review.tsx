@@ -223,7 +223,7 @@ export function ServiceRequestReview({
 
             {/* Request status */}
             <div className="space-y-2">
-              <Label>Statut</Label>
+              <Label>Statut de la demande</Label>
               <MultiSelect<RequestStatus>
                 type="single"
                 options={[
@@ -232,6 +232,10 @@ export function ServiceRequestReview({
                   {
                     value: 'PENDING_COMPLETION',
                     label: t_common('status.PENDING_COMPLETION'),
+                  },
+                  {
+                    value: 'DOCUMENT_IN_PRODUCTION',
+                    label: t_common('status.DOCUMENT_IN_PRODUCTION'),
                   },
                   {
                     value: 'APPOINTMENT_SCHEDULED',

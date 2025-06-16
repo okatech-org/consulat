@@ -21,7 +21,7 @@ export function RouteAuthGuard({
 }: BaseLayoutProps) {
   if (!user) redirect(ROUTES.auth.login);
 
-  if (!hasAnyRole(user, roles)) {
+  if (roles && !hasAnyRole(user, roles)) {
     if (fallbackComponent) {
       return fallbackComponent;
     }
