@@ -18,8 +18,10 @@ export default {
     title: 'Progression du profil',
     description: 'Suivez votre avancement',
     completed: '{completed} sur {total} champs remplis',
-    start_message: 'Commencez à remplir votre profil pour débloquer les services consulaires.',
-    incomplete_message: 'Votre profil est complété à {percentage}%. Continuez pour accéder à tous les services.',
+    start_message:
+      'Commencez à remplir votre profil pour débloquer les services consulaires.',
+    incomplete_message:
+      'Votre profil est complété à {percentage}%. Continuez pour accéder à tous les services.',
     view_details: 'Voir les détails',
     missing_fields: 'Champs manquants',
     and_more: '... et {count} autres',
@@ -32,8 +34,8 @@ export default {
     'contact-info': 'Contact',
     'family-info': 'Famille',
     'professional-info': 'Profession',
-    'documents': 'Documents',
-    'requests': 'Demandes',
+    documents: 'Documents',
+    requests: 'Demandes',
   },
   personal_info: {
     title: 'Informations personnelles',
@@ -48,7 +50,7 @@ export default {
   last_update: 'Dernière mise à jour',
   missing_fields: 'Champs manquants',
   submission: {
-    submit_button: 'Soumettre pour validation',
+    submit_button: "Envoyer ma demande d'inscription",
     dialog: {
       title: 'Soumettre le profil pour validation',
       description:
@@ -118,33 +120,33 @@ export default {
     passportExpiryDate: "Date d'expiration du passeport",
     passportIssueAuthority: 'Autorité de délivrance',
     identityPicture: "Photo d'identité",
-    
+
     // Contact info fields
     email: 'Email',
     phoneNumber: 'Numéro de téléphone',
     address: 'Adresse complète',
-    residentContact: 'Contact d\'urgence résident',
+    residentContact: "Contact d'urgence résident",
     residentContactName: 'Nom du contact résident',
     residentContactPhone: 'Téléphone du contact résident',
     residentContactRelation: 'Relation avec le contact résident',
-    
+
     // Family info fields
     maritalStatus: 'Situation matrimoniale',
     fatherFullName: 'Nom complet du père',
     motherFullName: 'Nom complet de la mère',
     spouseFullName: 'Nom complet du conjoint(e)',
-    
+
     // Professional info fields
     workStatus: 'Statut professionnel',
     profession: 'Profession',
     employer: 'Employeur',
     employerAddress: "Adresse de l'employeur",
-    
+
     // Documents
     passport: 'Passeport',
     birthCertificate: 'Acte de naissance',
     addressProof: 'Justificatif de domicile',
-    
+
     // Legacy fields (kept for compatibility)
     gender_type: {
       male: 'Masculin',

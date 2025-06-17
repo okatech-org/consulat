@@ -76,8 +76,8 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
   };
 
   return (
-    <CardContainer contentClass="flex flex-col items-center gap-4 md:flex-row md:gap-6">
-      <Avatar className="size-24 md:size-32 bg-muted">
+    <CardContainer contentClass="flex items-center gap-2 px-2 py-3 flex-row md:gap-6 md:px-6 md:py-6">
+      <Avatar className="size-16 bg-muted md:size-32">
         {profile?.identityPicture ? (
           <AvatarImage
             src={profile?.identityPicture.fileUrl}
@@ -88,21 +88,33 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
         )}
       </Avatar>
 
-      <div className="flex-1 text-center md:text-left">
-        <div className="flex flex-col items-center gap-x-2 md:flex-row md:gap-x-4">
-          <h1 className="text-2xl font-bold md:text-3xl">
+      <div className="flex-1 w-full md:text-left">
+        <div className="flex flex-col gap-y-1 gap-x-2 md:flex-row md:gap-x-4 md:gap-y-0">
+          <h1 className="text-lg font-bold md:text-3xl">
             {`${profile?.firstName} ${profile?.lastName}`}
           </h1>
           {inMySpace && <ProfileStatusBadge status={profile?.status || 'DRAFT'} />}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-          <Button variant="outline" size="sm" onClick={onShare}>
-            <Share2 className="size-4" />
+        <div className="mt-2 flex w-full flex-row flex-wrap items-center gap-1 md:mt-4 md:gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="md:px-3"
+            onClick={onShare}
+            aria-label={t('actions.share')}
+          >
+            <Share2 className="size-4 mr-1" />
             {t('actions.share')}
           </Button>
-          <Button variant="outline" size="sm" onClick={onDownload}>
-            <Download className="size-4" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="md:px-3"
+            onClick={onDownload}
+            aria-label={t('actions.download')}
+          >
+            <Download className="size-4 mr-1" />
             {t('actions.download')}
           </Button>
           {inMySpace && <ConsularCardPreview profile={profile} />}

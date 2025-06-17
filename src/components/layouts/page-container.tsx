@@ -16,7 +16,7 @@ export const PageContainer = ({
   className = '',
 }: PageContainerProps) => {
   return (
-    <div className={`h-full space-y-4 sm:space-y-6 ${className}`}>
+    <div className={`min-h-full space-y-4 sm:space-y-6 ${className}`}>
       {(title || description || action) && (
         <div className="flex items-end gap-2 justify-between">
           {(title || description) && (

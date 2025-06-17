@@ -82,6 +82,9 @@
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
 
+    /* Safe area */
+    --safe-bottom: 6rem;
+
     /* Shadow system - Mobile optimized for clarity */
     --shadow-color: 215 25% 27%;
     --shadow-strength: 2%;
@@ -453,7 +456,7 @@ p,
 
   /* Assurer que le contenu ne passe pas sous la navigation mobile */
   .pb-safe {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+    padding-bottom: var(--safe-bottom);
   }
 
   .btn-mobile {
@@ -786,4 +789,55 @@ p,
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom scrollbar styles */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(
+    var(--primary)
+  ); /* Optionally, use a slightly different shade if you define one */
+  filter: brightness(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--primary));
+  filter: brightness(0.9);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary)) hsl(var(--background));
+}
+
+/* For specific scrollable containers if you want different styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  opacity: 0.8;
 }

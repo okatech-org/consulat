@@ -11,10 +11,12 @@ export default async function AuthenticatedLayout({
   return (
     <>
       <AppSidebar variant="inset" />
-      <SidebarInset className="overflow-x-hidden pb-16 md:pb-0">
+      <SidebarInset className="bg-background overflow-hidden">
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="container py-4 flex flex-1 flex-col gap-2">{children}</div>
+        <div className="flex-1 relative">
+          <div className="absolute py-6 pb-safe md:pb-6 inset-0 overflow-y-scroll container">
+            {children}
+          </div>
         </div>
         <BottomNavigation />
       </SidebarInset>

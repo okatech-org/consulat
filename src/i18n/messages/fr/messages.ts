@@ -1,6 +1,8 @@
 export default {
   errors: {
     OTP_NOT_FOUND: "Le code OTP n'est pas valide",
+    INVALID_OTP:
+      "Le code d'accès est invalide ou a expiré, veuillez réessayer ou demander un nouveau code",
     invalid_document: 'Un document valide est requis',
     profile_update_failed: 'Échec de la mise à jour du profil',
     email_user_email_already_exists: 'Un utilisateur avec cet email existe déjà',

@@ -164,6 +164,7 @@ export function NewProfileForm({
       form.setError('otp', {
         message: `messages.errors.${response.error.code}`,
       });
+      setIsLoading(false);
       return;
     }
 
@@ -173,6 +174,7 @@ export function NewProfileForm({
       form.setError('otp', {
         message: 'messages.errors.user_creation_failed',
       });
+      setIsLoading(false);
       return;
     }
 
