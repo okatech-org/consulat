@@ -47,6 +47,8 @@ const handleAuthRedirects = (
 ): NextResponse | null => {
   const isProtected = isProtectedRoute(pathname);
 
+  console.log('isProtected', isProtected);
+
   // Redirection si route protégée sans session
   if (isProtected && !session) {
     const loginUrl = new URL('/login', request.url);
