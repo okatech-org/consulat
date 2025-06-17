@@ -5,6 +5,7 @@ import { generateCSPNonce } from '@/lib/security/headers';
 //import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
 //import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
 import { getSessionCookie } from 'better-auth/cookies';
+import { ROUTES } from './schemas/routes';
 
 // Routes protégées qui nécessitent une authentification
 const protectedRoutes = ['/dashboard', '/my-space'] as const;
@@ -47,20 +48,16 @@ const handleAuthRedirects = (
 ): NextResponse | null => {
   const isProtected = isProtectedRoute(pathname);
 
-  // Redirection si route protégée sans session
-  if (isProtected && !session) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+  if (session && pathname === ROUTES.auth.login) {
+    const newUrl = new URL(ROUTES.base, request.url);
+    return NextResponse.redirect(newUrl);
   }
 
-  // Redirection pour les utilisateurs connectés sur la page de login
-  if (session && pathname === '/login') {
-    const callbackUrl = request.nextUrl.searchParams.get('callbackUrl');
-    const redirectUrl = callbackUrl
-      ? new URL(callbackUrl, request.url)
-      : new URL('/', request.url);
-    return NextResponse.redirect(redirectUrl);
+  // Redirection si route protégée sans session
+  if (isProtected && !session) {
+    const newUrl = new URL(ROUTES.auth.login, request.url);
+    const urlWithCallback = newUrl.toString() + `?callbackUrl=${pathname}`;
+    return NextResponse.redirect(urlWithCallback);
   }
 
   return null;

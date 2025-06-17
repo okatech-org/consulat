@@ -75,6 +75,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const authError = searchParams.get('error') as ErrorMessageKey | null;
+  const callbackUrl = searchParams.get('callbackUrl');
 
   const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('PHONE');
   const [isLoading, setIsLoading] = React.useState(false);
@@ -192,7 +193,7 @@ export function LoginForm() {
     }
 
     setIsLoading(false);
-    router.refresh();
+    router.push(callbackUrl ?? ROUTES.base);
   };
 
   const resendOTP = async () => {

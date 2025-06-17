@@ -30,11 +30,11 @@ import { useTheme } from 'next-themes';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
 import { UserRole } from '@prisma/client';
-import { Session } from '@/lib/auth/auth-client';
+import { Session } from '@/lib/auth/auth';
 import Link from 'next/link';
 import { NotificationBell } from '../notifications/notification-bell';
 import { ChatToggle } from '../chat/chat-toggle';
-import { authClient } from '@/lib/auth/auth-client';
+import { LogoutButton } from '../ui/logout-button';
 
 export function NavUser({
   user,
@@ -238,13 +238,8 @@ export function NavUser({
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={async () => {
-                  await authClient.signOut();
-                }}
-              >
-                <LogOut className="size-icon" />
-                {t('auth.actions.logout')}
+              <DropdownMenuItem asChild>
+                <LogoutButton customClass="w-full justify-start px-2" />
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

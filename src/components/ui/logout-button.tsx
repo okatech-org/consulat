@@ -27,7 +27,7 @@ export function LogoutButton({ customClass }: LogoutButtonProps) {
       onClick={() => {
         startTransition(async () => {
           await authClient.signOut().then(() => {
-            router.push('/');
+            router.refresh();
           });
         });
       }}
