@@ -13,20 +13,6 @@ const options = {
   emailAndPassword: {
     enabled: false,
   },
-  databaseHooks: {
-    user: {
-      create: {
-        before: async (user) => {
-          return {
-            data: {
-              ...user,
-              role: 'USER',
-            },
-          };
-        },
-      },
-    },
-  },
   database: prismaAdapter(db, {
     provider: 'postgresql',
   }),

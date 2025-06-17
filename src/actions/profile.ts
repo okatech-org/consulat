@@ -50,7 +50,6 @@ export async function createUserProfile(input: CreateProfileInput, userId: strin
         id: userId,
       },
       data: {
-        role: UserRole.USER,
         name: `${firstName ?? ''} ${lastName ?? ''}`,
         email,
         phoneNumber,
