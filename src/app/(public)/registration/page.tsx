@@ -15,7 +15,7 @@ export default async function RegistrationPage() {
   const countries = await getActiveCountries();
 
   return (
-    <PageContainer className="w-dvw min-h-dvh overflow-x-hidden relative bg-background flex items-center justify-center">
+    <PageContainer className="w-dvw min-h-dvh overflow-x-hidden container py-8 relative bg-background flex items-center justify-center">
       <div className="w-full h-full flex flex-col items-center justify-center max-w-2xl mx-auto space-y-6">
         <header className="w-full border-b border-border pb-6">
           <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
