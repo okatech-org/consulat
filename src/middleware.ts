@@ -48,18 +48,16 @@ const handleAuthRedirects = (
 ): NextResponse | null => {
   const isProtected = isProtectedRoute(pathname);
 
-  // Redirection si route protégée sans session
-  if (isProtected && !session) {
-    return NextResponse.redirect(`${ROUTES.auth.login}?callbackUrl=${pathname}`);
+  if (session && pathname === ROUTES.auth.login) {
+    const newUrl = new URL(ROUTES.base, request.url);
+    return NextResponse.redirect(newUrl);
   }
 
-  // Redirection pour les utilisateurs connectés sur la page de login
-  if (session && pathname === '/login') {
-    const callbackUrl = request.nextUrl.searchParams.get('callbackUrl');
-    const redirectUrl = callbackUrl
-      ? new URL(callbackUrl, request.url)
-      : new URL('/', request.url);
-    return NextResponse.redirect(redirectUrl);
+  // Redirection si route protégée sans session
+  if (isProtected && !session) {
+    const newUrl = new URL(ROUTES.auth.login, request.url);
+    const urlWithCallback = newUrl.toString() + `?callbackUrl=${pathname}`;
+    return NextResponse.redirect(urlWithCallback);
   }
 
   return null;
