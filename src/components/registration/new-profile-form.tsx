@@ -187,7 +187,7 @@ export function NewProfileForm({
     }
 
     setIsLoading(false);
-    router.push(ROUTES.user.profile + '?tab=basic-info#basic-info');
+    router.push(ROUTES.user.profile_form);
   };
 
   const handleResendOTP = async () => {

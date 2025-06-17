@@ -60,6 +60,7 @@ export const ROUTES = {
     dashboard: '/my-space' as Route<string>,
     requests: '/my-space/services/requests' as Route<string>,
     profile: '/my-space/profile' as Route<string>,
+    profile_form: '/my-space/profile?form=true' as Route<string>,
     appointments: '/my-space/appointments' as Route<string>,
     appointments_new: '/my-space/appointments/new' as Route<string>,
     new_appointment: '/my-space/appointments/new' as Route<string>,
@@ -101,7 +102,6 @@ export const ROUTES = {
 
   unauthorized: '/unauthorized' as Route<string>,
   registration: '/registration' as Route<string>,
-  registration_form: '/registration?form=true' as Route<string>,
   privacy_policy: '#' as Route<string>,
   terms: '#' as Route<string>,
 } as const;
