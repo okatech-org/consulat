@@ -5,6 +5,7 @@ import { generateCSPNonce } from '@/lib/security/headers';
 //import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
 //import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
 import { getSessionCookie } from 'better-auth/cookies';
+import { ROUTES } from './schemas/routes';
 
 // Routes protégées qui nécessitent une authentification
 const protectedRoutes = ['/dashboard', '/my-space'] as const;
@@ -47,13 +48,9 @@ const handleAuthRedirects = (
 ): NextResponse | null => {
   const isProtected = isProtectedRoute(pathname);
 
-  console.log('isProtected', isProtected);
-
   // Redirection si route protégée sans session
   if (isProtected && !session) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(`${ROUTES.auth.login}?callbackUrl=${pathname}`);
   }
 
   // Redirection pour les utilisateurs connectés sur la page de login
