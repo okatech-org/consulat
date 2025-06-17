@@ -3,8 +3,7 @@ export default {
     placeholder: 'Ex: Demande de passeport',
   },
   title: 'Services Consulaires',
-  description:
-    'Gérez vos demandes de services consulaires et découvrez les services disponibles',
+  description: 'Gérez et lancez vos demandes de services consulaires',
   messages: {
     createSuccess: 'Service créé avec succès',
     updateSuccess: 'Service mis à jour avec succès',

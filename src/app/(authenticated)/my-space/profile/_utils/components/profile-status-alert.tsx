@@ -140,7 +140,7 @@ export function ProfileStatusAlert({
       subtitle={config.description}
       contentClass="flex flex-col gap-2 justify-start"
     >
-      <div className="w-max">{config.action}</div>
+      {config.action && <div className="w-max">{config.action}</div>}
     </CardContainer>
   );
 }

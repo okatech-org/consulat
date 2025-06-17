@@ -5,7 +5,7 @@ interface CardContainerProps {
   subtitle?: React.ReactNode;
   action?: React.ReactNode;
   footerContent?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
   contentClass?: string;
   headerClass?: string;
@@ -25,7 +25,7 @@ export default function CardContainer({
     <Card.Card className={'flex flex-col ' + className}>
       {(title || subtitle || action) && (
         <Card.CardHeader
-          className={`flex-row items-center space-y-0 pb-4 mb-4 gap-2 border-b border-border/50 ${headerClass}`}
+          className={`flex-row items-center space-y-0 pb-4 gap-2 ${headerClass}`}
         >
           <div>
             {title && <Card.CardTitle>{title}</Card.CardTitle>}
@@ -34,11 +34,13 @@ export default function CardContainer({
           {action && <div className="ml-auto">{action}</div>}
         </Card.CardHeader>
       )}
-      <Card.CardContent
-        className={`flex-1 ${contentClass} ${title || subtitle || action ? '!pt-0' : 'pt-4'}`}
-      >
-        {children}
-      </Card.CardContent>
+      {children && (
+        <Card.CardContent
+          className={`flex-1 border-t border-border/50 ${contentClass} ${title || subtitle || action ? '!pt-0' : 'pt-4'}`}
+        >
+          {children}
+        </Card.CardContent>
+      )}
       {footerContent && <Card.CardFooter>{footerContent}</Card.CardFooter>}
     </Card.Card>
   );

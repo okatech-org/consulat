@@ -82,6 +82,9 @@
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
 
+    /* Safe area */
+    --safe-bottom: 6rem;
+
     /* Shadow system - Mobile optimized for clarity */
     --shadow-color: 215 25% 27%;
     --shadow-strength: 2%;
@@ -453,7 +456,7 @@ p,
 
   /* Assurer que le contenu ne passe pas sous la navigation mobile */
   .pb-safe {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+    padding-bottom: var(--safe-bottom);
   }
 
   .btn-mobile {

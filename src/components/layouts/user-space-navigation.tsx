@@ -43,13 +43,6 @@ export function UserSpaceNavigation({
       description: 'Gérer vos informations personnelles',
     },
     {
-      key: 'documents',
-      label: 'Documents',
-      href: ROUTES.user.documents,
-      icon: FileText,
-      description: 'Vos documents et pièces justificatives',
-    },
-    {
       key: 'appointments',
       label: 'Rendez-vous',
       href: ROUTES.user.appointments,
