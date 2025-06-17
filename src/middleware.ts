@@ -2,8 +2,8 @@ import { nanoid } from 'nanoid';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { generateCSPNonce } from '@/lib/security/headers';
-import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
-import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
+//import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
+//import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
 import { getSessionCookie } from 'better-auth/cookies';
 
 // Routes protégées qui nécessitent une authentification

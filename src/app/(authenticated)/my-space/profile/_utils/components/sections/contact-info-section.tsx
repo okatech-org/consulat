@@ -93,7 +93,12 @@ export function ContactInfoSection({
   };
 
   return (
-    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+    <EditableSection
+      isEditing={isEditing}
+      onSave={handleSave}
+      isLoading={isLoading}
+      id="contact-info"
+    >
       <ContactInfoForm
         profile={profile}
         form={form}
