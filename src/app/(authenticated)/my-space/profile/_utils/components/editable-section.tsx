@@ -10,6 +10,7 @@ interface EditableSectionProps {
   isEditing: boolean;
   isLoading?: boolean;
   allowEdit?: boolean;
+  id?: string;
 }
 
 export function EditableSection({
@@ -18,11 +19,12 @@ export function EditableSection({
   isEditing = true,
   isLoading = false,
   allowEdit = true,
+  id,
 }: EditableSectionProps) {
   const t = useTranslations('profile');
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" id={id}>
       {children}
 
       {allowEdit && (

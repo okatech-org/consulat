@@ -104,7 +104,12 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
   };
 
   return (
-    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+    <EditableSection
+      isEditing={isEditing}
+      onSave={handleSave}
+      isLoading={isLoading}
+      id="basic-info"
+    >
       <BasicInfoForm
         form={form}
         onSubmit={handleSave}

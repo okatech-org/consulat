@@ -68,7 +68,12 @@ export function FamilyInfoSection({
   };
 
   return (
-    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+    <EditableSection
+      isEditing={isEditing}
+      onSave={handleSave}
+      isLoading={isLoading}
+      id="family-info"
+    >
       <FamilyInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
     </EditableSection>
   );

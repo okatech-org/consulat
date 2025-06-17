@@ -40,7 +40,7 @@ export function DocumentsSection({
   };
 
   return (
-    <EditableSection isEditing={false} allowEdit={false}>
+    <EditableSection isEditing={false} allowEdit={false} id="documents">
       <div className="grid gap-6 lg:grid-cols-2">
         <UserDocument
           label={t_common('documents.types.birth_certificate')}

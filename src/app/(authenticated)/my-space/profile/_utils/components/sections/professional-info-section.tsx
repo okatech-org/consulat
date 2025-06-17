@@ -74,7 +74,12 @@ export function ProfessionalInfoSection({
   };
 
   return (
-    <EditableSection isEditing={isEditing} onSave={handleSave} isLoading={isLoading}>
+    <EditableSection
+      isEditing={isEditing}
+      onSave={handleSave}
+      isLoading={isLoading}
+      id="professional-info"
+    >
       <ProfessionalInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
     </EditableSection>
   );

@@ -7,6 +7,7 @@ import {
   ServiceCategory,
   Prisma,
   RequestActionType,
+  UserRole,
 } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { FullProfileInclude } from '@/types';
@@ -49,6 +50,7 @@ export async function createUserProfile(input: CreateProfileInput, userId: strin
         id: userId,
       },
       data: {
+        role: UserRole.USER,
         name: `${firstName ?? ''} ${lastName ?? ''}`,
         email,
         phoneNumber,
