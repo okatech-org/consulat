@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import { env } from '../env';
 
 export interface VisionAnalyzer {
   analyzeImage(base64Image: string, prompt: string): Promise<string>;
@@ -31,7 +32,7 @@ export class GeminiVisionAnalyzer implements VisionAnalyzer {
   private model: GenerativeModel;
 
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+    this.genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY!);
     // Use gemini-1.5-flash for faster processing or gemini-1.5-pro for better accuracy
     this.model = this.genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
