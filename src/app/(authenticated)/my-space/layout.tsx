@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { ROUTES } from '@/schemas/routes';
 

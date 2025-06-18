@@ -15,7 +15,7 @@ export const securityHeaders = {
   img-src 'self' https://flagcdn.com https://placehold.co https://utfs.io https://rbvj2i3urx.ufs.sh https://qld7pfnhxe.ufs.sh https://i.ytimg.com blob: data:;
   object-src 'self' data:;
   media-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
-  connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.resend.com https://uploadthing.com https://*.uploadthing.com https://utfs.io https://utfs.io/f/* https://api.twilio.com https://lottie.host https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://flagcdn.com https://*.vercel-scripts.com https://*.vercel-insights.com https://*.vercel-analytics.com https://*.ufs.sh https://*.ufs.sh/f/* ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''} wss://*.uploadthing.com;
+  connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.anthropic.com https://api.resend.com https://uploadthing.com https://*.uploadthing.com https://utfs.io https://utfs.io/f/* https://api.twilio.com https://lottie.host https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://flagcdn.com https://*.vercel-scripts.com https://*.vercel-insights.com https://*.vercel-analytics.com https://*.ufs.sh https://*.ufs.sh/f/* ${process.env.NODE_ENV === 'development' ? 'http://localhost:* ws://localhost:*' : ''} wss://*.uploadthing.com;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self';
