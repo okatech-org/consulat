@@ -128,6 +128,7 @@ export function LoginForm() {
           response.error instanceof Error ? response.error.message : 'Failed to send OTP',
         );
         setIsLoading(false);
+        return;
       }
     }
 
@@ -143,6 +144,7 @@ export function LoginForm() {
           response.error instanceof Error ? response.error.message : 'Failed to send OTP',
         );
         setIsLoading(false);
+        return;
       }
     }
 
@@ -155,6 +157,7 @@ export function LoginForm() {
   const validateOTP = async (otp: string) => {
     setIsLoading(true);
     setError(null);
+    let hasError = false;
 
     if (method === 'EMAIL') {
       const response = await tryCatch(
@@ -171,6 +174,8 @@ export function LoginForm() {
             : 'Failed to validate OTP',
         );
         setIsLoading(false);
+        hasError = true;
+        return;
       }
     }
 
@@ -189,11 +194,16 @@ export function LoginForm() {
             : 'Failed to validate OTP',
         );
         setIsLoading(false);
+        hasError = true;
+        return;
       }
     }
 
     setIsLoading(false);
-    router.push(callbackUrl ?? ROUTES.base);
+    // Only navigate if authentication was successful
+    if (!hasError) {
+      router.push(callbackUrl ?? ROUTES.base);
+    }
   };
 
   const resendOTP = async () => {
