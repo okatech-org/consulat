@@ -35,7 +35,7 @@ export class GeminiVisionAnalyzer implements VisionAnalyzer {
     this.genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY!);
     // Use gemini-1.5-flash for faster processing or gemini-1.5-pro for better accuracy
     this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       generationConfig: {
         temperature: 0.1,
         topP: 0.8,
