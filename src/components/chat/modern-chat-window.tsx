@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 import { useTranslations } from 'next-intl';
 import { useChat } from '@/contexts/chat-context';
+import { ChatMessage } from '@/lib/ai/gemini-chat';
 import {
   Dialog,
   DialogTrigger,
@@ -20,10 +21,8 @@ import {
   DialogClose,
 } from '../ui/dialog';
 
-export interface Message {
+export interface Message extends ChatMessage {
   id: string;
-  content: string;
-  sender: 'user' | 'bot';
   timestamp: Date;
 }
 
@@ -118,15 +117,13 @@ export function ModernChatWindow({
     }
   };
 
-  const addMessage = (content: string, sender: 'user' | 'bot') => {
+  const addMessage = (content: string, role: 'user' | 'assistant') => {
     const newMessage: Message = {
       id: Date.now().toString(),
       content,
-      sender,
+      role,
       timestamp: new Date(),
     };
-
-    // Create a new array with existing messages plus the new one
 
     // Update state first to ensure UI reflects changes
     setChatState((prev) => {
@@ -142,7 +139,7 @@ export function ModernChatWindow({
     const userMessage = inputValue.trim();
     setInputValue('');
 
-    // Ajouter le message utilisateur
+    // Add user message
     addMessage(userMessage, 'user');
 
     if (onSendMessage) {
@@ -152,10 +149,10 @@ export function ModernChatWindow({
       try {
         const response = await onSendMessage(userMessage);
         // Add bot response without losing previous messages
-        addMessage(response, 'bot');
+        addMessage(response, 'assistant');
       } catch (error) {
         console.error("Erreur lors de l'envoi du message:", error);
-        addMessage(t('error_message') || 'Une erreur est survenue', 'bot');
+        addMessage(t('error_message') || 'Une erreur est survenue', 'assistant');
       } finally {
         setChatState((prev) => ({ ...prev, isLoading: false }));
       }
@@ -277,7 +274,7 @@ export function ModernChatWindow({
         ) : (
           <>
             {chatState.messages.map((message) => {
-              const isBot = message.sender === 'bot';
+              const isBot = message.role === 'assistant';
               return (
                 <div
                   key={message.id}
