@@ -61,7 +61,7 @@ export async function getUserById(
 export async function getUserFullProfile(id: string): Promise<FullProfile | null> {
   try {
     return db.profile.findFirst({
-      where: { user: { id: id } },
+      where: { userId: id },
       ...FullProfileInclude,
     });
   } catch (e) {

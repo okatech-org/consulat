@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import { getProfileRegistrationRequest, getUserFullProfile } from '@/lib/user/getters';
-import { getCurrentUser } from '@/actions/user';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { NotesList } from '@/components/requests/review-notes';
@@ -13,6 +12,7 @@ import { getOrganisationCountryInfos } from '@/actions/organizations';
 import { PageContainer } from '@/components/layouts/page-container';
 import { RegistrationForm } from '@/components/registration/registration-form';
 import { getActiveCountries } from '@/actions/countries';
+import { getCurrentUser } from '@/lib/auth/utils';
 
 type ProfilePageProps = {
   searchParams: Promise<{

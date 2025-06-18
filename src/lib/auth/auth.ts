@@ -27,6 +27,10 @@ const options = {
         type: 'string',
         required: true,
       },
+      profileId: {
+        type: 'string',
+        required: true,
+      },
     },
   },
   plugins: [

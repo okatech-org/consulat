@@ -5,14 +5,22 @@ import Image from 'next/image';
 import { env } from '@/lib/env/index';
 import { BetaBanner } from '@/components/ui/beta-banner';
 import { PageContainer } from '@/components/layouts/page-container';
+import { getCurrentUser } from '@/lib/auth/utils';
+import { redirect } from 'next/navigation';
+import { ROUTES } from '@/schemas/routes';
 
 const appLogo = env.NEXT_ORG_LOGO;
 
 export default async function RegistrationPage() {
+  const currentUser = await getCurrentUser();
   const t = await getTranslations('auth.login');
   const tInputs = await getTranslations('inputs');
 
   const countries = await getActiveCountries();
+
+  if (currentUser) {
+    redirect(ROUTES.user.profile_form);
+  }
 
   return (
     <PageContainer className="w-dvw min-h-dvh overflow-x-hidden container py-8 relative bg-background flex items-center justify-center">

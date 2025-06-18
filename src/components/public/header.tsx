@@ -2,7 +2,7 @@ import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
 import { Button } from "@/components/ui/button"
-import { getCurrentUser } from "@/actions/user"
+import { getCurrentUser } from "@/lib/auth/utils"
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 import Image from 'next/image';
 import { NavUser } from "../layouts/nav-user"
@@ -46,7 +46,7 @@ export async function PublicHeader() {
           {!user && <ThemeToggleSingle />}
 
           {isAuth ? <NavUser showFeedback={false} user={user} /> : (<Button variant="default" asChild>
-            <Link prefetch href={ROUTES.auth.login + '?callbackUrl=' + ROUTES.user.base}>
+            <Link prefetch href={ROUTES.user.base}>
               {t('nav.login')}
             </Link>
           </Button>)}
