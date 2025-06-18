@@ -1,8 +1,6 @@
 'use server';
 
-import { OpenAI } from 'openai';
 import sharp from 'sharp';
-import { pdfToImages } from '@/actions/convert';
 import { getCurrentUser } from '@/actions/user';
 import { db } from '@/lib/prisma';
 import { DocumentStatus, UserDocument, DocumentType } from '@prisma/client';
@@ -14,6 +12,7 @@ import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/lib/env/index';
 import { ROUTES } from '@/schemas/routes';
 import { documentSpecificFields, getFieldsForDocument } from '@/lib/document-fields';
+import { GeminiVisionAnalyzer, StructuredOutput } from '@/lib/ai/gemini-analyzer';
 
 import {
   BasicInfoFormData,
@@ -41,18 +40,6 @@ interface AnalysisResponse {
   results: DocumentAnalysisResult[];
   mergedData: DocumentData;
   error?: string;
-}
-
-interface StructuredOutput {
-  data: {
-    basicInfo?: Partial<BasicInfoFormData>;
-    contactInfo?: Partial<ContactInfoFormData>;
-    familyInfo?: Partial<FamilyInfoFormData>;
-    professionalInfo?: Partial<ProfessionalInfoFormData>;
-  };
-  documentConfidence?: number;
-  explanation: string;
-  [key: string]: unknown; // Add index signature to satisfy Record<string, unknown>
 }
 
 /**
@@ -365,15 +352,18 @@ export async function optimizeImage(
     .toBuffer();
 }
 
-async function fileToImages(file: File): Promise<Buffer[]> {
+async function fileToBuffer(file: File): Promise<{ buffer: Buffer; mimeType: string }> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+
   if (file.type === 'application/pdf') {
-    return await pdfToImages(file);
+    // Return PDF directly without conversion
+    return { buffer, mimeType: 'application/pdf' };
   }
 
   if (file.type.startsWith('image/')) {
-    const buffer = await file.arrayBuffer();
-    const optimized = await optimizeImage(Buffer.from(buffer));
-    return [optimized];
+    // Optimize images but keep original format
+    const optimized = await optimizeImage(buffer);
+    return { buffer: optimized, mimeType: file.type };
   }
 
   throw new Error(`Unsupported file type: ${file.type}`);
@@ -381,10 +371,9 @@ async function fileToImages(file: File): Promise<Buffer[]> {
 
 export async function analyzeDocuments(
   documentsToAnalyze: Partial<Record<DocumentType, string>>,
-  model: AIModel = 'gpt',
 ): Promise<AnalysisResponse> {
-  const visionAnalyzer =
-    model === 'gpt' ? new OpenAIVisionAnalyzer() : new OpenAIVisionAnalyzer();
+  // For now, always use Gemini
+  const visionAnalyzer = new GeminiVisionAnalyzer();
 
   const promises = Object.entries(documentsToAnalyze).map(async ([key, fileUrl]) => {
     const documentType = key as DocumentType;
@@ -394,24 +383,25 @@ export async function analyzeDocuments(
     const fields = getFieldsForDocument(documentType);
     const prompt = generatePrompt(fields);
 
-    // Récupérer le fichier depuis l'URL
+    // Fetch file from URL
     const response = await fetch(fileUrl);
     const fileBlob = await response.blob();
     const file = new File([fileBlob], `${key}.${fileBlob.type.split('/')[1]}`, {
       type: fileBlob.type,
     });
 
-    const { data: images, error } = await tryCatch(fileToImages(file));
+    const { data: fileData, error } = await tryCatch(fileToBuffer(file));
 
-    if (error || !images) {
-      console.error(`Error analyzing ${key}:`, error);
+    if (error || !fileData) {
+      console.error(`Error processing ${key}:`, error);
       return null;
     }
 
-    const documentPromises = images.slice(0, 1).map(async (imageBuffer) => {
-      const base64 = imageBuffer.toString('base64');
-      const extractedData = await visionAnalyzer.analyzeImageWithStructuredOutput(
-        base64,
+    try {
+      // Use Gemini's file analysis method
+      const extractedData = await visionAnalyzer.analyzeFile(
+        fileData.buffer,
+        fileData.mimeType,
         prompt,
         structuredOutputSchema,
       );
@@ -420,18 +410,10 @@ export async function analyzeDocuments(
         documentType: key,
         extractedData: extractedData,
       };
-    });
-
-    const { data: documentResults, error: documentResultsError } = await tryCatch(
-      Promise.all(documentPromises),
-    );
-
-    if (documentResultsError || !documentResults) {
-      console.error(`Error analyzing ${key}:`, documentResultsError);
+    } catch (analysisError) {
+      console.error(`Error analyzing ${key}:`, analysisError);
       return null;
     }
-
-    return documentResults[0];
   });
 
   try {
@@ -487,102 +469,6 @@ export async function analyzeDocuments(
       error:
         error instanceof Error ? error.message : 'Unknown error during document analysis',
     };
-  }
-}
-
-type AIModel = 'claude' | 'gpt';
-
-interface VisionAnalyzer {
-  analyzeImage(base64Image: string, prompt: string): Promise<string>;
-  analyzeImageWithStructuredOutput(
-    base64Image: string,
-    prompt: string,
-    schema: object,
-  ): Promise<StructuredOutput>;
-}
-
-class OpenAIVisionAnalyzer implements VisionAnalyzer {
-  private client: OpenAI;
-
-  constructor() {
-    this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-
-  async analyzeImage(base64Image: string, prompt: string): Promise<string> {
-    const response = await this.client.chat.completions.create({
-      model: 'gpt-4o-latest',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`,
-                detail: 'high',
-              },
-            },
-          ],
-        },
-      ],
-    });
-
-    return response.choices[0]?.message.content || '';
-  }
-
-  async analyzeImageWithStructuredOutput(
-    base64Image: string,
-    prompt: string,
-    schema: object,
-  ): Promise<StructuredOutput> {
-    try {
-      // Use the standard response format without a custom schema
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `${prompt}\n\nOutput your findings in JSON format matching the following schema: ${JSON.stringify(schema)}.`,
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Image}`,
-                  detail: 'high',
-                },
-              },
-            ],
-          },
-        ],
-        response_format: { type: 'json_object' },
-      });
-
-      // The content may be undefined
-      const content = response.choices[0]?.message?.content || '{}';
-
-      try {
-        return JSON.parse(content) as StructuredOutput;
-      } catch (parseError) {
-        console.error('Error parsing JSON response:', parseError);
-        return {
-          data: {},
-          explanation: 'Error parsing response from analysis model',
-        };
-      }
-    } catch (apiError) {
-      console.error('OpenAI API error:', apiError);
-      return {
-        data: {},
-        explanation:
-          apiError instanceof Error ? apiError.message : 'Unknown error during analysis',
-      };
-    }
   }
 }
 
