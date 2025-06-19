@@ -128,6 +128,7 @@ export function LoginForm() {
           response.error instanceof Error ? response.error.message : 'Failed to send OTP',
         );
         setIsLoading(false);
+        return;
       }
     }
 
@@ -143,6 +144,7 @@ export function LoginForm() {
           response.error instanceof Error ? response.error.message : 'Failed to send OTP',
         );
         setIsLoading(false);
+        return;
       }
     }
 
@@ -155,40 +157,43 @@ export function LoginForm() {
   const validateOTP = async (otp: string) => {
     setIsLoading(true);
     setError(null);
+    let hasError = false;
 
     if (method === 'EMAIL') {
-      const response = await tryCatch(
-        authClient.signIn.emailOtp({
-          email: form.getValues('email'),
-          otp,
-        }),
-      );
+      const response = await authClient.signIn.emailOtp({
+        email: form.getValues('email'),
+        otp,
+      });
+
+      console.log('response signIn.emailOtp', response);
 
       if (response.error) {
         setError(
           response.error instanceof Error
             ? response.error.message
-            : 'Failed to validate OTP',
+            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.',
         );
         setIsLoading(false);
+        hasError = true;
+        return;
       }
     }
 
     if (method === 'PHONE') {
-      const response = await tryCatch(
-        authClient.phoneNumber.verify({
-          phoneNumber: form.getValues('phoneNumber'),
-          code: otp,
-        }),
-      );
+      const response = await authClient.phoneNumber.verify({
+        phoneNumber: form.getValues('phoneNumber'),
+        code: otp,
+      });
 
       if (response.error) {
         setError(
           response.error instanceof Error
             ? response.error.message
-            : 'Failed to validate OTP',
+            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.',
         );
         setIsLoading(false);
+        hasError = true;
+        return;
       }
     }
 
