@@ -1,16 +1,7 @@
-import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
-} from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '../env';
-import { ContextData } from './types';
+import { ChatMessage, ContextData } from './types';
 import { ContextBuilder } from './context-builder';
-
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
 export class GeminiChatService {
   private genAI: GoogleGenerativeAI;
@@ -19,31 +10,13 @@ export class GeminiChatService {
   constructor() {
     this.genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY!);
     this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-pro',
+      model: 'gemini-2.5-pro',
       generationConfig: {
         temperature: 0.7,
         topP: 0.8,
         topK: 40,
         maxOutputTokens: 4096,
       },
-      safetySettings: [
-        {
-          category: 'HARASSMENT' as HarmCategory,
-          threshold: 'BLOCK_MEDIUM_AND_ABOVE' as HarmBlockThreshold,
-        },
-        {
-          category: 'HATE_SPEECH' as HarmCategory,
-          threshold: 'BLOCK_MEDIUM_AND_ABOVE' as HarmBlockThreshold,
-        },
-        {
-          category: 'SEXUALLY_EXPLICIT' as HarmCategory,
-          threshold: 'BLOCK_MEDIUM_AND_ABOVE' as HarmBlockThreshold,
-        },
-        {
-          category: 'DANGEROUS_CONTENT' as HarmCategory,
-          threshold: 'BLOCK_MEDIUM_AND_ABOVE' as HarmBlockThreshold,
-        },
-      ],
     });
   }
 
@@ -68,6 +41,8 @@ export class GeminiChatService {
         safetySettings: this.model.safetySettings,
         generationConfig: this.model.generationConfig,
       });
+
+      console.log({ chat });
 
       // Send message with context
       const result = await chat.sendMessage(`${context}\n\nUser message: ${userMessage}`);

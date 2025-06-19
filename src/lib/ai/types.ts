@@ -1,14 +1,20 @@
-export type ContextData = {
+export interface ContextData {
   user: string;
   assistantPrompt: string;
+  knowledgeBase: string;
   language: string;
-  knowledgeBase?: string;
-  profileData?: string;
   countryData?: string;
+  profileData?: string;
   serviceRequestsData?: string;
   appointmentData?: string;
   notificationsData?: string;
-  agentData?: unknown;
-  adminManagerData?: unknown;
-  superAdminData?: unknown;
-};
+  agentData?: string;
+  adminManagerData?: string;
+  superAdminData?: string;
+  availableServicesData?: string;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}

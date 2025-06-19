@@ -1,4 +1,4 @@
-type knowledgeBas = {
+export interface KnowledgeBase {
   description: string;
   version: string;
   last_updated: string;
@@ -21,9 +21,9 @@ type knowledgeBas = {
     email?: string;
     schedule?: string;
   }[];
-};
+}
 
-export const knowledgeBase = {
+export const knowledgeBase: KnowledgeBase = {
   description:
     'Base de connaissances complète pour un ChatBot Consulaire du Gabon en France',
   version: '1.1',
@@ -232,15 +232,12 @@ export const knowledgeBase = {
       url: 'https://www.legifrance.gouv.fr',
     },
   ],
-} as knowledgeBas;
+} as KnowledgeBase;
 
-export function getKnowledgeBaseContext(): string {
-  return `
-Base de connaissances consulaire :
-
-${knowledgeBase.categories
-  .map(
-    (category) => `
+export function formatKnowledgeBaseForContext(kb: KnowledgeBase): string {
+  const formattedCategories = kb.categories
+    .map(
+      (category) => `
 # ${category.name}
 
 ${category.instructions
@@ -248,16 +245,35 @@ ${category.instructions
     (instruction) => `
 Q: ${instruction.question}
 R: ${instruction.response}
-S: ${instruction.documentsJoints ? instruction.documentsJoints.join('\n') : ''}
+${instruction.documentsJoints ? `Documents requis: ${instruction.documentsJoints.join(', ')}` : ''}
 `,
   )
   .join('\n')}
 `,
-  )
-  .join('\n')}
+    )
+    .join('\n');
+
+  const formattedResources = kb.ressources_officielles
+    .map(
+      (resource) => `
+- ${resource.name}
+  ${resource.url ? `URL: ${resource.url}` : ''}
+  ${resource.phone ? `Téléphone: ${resource.phone}` : ''}
+  ${resource.phone_emergency ? `Urgence: ${resource.phone_emergency}` : ''}
+  ${resource.email ? `Email: ${resource.email}` : ''}
+  ${resource.address ? `Adresse: ${resource.address}` : ''}
+  ${resource.schedule ? `Horaires: ${resource.schedule}` : ''}
+`,
+    )
+    .join('\n');
+
+  return `
+Base de connaissances consulaire :
+
+${formattedCategories}
 
 Ressources officielles :
-${knowledgeBase.ressources_officielles.map((resource) => `- ${resource.name}: ${resource.url}`).join('\n')}
+${formattedResources}
 
 Instructions pour l'utilisation de cette base de connaissances :
 1. Utilisez ces informations comme source principale pour répondre aux questions
@@ -266,4 +282,8 @@ Instructions pour l'utilisation de cette base de connaissances :
 4. Si aucune information pertinente n'est trouvée, indiquez-le clairement et redirigez vers les ressources officielles appropriées
 5. Incluez toujours les liens pertinents des ressources officielles dans vos réponses
 `;
+}
+
+export function getKnowledgeBaseContext(): string {
+  return formatKnowledgeBaseForContext(knowledgeBase);
 }
