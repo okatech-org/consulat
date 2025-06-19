@@ -192,8 +192,8 @@ export function LoginForm() {
       }
     }
 
-    setIsLoading(false);
     router.push(callbackUrl ?? ROUTES.base);
+    setIsLoading(false);
   };
 
   const resendOTP = async () => {
