@@ -55,28 +55,29 @@ export function ChatToggle() {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <div className="fixed bottom-4 right-4 z-50">
-          <IAstedButton className="cursor-pointer hover:scale-110 transition-transform" />
-        </div>
+      <SheetTitle className="sr-only" asChild>
+        <span className="text-sm font-medium">Chat</span>
+      </SheetTitle>
+
+      <SheetTrigger className="aspect-square size-[45px] p-1 rounded-full overflow-hidden">
+        <IAstedButton />
       </SheetTrigger>
+
       <SheetContent
-        side="right"
+        side={isMobile ? 'bottom' : 'right'}
         className={cn(
-          'flex h-full w-full flex-col gap-0 p-0 sm:max-w-[600px] border-l shadow-lg',
-          isMobile && 'h-[100dvh]',
+          'w-full max-w-[700px] sm:w-[700px] p-0',
+          isMobile && 'h-full max-h-[600px]',
         )}
       >
-        <SheetTitle className="flex items-center justify-between border-b px-6 py-4 bg-background">
-          <span className="text-lg font-semibold">Assistant Consulaire</span>
-        </SheetTitle>
-        <ModernChatWindow
-          className="border-0 shadow-none rounded-none"
-          onSendMessage={handleSendMessage}
-          botName="Ray"
-          botAvatarUrl="/avatar-placeholder.png"
-          initialMessages={messages}
-        />
+        <div className="h-full overflow-hidden">
+          <ModernChatWindow
+            className="h-full border-0 shadow-none rounded-none"
+            botName="Ray"
+            botAvatarUrl="/avatar-placeholder.png"
+            onSendMessage={handleSendMessage}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );
