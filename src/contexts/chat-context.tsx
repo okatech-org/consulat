@@ -1,30 +1,31 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { ChatMessage } from '@/lib/ai/types';
 
-interface ChatContextType {
-  isOpen: boolean;
-  toggleChat: () => void;
-  closeChat: () => void;
-}
+export type ChatContextType = {
+  messages: ChatMessage[];
+  addMessage: (message: ChatMessage) => void;
+  setMessages: (messages: ChatMessage[]) => void;
+};
 
-const ChatContext = createContext<ChatContextType | undefined>(undefined);
+const ChatContext = createContext<ChatContextType>({
+  messages: [],
+  addMessage: () => {},
+  setMessages: () => {},
+});
 
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  const toggleChat = () => {
-    setIsOpen((prev) => !prev);
-  };
-
-  const closeChat = () => {
-    setIsOpen(false);
+  const addMessage = (message: ChatMessage) => {
+    setMessages((prev) => [...prev, message]);
   };
 
   // Fermer le chat lors d'un changement de route
   useEffect(() => {
     const handleRouteChange = () => {
-      closeChat();
+      setMessages([]);
     };
 
     // Pour Next.js 13 App Router, nous pourrions écouter un événement personnalisé
@@ -37,16 +38,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ChatContext.Provider value={{ isOpen, toggleChat, closeChat }}>
+    <ChatContext.Provider value={{ messages, addMessage, setMessages }}>
       {children}
     </ChatContext.Provider>
   );
 }
 
-export function useChat() {
-  const context = useContext(ChatContext);
-  if (context === undefined) {
-    throw new Error('useChat must be used within a ChatProvider');
-  }
-  return context;
-}
+export const useChat = () => useContext(ChatContext);

@@ -197,10 +197,8 @@ export function LoginForm() {
       }
     }
 
-    if (!hasError) {
-      router.push(callbackUrl ?? ROUTES.base);
-      setIsLoading(false);
-    }
+    router.push(callbackUrl ?? ROUTES.base);
+    setIsLoading(false);
   };
 
   const resendOTP = async () => {

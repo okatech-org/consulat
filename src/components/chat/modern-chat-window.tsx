@@ -8,7 +8,7 @@ import { Send, Loader2, ChevronDown, X, TrashIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 import { useTranslations } from 'next-intl';
-import { useChat } from '@/contexts/chat-context';
+import { ChatMessage } from '@/lib/ai/types';
 import {
   Dialog,
   DialogTrigger,
@@ -20,10 +20,8 @@ import {
   DialogClose,
 } from '../ui/dialog';
 
-export interface Message {
+export interface Message extends ChatMessage {
   id: string;
-  content: string;
-  sender: 'user' | 'bot';
   timestamp: Date;
 }
 
@@ -33,11 +31,7 @@ interface ModernChatWindowProps {
   onSendMessage?: (message: string) => Promise<string>;
   botName?: string;
   botAvatarUrl?: string;
-}
-
-interface ChatState {
-  messages: Message[];
-  isLoading: boolean;
+  onClose?: () => void;
 }
 
 export function ModernChatWindow({
@@ -46,26 +40,22 @@ export function ModernChatWindow({
   onSendMessage,
   botName = 'Ray',
   botAvatarUrl = '/avatar-placeholder.png',
+  onClose,
 }: ModernChatWindowProps) {
   const t = useTranslations('chat');
-  const { closeChat } = useChat();
-  const [chatState, setChatState] = useState<ChatState>({
-    messages: initialMessages || [],
-    isLoading: false,
-  });
-
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  // load chat history from session storage
+  // Load chat history from local storage on mount
   useEffect(() => {
     const chatHistory = localStorage.getItem('chatHistory');
     if (chatHistory) {
       try {
-        // Parse the messages and ensure timestamps are Date objects
         const parsedMessages = JSON.parse(chatHistory);
         const messagesWithDates = parsedMessages.map(
           (msg: Omit<Message, 'timestamp'> & { timestamp: string }) => ({
@@ -73,22 +63,25 @@ export function ModernChatWindow({
             timestamp: new Date(msg.timestamp),
           }),
         );
-
-        setChatState((prev) => ({ ...prev, messages: messagesWithDates }));
+        setMessages(messagesWithDates);
       } catch (error) {
         console.error('Failed to parse chat history:', error);
-        // Clear potentially corrupted storage
         localStorage.removeItem('chatHistory');
       }
     }
   }, []);
 
-  // Auto-scroll au chargement et quand de nouveaux messages arrivent
+  // Save messages to local storage whenever they change
+  useEffect(() => {
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+  }, [messages]);
+
+  // Auto-scroll when new messages arrive
   useEffect(() => {
     scrollToBottom();
-  }, [chatState.messages]);
+  }, [messages]);
 
-  // Ajuster la hauteur du textarea automatiquement
+  // Adjust textarea height automatically
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -97,7 +90,7 @@ export function ModernChatWindow({
     }
   }, [inputValue]);
 
-  // Détecter quand l'utilisateur scrolle pour afficher/cacher le bouton de défilement
+  // Detect scroll position to show/hide scroll button
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -118,46 +111,35 @@ export function ModernChatWindow({
     }
   };
 
-  const addMessage = (content: string, sender: 'user' | 'bot') => {
+  const addMessage = (content: string, role: 'user' | 'assistant') => {
     const newMessage: Message = {
       id: Date.now().toString(),
       content,
-      sender,
+      role,
       timestamp: new Date(),
     };
 
-    // Create a new array with existing messages plus the new one
-
-    // Update state first to ensure UI reflects changes
-    setChatState((prev) => {
-      const newMessages = [...prev.messages, newMessage];
-      localStorage.setItem('chatHistory', JSON.stringify(newMessages));
-      return { ...prev, messages: newMessages };
-    });
+    setMessages((prev) => [...prev, newMessage]);
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || chatState.isLoading) return;
+    if (!inputValue.trim() || isLoading) return;
 
     const userMessage = inputValue.trim();
     setInputValue('');
 
-    // Ajouter le message utilisateur
     addMessage(userMessage, 'user');
 
     if (onSendMessage) {
-      // Mark as loading without modifying messages
-      setChatState((prev) => ({ ...prev, isLoading: true }));
-
+      setIsLoading(true);
       try {
         const response = await onSendMessage(userMessage);
-        // Add bot response without losing previous messages
-        addMessage(response, 'bot');
+        addMessage(response, 'assistant');
       } catch (error) {
         console.error("Erreur lors de l'envoi du message:", error);
-        addMessage(t('error_message') || 'Une erreur est survenue', 'bot');
+        addMessage(t('error_message') || 'Une erreur est survenue', 'assistant');
       } finally {
-        setChatState((prev) => ({ ...prev, isLoading: false }));
+        setIsLoading(false);
       }
     }
   };
@@ -167,6 +149,12 @@ export function ModernChatWindow({
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleChatClear = () => {
+    setInputValue('');
+    setMessages([]);
+    localStorage.removeItem('chatHistory');
   };
 
   // Cette fonction transforme le texte avec formatage markdown en HTML
@@ -225,12 +213,6 @@ export function ModernChatWindow({
     });
   };
 
-  function handleChatClear() {
-    setInputValue('');
-    setChatState((prev) => ({ ...prev, messages: [] }));
-    localStorage.removeItem('chatHistory');
-  }
-
   return (
     <div
       className={cn(
@@ -252,7 +234,7 @@ export function ModernChatWindow({
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={closeChat}>
+        <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="!size-6" />
         </Button>
       </div>
@@ -263,7 +245,7 @@ export function ModernChatWindow({
         className="flex-1 overflow-y-auto p-4 space-y-6 bg-muted/20"
         style={{ scrollBehavior: 'smooth' }}
       >
-        {chatState.messages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4 opacity-80">
             <div className="max-w-md">
               <h3 className="text-lg font-medium mb-2">
@@ -276,8 +258,8 @@ export function ModernChatWindow({
           </div>
         ) : (
           <>
-            {chatState.messages.map((message) => {
-              const isBot = message.sender === 'bot';
+            {messages.map((message) => {
+              const isBot = message.role === 'assistant';
               return (
                 <div
                   key={message.id}
@@ -330,7 +312,7 @@ export function ModernChatWindow({
             })}
 
             {/* Indicateur de chargement */}
-            {chatState.isLoading && (
+            {isLoading && (
               <div className="flex items-start gap-3 message-enter">
                 <Avatar className="h-8 w-8 border">
                   <AvatarImage src={botAvatarUrl} alt={botName} />
@@ -375,15 +357,15 @@ export function ModernChatWindow({
             placeholder={t('input_placeholder') || 'Posez votre question...'}
             className="min-h-[50px] max-h-[120px] border-0 focus-visible:ring-0 resize-none pr-14 py-3"
             rows={1}
-            disabled={chatState.isLoading}
+            disabled={isLoading}
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || chatState.isLoading}
+            disabled={!inputValue.trim() || isLoading}
             size="icon"
             className="absolute top-1/2 -translate-y-1/2 right-2 h-8 w-8 rounded-full"
           >
-            {chatState.isLoading ? (
+            {isLoading ? (
               <Loader2 className="size-icon animate-spin" />
             ) : (
               <Send className="size-icon" />

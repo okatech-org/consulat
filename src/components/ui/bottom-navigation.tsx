@@ -42,7 +42,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         title: 'Chat',
         url: '#',
         component: (
-          <div className="flex items-center justify-center">
+          <div className="flex relative items-center justify-center">
             <ChatToggle />
           </div>
         ),
