@@ -475,12 +475,17 @@ export default function RequestsPage() {
         />
       ),
       cell: ({ row }) => (
-        <Button variant="outline" size="sm" className="min-w-max" asChild>
+        <Button 
+          variant="outline" 
+          size="mobile" 
+          className="min-w-max" 
+          leftIcon={<FileText className="size-icon" />}
+          asChild
+        >
           <Link
             onClick={(e) => e.stopPropagation()}
             href={ROUTES.dashboard.service_requests(row.original.id)}
           >
-            <FileText className="size-icon" />
             {t('common.actions.consult')}
           </Link>
         </Button>
