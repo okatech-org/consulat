@@ -9,7 +9,9 @@ import {
 } from '@prisma/client';
 
 // Base includes pour une demande de service
-export const BaseServiceRequestInclude = {
+export const BaseServiceRequestInclude: {
+  include: Prisma.ServiceRequestInclude
+} = {
   include: {
     submittedBy: {
       select: {
@@ -63,7 +65,9 @@ export const BaseServiceRequestInclude = {
 } as const;
 
 // Includes complet pour une demande de service
-export const FullServiceRequestInclude = {
+export const FullServiceRequestInclude: {
+  include: Prisma.ServiceRequestInclude
+} = {
   include: {
     ...BaseServiceRequestInclude.include,
     assignedTo: {
@@ -101,12 +105,6 @@ export const FullServiceRequestInclude = {
             name: true,
           },
         },
-      },
-    },
-    messages: {
-      include: {
-        sender: true,
-        receiver: true,
       },
     },
     actions: {
