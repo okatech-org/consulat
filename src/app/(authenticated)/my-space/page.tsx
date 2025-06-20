@@ -276,7 +276,7 @@ export default async function UserDashboard() {
 
             {/* Aide contextuelle */}
             <CardContainer
-              title="Besoin d'aide ?"
+              title={<span className="text-blue-800">Besoin d'aide ?</span>}
               className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
             >
               <div className="space-y-3">

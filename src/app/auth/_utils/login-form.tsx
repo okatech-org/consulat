@@ -21,7 +21,7 @@ import {
   type LoginInput,
 } from '@/schemas/user';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Loader2, Mail, Phone, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
@@ -32,10 +32,11 @@ import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { authClient } from '@/lib/auth/auth-client';
 import { toast } from '@/hooks/use-toast';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
-type LoginStep = 'IDENTIFIER' | 'OTP';
+type LoginStep = 'IDENTIFIER' | 'OTP' | 'SUCCESS';
 
 interface LoginFormState {
   method: LoginMethod;
@@ -175,6 +176,7 @@ function useLoginActions() {
 }
 
 export function LoginForm() {
+  const user = useCurrentUser();
   const t = useTranslations('auth.login');
   const tError = useTranslations('messages.errors');
   const searchParams = useSearchParams();
@@ -211,6 +213,23 @@ export function LoginForm() {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
+  // Get redirect URL based on user role
+  const getRedirectUrl = React.useCallback((callbackUrl?: string | null) => {
+    if (callbackUrl) return callbackUrl;
+    
+    if (!user) return ROUTES.user.base;
+    
+    // Check user roles (user can have multiple roles)
+    const roles = Array.isArray(user.roles) ? user.roles : [user.roles];
+    
+    // Priority order: SUPER_ADMIN > ADMIN > MANAGER > AGENT > USER
+    if (roles.includes('SUPER_ADMIN') || roles.includes('ADMIN') || roles.includes('MANAGER') || roles.includes('AGENT')) {
+      return ROUTES.dashboard.base;
+    }
+    
+    return ROUTES.user.base;
+  }, [user]);
+
   // Handlers
   const handleSendOTP = React.useCallback(async (identifier: string, type: LoginMethod) => {
     updateState({ isLoading: true, error: null });
@@ -221,18 +240,18 @@ export function LoginForm() {
         step: 'OTP', 
         isLoading: false 
       });
-             startCooldown(60);
-       toast({
-         title: t('messages.otp_sent'),
-         variant: 'default',
-       });
+      startCooldown(60);
+      toast({
+        title: t('messages.otp_sent'),
+        variant: 'default',
+      });
     } catch (error) {
       updateState({ 
         error: error instanceof Error ? error.message : 'Failed to send OTP',
         isLoading: false 
       });
     }
-  }, [sendOTPCode, updateState, startCooldown]);
+  }, [sendOTPCode, updateState, startCooldown, t]);
 
   const handleValidateOTP = React.useCallback(async (otp: string) => {
     updateState({ isLoading: true, error: null });
@@ -243,14 +262,27 @@ export function LoginForm() {
         : form.getValues('phoneNumber');
       
       await validateOTP(otp, state.method, identifier);
-      updateState({ isLoading: false });
+      
+      // Show success state first, then redirect
+      updateState({ 
+        step: 'SUCCESS', 
+        isLoading: false 
+      });
+
+      // Delay redirect to show success message
+      setTimeout(() => {
+        const callbackUrl = searchParams.get('callbackUrl');
+        const redirectUrl = getRedirectUrl(callbackUrl);
+        window.location.href = redirectUrl;
+      }, 2000);
+      
     } catch (error) {
       updateState({ 
         error: error instanceof Error ? error.message : 'Validation failed',
         isLoading: false 
       });
     }
-  }, [validateOTP, state.method, form, updateState]);
+  }, [validateOTP, state.method, form, updateState, searchParams, getRedirectUrl]);
 
   const handleResendOTP = React.useCallback(async () => {
     if (!canResend) return;
@@ -297,6 +329,13 @@ export function LoginForm() {
     }
   }, [state.step, handleSendOTP, handleValidateOTP]);
 
+  // Manual redirect for success state
+  const handleManualRedirect = React.useCallback(() => {
+    const callbackUrl = searchParams.get('callbackUrl');
+    const redirectUrl = getRedirectUrl(callbackUrl);
+    window.location.href = redirectUrl;
+  }, [searchParams, getRedirectUrl]);
+
   // Error handling effect
   React.useEffect(() => {
     if (state.error) {
@@ -309,6 +348,19 @@ export function LoginForm() {
     }
   }, [state.error, state.step, state.method, form]);
 
+  // Auto-redirect if user is already logged in
+  React.useEffect(() => {
+    if (user && state.step === 'IDENTIFIER') {
+      const callbackUrl = searchParams.get('callbackUrl');
+      const redirectUrl = getRedirectUrl(callbackUrl);
+      
+      // Small delay to prevent flash
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 100);
+    }
+  }, [user, state.step, searchParams, getRedirectUrl]);
+
   return (
     <Form {...form}>
       <form
@@ -316,6 +368,47 @@ export function LoginForm() {
         className="w-full flex flex-col gap-6"
       >
         <div className="flex flex-col gap-6">
+          {state.step === 'SUCCESS' && (
+            <div className="success-state space-y-6 text-center">
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800">
+                    {t('login_success')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {t('redirecting_message')}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <Button
+                  onClick={handleManualRedirect}
+                  size="mobile"
+                  weight="medium"
+                  fullWidthOnMobile={true}
+                  variant="default"
+                  leftIcon={<CheckCircle2 className="size-4" />}
+                  rightIcon={<ArrowRight className="size-4" />}
+                >
+                  {user && (Array.isArray(user.roles) ? user.roles : [user.roles]).some(role => 
+                    ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT'].includes(role)
+                  ) 
+                    ? t('go_to_dashboard')
+                    : t('go_to_my_space')
+                  }
+                </Button>
+                
+                <p className="text-xs text-muted-foreground">
+                  {t('auto_redirect_info')}
+                </p>
+              </div>
+            </div>
+          )}
+
           {state.step === 'IDENTIFIER' && (
             <Tabs
               value={state.method}
@@ -422,80 +515,85 @@ export function LoginForm() {
             </div>
           )}
 
-          <div className="actions flex flex-col gap-4">
-            <Button
-              variant="default"
-              type="submit"
-              disabled={state.isLoading || !form.formState.isValid}
-              className="w-full"
-            >
-              {state.isLoading && <Loader2 className="size-4 animate-spin mr-2" />}
-              <span>
-                {state.step === 'OTP' ? t('access_space') : t('login_button')}
-              </span>
-              {!state.isLoading && <ArrowRight className="size-4 ml-2" />}
-            </Button>
-
-            {state.step === 'OTP' && (
-              <div className="flex justify-between items-center">
-                <Button
-                  type="button"
-                  variant="link"
-                  className="text-muted-foreground p-0"
-                  disabled={state.isLoading}
-                  onClick={handleGoBack}
-                >
-                  <ArrowLeft className="size-4 mr-1" />
-                  {t('back')}
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="link"
-                  className="text-muted-foreground p-0"
-                  disabled={!canResend || state.isLoading}
-                  onClick={handleResendOTP}
-                >
-                  {t('resend_code')}
-                  {resendCooldown > 0 && (
-                    <span className="text-xs text-muted-foreground ml-1">
-                      {t('resend_cooldown', { cooldown: resendCooldown })}
-                    </span>
-                  )}
-                </Button>
-              </div>
-            )}
-
-            {state.step === 'IDENTIFIER' && (
+          {(state.step === 'IDENTIFIER' || state.step === 'OTP') && (
+            <div className="actions flex flex-col gap-4">
               <Button
-                type="button"
-                variant="link"
-                disabled={state.isLoading}
-                className="max-w-fit mx-auto"
-                onClick={() => handleMethodChange(state.method === 'EMAIL' ? 'PHONE' : 'EMAIL')}
+                variant="default"
+                type="submit"
+                disabled={state.isLoading || !form.formState.isValid}
+                size="mobile"
+                weight="medium"
+                fullWidthOnMobile={true}
+                loading={state.isLoading}
+                rightIcon={!state.isLoading ? <ArrowRight className="size-4" /> : undefined}
               >
-                <span className="text-muted-foreground">
+                {state.step === 'OTP' ? t('access_space') : t('login_button')}
+              </Button>
+
+              {state.step === 'OTP' && (
+                <div className="flex justify-between items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={state.isLoading}
+                    onClick={handleGoBack}
+                    leftIcon={<ArrowLeft className="size-4" />}
+                    className="flex-shrink-0"
+                  >
+                    {t('back')}
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!canResend || state.isLoading}
+                    onClick={handleResendOTP}
+                    className="flex-shrink-0"
+                  >
+                    {t('resend_code')}
+                    {resendCooldown > 0 && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({resendCooldown}s)
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {state.step === 'IDENTIFIER' && (
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  disabled={state.isLoading}
+                  className="mx-auto"
+                  onClick={() => handleMethodChange(state.method === 'EMAIL' ? 'PHONE' : 'EMAIL')}
+                >
                   {state.method === 'EMAIL'
                     ? t('login_with_phone_prompt')
                     : t('login_with_email_prompt')}
-                </span>
-              </Button>
-            )}
-          </div>
+                </Button>
+              )}
+            </div>
+          )}
 
           {authError && <ErrorCard description={tError('auth_error')} />}
 
-          <div className="subactions flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              <span>{t('no_account')}</span>
-              <Link
-                className={buttonVariants({ variant: 'link' }) + ' !p-0'}
-                href={ROUTES.registration}
-              >
-                {t('create_consular_space')}
-              </Link>
-            </p>
-          </div>
+          {state.step !== 'SUCCESS' && (
+            <div className="subactions flex justify-center">
+              <p className="text-sm text-muted-foreground">
+                <span>{t('no_account')}</span>
+                <Link
+                  className={buttonVariants({ variant: 'link', size: 'sm' }) + ' !p-0 !h-auto'}
+                  href={ROUTES.registration}
+                >
+                  {t('create_consular_space')}
+                </Link>
+              </p>
+            </div>
+          )}
         </div>
       </form>
     </Form>
