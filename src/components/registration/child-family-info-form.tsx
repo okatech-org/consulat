@@ -192,10 +192,10 @@ export function ChildFamilyInfoForm({
         </div>
 
         <div className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onBack}>
+          <Button type="button" variant="outline" size="mobile" onClick={onBack}>
             {t_actions('back')}
           </Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" size="mobile" weight="medium" disabled={isLoading}>
             {t_actions('next')}
           </Button>
         </div>

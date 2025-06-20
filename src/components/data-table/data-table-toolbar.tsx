@@ -127,12 +127,13 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             variant="ghost"
+            size="mobile"
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
             disabled={isLoading}
+            rightIcon={<X />}
           >
             {t('resetFilters')}
-            <X />
           </Button>
         )}
       </div>
@@ -140,12 +141,12 @@ export function DataTableToolbar<TData>({
         {onRefresh && (
           <Button
             variant="outline"
-            size="sm"
+            size="mobile"
             className="h-8 px-2"
             onClick={onRefresh}
             disabled={isLoading}
+            leftIcon={<RefreshCw className="h-4 w-4" />}
           >
-            <RefreshCw className="h-4 w-4" />
           </Button>
         )}
         <div className={isLoading ? 'opacity-50 pointer-events-none' : ''}>

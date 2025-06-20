@@ -198,7 +198,7 @@ export function RegistrationForm({
         description: (
           <div className="space-y-2">
             <p>{t('profile.analysis.success.description')}</p>
-            <Button onClick={handleNext} size="sm">
+            <Button onClick={handleNext} size="mobile" weight="medium">
               {t('profile.analysis.success.action')}
             </Button>
           </div>

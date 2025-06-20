@@ -61,12 +61,18 @@ export function FormNavigation({
         </Button>
       )}
 
-      <Button onClick={handleNext} disabled={isLoading} className="ml-auto gap-2">
-        {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+      <Button 
+        onClick={handleNext} 
+        disabled={isLoading} 
+        size="mobile"
+        weight="medium"
+        className="ml-auto"
+        loading={isLoading}
+        rightIcon={currentStepIndex !== totalSteps - 1 ? <ArrowRight className="size-4" /> : undefined}
+      >
         {currentStepIndex === totalSteps - 1
           ? t('navigation.submit')
           : t('navigation.next')}
-        {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
       </Button>
     </div>
   );

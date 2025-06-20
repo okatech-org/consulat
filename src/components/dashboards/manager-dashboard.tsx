@@ -105,16 +105,21 @@ export async function ManagerDashboard() {
             <CardContainer
               title={t('stats.recent_requests')}
               action={
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="mobile" asChild>
                   <Link href={ROUTES.dashboard.requests}>{t('actions.see_all')}</Link>
                 </Button>
               }
               className="lg:col-span-1"
               footerContent={
-                <Button variant="outline" size="sm" className="w-full" asChild>
+                <Button 
+                  variant="outline" 
+                  size="mobile" 
+                  className="w-full" 
+                  rightIcon={<ArrowRight />}
+                  asChild
+                >
                   <Link href={ROUTES.dashboard.requests}>
                     {t('actions.view_all_requests')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               }
@@ -176,16 +181,21 @@ export async function ManagerDashboard() {
             <CardContainer
               title={t('stats.agent_performance')}
               action={
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="mobile" asChild>
                   <Link href={ROUTES.dashboard.agents}>{t('actions.see_all')}</Link>
                 </Button>
               }
               className="lg:col-span-1"
               footerContent={
-                <Button variant="outline" size="sm" className="w-full" asChild>
+                <Button 
+                  variant="outline" 
+                  size="mobile" 
+                  className="w-full" 
+                  rightIcon={<ArrowRight />}
+                  asChild
+                >
                   <Link href={ROUTES.dashboard.agents}>
                     {t('actions.view_all_agents')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               }
@@ -263,7 +273,7 @@ export async function ManagerDashboard() {
                           {t('completedRequests')}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
+                      <Button variant="outline" size="mobile" asChild>
                         <Link href={`${ROUTES.dashboard.agents}/${agent.id}`}>
                           {t('actions.view_details')}
                         </Link>
