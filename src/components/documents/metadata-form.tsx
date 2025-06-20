@@ -139,7 +139,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
             )}
           />
         ))}
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" size="mobile" weight="medium">
           {t('actions.save')}
         </Button>
       </form>

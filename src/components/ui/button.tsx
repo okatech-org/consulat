@@ -135,6 +135,25 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ...props 
   }, ref) => {
     const Comp = asChild ? Slot : 'button';
+
+    if (asChild) {
+      const allProps = {
+        ...props,
+        className,
+        children,
+        disabled,
+        ref,
+        variant,
+        size,
+        weight,
+        responsive,
+        asChild,
+        loading,
+      }
+      return (
+        <AsChildButton {...allProps} />
+      );
+    }
     
     // Determine if button should be disabled
     const isDisabled = disabled || loading;
@@ -212,4 +231,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = 'Button';
 
-export { Button, buttonVariants };
+const AsChildButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
+);
+
+AsChildButton.displayName = 'AsChildButton';
+
+export { Button, buttonVariants, AsChildButton };

@@ -364,6 +364,7 @@ export function ModernChatWindow({
             disabled={!inputValue.trim() || isLoading}
             size="icon"
             className="absolute top-1/2 -translate-y-1/2 right-2 h-8 w-8 rounded-full"
+            loading={isLoading}
           >
             {isLoading ? (
               <Loader2 className="size-icon animate-spin" />
@@ -378,8 +379,9 @@ export function ModernChatWindow({
                   variant="outline"
                   className="rounded-full aspect-square"
                   size="icon"
+                  leftIcon={<TrashIcon />}
                 >
-                  <TrashIcon className="size-icon" />
+                  
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -393,7 +395,7 @@ export function ModernChatWindow({
                 </DialogDescription>
                 <DialogFooter className="flex gap-4">
                   <DialogClose asChild>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" size="mobile">
                       {'Annuler'}
                     </Button>
                   </DialogClose>
@@ -402,6 +404,8 @@ export function ModernChatWindow({
                       variant="default"
                       onClick={handleChatClear}
                       className="w-full"
+                      size="mobile"
+                      weight="medium"
                     >
                       {'Effacer'}
                     </Button>
