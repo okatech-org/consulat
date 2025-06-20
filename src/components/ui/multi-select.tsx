@@ -156,13 +156,14 @@ export function MultiSelect<T>({
         </Button>
 
         {open && (
-          <div className="absolute top-full z-50 w-full rounded-md border bg-popover p-0 text-popover-foreground shadow-md outline-none animate-in">
+          <div className="absolute top-full z-50 w-full min-w-max rounded-md border bg-popover p-0 text-popover-foreground shadow-md outline-none animate-in">
             <Command>
               <CommandInput
                 placeholder={searchPlaceholder}
                 value={searchValue}
                 onValueChange={setSearchValue}
                 autoComplete={autoComplete}
+                autoFocus
               />
               <CommandList>
                 <CommandEmpty>{emptyText}</CommandEmpty>
