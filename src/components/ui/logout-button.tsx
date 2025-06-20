@@ -32,8 +32,7 @@ export function LogoutButton({ customClass }: LogoutButtonProps) {
         'better-auth.dont_remember=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       document.cookie =
         'better-auth.session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      router.push(ROUTES.auth.login);
-      router.refresh();
+      router.push(ROUTES.base);
     } catch (error) {
       console.error('Logout failed:', error);
     }
