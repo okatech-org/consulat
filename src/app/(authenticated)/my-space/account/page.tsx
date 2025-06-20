@@ -90,7 +90,7 @@ export default async function AccountPage() {
                 <p className="text-sm text-muted-foreground">
                   {t('two_factor_description')}
                 </p>
-                <Button variant="outline">{t('enable_2fa')}</Button>
+                <Button variant="outline" size="mobile">{t('enable_2fa')}</Button>
               </div>
             </CardContent>
           </Card>

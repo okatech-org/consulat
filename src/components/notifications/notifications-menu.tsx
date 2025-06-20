@@ -46,12 +46,8 @@ function NotificationItem({
         </span>
       </div>
       {!notification.read && (
-        <Button variant="ghost" size="sm" onClick={handleRead} disabled={isLoading}>
-          {isLoading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Check className="size-4" />
-          )}
+        <Button variant="ghost" size="mobile" onClick={handleRead} disabled={isLoading} leftIcon={isLoading ? <Loader2 className="animate-spin" /> : <Check />}>
+          {isLoading ? '' : ''}
         </Button>
       )}
     </div>
@@ -69,8 +65,7 @@ export function NotificationsMenu() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" className="relative max-w-min p-2">
-          <Bell className="size-5" />
+        <Button variant="ghost" className="relative max-w-min p-2" size="mobile" leftIcon={<Bell />}>
           <span>{t('title')}</span>
           {unreadCount > 0 && (
             <Badge
@@ -86,7 +81,7 @@ export function NotificationsMenu() {
         <div className="flex items-center justify-between pb-4">
           <h3 className="font-medium">{t('title')}</h3>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="mobile">
               {t('mark_all_read')}
             </Button>
           )}

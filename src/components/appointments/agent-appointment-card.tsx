@@ -109,9 +109,8 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             </div>
           )}
         </div>
-        <Button variant="outline" asChild className="shrink-0">
+        <Button variant="outline" asChild className="shrink-0" size="mobile" leftIcon={<ExternalLink />}>
           <Link href={`${ROUTES.dashboard.appointments}/${appointment.id}`}>
-            <ExternalLink className="size-4" />
             <span>{'Voir les détails'}</span>
           </Link>
         </Button>
@@ -140,22 +139,22 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
         <CardFooter className="gap-2">
           <Button
             variant="outline"
-            size="sm"
-            className="gap-2"
+            size="mobile"
+            leftIcon={<Check />}
             onClick={handleComplete}
             disabled={isLoading}
+            loading={isLoading}
           >
-            <Check className="size-4" />
             {commonT('status.COMPLETED')}
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            className="gap-2"
+            size="mobile"
+            leftIcon={<X />}
             onClick={handleMiss}
             disabled={isLoading}
+            loading={isLoading}
           >
-            <X className="size-4" />
             {commonT('status.MISSED')}
           </Button>
         </CardFooter>

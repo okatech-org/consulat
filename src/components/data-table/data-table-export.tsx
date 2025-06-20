@@ -281,11 +281,11 @@ export function DataTableExport<TData, TValue = unknown>({
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="mobile"
                   className="min-w-max gap-1"
                   disabled={isExportDisabled}
+                  leftIcon={<Download className="h-4 w-4" />}
                 >
-                  <Download className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only">
                     {`Exporter (${Object.entries(selectedRows).filter(([_, value]) => value).length} lignes)`}
                   </span>
@@ -319,10 +319,10 @@ export function DataTableExport<TData, TValue = unknown>({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" size="mobile" onClick={() => setOpen(false)}>
             Annuler
           </Button>
-          <Button type="submit" onClick={downloadFile}>
+          <Button type="submit" size="mobile" weight="medium" onClick={downloadFile}>
             Télécharger
           </Button>
         </DialogFooter>

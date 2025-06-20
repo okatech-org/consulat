@@ -4,10 +4,12 @@ import withSerwistInit from '@serwist/next';
 
 const withNextIntl = createNextIntlPlugin();
 
+// Only enable service worker in production
 const withSerwist = withSerwistInit({
   swSrc: 'src/app/sw.ts',
   swDest: 'public/sw.js',
-});
+  disable: true,
+}); 
 
 const nextConfig: NextConfig = {
   eslint: {

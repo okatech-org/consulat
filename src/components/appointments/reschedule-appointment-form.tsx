@@ -194,12 +194,19 @@ export function RescheduleAppointmentForm({
               variant="outline"
               onClick={() => router.back()}
               disabled={isLoading}
+              size="mobile"
+              leftIcon={<ArrowLeft />}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
               {t('actions.back')}
             </Button>
 
-            <Button type="submit" disabled={isLoading || !selectedTimeSlot}>
+            <Button 
+              type="submit" 
+              disabled={isLoading || !selectedTimeSlot}
+              size="mobile"
+              weight="medium"
+              loading={isLoading}
+            >
               {isLoading ? t('actions.submitting') : t('actions.confirm')}
             </Button>
           </CardFooter>

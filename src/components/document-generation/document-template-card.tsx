@@ -37,20 +37,19 @@ export function DocumentTemplateCard({
       <Badge variant="outline">{t(`userDocument.options.${template.type}`)}</Badge>
       <p className="text-sm text-muted-foreground">{template.description}</p>
       <div className="flex justify-between gap-2 mt-4">
-        <Button variant="outline" size="sm" asChild className="flex-1">
+        <Button variant="outline" size="mobile" asChild className="flex-1" leftIcon={<Pencil />}>
           <Link href={ROUTES.dashboard.doc_template_edit(template.id)}>
-            <Pencil className="size-4" />
             {t('documentTemplate.actions.edit')}
           </Link>
         </Button>
         {onDelete && (
           <Button
             variant="destructiveOutline"
-            size="sm"
+            size="mobile"
             onClick={() => onDelete(template.id)}
             className="flex-1"
+            leftIcon={<Trash2 />}
           >
-            <Trash2 className="size-4" />
             {t('documentTemplate.actions.delete')}
           </Button>
         )}

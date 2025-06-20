@@ -19,28 +19,26 @@ interface AppointmentActionsProps {
 }
 
 export function AppointmentActions({ onReschedule, onCancel }: AppointmentActionsProps) {
-  const t = useTranslations('consular.services.form.appointment');
+  const t = useTranslations('appointments');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   return (
     <div className="flex gap-2">
       <Button
         variant="outline"
-        size="sm"
+        size="mobile"
         onClick={onReschedule}
-        className="flex items-center gap-2"
+        leftIcon={<Calendar />}
       >
-        <Calendar className="size-4" />
         {t('actions.reschedule')}
       </Button>
 
       <Button
         variant="destructive"
-        size="sm"
+        size="mobile"
         onClick={() => setShowCancelDialog(true)}
-        className="flex items-center gap-2"
+        leftIcon={<X />}
       >
-        <X className="size-4" />
         {t('actions.cancel')}
       </Button>
 
@@ -56,6 +54,7 @@ export function AppointmentActions({ onReschedule, onCancel }: AppointmentAction
             </Button>
             <Button
               variant="destructive"
+              weight="medium"
               onClick={() => {
                 onCancel();
                 setShowCancelDialog(false);

@@ -203,8 +203,11 @@ export default function AvailableServicesPage() {
           {/* Category filter dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="space-x-1">
-                <Filter className="h-4 w-4" />
+              <Button 
+                variant="outline" 
+                size="mobile"
+                leftIcon={<Filter className="h-4 w-4" />}
+              >
                 <span>Catégories</span>
                 {selectedCategories.length > 0 && (
                   <Badge variant="secondary" className="ml-1 px-1 rounded-full">
@@ -233,8 +236,11 @@ export default function AvailableServicesPage() {
           {/* Organization filter dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="space-x-1">
-                <Filter className="h-4 w-4" />
+              <Button 
+                variant="outline" 
+                size="mobile"
+                leftIcon={<Filter className="h-4 w-4" />}
+              >
                 <span>Organismes</span>
                 {selectedOrganizations.length > 0 && (
                   <Badge variant="secondary" className="ml-1 px-1 rounded-full">

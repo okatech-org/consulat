@@ -237,7 +237,7 @@ export function AgentsTable({
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="mobile">
             <Link href={`${ROUTES.dashboard.agents}/${row.original.id}`}>Consulter</Link>
           </Button>
         ),

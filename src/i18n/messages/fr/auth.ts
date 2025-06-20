@@ -91,6 +91,11 @@ export default {
     login_with_email_prompt: 'Se connecter avec un email',
     no_account: 'Pas encore de compte ? ',
     create_consular_space: 'Créer mon espace consulaire',
+    login_success: 'Connexion réussie !',
+    redirecting_message: 'Vous allez être redirigé automatiquement...',
+    go_to_dashboard: 'Aller au tableau de bord',
+    go_to_my_space: 'Aller à mon espace',
+    auto_redirect_info: 'Redirection automatique dans quelques secondes',
     page: {
       title: "S'identifier",
       welcome_message:

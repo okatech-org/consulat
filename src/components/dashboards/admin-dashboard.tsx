@@ -135,16 +135,21 @@ export default async function AdminDashboard() {
         <CardContainer
           title={t('recent_activity')}
           action={
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="mobile" asChild>
               <Link href={ROUTES.dashboard.registrations}>{t('tasks.view_all')}</Link>
             </Button>
           }
           className="lg:col-span-1"
           footerContent={
-            <Button variant="outline" size="sm" className="w-full" asChild>
+            <Button 
+              variant="outline" 
+              size="mobile" 
+              className="w-full" 
+              rightIcon={<ArrowRight />}
+              asChild
+            >
               <Link href={ROUTES.dashboard.registrations}>
                 {t('tasks.view_all')}
-                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           }
@@ -192,16 +197,21 @@ export default async function AdminDashboard() {
         <CardContainer
           title={t_appointments('upcoming')}
           action={
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="mobile" asChild>
               <Link href={ROUTES.dashboard.appointments}>{t('tasks.view_all')}</Link>
             </Button>
           }
           className="lg:col-span-1"
           footerContent={
-            <Button variant="outline" size="sm" className="w-full" asChild>
+            <Button 
+              variant="outline" 
+              size="mobile" 
+              className="w-full" 
+              rightIcon={<ArrowRight />}
+              asChild
+            >
               <Link href={ROUTES.dashboard.appointments}>
                 {t('tasks.view_all')}
-                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           }

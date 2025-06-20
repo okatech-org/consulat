@@ -41,15 +41,21 @@ export async function PublicHeader() {
         </Link>
         
         <div className="flex items-center gap-3">
-          {!user && <ChatToggle />}
           
           {!user && <ThemeToggleSingle />}
 
-          {isAuth ? <NavUser showFeedback={false} user={user} /> : (<Button variant="default" asChild>
-            <Link prefetch href={ROUTES.user.base}>
-              {t('nav.login')}
-            </Link>
-          </Button>)}
+          {isAuth ? <NavUser showFeedback={false} user={user} /> : (
+            <Button 
+              variant="default" 
+              size="mobile"
+              weight="medium"
+              asChild
+            >
+              <Link prefetch href={ROUTES.auth.login}>
+                {t('nav.login')}
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>

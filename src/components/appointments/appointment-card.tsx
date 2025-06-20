@@ -109,7 +109,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="mobile"
             onClick={handleReschedule}
             disabled={isLoading}
           >
@@ -117,7 +117,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm" disabled={isLoading}>
+              <Button variant="destructive" size="mobile" disabled={isLoading}>
                 {t('actions.cancel')}
               </Button>
             </AlertDialogTrigger>

@@ -14,14 +14,14 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   LoginWithPhoneSchema,
   LoginWithEmailSchema,
   type LoginInput,
 } from '@/schemas/user';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
@@ -31,27 +31,27 @@ import { ErrorCard } from '@/components/ui/error-card';
 import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { authClient } from '@/lib/auth/auth-client';
+import { toast } from '@/hooks/use-toast';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
-function getLoginSchema(type: 'EMAIL' | 'PHONE', showOTP: boolean) {
-  if (type === 'EMAIL') {
-    return LoginWithEmailSchema.extend({
-      otp: showOTP
-        ? z
-            .string({
-              invalid_type_error: 'messages.errors.opt_min_length',
-              required_error: 'messages.errors.opt_min_length',
-            })
-            .min(6, {
-              message: 'messages.errors.opt_min_length',
-            })
-        : z
-            .string({
-              invalid_type_error: 'messages.errors.opt_min_length',
-            })
-            .optional(),
-    });
-  }
-  return LoginWithPhoneSchema.extend({
+// Types
+type LoginMethod = 'EMAIL' | 'PHONE';
+type LoginStep = 'IDENTIFIER' | 'OTP' | 'SUCCESS';
+
+interface LoginFormState {
+  method: LoginMethod;
+  step: LoginStep;
+  isLoading: boolean;
+  error: string | null;
+  resendCooldown: number;
+  canResend: boolean;
+}
+
+// Schema factory
+function getLoginSchema(type: LoginMethod, showOTP: boolean) {
+  const baseSchema = type === 'EMAIL' ? LoginWithEmailSchema : LoginWithPhoneSchema;
+  
+  return baseSchema.extend({
     otp: showOTP
       ? z
           .string({
@@ -69,32 +69,11 @@ function getLoginSchema(type: 'EMAIL' | 'PHONE', showOTP: boolean) {
   });
 }
 
-export function LoginForm() {
-  const t = useTranslations('auth.login');
-  const tError = useTranslations('messages.errors');
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const authError = searchParams.get('error') as ErrorMessageKey | null;
-  const callbackUrl = searchParams.get('callbackUrl');
-
-  const [method, setMethod] = React.useState<'EMAIL' | 'PHONE'>('PHONE');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isOTPSent, setIsOTPSent] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+// Custom hooks
+function useResendCooldown() {
   const [resendCooldown, setResendCooldown] = React.useState(0);
   const [canResend, setCanResend] = React.useState(true);
 
-  const form = useForm<LoginInput>({
-    resolver: zodResolver(getLoginSchema(method, isOTPSent)),
-    defaultValues: {
-      type: method,
-      email: '',
-      otp: '',
-      phoneNumber: '+33-',
-    },
-  });
-
-  // Cooldown timer for resend
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
     if (resendCooldown > 0) {
@@ -111,164 +90,343 @@ export function LoginForm() {
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  const sendOTPCode = async (identifier: string, type: 'EMAIL' | 'PHONE') => {
-    setIsLoading(true);
-    setError(null);
+  const startCooldown = React.useCallback((seconds: number = 60) => {
+    setCanResend(false);
+    setResendCooldown(seconds);
+  }, []);
 
+  return { resendCooldown, canResend, startCooldown };
+}
+
+function useLoginActions() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
+
+  const sendOTPCode = React.useCallback(async (identifier: string, type: LoginMethod) => {
     if (type === 'EMAIL') {
       const response = await tryCatch(
         authClient.emailOtp.sendVerificationOtp({
           email: identifier,
           type: 'sign-in',
-        }),
+        })
       );
 
       if (response.error) {
-        setError(
-          response.error instanceof Error ? response.error.message : 'Failed to send OTP',
+        throw new Error(
+          response.error instanceof Error 
+            ? response.error.message 
+            : 'Failed to send OTP'
         );
-        setIsLoading(false);
-        return;
       }
-    }
-
-    if (type === 'PHONE') {
+    } else {
       const response = await tryCatch(
         authClient.phoneNumber.sendOtp({
           phoneNumber: identifier,
-        }),
+        })
       );
 
       if (response.error) {
-        setError(
-          response.error instanceof Error ? response.error.message : 'Failed to send OTP',
+        throw new Error(
+          response.error instanceof Error 
+            ? response.error.message 
+            : 'Failed to send OTP'
         );
-        setIsLoading(false);
-        return;
       }
     }
+  }, []);
 
-    setIsOTPSent(true);
-    setCanResend(false);
-    setResendCooldown(60);
-    setIsLoading(false);
-  };
-
-  const validateOTP = async (otp: string) => {
-    setIsLoading(true);
-    setError(null);
-    let hasError = false;
-
+  const validateOTP = React.useCallback(async (otp: string, method: LoginMethod, identifier: string) => {
     if (method === 'EMAIL') {
-      const response = await authClient.signIn.emailOtp({
-        email: form.getValues('email'),
-        otp,
-      });
-
-      console.log('response signIn.emailOtp', response);
+      const response = await tryCatch(
+        authClient.signIn.emailOtp({
+          email: identifier,
+          otp,
+        })
+      );
 
       if (response.error) {
-        setError(
+        throw new Error(
           response.error instanceof Error
             ? response.error.message
-            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.',
+            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.'
         );
-        setIsLoading(false);
-        hasError = true;
-        return;
       }
-    }
-
-    if (method === 'PHONE') {
-      const response = await authClient.phoneNumber.verify({
-        phoneNumber: form.getValues('phoneNumber'),
-        code: otp,
-      });
+    } else {
+      const response = await tryCatch(
+        authClient.phoneNumber.verify({
+          phoneNumber: identifier,
+          code: otp,
+        })
+      );
 
       if (response.error) {
-        setError(
+        throw new Error(
           response.error instanceof Error
             ? response.error.message
-            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.',
+            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.'
         );
-        setIsLoading(false);
-        hasError = true;
-        return;
       }
     }
 
     router.push(callbackUrl ?? ROUTES.base);
-    setIsLoading(false);
-  };
+  }, [router, callbackUrl]);
 
-  const resendOTP = async () => {
+  return { sendOTPCode, validateOTP };
+}
+
+export function LoginForm() {
+  const user = useCurrentUser();
+  const t = useTranslations('auth.login');
+  const tError = useTranslations('messages.errors');
+  const searchParams = useSearchParams();
+  const authError = searchParams.get('error') as ErrorMessageKey | null;
+
+  // State management
+  const [state, setState] = React.useState<LoginFormState>({
+    method: 'PHONE',
+    step: 'IDENTIFIER',
+    isLoading: false,
+    error: null,
+    resendCooldown: 0,
+    canResend: true,
+  });
+
+  // Custom hooks
+  const { resendCooldown, canResend, startCooldown } = useResendCooldown();
+  const { sendOTPCode, validateOTP } = useLoginActions();
+
+  // Form setup
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(getLoginSchema(state.method, state.step === 'OTP')),
+    defaultValues: {
+      type: state.method,
+      email: '',
+      otp: '',
+      phoneNumber: '+33-',
+    },
+    mode: 'onBlur',
+  });
+
+  // Update state helper
+  const updateState = React.useCallback((updates: Partial<LoginFormState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  // Get redirect URL based on user role
+  const getRedirectUrl = React.useCallback((callbackUrl?: string | null) => {
+    if (callbackUrl) return callbackUrl;
+    
+    if (!user) return ROUTES.user.base;
+    
+    // Check user roles (user can have multiple roles)
+    const roles = Array.isArray(user.roles) ? user.roles : [user.roles];
+    
+    // Priority order: SUPER_ADMIN > ADMIN > MANAGER > AGENT > USER
+    if (roles.includes('SUPER_ADMIN') || roles.includes('ADMIN') || roles.includes('MANAGER') || roles.includes('AGENT')) {
+      return ROUTES.dashboard.base;
+    }
+    
+    return ROUTES.user.base;
+  }, [user]);
+
+  // Handlers
+  const handleSendOTP = React.useCallback(async (identifier: string, type: LoginMethod) => {
+    updateState({ isLoading: true, error: null });
+
+    try {
+      await sendOTPCode(identifier, type);
+      updateState({ 
+        step: 'OTP', 
+        isLoading: false 
+      });
+      startCooldown(60);
+      toast({
+        title: t('messages.otp_sent'),
+        variant: 'default',
+      });
+    } catch (error) {
+      updateState({ 
+        error: error instanceof Error ? error.message : 'Failed to send OTP',
+        isLoading: false 
+      });
+    }
+  }, [sendOTPCode, updateState, startCooldown, t]);
+
+  const handleValidateOTP = React.useCallback(async (otp: string) => {
+    updateState({ isLoading: true, error: null });
+
+    try {
+      const identifier = state.method === 'EMAIL' 
+        ? form.getValues('email') 
+        : form.getValues('phoneNumber');
+      
+      await validateOTP(otp, state.method, identifier);
+      
+      // Show success state first, then redirect
+      updateState({ 
+        step: 'SUCCESS', 
+        isLoading: false 
+      });
+
+      // Delay redirect to show success message
+      setTimeout(() => {
+        const callbackUrl = searchParams.get('callbackUrl');
+        const redirectUrl = getRedirectUrl(callbackUrl);
+        window.location.href = redirectUrl;
+      }, 2000);
+      
+    } catch (error) {
+      updateState({ 
+        error: error instanceof Error ? error.message : 'Validation failed',
+        isLoading: false 
+      });
+    }
+  }, [validateOTP, state.method, form, updateState, searchParams, getRedirectUrl]);
+
+  const handleResendOTP = React.useCallback(async () => {
     if (!canResend) return;
 
-    const identifier =
-      method === 'EMAIL' ? form.getValues('email') : form.getValues('phoneNumber');
-    await sendOTPCode(identifier, method);
-  };
+    const identifier = state.method === 'EMAIL' 
+      ? form.getValues('email') 
+      : form.getValues('phoneNumber');
+    
+    await handleSendOTP(identifier, state.method);
+  }, [canResend, state.method, form, handleSendOTP]);
 
-  const goBack = () => {
-    setIsOTPSent(false);
-    setError(null);
+  const handleGoBack = React.useCallback(() => {
+    updateState({ 
+      step: 'IDENTIFIER', 
+      error: null 
+    });
     form.clearErrors();
-  };
+  }, [form, updateState]);
 
-  const onSubmit = async (data: LoginInput) => {
-    if (!isOTPSent) {
-      const identifierValue = data.type === 'EMAIL' ? data.email : data.phoneNumber;
-      await sendOTPCode(identifierValue, data.type);
-    } else {
-      if (data.otp) {
-        await validateOTP(data.otp);
-      }
-    }
-  };
-
-  // Handle method change
-  const handleMethodChange = (value: string) => {
-    setMethod(value as 'EMAIL' | 'PHONE');
-    setIsOTPSent(false);
-    setError(null);
+  const handleMethodChange = React.useCallback((value: string) => {
+    const newMethod = value as LoginMethod;
+    updateState({ 
+      method: newMethod, 
+      step: 'IDENTIFIER', 
+      error: null 
+    });
+    
     form.reset();
-    if (value === 'EMAIL') {
+    if (newMethod === 'EMAIL') {
       form.setValue('type', 'EMAIL');
       form.setValue('email', '');
     } else {
       form.setValue('type', 'PHONE');
       form.setValue('phoneNumber', '+33-');
     }
-  };
+  }, [form, updateState]);
 
-  // Display errors in the form
+  const onSubmit = React.useCallback(async (data: LoginInput) => {
+    if (state.step === 'IDENTIFIER') {
+      const identifierValue = data.type === 'EMAIL' ? data.email : data.phoneNumber;
+      await handleSendOTP(identifierValue, data.type);
+    } else if (data.otp) {
+      await handleValidateOTP(data.otp);
+    }
+  }, [state.step, handleSendOTP, handleValidateOTP]);
+
+  // Manual redirect for success state
+  const handleManualRedirect = React.useCallback(() => {
+    const callbackUrl = searchParams.get('callbackUrl');
+    const redirectUrl = getRedirectUrl(callbackUrl);
+    window.location.href = redirectUrl;
+  }, [searchParams, getRedirectUrl]);
+
+  // Error handling effect
   React.useEffect(() => {
-    if (error) {
-      if (!isOTPSent) {
-        // Error when sending OTP
-        const fieldName = method === 'EMAIL' ? 'email' : 'phoneNumber';
-        form.setError(fieldName, { message: error });
-      } else if (isOTPSent) {
-        // Error when validating OTP
-        form.setError('otp', { message: error });
+    if (state.error) {
+      if (state.step === 'IDENTIFIER') {
+        const fieldName = state.method === 'EMAIL' ? 'email' : 'phoneNumber';
+        form.setError(fieldName, { message: state.error });
+      } else {
+        form.setError('otp', { message: state.error });
       }
     }
-  }, [error, isOTPSent, method, form]);
+  }, [state.error, state.step, state.method, form]);
+
+  // Auto-redirect if user is already logged in
+  React.useEffect(() => {
+    if (user && state.step === 'IDENTIFIER') {
+      const callbackUrl = searchParams.get('callbackUrl');
+      const redirectUrl = getRedirectUrl(callbackUrl);
+      
+      // Small delay to prevent flash
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 100);
+    }
+  }, [user, state.step, searchParams, getRedirectUrl]);
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={'w-full flex flex-col gap-6'}
+        className="w-full flex flex-col gap-6"
       >
         <div className="flex flex-col gap-6">
-          {!isOTPSent && (
+          {state.step === 'SUCCESS' && (
+            <div className="success-state space-y-6 text-center">
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800">
+                    {t('login_success')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {t('redirecting_message')}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <Button
+                  onClick={handleManualRedirect}
+                  size="mobile"
+                  weight="medium"
+                  fullWidthOnMobile={true}
+                  variant="default"
+                  leftIcon={<CheckCircle2 className="size-4" />}
+                  rightIcon={<ArrowRight className="size-4" />}
+                >
+                  {user && (Array.isArray(user.roles) ? user.roles : [user.roles]).some(role => 
+                    ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT'].includes(role)
+                  ) 
+                    ? t('go_to_dashboard')
+                    : t('go_to_my_space')
+                  }
+                </Button>
+                
+                <p className="text-xs text-muted-foreground">
+                  {t('auto_redirect_info')}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {state.step === 'IDENTIFIER' && (
             <Tabs
-              value={method}
+              value={state.method}
               onValueChange={handleMethodChange}
               className="inputs w-full"
             >
-              <TabsContent value="EMAIL">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="PHONE" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  {t('tabs.phone')}
+                </TabsTrigger>
+                <TabsTrigger value="EMAIL" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  {t('tabs.email')}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="EMAIL" className="mt-6">
                 <FormField
                   control={form.control}
                   name="email"
@@ -277,12 +435,12 @@ export function LoginForm() {
                       <FormLabel>{t('inputs.email.label')}</FormLabel>
                       <FormControl>
                         <Input
-                          autoFocus={true}
+                          autoFocus={state.method === 'EMAIL'}
                           {...field}
                           type="email"
                           autoComplete="email"
                           placeholder={t('inputs.email.placeholder')}
-                          disabled={isLoading}
+                          disabled={state.isLoading}
                         />
                       </FormControl>
                       <TradFormMessage />
@@ -291,7 +449,7 @@ export function LoginForm() {
                 />
               </TabsContent>
 
-              <TabsContent value="PHONE">
+              <TabsContent value="PHONE" className="mt-6">
                 <FormField
                   control={form.control}
                   name="phoneNumber"
@@ -302,9 +460,10 @@ export function LoginForm() {
                         <PhoneNumberInput
                           value={field.value}
                           onChangeAction={field.onChange}
-                          disabled={isLoading}
+                          disabled={state.isLoading}
                         />
                       </FormControl>
+
                       <TradFormMessage />
                     </FormItem>
                   )}
@@ -313,39 +472,42 @@ export function LoginForm() {
             </Tabs>
           )}
 
-          {isOTPSent && (
-            <div className="otp">
+          {state.step === 'OTP' && (
+            <div className="otp space-y-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold">{t('access_code')}</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {state.method === 'PHONE'
+                    ? t('access_code_phone_description')
+                    : t('access_code_email_description')}
+                </p>
+              </div>
+
               <FormField
                 control={form.control}
                 name="otp"
                 render={({ field }) => (
                   <FormItem className="space-y-4">
-                    <FormLabel className="text-xl font-semibold">
-                      {t('access_code')}
-                    </FormLabel>
                     <FormControl>
-                      <InputOTP
-                        autoFocus
-                        maxLength={6}
-                        {...field}
-                        autoComplete="one-time-code"
-                        disabled={isLoading}
-                      >
-                        <InputOTPGroup>
-                          <InputOTPSlot className="w-12" index={0} />
-                          <InputOTPSlot className="w-12" index={1} />
-                          <InputOTPSlot className="w-12" index={2} />
-                          <InputOTPSlot className="w-12" index={3} />
-                          <InputOTPSlot className="w-12" index={4} />
-                          <InputOTPSlot className="w-12" index={5} />
-                        </InputOTPGroup>
-                      </InputOTP>
+                      <div className="flex justify-center">
+                        <InputOTP
+                          autoFocus
+                          maxLength={6}
+                          {...field}
+                          autoComplete="one-time-code"
+                          disabled={state.isLoading}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot className="w-12 h-12" index={0} />
+                            <InputOTPSlot className="w-12 h-12" index={1} />
+                            <InputOTPSlot className="w-12 h-12" index={2} />
+                            <InputOTPSlot className="w-12 h-12" index={3} />
+                            <InputOTPSlot className="w-12 h-12" index={4} />
+                            <InputOTPSlot className="w-12 h-12" index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
                     </FormControl>
-                    <FormDescription>
-                      {method === 'PHONE'
-                        ? t('access_code_phone_description')
-                        : t('access_code_email_description')}
-                    </FormDescription>
                     <TradFormMessage />
                   </FormItem>
                 )}
@@ -353,75 +515,85 @@ export function LoginForm() {
             </div>
           )}
 
-          <div className="actions flex flex-col gap-4">
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isLoading || !form.formState.isValid}
-            >
-              <span>{isOTPSent ? t('access_space') : t('login_button')}</span>
-              {!isLoading && <ArrowRight className="size-icon" />}
-              {isLoading && <Loader2 className="size-icon animate-spin" />}
-            </Button>
+          {(state.step === 'IDENTIFIER' || state.step === 'OTP') && (
+            <div className="actions flex flex-col gap-4">
+              <Button
+                variant="default"
+                type="submit"
+                disabled={state.isLoading || !form.formState.isValid}
+                size="mobile"
+                weight="medium"
+                fullWidthOnMobile={true}
+                loading={state.isLoading}
+                rightIcon={!state.isLoading ? <ArrowRight className="size-4" /> : undefined}
+              >
+                {state.step === 'OTP' ? t('access_space') : t('login_button')}
+              </Button>
 
-            {isOTPSent && (
-              <div className="flex justify-between items-center">
+              {state.step === 'OTP' && (
+                <div className="flex justify-between items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={state.isLoading}
+                    onClick={handleGoBack}
+                    leftIcon={<ArrowLeft className="size-4" />}
+                    className="flex-shrink-0"
+                  >
+                    {t('back')}
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!canResend || state.isLoading}
+                    onClick={handleResendOTP}
+                    className="flex-shrink-0"
+                  >
+                    {t('resend_code')}
+                    {resendCooldown > 0 && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({resendCooldown}s)
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {state.step === 'IDENTIFIER' && (
                 <Button
                   type="button"
                   variant="link"
-                  className="text-muted-foreground p-0"
-                  disabled={isLoading}
-                  onClick={goBack}
+                  size="sm"
+                  disabled={state.isLoading}
+                  className="mx-auto"
+                  onClick={() => handleMethodChange(state.method === 'EMAIL' ? 'PHONE' : 'EMAIL')}
                 >
-                  <ArrowLeft className="size-icon" />
-                  {t('back')}
-                </Button>
-                <Button
-                  variant="link"
-                  className="text-muted-foreground p-0"
-                  disabled={!canResend || isLoading}
-                  onClick={resendOTP}
-                >
-                  {t('resend_code')}
-                  {resendCooldown > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {t('resend_cooldown', { cooldown: resendCooldown })}
-                    </span>
-                  )}
-                </Button>
-              </div>
-            )}
-
-            {!isOTPSent && (
-              <Button
-                type="button"
-                variant="link"
-                disabled={isLoading}
-                className="max-w-fit mx-auto"
-                onClick={() => handleMethodChange(method === 'EMAIL' ? 'PHONE' : 'EMAIL')}
-              >
-                <span className="text-muted-foreground">
-                  {method === 'EMAIL'
+                  {state.method === 'EMAIL'
                     ? t('login_with_phone_prompt')
                     : t('login_with_email_prompt')}
-                </span>
-              </Button>
-            )}
-          </div>
+                </Button>
+              )}
+            </div>
+          )}
 
           {authError && <ErrorCard description={tError('auth_error')} />}
 
-          <div className="subactions flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              <span>{t('no_account')}</span>
-              <Link
-                className={buttonVariants({ variant: 'link' }) + ' !p-0'}
-                href={ROUTES.registration}
-              >
-                {t('create_consular_space')}
-              </Link>
-            </p>
-          </div>
+          {state.step !== 'SUCCESS' && (
+            <div className="subactions flex justify-center">
+              <p className="text-sm text-muted-foreground">
+                <span>{t('no_account')}</span>
+                <Link
+                  className={buttonVariants({ variant: 'link', size: 'sm' }) + ' !p-0 !h-auto'}
+                  href={ROUTES.registration}
+                >
+                  {t('create_consular_space')}
+                </Link>
+              </p>
+            </div>
+          )}
         </div>
       </form>
     </Form>

@@ -86,8 +86,12 @@ function ReviewSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className={'text-md'}>{title}</CardTitle>
-        <Button variant="outline" size="sm" onClick={onEdit}>
-          <Pencil className="size-4" />
+        <Button 
+          variant="outline" 
+          size="mobile" 
+          onClick={onEdit}
+          leftIcon={<Pencil className="size-4" />}
+        >
           {t('actions.edit')}
         </Button>
       </CardHeader>

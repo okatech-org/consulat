@@ -12,9 +12,8 @@ export function AppointmentsHeader() {
   return (
     <div className="flex items-center justify-between">
       <h1 className="text-2xl font-semibold">{t('title')}</h1>
-      <Button asChild>
+      <Button asChild size="mobile" weight="medium" leftIcon={<Calendar />}>
         <Link href={ROUTES.user.new_appointment}>
-          <Calendar className="mr-2 size-4" />
           {t('new.button')}
         </Link>
       </Button>

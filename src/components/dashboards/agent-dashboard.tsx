@@ -96,16 +96,21 @@ export default async function AgentDashboard() {
         <CardContainer
           title={t('stats.recent_requests')}
           action={
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="mobile" asChild>
               <Link href={ROUTES.dashboard.requests}>{t('actions.see_all')}</Link>
             </Button>
           }
           className="lg:col-span-1"
           footerContent={
-            <Button variant="outline" size="sm" className="w-full" asChild>
+            <Button 
+              variant="outline" 
+              size="mobile" 
+              className="w-full" 
+              rightIcon={<ArrowRight />}
+              asChild
+            >
               <Link href={ROUTES.dashboard.requests}>
                 {t('actions.view_all_requests')}
-                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           }
@@ -158,16 +163,21 @@ export default async function AgentDashboard() {
         <CardContainer
           title={t('stats.upcoming_appointments')}
           action={
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="mobile" asChild>
               <Link href={ROUTES.dashboard.appointments}>{t('actions.see_all')}</Link>
             </Button>
           }
           className="lg:col-span-1"
           footerContent={
-            <Button variant="outline" size="sm" className="w-full" asChild>
+            <Button 
+              variant="outline" 
+              size="mobile" 
+              className="w-full" 
+              rightIcon={<ArrowRight />}
+              asChild
+            >
               <Link href={ROUTES.dashboard.appointments}>
                 {t('actions.view_all_appointments')}
-                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           }

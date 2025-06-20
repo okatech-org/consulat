@@ -145,11 +145,11 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
       {/* Contenu principal */}
       <div className="grid gap-6 md:grid-cols-3">
         <div className="space-y-6 md:col-span-2">
-          {request.appointment && (
+          {request.appointments[0] && (
             <CardContainer title={t('admin.registrations.review.appointment.title')}>
               <div className="space-y-2">
                 <Label>{t('admin.registrations.review.appointment.date')}</Label>
-                <p>{formatDate(request.appointment.date)}</p>
+                <p>{formatDate(request.appointments[0].date)}</p>
               </div>
             </CardContainer>
           )}

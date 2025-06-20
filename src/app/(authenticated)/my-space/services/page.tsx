@@ -186,13 +186,20 @@ export default function ServicesPage() {
       description={t('description')}
       action={
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            <RefreshCw className="size-icon" />
+          <Button 
+            variant="outline" 
+            size="mobile" 
+            onClick={() => window.location.reload()}
+            leftIcon={<RefreshCw className="size-icon" />}
+          >
             <span className="hidden md:inline">{t('actions.refresh')}</span>
           </Button>
           <Link href={ROUTES.user.service_available}>
-            <Button size="sm">
-              <Plus className="size-icon" />
+            <Button 
+              size="mobile" 
+              weight="medium"
+              leftIcon={<Plus className="size-icon" />}
+            >
               <span className="hidden md:inline">{t('myRequests.startNew')}</span>
             </Button>
           </Link>
@@ -353,28 +360,28 @@ export default function ServicesPage() {
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={activeFilter === 'all' ? 'default' : 'outline'}
-                size="sm"
+                size="mobile"
                 onClick={() => setActiveFilter('all')}
               >
                 Toutes
               </Button>
               <Button
                 variant={activeFilter === 'ongoing' ? 'default' : 'outline'}
-                size="sm"
+                size="mobile"
                 onClick={() => setActiveFilter('ongoing')}
               >
                 En cours
               </Button>
               <Button
                 variant={activeFilter === 'completed' ? 'default' : 'outline'}
-                size="sm"
+                size="mobile"
                 onClick={() => setActiveFilter('completed')}
               >
                 Complétées
               </Button>
               <Button
                 variant={activeFilter === 'archived' ? 'default' : 'outline'}
-                size="sm"
+                size="mobile"
                 onClick={() => setActiveFilter('archived')}
               >
                 Archivées
@@ -417,7 +424,7 @@ export default function ServicesPage() {
                       </Badge>
                     }
                     footerContent={
-                      <Button variant="outline" size="sm" className="w-full" asChild>
+                      <Button variant="outline" size="mobile" className="w-full" asChild>
                         <Link
                           href={ROUTES.user.service_request_details(request.id)}
                           key={request.id}
