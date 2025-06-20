@@ -48,11 +48,6 @@ const handleAuthRedirects = (
 ): NextResponse | null => {
   const isProtected = isProtectedRoute(pathname);
 
-  if (session && pathname === ROUTES.auth.login) {
-    const newUrl = new URL(ROUTES.base, request.url);
-    return NextResponse.redirect(newUrl);
-  }
-
   // Redirection si route protégée sans session
   if (isProtected && !session) {
     const newUrl = new URL(ROUTES.auth.login, request.url);
