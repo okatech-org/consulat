@@ -45,6 +45,12 @@ const buttonVariants = cva(
         // Links - clearly differentiated from buttons
         link: 
           'text-primary underline-offset-4 hover:underline focus-visible:ring-1 active:scale-100',
+        success:
+          'bg-green-500 text-white shadow-md hover:bg-green-600 hover:shadow-lg active:shadow-sm',
+        warning:
+          'bg-yellow-500 text-white shadow-md hover:bg-yellow-600 hover:shadow-lg active:shadow-sm',
+        error:
+          'bg-red-500 text-white shadow-md hover:bg-red-600 hover:shadow-lg active:shadow-sm',
       },
       size: {
         // Touch-friendly sizes based on 44px minimum touch target

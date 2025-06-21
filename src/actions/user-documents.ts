@@ -129,41 +129,52 @@ export async function createUserDocument(data: {
     throw new Error('Vous devez être connecté pour créer un document');
   }
 
-  // @ts-expect-error - We don't need to define the type for the typesMap
-  const typesMap: Record<
-    DocumentType,
-    | 'identityPictureProfile'
-    | 'passportProfile'
-    | 'birthCertificateProfile'
-    | 'residencePermitProfile'
-    | 'addressProofProfile'
-  > = {
-    [DocumentType.IDENTITY_PHOTO]: 'identityPictureProfile',
-    [DocumentType.PASSPORT]: 'passportProfile',
-    [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificateProfile',
-    [DocumentType.RESIDENCE_PERMIT]: 'residencePermitProfile',
-    [DocumentType.PROOF_OF_ADDRESS]: 'addressProofProfile',
+  // Map document types to profile field names
+  const profileFieldMap: Record<DocumentType, string> = {
+    [DocumentType.IDENTITY_PHOTO]: 'identityPictureId',
+    [DocumentType.PASSPORT]: 'passportId',
+    [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificateId',
+    [DocumentType.RESIDENCE_PERMIT]: 'residencePermitId',
+    [DocumentType.PROOF_OF_ADDRESS]: 'addressProofId',
+    [DocumentType.IDENTITY_CARD]: '', // Not connected to profile
+    [DocumentType.MARRIAGE_CERTIFICATE]: '', // Not connected to profile
+    [DocumentType.DEATH_CERTIFICATE]: '', // Not connected to profile
+    [DocumentType.DIVORCE_DECREE]: '', // Not connected to profile
+    [DocumentType.NATIONALITY_CERTIFICATE]: '', // Not connected to profile
+    [DocumentType.OTHER]: '', // Not connected to profile
+    [DocumentType.VISA_PAGES]: '', // Not connected to profile
+    [DocumentType.EMPLOYMENT_PROOF]: '', // Not connected to profile
+    [DocumentType.NATURALIZATION_DECREE]: '', // Not connected to profile
+    [DocumentType.CONSULAR_CARD]: '', // Not connected to profile
   } as const;
 
   const { data: document, error: documentError } = await tryCatch(
-    db.userDocument.create({
-      data: {
-        id: data.id,
-        type: data.type,
-        fileUrl: data.fileUrl,
-        status: DocumentStatus.PENDING,
-        fileType: data.fileType,
-        userId: data.userId && data.userId !== '' ? data.userId : authResult.user.id,
-        ...(data.profileId && {
-          ...(typesMap[data.type] && {
-            [typesMap[data.type]]: {
-              connect: {
-                id: data.profileId ?? authResult.user.profileId,
-              },
-            },
-          }),
-        }),
-      },
+    db.$transaction(async (tx) => {
+      // 1. Create the document first
+      const newDocument = await tx.userDocument.create({
+        data: {
+          id: data.id,
+          type: data.type,
+          fileUrl: data.fileUrl,
+          status: DocumentStatus.PENDING,
+          fileType: data.fileType,
+                     userId: data.userId && data.userId !== '' ? data.userId : authResult.user?.id,
+        },
+      });
+
+      // 2. If profileId is provided and document type is mapped to a profile field, update the profile
+      if (data.profileId && profileFieldMap[data.type]) {
+        const profileField = profileFieldMap[data.type];
+        
+        await tx.profile.update({
+          where: { id: data.profileId },
+          data: {
+            [profileField]: newDocument.id,
+          },
+        });
+      }
+
+      return newDocument;
     }),
   );
 

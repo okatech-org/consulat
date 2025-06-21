@@ -164,7 +164,10 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
 
             {profileTabs.map((tab) => (
               <TabsContent key={tab.value} value={tab.value} className="space-y-4">
-                <CardContainer>{tab.component}</CardContainer>
+                {tab.value === 'identity' && (
+                  <CardContainer>{tab.component}</CardContainer>
+                )}
+                {tab.value !== 'identity' && tab.component}
               </TabsContent>
             ))}
           </Tabs>
