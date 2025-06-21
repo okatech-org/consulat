@@ -8,8 +8,57 @@ import { AnimatedSection } from '@/components/ui/animated-section';
 import { GlobalAnimations } from '@/components/ui/global-animations';
 import { MobileSectionCarousel } from '@/components/ui/mobile-section-carousel';
 import { ROUTES } from '@/schemas/routes';
+import type { Metadata } from 'next';
 
-const logo = process.env.NEXT_PUBLIC_ORG_LOGO;
+const logo = process.env.NEXT_PUBLIC_ORG_LOGO || undefined;
+
+// Generate static params for SSG
+export async function generateStaticParams() {
+  // Since we only support French locale based on i18n config
+  return [];
+}
+
+// Generate metadata for SEO
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations();
+  
+  return {
+    title: t('home.landing.hero.consulat_ga'),
+    description: t('home.landing.hero.description'),
+    keywords: [
+      'consulat',
+      'gabon',
+      'services consulaires',
+      'diaspora gabonaise',
+      'administration digitale',
+      'inscription consulaire',
+      'passeport gabonais',
+      'carte consulaire'
+    ],
+    openGraph: {
+      title: t('home.landing.hero.consulat_ga'),
+      description: t('home.landing.hero.description'),
+      type: 'website',
+      images: [
+        {
+          url: 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv',
+          width: 1000,
+          height: 1000,
+          alt: 'Consulat Digital - Présentation',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('home.landing.hero.consulat_ga'),
+      description: t('home.landing.hero.description'),
+      images: ['https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv'],
+    },
+    alternates: {
+      canonical: '/',
+    },
+  };
+}
 
 export default async function LandingPage() {
   // Utilisation de getTranslations pour les composants serveur
