@@ -2,12 +2,12 @@ import { LoginForm } from '../auth/_utils/login-form';
 import { env } from '@/lib/env/index';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
-import { hasAnyRole } from '@/lib/permissions/utils';
 import { ROUTES } from '@/schemas/routes';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { BetaBanner } from '@/components/ui/beta-banner';
 import { getCurrentUser } from '@/actions/user';
+import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -19,21 +19,8 @@ export default async function LoginPage() {
   const callbackUrl = searchParams.get('callbackUrl');
 
   if (user) {
-    if (callbackUrl) {
-      redirect(callbackUrl);
-    } else {
-      const isAdmin = hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER']);
-
-      if (isAdmin) {
-        redirect(ROUTES.dashboard.base);
-      }
-
-      if (hasAnyRole(user, ['USER'])) {
-        redirect(ROUTES.user.base);
-      }
-
-      redirect(ROUTES.base);
-    }
+    const redirectUrl = AuthRedirectManager.getRedirectUrl(user, callbackUrl);
+    redirect(redirectUrl);
   }
 
   return (

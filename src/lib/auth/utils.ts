@@ -2,38 +2,8 @@ import { authClient } from './auth-client';
 import { auth } from './auth';
 import { headers } from 'next/headers';
 
-export async function signOut(redirectUrl?: string) {
-  try {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          if (redirectUrl) {
-            window.location.href = redirectUrl;
-          } else {
-            window.location.href = '/login';
-          }
-        },
-        onError: (error) => {
-          console.error('Sign out error:', error);
-          // Still redirect on error to ensure user is logged out from UI
-          if (redirectUrl) {
-            window.location.href = redirectUrl;
-          } else {
-            window.location.href = '/login';
-          }
-        },
-      },
-    });
-  } catch (error) {
-    console.error('Sign out failed:', error);
-    // Fallback redirect
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-    } else {
-      window.location.href = '/login';
-    }
-  }
-}
+// signOut function moved to AuthRedirectManager and logout components
+// This prevents conflicts with multiple redirect implementations
 
 export async function getSession() {
   try {

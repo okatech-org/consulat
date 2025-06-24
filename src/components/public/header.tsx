@@ -1,12 +1,10 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
-import { Button } from "@/components/ui/button"
 import { getCurrentUser } from "@/lib/auth/utils"
-import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 import Image from 'next/image';
 import { env } from "@/lib/env"
-import { NavUser } from "../ui/nav-user"
+import { HeaderLinks } from "./header-links"
 
 const logo = env.NEXT_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
 const appName = env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
@@ -41,20 +39,8 @@ export async function PublicHeader() {
         
         <div className="flex items-center gap-3">
           
-          {!user && <ThemeToggleSingle />}
+          <HeaderLinks />
 
-          {isAuth ? <NavUser showFeedback={false} user={user} /> : (
-            <Button 
-              variant="default" 
-              size="mobile"
-              weight="medium"
-              asChild
-            >
-              <Link prefetch href={ROUTES.auth.login}>
-                {t('nav.login')}
-              </Link>
-            </Button>
-          )}
         </div>
       </div>
     </header>

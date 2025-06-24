@@ -20,6 +20,7 @@ import { NavMainItem } from '@/hooks/use-navigation';
 import { ThemeToggleSingle } from '../layouts/theme-toggle-single';
 import { NotificationBell } from '../notifications/notification-bell';
 import { authClient } from '@/lib/auth/auth-client';
+import { LogoutButton } from './logout-button';
 
 export interface MobileDrawerProps extends React.HTMLAttributes<HTMLDivElement> {
   items: NavMainItem[];
@@ -116,17 +117,7 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
             {renderItems(items)}
           </nav>
           <div className="flex w-full items-center justify-between pt-4">
-            <Button
-              variant="ghost"
-              onClick={async () => {
-                await authClient.signOut().then(() => {
-                  router.push('/');
-                });
-              }}
-            >
-              <LogOut className="size-icon" />
-              <span className="text-xs">Déconnexion</span>
-            </Button>
+            <LogoutButton />
             <div className="flex items-center gap-2">
               <NotificationBell />
               <ThemeToggleSingle />

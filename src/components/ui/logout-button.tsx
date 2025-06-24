@@ -8,15 +8,18 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth/auth-client';
 import { ROUTES } from '@/schemas/routes';
+import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 
 type LogoutButtonProps = {
   customClass?: string;
+  redirectUrl?: string;
 };
 
-export function LogoutButton({ customClass }: LogoutButtonProps) {
+export function LogoutButton({ customClass, redirectUrl }: LogoutButtonProps) {
   const t = useTranslations('auth.actions');
   const user = useCurrentUser();
   const [isPending, startTransition] = React.useTransition();
+  const [hasLoggedOut, setHasLoggedOut] = React.useState(false);
   const router = useRouter();
 
   if (!user) {
@@ -24,17 +27,40 @@ export function LogoutButton({ customClass }: LogoutButtonProps) {
   }
 
   const handleLogout = async () => {
+    // Prevent multiple logout attempts
+    if (hasLoggedOut) return;
+    
     try {
-      await authClient.signOut();
-      // Clear any additional cookies or local storage if needed
-      // delete better-auth.dont_remember & better-auth.session_token
-      document.cookie =
-        'better-auth.dont_remember=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      document.cookie =
-        'better-auth.session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      router.push(ROUTES.base);
+      setHasLoggedOut(true);
+      
+      // Sign out using authClient
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            // Use centralized redirect logic
+            AuthRedirectManager.handleLogoutSuccess({
+              fallbackUrl: redirectUrl,
+              method: 'replace'
+            });
+          },
+          onError: (error) => {
+            console.error('Sign out error:', error);
+            // Still redirect on error to ensure user is logged out from UI
+            AuthRedirectManager.handleLogoutSuccess({
+              fallbackUrl: redirectUrl,
+              method: 'replace'
+            });
+          },
+        },
+      });
+      
     } catch (error) {
       console.error('Logout failed:', error);
+      // Fallback: still redirect to clear UI state
+      AuthRedirectManager.handleLogoutSuccess({
+        fallbackUrl: redirectUrl,
+        method: 'replace'
+      });
     }
   };
 
@@ -43,17 +69,13 @@ export function LogoutButton({ customClass }: LogoutButtonProps) {
       onClick={() => {
         startTransition(handleLogout);
       }}
-      type={'button'}
-      variant={'ghost'}
-      className={'w-max gap-2 ' + customClass}
-      disabled={isPending}
+      type="button"
+      variant="ghost"
+      className={`w-max ${customClass || ''}`}
+      disabled={isPending || hasLoggedOut}
+      leftIcon={<LogOutIcon className={'size-icon'} />}
     >
-      {isPending ? (
-        <LoaderIcon className="mr-2 size-4 animate-spin" />
-      ) : (
-        <LogOutIcon className={'size-4'} />
-      )}
-      <span>{t('logout')}</span>
+      {t('logout')}
     </Button>
   );
 }

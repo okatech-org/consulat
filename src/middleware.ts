@@ -1,148 +1,162 @@
-import { nanoid } from 'nanoid';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { generateCSPNonce } from '@/lib/security/headers';
-//import { globalLimiter, checkRateLimit } from '@/lib/security/rate-limiter';
-//import { logEdgeRateLimitExceeded } from '@/lib/security/edge-logger';
-import { getSessionCookie } from 'better-auth/cookies';
 import { ROUTES } from './schemas/routes';
+import { getSessionCookie } from 'better-auth/cookies';
 
-// Routes protégées qui nécessitent une authentification
-const protectedRoutes = ['/dashboard', '/my-space'] as const;
+// Define route patterns more comprehensively
+const PUBLIC_ROUTES = [
+  '/',
+  '/login',
+  '/registration', 
+  '/feedback',
+  '/help',
+  '/legal',
+  '/privacy-policy',
+  '/terms',
+  '/api/auth/callback',
+  '/api/uploadthing',
+] as const;
+
+const PROTECTED_ROUTE_PATTERNS = [
+  '/dashboard',
+  '/my-space',
+  '/api/protected',
+] as const;
 
 /**
- * Vérifie si une route nécessite une authentification
- * @param pathname - Le chemin de la route
- * @returns true si la route est protégée, false sinon
+ * Check if a route is public (doesn't require authentication)
  */
-const isProtectedRoute = (pathname: string): boolean => {
-  return protectedRoutes.some((route) => pathname.startsWith(route));
+const isPublicRoute = (pathname: string): boolean => {
+  return PUBLIC_ROUTES.some(route => {
+    if (route === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(route);
+  });
 };
 
 /**
- * Extrait l'adresse IP du client depuis les headers de la requête
- * @param request - La requête Next.js
- * @returns L'adresse IP du client ou 'unknown'
+ * Check if a route is protected (requires authentication)
  */
-const getClientIP = (request: NextRequest): string => {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    request.headers.get('cf-connecting-ip') ||
-    request.headers.get('x-client-ip') ||
-    'unknown'
+const isProtectedRoute = (pathname: string): boolean => {
+  return PROTECTED_ROUTE_PATTERNS.some(pattern => 
+    pathname.startsWith(pattern)
   );
 };
 
 /**
- * Gère les redirections d'authentification
- * @param request - La requête Next.js
- * @param session - La session utilisateur
- * @param pathname - Le chemin de la route
- * @returns NextResponse de redirection ou null
+ * Validate and clean callback URL to prevent open redirects
  */
-const handleAuthRedirects = (
-  request: NextRequest,
-  session: string | null,
-  pathname: string,
-): NextResponse | null => {
-  const isProtected = isProtectedRoute(pathname);
+const sanitizeCallbackUrl = (url: string): string => {
+  try {
+    // Only allow relative URLs that start with /
+    if (url.startsWith('/') && !url.startsWith('//') && !url.includes('javascript:')) {
+      return url;
+    }
+  } catch {
+    // Invalid URL, ignore
+  }
+  return '/';
+};
 
-  // Redirection si route protégée sans session
-  if (isProtected && !session) {
-    const newUrl = new URL(ROUTES.auth.login, request.url);
-    const urlWithCallback = newUrl.toString() + `?callbackUrl=${pathname}`;
-    return NextResponse.redirect(urlWithCallback);
+/**
+ * Handle authentication redirects with proper session validation
+ */
+const handleAuthRedirects = async (
+  request: NextRequest,
+  pathname: string,
+): Promise<NextResponse | null> => {
+  // Skip auth check for public routes
+  if (isPublicRoute(pathname)) {
+    return null;
+  }
+
+  try {
+    // Get session cookie using better-auth's edge-compatible method
+    const sessionToken = getSessionCookie(request);
+    const hasValidSession = !!sessionToken;
+
+    console.log({
+      url: pathname,
+      isProtectedRoute: isProtectedRoute(pathname),
+      sessionToken,
+      loginUrl: new URL(ROUTES.auth.login, request.url),
+    });
+
+    // Redirect to login if accessing protected route without valid session
+    if (isProtectedRoute(pathname) && !hasValidSession) {
+      const loginUrl = new URL(ROUTES.auth.login, request.url);      
+      
+      // Add callback URL if it's a valid route
+      const callbackUrl = sanitizeCallbackUrl(pathname);
+      if (callbackUrl !== '/') {
+        loginUrl.searchParams.set('callbackUrl', callbackUrl);
+      }
+      
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Redirect authenticated users away from auth pages
+    if (pathname.startsWith('/login') && hasValidSession) {
+      // Get callback URL from search params
+      const { searchParams } = request.nextUrl;
+      const callbackUrl = searchParams.get('callbackUrl');
+      
+      if (callbackUrl) {
+        const sanitized = sanitizeCallbackUrl(callbackUrl);
+        return NextResponse.redirect(new URL(sanitized, request.url));
+      }
+
+      // Default redirect to dashboard (role-based redirect will be handled by the login page)
+      return NextResponse.redirect(new URL(ROUTES.dashboard.base, request.url));
+    }
+
+  } catch (error) {
+    console.error('Middleware auth check failed:', error);
+    
+    // On auth error, redirect protected routes to login
+    if (isProtectedRoute(pathname)) {
+      return NextResponse.redirect(new URL(ROUTES.auth.login, request.url));
+    }
   }
 
   return null;
 };
 
-/**
- * Configure les headers de sécurité et de contexte
- * @param request - La requête Next.js
- * @param response - La réponse Next.js
- * @param nonce - Le nonce généré
- * @param cspNonce - Le nonce CSP
- * @param clientIP - L'adresse IP du client
- */
-const configureHeaders = (
-  request: NextRequest,
-  response: NextResponse,
-  nonce: string,
-  cspNonce: string,
-  clientIP: string,
-): void => {
-  const searchParams = request.nextUrl.searchParams.toString();
 
-  // Headers de contexte
-  response.headers.set(
-    'x-current-path',
-    request.nextUrl.pathname + (searchParams ? `?${searchParams}` : ''),
-  );
-  response.headers.set('x-params-string', searchParams);
-
-  // Gestion du viewport mobile via cookie
-  const viewportCookie = request.cookies.get('x-is-mobile');
-  const isMobile = viewportCookie?.value === 'true';
-  response.headers.set('x-is-mobile', isMobile ? 'true' : 'false');
-
-  // Headers de sécurité
-  response.headers.set('x-nonce', nonce);
-  response.headers.set('x-csp-nonce', cspNonce);
-  response.headers.set('x-client-ip', clientIP);
-};
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const clientIP = getClientIP(request);
 
-  // Vérification de la session utilisateur
-  const session = getSessionCookie(request);
-
-  // Gestion des redirections d'authentification
-  const authRedirect = handleAuthRedirects(request, session, pathname);
+  // Handle authentication redirects first
+  const authRedirect = await handleAuthRedirects(request, pathname);
   if (authRedirect) {
     return authRedirect;
   }
 
-  // Génération des nonces de sécurité
-  const nonce = nanoid();
-  const cspNonce = generateCSPNonce();
+  // Continue with your existing security headers logic
+  const response = NextResponse.next();
+  
+  // Add security headers
+  const searchParams = request.nextUrl.searchParams.toString();
+  response.headers.set(
+    'x-current-path',
+    pathname + (searchParams ? `?${searchParams}` : ''),
+  );
+  response.headers.set('x-params-string', searchParams);
 
-  // Configuration des headers de requête
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('x-csp-nonce', cspNonce);
-
-  // Création de la réponse avec headers modifiés
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-
-  // Configuration des headers de réponse
-  configureHeaders(request, response, nonce, cspNonce, clientIP);
-
-  // Application des headers de sécurité
-  // TODO: Uncomment this when we have a proper CSP policy
-  /**return applySecurityHeaders(response, {
-    'X-CSP-Nonce': cspNonce,
-    'X-Client-IP': clientIP,
-  });*/
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
+     * - api/auth (auth API routes)
      * - _next/static (static files)
-     * - _next/image (image optimization files)
+     * - _next/image (image optimization files) 
      * - favicon.ico (favicon file)
      * - public folder files
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
