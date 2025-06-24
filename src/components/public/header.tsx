@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button"
 import { getCurrentUser } from "@/lib/auth/utils"
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single"
 import Image from 'next/image';
-import { NavUser } from "../layouts/nav-user"
-import { ChatToggle } from "../chat/chat-toggle"
 import { env } from "@/lib/env"
+import { NavUser } from "../ui/nav-user"
 
 const logo = env.NEXT_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
 const appName = env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
