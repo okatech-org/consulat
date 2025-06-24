@@ -33,6 +33,7 @@ import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { authClient } from '@/lib/auth/auth-client';
 import { toast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
@@ -45,6 +46,7 @@ interface LoginFormState {
   error: string | null;
   resendCooldown: number;
   canResend: boolean;
+  hasRedirected: boolean; // NEW: Prevent multiple redirects
 }
 
 // Schema factory
@@ -190,6 +192,7 @@ export function LoginForm() {
     error: null,
     resendCooldown: 0,
     canResend: true,
+    hasRedirected: false, // NEW: Track redirect status
   });
 
   // Custom hooks
@@ -215,19 +218,7 @@ export function LoginForm() {
 
   // Get redirect URL based on user role
   const getRedirectUrl = React.useCallback((callbackUrl?: string | null) => {
-    if (callbackUrl) return callbackUrl;
-    
-    if (!user) return ROUTES.user.base;
-    
-    // Check user roles (user can have multiple roles)
-    const roles = Array.isArray(user.roles) ? user.roles : [user.roles];
-    
-    // Priority order: SUPER_ADMIN > ADMIN > MANAGER > AGENT > USER
-    if (roles.includes('SUPER_ADMIN') || roles.includes('ADMIN') || roles.includes('MANAGER') || roles.includes('AGENT')) {
-      return ROUTES.dashboard.base;
-    }
-    
-    return ROUTES.user.base;
+    return AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
   }, [user]);
 
   // Handlers
@@ -269,12 +260,8 @@ export function LoginForm() {
         isLoading: false 
       });
 
-      // Delay redirect to show success message
-      setTimeout(() => {
-        const callbackUrl = searchParams.get('callbackUrl');
-        const redirectUrl = getRedirectUrl(callbackUrl);
-        window.location.href = redirectUrl;
-      }, 2000);
+      // Show success state WITHOUT auto-redirect
+      // User will manually trigger redirect via button
       
     } catch (error) {
       updateState({ 
@@ -331,10 +318,12 @@ export function LoginForm() {
 
   // Manual redirect for success state
   const handleManualRedirect = React.useCallback(() => {
+    if (state.hasRedirected) return; // Prevent double redirects
+    
+    setState(prev => ({ ...prev, hasRedirected: true }));
     const callbackUrl = searchParams.get('callbackUrl');
-    const redirectUrl = getRedirectUrl(callbackUrl);
-    window.location.href = redirectUrl;
-  }, [searchParams, getRedirectUrl]);
+    AuthRedirectManager.handleLoginSuccess(user!, callbackUrl);
+  }, [user, searchParams, state.hasRedirected]);
 
   // Error handling effect
   React.useEffect(() => {
@@ -350,16 +339,14 @@ export function LoginForm() {
 
   // Auto-redirect if user is already logged in
   React.useEffect(() => {
-    if (user && state.step === 'IDENTIFIER') {
-      const callbackUrl = searchParams.get('callbackUrl');
-      const redirectUrl = getRedirectUrl(callbackUrl);
+    // Guard: Only redirect if user exists, we're on identifier step, and haven't redirected yet
+    if (user && state.step === 'IDENTIFIER' && !state.hasRedirected) {
+      setState(prev => ({ ...prev, hasRedirected: true }));
       
-      // Small delay to prevent flash
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 100);
+      const callbackUrl = searchParams.get('callbackUrl');
+      AuthRedirectManager.handleLoginSuccess(user, callbackUrl);
     }
-  }, [user, state.step, searchParams, getRedirectUrl]);
+  }, [user, state.step, state.hasRedirected, searchParams]);
 
   return (
     <Form {...form}>
@@ -387,6 +374,7 @@ export function LoginForm() {
               <div className="space-y-3">
                 <Button
                   onClick={handleManualRedirect}
+                  disabled={state.hasRedirected}
                   size="mobile"
                   weight="medium"
                   fullWidthOnMobile={true}

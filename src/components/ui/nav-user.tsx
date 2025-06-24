@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, MoonIcon, MoreVerticalIcon, SunIcon, UserIcon } from 'lucide-react';
+import { HomeIcon, LogOut, MoonIcon, MoreVerticalIcon, SunIcon, UserIcon } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -88,19 +88,19 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem asChild className="hidden md:flex">
+              <DropdownMenuItem asChild className="flex">
                 <SidebarMenuButton
-                  tooltip={t('navigation.my_account')}
+                  tooltip={t('navigation.my_space')}
                   className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   asChild
                 >
                   <Link
                     href={
-                      isAdmin ? ROUTES.dashboard.account_settings : ROUTES.user.account
+                      isAdmin ? ROUTES.dashboard.base : ROUTES.user.base
                     }
                   >
-                    <UserIcon className="size-icon" />
-                    {t('navigation.my_account')}
+                    <HomeIcon className="size-icon" />
+                    {t('navigation.my_space')}
                   </Link>
                 </SidebarMenuButton>
               </DropdownMenuItem>

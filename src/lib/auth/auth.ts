@@ -5,7 +5,6 @@ import { phoneNumber, emailOTP, customSession } from 'better-auth/plugins';
 import { sendSMSOTP } from '@/actions/email';
 import { tryCatch } from '../utils';
 import { sendOTPEmail } from '../services/notifications/providers/emails';
-import { nextCookies } from 'better-auth/next-js';
 import { env } from '../env';
 import { getUserSession } from '../user/getters';
 
@@ -16,6 +15,12 @@ const options = {
   database: prismaAdapter(db, {
     provider: 'postgresql',
   }),
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge:  60 * 60 * 24 * 7,
+    }
+  },
   user: {
     modelName: 'User',
     additionalFields: {
@@ -64,7 +69,6 @@ const options = {
       allowedAttempts: 5,
       expiresIn: 300,
     }),
-    nextCookies(),
   ],
 } satisfies BetterAuthOptions;
 
