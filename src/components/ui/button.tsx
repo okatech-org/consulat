@@ -143,21 +143,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : 'button';
 
     if (asChild) {
-      const allProps = {
-        ...props,
-        className,
-        children,
-        disabled,
-        ref,
-        variant,
-        size,
-        weight,
-        responsive,
-        asChild,
-        loading,
-      }
       return (
-        <AsChildButton {...allProps} />
+        <AsChildButton 
+          className={cn(
+            buttonVariants({ variant, size, weight, responsive, className }),
+            fullWidthOnMobile && 'w-full sm:w-auto',
+            loading && 'cursor-wait'
+          )}
+          variant={variant}
+          size={size}
+          weight={weight}
+          responsive={responsive}
+          asChild={asChild}
+          loading={loading}
+          leftIcon={leftIcon}
+          rightIcon={rightIcon}
+          fullWidthOnMobile={fullWidthOnMobile}
+          disabled={disabled || loading}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </AsChildButton>
       );
     }
     
@@ -238,14 +245,29 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 const AsChildButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ 
+    className,
+    variant, 
+    size, 
+    weight,
+    responsive,
+    asChild = false, 
+    loading,
+    leftIcon,
+    rightIcon,
+    fullWidthOnMobile,
+    children,
+    ...props 
+  }, ref) => {
     const Comp = asChild ? Slot : 'button';
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={className}
         ref={ref}
         {...props}
-      />
+      >
+        {children}
+      </Comp>
     );
   },
 );

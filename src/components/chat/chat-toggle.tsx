@@ -59,7 +59,7 @@ export function ChatToggle() {
         <span className="text-sm font-medium">Chat</span>
       </SheetTitle>
 
-      <SheetTrigger className="aspect-square size-[50px] lg:size-[60px] p-1 rounded-full overflow-hidden">
+      <SheetTrigger className="aspect-square size-[45px] p-1 rounded-full overflow-hidden">
         <IAstedButton />
       </SheetTrigger>
 

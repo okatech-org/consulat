@@ -4,9 +4,9 @@ import { authClient } from '@/lib/auth/auth-client';
 import { SessionUser } from '@/types';
 import { useMemo } from 'react';
 
-export const useCurrentUser = (): SessionUser | null => {
+export const useCurrentUser = (): SessionUser | undefined => {
   const { data: session } = authClient.useSession();
-  return useMemo(() => (session?.user as SessionUser) || null, [session?.user]);
+  return useMemo(() => (session?.user || undefined), [session?.user]);
 };
 
 export const useCurrentSession = () => {

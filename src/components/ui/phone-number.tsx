@@ -14,6 +14,7 @@ interface PhoneInputProps {
   disabled?: boolean;
   options?: CountryCode[];
   className?: string;
+  autoFocus?: boolean;
 }
 
 export function PhoneNumberInput({
@@ -21,6 +22,7 @@ export function PhoneNumberInput({
   onChangeAction,
   disabled = false,
   options,
+  autoFocus = false,
 }: PhoneInputProps) {
   const t = useTranslations('inputs.phone');
   const [indicator, number] = retrievePhoneNumber(value);
@@ -62,6 +64,7 @@ export function PhoneNumberInput({
         disabled={disabled}
         autoComplete="tel-national"
         placeholder={t('placeholder')}
+        autoFocus={autoFocus}
       />
     </div>
   );
