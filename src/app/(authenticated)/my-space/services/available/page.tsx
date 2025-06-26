@@ -184,524 +184,728 @@ export default function AvailableServicesPage() {
         'Découvrez les services consulaires disponibles et démarrez une nouvelle demande.'
       }
       action={
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-2">
           <Link href={ROUTES.user.services}>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" aria-label="Retour aux services">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
         </div>
       }
     >
-      {/* Search and filters bar */}
-      <div className="space-y-4">
-        {/* Search bar - full width on mobile */}
+
+      {/* Search and filters section with improved hierarchy */}
+      <div className="space-y-6">
+        {/* Search bar with better UX */}
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Rechercher un service..."
-            className="pl-8"
+            placeholder="Rechercher un service par nom, description ou organisme..."
+            className="pl-10 pr-4 py-3 text-base border-2 focus:border-primary transition-colors"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Rechercher des services"
           />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6"
+              onClick={() => setSearchQuery('')}
+              aria-label="Effacer la recherche"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
-        {/* Filters row */}
-        <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
-          {/* Mobile-first: Show only essential filters */}
-          <div className="flex gap-2 sm:hidden">
-            {/* Mobile filters sheet */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <SlidersHorizontal className="h-4 w-4 mr-2" />
-                  Filtres
-                  {(selectedCategories.length > 0 || selectedOrganizations.length > 0) && (
-                    <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs rounded-full">
-                      {selectedCategories.length + selectedOrganizations.length}
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
-                  <SheetTitle>Filtres</SheetTitle>
-                </SheetHeader>
-                <div className="py-4 space-y-6">
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium">Catégories</h3>
-                    <MultiSelect
-                      type="multiple"
-                      options={getCategoryOptions()}
-                      selected={selectedCategories}
-                      onChange={setSelectedCategories}
-                      placeholder="Sélectionner des catégories"
-                      searchPlaceholder="Rechercher une catégorie..."
-                      emptyText="Aucune catégorie trouvée"
-                    />
-                  </div>
+        {/* Filters with improved visual hierarchy */}
+        <div className="bg-card rounded-lg border p-4 shadow-sm">
+          <div className="flex flex-wrap gap-3 items-start sm:items-center">
+            {/* Mobile-first: Show only essential filters */}
+            <div className="flex gap-2 sm:hidden w-full">
+              {/* Mobile filters sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    Filtres avancés
+                    {(selectedCategories.length > 0 || selectedOrganizations.length > 0) && (
+                      <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-primary text-primary-foreground">
+                        {selectedCategories.length + selectedOrganizations.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[320px] sm:w-[400px]">
+                  <SheetHeader className="pb-4">
+                    <SheetTitle className="text-lg font-semibold">Filtrer les services</SheetTitle>
+                  </SheetHeader>
+                  <ScrollArea className="h-[calc(100vh-120px)] pr-4">
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-primary rounded-full"></div>
+                          <h3 className="text-sm font-medium text-foreground">Catégories de services</h3>
+                        </div>
+                        <MultiSelect
+                          type="multiple"
+                          options={getCategoryOptions()}
+                          selected={selectedCategories}
+                          onChange={setSelectedCategories}
+                          placeholder="Toutes les catégories"
+                          searchPlaceholder="Rechercher une catégorie..."
+                          emptyText="Aucune catégorie trouvée"
+                        />
+                      </div>
 
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium">Organismes</h3>
-                    <MultiSelect
-                      type="multiple"
-                      options={getOrganizationOptions()}
-                      selected={selectedOrganizations}
-                      onChange={setSelectedOrganizations}
-                      placeholder="Sélectionner des organismes"
-                      searchPlaceholder="Rechercher un organisme..."
-                      emptyText="Aucun organisme trouvé"
-                    />
-                  </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-primary rounded-full"></div>
+                          <h3 className="text-sm font-medium text-foreground">Organismes</h3>
+                        </div>
+                        <MultiSelect
+                          type="multiple"
+                          options={getOrganizationOptions()}
+                          selected={selectedOrganizations}
+                          onChange={setSelectedOrganizations}
+                          placeholder="Tous les organismes"
+                          searchPlaceholder="Rechercher un organisme..."
+                          emptyText="Aucun organisme trouvé"
+                        />
+                      </div>
 
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium">Disponibilité</h3>
-                    <Button
-                      variant={showActiveOnly ? 'default' : 'outline'}
-                      size="sm"
-                      className="w-full justify-start"
-                      onClick={() => setShowActiveOnly(!showActiveOnly)}
-                    >
-                      Services actifs uniquement
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-primary rounded-full"></div>
+                          <h3 className="text-sm font-medium text-foreground">Disponibilité</h3>
+                        </div>
+                        <Button
+                          variant={showActiveOnly ? 'default' : 'outline'}
+                          size="sm"
+                          className="w-full justify-start transition-all duration-200"
+                          onClick={() => setShowActiveOnly(!showActiveOnly)}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span>Services actifs uniquement</span>
+                            {showActiveOnly && (
+                              <div className="w-2 h-2 bg-success rounded-full ml-2"></div>
+                            )}
+                          </div>
+                        </Button>
+                      </div>
+                    </div>
+                  </ScrollArea>
+                  <div className="flex space-x-2 pt-4 border-t mt-4">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={resetFilters}>
+                      <X className="h-4 w-4 mr-2" />
+                      Réinitialiser
                     </Button>
                   </div>
-                </div>
-                <div className="flex space-x-2 pt-4 border-t">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={resetFilters}>
-                    Réinitialiser
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
 
-            {/* Quick active services toggle for mobile */}
-            <Button
-              variant={showActiveOnly ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setShowActiveOnly(!showActiveOnly)}
-              className="flex-shrink-0"
-            >
-              Services actifs
-              {showActiveOnly && <X className="ml-1 h-3 w-3" />}
-            </Button>
-
-            {/* Reset filters button for mobile */}
-            {areFiltersActive && (
-              <Button variant="outline" size="sm" onClick={resetFilters}>
-                <X className="h-4 w-4" />
-                <span className="sr-only">Réinitialiser</span>
+              {/* Quick active services toggle for mobile */}
+              <Button
+                variant={showActiveOnly ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowActiveOnly(!showActiveOnly)}
+                className="flex-shrink-0 transition-all duration-200"
+                aria-label={showActiveOnly ? 'Afficher tous les services' : 'Afficher seulement les services actifs'}
+              >
+                Services actifs
+                {showActiveOnly ? (
+                  <div className="ml-2 w-2 h-2 bg-success rounded-full"></div>
+                ) : (
+                  <div className="ml-2 w-2 h-2 bg-muted-foreground rounded-full"></div>
+                )}
               </Button>
-            )}
-          </div>
-
-          {/* Desktop filters */}
-          <div className="hidden sm:flex sm:gap-3 sm:items-center sm:flex-wrap">
-            {/* Category filter */}
-            <div className="min-w-[200px]">
-              <MultiSelect
-                type="multiple"
-                options={getCategoryOptions()}
-                selected={selectedCategories}
-                onChange={setSelectedCategories}
-                placeholder="Catégories"
-                searchPlaceholder="Rechercher une catégorie..."
-                emptyText="Aucune catégorie trouvée"
-                className="text-sm"
-              />
             </div>
 
-            {/* Organization filter */}
-            <div className="min-w-[200px]">
-              <MultiSelect
-                type="multiple"
-                options={getOrganizationOptions()}
-                selected={selectedOrganizations}
-                onChange={setSelectedOrganizations}
-                placeholder="Organismes"
-                searchPlaceholder="Rechercher un organisme..."
-                emptyText="Aucun organisme trouvé"
-                className="text-sm"
-              />
-            </div>
+            {/* Desktop filters with improved spacing and hierarchy */}
+            <div className="hidden sm:flex sm:gap-4 sm:items-center sm:flex-wrap w-full">
+              <div className="text-sm font-medium text-muted-foreground flex-shrink-0">
+                Filtrer par :
+              </div>
+              
+              {/* Category filter */}
+              <div className="min-w-[220px] max-w-[280px]">
+                <MultiSelect
+                  type="multiple"
+                  options={getCategoryOptions()}
+                  selected={selectedCategories}
+                  onChange={setSelectedCategories}
+                  placeholder="Catégories"
+                  searchPlaceholder="Rechercher une catégorie..."
+                  emptyText="Aucune catégorie trouvée"
+                  className="text-sm border-2 hover:border-primary/50 transition-colors"
+                />
+              </div>
 
-            {/* Quick active services toggle for desktop */}
-            <Button
-              variant={showActiveOnly ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setShowActiveOnly(!showActiveOnly)}
-            >
-              <span className="hidden lg:inline">Services actifs</span>
-              <span className="lg:hidden">Actifs</span>
-              {showActiveOnly && <X className="ml-1 h-3 w-3" />}
-            </Button>
+              {/* Organization filter */}
+              <div className="min-w-[220px] max-w-[280px]">
+                <MultiSelect
+                  type="multiple"
+                  options={getOrganizationOptions()}
+                  selected={selectedOrganizations}
+                  onChange={setSelectedOrganizations}
+                  placeholder="Organismes"
+                  searchPlaceholder="Rechercher un organisme..."
+                  emptyText="Aucun organisme trouvé"
+                  className="text-sm border-2 hover:border-primary/50 transition-colors"
+                />
+              </div>
 
-            {/* Reset filters button for desktop */}
-            {areFiltersActive && (
-              <Button variant="outline" size="sm" onClick={resetFilters}>
-                <X className="h-4 w-4 mr-2" />
-                Réinitialiser
+              {/* Quick active services toggle for desktop */}
+              <Button
+                variant={showActiveOnly ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowActiveOnly(!showActiveOnly)}
+                className="transition-all duration-200 border-2 hover:border-primary/50"
+                aria-label={showActiveOnly ? 'Afficher tous les services' : 'Afficher seulement les services actifs'}
+              >
+                <span className="hidden lg:inline">Services actifs</span>
+                <span className="lg:hidden">Actifs</span>
+                {showActiveOnly ? (
+                  <div className="ml-2 w-2 h-2 bg-success rounded-full"></div>
+                ) : (
+                  <div className="ml-2 w-2 h-2 bg-muted-foreground rounded-full"></div>
+                )}
               </Button>
-            )}
-          </div>
 
-          {/* View toggle - show on larger screens */}
-          <div className="hidden lg:flex border rounded-md ml-auto">
-            <Button
-              variant={view === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-r-none px-3"
-              onClick={() => setView('grid')}
-            >
-              <LayoutGrid className="h-4 w-4" />
-              <span className="sr-only">Vue grille</span>
-            </Button>
-            <Button
-              variant={view === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-l-none px-3"
-              onClick={() => setView('list')}
-            >
-              <LayoutList className="h-4 w-4" />
-              <span className="sr-only">Vue liste</span>
-            </Button>
+              {/* Reset filters button for desktop */}
+              {areFiltersActive && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={resetFilters}
+                  className="ml-auto transition-all duration-200 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Réinitialiser tout
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Filter tags - improved responsive layout */}
+      {/* Filter tags with improved design */}
       {areFiltersActive && (
-        <div className="flex flex-wrap gap-1.5 sm:gap-2">
-          {selectedCategories.map((category) => (
-            <Badge key={category} variant="secondary" className="text-xs py-1 px-2 pr-1">
-              <span className="truncate max-w-[120px] sm:max-w-none">
-                {tInputs(`serviceCategory.options.${category}`)}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
-                onClick={() => setSelectedCategories(selectedCategories.filter((c) => c !== category))}
-              >
-                <X className="h-2.5 w-2.5" />
-                <span className="sr-only">Supprimer</span>
-              </Button>
-            </Badge>
-          ))}
-
-          {selectedOrganizations.map((orgId) => {
-            const orgName =
-              orgId === 'consulat'
-                ? 'Services consulaires'
-                : getUniqueOrganizations().find((org) => org.id === orgId)?.name || '';
-
-            return (
-              <Badge key={orgId} variant="secondary" className="text-xs py-1 px-2 pr-1">
+        <div className="bg-muted/30 rounded-lg p-4 border">
+          <div className="flex items-center gap-2 mb-3">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Filtres actifs :</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedCategories.map((category) => (
+              <Badge key={category} variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200 transition-colors">
                 <span className="truncate max-w-[120px] sm:max-w-none">
-                  {orgName}
+                  {tInputs(`serviceCategory.options.${category}`)}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
-                  onClick={() => setSelectedOrganizations(selectedOrganizations.filter((id) => id !== orgId))}
+                  className="h-4 w-4 ml-1.5 p-0 hover:bg-primary-300 rounded-full"
+                  onClick={() => setSelectedCategories(selectedCategories.filter((c) => c !== category))}
+                  aria-label={`Supprimer le filtre ${tInputs(`serviceCategory.options.${category}`)}`}
                 >
-                  <X className="h-2.5 w-2.5" />
-                  <span className="sr-only">Supprimer</span>
+                  <X className="h-3 w-3" />
                 </Button>
               </Badge>
-            );
-          })}
+            ))}
 
-          {showActiveOnly && (
-            <Badge variant="secondary" className="text-xs py-1 px-2 pr-1">
-              <span className="truncate max-w-[100px] sm:max-w-none">
-                Seulement les services actifs
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
-                onClick={() => setShowActiveOnly(false)}
-              >
-                <X className="h-2.5 w-2.5" />
-                <span className="sr-only">Supprimer</span>
-              </Button>
-            </Badge>
-          )}
+            {selectedOrganizations.map((orgId) => {
+              const orgName =
+                orgId === 'consulat'
+                  ? 'Services consulaires'
+                  : getUniqueOrganizations().find((org) => org.id === orgId)?.name || '';
 
-          {searchQuery.trim() && (
-            <Badge variant="secondary" className="text-xs py-1 px-2 pr-1">
-              <span className="truncate max-w-[100px] sm:max-w-none">
-                Recherche: {searchQuery}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
-                onClick={() => setSearchQuery('')}
-              >
-                <X className="h-2.5 w-2.5" />
-                <span className="sr-only">Supprimer</span>
-              </Button>
-            </Badge>
-          )}
+              return (
+                <Badge key={orgId} variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-secondary-100 text-secondary-700 border-secondary-200 hover:bg-secondary-200 transition-colors">
+                  <span className="truncate max-w-[120px] sm:max-w-none">
+                    {orgName}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 ml-1.5 p-0 hover:bg-secondary-300 rounded-full"
+                    onClick={() => setSelectedOrganizations(selectedOrganizations.filter((id) => id !== orgId))}
+                    aria-label={`Supprimer le filtre ${orgName}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              );
+            })}
+
+            {showActiveOnly && (
+              <Badge variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-success/10 text-success border-success/20 hover:bg-success/20 transition-colors">
+                <span className="truncate max-w-[100px] sm:max-w-none">
+                  Services actifs uniquement
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 ml-1.5 p-0 hover:bg-success/30 rounded-full"
+                  onClick={() => setShowActiveOnly(false)}
+                  aria-label="Supprimer le filtre services actifs"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+
+            {searchQuery.trim() && (
+              <Badge variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-accent text-accent-foreground border-accent hover:bg-accent/80 transition-colors">
+                <span className="truncate max-w-[100px] sm:max-w-none">
+                  Recherche: {searchQuery}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 ml-1.5 p-0 hover:bg-accent/60 rounded-full"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Supprimer la recherche"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+          </div>
         </div>
       )}
 
       {/* Services content */}
-      <Tabs defaultValue="all" className="mt-6">
-        <TabsList className="mb-4">
-          <TabsTrigger value="all">Tous les services</TabsTrigger>
-          <TabsTrigger value="by-category">Par catégorie</TabsTrigger>
-        </TabsList>
+      <div className="mt-8">
+        <Tabs defaultValue="all" className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <TabsList className="w-full sm:w-auto bg-card border shadow-sm">
+              <TabsTrigger value="all" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Tous les services
+                {!loading && (
+                  <Badge variant="secondary" className="ml-2 px-2 py-0.5 text-xs bg-muted text-muted-foreground">
+                    {filteredServices.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="by-category" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Par catégorie
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="all">
-          {loading ? (
-            <div
-              className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}
-            >
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between">
-                      <Skeleton className="h-6 w-32" />
-                      <Skeleton className="h-4 w-8 rounded-full" />
-                    </div>
-                    <Skeleton className="h-4 w-24 mt-1" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                  <CardFooter>
-                    <Skeleton className="h-9 w-full" />
-                  </CardFooter>
-                </Card>
-              ))}
+            {/* View toggle - improved design */}
+            <div className="hidden lg:flex border rounded-md bg-card shadow-sm">
+              <Button
+                variant={view === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-r-none transition-all duration-200"
+                onClick={() => setView('grid')}
+                aria-label="Vue en grille"
+              >
+                <LayoutGrid className="h-4 w-4 mr-1" />
+                <span className="hidden xl:inline">Grille</span>
+              </Button>
+              <Button
+                variant={view === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-l-none transition-all duration-200"
+                onClick={() => setView('list')}
+                aria-label="Vue en liste"
+              >
+                <LayoutList className="h-4 w-4 mr-1" />
+                <span className="hidden xl:inline">Liste</span>
+              </Button>
             </div>
-          ) : filteredServices.length > 0 ? (
-            view === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredServices.map((service) => {
-                  return (
-                    <CardContainer
-                      key={service.id}
-                      className="h-full hover:shadow-md transition-shadow"
-                      title={
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span>{service.name}</span>
-                          </div>
-                        </div>
-                      }
-                      subtitle={
-                        service.organization?.name ||
-                        t('availableServices.consulateService')
-                      }
-                      footerContent={
-                        <div className="w-full space-y-2">
-                          <Button 
-                            variant="secondary" 
-                            className={`w-full ${!service.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            asChild={service.isActive}
-                            disabled={!service.isActive}
-                          >
-                            {service.isActive ? (
-                              <Link href={ROUTES.user.service_submit(service.id)}>
-                                <Plus className="size-icon" />
-                                {t('actions.startProcess')}
-                              </Link>
-                            ) : (
-                              <>
-                                <Plus className="size-icon" />
-                                {t('actions.startProcess')}
-                              </>
-                            )}
-                          </Button>
-                          {!service.isActive && (
-                            <p className="text-xs text-muted-foreground text-center">
-                              {UNAVAILABLE_MESSAGE}
-                            </p>
-                          )}
-                        </div>
-                      }
-                    >
-                      <p className="text-sm">
-                        {service.description?.slice(0, 200) + '...'}
-                      </p>
-                    </CardContainer>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredServices.map((service) => {
-                  return (
-                    <div
-                      key={service.id}
-                      className="flex flex-col sm:flex-row justify-between border rounded-md p-4 hover:bg-muted/30 transition-colors"
-                    >
-                      <div className="space-y-1 mb-4 sm:mb-0">
-                        <div className="flex items-center">
-                          <h3 className="font-medium">{service.name}</h3>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-y-1 sm:gap-x-4 text-sm text-muted-foreground">
-                          <span>
-                            {service.organization?.name ||
-                              t('availableServices.consulateService')}
-                          </span>
-                          
-                        </div>
-                        {service.description && (
-                          <p className="text-sm max-w-prose">{service.description.slice(0, 200) + '...'}</p>
-                        )}
-                      </div>
-                      <div className="flex-shrink-0 flex flex-col items-center space-y-2">
-                        <Button 
-                          className={`${!service.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          asChild={service.isActive}
-                          disabled={!service.isActive}
-                        >
-                          {service.isActive ? (
-                            <Link href={ROUTES.user.new_service_request(service.id)}>
-                              <Plus className="mr-2 h-4 w-4" />
-                              {t('actions.startProcess')}
-                            </Link>
-                          ) : (
-                            <>
-                              <Plus className="mr-2 h-4 w-4" />
-                              {t('actions.startProcess')}
-                            </>
-                          )}
-                        </Button>
-                        {!service.isActive && (
-                          <p className="text-xs text-muted-foreground text-center">
-                            {UNAVAILABLE_MESSAGE}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )
-          ) : (
-            <div className="text-center py-12 border rounded-lg bg-background">
-              <p className="text-muted-foreground mb-4">
-                {areFiltersActive
-                  ? 'Aucun service ne correspond à vos critères de recherche'
-                  : t('availableServices.empty')}
-              </p>
-              {areFiltersActive && (
-                <Button onClick={resetFilters}>
-                  <X className="mr-2 h-4 w-4" />
-                  Réinitialiser les filtres
-                </Button>
-              )}
-            </div>
-          )}
-        </TabsContent>
+          </div>
 
-        <TabsContent value="by-category">
-          <ScrollArea className="h-[600px] pr-4">
+          <TabsContent value="all" className="space-y-6">
             {loading ? (
-              <div className="space-y-8">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="space-y-4">
-                    <Skeleton className="h-7 w-48" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Skeleton className="h-32 w-full" />
-                      <Skeleton className="h-32 w-full" />
+              <div className="space-y-6">
+                <div className="text-center py-4">
+                  <div className="inline-flex items-center gap-2 text-muted-foreground">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    <span>Chargement des services...</span>
+                  </div>
+                </div>
+                <div
+                  className={`grid gap-6 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}
+                >
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Card key={i} className="overflow-hidden border-2">
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-2">
+                            <Skeleton className="h-5 w-40" />
+                            <Skeleton className="h-4 w-32" />
+                          </div>
+                          <Skeleton className="h-5 w-16 rounded-full" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-3">
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-4/5" />
+                      </CardContent>
+                      <CardFooter>
+                        <Skeleton className="h-10 w-full" />
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : filteredServices.length > 0 ? (
+              <div className="space-y-6">
+                {/* Results summary */}
+                <div className="flex items-center justify-between bg-primary-50 rounded-lg p-4 border border-primary-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary-100 rounded-full">
+                      <Search className="h-4 w-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-primary-900">
+                        {filteredServices.length} service{filteredServices.length > 1 ? 's' : ''} trouvé{filteredServices.length > 1 ? 's' : ''}
+                      </h3>
+                      <p className="text-sm text-primary-600">
+                        {filteredServices.filter(s => s.isActive).length} actuellement disponible{filteredServices.filter(s => s.isActive).length > 1 ? 's' : ''}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {Object.values(servicesByCategory).map(
-                  (services) =>
-                    services.length > 0 &&
-                    services[0]?.category && (
-                      <div key={services[0].category} className="space-y-4">
-                        <div className="flex items-center">
-                          <h2 className="text-xl font-semibold">
-                            {tInputs(`serviceCategory.options.${services[0].category}`)}
-                          </h2>
-                          <Badge className="ml-2" variant="outline">
-                            {services.length}
-                          </Badge>
-                        </div>
+                  {areFiltersActive && (
+                    <Button variant="outline" size="sm" onClick={resetFilters} className="text-primary-700 border-primary-200 hover:bg-primary-100">
+                      Voir tous les services
+                    </Button>
+                  )}
+                </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {services.map((service) => (
-                            <CardContainer
-                              key={service.id}
-                              className="h-full hover:shadow-md transition-shadow"
-                              title={service.name}
-                              subtitle={
-                                service.organization?.name ||
-                                t('availableServices.consulateService')
-                              }
-                              footerContent={
-                                <div className="w-full space-y-2">
-                                  <Button 
-                                    className={`w-full ${!service.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    asChild={service.isActive}
-                                    disabled={!service.isActive}
-                                  >
-                                    {service.isActive ? (
-                                      <Link href={ROUTES.user.new_service_request(service.id)}>
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        {t('actions.startProcess')}
-                                      </Link>
-                                    ) : (
-                                      <>
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        {t('actions.startProcess')}
-                                      </>
-                                    )}
-                                  </Button>
-                                  {!service.isActive && (
-                                    <p className="text-xs text-muted-foreground text-center">
-                                      {UNAVAILABLE_MESSAGE}
-                                    </p>
-                                  )}
-                                </div>
-                              }
+                {view === 'grid' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredServices.map((service) => (
+                      <CardContainer
+                        key={service.id}
+                        className={`h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 ${
+                          service.isActive ? 'hover:border-success/50' : 'hover:border-warning/50'
+                        }`}
+                        title={
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-semibold text-lg leading-tight line-clamp-2">{service.name}</h3>
+                            <Badge 
+                              variant={service.isActive ? 'default' : 'secondary'} 
+                              className={`flex-shrink-0 ${
+                                service.isActive 
+                                  ? 'bg-success/10 text-success border-success/20' 
+                                  : 'bg-warning/10 text-warning border-warning/20'
+                              }`}
                             >
-                              <p className="text-sm">
-                                {service.description?.slice(0, 200) + '...'}
+                              {service.isActive ? 'Actif' : 'Bientôt'}
+                            </Badge>
+                          </div>
+                        }
+                        subtitle={
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <div className="w-1 h-4 bg-primary rounded-full flex-shrink-0"></div>
+                            <span className="text-sm">
+                              {service.organization?.name || t('availableServices.consulateService')}
+                            </span>
+                          </div>
+                        }
+                        footerContent={
+                          <div className="w-full space-y-3">
+                            <Button 
+                              className={`w-full text-base font-medium py-3 transition-all duration-200 ${
+                                service.isActive 
+                                  ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg' 
+                                  : 'opacity-60 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted'
+                              }`}
+                              asChild={service.isActive}
+                              disabled={!service.isActive}
+                              size="lg"
+                            >
+                              {service.isActive ? (
+                                <Link href={ROUTES.user.service_submit(service.id)} className="flex items-center justify-center gap-2">
+                                  <Plus className="h-5 w-5" />
+                                  <span>{t('actions.startProcess')}</span>
+                                </Link>
+                              ) : (
+                                <span className="flex items-center justify-center gap-2">
+                                  <Plus className="h-5 w-5" />
+                                  <span>{t('actions.startProcess')}</span>
+                                </span>
+                              )}
+                            </Button>
+                            {!service.isActive && (
+                              <p className="text-xs text-center opacity-60 font-medium">
+                                {UNAVAILABLE_MESSAGE}
                               </p>
-                            </CardContainer>
-                          ))}
+                            )}
+                          </div>
+                        }
+                      >
+                        <div className="space-y-3">
+                          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                            {service.description || 'Description non disponible'}
+                          </p>
+                        </div>
+                      </CardContainer>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredServices.map((service) => (
+                      <div
+                        key={service.id}
+                        className={`bg-card border-2 rounded-lg p-6 transition-all duration-200 hover:shadow-md ${
+                          service.isActive ? 'hover:border-success/50' : 'hover:border-warning/50'
+                        }`}
+                      >
+                        <div className="flex flex-col lg:flex-row gap-4">
+                          <div className="flex-1 space-y-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="space-y-2">
+                                <h3 className="text-xl font-semibold text-foreground">{service.name}</h3>
+                                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1 h-4 bg-primary rounded-full"></div>
+                                    <span>{service.organization?.name || t('availableServices.consulateService')}</span>
+                                  </div>
+                                  <Badge variant="outline" className="text-xs">
+                                    {tInputs(`serviceCategory.options.${service.category}`)}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <Badge 
+                                variant={service.isActive ? 'default' : 'secondary'}
+                                className={`flex-shrink-0 ${
+                                  service.isActive 
+                                    ? 'bg-success/10 text-success border-success/20' 
+                                    : 'bg-warning/10 text-warning border-warning/20'
+                                }`}
+                              >
+                                {service.isActive ? 'Disponible' : 'Prochainement'}
+                              </Badge>
+                            </div>
+                            {service.description && (
+                              <p className="text-muted-foreground leading-relaxed line-clamp-2">
+                                {service.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-center justify-center gap-3 lg:w-48">
+                            <Button 
+                              className={`w-full text-base font-medium py-3 transition-all duration-200 ${
+                                service.isActive 
+                                  ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg' 
+                                  : 'opacity-60 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted'
+                              }`}
+                              asChild={service.isActive}
+                              disabled={!service.isActive}
+                              size="lg"
+                            >
+                              {service.isActive ? (
+                                <Link href={ROUTES.user.new_service_request(service.id)} className="flex items-center justify-center gap-2">
+                                  <Plus className="h-5 w-5" />
+                                  <span>{t('actions.startProcess')}</span>
+                                </Link>
+                              ) : (
+                                <span className="flex items-center justify-center gap-2">
+                                  <Plus className="h-5 w-5" />
+                                  <span>{t('actions.startProcess')}</span>
+                                </span>
+                              )}
+                            </Button>
+                            {!service.isActive && (
+                              <div className="bg-warning/10 border border-warning/20 rounded-md p-2 w-full">
+                                <p className="text-xs text-warning text-center font-medium">
+                                  {UNAVAILABLE_MESSAGE}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ),
+                    ))}
+                  </div>
                 )}
-
-                {Object.values(servicesByCategory).every(
-                  (services) => services.length === 0,
-                ) && (
-                  <div className="text-center py-12 border rounded-lg bg-background">
-                    <p className="text-muted-foreground mb-4">
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-muted/30 rounded-lg border-2 border-dashed border-muted">
+                <div className="max-w-md mx-auto space-y-4">
+                  <div className="p-4 bg-card rounded-full w-fit mx-auto border border-muted">
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {areFiltersActive ? 'Aucun service trouvé' : 'Aucun service disponible'}
+                    </h3>
+                    <p className="text-muted-foreground">
                       {areFiltersActive
-                        ? 'Aucun service ne correspond à vos critères de recherche'
+                        ? 'Aucun service ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
                         : t('availableServices.empty')}
                     </p>
-                    {areFiltersActive && (
-                      <Button onClick={resetFilters}>
+                  </div>
+                  {areFiltersActive && (
+                    <div className="space-y-3">
+                      <Button onClick={resetFilters} className="bg-primary hover:bg-primary/90">
                         <X className="mr-2 h-4 w-4" />
                         Réinitialiser les filtres
                       </Button>
-                    )}
-                  </div>
-                )}
+                      <p className="text-sm text-muted-foreground">
+                        ou <Link href={ROUTES.user.services} className="text-primary hover:underline font-medium">retourner aux services</Link>
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
-          </ScrollArea>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+
+          <TabsContent value="by-category">
+            <ScrollArea className="h-[600px] pr-4">
+              {loading ? (
+                <div className="space-y-8">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="space-y-4">
+                      <Skeleton className="h-7 w-48" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {Object.values(servicesByCategory).map(
+                    (services) =>
+                      services.length > 0 &&
+                      services[0]?.category && (
+                        <div key={services[0].category} className="space-y-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-1 h-6 bg-primary rounded-full"></div>
+                              <h2 className="text-2xl font-bold text-gray-900">
+                                {tInputs(`serviceCategory.options.${services[0].category}`)}
+                              </h2>
+                            </div>
+                            <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">
+                              {services.length} service{services.length > 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {services.map((service) => (
+                              <CardContainer
+                                key={service.id}
+                                className={`h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 ${
+                                  service.isActive ? 'hover:border-success/50' : 'hover:border-warning/50'
+                                }`}
+                                title={
+                                  <div className="flex items-start justify-between gap-2">
+                                    <h3 className="font-semibold text-lg leading-tight line-clamp-2">{service.name}</h3>
+                                    <Badge 
+                                      variant={service.isActive ? 'default' : 'secondary'} 
+                                      className={`flex-shrink-0 ${
+                                        service.isActive 
+                                          ? 'bg-success/10 text-success border-success/20' 
+                                          : 'bg-warning/10 text-warning border-warning/20'
+                                      }`}
+                                    >
+                                      {service.isActive ? 'Actif' : 'Bientôt'}
+                                    </Badge>
+                                  </div>
+                                }
+                                subtitle={
+                                  <div className="flex items-center gap-2 text-muted-foreground">
+                                    <div className="w-1 h-4 bg-primary rounded-full flex-shrink-0"></div>
+                                    <span className="text-sm">
+                                      {service.organization?.name || t('availableServices.consulateService')}
+                                    </span>
+                                  </div>
+                                }
+                                footerContent={
+                                  <div className="w-full space-y-3">
+                                    <Button 
+                                      className={`w-full text-base font-medium py-3 transition-all duration-200 ${
+                                        service.isActive 
+                                          ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg' 
+                                          : 'opacity-60 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted'
+                                      }`}
+                                      asChild={service.isActive}
+                                      disabled={!service.isActive}
+                                      size="lg"
+                                    >
+                                      {service.isActive ? (
+                                        <Link href={ROUTES.user.new_service_request(service.id)} className="flex items-center justify-center gap-2">
+                                          <Plus className="h-5 w-5" />
+                                          <span>{t('actions.startProcess')}</span>
+                                        </Link>
+                                      ) : (
+                                        <span className="flex items-center justify-center gap-2">
+                                          <Plus className="h-5 w-5" />
+                                          <span>{t('actions.startProcess')}</span>
+                                        </span>
+                                      )}
+                                    </Button>
+                                    {!service.isActive && (
+                                      <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
+                                        <p className="text-xs text-warning text-center font-medium">
+                                          {UNAVAILABLE_MESSAGE}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                }
+                              >
+                                <div className="space-y-3">
+                                  <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                                    {service.description || 'Description non disponible'}
+                                  </p>
+                                </div>
+                              </CardContainer>
+                            ))}
+                          </div>
+                        </div>
+                      ),
+                  )}
+
+                  {Object.values(servicesByCategory).every(
+                    (services) => services.length === 0,
+                  ) && (
+                    <div className="text-center py-16 bg-muted/30 rounded-lg border-2 border-dashed border-muted">
+                      <div className="max-w-md mx-auto space-y-4">
+                        <div className="p-4 bg-card rounded-full w-fit mx-auto border border-muted">
+                          <Search className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="text-lg font-semibold text-foreground">
+                            {areFiltersActive ? 'Aucun service trouvé' : 'Aucun service disponible'}
+                          </h3>
+                          <p className="text-muted-foreground">
+                            {areFiltersActive
+                              ? 'Aucun service ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
+                              : t('availableServices.empty')}
+                          </p>
+                        </div>
+                        {areFiltersActive && (
+                          <div className="space-y-3">
+                            <Button onClick={resetFilters} className="bg-primary hover:bg-primary/90">
+                              <X className="mr-2 h-4 w-4" />
+                              Réinitialiser les filtres
+                            </Button>
+                            <p className="text-sm text-muted-foreground">
+                              ou <Link href={ROUTES.user.services} className="text-primary hover:underline font-medium">retourner aux services</Link>
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+      </div>
     </PageContainer>
   );
 }
