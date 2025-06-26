@@ -29,14 +29,6 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Input } from '@/components/ui/input';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -48,6 +40,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageContainer } from '@/components/layouts/page-container';
 import { cn } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 type ConsularServiceWithOrganization = {
   id: string;
@@ -78,6 +71,7 @@ export default function AvailableServicesPage() {
   // Filters
   const [selectedCategories, setSelectedCategories] = useState<ServiceCategory[]>([]);
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,6 +101,30 @@ export default function AvailableServicesPage() {
     return Array.from(new Map(organizations.map((org) => [org.id, org])).values());
   };
 
+  // Create options for MultiSelect components
+  const getCategoryOptions = () => {
+    return Object.values(ServiceCategory).map((category) => ({
+      value: category,
+      label: tInputs(`serviceCategory.options.${category}`),
+    }));
+  };
+
+  const getOrganizationOptions = () => {
+    const uniqueOrgs = getUniqueOrganizations();
+    const orgOptions = uniqueOrgs.map((org) => ({
+      value: org.id,
+      label: org.name,
+    }));
+    
+    // Add consulat option
+    orgOptions.push({
+      value: 'consulat',
+      label: 'Services consulaires',
+    });
+    
+    return orgOptions;
+  };
+
   // Filter services based on search query and selected filters
   const getFilteredServices = () => {
     return availableServices.filter((service) => {
@@ -128,12 +146,14 @@ export default function AvailableServicesPage() {
         selectedOrganizations.length === 0 ||
         (service.organization && selectedOrganizations.includes(service.organization.id));
 
-      return matchesSearch && matchesCategory && matchesOrganization;
+      // Active filter
+      const matchesActive = !showActiveOnly || service.isActive;
+
+      return matchesSearch && matchesCategory && matchesOrganization && matchesActive;
     });
   };
 
   const filteredServices = getFilteredServices();
-  const uniqueOrganizations = getUniqueOrganizations();
 
   // Group services by category
   const servicesByCategory = Object.values(ServiceCategory).reduce(
@@ -144,33 +164,17 @@ export default function AvailableServicesPage() {
     {} as Record<ServiceCategory, ConsularServiceWithOrganization[]>,
   );
 
-  const handleCategorySelect = (category: ServiceCategory) => {
-    if (selectedCategories.includes(category)) {
-      setSelectedCategories(selectedCategories.filter((c) => c !== category));
-    } else {
-      setSelectedCategories([...selectedCategories, category]);
-    }
-  };
-
-  const handleOrganizationSelect = (organizationId: string) => {
-    if (selectedOrganizations.includes(organizationId)) {
-      setSelectedOrganizations(
-        selectedOrganizations.filter((id) => id !== organizationId),
-      );
-    } else {
-      setSelectedOrganizations([...selectedOrganizations, organizationId]);
-    }
-  };
-
   const resetFilters = () => {
     setSelectedCategories([]);
     setSelectedOrganizations([]);
+    setShowActiveOnly(false);
     setSearchQuery('');
   };
 
   const areFiltersActive =
     selectedCategories.length > 0 ||
     selectedOrganizations.length > 0 ||
+    showActiveOnly ||
     searchQuery.trim() !== '';
 
   return (
@@ -190,8 +194,9 @@ export default function AvailableServicesPage() {
       }
     >
       {/* Search and filters bar */}
-      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:items-center">
-        <div className="relative flex-1">
+      <div className="space-y-4">
+        {/* Search bar - full width on mobile */}
+        <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -202,152 +207,150 @@ export default function AvailableServicesPage() {
           />
         </div>
 
-        <div className="flex space-x-2">
-          {/* Category filter dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="mobile"
-                leftIcon={<Filter className="h-4 w-4" />}
-              >
-                <span>Catégories</span>
-                {selectedCategories.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 px-1 rounded-full">
-                    {selectedCategories.length}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Filtrer par catégorie</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {Object.values(ServiceCategory).map((category) => (
-                <DropdownMenuCheckboxItem
-                  key={`category-${category}`}
-                  checked={selectedCategories.includes(category as ServiceCategory)}
-                  onCheckedChange={() =>
-                    handleCategorySelect(category as ServiceCategory)
-                  }
-                >
-                  {tInputs(`serviceCategory.options.${category}`)}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Organization filter dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="mobile"
-                leftIcon={<Filter className="h-4 w-4" />}
-              >
-                <span>Organismes</span>
-                {selectedOrganizations.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 px-1 rounded-full">
-                    {selectedOrganizations.length}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Filtrer par organisme</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {uniqueOrganizations.map((org) => (
-                <DropdownMenuCheckboxItem
-                  key={org.id}
-                  checked={selectedOrganizations.includes(org.id)}
-                  onCheckedChange={() => handleOrganizationSelect(org.id)}
-                >
-                  {org.name}
-                </DropdownMenuCheckboxItem>
-              ))}
-              <DropdownMenuCheckboxItem
-                checked={selectedOrganizations.includes('consulat')}
-                onCheckedChange={() => handleOrganizationSelect('consulat')}
-              >
-                Services consulaires
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Mobile filters sheet */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="sm:hidden">
-                <SlidersHorizontal className="h-4 w-4 mr-2" />
-                Filtres
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <SheetHeader>
-                <SheetTitle>Filtres</SheetTitle>
-              </SheetHeader>
-              <div className="py-4 space-y-6">
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium">Catégories</h3>
-                  <div className="space-y-1.5">
-                    {Object.values(ServiceCategory).map((category) => (
-                      <Button
-                        key={category}
-                        variant={
-                          selectedCategories.includes(category as ServiceCategory)
-                            ? 'default'
-                            : 'outline'
-                        }
-                        className="w-full justify-start"
-                        onClick={() => handleCategorySelect(category as ServiceCategory)}
-                      >
-                        {tInputs(`serviceCategory.options.${category}`)}
-                      </Button>
-                    ))}
+        {/* Filters row */}
+        <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
+          {/* Mobile-first: Show only essential filters */}
+          <div className="flex gap-2 sm:hidden">
+            {/* Mobile filters sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                  Filtres
+                  {(selectedCategories.length > 0 || selectedOrganizations.length > 0) && (
+                    <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs rounded-full">
+                      {selectedCategories.length + selectedOrganizations.length}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle>Filtres</SheetTitle>
+                </SheetHeader>
+                <div className="py-4 space-y-6">
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium">Catégories</h3>
+                    <MultiSelect
+                      type="multiple"
+                      options={getCategoryOptions()}
+                      selected={selectedCategories}
+                      onChange={setSelectedCategories}
+                      placeholder="Sélectionner des catégories"
+                      searchPlaceholder="Rechercher une catégorie..."
+                      emptyText="Aucune catégorie trouvée"
+                    />
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium">Organismes</h3>
-                  <div className="space-y-1.5">
-                    {uniqueOrganizations.map((org) => (
-                      <Button
-                        key={org.id}
-                        variant={
-                          selectedOrganizations.includes(org.id) ? 'default' : 'outline'
-                        }
-                        className="w-full justify-start"
-                        onClick={() => handleOrganizationSelect(org.id)}
-                      >
-                        {org.name}
-                      </Button>
-                    ))}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium">Organismes</h3>
+                    <MultiSelect
+                      type="multiple"
+                      options={getOrganizationOptions()}
+                      selected={selectedOrganizations}
+                      onChange={setSelectedOrganizations}
+                      placeholder="Sélectionner des organismes"
+                      searchPlaceholder="Rechercher un organisme..."
+                      emptyText="Aucun organisme trouvé"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium">Disponibilité</h3>
                     <Button
-                      variant={
-                        selectedOrganizations.includes('consulat') ? 'default' : 'outline'
-                      }
+                      variant={showActiveOnly ? 'default' : 'outline'}
+                      size="sm"
                       className="w-full justify-start"
-                      onClick={() => handleOrganizationSelect('consulat')}
+                      onClick={() => setShowActiveOnly(!showActiveOnly)}
                     >
-                      Services consulaires
+                      Services actifs uniquement
                     </Button>
                   </div>
                 </div>
-              </div>
-              <div className="flex space-x-2 pt-4">
-                <Button variant="outline" className="flex-1" onClick={resetFilters}>
-                  Réinitialiser
-                </Button>
-                <Button className="flex-1">Appliquer</Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+                <div className="flex space-x-2 pt-4 border-t">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={resetFilters}>
+                    Réinitialiser
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
 
-          {/* View toggle */}
-          <div className="hidden sm:flex border rounded-md">
+            {/* Quick active services toggle for mobile */}
+            <Button
+              variant={showActiveOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowActiveOnly(!showActiveOnly)}
+              className="flex-shrink-0"
+            >
+              Services actifs
+              {showActiveOnly && <X className="ml-1 h-3 w-3" />}
+            </Button>
+
+            {/* Reset filters button for mobile */}
+            {areFiltersActive && (
+              <Button variant="outline" size="sm" onClick={resetFilters}>
+                <X className="h-4 w-4" />
+                <span className="sr-only">Réinitialiser</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Desktop filters */}
+          <div className="hidden sm:flex sm:gap-3 sm:items-center sm:flex-wrap">
+            {/* Category filter */}
+            <div className="min-w-[200px]">
+              <MultiSelect
+                type="multiple"
+                options={getCategoryOptions()}
+                selected={selectedCategories}
+                onChange={setSelectedCategories}
+                placeholder="Catégories"
+                searchPlaceholder="Rechercher une catégorie..."
+                emptyText="Aucune catégorie trouvée"
+                className="text-sm"
+              />
+            </div>
+
+            {/* Organization filter */}
+            <div className="min-w-[200px]">
+              <MultiSelect
+                type="multiple"
+                options={getOrganizationOptions()}
+                selected={selectedOrganizations}
+                onChange={setSelectedOrganizations}
+                placeholder="Organismes"
+                searchPlaceholder="Rechercher un organisme..."
+                emptyText="Aucun organisme trouvé"
+                className="text-sm"
+              />
+            </div>
+
+            {/* Quick active services toggle for desktop */}
+            <Button
+              variant={showActiveOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowActiveOnly(!showActiveOnly)}
+            >
+              <span className="hidden lg:inline">Services actifs</span>
+              <span className="lg:hidden">Actifs</span>
+              {showActiveOnly && <X className="ml-1 h-3 w-3" />}
+            </Button>
+
+            {/* Reset filters button for desktop */}
+            {areFiltersActive && (
+              <Button variant="outline" size="sm" onClick={resetFilters}>
+                <X className="h-4 w-4 mr-2" />
+                Réinitialiser
+              </Button>
+            )}
+          </div>
+
+          {/* View toggle - show on larger screens */}
+          <div className="hidden lg:flex border rounded-md ml-auto">
             <Button
               variant={view === 'grid' ? 'default' : 'ghost'}
-              size="icon"
-              className="rounded-r-none"
+              size="sm"
+              className="rounded-r-none px-3"
               onClick={() => setView('grid')}
             >
               <LayoutGrid className="h-4 w-4" />
@@ -355,38 +358,32 @@ export default function AvailableServicesPage() {
             </Button>
             <Button
               variant={view === 'list' ? 'default' : 'ghost'}
-              size="icon"
-              className="rounded-l-none"
+              size="sm"
+              className="rounded-l-none px-3"
               onClick={() => setView('list')}
             >
               <LayoutList className="h-4 w-4" />
               <span className="sr-only">Vue liste</span>
             </Button>
           </div>
-
-          {/* Reset filters button */}
-          {areFiltersActive && (
-            <Button variant="outline" onClick={resetFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Réinitialiser
-            </Button>
-          )}
         </div>
       </div>
 
-      {/* Filter tags */}
+      {/* Filter tags - improved responsive layout */}
       {areFiltersActive && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {selectedCategories.map((category) => (
-            <Badge key={category} variant="secondary" className="py-1 px-2">
-              {tInputs(`serviceCategory.options.${category}`)}
+            <Badge key={category} variant="secondary" className="text-xs py-1 px-2 pr-1">
+              <span className="truncate max-w-[120px] sm:max-w-none">
+                {tInputs(`serviceCategory.options.${category}`)}
+              </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-4 w-4 ml-1 p-0"
-                onClick={() => handleCategorySelect(category)}
+                className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
+                onClick={() => setSelectedCategories(selectedCategories.filter((c) => c !== category))}
               >
-                <X className="h-3 w-3" />
+                <X className="h-2.5 w-2.5" />
                 <span className="sr-only">Supprimer</span>
               </Button>
             </Badge>
@@ -396,34 +393,55 @@ export default function AvailableServicesPage() {
             const orgName =
               orgId === 'consulat'
                 ? 'Services consulaires'
-                : uniqueOrganizations.find((org) => org.id === orgId)?.name || '';
+                : getUniqueOrganizations().find((org) => org.id === orgId)?.name || '';
 
             return (
-              <Badge key={orgId} variant="secondary" className="py-1 px-2">
-                {orgName}
+              <Badge key={orgId} variant="secondary" className="text-xs py-1 px-2 pr-1">
+                <span className="truncate max-w-[120px] sm:max-w-none">
+                  {orgName}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-4 w-4 ml-1 p-0"
-                  onClick={() => handleOrganizationSelect(orgId)}
+                  className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
+                  onClick={() => setSelectedOrganizations(selectedOrganizations.filter((id) => id !== orgId))}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-2.5 w-2.5" />
                   <span className="sr-only">Supprimer</span>
                 </Button>
               </Badge>
             );
           })}
 
-          {searchQuery.trim() && (
-            <Badge variant="secondary" className="py-1 px-2">
-              Recherche: {searchQuery}
+          {showActiveOnly && (
+            <Badge variant="secondary" className="text-xs py-1 px-2 pr-1">
+              <span className="truncate max-w-[100px] sm:max-w-none">
+                Seulement les services actifs
+              </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-4 w-4 ml-1 p-0"
+                className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
+                onClick={() => setShowActiveOnly(false)}
+              >
+                <X className="h-2.5 w-2.5" />
+                <span className="sr-only">Supprimer</span>
+              </Button>
+            </Badge>
+          )}
+
+          {searchQuery.trim() && (
+            <Badge variant="secondary" className="text-xs py-1 px-2 pr-1">
+              <span className="truncate max-w-[100px] sm:max-w-none">
+                Recherche: {searchQuery}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-3 w-3 ml-1 p-0 hover:bg-transparent"
                 onClick={() => setSearchQuery('')}
               >
-                <X className="h-3 w-3" />
+                <X className="h-2.5 w-2.5" />
                 <span className="sr-only">Supprimer</span>
               </Button>
             </Badge>
@@ -687,3 +705,4 @@ export default function AvailableServicesPage() {
     </PageContainer>
   );
 }
+

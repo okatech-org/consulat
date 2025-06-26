@@ -14,7 +14,7 @@ export default async function AuthenticatedLayout({
       <SidebarInset className="bg-background overflow-hidden">
         <SiteHeader />
         <div className="flex-1 relative">
-          <div className="absolute py-6 pb-safe md:pb-6 inset-0 overflow-y-scroll container">
+          <div className="absolute py-6 pb-safe md:pb-6 inset-0 overflow-y-scroll overflow-x-hidden container">
             {children}
           </div>
         </div>
