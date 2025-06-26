@@ -47,6 +47,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageContainer } from '@/components/layouts/page-container';
 import { cn } from '@/lib/utils';
+import CardContainer from '@/components/layouts/card-container';
 
 type ConsularServiceWithOrganization = {
   id: string;
@@ -61,6 +62,8 @@ type ConsularServiceWithOrganization = {
   } | null;
   countryCode: string | null;
 };
+
+const UNAVAILABLE_MESSAGE = "Disponible à partir du 15 juillet 2025";
 
 export default function AvailableServicesPage() {
   const t = useTranslations('services');
@@ -464,42 +467,52 @@ export default function AvailableServicesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredServices.map((service) => {
                   return (
-                    <Card
+                    <CardContainer
                       key={service.id}
-                      className="h-full flex flex-col hover:shadow-md transition-shadow"
-                    >
-                      <CardHeader className="pb-2">
+                      className="h-full hover:shadow-md transition-shadow"
+                      title={
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <CardTitle>{service.name}</CardTitle>
+                            <span>{service.name}</span>
                           </div>
-                          <Badge variant="outline">
-                            {tInputs(`serviceCategory.options.${service.category}`)}
-                          </Badge>
                         </div>
-                        <CardDescription>
-                          {service.organization?.name ||
-                            t('availableServices.consulateService')}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <p className="text-sm">
-                          {service.description || t('availableServices.noDescription')}
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Link
-                          href={ROUTES.user.service_submit(service.id)}
-                          className={cn(
-                            buttonVariants({ variant: 'secondary' }),
-                            'w-full',
+                      }
+                      subtitle={
+                        service.organization?.name ||
+                        t('availableServices.consulateService')
+                      }
+                      footerContent={
+                        <div className="w-full space-y-2">
+                          <Button 
+                            variant="secondary" 
+                            className={`w-full ${!service.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            asChild={service.isActive}
+                            disabled={!service.isActive}
+                          >
+                            {service.isActive ? (
+                              <Link href={ROUTES.user.service_submit(service.id)}>
+                                <Plus className="size-icon" />
+                                {t('actions.startProcess')}
+                              </Link>
+                            ) : (
+                              <>
+                                <Plus className="size-icon" />
+                                {t('actions.startProcess')}
+                              </>
+                            )}
+                          </Button>
+                          {!service.isActive && (
+                            <p className="text-xs text-muted-foreground text-center">
+                              {UNAVAILABLE_MESSAGE}
+                            </p>
                           )}
-                        >
-                          <Plus className="size-icon" />
-                          {t('actions.startProcess')}
-                        </Link>
-                      </CardFooter>
-                    </Card>
+                        </div>
+                      }
+                    >
+                      <p className="text-sm">
+                        {service.description?.slice(0, 200) + '...'}
+                      </p>
+                    </CardContainer>
                   );
                 })}
               </div>
@@ -520,21 +533,35 @@ export default function AvailableServicesPage() {
                             {service.organization?.name ||
                               t('availableServices.consulateService')}
                           </span>
-                          <Badge variant="outline" className="w-fit">
-                            {tInputs(`serviceCategory.options.${service.category}`)}
-                          </Badge>
+                          
                         </div>
                         {service.description && (
-                          <p className="text-sm max-w-prose">{service.description}</p>
+                          <p className="text-sm max-w-prose">{service.description.slice(0, 200) + '...'}</p>
                         )}
                       </div>
-                      <div className="flex-shrink-0 flex items-center">
-                        <Link href={ROUTES.user.new_service_request(service.id)}>
-                          <Button>
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t('actions.startProcess')}
-                          </Button>
-                        </Link>
+                      <div className="flex-shrink-0 flex flex-col items-center space-y-2">
+                        <Button 
+                          className={`${!service.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          asChild={service.isActive}
+                          disabled={!service.isActive}
+                        >
+                          {service.isActive ? (
+                            <Link href={ROUTES.user.new_service_request(service.id)}>
+                              <Plus className="mr-2 h-4 w-4" />
+                              {t('actions.startProcess')}
+                            </Link>
+                          ) : (
+                            <>
+                              <Plus className="mr-2 h-4 w-4" />
+                              {t('actions.startProcess')}
+                            </>
+                          )}
+                        </Button>
+                        {!service.isActive && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            {UNAVAILABLE_MESSAGE}
+                          </p>
+                        )}
                       </div>
                     </div>
                   );
@@ -588,37 +615,47 @@ export default function AvailableServicesPage() {
                           </Badge>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           {services.map((service) => (
-                            <Card
+                            <CardContainer
                               key={service.id}
-                              className="flex flex-col hover:shadow-md transition-shadow"
-                            >
-                              <CardHeader className="pb-2">
-                                <CardTitle>{service.name}</CardTitle>
-                                <CardDescription>
-                                  {service.organization?.name ||
-                                    t('availableServices.consulateService')}
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent className="flex-grow">
-                                <p className="text-sm">
-                                  {service.description ||
-                                    t('availableServices.noDescription')}
-                                </p>
-                              </CardContent>
-                              <CardFooter>
-                                <Link
-                                  href={ROUTES.user.new_service_request(service.id)}
-                                  className="w-full"
-                                >
-                                  <Button className="w-full">
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {t('actions.startProcess')}
+                              className="h-full hover:shadow-md transition-shadow"
+                              title={service.name}
+                              subtitle={
+                                service.organization?.name ||
+                                t('availableServices.consulateService')
+                              }
+                              footerContent={
+                                <div className="w-full space-y-2">
+                                  <Button 
+                                    className={`w-full ${!service.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    asChild={service.isActive}
+                                    disabled={!service.isActive}
+                                  >
+                                    {service.isActive ? (
+                                      <Link href={ROUTES.user.new_service_request(service.id)}>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {t('actions.startProcess')}
+                                      </Link>
+                                    ) : (
+                                      <>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {t('actions.startProcess')}
+                                      </>
+                                    )}
                                   </Button>
-                                </Link>
-                              </CardFooter>
-                            </Card>
+                                  {!service.isActive && (
+                                    <p className="text-xs text-muted-foreground text-center">
+                                      {UNAVAILABLE_MESSAGE}
+                                    </p>
+                                  )}
+                                </div>
+                              }
+                            >
+                              <p className="text-sm">
+                                {service.description?.slice(0, 200) + '...'}
+                              </p>
+                            </CardContainer>
                           ))}
                         </div>
                       </div>
