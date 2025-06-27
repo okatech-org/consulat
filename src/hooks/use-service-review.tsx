@@ -271,7 +271,7 @@ type DeliveryReviewProps = {
 
 function DeliveryReview({ request }: DeliveryReviewProps) {
   const t_inputs = useTranslations('inputs');
-  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string } | null>(
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string, type: 'pdf' | 'image' } | null>(
     null,
   );
 
@@ -342,6 +342,7 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
                       setPreviewDoc({
                         url: request.proxyIdentityDoc,
                         title: "Pièce d'identité du mandataire",
+                        type: request.proxyIdentityDoc.endsWith('.pdf') ? 'pdf' : 'image',
                       })
                     }
                   >
@@ -365,6 +366,7 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
                       setPreviewDoc({
                         url: request.proxyPowerOfAttorney,
                         title: 'Procuration',
+                        type: request.proxyPowerOfAttorney.endsWith('.pdf') ? 'pdf' : 'image',
                       })
                     }
                   >
