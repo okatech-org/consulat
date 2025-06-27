@@ -76,13 +76,6 @@ const handleAuthRedirects = async (
     const sessionToken = getSessionCookie(request);
     const hasValidSession = !!sessionToken;
 
-    console.log({
-      url: pathname,
-      isProtectedRoute: isProtectedRoute(pathname),
-      sessionToken,
-      loginUrl: new URL(ROUTES.auth.login, request.url),
-    });
-
     // Redirect to login if accessing protected route without valid session
     if (isProtectedRoute(pathname) && !hasValidSession) {
       const loginUrl = new URL(ROUTES.auth.login, request.url);      

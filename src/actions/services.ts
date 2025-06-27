@@ -17,7 +17,6 @@ export async function getAvailableConsularServices() {
   try {
     const services = await db.consularService.findMany({
       where: {
-        isActive: true,
         countryCode: authResult.user.countryCode,
       },
       include: {
