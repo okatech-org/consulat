@@ -1,6 +1,6 @@
 'use client';
 
-import { MailIcon, PlusCircleIcon } from 'lucide-react';
+import { MessageSquareIcon, PlusCircleIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,10 +15,10 @@ import { usePathname } from 'next/navigation';
 import { NavMainItem } from '@/hooks/use-navigation';
 import { ROUTES } from '@/schemas/routes';
 import { useChat } from '@/contexts/chat-context';
+import { ChatToggle } from '../chat/chat-toggle';
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
   const pathname = usePathname();
-  const { toggleChat } = useChat();
 
   const isActive = (url: string) => {
     if (url === ROUTES.dashboard.base || ROUTES.user.base) {
@@ -36,6 +36,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
+              disabled
               tooltip="Quick Create"
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
             >
@@ -46,9 +47,8 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               size="icon"
               className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
-              onClick={toggleChat}
             >
-              <MailIcon />
+              <ChatToggle customIcon={<MessageSquareIcon />} />
               <span className="sr-only">Messagerie</span>
             </Button>
           </SidebarMenuItem>

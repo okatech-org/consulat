@@ -5,21 +5,18 @@ import React, { useEffect, useState } from 'react';
 import {
   Plus,
   Search,
-  Filter,
   ArrowLeft,
   X,
   LayoutGrid,
   LayoutList,
   SlidersHorizontal,
 } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +35,6 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageContainer } from '@/components/layouts/page-container';
-import { cn } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
 import { MultiSelect } from '@/components/ui/multi-select';
 
@@ -179,9 +175,9 @@ export default function AvailableServicesPage() {
 
   return (
     <PageContainer
-      title={'Services consulaires disponibles'}
+      title={'Services consulaires'}
       description={
-        'Découvrez les services consulaires disponibles et démarrez une nouvelle demande.'
+        'Découvrez les services consulaires et démarrez une nouvelle demande.'
       }
       action={
         <div className="flex items-center space-x-2">
@@ -194,112 +190,100 @@ export default function AvailableServicesPage() {
       }
     >
 
-      {/* Search and filters section with improved hierarchy */}
-      <div className="space-y-6">
-        {/* Search bar with better UX */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Rechercher un service par nom, description ou organisme..."
-            className="pl-10 pr-4 py-3 text-base border-2 focus:border-primary transition-colors"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Rechercher des services"
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6"
-              onClick={() => setSearchQuery('')}
-              aria-label="Effacer la recherche"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+      {/* Search and filters section - condensed */}
+      <div className="space-y-4">
+        {/* Combined search and main filters */}
+        <div className="bg-card rounded-lg border p-4 shadow-sm space-y-4">
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Rechercher un service par nom, description ou organisme..."
+              className="pl-10 pr-4 py-2 text-sm focus:border-primary transition-colors"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Rechercher des services"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6"
+                onClick={() => setSearchQuery('')}
+                aria-label="Effacer la recherche"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
 
-        {/* Filters with improved visual hierarchy */}
-        <div className="bg-card rounded-lg border p-4 shadow-sm">
-          <div className="flex flex-wrap gap-3 items-start sm:items-center">
-            {/* Mobile-first: Show only essential filters */}
-            <div className="flex gap-2 sm:hidden w-full">
-              {/* Mobile filters sheet */}
+          {/* Filters row - more compact */}
+          <div className="flex flex-wrap gap-2 items-center">
+            {/* Mobile filters sheet */}
+            <div className="flex gap-2 sm:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <SlidersHorizontal className="h-4 w-4 mr-2" />
-                    Filtres avancés
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    <SlidersHorizontal className="h-3 w-3 mr-1" />
+                    Filtres
                     {(selectedCategories.length > 0 || selectedOrganizations.length > 0) && (
-                      <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-primary text-primary-foreground">
+                      <Badge variant="secondary" className="ml-1 px-1 py-0 text-xs bg-primary text-primary-foreground">
                         {selectedCategories.length + selectedOrganizations.length}
                       </Badge>
                     )}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[320px] sm:w-[400px]">
-                  <SheetHeader className="pb-4">
-                    <SheetTitle className="text-lg font-semibold">Filtrer les services</SheetTitle>
+                <SheetContent side="right" className="w-[300px]">
+                  <SheetHeader className="pb-3">
+                    <SheetTitle className="text-base">Filtres</SheetTitle>
                   </SheetHeader>
-                  <ScrollArea className="h-[calc(100vh-120px)] pr-4">
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1 h-4 bg-primary rounded-full"></div>
-                          <h3 className="text-sm font-medium text-foreground">Catégories de services</h3>
-                        </div>
+                  <ScrollArea className="h-[calc(100vh-100px)] pr-4">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-foreground">Catégories</h3>
                         <MultiSelect
                           type="multiple"
                           options={getCategoryOptions()}
                           selected={selectedCategories}
                           onChange={setSelectedCategories}
                           placeholder="Toutes les catégories"
-                          searchPlaceholder="Rechercher une catégorie..."
+                          searchPlaceholder="Rechercher..."
                           emptyText="Aucune catégorie trouvée"
                         />
                       </div>
 
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1 h-4 bg-primary rounded-full"></div>
-                          <h3 className="text-sm font-medium text-foreground">Organismes</h3>
-                        </div>
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-foreground">Organismes</h3>
                         <MultiSelect
                           type="multiple"
                           options={getOrganizationOptions()}
                           selected={selectedOrganizations}
                           onChange={setSelectedOrganizations}
                           placeholder="Tous les organismes"
-                          searchPlaceholder="Rechercher un organisme..."
+                          searchPlaceholder="Rechercher..."
                           emptyText="Aucun organisme trouvé"
                         />
                       </div>
 
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1 h-4 bg-primary rounded-full"></div>
-                          <h3 className="text-sm font-medium text-foreground">Disponibilité</h3>
-                        </div>
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-foreground">Disponibilité</h3>
                         <Button
                           variant={showActiveOnly ? 'default' : 'outline'}
                           size="sm"
-                          className="w-full justify-start transition-all duration-200"
+                          className="w-full justify-start h-8"
                           onClick={() => setShowActiveOnly(!showActiveOnly)}
                         >
-                          <div className="flex items-center justify-between w-full">
-                            <span>Services actifs uniquement</span>
-                            {showActiveOnly && (
-                              <div className="w-2 h-2 bg-success rounded-full ml-2"></div>
-                            )}
-                          </div>
+                          <span>Services actifs uniquement</span>
+                          {showActiveOnly && (
+                            <div className="w-2 h-2 bg-success rounded-full ml-auto"></div>
+                          )}
                         </Button>
                       </div>
                     </div>
                   </ScrollArea>
-                  <div className="flex space-x-2 pt-4 border-t mt-4">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={resetFilters}>
-                      <X className="h-4 w-4 mr-2" />
+                  <div className="pt-3 border-t mt-3">
+                    <Button variant="outline" size="sm" className="w-full h-8" onClick={resetFilters}>
                       Réinitialiser
                     </Button>
                   </div>
@@ -311,215 +295,174 @@ export default function AvailableServicesPage() {
                 variant={showActiveOnly ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
-                className="flex-shrink-0 transition-all duration-200"
+                className="h-8 text-xs"
                 aria-label={showActiveOnly ? 'Afficher tous les services' : 'Afficher seulement les services actifs'}
               >
-                Services actifs
-                {showActiveOnly ? (
-                  <div className="ml-2 w-2 h-2 bg-success rounded-full"></div>
-                ) : (
-                  <div className="ml-2 w-2 h-2 bg-muted-foreground rounded-full"></div>
-                )}
+                Actifs
+                <div className={`ml-1 w-2 h-2 rounded-full ${showActiveOnly ? 'bg-success' : 'bg-muted-foreground'}`}></div>
               </Button>
+
+              {areFiltersActive && (
+                <Button variant="outline" size="sm" onClick={resetFilters} className="h-8 text-xs">
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
             </div>
 
-            {/* Desktop filters with improved spacing and hierarchy */}
-            <div className="hidden sm:flex sm:gap-4 sm:items-center sm:flex-wrap w-full">
-              <div className="text-sm font-medium text-muted-foreground flex-shrink-0">
-                Filtrer par :
-              </div>
+            {/* Desktop filters - more compact */}
+            <div className="hidden sm:flex sm:gap-2 sm:items-center sm:flex-wrap w-full">
+              <span className="text-xs text-muted-foreground">Filtres :</span>
               
-              {/* Category filter */}
-              <div className="min-w-[220px] max-w-[280px]">
+              {/* Compact multiselects */}
+              <div className="min-w-[160px] max-w-[200px]">
                 <MultiSelect
                   type="multiple"
                   options={getCategoryOptions()}
                   selected={selectedCategories}
                   onChange={setSelectedCategories}
                   placeholder="Catégories"
-                  searchPlaceholder="Rechercher une catégorie..."
+                  searchPlaceholder="Rechercher..."
                   emptyText="Aucune catégorie trouvée"
-                  className="text-sm border-2 hover:border-primary/50 transition-colors"
+                  className="text-xs h-8"
                 />
               </div>
 
-              {/* Organization filter */}
-              <div className="min-w-[220px] max-w-[280px]">
+              <div className="min-w-[160px] max-w-[200px]">
                 <MultiSelect
                   type="multiple"
                   options={getOrganizationOptions()}
                   selected={selectedOrganizations}
                   onChange={setSelectedOrganizations}
                   placeholder="Organismes"
-                  searchPlaceholder="Rechercher un organisme..."
+                  searchPlaceholder="Rechercher..."
                   emptyText="Aucun organisme trouvé"
-                  className="text-sm border-2 hover:border-primary/50 transition-colors"
+                  className="text-xs h-8"
                 />
               </div>
 
-              {/* Quick active services toggle for desktop */}
               <Button
                 variant={showActiveOnly ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
-                className="transition-all duration-200 border-2 hover:border-primary/50"
+                className="h-8 text-xs"
                 aria-label={showActiveOnly ? 'Afficher tous les services' : 'Afficher seulement les services actifs'}
               >
-                <span className="hidden lg:inline">Services actifs</span>
+                <span className="hidden lg:inline">Actifs</span>
                 <span className="lg:hidden">Actifs</span>
-                {showActiveOnly ? (
-                  <div className="ml-2 w-2 h-2 bg-success rounded-full"></div>
-                ) : (
-                  <div className="ml-2 w-2 h-2 bg-muted-foreground rounded-full"></div>
-                )}
+                <div className={`ml-1 w-2 h-2 rounded-full ${showActiveOnly ? 'bg-success' : 'bg-muted-foreground'}`}></div>
               </Button>
 
-              {/* Reset filters button for desktop */}
               {areFiltersActive && (
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={resetFilters}
-                  className="ml-auto transition-all duration-200 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
+                  className="ml-auto h-8 text-xs hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
                 >
-                  <X className="h-4 w-4 mr-2" />
-                  Réinitialiser tout
+                  <X className="h-3 w-3 mr-1" />
+                  Reset
                 </Button>
               )}
+
+              {/* View toggle inline */}
+              
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Filter tags with improved design */}
-      {areFiltersActive && (
-        <div className="bg-muted/30 rounded-lg p-4 border">
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Filtres actifs :</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {selectedCategories.map((category) => (
-              <Badge key={category} variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200 transition-colors">
-                <span className="truncate max-w-[120px] sm:max-w-none">
-                  {tInputs(`serviceCategory.options.${category}`)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 ml-1.5 p-0 hover:bg-primary-300 rounded-full"
-                  onClick={() => setSelectedCategories(selectedCategories.filter((c) => c !== category))}
-                  aria-label={`Supprimer le filtre ${tInputs(`serviceCategory.options.${category}`)}`}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-
-            {selectedOrganizations.map((orgId) => {
-              const orgName =
-                orgId === 'consulat'
-                  ? 'Services consulaires'
-                  : getUniqueOrganizations().find((org) => org.id === orgId)?.name || '';
-
-              return (
-                <Badge key={orgId} variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-secondary-100 text-secondary-700 border-secondary-200 hover:bg-secondary-200 transition-colors">
-                  <span className="truncate max-w-[120px] sm:max-w-none">
-                    {orgName}
+          {/* Active filters tags - only show if any active, more compact */}
+          {areFiltersActive && (
+            <div className="flex flex-wrap gap-1 pt-2 border-t">
+              {selectedCategories.map((category) => (
+                <Badge key={category} variant="secondary" className="text-xs py-0 px-2 h-6 bg-primary-100 text-primary-700 border-primary-200">
+                  <span className="truncate max-w-[100px]">
+                    {tInputs(`serviceCategory.options.${category}`)}
                   </span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-4 w-4 ml-1.5 p-0 hover:bg-secondary-300 rounded-full"
-                    onClick={() => setSelectedOrganizations(selectedOrganizations.filter((id) => id !== orgId))}
-                    aria-label={`Supprimer le filtre ${orgName}`}
+                    className="h-3 w-3 ml-1 p-0 hover:bg-primary-300 rounded-full"
+                    onClick={() => setSelectedCategories(selectedCategories.filter((c) => c !== category))}
+                    aria-label={`Supprimer ${tInputs(`serviceCategory.options.${category}`)}`}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-2 w-2" />
                   </Button>
                 </Badge>
-              );
-            })}
+              ))}
 
-            {showActiveOnly && (
-              <Badge variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-success/10 text-success border-success/20 hover:bg-success/20 transition-colors">
-                <span className="truncate max-w-[100px] sm:max-w-none">
-                  Services actifs uniquement
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 ml-1.5 p-0 hover:bg-success/30 rounded-full"
-                  onClick={() => setShowActiveOnly(false)}
-                  aria-label="Supprimer le filtre services actifs"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
+              {selectedOrganizations.map((orgId) => {
+                const orgName = orgId === 'consulat' ? 'Services consulaires' : getUniqueOrganizations().find((org) => org.id === orgId)?.name || '';
+                return (
+                  <Badge key={orgId} variant="secondary" className="text-xs py-0 px-2 h-6 bg-secondary-100 text-secondary-700 border-secondary-200">
+                    <span className="truncate max-w-[100px]">{orgName}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-3 w-3 ml-1 p-0 hover:bg-secondary-300 rounded-full"
+                      onClick={() => setSelectedOrganizations(selectedOrganizations.filter((id) => id !== orgId))}
+                      aria-label={`Supprimer ${orgName}`}
+                    >
+                      <X className="h-2 w-2" />
+                    </Button>
+                  </Badge>
+                );
+              })}
 
-            {searchQuery.trim() && (
-              <Badge variant="secondary" className="text-xs py-1.5 px-3 pr-2 bg-accent text-accent-foreground border-accent hover:bg-accent/80 transition-colors">
-                <span className="truncate max-w-[100px] sm:max-w-none">
-                  Recherche: {searchQuery}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 ml-1.5 p-0 hover:bg-accent/60 rounded-full"
-                  onClick={() => setSearchQuery('')}
-                  aria-label="Supprimer la recherche"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-          </div>
+              {showActiveOnly && (
+                <Badge variant="secondary" className="text-xs py-0 px-2 h-6 bg-success/5 text-success border-success/20">
+                  <span>Actifs uniquement</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-3 w-3 ml-1 p-0 hover:bg-success/30 rounded-full"
+                    onClick={() => setShowActiveOnly(false)}
+                    aria-label="Supprimer le filtre actifs"
+                  >
+                    <X className="h-2 w-2" />
+                  </Button>
+                </Badge>
+              )}
+
+              {searchQuery.trim() && (
+                <Badge variant="secondary" className="text-xs py-0 px-2 h-6 bg-accent text-accent-foreground border-accent">
+                  <span className="truncate max-w-[80px]">"{searchQuery}"</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-3 w-3 ml-1 p-0 hover:bg-accent/60 rounded-full"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Supprimer la recherche"
+                  >
+                    <X className="h-2 w-2" />
+                  </Button>
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Compact tabs with inline results summary */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Tabs defaultValue="all">
+          <TabsList className="w-full sm:w-auto bg-card border shadow-sm h-9">
+            <TabsTrigger value="all" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7">
+              Tous les services
+              {!loading && (
+                <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs bg-muted text-muted-foreground h-4">
+                  {filteredServices.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="by-category" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7">
+              Par catégorie
+            </TabsTrigger>
+          </TabsList>
+          </Tabs>
+        </div>
+      </div>
 
       {/* Services content */}
       <div className="mt-8">
         <Tabs defaultValue="all" className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <TabsList className="w-full sm:w-auto bg-card border shadow-sm">
-              <TabsTrigger value="all" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Tous les services
-                {!loading && (
-                  <Badge variant="secondary" className="ml-2 px-2 py-0.5 text-xs bg-muted text-muted-foreground">
-                    {filteredServices.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="by-category" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Par catégorie
-              </TabsTrigger>
-            </TabsList>
-
-            {/* View toggle - improved design */}
-            <div className="hidden lg:flex border rounded-md bg-card shadow-sm">
-              <Button
-                variant={view === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                className="rounded-r-none transition-all duration-200"
-                onClick={() => setView('grid')}
-                aria-label="Vue en grille"
-              >
-                <LayoutGrid className="h-4 w-4 mr-1" />
-                <span className="hidden xl:inline">Grille</span>
-              </Button>
-              <Button
-                variant={view === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                className="rounded-l-none transition-all duration-200"
-                onClick={() => setView('list')}
-                aria-label="Vue en liste"
-              >
-                <LayoutList className="h-4 w-4 mr-1" />
-                <span className="hidden xl:inline">Liste</span>
-              </Button>
-            </div>
-          </div>
-
           <TabsContent value="all" className="space-y-6">
             {loading ? (
               <div className="space-y-6">
@@ -571,11 +514,7 @@ export default function AvailableServicesPage() {
                       </p>
                     </div>
                   </div>
-                  {areFiltersActive && (
-                    <Button variant="outline" size="sm" onClick={resetFilters} className="text-primary-700 border-primary-200 hover:bg-primary-100">
-                      Voir tous les services
-                    </Button>
-                  )}
+                  
                 </div>
 
                 {view === 'grid' ? (
@@ -593,11 +532,11 @@ export default function AvailableServicesPage() {
                               variant={service.isActive ? 'default' : 'secondary'} 
                               className={`flex-shrink-0 ${
                                 service.isActive 
-                                  ? 'bg-success/10 text-success border-success/20' 
-                                  : 'bg-warning/10 text-warning border-warning/20'
+                                  ? 'bg-success/5 text-success border-success/20' 
+                                  : 'bg-warning/5 text-warning border-warning/20'
                               }`}
                             >
-                              {service.isActive ? 'Actif' : 'Bientôt'}
+                              {service.isActive ? 'Actif' : 'Bientôt disponible'}
                             </Badge>
                           </div>
                         }
@@ -668,17 +607,14 @@ export default function AvailableServicesPage() {
                                     <div className="w-1 h-4 bg-primary rounded-full"></div>
                                     <span>{service.organization?.name || t('availableServices.consulateService')}</span>
                                   </div>
-                                  <Badge variant="outline" className="text-xs">
-                                    {tInputs(`serviceCategory.options.${service.category}`)}
-                                  </Badge>
                                 </div>
                               </div>
                               <Badge 
                                 variant={service.isActive ? 'default' : 'secondary'}
                                 className={`flex-shrink-0 ${
                                   service.isActive 
-                                    ? 'bg-success/10 text-success border-success/20' 
-                                    : 'bg-warning/10 text-warning border-warning/20'
+                                    ? 'bg-success/5 text-success border-success/20' 
+                                    : 'bg-warning/5 text-warning border-warning/20'
                                 }`}
                               >
                                 {service.isActive ? 'Disponible' : 'Prochainement'}
@@ -714,7 +650,7 @@ export default function AvailableServicesPage() {
                               )}
                             </Button>
                             {!service.isActive && (
-                              <div className="bg-warning/10 border border-warning/20 rounded-md p-2 w-full">
+                              <div className="bg-warning/5 border border-warning/20 rounded-md p-2 w-full">
                                 <p className="text-xs text-warning text-center font-medium">
                                   {UNAVAILABLE_MESSAGE}
                                 </p>
@@ -783,7 +719,7 @@ export default function AvailableServicesPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-1 h-6 bg-primary rounded-full"></div>
-                              <h2 className="text-2xl font-bold text-gray-900">
+                              <h2 className="text-2xl font-bold text-foreground">
                                 {tInputs(`serviceCategory.options.${services[0].category}`)}
                               </h2>
                             </div>
@@ -806,8 +742,8 @@ export default function AvailableServicesPage() {
                                       variant={service.isActive ? 'default' : 'secondary'} 
                                       className={`flex-shrink-0 ${
                                         service.isActive 
-                                          ? 'bg-success/10 text-success border-success/20' 
-                                          : 'bg-warning/10 text-warning border-warning/20'
+                                          ? 'bg-success/5 text-success border-success/20' 
+                                          : 'bg-warning/5 text-warning border-warning/20'
                                       }`}
                                     >
                                       {service.isActive ? 'Actif' : 'Bientôt'}
@@ -847,7 +783,7 @@ export default function AvailableServicesPage() {
                                       )}
                                     </Button>
                                     {!service.isActive && (
-                                      <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
+                                      <div className="bg-warning/5 border border-warning/20 rounded-md p-3">
                                         <p className="text-xs text-warning text-center font-medium">
                                           {UNAVAILABLE_MESSAGE}
                                         </p>
@@ -857,7 +793,7 @@ export default function AvailableServicesPage() {
                                 }
                               >
                                 <div className="space-y-3">
-                                  <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                                  <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                                     {service.description || 'Description non disponible'}
                                   </p>
                                 </div>
