@@ -101,7 +101,7 @@ type StepReviewProps = {
 
 function StepReview({ fields }: StepReviewProps) {
   const { formatDate } = useDateLocale();
-  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string } | null>(
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string, type: 'pdf' | 'image' } | null>(
     null,
   );
 
@@ -577,7 +577,7 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
                       setPreviewDoc({
                         url: document.fileUrl,
                         title: t_inputs(`userDocument.options.${type}`),
-                        type: document.fileUrl.endsWith('.pdf') ? 'pdf' : 'image',
+                        type: document.fileType as 'pdf' | 'image',
                       })
                     }
                   >
@@ -775,7 +775,7 @@ export function DocumentReview({ document: localDocument }: { document: UserDocu
           setIsOpenAction={setPreviewOpen}
           url={localDocument.fileUrl}
           title={t_inputs(`userDocument.options.${localDocument.type}`)}
-          type={localDocument.fileUrl.endsWith('.pdf') ? 'pdf' : 'image'}
+          type={localDocument.fileType as 'pdf' | 'image'}
           onDownload={() =>
             handleDownload(
               localDocument.fileUrl,

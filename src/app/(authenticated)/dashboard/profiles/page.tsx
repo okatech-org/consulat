@@ -546,35 +546,39 @@ export default function ProfilesPage() {
             actions={[
               {
                 component: row.original.validationRequestId ? (
-                  <Link
-                    onClick={(e) => e.stopPropagation()}
-                    href={ROUTES.dashboard.service_requests(
-                      row.original.validationRequestId,
-                    )}
-                  >
-                    <FileText className="size-icon" />
-                    {'Voir la demande'}
-                  </Link>
+                  <Button size="sm" variant="ghost" className="w-full justify-start" asChild>   
+                    <Link
+                      onClick={(e) => e.stopPropagation()}
+                      href={ROUTES.dashboard.service_requests(
+                        row.original.validationRequestId,
+                      )}
+                    >
+                      <FileText className="size-icon" />
+                      {'Voir la demande'}
+                    </Link>
+                  </Button>
                 ) : null,
               },
               {
                 component: (
-                  <Link
+                  <Button size="sm" variant="ghost" className="w-full justify-start" asChild>
+                       <Link
                     onClick={(e) => e.stopPropagation()}
                     href={ROUTES.listing.profile(row.original.id)}
                   >
                     <FileText className="size-icon" />
                     {t('common.actions.consult')}
                   </Link>
+                  </Button>
+                  
                 ),
               },
               {
                 component: (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Edit className="size-icon" />
-                        <span>{t('common.actions.edit')}</span>
+                      <Button size="sm" leftIcon={<Edit className="size-icon" />} variant="ghost" className="w-full justify-start">
+                        {t('common.actions.edit')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
