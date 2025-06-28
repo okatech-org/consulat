@@ -14,7 +14,6 @@ export const env = createEnv({
     POSTGRES_URL: z.string().url(),
     OPENAI_API_KEY: z.string().startsWith('sk-'),
     GEMINI_API_KEY: z.string().min(1),
-    CONVERT_API_KEY: z.string().startsWith('secret_'),
     BASE_COUNTRY_CODE: z.string().length(2),
     RESIDENT_COUNTRY_CODE: z.string().length(2),
 
@@ -68,7 +67,6 @@ export const env = createEnv({
     POSTGRES_URL: process.env.POSTGRES_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-    CONVERT_API_KEY: process.env.CONVERT_API_KEY,
     BASE_COUNTRY_CODE: process.env.BASE_COUNTRY_CODE,
     RESIDENT_COUNTRY_CODE: process.env.RESIDENT_COUNTRY_CODE,
 
