@@ -27,12 +27,11 @@ import { ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { ErrorCard } from '@/components/ui/error-card';
 import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { authClient } from '@/lib/auth/auth-client';
 import { toast } from '@/hooks/use-toast';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser, useCurrentSession } from '@/hooks/use-current-user';
 import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 
 // Types
@@ -49,10 +48,76 @@ interface LoginFormState {
   hasRedirected: boolean; // NEW: Prevent multiple redirects
 }
 
+// Transformer les messages d'erreur Better Auth en messages user-friendly
+function getHumanReadableError(error: string, t: any): string {
+  const errorLower = error.toLowerCase();
+
+  // Codes d'erreur Better Auth spécifiques
+  if (error === 'INVALID_OTP' || errorLower.includes('invalid otp')) {
+    return 'Code incorrect. Veuillez vérifier et réessayer.';
+  }
+  if (error === 'OTP_EXPIRED' || errorLower.includes('otp expired')) {
+    return 'Ce code a expiré. Veuillez demander un nouveau code.';
+  }
+  if (error === 'OTP_NOT_FOUND' || errorLower.includes('otp not found')) {
+    return 'Code invalide. Veuillez demander un nouveau code.';
+  }
+  if (error === 'MAX_ATTEMPTS_EXCEEDED' || errorLower.includes('max attempts')) {
+    return 'Trop de tentatives. Veuillez demander un nouveau code.';
+  }
+  if (error === 'PHONE_NUMBER_NOT_VERIFIED' || errorLower.includes('not verified')) {
+    return 'Numéro de téléphone non vérifié. Un code vous a été envoyé.';
+  }
+
+  // Erreurs génériques
+  if (errorLower.includes('invalid') || errorLower.includes('incorrect')) {
+    return 'Code incorrect. Veuillez vérifier et réessayer.';
+  }
+  if (errorLower.includes('expired') || errorLower.includes('expire')) {
+    return 'Ce code a expiré. Veuillez demander un nouveau code.';
+  }
+  if (errorLower.includes('not found') || errorLower.includes('not_found')) {
+    return 'Code invalide. Veuillez demander un nouveau code.';
+  }
+  if (errorLower.includes('too many') || errorLower.includes('attempts')) {
+    return 'Trop de tentatives. Veuillez patienter avant de réessayer.';
+  }
+  if (errorLower.includes('rate limit') || errorLower.includes('rate_limit')) {
+    return 'Trop de demandes. Veuillez patienter quelques instants.';
+  }
+
+  // Erreurs d'envoi
+  if (errorLower.includes('sms') || errorLower.includes('twilio')) {
+    return 'Service SMS indisponible. Essayez avec votre email.';
+  }
+  if (errorLower.includes('email') && errorLower.includes('send')) {
+    return "Impossible d'envoyer l'email. Vérifiez votre adresse.";
+  }
+
+  // Erreurs de validation
+  if (errorLower.includes('phone') && errorLower.includes('invalid')) {
+    return 'Numéro de téléphone invalide.';
+  }
+  if (errorLower.includes('email') && errorLower.includes('invalid')) {
+    return 'Adresse email invalide.';
+  }
+
+  // Erreurs utilisateur
+  if (errorLower.includes('user') && errorLower.includes('not found')) {
+    return 'Aucun compte associé à cet identifiant.';
+  }
+  if (errorLower.includes('already exists') || errorLower.includes('already_exists')) {
+    return 'Un compte existe déjà avec cet identifiant.';
+  }
+
+  // Si on ne reconnaît pas l'erreur, retourner un message générique
+  return 'Une erreur est survenue. Veuillez réessayer.';
+}
+
 // Schema factory
 function getLoginSchema(type: LoginMethod, showOTP: boolean) {
   const baseSchema = type === 'EMAIL' ? LoginWithEmailSchema : LoginWithPhoneSchema;
-  
+
   return baseSchema.extend({
     otp: showOTP
       ? z
@@ -101,84 +166,72 @@ function useResendCooldown() {
 }
 
 function useLoginActions() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
+  const t = useTranslations('auth.login');
 
-  const sendOTPCode = React.useCallback(async (identifier: string, type: LoginMethod) => {
-    if (type === 'EMAIL') {
-      const response = await tryCatch(
-        authClient.emailOtp.sendVerificationOtp({
+  const sendOTPCode = React.useCallback(
+    async (identifier: string, type: LoginMethod) => {
+      if (type === 'EMAIL') {
+        const response = await authClient.emailOtp.sendVerificationOtp({
           email: identifier,
           type: 'sign-in',
-        })
-      );
+        });
 
-      if (response.error) {
-        throw new Error(
-          response.error instanceof Error 
-            ? response.error.message 
-            : 'Failed to send OTP'
-        );
-      }
-    } else {
-      const response = await tryCatch(
-        authClient.phoneNumber.sendOtp({
+        if (response.error) {
+          const errorMessage = response.error.message || 'Failed to send OTP';
+          throw new Error(getHumanReadableError(errorMessage, t));
+        }
+      } else {
+        const response = await authClient.phoneNumber.sendOtp({
           phoneNumber: identifier,
-        })
-      );
+        });
 
-      if (response.error) {
-        throw new Error(
-          response.error instanceof Error 
-            ? response.error.message 
-            : 'Failed to send OTP'
-        );
+        if (response.error) {
+          const errorMessage = response.error.message || 'Failed to send OTP';
+          throw new Error(getHumanReadableError(errorMessage, t));
+        }
       }
-    }
-  }, []);
+    },
+    [t],
+  );
 
-  const validateOTP = React.useCallback(async (otp: string, method: LoginMethod, identifier: string) => {
-    if (method === 'EMAIL') {
-      const response = await tryCatch(
-        authClient.signIn.emailOtp({
+  const validateOTP = React.useCallback(
+    async (otp: string, method: LoginMethod, identifier: string) => {
+      if (method === 'EMAIL') {
+        const response = await authClient.signIn.emailOtp({
           email: identifier,
           otp,
-        })
-      );
+        });
 
-      if (response.error) {
-        throw new Error(
-          response.error instanceof Error
-            ? response.error.message
-            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.'
-        );
-      }
-    } else {
-      const response = await tryCatch(
-        authClient.phoneNumber.verify({
+        if (response.error) {
+          const errorMessage = response.error.message || 'Invalid OTP';
+          throw new Error(getHumanReadableError(errorMessage, t));
+        }
+
+        return response.data;
+      } else {
+        const response = await authClient.phoneNumber.verify({
           phoneNumber: identifier,
           code: otp,
-        })
-      );
+        });
 
-      if (response.error) {
-        throw new Error(
-          response.error instanceof Error
-            ? response.error.message
-            : 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.'
-        );
+        if (response.error) {
+          const errorMessage = response.error.message || 'Invalid OTP';
+          throw new Error(getHumanReadableError(errorMessage, t));
+        }
+
+        return response.data;
       }
-    }
-
-    router.push(callbackUrl ?? ROUTES.base);
-  }, [router, callbackUrl]);
+    },
+    [t],
+  );
 
   return { sendOTPCode, validateOTP };
 }
 
 export function LoginForm() {
-  const user = useCurrentUser();
+  const router = useRouter();
+  const { data: session, refetch: refetchSession } = authClient.useSession();
+  const user = session?.user;
   const t = useTranslations('auth.login');
   const tError = useTranslations('messages.errors');
   const searchParams = useSearchParams();
@@ -213,117 +266,188 @@ export function LoginForm() {
 
   // Update state helper
   const updateState = React.useCallback((updates: Partial<LoginFormState>) => {
-    setState(prev => ({ ...prev, ...updates }));
+    setState((prev) => ({ ...prev, ...updates }));
   }, []);
 
   // Get redirect URL based on user role
-  const getRedirectUrl = React.useCallback((callbackUrl?: string | null) => {
-    return AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
-  }, [user]);
-
-  // Handlers
-  const handleSendOTP = React.useCallback(async (identifier: string, type: LoginMethod) => {
-    updateState({ isLoading: true, error: null });
-
-    try {
-      await sendOTPCode(identifier, type);
-      updateState({ 
-        step: 'OTP', 
-        isLoading: false 
-      });
-      startCooldown(60);
-      toast({
-        title: t('messages.otp_sent'),
-        variant: 'default',
-      });
-    } catch (error) {
-      updateState({ 
-        error: error instanceof Error ? error.message : 'Failed to send OTP',
-        isLoading: false 
-      });
-    }
-  }, [sendOTPCode, updateState, startCooldown, t]);
-
-  const handleValidateOTP = React.useCallback(async (otp: string) => {
-    updateState({ isLoading: true, error: null });
-
-    try {
-      const identifier = state.method === 'EMAIL' 
-        ? form.getValues('email') 
-        : form.getValues('phoneNumber');
-      
-      await validateOTP(otp, state.method, identifier);
-      
-      // Show success state first, then redirect
-      updateState({ 
-        step: 'SUCCESS', 
-        isLoading: false 
-      });
-
-      // Show success state WITHOUT auto-redirect
-      // User will manually trigger redirect via button
-      
-    } catch (error) {
-      updateState({ 
-        error: error instanceof Error ? error.message : 'Validation failed',
-        isLoading: false 
-      });
-    }
-  }, [validateOTP, state.method, form, updateState, searchParams, getRedirectUrl]);
-
-  const handleResendOTP = React.useCallback(async () => {
-    if (!canResend) return;
-
-    const identifier = state.method === 'EMAIL' 
-      ? form.getValues('email') 
-      : form.getValues('phoneNumber');
-    
-    await handleSendOTP(identifier, state.method);
-  }, [canResend, state.method, form, handleSendOTP]);
-
-  const handleGoBack = React.useCallback(() => {
-    updateState({ 
-      step: 'IDENTIFIER', 
-      error: null 
-    });
-    form.clearErrors();
-  }, [form, updateState]);
-
-  const handleMethodChange = React.useCallback((value: string) => {
-    const newMethod = value as LoginMethod;
-    updateState({ 
-      method: newMethod, 
-      step: 'IDENTIFIER', 
-      error: null 
-    });
-    
-    form.reset();
-    if (newMethod === 'EMAIL') {
-      form.setValue('type', 'EMAIL');
-      form.setValue('email', '');
-    } else {
-      form.setValue('type', 'PHONE');
-      form.setValue('phoneNumber', '+33-');
-    }
-  }, [form, updateState]);
-
-  const onSubmit = React.useCallback(async (data: LoginInput) => {
-    if (state.step === 'IDENTIFIER') {
-      const identifierValue = data.type === 'EMAIL' ? data.email : data.phoneNumber;
-      await handleSendOTP(identifierValue, data.type);
-    } else if (data.otp) {
-      await handleValidateOTP(data.otp);
-    }
-  }, [state.step, handleSendOTP, handleValidateOTP]);
+  const getRedirectUrl = React.useCallback(
+    (callbackUrl?: string | null) => {
+      return AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
+    },
+    [user],
+  );
 
   // Manual redirect for success state
   const handleManualRedirect = React.useCallback(() => {
     if (state.hasRedirected) return; // Prevent double redirects
-    
-    setState(prev => ({ ...prev, hasRedirected: true }));
+
+    setState((prev) => ({ ...prev, hasRedirected: true }));
     const callbackUrl = searchParams.get('callbackUrl');
-    AuthRedirectManager.handleLoginSuccess(user!, callbackUrl);
-  }, [user, searchParams, state.hasRedirected]);
+
+    // Utiliser router.push pour une redirection plus fiable
+    const redirectUrl = AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
+    router.push(redirectUrl);
+  }, [user, searchParams, state.hasRedirected, router]);
+
+  // Handlers
+  const handleSendOTP = React.useCallback(
+    async (identifier: string, type: LoginMethod) => {
+      updateState({ isLoading: true, error: null });
+
+      try {
+        await sendOTPCode(identifier, type);
+        updateState({
+          step: 'OTP',
+          isLoading: false,
+          error: null,
+        });
+        startCooldown(60);
+        toast({
+          title: t('messages.otp_sent'),
+          variant: 'default',
+        });
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : t('errors.send_otp_failed');
+
+        updateState({
+          error: errorMessage,
+          isLoading: false,
+        });
+
+        toast({
+          title: t('errors.send_error'),
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+    },
+    [sendOTPCode, updateState, startCooldown, t],
+  );
+
+  const handleValidateOTP = React.useCallback(
+    async (otp: string) => {
+      updateState({ isLoading: true, error: null });
+
+      try {
+        const identifier =
+          state.method === 'EMAIL'
+            ? form.getValues('email')
+            : form.getValues('phoneNumber');
+
+        // Valider l'OTP
+        const result = await validateOTP(otp, state.method, identifier);
+
+        // Refetch session pour s'assurer que l'utilisateur est bien connecté
+        await refetchSession();
+
+        // Attendre un peu pour que la session se mette à jour
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Vérifier que la session existe maintenant en utilisant authClient
+        const { data: currentSession, error: sessionError } =
+          await authClient.getSession();
+
+        if (sessionError || !currentSession?.user) {
+          throw new Error('Session non créée. Veuillez réessayer.');
+        }
+
+        // Show success state ONLY if we have a valid session
+        updateState({
+          step: 'SUCCESS',
+          isLoading: false,
+          error: null,
+        });
+
+        // Auto-redirect après 1.5 secondes
+        setTimeout(() => {
+          if (!state.hasRedirected) {
+            handleManualRedirect();
+          }
+        }, 1500);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Erreur de validation';
+
+        // Rester sur l'étape OTP en cas d'erreur
+        updateState({
+          error: errorMessage,
+          isLoading: false,
+          step: 'OTP', // S'assurer qu'on reste sur l'étape OTP
+        });
+
+        // Réinitialiser le champ OTP pour permettre une nouvelle saisie
+        form.setValue('otp', '');
+
+        // Afficher aussi un toast pour une meilleure visibilité
+        toast({
+          title: 'Erreur',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+    },
+    [
+      validateOTP,
+      state.method,
+      form,
+      updateState,
+      handleManualRedirect,
+      state.hasRedirected,
+      t,
+      refetchSession,
+    ],
+  );
+
+  const handleResendOTP = React.useCallback(async () => {
+    if (!canResend) return;
+
+    const identifier =
+      state.method === 'EMAIL' ? form.getValues('email') : form.getValues('phoneNumber');
+
+    await handleSendOTP(identifier, state.method);
+  }, [canResend, state.method, form, handleSendOTP]);
+
+  const handleGoBack = React.useCallback(() => {
+    updateState({
+      step: 'IDENTIFIER',
+      error: null,
+    });
+    form.clearErrors();
+  }, [form, updateState]);
+
+  const handleMethodChange = React.useCallback(
+    (value: string) => {
+      const newMethod = value as LoginMethod;
+      updateState({
+        method: newMethod,
+        step: 'IDENTIFIER',
+        error: null,
+      });
+
+      form.reset();
+      if (newMethod === 'EMAIL') {
+        form.setValue('type', 'EMAIL');
+        form.setValue('email', '');
+      } else {
+        form.setValue('type', 'PHONE');
+        form.setValue('phoneNumber', '+33-');
+      }
+    },
+    [form, updateState],
+  );
+
+  const onSubmit = React.useCallback(
+    async (data: LoginInput) => {
+      if (state.step === 'IDENTIFIER') {
+        const identifierValue = data.type === 'EMAIL' ? data.email : data.phoneNumber;
+        await handleSendOTP(identifierValue, data.type);
+      } else if (data.otp) {
+        await handleValidateOTP(data.otp);
+      }
+    },
+    [state.step, handleSendOTP, handleValidateOTP],
+  );
 
   // Error handling effect
   React.useEffect(() => {
@@ -341,8 +465,8 @@ export function LoginForm() {
   React.useEffect(() => {
     // Guard: Only redirect if user exists, we're on identifier step, and haven't redirected yet
     if (user && state.step === 'IDENTIFIER' && !state.hasRedirected) {
-      setState(prev => ({ ...prev, hasRedirected: true }));
-      
+      setState((prev) => ({ ...prev, hasRedirected: true }));
+
       const callbackUrl = searchParams.get('callbackUrl');
       AuthRedirectManager.handleLoginSuccess(user, callbackUrl);
     }
@@ -350,10 +474,7 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-6"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
         <div className="flex flex-col gap-6">
           {state.step === 'SUCCESS' && (
             <div className="success-state space-y-6 text-center">
@@ -370,7 +491,7 @@ export function LoginForm() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
                 <Button
                   onClick={handleManualRedirect}
@@ -382,17 +503,16 @@ export function LoginForm() {
                   leftIcon={<CheckCircle2 className="size-4" />}
                   rightIcon={<ArrowRight className="size-4" />}
                 >
-                  {user && (Array.isArray(user.roles) ? user.roles : [user.roles]).some(role => 
-                    ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT'].includes(role)
-                  ) 
+                  {user &&
+                  (Array.isArray(user.roles) ? user.roles : [user.roles]).some(
+                    (role: string) =>
+                      ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT'].includes(role),
+                  )
                     ? t('go_to_dashboard')
-                    : t('go_to_my_space')
-                  }
+                    : t('go_to_my_space')}
                 </Button>
-                
-                <p className="text-xs text-muted-foreground">
-                  {t('auto_redirect_info')}
-                </p>
+
+                <p className="text-xs text-muted-foreground">{t('auto_redirect_info')}</p>
               </div>
             </div>
           )}
@@ -513,7 +633,9 @@ export function LoginForm() {
                 weight="medium"
                 fullWidthOnMobile={true}
                 loading={state.isLoading}
-                rightIcon={!state.isLoading ? <ArrowRight className="size-4" /> : undefined}
+                rightIcon={
+                  !state.isLoading ? <ArrowRight className="size-4" /> : undefined
+                }
               >
                 {state.step === 'OTP' ? t('access_space') : t('login_button')}
               </Button>
@@ -531,7 +653,7 @@ export function LoginForm() {
                   >
                     {t('back')}
                   </Button>
-                  
+
                   <Button
                     type="button"
                     variant="outline"
@@ -557,7 +679,9 @@ export function LoginForm() {
                   size="sm"
                   disabled={state.isLoading}
                   className="mx-auto"
-                  onClick={() => handleMethodChange(state.method === 'EMAIL' ? 'PHONE' : 'EMAIL')}
+                  onClick={() =>
+                    handleMethodChange(state.method === 'EMAIL' ? 'PHONE' : 'EMAIL')
+                  }
                 >
                   {state.method === 'EMAIL'
                     ? t('login_with_phone_prompt')
@@ -567,14 +691,14 @@ export function LoginForm() {
             </div>
           )}
 
-          {authError && <ErrorCard description={tError('auth_error')} />}
-
           {state.step !== 'SUCCESS' && (
             <div className="subactions flex justify-center">
               <p className="text-sm text-muted-foreground">
                 <span>{t('no_account')}</span>
                 <Link
-                  className={buttonVariants({ variant: 'link', size: 'sm' }) + ' !p-0 !h-auto'}
+                  className={
+                    buttonVariants({ variant: 'link', size: 'sm' }) + ' !p-0 !h-auto'
+                  }
                   href={ROUTES.registration}
                 >
                   {t('create_consular_space')}
