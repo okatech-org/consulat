@@ -52,3 +52,4 @@ public/sw*
 public/swe-worker*
 
 certificates
+.cursor
