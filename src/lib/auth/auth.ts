@@ -41,10 +41,11 @@ const options = {
   plugins: [
     phoneNumber({
       sendOTP: async ({ phoneNumber, code }) => {
-        const result = await tryCatch(sendSMSOTP(phoneNumber, code));
-
-        if (result.error) {
-          throw new Error('Failed to send OTP');
+        try {
+          await sendSMSOTP(phoneNumber, code);
+        } catch (error) {
+          console.error('Failed to send SMS OTP:', error);
+          throw error;
         }
       },
       allowedAttempts: 5,
@@ -60,10 +61,11 @@ const options = {
     }),
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
-        const result = await tryCatch(sendOTPEmail(email, otp));
-
-        if (result.error) {
-          throw new Error('Failed to send OTP');
+        try {
+          await sendOTPEmail(email, otp);
+        } catch (error) {
+          console.error('Failed to send email OTP:', error);
+          throw error;
         }
       },
       allowedAttempts: 5,

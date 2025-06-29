@@ -9,7 +9,7 @@ export async function sendSMSOTP(phone: string, otp: string) {
   try {
     if (!process.env.TWILIO_PHONE_NUMBER) {
       console.error('TWILIO_PHONE_NUMBER not configured');
-      throw new Error('SMS service not properly configured');
+      throw new Error('SMS service not configured');
     }
 
     const message = t('message', {
@@ -20,15 +20,24 @@ export async function sendSMSOTP(phone: string, otp: string) {
 
     await sendSMS(phone, message, 'Consulat.ga');
   } catch (error) {
-    console.error(t('logs.error'), error);
+    console.error('SMS OTP Error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('not a Twilio phone number')) {
-        throw new Error(t('errors.invalid_config'));
+      // Erreurs spécifiques Twilio
+      if (error.message.includes('21660') || error.message.includes('Mismatch')) {
+        throw new Error('Service SMS temporairement indisponible. Veuillez utiliser l\'email.');
       }
-      throw new Error(t('errors.send_failed', { error: error.message }));
+      if (error.message.includes('not a Twilio phone number')) {
+        throw new Error('Configuration SMS invalide');
+      }
+      if (error.message.includes('rate limit')) {
+        throw new Error('Trop de tentatives. Veuillez patienter.');
+      }
+      
+      // Propager le message d'erreur original s'il est clair
+      throw error;
     }
 
-    throw new Error(t('errors.unknown'));
+    throw new Error('Impossible d\'envoyer le code SMS');
   }
 }

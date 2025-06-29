@@ -49,14 +49,14 @@ export class AuthRedirectManager {
    */
   static isSafeCallbackUrl(url: string): boolean {
     try {
-      const parsed = new URL(url, process.env.NEXT_PUBLIC_APP_URL);
-      
       // Only allow relative URLs or same origin
       return (
         url.startsWith('/') && 
         !url.startsWith('//') && 
         !url.includes('javascript:') &&
-        !url.includes('data:')
+        !url.includes('data:') &&
+        !url.includes('http:') &&
+        !url.includes('https:')
       );
     } catch {
       return false;
