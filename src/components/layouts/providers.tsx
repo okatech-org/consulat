@@ -7,6 +7,7 @@ import { NextIntlClientProvider, AbstractIntlMessages } from 'next-intl';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { ViewportDetector } from './viewport-detector';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export async function Providers({ children }: { children: React.ReactNode }) {
   const promises = [getMessages()];
@@ -18,6 +19,7 @@ export async function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={sidebarState?.value === 'true'}>
+      <SpeedInsights/>
       <Analytics />
       <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
         <ThemeProvider
