@@ -285,7 +285,7 @@ export function LoginForm() {
 
     // Utiliser router.push pour une redirection plus fiable
     const redirectUrl = AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
-    window.location.href = redirectUrl;
+    router.push(redirectUrl);
     setState((prev) => ({ ...prev, hasRedirected: true }));
   }, [user, searchParams, state.hasRedirected]);
 
