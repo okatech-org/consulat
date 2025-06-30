@@ -50,17 +50,9 @@ const options = {
       },
       allowedAttempts: 5,
       expiresIn: 300,
-      signUpOnVerification: {
-        getTempEmail: (phoneNumber) => {
-          return `${phoneNumber}@${env.BETTER_AUTH_URL}`;
-        },
-        getTempName: (phoneNumber) => {
-          return phoneNumber;
-        },
-      },
     }),
     emailOTP({
-      async sendVerificationOTP({ email, otp }) {
+      async sendVerificationOTP({ email, otp, type }) {
         try {
           await sendOTPEmail(email, otp);
         } catch (error) {
@@ -70,6 +62,7 @@ const options = {
       },
       allowedAttempts: 5,
       expiresIn: 300,
+      disableSignUp: true,
     }),
   ],
 } satisfies BetterAuthOptions;

@@ -81,7 +81,7 @@ export async function getProfileRegistrationRequest(
 
 export async function getUserFullProfileById(id: string): Promise<FullProfile | null> {
   return db.profile.findUnique({
-    where: { id: id },
+    where: { userId: id },
     ...FullProfileInclude,
   });
 }

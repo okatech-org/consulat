@@ -28,7 +28,9 @@ export default async function UserDashboard() {
   }
 
   // Fetch user profile
-  const userProfile = await getUserFullProfileById(session.user.profileId ?? '');
+  const userProfile = await getUserFullProfileById(session.user.id);
+
+  console.log({ userProfile, session });
 
   // Calculate profile completion percentage
   const profileCompletion = userProfile ? calculateProfileCompletion(userProfile) : 0;

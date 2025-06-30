@@ -31,8 +31,8 @@ import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { authClient } from '@/lib/auth/auth-client';
 import { toast } from '@/hooks/use-toast';
-import { useCurrentUser, useCurrentSession } from '@/hooks/use-current-user';
 import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
+import { checkUserExists } from '@/actions/auth';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
@@ -281,12 +281,12 @@ export function LoginForm() {
   const handleManualRedirect = React.useCallback(() => {
     if (state.hasRedirected) return; // Prevent double redirects
 
-    setState((prev) => ({ ...prev, hasRedirected: true }));
     const callbackUrl = searchParams.get('callbackUrl');
 
     // Utiliser router.push pour une redirection plus fiable
     const redirectUrl = AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
     router.push(redirectUrl);
+    setState((prev) => ({ ...prev, hasRedirected: true }));
   }, [user, searchParams, state.hasRedirected, router]);
 
   // Handlers
@@ -295,6 +295,29 @@ export function LoginForm() {
       updateState({ isLoading: true, error: null });
 
       try {
+        // Vérifier d'abord si l'utilisateur existe
+        const userCheck = await checkUserExists(
+          identifier,
+          type === 'EMAIL' ? 'email' : 'phone',
+        );
+
+        if (!userCheck.exists) {
+          const errorMessage =
+            'Aucun compte associé à cet identifiant. Veuillez vous inscrire.';
+          updateState({
+            error: errorMessage,
+            isLoading: false,
+          });
+
+          toast({
+            title: 'Compte introuvable',
+            description: errorMessage,
+            variant: 'destructive',
+          });
+          return; // Arrêter ici si l'utilisateur n'existe pas
+        }
+
+        // Si l'utilisateur existe, envoyer l'OTP
         await sendOTPCode(identifier, type);
         updateState({
           step: 'OTP',
