@@ -285,9 +285,9 @@ export function LoginForm() {
 
     // Utiliser router.push pour une redirection plus fiable
     const redirectUrl = AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
-    router.push(redirectUrl);
+    window.location.href = redirectUrl;
     setState((prev) => ({ ...prev, hasRedirected: true }));
-  }, [user, searchParams, state.hasRedirected, router]);
+  }, [user, searchParams, state.hasRedirected]);
 
   // Handlers
   const handleSendOTP = React.useCallback(
