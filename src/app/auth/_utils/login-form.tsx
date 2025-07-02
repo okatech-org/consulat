@@ -518,7 +518,6 @@ export function LoginForm() {
               <div className="space-y-3">
                 <Button
                   onClick={handleManualRedirect}
-                  disabled={state.hasRedirected}
                   size="mobile"
                   weight="medium"
                   fullWidthOnMobile={true}
