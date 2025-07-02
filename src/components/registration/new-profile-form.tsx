@@ -119,7 +119,7 @@ export function NewProfileForm({
       type === 'EMAIL'
         ? await authClient.emailOtp.sendVerificationOtp({
             email: identifier,
-            type: 'sign-up',
+            type: 'sign-in',
           })
         : await authClient.phoneNumber.sendOtp({
             phoneNumber: identifier,
@@ -151,17 +151,13 @@ export function NewProfileForm({
 
     const response =
       data.type === 'PHONE'
-        ? await authClient.phoneNumber.signUp({
+        ? await authClient.phoneNumber.verify({
             phoneNumber: data.phoneNumber,
             code: data.otp!,
-            name: `${data.firstName} ${data.lastName}`,
-            email: data.email,
           })
-        : await authClient.signUp.emailOtp({
+        : await authClient.signIn.emailOtp({
             email: data.email!,
             otp: data.otp!,
-            name: `${data.firstName} ${data.lastName}`,
-            phoneNumber: data.phoneNumber,
           });
 
     if (response.error) {

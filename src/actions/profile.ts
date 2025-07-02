@@ -45,15 +45,25 @@ export async function createUserProfile(input: CreateProfileInput, userId: strin
   const { firstName, lastName, residenceCountyCode, email, phoneNumber } = data;
 
   await db.$transaction(async (tx) => {
-    const user = await tx.user.update({
+    const user = await tx.user.upsert({
       where: {
         id: userId,
       },
-      data: {
+      create: {
+        id: userId,
         name: `${firstName ?? ''} ${lastName ?? ''}`,
         email,
         phoneNumber,
         countryCode: residenceCountyCode,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      update: {
+        name: `${firstName ?? ''} ${lastName ?? ''}`,
+        email,
+        phoneNumber,
+        countryCode: residenceCountyCode,
+        updatedAt: new Date(),
       },
     });
 
@@ -61,7 +71,7 @@ export async function createUserProfile(input: CreateProfileInput, userId: strin
       throw new Error('messages.errors.user_creation_failed');
     }
 
-    await tx.profile.create({
+    const profile = await tx.profile.create({
       data: {
         firstName,
         lastName,
@@ -74,8 +84,12 @@ export async function createUserProfile(input: CreateProfileInput, userId: strin
             id: user.id,
           },
         },
+        userId: user.id,
       },
     });
+
+
+    return profile;
   });
 }
 

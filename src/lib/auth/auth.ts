@@ -3,7 +3,6 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { db } from '@/lib/prisma';
 import { phoneNumber, emailOTP, customSession } from 'better-auth/plugins';
 import { sendSMSOTP } from '@/actions/email';
-import { tryCatch } from '../utils';
 import { sendOTPEmail } from '../services/notifications/providers/emails';
 import { env } from '../env';
 import { getUserSession } from '../user/getters';
@@ -26,16 +25,15 @@ const options = {
     additionalFields: {
       role: {
         type: ['USER', 'ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT'] as const,
-        required: false,
-        defaultValue: 'USER',
+        required: true,
       },
       phoneNumber: {
         type: 'string',
-        required: false,
+        required: true,
       },
       profileId: {
         type: 'string',
-        required: false,
+        required: true,
       },
     },
   },
@@ -51,9 +49,17 @@ const options = {
       },
       allowedAttempts: 5,
       expiresIn: 300,
+      signUpOnVerification: {
+        getTempEmail: (phoneNumber) => {
+          return `${phoneNumber}@${env.BETTER_AUTH_URL}`;
+        },
+        getTempName: (phoneNumber) => {
+          return phoneNumber;
+        },
+      },
     }),
     emailOTP({
-      async sendVerificationOTP({ email, otp, type }) {
+      async sendVerificationOTP({ email, otp }) {
         try {
           await sendOTPEmail(email, otp);
         } catch (error) {
@@ -63,7 +69,6 @@ const options = {
       },
       allowedAttempts: 5,
       expiresIn: 300,
-      disableSignUp: false,
     }),
   ],
 } satisfies BetterAuthOptions;
