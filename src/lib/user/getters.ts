@@ -80,10 +80,20 @@ export async function getProfileRegistrationRequest(
 }
 
 export async function getUserFullProfileById(id: string): Promise<FullProfile | null> {
-  return db.profile.findUnique({
-    where: { userId: id },
-    ...FullProfileInclude,
-  });
+  try {
+    return await db.profile.findFirst({
+      where: {
+        OR: [
+          { userId: id },
+          { id: id }
+        ]
+      },
+      ...FullProfileInclude,
+    });
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 }
 
 export async function getServiceRequestsByProfileId(

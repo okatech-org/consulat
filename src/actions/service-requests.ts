@@ -420,7 +420,6 @@ export async function getServiceRequest(id: string): Promise<FullServiceRequest>
       cause: 'SERVICE_REQUEST_NOT_FOUND',
     });
   }
-
   // Type assertion remains useful, assuming FullServiceRequest type will be fixed
   const typedRequest = request as unknown as FullServiceRequest;
 
