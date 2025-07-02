@@ -23,7 +23,7 @@ import {
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ErrorMessageKey, tryCatch } from '@/lib/utils';
+import { ErrorMessageKey } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';

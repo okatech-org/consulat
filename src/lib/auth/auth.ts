@@ -26,15 +26,16 @@ const options = {
     additionalFields: {
       role: {
         type: ['USER', 'ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT'] as const,
-        required: true,
+        required: false,
+        defaultValue: 'USER',
       },
       phoneNumber: {
         type: 'string',
-        required: true,
+        required: false,
       },
       profileId: {
         type: 'string',
-        required: true,
+        required: false,
       },
     },
   },
@@ -62,7 +63,7 @@ const options = {
       },
       allowedAttempts: 5,
       expiresIn: 300,
-      disableSignUp: true,
+      disableSignUp: false,
     }),
   ],
 } satisfies BetterAuthOptions;

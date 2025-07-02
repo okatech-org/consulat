@@ -42,6 +42,7 @@ export default {
     been_error: 'Une erreur est survenue',
     been_error_description: "Votre demande n'a pas été traitée. Veuillez réessayer.",
     profile_creation_failed: 'Problème lors de la création de votre compte',
+    user_creation_failed: 'Échec de la création de l\'utilisateur, veuillez réessayer',
     user_email_already_exists: 'Un utilisateur avec cet email existe déjà',
     user_phone_already_exists: 'Un utilisateur avec ce numéro de téléphone existe déjà',
     employer_address_required_if_employee:

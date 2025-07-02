@@ -86,3 +86,121 @@ La page de connexion présente plusieurs problèmes critiques :
 - S'assurer que toutes les chaînes sont traduites via `useTranslations`
 - Respecter les patterns existants pour la gestion des états
 - Utiliser `tryCatch` pour une gestion cohérente des erreurs
+
+# Résolution du problème d'inscription NewProfileForm
+
+## Problème identifié
+
+L'utilisateur recevait bien le code OTP mais obtenait une erreur `messages.errors.user_creation_failed` lors de la validation de l'inscription.
+
+## Causes racines
+
+### 1. Configuration better-auth incorrecte
+
+- ❌ `disableSignUp: true` dans emailOTP empêchait la création d'utilisateurs par email
+- ❌ Champs `role`, `phoneNumber`, `profileId` marqués comme requis mais non fournis lors de l'inscription
+
+### 2. Utilisation de mauvaises méthodes d'authentification
+
+- ❌ `authClient.signIn.emailOtp()` utilisé pour l'inscription (méthode de connexion)
+- ❌ `authClient.phoneNumber.verify()` utilisé au lieu de `signUp()`
+- ❌ `type: 'sign-in'` utilisé dans `sendVerificationOtp` au lieu de `'sign-up'`
+
+## Solutions appliquées
+
+### ✅ 1. Correction de la configuration better-auth (`src/lib/auth/auth.ts`)
+
+```typescript
+user: {
+  additionalFields: {
+    role: {
+      required: false,        // ✅ Rendu optionnel
+      defaultValue: 'USER',   // ✅ Valeur par défaut ajoutée
+    },
+    phoneNumber: {
+      required: false,        // ✅ Rendu optionnel
+    },
+    profileId: {
+      required: false,        // ✅ Rendu optionnel
+    },
+  },
+},
+emailOTP({
+  disableSignUp: false,       // ✅ Inscription activée
+}),
+```
+
+### ✅ 2. Correction des méthodes d'inscription (`src/components/registration/new-profile-form.tsx`)
+
+**Envoi OTP :**
+
+```typescript
+// Email
+authClient.emailOtp.sendVerificationOtp({
+  email: identifier,
+  type: 'sign-up', // ✅ Changé de 'sign-in' vers 'sign-up'
+});
+
+// Téléphone (inchangé - déjà correct)
+authClient.phoneNumber.sendOtp({
+  phoneNumber: identifier,
+});
+```
+
+**Validation OTP et création utilisateur :**
+
+```typescript
+// Téléphone
+authClient.phoneNumber.signUp({
+  // ✅ Changé de .verify() vers .signUp()
+  phoneNumber: data.phoneNumber,
+  code: data.otp!,
+  name: `${data.firstName} ${data.lastName}`, // ✅ Ajouté
+  email: data.email, // ✅ Ajouté
+});
+
+// Email
+authClient.signUp.emailOtp({
+  // ✅ Changé de .signIn vers .signUp
+  email: data.email!,
+  otp: data.otp!,
+  name: `${data.firstName} ${data.lastName}`, // ✅ Ajouté
+  phoneNumber: data.phoneNumber, // ✅ Ajouté
+});
+```
+
+## Flux d'inscription corrigé
+
+1. **Vérification utilisateur existant ✅**
+
+   - Vérification email/téléphone déjà utilisés
+
+2. **Envoi OTP ✅**
+
+   - Email : `type: 'sign-up'` pour l'inscription
+   - Téléphone : méthode standard `sendOtp`
+
+3. **Validation OTP et création utilisateur ✅**
+
+   - Utilisation des méthodes `signUp` appropriées
+   - Fourniture des données utilisateur (nom, email, téléphone)
+   - Champs optionnels dans better-auth avec valeurs par défaut
+
+4. **Création du profil ✅**
+   - Fonction `createUserProfile` inchangée (déjà correcte)
+   - Mise à jour de l'utilisateur créé avec les informations complètes
+   - Création du profil lié
+
+## Tests à effectuer
+
+- [ ] Inscription par téléphone avec OTP SMS
+- [ ] Inscription par email avec OTP email
+- [ ] Vérification que l'utilisateur est bien créé dans la base
+- [ ] Vérification que le profil est bien lié à l'utilisateur
+- [ ] Test des cas d'erreur (OTP incorrect, utilisateur déjà existant)
+
+## Remarques techniques
+
+- La fonction `createUserProfile` était déjà correcte et n'a pas été modifiée
+- Les schémas de validation sont cohérents entre les différents fichiers
+- La configuration better-auth permet maintenant l'inscription complète via email et téléphone
