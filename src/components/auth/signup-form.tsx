@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/trpc/react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Mail, Phone, Loader2, User, Flag, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, Loader2, User, ArrowLeft } from 'lucide-react';
 import { getPhoneCodeFromCountryCode } from '@/lib/phone-countries';
 
 // Étendre le type de retour de signIn pour inclure code
@@ -14,13 +14,6 @@ interface SignInResult {
   ok?: boolean;
   status?: number;
   url?: string | null;
-}
-
-interface Country {
-  id: string;
-  name: string;
-  code: string;
-  flag?: string | null;
 }
 
 interface SignupData {

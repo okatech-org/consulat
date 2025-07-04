@@ -3,6 +3,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
+import { signIn } from 'next-auth/react';
 import { Input } from '@/components/ui/input';
 import {
   Form,
@@ -30,14 +31,21 @@ import type { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { isUserExists } from '@/actions/auth';
-import { type ErrorMessageKey, tryCatch } from '@/lib/utils';
+import { type ErrorMessageKey } from '@/lib/utils';
 import { ErrorCard } from '../ui/error-card';
 import { toast } from '@/hooks/use-toast';
-import { createUserProfile } from '@/actions/profile';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 import { useRouter } from 'next/navigation';
 import { PhoneNumberInput } from '../ui/phone-number';
-import { authClient } from '@/lib/auth/auth-client';
+
+// Étendre le type de retour de signIn pour inclure code
+interface SignInResult {
+  error?: string;
+  code?: string;
+  ok?: boolean;
+  status?: number;
+  url?: string | null;
+}
 
 export function NewProfileForm({
   availableCountries,
@@ -111,104 +119,153 @@ export function NewProfileForm({
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  const sendOTPCode = async (identifier: string, type: 'EMAIL' | 'PHONE') => {
+  const sendOTPCode = async (data: CreateProfileInput) => {
     setIsLoading(true);
     setError(null);
 
-    const response =
-      type === 'EMAIL'
-        ? await authClient.emailOtp.sendVerificationOtp({
-            email: identifier,
-            type: 'sign-in',
-          })
-        : await authClient.phoneNumber.sendOtp({
-            phoneNumber: identifier,
-          });
+    try {
+      const signupData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email || '',
+        phone: data.phoneNumber,
+        countryCode: data.residenceCountyCode,
+        verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
+        action: 'send',
+      };
 
-    if (response.error) {
-      form.setError('otp', {
-        message: 'messages.errors.code_not_sent_otp',
-      });
+      const result = (await signIn('signup', {
+        ...signupData,
+        redirect: false,
+      })) as SignInResult;
+
+      if (result?.error) {
+        // Mapper les codes d'erreur
+        let errorMessage = result.error;
+        const specificCode = result.code;
+
+        switch (specificCode) {
+          case 'email_taken':
+            errorMessage = 'messages.errors.user_email_already_exists';
+            break;
+          case 'phone_taken':
+            errorMessage = 'messages.errors.user_phone_already_exists';
+            break;
+          case 'invalid_country':
+            errorMessage = 'messages.errors.invalid_country';
+            break;
+          case 'send_failed':
+            errorMessage = 'messages.errors.code_not_sent_otp';
+            break;
+          default:
+            errorMessage = 'messages.errors.generic_error';
+            break;
+        }
+
+        setError(errorMessage as ErrorMessageKey);
+        setIsLoading(false);
+        return false;
+      }
+
+      setShowOTP(true);
+      setCanResend(false);
+      setResendCooldown(60);
+      toast({ title: tAuth('messages.otp_sent'), variant: 'success' });
+
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      console.error('Erreur envoi OTP:', err);
+      setError('messages.errors.generic_error' as ErrorMessageKey);
       setIsLoading(false);
       return false;
     }
-
-    setShowOTP(true);
-    setCanResend(false);
-    setResendCooldown(60);
-    toast({
-      title: tAuth('messages.otp_sent'),
-      variant: 'success',
-    });
-
-    setIsLoading(false);
-    return true;
   };
 
   const validateOTPAndCreateProfile = async (data: CreateProfileInput) => {
     setIsLoading(true);
     setError(null);
 
-    const response =
-      data.type === 'PHONE'
-        ? await authClient.phoneNumber.verify({
-            phoneNumber: data.phoneNumber,
-            code: data.otp!,
-          })
-        : await authClient.signIn.emailOtp({
-            email: data.email!,
-            otp: data.otp!,
-          });
+    try {
+      const signupData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email || '',
+        phone: data.phoneNumber,
+        countryCode: data.residenceCountyCode,
+        verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
+        code: data.otp,
+        action: 'verify',
+      };
 
-    if (response.error) {
-      form.setError('otp', {
-        message: `messages.errors.${response.error.code}`,
-      });
+      const result = (await signIn('signup', {
+        ...signupData,
+        redirect: false,
+      })) as SignInResult;
+
+      if (result?.error) {
+        let errorMessage = result.error;
+        const specificCode = result.code;
+
+        switch (specificCode) {
+          case 'no_code_pending':
+            errorMessage = 'messages.errors.no_code_pending';
+            setShowOTP(false);
+            break;
+          case 'code_expired':
+            errorMessage = 'messages.errors.code_expired';
+            setShowOTP(false);
+            break;
+          case 'code_already_used':
+            errorMessage = 'messages.errors.code_already_used';
+            setShowOTP(false);
+            break;
+          case 'invalid_code':
+            errorMessage = 'messages.errors.invalid_code';
+            form.setValue('otp', '');
+            break;
+          case 'too_many_attempts':
+            errorMessage = 'messages.errors.too_many_attempts';
+            setShowOTP(false);
+            break;
+          default:
+            errorMessage = 'messages.errors.generic_error';
+            break;
+        }
+
+        setError(errorMessage as ErrorMessageKey);
+        setIsLoading(false);
+        return;
+      }
+
+      if (result?.ok) {
+        // Inscription réussie, rediriger vers le formulaire de profil
+        setIsLoading(false);
+        router.push(ROUTES.user.profile_form);
+      } else {
+        setError('messages.errors.generic_error' as ErrorMessageKey);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('Erreur vérification OTP:', err);
+      setError('messages.errors.generic_error' as ErrorMessageKey);
       setIsLoading(false);
-      return;
     }
-
-    const userId = response.data?.user?.id;
-
-    if (!userId) {
-      form.setError('otp', {
-        message: 'messages.errors.user_creation_failed',
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    const profileResult = await tryCatch(createUserProfile(data, userId));
-
-    if (profileResult.error) {
-      setError(profileResult.error.message as ErrorMessageKey);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(false);
-    router.push(ROUTES.user.profile_form);
   };
 
   const handleResendOTP = async () => {
     if (!canResend) return;
 
     const data = form.getValues();
-    const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
-
-    await sendOTPCode(identifier!, data.type);
+    await sendOTPCode(data);
   };
 
   const onFinalSubmit = async (data: CreateProfileInput) => {
-    const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
-
     if (!showOTP) {
       // Check if user already exists
       const isEmailExist = data.email ? await isUserExists(undefined, data.email) : false;
       if (isEmailExist) {
-        form.setError('email', {
-          message: 'messages.errors.user_email_already_exists',
-        });
+        form.setError('email', { message: 'messages.errors.user_email_already_exists' });
         return;
       }
 
@@ -221,7 +278,7 @@ export function NewProfileForm({
       }
 
       // Send OTP
-      await sendOTPCode(identifier!, data.type);
+      await sendOTPCode(data);
     } else {
       // Validate OTP and create profile
       await validateOTPAndCreateProfile(data);
