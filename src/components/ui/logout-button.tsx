@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { LogOutIcon, LoaderIcon } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth/auth-client';
 import { ROUTES } from '@/schemas/routes';
@@ -17,7 +17,7 @@ type LogoutButtonProps = {
 
 export function LogoutButton({ customClass, redirectUrl }: LogoutButtonProps) {
   const t = useTranslations('auth.actions');
-  const user = useCurrentUser();
+  const { user } = useCurrentUser();
   const [isPending, startTransition] = React.useTransition();
   const [hasLoggedOut, setHasLoggedOut] = React.useState(false);
   const router = useRouter();
@@ -29,10 +29,10 @@ export function LogoutButton({ customClass, redirectUrl }: LogoutButtonProps) {
   const handleLogout = async () => {
     // Prevent multiple logout attempts
     if (hasLoggedOut) return;
-    
+
     try {
       setHasLoggedOut(true);
-      
+
       // Sign out using authClient
       await authClient.signOut({
         fetchOptions: {
@@ -40,7 +40,7 @@ export function LogoutButton({ customClass, redirectUrl }: LogoutButtonProps) {
             // Use centralized redirect logic
             AuthRedirectManager.handleLogoutSuccess({
               fallbackUrl: redirectUrl,
-              method: 'replace'
+              method: 'replace',
             });
           },
           onError: (error) => {
@@ -48,18 +48,17 @@ export function LogoutButton({ customClass, redirectUrl }: LogoutButtonProps) {
             // Still redirect on error to ensure user is logged out from UI
             AuthRedirectManager.handleLogoutSuccess({
               fallbackUrl: redirectUrl,
-              method: 'replace'
+              method: 'replace',
             });
           },
         },
       });
-      
     } catch (error) {
       console.error('Logout failed:', error);
       // Fallback: still redirect to clear UI state
       AuthRedirectManager.handleLogoutSuccess({
         fallbackUrl: redirectUrl,
-        method: 'replace'
+        method: 'replace',
       });
     }
   };

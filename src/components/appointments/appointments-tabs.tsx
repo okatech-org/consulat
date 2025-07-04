@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabs } from '@/hooks/use-tabs';
 import { AppointmentCard } from './appointment-card';
 import { useTranslations } from 'next-intl';
-import { AppointmentWithRelations } from '@/schemas/appointment';
+import type { AppointmentWithRelations } from '@/schemas/appointment';
 interface GroupedAppointments {
   upcoming: AppointmentWithRelations[];
   past: AppointmentWithRelations[];

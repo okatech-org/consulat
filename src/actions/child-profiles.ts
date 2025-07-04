@@ -1,18 +1,18 @@
 'use server';
 
-import { DocumentType, ParentalAuthority, Prisma } from '@prisma/client';
-import { LinkFormData } from '@/schemas/child-registration';
+import { DocumentType, type ParentalAuthority, Prisma } from '@prisma/client';
+import type { LinkFormData } from '@/schemas/child-registration';
 import { checkAuth } from '@/lib/auth/action';
 import { processFileData } from './utils';
 import { deleteFiles } from './uploads';
-import { db } from '@/lib/prisma';
-import { BasicInfoFormData } from '@/schemas/registration';
+import { db } from '@/server/db';
+import type { BasicInfoFormData } from '@/schemas/registration';
 import {
-  FullParentalAuthority,
+  type FullParentalAuthority,
   FullParentalAuthorityInclude,
 } from '@/types/parental-authority';
 import { getTranslations } from 'next-intl/server';
-import { FullProfileUpdateFormData } from '@/schemas/registration';
+import type { FullProfileUpdateFormData } from '@/schemas/registration';
 
 export async function createChildProfile(data: LinkFormData): Promise<{ id: string }> {
   try {

@@ -102,10 +102,10 @@ export default async function AgentDashboard() {
           }
           className="lg:col-span-1"
           footerContent={
-            <Button 
-              variant="outline" 
-              size="mobile" 
-              className="w-full" 
+            <Button
+              variant="outline"
+              size="mobile"
+              className="w-full"
               rightIcon={<ArrowRight />}
               asChild
             >
@@ -169,10 +169,10 @@ export default async function AgentDashboard() {
           }
           className="lg:col-span-1"
           footerContent={
-            <Button 
-              variant="outline" 
-              size="mobile" 
-              className="w-full" 
+            <Button
+              variant="outline"
+              size="mobile"
+              className="w-full"
               rightIcon={<ArrowRight />}
               asChild
             >

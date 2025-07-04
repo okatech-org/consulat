@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Button component optimized for mobile usability and accessibility
- * 
+ *
  * Key optimizations implemented:
  * - Touch-friendly sizes (minimum 44px touch targets)
  * - Enhanced visual feedback with active states
@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
  * - Loading states with built-in spinner
  * - Mobile-responsive sizing
  * - Clear visual hierarchy between button variants
- * 
+ *
  * Based on mobile UX best practices from:
  * - Apple Human Interface Guidelines
  * - Material Design Guidelines
@@ -27,7 +27,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         // Primary action - high contrast, clear hierarchy
-        default: 
+        default:
           'bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg active:shadow-sm',
         // Destructive actions - clear warning with better contrast
         destructive:
@@ -40,11 +40,9 @@ const buttonVariants = cva(
         secondary:
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md active:shadow-sm',
         // Tertiary actions
-        ghost: 
-          'hover:bg-accent hover:text-accent-foreground active:bg-accent/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground active:bg-accent/80',
         // Links - clearly differentiated from buttons
-        link: 
-          'text-primary underline-offset-4 hover:underline focus-visible:ring-1 active:scale-100',
+        link: 'text-primary underline-offset-4 hover:underline focus-visible:ring-1 active:scale-100',
         success:
           'bg-green-500 text-white shadow-md hover:bg-green-600 hover:shadow-lg active:shadow-sm',
         warning:
@@ -103,21 +101,21 @@ export interface ButtonProps
 
 /**
  * Optimized Button component with mobile-first design
- * 
+ *
  * @example
  * // Primary action button
  * <Button size="mobile" weight="medium">Submit</Button>
- * 
+ *
  * @example
  * // Loading state
  * <Button loading={isSubmitting}>Save Changes</Button>
- * 
+ *
  * @example
  * // With icons
  * <Button leftIcon={<Plus />} rightIcon={<ArrowRight />}>
  *   Create New
  * </Button>
- * 
+ *
  * @example
  * // Mobile-responsive
  * <Button size="mobile" fullWidthOnMobile>
@@ -125,30 +123,33 @@ export interface ButtonProps
  * </Button>
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
-    weight,
-    responsive,
-    asChild = false, 
-    loading = false,
-    leftIcon,
-    rightIcon,
-    fullWidthOnMobile = false,
-    children,
-    disabled,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      weight,
+      responsive,
+      asChild = false,
+      loading = false,
+      leftIcon,
+      rightIcon,
+      fullWidthOnMobile = false,
+      children,
+      disabled,
+      ...props
+    },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : 'button';
 
     if (asChild) {
       return (
-        <AsChildButton 
+        <AsChildButton
           className={cn(
             buttonVariants({ variant, size, weight, responsive, className }),
             fullWidthOnMobile && 'w-full sm:w-auto',
-            loading && 'cursor-wait'
+            loading && 'cursor-wait',
           )}
           variant={variant}
           size={size}
@@ -167,10 +168,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         </AsChildButton>
       );
     }
-    
+
     // Determine if button should be disabled
     const isDisabled = disabled || loading;
-    
+
     return (
       <Comp
         className={cn(
@@ -188,55 +189,57 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         <>
-        {/* Loading spinner */}
-        {loading && (
-          <svg
-            className="animate-spin size-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-        )}
-        
-        {/* Left icon */}
-        {leftIcon && !loading && (
-          <span className="inline-flex shrink-0" aria-hidden="true">
-            {leftIcon}
-          </span>
-        )}
-        
-        {/* Button text/content */}
-        {children && (
-          <span className={cn(
-            'inline-flex items-center',
-            (leftIcon || loading) && 'ml-1',
-            rightIcon && 'mr-1'
-          )}>
-            {children}
-          </span>
-        )}
-        
-        {/* Right icon */}
-        {rightIcon && !loading && (
-          <span className="inline-flex shrink-0" aria-hidden="true">
-            {rightIcon}
-          </span>
-        )}
+          {/* Loading spinner */}
+          {loading && (
+            <svg
+              className="animate-spin size-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          )}
+
+          {/* Left icon */}
+          {leftIcon && !loading && (
+            <span className="inline-flex shrink-0" aria-hidden="true">
+              {leftIcon}
+            </span>
+          )}
+
+          {/* Button text/content */}
+          {children && (
+            <span
+              className={cn(
+                'inline-flex items-center',
+                (leftIcon || loading) && 'ml-1',
+                rightIcon && 'mr-1',
+              )}
+            >
+              {children}
+            </span>
+          )}
+
+          {/* Right icon */}
+          {rightIcon && !loading && (
+            <span className="inline-flex shrink-0" aria-hidden="true">
+              {rightIcon}
+            </span>
+          )}
         </>
       </Comp>
     );
@@ -245,27 +248,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 const AsChildButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ 
-    className,
-    variant, 
-    size, 
-    weight,
-    responsive,
-    asChild = false, 
-    loading,
-    leftIcon,
-    rightIcon,
-    fullWidthOnMobile,
-    children,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      weight,
+      responsive,
+      asChild = false,
+      loading,
+      leftIcon,
+      rightIcon,
+      fullWidthOnMobile,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : 'button';
     return (
-      <Comp
-        className={className}
-        ref={ref}
-        {...props}
-      >
+      <Comp className={className} ref={ref} {...props}>
         {children}
       </Comp>
     );

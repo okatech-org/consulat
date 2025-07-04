@@ -1,7 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ChatMessage } from '@/lib/ai/types';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react';
+import type { ChatMessage } from '@/lib/ai/types';
 
 export type ChatContextType = {
   messages: ChatMessage[];

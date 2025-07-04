@@ -53,7 +53,7 @@ export function ChildRegistrationForm() {
     forms[currentTab as keyof typeof forms]?.formState.isDirty ?? false;
 
   // Handler for analysis
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const handleDocumentsAnalysis = async (data: {
     basicInfo?: Partial<BasicInfoFormData>;
   }) => {

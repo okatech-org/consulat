@@ -10,7 +10,8 @@ import { ROUTES } from '@/schemas/routes';
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const isDashboard = pathname.startsWith(ROUTES.dashboard.base) || pathname.startsWith(ROUTES.user.base);
+  const isDashboard =
+    pathname.startsWith(ROUTES.dashboard.base) || pathname.startsWith(ROUTES.user.base);
 
   return (
     <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-12 shrink-0 items-center justify-between gap-2 border-b transition-[width,height] ease-linear">

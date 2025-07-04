@@ -1,7 +1,7 @@
 'use server';
 
-import { db } from '@/lib/prisma';
-import {
+import { db } from '@/server/db';
+import type {
   CountryMetadata,
   OrganizationMetadata,
   OrganizationMetadataSchedule,
@@ -11,13 +11,13 @@ import {
 import { ServiceCategory, UserRole, AppointmentStatus } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 import {
-  AppointmentInput,
+  type AppointmentInput,
   AppointmentSchema,
-  AppointmentWithRelations,
+  type AppointmentWithRelations,
 } from '@/schemas/appointment';
 import { notifyAppointment } from '@/lib/services/notifications';
 import { getTranslations } from 'next-intl/server';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 import { ROUTES } from '@/schemas/routes';
 import { NotificationChannel } from '@/types/notifications';
 

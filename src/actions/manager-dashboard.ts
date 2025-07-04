@@ -1,7 +1,7 @@
 'use server';
 
 import { getCurrentUser } from '@/actions/user';
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { tryCatch } from '@/lib/utils';
 import { UserRole } from '@prisma/client';
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns';

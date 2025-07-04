@@ -1,12 +1,12 @@
 import { useTranslations } from 'next-intl';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 
 interface ProfileCardProps {
   profile: FullProfile;

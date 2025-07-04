@@ -380,9 +380,7 @@ export function ModernChatWindow({
                   className="rounded-full aspect-square"
                   size="icon"
                   leftIcon={<TrashIcon />}
-                >
-                  
-                </Button>
+                ></Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

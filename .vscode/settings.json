@@ -1,9 +1,0 @@
-{
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.preferences.autoImportSpecifierExcludeRegexes": [
-    "@radix-ui",
-    "next/router",
-    "next/dist",
-    "^lucide-react/dist"
-  ]
-}

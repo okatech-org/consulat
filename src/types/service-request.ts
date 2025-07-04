@@ -10,7 +10,7 @@ import {
 
 // Base includes pour une demande de service
 export const BaseServiceRequestInclude: {
-  include: Prisma.ServiceRequestInclude
+  include: Prisma.ServiceRequestInclude;
 } = {
   include: {
     submittedBy: {
@@ -66,7 +66,7 @@ export const BaseServiceRequestInclude: {
 
 // Includes complet pour une demande de service
 export const FullServiceRequestInclude: {
-  include: Prisma.ServiceRequestInclude
+  include: Prisma.ServiceRequestInclude;
 } = {
   include: {
     ...BaseServiceRequestInclude.include,

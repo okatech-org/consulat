@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
 import {
   getAvailableTimeSlots,
-  TimeSlotWithAgent,
+  type TimeSlotWithAgent,
   createAppointment,
 } from '@/actions/appointments';
 import React from 'react';

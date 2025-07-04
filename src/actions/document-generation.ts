@@ -1,8 +1,8 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { checkAuth } from '@/lib/auth/action';
-import { DocumentTemplate } from '@prisma/client';
+import { type DocumentTemplate } from '@prisma/client';
 
 export async function getDocumentTemplates(organizationId: string | null) {
   // Check for admin, super_admin, or manager role

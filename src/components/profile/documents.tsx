@@ -1,11 +1,10 @@
 import { useTranslations } from 'next-intl';
-import { FullProfile } from '@/types';
-import { CheckCircle2, AlertTriangle, Shield, Eye } from 'lucide-react';
+import type { FullProfile } from '@/types';
+import { Shield } from 'lucide-react';
 import { useDateLocale } from '@/lib/utils';
-import { Badge, BadgeVariant } from '@/components/ui/badge';
+import { Badge, type BadgeVariant } from '@/components/ui/badge';
 import { DocumentPreview } from '@/components/ui/document-preview';
 import { documentValidations, validateDocument } from '@/lib/document-validation';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';

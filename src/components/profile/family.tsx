@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { CheckCircle2, XCircle, Users, User } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { Badge } from '@/components/ui/badge';

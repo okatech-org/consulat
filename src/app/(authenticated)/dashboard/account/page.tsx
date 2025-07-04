@@ -25,20 +25,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ServiceCategory, UserRole } from '@prisma/client';
+import { ServiceCategory } from '@prisma/client';
 import { PageContainer } from '@/components/layouts/page-container';
-import { UserSettings } from '@/schemas/user';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import type { UserSettings } from '@/schemas/user';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/contexts/user-context';
+import { hasRole } from '@/lib/permissions/utils';
 
 export default function AdminAccountPage() {
   const t_messages = useTranslations('messages');
   const t_actions = useTranslations('common.actions');
   const t = useTranslations('account');
   const t_inputs = useTranslations('inputs');
-  const user = useCurrentUser();
+  const { user } = useCurrentUser();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -46,10 +47,10 @@ export default function AdminAccountPage() {
 
   if (!user) return null;
 
-  const isManager = user.roles.includes(UserRole.MANAGER);
-  const isAgent = user.roles.includes(UserRole.AGENT);
-  const isAdmin = user.roles.includes(UserRole.ADMIN);
-  const isSuperAdmin = user.roles.includes(UserRole.SUPER_ADMIN);
+  const isManager = hasRole(user, 'MANAGER');
+  const isAgent = hasRole(user, 'AGENT');
+  const isAdmin = hasRole(user, 'ADMIN');
+  const isSuperAdmin = hasRole(user, 'SUPER_ADMIN');
 
   const handleUpdateProfile = async (formData: FormData) => {
     setIsLoading(true);

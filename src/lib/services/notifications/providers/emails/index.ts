@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 import { getTranslations } from 'next-intl/server';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 import { OTPEmailToHtml } from './components/OTPEmail';
 import { AdminWelcomeEmailToHtml } from './components/AdminWelcomeEmail';
 import { NotificationEmailToHtml } from './components/NotificationEmail';

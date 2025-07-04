@@ -26,11 +26,11 @@ import {
 import { z } from 'zod';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
-import { Country } from '@prisma/client';
+import type { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { isUserExists } from '@/actions/auth';
-import { ErrorMessageKey, tryCatch } from '@/lib/utils';
+import { type ErrorMessageKey, tryCatch } from '@/lib/utils';
 import { ErrorCard } from '../ui/error-card';
 import { toast } from '@/hooks/use-toast';
 import { createUserProfile } from '@/actions/profile';

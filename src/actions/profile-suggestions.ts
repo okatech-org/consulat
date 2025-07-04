@@ -1,8 +1,8 @@
 'use server';
 
 import { ContextBuilder } from '@/lib/ai/context-builder';
-import { FullProfile } from '@/types';
-import { User } from '@prisma/client';
+import type { FullProfile } from '@/types';
+import type { User } from '@prisma/client';
 import { PROFILE_ANALYSIS_PROMPT } from '@/lib/ai/prompts';
 import { getChatCompletion } from '@/lib/ai/actions';
 
@@ -13,6 +13,7 @@ export async function analyzeProfile(profile: FullProfile, user: User, locale: s
       profileData: JSON.stringify(profile, null, 2),
       language: locale,
       assistantPrompt: PROFILE_ANALYSIS_PROMPT,
+      knowledgeBase: ''
     });
 
     const aiResponse = await getChatCompletion('', context, []);

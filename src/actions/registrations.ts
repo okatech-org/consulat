@@ -1,9 +1,9 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { checkAuth } from '@/lib/auth/action';
 import { RequestStatus } from '@prisma/client';
-import {
+import type {
   RegistrationListingItem,
   RegistrationRequestDetails,
 } from '@/types/consular-service';

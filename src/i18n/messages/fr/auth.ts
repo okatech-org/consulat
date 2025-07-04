@@ -63,14 +63,17 @@ export default {
     errors: {
       otp_invalid: 'Code de vérification invalide. Veuillez vérifier et réessayer.',
       otp_expired: 'Code de vérification expiré. Veuillez demander un nouveau code.',
-      otp_failed: 'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.',
+      otp_failed:
+        'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.',
       validation_error: 'Erreur de validation',
-      send_otp_failed: 'Impossible d\'envoyer le code de vérification. Veuillez réessayer.',
+      send_otp_failed:
+        "Impossible d'envoyer le code de vérification. Veuillez réessayer.",
       phone_invalid: 'Numéro de téléphone invalide',
       email_invalid: 'Adresse email invalide',
-      sms_service_unavailable: 'Service SMS temporairement indisponible. Veuillez utiliser l\'email ou réessayer plus tard.',
+      sms_service_unavailable:
+        "Service SMS temporairement indisponible. Veuillez utiliser l'email ou réessayer plus tard.",
       too_many_attempts: 'Trop de tentatives. Veuillez patienter avant de réessayer.',
-      send_error: 'Erreur d\'envoi',
+      send_error: "Erreur d'envoi",
     },
     back_home: "Retour à l'accueil",
     hero: {

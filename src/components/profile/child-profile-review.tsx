@@ -12,11 +12,11 @@ import {
   calculateChildProfileCompletion,
   getChildProfileFieldsStatus,
 } from '@/lib/utils';
-import { FullServiceRequest } from '@/types/service-request';
+import type { FullServiceRequest } from '@/types/service-request';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
 import { ReviewNotes } from '../requests/review-notes';
-import { FullProfile } from '@/types/profile';
+import type { FullProfile } from '@/types/profile';
 import { Label } from '@/components/ui/label';
 import CardContainer from '@/components/layouts/card-container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

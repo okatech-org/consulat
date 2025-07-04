@@ -1,12 +1,12 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { NotificationType, RequestStatus, Notification, User } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 
 interface NotificationData {
   user: User;

@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { customAlphabet } from 'nanoid';
 import bcrypt from 'bcryptjs';
 import {

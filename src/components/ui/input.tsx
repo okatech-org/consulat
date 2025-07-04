@@ -1,18 +1,18 @@
-import * as React from "react"
+import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 /**
  * Input component optimized for mobile usability and accessibility
- * 
+ *
  * Key optimizations implemented:
  * - Touch-friendly sizes (minimum 44px touch targets)
  * - Enhanced visual feedback with focus states
  * - Better accessibility with proper focus states
  * - Mobile-responsive sizing
  * - Clear visual hierarchy between input variants
- * 
+ *
  * Based on mobile UX best practices from:
  * - Apple Human Interface Guidelines
  * - Material Design Guidelines
@@ -25,7 +25,8 @@ const inputVariants = cva(
     variants: {
       variant: {
         default: 'border-input bg-background',
-        filled: 'border-transparent bg-muted/50 focus-visible:bg-background focus-visible:border-input',
+        filled:
+          'border-transparent bg-muted/50 focus-visible:bg-background focus-visible:border-input',
         outline: 'border-2 border-input bg-transparent hover:border-accent-foreground/20',
       },
       size: {
@@ -46,7 +47,7 @@ const inputVariants = cva(
 );
 
 export interface InputProps
-  extends Omit<React.ComponentProps<"input">, "size">,
+  extends Omit<React.ComponentProps<'input'>, 'size'>,
     VariantProps<typeof inputVariants> {
   /** Full width on mobile devices, auto width on desktop */
   fullWidthOnMobile?: boolean;
@@ -54,25 +55,28 @@ export interface InputProps
 
 /**
  * Optimized Input component with mobile-first design
- * 
+ *
  * @example
  * // Standard input
  * <Input placeholder="Enter your email" />
- * 
+ *
  * @example
  * // Mobile-optimized input
  * <Input size="mobile" placeholder="Mobile-friendly input" />
- * 
+ *
  * @example
  * // Large input for primary forms
  * <Input size="lg" placeholder="Primary input field" />
- * 
+ *
  * @example
  * // Filled variant
  * <Input variant="filled" placeholder="Filled input" />
  */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, variant, size = 'mobile', fullWidthOnMobile = false, ...props }, ref) => {
+  (
+    { className, type, variant, size = 'mobile', fullWidthOnMobile = false, ...props },
+    ref,
+  ) => {
     return (
       <input
         type={type}
@@ -80,14 +84,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           inputVariants({ variant, size }),
           // Mobile-specific optimizations
           fullWidthOnMobile && 'w-full sm:w-auto',
-          className
+          className,
         )}
         ref={ref}
         {...props}
       />
-    )
-  }
-)
-Input.displayName = "Input"
+    );
+  },
+);
+Input.displayName = 'Input';
 
-export { Input, inputVariants }
+export { Input, inputVariants };

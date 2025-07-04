@@ -1,8 +1,8 @@
 import { UserRole } from '@prisma/client';
 import { ROLES } from './roles';
-import { ResourceType } from './types';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { SessionUser } from '@/types';
+import type { ResourceType } from './types';
+import { useCurrentUser } from '@/contexts/user-context';
+import type { SessionUser } from '@/types';
 
 export function hasPermission<Resource extends keyof ResourceType>(
   user: SessionUser,
@@ -81,7 +81,7 @@ type Props = {
 };
 
 export function RoleGuard({ roles, children, fallback }: Readonly<Props>) {
-  const user = useCurrentUser() as SessionUser;
+  const { user } = useCurrentUser() as SessionUser;
 
   if (!user) {
     return fallback ?? undefined;

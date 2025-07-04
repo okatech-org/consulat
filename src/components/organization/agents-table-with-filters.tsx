@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getActiveCountries } from '@/actions/countries';
 import { getOrganizations } from '@/actions/organizations';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
@@ -42,7 +42,7 @@ interface AgentsTableWithFiltersProps {
 
 export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFiltersProps) {
   const router = useRouter();
-  const currentUser = useCurrentUser();
+  const { user: currentUser } = useCurrentUser();
   const [data, setData] = useState<AgentsListResult>({
     items: [],
     total: 0,

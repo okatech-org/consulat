@@ -9,7 +9,7 @@ const withSerwist = withSerwistInit({
   swSrc: 'src/app/sw.ts',
   swDest: 'public/sw.js',
   disable: true,
-}); 
+});
 
 const nextConfig: NextConfig = {
   eslint: {
@@ -79,6 +79,13 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.externals = [...(config.externals || []), 'uploadthing'];
     return config;
+  },
+  // Configuration Turbopack stable (Next.js 15.3+)
+  turbopack: {
+    resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
+    resolveAlias: {
+      // Alias personnalisés si nécessaire
+    },
   },
 };
 

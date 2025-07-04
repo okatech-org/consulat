@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getAgentDetails, AgentDetails } from '@/actions/agents';
+import { getAgentDetails, type AgentDetails } from '@/actions/agents';
 import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { StatsCard } from '@/components/ui/stats-card';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data-table/data-table';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { tryCatch, useDateLocale } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
@@ -37,22 +37,22 @@ import {
   Eye,
   Users,
 } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { ColumnDef } from '@tanstack/react-table';
+import { useCurrentUser } from '@/contexts/user-context';
+import type { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import {
-  Country,
+  type Country,
   RequestStatus,
   ServiceCategory,
   ServicePriority,
-  User,
+  type User,
   UserRole,
 } from '@prisma/client';
 import { AgentForm } from '@/components/organization/agent-form';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
-import { ConsularServiceListingItem } from '@/types/consular-service';
-import { OrganizationListingItem } from '@/types/organization';
+import type { ConsularServiceListingItem } from '@/types/consular-service';
+import type { OrganizationListingItem } from '@/types/organization';
 import { getActiveCountries } from '@/actions/countries';
 import {
   getOrganizations,
@@ -426,7 +426,7 @@ function AssignedRequestsTable({
 export default function AgentDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const currentUser = useCurrentUser();
+  const { user: currentUser } = useCurrentUser();
   const agentId = params.id as string;
 
   const [agent, setAgent] = useState<AgentDetails | null>(null);

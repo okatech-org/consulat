@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { z } from 'zod';
 import { EmailStatus } from '@prisma/client';
 

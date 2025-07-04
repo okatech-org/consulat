@@ -37,7 +37,13 @@ export function DocumentTemplateCard({
       <Badge variant="outline">{t(`userDocument.options.${template.type}`)}</Badge>
       <p className="text-sm text-muted-foreground">{template.description}</p>
       <div className="flex justify-between gap-2 mt-4">
-        <Button variant="outline" size="mobile" asChild className="flex-1" leftIcon={<Pencil />}>
+        <Button
+          variant="outline"
+          size="mobile"
+          asChild
+          className="flex-1"
+          leftIcon={<Pencil />}
+        >
           <Link href={ROUTES.dashboard.doc_template_edit(template.id)}>
             {t('documentTemplate.actions.edit')}
           </Link>

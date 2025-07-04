@@ -1,9 +1,9 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import {
-  ConsularService,
-  Profile,
+  type ConsularService,
+  type Profile,
   ServiceCategory,
   Prisma,
   RequestActionType,
@@ -11,11 +11,11 @@ import {
 } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { FullProfileInclude } from '@/types';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 
-import { CreateProfileInput, FullProfileUpdateFormData } from '@/schemas/registration';
+import type { CreateProfileInput, FullProfileUpdateFormData } from '@/schemas/registration';
 import {
   NameSchema,
   CountryCodeSchema,
@@ -87,7 +87,6 @@ export async function createUserProfile(input: CreateProfileInput, userId: strin
         userId: user.id,
       },
     });
-
 
     return profile;
   });

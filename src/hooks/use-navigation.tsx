@@ -1,7 +1,7 @@
 'use client';
 
 import { ROUTES } from '@/schemas/routes';
-import { SessionUser } from '@/types/user';
+import type { SessionUser } from '@/types/user';
 import { UserRole } from '@prisma/client';
 import {
   Settings,

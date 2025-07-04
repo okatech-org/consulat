@@ -1,12 +1,12 @@
 'use client';
 
 import { authClient } from '@/lib/auth/auth-client';
-import { SessionUser } from '@/types';
+import type { SessionUser } from '@/types';
 import { useMemo } from 'react';
 
 export const useCurrentUser = (): SessionUser | undefined => {
   const { data: session } = authClient.useSession();
-  return useMemo(() => (session?.user || undefined), [session?.user]);
+  return useMemo(() => session?.user || undefined, [session?.user]);
 };
 
 export const useCurrentSession = () => {

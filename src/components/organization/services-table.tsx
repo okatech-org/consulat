@@ -9,7 +9,7 @@ import {
   ServicesListResult,
 } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 import { OrganizationListingItem } from '@/types/organization';
 import { ServiceCategory, UserRole } from '@prisma/client';
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -48,7 +48,7 @@ interface SearchParams {
 
 export function ServicesTable({ organizations }: ServicesTablesProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const currentUser = useCurrentUser();
+  const { user: currentUser } = useCurrentUser();
   const organizationId = getOrganizationIdFromUser(currentUser as SessionUser);
   const isSuperAdmin = currentUser?.roles.includes(UserRole.SUPER_ADMIN);
 

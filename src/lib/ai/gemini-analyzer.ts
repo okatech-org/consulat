@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import { env } from '../env';
+import { env } from '@/env';
 
 export interface VisionAnalyzer {
   analyzeImage(base64Image: string, prompt: string): Promise<string>;

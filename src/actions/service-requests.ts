@@ -1,14 +1,14 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { checkAuth } from '@/lib/auth/action';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import {
-  ServiceRequestFilters,
+  type ServiceRequestFilters,
   FullServiceRequestInclude,
-  ServiceRequestStats,
-  FullServiceRequest,
+  type ServiceRequestStats,
+  type FullServiceRequest,
 } from '@/types/service-request';
 import {
   Prisma,
@@ -16,14 +16,14 @@ import {
   ServicePriority,
   RequestActionType,
   UserRole,
-  ServiceRequest,
+  type ServiceRequest,
   NoteType,
   NotificationType,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {

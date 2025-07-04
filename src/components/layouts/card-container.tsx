@@ -36,7 +36,7 @@ export default function CardContainer({
       )}
       {children && (
         <Card.CardContent
-          className={`flex-1 border-t border-border/50 ${contentClass} ${(title || subtitle || action ) || (!title || !subtitle || !action) ? 'pt-4' : ''}`}
+          className={`flex-1 border-t border-border/50 ${contentClass} ${title || subtitle || action || !title || !subtitle || !action ? 'pt-4' : ''}`}
         >
           {children}
         </Card.CardContent>

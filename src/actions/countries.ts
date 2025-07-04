@@ -1,12 +1,12 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { checkAuth } from '@/lib/auth/action';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
-import { CountryMetadata } from '@/types/country';
-import { Country, UserRole } from '@prisma/client';
-import { CountrySchemaInput } from '@/schemas/country';
+import type { CountryMetadata } from '@/types/country';
+import { type Country, UserRole } from '@prisma/client';
+import type { CountrySchemaInput } from '@/schemas/country';
 
 export type CountryWithCount = Country & {
   _count: {

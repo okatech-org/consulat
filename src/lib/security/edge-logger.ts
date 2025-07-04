@@ -3,7 +3,8 @@
  * N'utilise pas le système de fichiers (fs) pour fonctionner dans le middleware
  */
 
-import { maskSensitiveData } from './encryption';
+import { maskSensitiveData } from "./encryption";
+
 
 /**
  * Types d'événements de sécurité pour l'edge runtime

@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import {
   CheckCircle2,
   XCircle,

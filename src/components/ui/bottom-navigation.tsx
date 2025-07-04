@@ -9,9 +9,8 @@ import { useNavigation } from '@/hooks/use-navigation';
 import { MobileDrawer } from './mobile-drawer';
 import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
-import { NavMainItem } from '@/hooks/use-navigation';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { SessionUser } from '@/types';
+import { type NavMainItem } from '@/hooks/use-navigation';
+import { useCurrentUser } from '@/contexts/user-context';
 
 export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
   showLabels?: boolean;
@@ -19,12 +18,12 @@ export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement>
 
 const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
   ({ className, showLabels = true, ...props }, ref) => {
-    const currentUser = useCurrentUser();
-    const { mobileMenu } = useNavigation(currentUser as SessionUser);
+    const { user: currentUser } = useCurrentUser();
+    const { mobileMenu } = useNavigation(currentUser!);
     const pathname = usePathname();
 
     const isActive = React.useCallback(
-      (href: string, exact: boolean = false) => {
+      (href: string, exact = false) => {
         if (exact) {
           return pathname === href;
         }

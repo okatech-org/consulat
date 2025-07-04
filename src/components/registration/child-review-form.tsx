@@ -67,9 +67,9 @@ function ChildReviewSection<T extends keyof ChildCompleteFormData>({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className={'text-md'}>{title}</CardTitle>
-        <Button 
-          variant="outline" 
-          size="mobile" 
+        <Button
+          variant="outline"
+          size="mobile"
           onClick={onEdit}
           leftIcon={<Pencil className="size-4" />}
         >

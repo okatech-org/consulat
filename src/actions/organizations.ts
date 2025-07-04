@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
-import {
+import type {
   CreateOrganizationInput,
   OrganizationCountryInfos,
   OrganizationMetadataSettings,
@@ -10,34 +10,35 @@ import {
   UpdateOrganizationInput,
 } from '@/schemas/organization';
 import {
-  Country,
+  type Country,
   OrganizationStatus,
   ServiceCategory,
   UserRole,
   Prisma,
-  User,
+  type User,
 } from '@prisma/client';
 
-import { AgentFormData } from '@/schemas/user';
-import { env } from '@/lib/env/index';
+import type { AgentFormData } from '@/schemas/user';
+import { env } from '@/env';;
 import { sendAdminWelcomeEmail } from '@/lib/services/notifications/providers/emails';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { getTranslations } from 'next-intl/server';
 import { checkAuth } from '@/lib/auth/action';
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import {
-  OrganizationListingItem,
-  FullOrganization,
+  type OrganizationListingItem,
+  type FullOrganization,
   FullOrganizationInclude,
-  OrganizationWithIncludes,
+  type OrganizationWithIncludes,
   createOrganizationInclude,
-  BaseAgent,
+  type BaseAgent,
   BaseAgentInclude,
   FullAgentInclude,
-  AgentWithIncludes,
+  type AgentWithIncludes,
   createAgentInclude,
 } from '@/types/organization';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 
 export async function getOrganizations(
   organizationId?: string,
@@ -80,7 +81,7 @@ export async function createOrganization(data: CreateOrganizationInput) {
     });
 
     // Créer l'utilisateur admin si email fourni
-    if (data.adminEmail) {
+    if (data.adminEmail && data.countryIds[0]) {
       await db.user.create({
         data: {
           email: data.adminEmail,
@@ -89,7 +90,7 @@ export async function createOrganization(data: CreateOrganizationInput) {
           managedOrganization: {
             connect: { id: organization.id },
           },
-          countryCode: data.countryIds[0],
+          countryCode: data.countryIds[0] as CountryCode,
         },
       });
 

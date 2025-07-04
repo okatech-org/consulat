@@ -26,18 +26,18 @@ export function MobileCarousel({
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const slideRef = useRef<HTMLDivElement | null>(null);
-  
+
   // Minimum swipe distance (px)
   const minSwipeDistance = 50;
 
   // Auto-scroll effect
   useEffect(() => {
     if (!autoScroll) return;
-    
+
     const interval = setInterval(() => {
       goToNext();
     }, autoScrollInterval);
-    
+
     return () => clearInterval(interval);
   }, [autoScroll, autoScrollInterval, currentIndex, children.length]);
 
@@ -46,13 +46,13 @@ export function MobileCarousel({
     // S'assurer que l'index est dans les limites
     const newIndex = Math.max(0, Math.min(index, children.length - 1));
     setCurrentIndex(newIndex);
-    
+
     // Faire défiler jusqu'au slide correspondant
     if (carouselRef.current) {
       const scrollPosition = newIndex * carouselRef.current.offsetWidth;
       carouselRef.current.scrollTo({
         left: scrollPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -80,11 +80,11 @@ export function MobileCarousel({
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-    
+
     if (isLeftSwipe) {
       goToNext();
     } else if (isRightSwipe) {
@@ -95,11 +95,11 @@ export function MobileCarousel({
   // Gestionnaire de scroll pour mettre à jour l'index actuel
   const handleScroll = () => {
     if (!carouselRef.current) return;
-    
+
     const scrollPosition = carouselRef.current.scrollLeft;
     const slideWidth = carouselRef.current.offsetWidth;
     const newIndex = Math.round(scrollPosition / slideWidth);
-    
+
     if (newIndex !== currentIndex && newIndex >= 0 && newIndex < children.length) {
       setCurrentIndex(newIndex);
     }
@@ -115,9 +115,9 @@ export function MobileCarousel({
   }, [currentIndex]);
 
   return (
-    <div className={cn("relative w-full", className)}>
+    <div className={cn('relative w-full', className)}>
       {/* Carousel container */}
-      <div 
+      <div
         ref={carouselRef}
         className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none carousel-zone"
         onTouchStart={onTouchStart}
@@ -139,14 +139,14 @@ export function MobileCarousel({
       {/* Navigation controls */}
       {showControls && (
         <div className="absolute inset-0 flex items-center justify-between pointer-events-none">
-          <button 
+          <button
             onClick={goToPrevious}
             className="p-2 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-md pointer-events-auto"
             aria-label="Slide précédent"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button 
+          <button
             onClick={goToNext}
             className="p-2 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-md pointer-events-auto"
             aria-label="Slide suivant"
@@ -164,10 +164,10 @@ export function MobileCarousel({
               key={index}
               onClick={() => goToSlide(index)}
               className={cn(
-                "w-2 h-2 rounded-full transition-all",
-                currentIndex === index 
-                  ? "bg-blue-600 w-4" 
-                  : "bg-gray-300 dark:bg-gray-600"
+                'w-2 h-2 rounded-full transition-all',
+                currentIndex === index
+                  ? 'bg-blue-600 w-4'
+                  : 'bg-gray-300 dark:bg-gray-600',
               )}
               aria-label={`Aller au slide ${index + 1}`}
             />
@@ -176,4 +176,4 @@ export function MobileCarousel({
       )}
     </div>
   );
-} 
+}

@@ -15,20 +15,17 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { auth } from '@/lib/auth/auth';
-import { headers } from 'next/headers';
+import { getCurrentUser } from '@/lib/auth/utils';
 
 export default async function UserDashboard() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const user = await getCurrentUser();
 
-  if (!session?.user) {
+  if (!user) {
     return null;
   }
 
   // Fetch user profile
-  const userProfile = await getUserFullProfileById(session.user.id);
+  const userProfile = await getUserFullProfileById(user.id);
 
   // Calculate profile completion percentage
   const profileCompletion = userProfile ? calculateProfileCompletion(userProfile) : 0;
@@ -44,7 +41,7 @@ export default async function UserDashboard() {
   }
 
   // Fetch user service requests
-  const serviceRequestsData = await getServiceRequestsByUser(session.user.id);
+  const serviceRequestsData = await getServiceRequestsByUser(user.id);
 
   // Transform service requests to match expected interface
   const serviceRequests = serviceRequestsData.map((request) => ({
@@ -58,7 +55,7 @@ export default async function UserDashboard() {
   }));
 
   // Fetch user appointments
-  const appointmentsResponse = await getUserAppointments({ userId: session.user.id });
+  const appointmentsResponse = await getUserAppointments({ userId: user.id });
   const appointments = appointmentsResponse.data || {
     upcoming: [],
     past: [],
@@ -119,7 +116,7 @@ export default async function UserDashboard() {
               profileCompletion={profileCompletion}
               profileStatus={userProfile?.status}
               missingDocuments={missingDocuments}
-              userName={session.user.name || undefined}
+              userName={user.name ?? undefined}
               urgentActions={urgentActions}
               className="border-2 shadow-lg"
             />

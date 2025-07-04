@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { RequestStatus } from '@prisma/client';
 
 export default async function AdminDashboard() {
@@ -141,16 +141,14 @@ export default async function AdminDashboard() {
           }
           className="lg:col-span-1"
           footerContent={
-            <Button 
-              variant="outline" 
-              size="mobile" 
-              className="w-full" 
+            <Button
+              variant="outline"
+              size="mobile"
+              className="w-full"
               rightIcon={<ArrowRight />}
               asChild
             >
-              <Link href={ROUTES.dashboard.registrations}>
-                {t('tasks.view_all')}
-              </Link>
+              <Link href={ROUTES.dashboard.registrations}>{t('tasks.view_all')}</Link>
             </Button>
           }
         >
@@ -203,16 +201,14 @@ export default async function AdminDashboard() {
           }
           className="lg:col-span-1"
           footerContent={
-            <Button 
-              variant="outline" 
-              size="mobile" 
-              className="w-full" 
+            <Button
+              variant="outline"
+              size="mobile"
+              className="w-full"
               rightIcon={<ArrowRight />}
               asChild
             >
-              <Link href={ROUTES.dashboard.appointments}>
-                {t('tasks.view_all')}
-              </Link>
+              <Link href={ROUTES.dashboard.appointments}>{t('tasks.view_all')}</Link>
             </Button>
           }
         >

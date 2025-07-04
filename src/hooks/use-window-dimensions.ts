@@ -23,7 +23,7 @@ const useWindowDimensions = (): WindowDimensions => {
 
     // Initialiser avec les dimensions actuelles
     handleResize();
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -31,4 +31,4 @@ const useWindowDimensions = (): WindowDimensions => {
   return windowDimensions;
 };
 
-export default useWindowDimensions; 
+export default useWindowDimensions;

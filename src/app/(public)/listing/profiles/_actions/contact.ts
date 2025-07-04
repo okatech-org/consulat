@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { NotificationType } from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';

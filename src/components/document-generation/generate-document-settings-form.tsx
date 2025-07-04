@@ -210,7 +210,7 @@ function ConfigItem({
   // Handle field mapping change
   const handleFieldMappingChange = useCallback(
     (field: string, selectedValue: string) => {
-      let newMappings = { ...matchings };
+      const newMappings = { ...matchings };
 
       if (!selectedValue) {
         delete newMappings[field];

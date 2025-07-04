@@ -1,11 +1,11 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { checkAuth } from '@/lib/auth/action';
 import { DocumentStatus, DocumentType, RequestActionType } from '@prisma/client';
 import { deleteFiles } from '@/actions/uploads';
 import { tryCatch } from '@/lib/utils';
-import { AppUserDocument } from '@/types';
+import type { AppUserDocument } from '@/types';
 import { auth } from '@/lib/auth/auth';
 import { headers } from 'next/headers';
 
@@ -158,14 +158,14 @@ export async function createUserDocument(data: {
           fileUrl: data.fileUrl,
           status: DocumentStatus.PENDING,
           fileType: data.fileType,
-                     userId: data.userId && data.userId !== '' ? data.userId : authResult.user?.id,
+          userId: data.userId && data.userId !== '' ? data.userId : authResult.user?.id,
         },
       });
 
       // 2. If profileId is provided and document type is mapped to a profile field, update the profile
       if (data.profileId && profileFieldMap[data.type]) {
         const profileField = profileFieldMap[data.type];
-        
+
         await tx.profile.update({
           where: { id: data.profileId },
           data: {
@@ -210,7 +210,7 @@ export async function createUserDocument(data: {
 
   return {
     ...document,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     metadata:
       typeof document.metadata === 'string'
         ? (JSON.parse(document.metadata || '{}') as Record<string, unknown>)

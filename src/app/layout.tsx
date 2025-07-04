@@ -1,10 +1,12 @@
-import './globals.css';
-import './animation.css';
-import React from 'react';
-import { Inter } from 'next/font/google';
-import type { Metadata, Viewport } from 'next';
-import { getLocale } from 'next-intl/server';
-import { env } from '@/lib/env/index';
+import '@/styles/globals.css';
+
+import { type Metadata, type Viewport } from 'next';
+import { Geist } from 'next/font/google';
+
+import { TRPCReactProvider } from '@/trpc/react';
+import { SessionProvider } from 'next-auth/react';
+import { UserProvider } from '@/contexts/user-context';
+import { env } from '@/env';
 import { Providers } from '@/components/layouts/providers';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
@@ -113,19 +115,24 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-const inter = Inter({ subsets: ['latin'] });
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+});
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const locale = await getLocale();
-
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang={locale as string} suppressHydrationWarning dir="ltr">
-      <body className={inter.className + ' bg-muted'}>
-        <Providers>{children}</Providers>
+    <html lang="fr" className={`${geist.variable}`}>
+      <body>
+        <TRPCReactProvider>
+          <SessionProvider>
+            <UserProvider>
+              <Providers>{children}</Providers>
+            </UserProvider>
+          </SessionProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );

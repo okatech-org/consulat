@@ -30,12 +30,12 @@ export class AuthRedirectManager {
 
     // Determine redirect based on user roles
     const roles = Array.isArray(user.roles) ? user.roles : [user.roles];
-    
+
     // Priority: SUPER_ADMIN > ADMIN > MANAGER > AGENT > USER
     if (hasAnyRole(user, ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT'])) {
       return ROUTES.dashboard.base;
     }
-    
+
     if (hasAnyRole(user, ['USER'])) {
       return ROUTES.user.base;
     }
@@ -51,8 +51,8 @@ export class AuthRedirectManager {
     try {
       // Only allow relative URLs or same origin
       return (
-        url.startsWith('/') && 
-        !url.startsWith('//') && 
+        url.startsWith('/') &&
+        !url.startsWith('//') &&
         !url.includes('javascript:') &&
         !url.includes('data:') &&
         !url.includes('http:') &&
@@ -87,12 +87,12 @@ export class AuthRedirectManager {
    * Handle login success redirect
    */
   static handleLoginSuccess(
-    user: SessionUser, 
-    callbackUrl?: string | null, 
-    options: RedirectOptions = {}
+    user: SessionUser,
+    callbackUrl?: string | null,
+    options: RedirectOptions = {},
   ): void {
     const redirectUrl = this.getRedirectUrl(user, callbackUrl);
-    
+
     // Small delay to prevent race conditions
     setTimeout(() => {
       this.performRedirect(redirectUrl, options.method || 'replace');
@@ -103,8 +103,10 @@ export class AuthRedirectManager {
    * Handle logout redirect
    */
   static handleLogoutSuccess(options: RedirectOptions = {}): void {
-    document.cookie = 'better-auth.session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'better-auth.dont_remember=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie =
+      'better-auth.session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie =
+      'better-auth.dont_remember=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     const redirectUrl = options.fallbackUrl || ROUTES.base;
     this.performRedirect(redirectUrl, options.method || 'replace');
   }
@@ -121,7 +123,7 @@ export class AuthRedirectManager {
       }
       return loginUrl.pathname + loginUrl.search;
     }
-    
+
     // Client-side version
     const loginUrl = new URL(ROUTES.auth.login, window.location.origin);
     if (callbackUrl && this.isSafeCallbackUrl(callbackUrl)) {
@@ -129,4 +131,4 @@ export class AuthRedirectManager {
     }
     return loginUrl.toString();
   }
-} 
+}

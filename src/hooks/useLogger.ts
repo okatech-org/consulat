@@ -17,7 +17,7 @@ export interface Logger {
 
 /**
  * Hook pour fournir des fonctionnalités de journalisation
- * 
+ *
  * @returns Un objet logger avec les méthodes debug, info, warn et error
  */
 export function useLogger(): Logger {
@@ -26,7 +26,7 @@ export function useLogger(): Logger {
     if (process.env.NODE_ENV !== 'production') {
       const timestamp = new Date().toISOString();
       const formattedContext = context ? JSON.stringify(context, null, 2) : '';
-      
+
       switch (level) {
         case 'debug':
           console.debug(`[${timestamp}] [DEBUG] ${message}`, formattedContext);
@@ -42,7 +42,7 @@ export function useLogger(): Logger {
           break;
       }
     }
-    
+
     // En production, on pourrait envoyer les logs à un service externe
     // comme Sentry, LogRocket, etc.
   }, []);
@@ -77,4 +77,4 @@ export const logger: Logger = {
       console.error(`[ERROR] ${message}`, context || '');
     }
   },
-}; 
+};

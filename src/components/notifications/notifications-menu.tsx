@@ -46,7 +46,13 @@ function NotificationItem({
         </span>
       </div>
       {!notification.read && (
-        <Button variant="ghost" size="mobile" onClick={handleRead} disabled={isLoading} leftIcon={isLoading ? <Loader2 className="animate-spin" /> : <Check />}>
+        <Button
+          variant="ghost"
+          size="mobile"
+          onClick={handleRead}
+          disabled={isLoading}
+          leftIcon={isLoading ? <Loader2 className="animate-spin" /> : <Check />}
+        >
           {isLoading ? '' : ''}
         </Button>
       )}
@@ -65,7 +71,12 @@ export function NotificationsMenu() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" className="relative max-w-min p-2" size="mobile" leftIcon={<Bell />}>
+        <Button
+          variant="ghost"
+          className="relative max-w-min p-2"
+          size="mobile"
+          leftIcon={<Bell />}
+        >
           <span>{t('title')}</span>
           {unreadCount > 0 && (
             <Badge
