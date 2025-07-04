@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { LogOut, Menu } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
@@ -16,10 +16,9 @@ import {
   SheetClose,
 } from './sheet';
 
-import { NavMainItem } from '@/hooks/use-navigation';
+import type { NavMainItem } from '@/hooks/use-navigation';
 import { ThemeToggleSingle } from '../layouts/theme-toggle-single';
 import { NotificationBell } from '../notifications/notification-bell';
-import { authClient } from '@/lib/auth/auth-client';
 import { LogoutButton } from './logout-button';
 
 export interface MobileDrawerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -43,7 +42,6 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
     },
     ref,
   ) => {
-    const router = useRouter();
     const pathname = usePathname();
     const [open, setOpen] = React.useState(false);
 
@@ -102,8 +100,10 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
               'flex flex-col items-center justify-center gap-0',
             )}
           >
-            {triggerChildren || <Menu className="size-icon" />}
-            <span className="text-[10px] uppercase text-muted-foreground">Menu</span>
+            <div className="flex flex-col items-center justify-center gap-0">
+              <Menu className="size-icon" />
+              <span className="text-[10px] uppercase text-muted-foreground">Menu</span>
+            </div>
           </Button>
         </SheetTrigger>
         <SheetContent
