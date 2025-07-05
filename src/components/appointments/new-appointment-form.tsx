@@ -38,10 +38,7 @@ interface NewAppointmentFormProps {
   countryCode: string;
   organizationId: string;
   attendeeId: string;
-  preselectedData?: {
-    type?: AppointmentType;
-    request?: FullServiceRequest;
-  };
+  preselectedData?: { type?: AppointmentType; request?: FullServiceRequest };
 }
 
 type Step = 'request' | 'slot' | 'confirmation';
@@ -79,12 +76,7 @@ export function NewAppointmentForm({
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
-    defaultValues: {
-      countryCode,
-      organizationId,
-      date: new Date(),
-      attendeeId,
-    },
+    defaultValues: { countryCode, organizationId, date: new Date(), attendeeId },
   });
 
   useLayoutEffect(() => {
@@ -135,7 +127,7 @@ export function NewAppointmentForm({
     if (result.error) {
       toast({
         title: 'Erreur',
-        description: t_messages(result.error as any),
+        description: t_messages(result.error.message),
         variant: 'destructive',
       });
     }
@@ -340,12 +332,8 @@ export function NewAppointmentForm({
     if (!requestId) {
       setSelectedRequest(undefined);
       setAvailableTypes([]);
-      form.setValue('agentId', '', {
-        shouldDirty: true,
-      });
-      form.setValue('serviceId', '', {
-        shouldDirty: true,
-      });
+      form.setValue('agentId', '', { shouldDirty: true });
+      form.setValue('serviceId', '', { shouldDirty: true });
 
       return;
     }
@@ -365,14 +353,10 @@ export function NewAppointmentForm({
 
     setSelectedRequest(request);
 
-    form.setValue('serviceId', request.service.id, {
-      shouldDirty: true,
-    });
+    form.setValue('serviceId', request.service.id, { shouldDirty: true });
 
     if (request.assignedToId) {
-      form.setValue('agentId', request.assignedToId, {
-        shouldDirty: true,
-      });
+      form.setValue('agentId', request.assignedToId, { shouldDirty: true });
     }
 
     const types: AppointmentType[] = [];
@@ -515,9 +499,9 @@ export function NewAppointmentForm({
                     type="button"
                     onClick={handleNext}
                     disabled={isLoading || !canGoNext()}
+                    rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
                     {t('actions.next')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               }
@@ -592,8 +576,8 @@ export function NewAppointmentForm({
                       variant="outline"
                       onClick={handlePrevious}
                       disabled={isLoading}
+                      leftIcon={<ArrowLeft className="size-icon" />}
                     >
-                      <ArrowLeft className="size-icon" />
                       {t('actions.back')}
                     </Button>
                   )}
@@ -604,9 +588,9 @@ export function NewAppointmentForm({
                       onClick={handleNext}
                       disabled={isLoading || !canGoNext()}
                       className={!canGoPrevious() ? 'ml-auto' : ''}
+                      rightIcon={<ArrowRight className="size-icon" />}
                     >
                       {t('actions.next')}
-                      <ArrowRight className="size-icon" />
                     </Button>
                   )}
                 </div>
@@ -647,8 +631,8 @@ export function NewAppointmentForm({
                       variant="outline"
                       onClick={handlePrevious}
                       disabled={isLoading}
+                      leftIcon={<ArrowLeft className="size-icon" />}
                     >
-                      <ArrowLeft className="size-icon" />
                       {t('actions.back')}
                     </Button>
                   )}

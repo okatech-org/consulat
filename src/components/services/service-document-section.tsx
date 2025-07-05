@@ -11,13 +11,13 @@ import {
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { UserDocument } from '../documents/user-document';
-import { AppUserDocument } from '@/types';
+import type { AppUserDocument } from '@/types';
 import CardContainer from '../layouts/card-container';
-import { ServiceForm } from '@/hooks/use-service-form';
+import type { ServiceForm } from '@/hooks/use-service-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { ArrowLeft, Loader, ArrowRight, Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { MobileProgress } from '../registration/mobile-progress';
 
 interface ServiceDocumentSectionProps {
@@ -120,20 +120,23 @@ export function ServiceDocumentSection({
               onClick={onPrevious}
               variant="outline"
               disabled={isLoading || currentStepIndex === 0}
-              className="gap-2"
+              leftIcon={<ArrowLeft className="size-4" />}
             >
-              <ArrowLeft className="size-4" />
               {'Retour'}
             </Button>
 
             <Button
               type="submit"
-              disabled={isLoading || !currentStepValidity}
-              className="ml-auto gap-2"
+              loading={isLoading}
+              disabled={!currentStepValidity}
+              className="ml-auto"
+              rightIcon={
+                currentStepIndex !== totalSteps - 1 ? (
+                  <ArrowRight className="size-4" />
+                ) : undefined
+              }
             >
-              {isLoading ? <Loader className="size-4 animate-spin" /> : null}
               {currentStepIndex === totalSteps - 1 ? 'Soumettre ma demande' : 'Suivant'}
-              {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
             </Button>
           </div>
           {!currentStepValidity && (

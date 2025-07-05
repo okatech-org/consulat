@@ -2,10 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Loader } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { validateStep as validateStepFn } from '@/lib/form/validation';
-import { FullProfileUpdateFormData } from '@/schemas/registration';
-import { UseFormReturn } from 'react-hook-form';
+import { type FullProfileUpdateFormData } from '@/schemas/registration';
+import { type UseFormReturn } from 'react-hook-form';
 
 type Step =
   | 'documents'
@@ -54,9 +54,8 @@ export function FormNavigation({
           onClick={onPrevious}
           variant="outline"
           disabled={isLoading}
-          className="gap-2"
+          leftIcon={<ArrowLeft className="size-4" />}
         >
-          <ArrowLeft className="size-4" />
           {t('navigation.previous')}
         </Button>
       )}

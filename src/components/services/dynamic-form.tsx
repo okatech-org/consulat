@@ -1,7 +1,7 @@
 'use client';
 
-import { ServiceField } from '@/types/consular-service';
-import { ControllerRenderProps, useForm, UseFormReturn } from 'react-hook-form';
+import { type ServiceField } from '@/types/consular-service';
+import { type ControllerRenderProps, useForm, type UseFormReturn } from 'react-hook-form';
 import {
   FormField,
   FormItem,
@@ -13,13 +13,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Info, ArrowRight, Loader } from 'lucide-react';
+import { ArrowLeft, Info, ArrowRight } from 'lucide-react';
 import { UserDocument } from '../documents/user-document';
-import { AppUserDocument } from '@/types/profile';
+import { type AppUserDocument } from '@/types/profile';
 import { PhoneNumberInput } from '../ui/phone-number';
 import { Textarea } from '../ui/textarea';
 import { MultiSelect } from '../ui/multi-select';
-import { ServiceForm } from '@/hooks/use-service-form';
+import { type ServiceForm } from '@/hooks/use-service-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/hooks/use-toast';
 import { MobileProgress } from '../registration/mobile-progress';
@@ -94,16 +94,22 @@ export function DynamicForm({
               onClick={onPrevious}
               variant="outline"
               disabled={isLoading || currentStepIndex === 0}
-              className="gap-2"
+              leftIcon={<ArrowLeft className="size-4" />}
             >
-              <ArrowLeft className="size-4" />
               {'Retour'}
             </Button>
 
-            <Button type="submit" disabled={isLoading} className="ml-auto gap-2">
-              {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+            <Button
+              type="submit"
+              loading={isLoading}
+              className="ml-auto"
+              rightIcon={
+                currentStepIndex !== totalSteps - 1 ? (
+                  <ArrowRight className="size-4" />
+                ) : undefined
+              }
+            >
               {currentStepIndex === totalSteps - 1 ? 'Soumettre ma demande' : 'Suivant'}
-              {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
             </Button>
           </div>
           {!currentStepValidity && (

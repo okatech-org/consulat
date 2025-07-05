@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MessageSquare } from 'lucide-react';
-import { Button, ButtonProps } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { FeedbackForm } from '@/components/ui/feedback-form';
 import { cn } from '@/lib/utils';
 
@@ -32,9 +32,9 @@ export function FeedbackButton({
         size={size}
         onClick={() => setShowFeedbackForm(true)}
         className={cn(className)}
+        leftIcon={showIcon ? <MessageSquare className="sier-icon" /> : undefined}
         {...props}
       >
-        {showIcon && <MessageSquare className="sier-icon" />}
         {children || t('banner.openFeedback')}
       </Button>
 

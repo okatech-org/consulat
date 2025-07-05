@@ -20,19 +20,19 @@ export default function DarkModeToggle({
           'aspect-square size-8 rounded-full bg-input p-1 hover:bg-input dark:bg-transparent '
         }
         variant={'ghost'}
+        size="icon"
         type={'button'}
         onClick={() => setTheme('light')}
-      >
-        <SunIcon className={'w-6'} />
-      </Button>
+        leftIcon={<SunIcon className={'w-6'} />}
+      />
       <Button
         className={'aspect-square size-8 rounded-full p-1 hover:bg-muted dark:bg-muted'}
         variant={'ghost'}
+        size="icon"
         type={'button'}
         onClick={() => setTheme('dark')}
-      >
-        <MoonIcon className={'w-6 dark:text-white'} />
-      </Button>
+        leftIcon={<MoonIcon className={'w-6 dark:text-white'} />}
+      />
     </div>
   );
 }

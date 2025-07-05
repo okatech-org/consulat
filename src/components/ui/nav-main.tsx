@@ -12,9 +12,8 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { NavMainItem } from '@/hooks/use-navigation';
+import type { NavMainItem } from '@/hooks/use-navigation';
 import { ROUTES } from '@/schemas/routes';
-import { useChat } from '@/contexts/chat-context';
 import { ChatToggle } from '../chat/chat-toggle';
 
 export function NavMain({ items }: { items: NavMainItem[] }) {

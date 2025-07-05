@@ -4,7 +4,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Loader2, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -17,15 +17,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { AgentFormData, AgentSchema } from '@/schemas/user';
+import { type AgentFormData, AgentSchema } from '@/schemas/user';
 import { useToast } from '@/hooks/use-toast';
 
 import { createNewAgent } from '@/actions/organizations';
 import { updateAgent } from '@/actions/agents';
-import { Organization } from '@/types/organization';
+import { type Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
 import { PhoneNumberInput } from '../ui/phone-number';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import { type CountryCode } from '@/lib/autocomplete-datas';
 import {
   Select,
   SelectTrigger,
@@ -110,10 +110,7 @@ export function AgentForm({
         const result = await tryCatch(updateAgent(agentId, updateData));
 
         if (result.data) {
-          toast({
-            title: t_messages('success.update'),
-            variant: 'success',
-          });
+          toast({ title: t_messages('success.update'), variant: 'success' });
           onSuccess?.();
         } else if (result.error) {
           toast({
@@ -132,10 +129,7 @@ export function AgentForm({
         const result = await tryCatch(createNewAgent(createData));
 
         if (result.data) {
-          toast({
-            title: t_messages('success.create'),
-            variant: 'success',
-          });
+          toast({ title: t_messages('success.create'), variant: 'success' });
           onSuccess?.();
         } else if (result.error) {
           toast({
@@ -429,8 +423,7 @@ export function AgentForm({
         </CardContainer>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button type="submit" loading={isLoading}>
             {isEditMode ? t_common('actions.update') : t_common('actions.create')}
           </Button>
         </div>

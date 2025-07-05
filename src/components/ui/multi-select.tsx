@@ -129,6 +129,7 @@ export function MultiSelect<T>({
           className={cn('min-h-10 w-full justify-between px-3 py-2', className)}
           disabled={disabled}
           onClick={() => setOpen(!open)}
+          rightIcon={<ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />}
         >
           <div className="flex flex-1 items-center overflow-hidden">
             {type === 'single' ? (
@@ -152,7 +153,6 @@ export function MultiSelect<T>({
               <span className="text-muted-foreground">{placeholder}</span>
             )}
           </div>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
 
         {open && (

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { FeedbackFormValues, feedbackSchema } from '@/schemas/feedback';
+import { type FeedbackFormValues, feedbackSchema } from '@/schemas/feedback';
 import { submitFeedback } from '@/actions/feedback';
 
 import {
@@ -39,11 +39,7 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
 
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
-    defaultValues: {
-      subject: '',
-      message: '',
-      category: 'improvement',
-    },
+    defaultValues: { subject: '', message: '', category: 'improvement' },
   });
 
   const onSubmit = async (data: FeedbackFormValues) => {
@@ -60,16 +56,10 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
         });
         if (onSuccess) onSuccess();
       } else {
-        toast({
-          variant: 'destructive',
-          title: t('error.unknown'),
-        });
+        toast({ variant: 'destructive', title: t('error.unknown') });
       }
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('error.unknown'),
-      });
+      toast({ variant: 'destructive', title: t('error.unknown') });
       console.error('Error submitting feedback:', error);
     } finally {
       setIsSubmitting(false);
@@ -166,8 +156,8 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
           >
             {t('form.cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t('loading.submitting') : t('form.submit')}
+          <Button type="submit" loading={isSubmitting}>
+            {t('form.submit')}
           </Button>
         </div>
       </form>

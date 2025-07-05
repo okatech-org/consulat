@@ -14,8 +14,8 @@ import {
 import { createService } from '../../app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { NewServiceSchemaInput } from '@/schemas/consular-service';
-import { Country } from '@prisma/client';
+import { type NewServiceSchemaInput } from '@/schemas/consular-service';
+import { type Country } from '@prisma/client';
 import { ServiceCreationFlow } from '@/components/organization/service-creation-flow';
 
 export function CreateServiceButton({
@@ -38,10 +38,7 @@ export function CreateServiceButton({
       if (result.error) {
         throw new Error(result.error);
       }
-      toast({
-        title: t('messages.createSuccess'),
-        variant: 'success',
-      });
+      toast({ title: t('messages.createSuccess'), variant: 'success' });
       setIsOpen(false);
       router.refresh();
     } catch (error) {
@@ -58,8 +55,7 @@ export function CreateServiceButton({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="size-icon" />
+        <Button leftIcon={<Plus className="size-icon" />}>
           <span className={'hidden sm:inline'}>{t('actions.create')}</span>
         </Button>
       </DialogTrigger>

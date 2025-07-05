@@ -149,14 +149,9 @@ export function ProfileDocuments({ profile }: ProfileDocumentsProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                      setSelectedDocument({
-                        id: document.id,
-                        type: label,
-                      })
-                    }
+                    onClick={() => setSelectedDocument({ id: document.id, type: label })}
+                    leftIcon={<Shield className="size-4" />}
                   >
-                    <Shield className="size-4" />
                     <span className="text-sm">Valider</span>
                   </Button>
                 </>

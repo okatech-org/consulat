@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { SendHorizonal, Loader2 } from 'lucide-react';
+import { SendHorizonal } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -78,13 +78,13 @@ export function SubmitProfileButton({
     <>
       <Button
         onClick={() => setIsDialogOpen(true)}
-        className="gap-2 w-full md:w-max"
+        className="w-full md:w-max"
         variant="default"
         disabled={!canSubmit}
         size="lg"
+        rightIcon={<SendHorizonal className="size-4" />}
       >
         {t('submit_button')}
-        <SendHorizonal className="size-4" />
       </Button>
       {!canSubmit && (
         <p className="text-sm py-2 text-center text-muted-foreground">
@@ -121,8 +121,7 @@ export function SubmitProfileButton({
             >
               {t('dialog.cancel')}
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2">
-              {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+            <Button onClick={handleSubmit} loading={isSubmitting}>
               {t('dialog.confirm')}
             </Button>
           </DialogFooter>
