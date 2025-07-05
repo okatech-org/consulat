@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { signIn, useSession, getSession } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import {
   Form,
   FormControl,
@@ -120,12 +120,12 @@ function useLoginActions() {
   );
 
   const validateOTP = React.useCallback(
-    async (otp: string, identifier: string) => {
+    async (otp: string, identifier: string, callbackUrl?: string) => {
       const result = (await signIn('otp', {
         identifier,
         code: otp,
         action: 'verify',
-        redirect: false,
+        redirectTo: callbackUrl,
       })) as SignInResult;
 
       if (result?.error) {
@@ -147,6 +147,7 @@ export function LoginForm() {
   const user = session?.user;
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
 
   // State management
   const [state, setState] = React.useState<LoginFormState>({
@@ -241,26 +242,10 @@ export function LoginForm() {
             ? form.getValues('email')
             : form.getValues('phoneNumber');
 
-        // Valider l'OTP
-        await validateOTP(otp, identifier);
+        await validateOTP(otp, identifier, callbackUrl ?? ROUTES.user.base);
 
-        // Refetch session pour s'assurer que l'utilisateur est bien connecté
-        await refetchSession();
-
-        // Attendre un peu pour que la session se mette à jour
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Vérifier que la session existe maintenant
-        const currentSession = await getSession();
-
-        if (!currentSession?.user) {
-          throw new Error('Session non créée. Veuillez réessayer.');
-        }
-
-        // Show success state ONLY if we have a valid session
         updateState({ step: 'SUCCESS', isLoading: false, error: null });
 
-        // Auto-redirect après 1.5 secondes
         setTimeout(() => {
           if (!state.hasRedirected) {
             handleManualRedirect();
@@ -270,10 +255,8 @@ export function LoginForm() {
         const errorMessage =
           error instanceof Error ? error.message : 'Erreur de validation';
 
-        // Rester sur l'étape OTP en cas d'erreur
         updateState({ error: errorMessage, isLoading: false, step: 'OTP' });
 
-        // Réinitialiser le champ OTP pour permettre une nouvelle saisie
         form.setValue('otp', '');
 
         // Afficher aussi un toast pour une meilleure visibilité
