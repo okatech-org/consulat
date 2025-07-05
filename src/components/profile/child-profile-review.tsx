@@ -1,9 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProfileDocuments } from './documents';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { RequestStatus } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -28,10 +26,8 @@ import {
 } from '@/actions/consular-registration';
 import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
-import { LinkInfoSection } from '@/app/(authenticated)/my-space/children/_components/sections/link-info-section';
-import { BasicInfoSection } from '@/app/(authenticated)/my-space/profile/_utils/components/sections/basic-info-section';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { useRouter } from 'next/navigation';
+import { ChildProfileTabs } from '@/app/(authenticated)/my-space/children/_components/profile-tabs';
 
 interface ChildProfileReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
@@ -45,7 +41,6 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
   const { formatDate } = useDateLocale();
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
   const [validationNotes, setValidationNotes] = useState('');
-  const router = useRouter();
 
   if (!profile || !user) {
     return null;
@@ -55,36 +50,8 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
   const fieldStatus = getChildProfileFieldsStatus(profile);
 
   const statusOptions = STATUS_ORDER.map((item) => {
-    return {
-      value: item,
-      label: t(`common.status.${item}`),
-    };
+    return { value: item, label: t(`common.status.${item}`) };
   });
-
-  const profileTabs = [
-    {
-      value: 'link',
-      label: t('registration.steps.child_link'),
-      component: <LinkInfoSection profile={profile} />,
-    },
-    {
-      value: 'documents',
-      label: t('registration.steps.documents'),
-      component: <ProfileDocuments profile={profile} />,
-    },
-    {
-      value: 'identity',
-      label: t('registration.steps.basicInfo'),
-      component: (
-        <BasicInfoSection
-          profile={profile}
-          onSave={() => {
-            router.refresh();
-          }}
-        />
-      ),
-    },
-  ];
 
   function isStatusCompleted(status: RequestStatus) {
     return STATUS_ORDER.indexOf(status) <= STATUS_ORDER.indexOf(request.status);
@@ -153,24 +120,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
               </div>
             </CardContainer>
           )}
-          <Tabs defaultValue="link" className="space-y-4">
-            <TabsList>
-              {profileTabs.map((tab) => (
-                <TabsTrigger key={tab.value} value={tab.value}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {profileTabs.map((tab) => (
-              <TabsContent key={tab.value} value={tab.value} className="space-y-4">
-                {tab.value === 'identity' && (
-                  <CardContainer>{tab.component}</CardContainer>
-                )}
-                {tab.value !== 'identity' && tab.component}
-              </TabsContent>
-            ))}
-          </Tabs>
+          <ChildProfileTabs profile={profile} />
         </div>
 
         {/* Panneau latéral pour les notes et validations */}
@@ -199,18 +149,13 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
 
                   let label = option.label;
                   if (!isCompleted && reason) {
-                    // @ts-expect-error - reason is a string
                     label += ` (${t(`admin.registrations.review.transitions.${reason}`)})`;
                   }
                   if (isCompleted) {
                     label += ` (${t('common.status.COMPLETED')})`;
                   }
 
-                  return {
-                    value: option.value,
-                    label: label,
-                    disabled: !can,
-                  };
+                  return { value: option.value, label: label, disabled: !can };
                 })}
               />
             </div>

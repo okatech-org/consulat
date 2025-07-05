@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { FullServiceRequest } from '@/types/service-request';
+import type { FullServiceRequest } from '@/types/service-request';
 import { RequestStatus } from '@prisma/client';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -30,14 +30,10 @@ import { Timeline } from '@/components/ui/timeline';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Define icon components
-type IconComponent = JSX.Element;
+type IconComponent = React.ReactElement;
 
 // Define type for status info
-type StatusInfoType = {
-  label: string;
-  color: string;
-  icon: IconComponent;
-};
+type StatusInfoType = { label: string; color: string; icon: IconComponent };
 
 // Define type for form field value
 type FormFieldValue = {
@@ -49,37 +45,24 @@ type FormFieldValue = {
 };
 
 // Define type for form data
-type FormData = {
-  [key: string]: {
-    [key: string]: FormFieldValue;
-  };
-};
+type FormData = { [key: string]: { [key: string]: FormFieldValue } };
 
 // Define types for action data
-type ActionData = {
-  notes?: string;
-  status?: string;
-};
+type ActionData = { notes?: string; status?: string };
 
 type ServiceAction = {
   id: string;
   type: string;
   data: ActionData;
   createdAt: string;
-  user: {
-    name: string;
-    image: string | null;
-  };
+  user: { name: string; image: string | null };
 };
 
 type ServiceNote = {
   id: string;
   content: string;
   createdAt: string;
-  author?: {
-    name: string | null;
-    image: string | null;
-  };
+  author?: { name: string | null; image: string | null };
 };
 
 // Status config for display
@@ -159,8 +142,6 @@ export default function ServiceRequestDetailsPage() {
   const [requestDetails, setRequestDetails] = useState<FullServiceRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  console.log(JSON.stringify(requestDetails, null, 2));
 
   useEffect(() => {
     const fetchRequestDetails = async () => {

@@ -3,10 +3,9 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoaderIcon, ScanBarcode } from 'lucide-react';
-import {
+import type {
   BasicInfoFormData,
   ContactInfoFormData,
   DocumentsFormData,
@@ -20,12 +19,12 @@ import {
   FormItem,
   FormControl,
 } from '@/components/ui/form';
-import { UseFormReturn } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@prisma/client';
 import { UserDocument } from '../documents/user-document';
-import { AppUserDocument } from '@/types';
+import type { AppUserDocument } from '@/types';
 
 export type DocumentUploadItem = {
   id: 'birthCertificate' | 'passport' | 'residencePermit' | 'addressProof';
@@ -64,7 +63,9 @@ export function DocumentUploadSection({
   const t = useTranslations('registration');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
-  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [analysingState, setAnalysingState] = React.useState<
+    'idle' | 'analyzing' | 'success' | 'error'
+  >('idle');
 
   const handleAnalysis = async () => {
     const documentsToAnalyze: Partial<Record<DocumentType, string>> = {};
@@ -89,22 +90,23 @@ export function DocumentUploadSection({
       return;
     }
 
-    setIsAnalyzing(true);
+    setAnalysingState('analyzing');
 
     try {
       const results = await analyzeDocuments(documentsToAnalyze);
 
       if (results.success && results.mergedData) {
+        setAnalysingState('success');
+        console.log('results.mergedData', results.mergedData);
         onAnalysisComplete?.(results.mergedData);
       }
     } catch (error) {
+      setAnalysingState('error');
       toast({
         title: t('documents.analysis.error.title'),
         description: error instanceof Error ? error.message : t_errors('unknown'),
         variant: 'destructive',
       });
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -155,33 +157,41 @@ export function DocumentUploadSection({
         <div className={'w-full space-y-4'}>
           {/* Section d'analyse */}
           {onAnalysisComplete && (
-            <Card className="overflow-hidden">
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <Button
-                    type="button"
-                    onClick={handleAnalysis}
-                    disabled={isAnalyzing || isLoading}
-                    className="w-full gap-2 md:w-auto"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <LoaderIcon className="size-5 animate-spin" />
-                        {t('documents.analysis.analyzing')}
-                      </>
-                    ) : (
-                      <>
-                        <ScanBarcode className="size-5" />
-                        {t('documents.analysis.start')}
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    {t('documents.analysis.help')}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center gap-4 text-center">
+              <Button
+                type="button"
+                onClick={handleAnalysis}
+                disabled={analysingState === 'analyzing' || isLoading}
+                className="w-full gap-2 md:w-auto"
+              >
+                {analysingState === 'analyzing' ? (
+                  <>
+                    <LoaderIcon className="size-5 animate-spin" />
+                    {t('documents.analysis.analyzing')}
+                  </>
+                ) : (
+                  <>
+                    <ScanBarcode className="size-5" />
+                    {t('documents.analysis.start')}
+                  </>
+                )}
+              </Button>
+              {analysingState === 'idle' && (
+                <p className="text-sm text-muted-foreground">
+                  {t('documents.analysis.help')}
+                </p>
+              )}
+              {analysingState === 'error' && (
+                <p className="text-sm text-destructive">
+                  {t('documents.analysis.error.description')}
+                </p>
+              )}
+              {analysingState === 'success' && (
+                <p className="text-sm p-2 rounded-md bg-green-500/10 text-green-800">
+                  {t('documents.analysis.success.description')}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </form>

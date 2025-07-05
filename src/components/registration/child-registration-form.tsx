@@ -3,7 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import { DocumentUploadItem, DocumentUploadSection } from './document-upload-section';
+import {
+  type DocumentUploadItem,
+  DocumentUploadSection,
+} from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
@@ -19,7 +22,7 @@ import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { ErrorCard } from '../ui/error-card';
 import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '../layouts/card-container';
-import { BasicInfoFormData } from '@/schemas/registration';
+import type { BasicInfoFormData } from '@/schemas/registration';
 import { DocumentType } from '@prisma/client';
 import { submitProfileForValidation } from '@/actions/profile';
 
@@ -53,7 +56,7 @@ export function ChildRegistrationForm() {
     forms[currentTab as keyof typeof forms]?.formState.isDirty ?? false;
 
   // Handler for analysis
-   
+
   const handleDocumentsAnalysis = async (data: {
     basicInfo?: Partial<BasicInfoFormData>;
   }) => {
@@ -361,7 +364,7 @@ export function ChildRegistrationForm() {
               />
             )}
 
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col md:flex-row justify-between gap-4">
               <Button
                 onClick={handlePrevious}
                 variant="outline"
@@ -376,7 +379,7 @@ export function ChildRegistrationForm() {
                 type="submit"
                 onClick={() => handleNext()}
                 disabled={isLoading || !stepFormMap[currentTab].formState.isValid}
-                className="ml-auto gap-2"
+                className="gap-2"
               >
                 {isLoading ? <Loader className="size-4 animate-spin" /> : null}
                 {currentStepIndex === totalSteps - 1
