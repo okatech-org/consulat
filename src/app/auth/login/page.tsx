@@ -1,59 +1,60 @@
-import { auth } from '@/server/auth';
+import { LoginForm } from '@/components/auth/login-form';
+import { env } from '@/env';
+import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { LoginForm } from './_components/login-form';
-import Link from 'next/link';
-import { UserPlus } from 'lucide-react';
+import { headers } from 'next/headers';
+import { BetaBanner } from '@/components/ui/beta-banner';
+import { getCurrentUser } from '@/actions/user';
+import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
+
+const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function LoginPage() {
-  const session = await auth();
+  const t = await getTranslations('auth.login');
+  const user = await getCurrentUser();
+  const headersList = await headers();
+  const searchParams = new URLSearchParams(headersList.get('x-params-string') ?? '');
+  const callbackUrl = searchParams.get('callbackUrl');
 
-  // Si l'utilisateur est déjà connecté, rediriger vers la page d'accueil
-  if (session?.user) {
-    redirect('/');
+  if (user) {
+    const redirectUrl = AuthRedirectManager.getRedirectUrl(user, callbackUrl);
+    redirect(redirectUrl);
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Connexion à votre compte
-          </h1>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Choisissez votre méthode de connexion préférée
-          </p>
+    <div className="w-dvw bg-background h-dvh pt-8 p-6 md:pt-6 min-h-max overflow-x-hidden md:overflow-hidden flex items-center justify-center md:grid md:grid-cols-2">
+      <div className="w-full h-full min-h-max overflow-y-auto flex flex-col items-center justify-center">
+        <div className="max-w-lg space-y-8">
+          <header className="w-full border-b border-border pb-8">
+            <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
+              <Image
+                src={appLogo}
+                width={200}
+                height={200}
+                alt={t('page.image_alt')}
+                className="relative h-20 w-20 rounded-md transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+            <h1 className="text-3xl mb-2 font-bold">{t('page.title')}</h1>
+            <p className="text-lg text-muted-foreground">
+              {t('page.welcome_message', { appName: env.NEXT_PUBLIC_APP_NAME })}
+            </p>
+          </header>
+          <div className="w-full">
+            <LoginForm />
+          </div>
+          <BetaBanner className="mt-4" />
         </div>
-
-        <LoginForm />
-
-        {/* Lien d'inscription */}
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Vous n'avez pas encore de compte ?{' '}
-            <Link
-              href="/auth/signup"
-              className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline"
-            >
-              <UserPlus className="h-4 w-4" />
-              Créer un compte
-            </Link>
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center text-sm text-gray-600">
-          <p>
-            En vous connectant, vous acceptez nos{' '}
-            <a href="#" className="font-medium text-blue-600 hover:underline">
-              conditions d'utilisation
-            </a>{' '}
-            et notre{' '}
-            <a href="#" className="font-medium text-blue-600 hover:underline">
-              politique de confidentialité
-            </a>
-            .
-          </p>
-        </div>
+      </div>
+      <div className="w-full h-full overflow-hidden rounded-lg hidden md:block">
+        <Image
+          src={'https://utfs.io/f/yMD4lMLsSKvz349tIYw9oyDVxmdLHiTXuO0SKbeYqQUlPghR'}
+          alt={t('page.hero_image_alt')}
+          className="h-full w-full object-cover"
+          width={800}
+          height={800}
+        />
       </div>
     </div>
   );

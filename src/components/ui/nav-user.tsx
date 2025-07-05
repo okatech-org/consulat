@@ -22,13 +22,11 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { authClient } from '@/lib/auth/auth-client';
-import { useRouter } from 'next/navigation';
 import { useUserInfo } from '@/contexts/user-context';
+import { signOut } from 'next-auth/react';
 
 export function NavUser() {
   const userInfos = useUserInfo();
-  const router = useRouter();
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
@@ -129,9 +127,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () => {
-                await authClient.signOut().then(() => {
-                  router.push('/');
-                });
+                await signOut({ redirectTo: '/' });
               }}
             >
               <LogOut className="size-icon" />

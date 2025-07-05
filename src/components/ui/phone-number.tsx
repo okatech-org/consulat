@@ -1,10 +1,10 @@
 'use client';
 
-import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { cn, retrievePhoneNumber } from '@/lib/utils';
-import { CountryCode, CountryIndicator, phoneCountries } from '@/lib/autocomplete-datas';
+import type { CountryCode, CountryIndicator } from '@/lib/autocomplete-datas';
+import { phoneCountries } from '@/lib/autocomplete-datas';
 import { FlagIcon } from './flag-icon';
 import { MultiSelect } from './multi-select';
 
@@ -62,7 +62,8 @@ export function PhoneNumberInput({
         className="w-full"
         type="tel"
         disabled={disabled}
-        autoComplete="tel-national"
+        autoComplete="tel"
+        inputMode="tel"
         placeholder={t('placeholder')}
         autoFocus={autoFocus}
       />

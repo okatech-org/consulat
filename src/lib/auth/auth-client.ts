@@ -1,1 +1,0 @@
-export const authClient = null

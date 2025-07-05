@@ -1,12 +1,12 @@
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { type DefaultSession, type NextAuthConfig } from 'next-auth';
-import { env } from '@/env';
 import { db } from '@/server/db';
 import { otpProvider } from './otp-provider';
 import { signupProvider } from './signup-provider';
 import type { SessionUser } from '@/lib/user';
 import { getUserSession } from '@/lib/getters';
 import { UserRole } from '@prisma/client';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { JWT } from 'next-auth/jwt';
 import { ROUTES } from '@/schemas/routes';
 
@@ -76,6 +76,7 @@ export const authConfig = {
       if (token?.id && token?.role && typeof token.id === 'string') {
         const user = await getUserSession(token.id, token.role as UserRole);
         if (user) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           session.user = user as any;
         }
       }

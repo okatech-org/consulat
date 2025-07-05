@@ -78,7 +78,7 @@ export const signupProvider: Provider = CredentialsProvider({
       throw createAuthError('invalid_email', "Format d'email invalide");
     }
 
-    const phoneRegex = /^\+[1-9]\d{1,14}$/;
+    const phoneRegex = /^\+\d{2}-\d{9,}$/;
     if (!phoneRegex.test(phone as string)) {
       throw createAuthError('invalid_phone', 'Format de téléphone invalide');
     }
@@ -118,15 +118,9 @@ export const signupProvider: Provider = CredentialsProvider({
 
     // Si on demande l'envoi du code
     if (action === 'send') {
+      const formattedIdentifier = channel === 'sms' ? identifier.replace('-', '') : identifier;
       // Envoyer le code via Vonage
-      const result = await vonageService.sendVerificationCode(identifier, channel);
-
-      console.log('Résultat envoi code inscription', {
-        result,
-        type,
-        channel,
-        identifier,
-      });
+      const result = await vonageService.sendVerificationCode(formattedIdentifier, channel);
 
       if (!result.success) {
         throw createAuthError(

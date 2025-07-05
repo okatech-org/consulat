@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
+import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Mail, Phone, Loader2 } from 'lucide-react';
@@ -15,8 +14,6 @@ interface SignInResult {
   url?: string | null;
 }
 
-// Note: La détection automatique est remplacée par un sélecteur manuel pour une meilleure UX
-
 export function OtpLogin() {
   const router = useRouter();
   const [method, setMethod] = useState<'email' | 'phone'>('email');
@@ -25,25 +22,6 @@ export function OtpLogin() {
   const [step, setStep] = useState<'identifier' | 'code'>('identifier');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const sendCode = api.auth.sendVerificationCode.useMutation({
-    onSuccess: () => {
-      setStep('code');
-      setError('');
-    },
-    onError: (err) => {
-      setError(err.message);
-    },
-  });
-
-  const resendCode = api.auth.resendCode.useMutation({
-    onSuccess: () => {
-      setError('');
-    },
-    onError: (err) => {
-      setError(err.message);
-    },
-  });
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +48,38 @@ export function OtpLogin() {
     }
 
     try {
-      await sendCode.mutateAsync({ identifier });
+      // Utiliser le provider OTP pour envoyer le code
+      const result = (await signIn('otp', {
+        identifier,
+        action: 'send',
+        redirect: false,
+      })) as SignInResult;
+
+      if (result?.error) {
+        // Mapper les codes d'erreur
+        let errorMessage = result.error;
+        const specificCode = result.code;
+
+        switch (specificCode) {
+          case 'invalid_identifier':
+            errorMessage = "Format d'identifiant invalide";
+            break;
+          case 'send_failed':
+            errorMessage = "Erreur lors de l'envoi du code";
+            break;
+          default:
+            errorMessage = "Erreur lors de l'envoi du code";
+            break;
+        }
+
+        setError(errorMessage);
+      } else {
+        setStep('code');
+        setError('');
+      }
+    } catch (err) {
+      console.error('Erreur envoi code:', err);
+      setError("Erreur lors de l'envoi du code");
     } finally {
       setLoading(false);
     }
@@ -82,7 +91,7 @@ export function OtpLogin() {
     setLoading(true);
 
     try {
-      // Utiliser le provider OTP unifié
+      // Utiliser le provider OTP pour vérifier le code
       const result = (await signIn('otp', {
         identifier,
         code,
@@ -93,37 +102,30 @@ export function OtpLogin() {
       if (result?.error) {
         // Mapper les codes d'erreur spécifiques vers des messages clairs
         let errorMessage = result.error;
-
-        // Le code spécifique est dans result.code, pas result.error
         const specificCode = result.code;
 
         switch (specificCode) {
           case 'no_code_pending':
             errorMessage = "Aucun code en attente. Demandez d'abord un nouveau code.";
-            // Ramener à l'étape précédente
             setStep('identifier');
             setCode('');
             break;
           case 'code_expired':
             errorMessage = 'Le code a expiré. Demandez un nouveau code.';
-            // Ramener à l'étape précédente
             setStep('identifier');
             setCode('');
             break;
           case 'code_already_used':
             errorMessage = 'Ce code a déjà été utilisé. Demandez un nouveau code.';
-            // Ramener à l'étape précédente
             setStep('identifier');
             setCode('');
             break;
           case 'invalid_code':
             errorMessage = 'Code invalide. Vérifiez et réessayez.';
-            // Rester sur l'étape de saisie du code mais vider le champ
             setCode('');
             break;
           case 'too_many_attempts':
             errorMessage = 'Trop de tentatives. Demandez un nouveau code.';
-            // Ramener à l'étape précédente
             setStep('identifier');
             setCode('');
             break;
@@ -132,16 +134,8 @@ export function OtpLogin() {
             setStep('identifier');
             setCode('');
             break;
-          case 'Configuration':
-          case 'CredentialsSignin':
-          case undefined:
-          case null:
-            // Erreurs génériques ou absence de code spécifique
-            errorMessage = 'Erreur de connexion. Veuillez réessayer.';
-            break;
           default:
-            // Code spécifique non reconnu - garder le message original ou un message générique
-            errorMessage = `Erreur : ${specificCode}`;
+            errorMessage = 'Erreur de connexion. Veuillez réessayer.';
             break;
         }
 
@@ -162,8 +156,26 @@ export function OtpLogin() {
 
   const handleResendCode = async () => {
     setError('');
-    const type = method === 'email' ? 'EMAIL' : 'SMS';
-    await resendCode.mutateAsync({ identifier, type });
+    setLoading(true);
+
+    try {
+      const result = (await signIn('otp', {
+        identifier,
+        action: 'send',
+        redirect: false,
+      })) as SignInResult;
+
+      if (result?.error) {
+        setError("Erreur lors de l'envoi du code");
+      } else {
+        setError('');
+      }
+    } catch (err) {
+      console.error('Erreur renvoi code:', err);
+      setError("Erreur lors de l'envoi du code");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatPhoneNumber = (value: string) => {
@@ -265,10 +277,10 @@ export function OtpLogin() {
 
           <button
             type="submit"
-            disabled={loading || sendCode.isPending || !identifier}
+            disabled={loading || !identifier}
             className="flex w-full items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading || sendCode.isPending ? (
+            {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Envoi en cours...
@@ -335,15 +347,15 @@ export function OtpLogin() {
               }}
               className="text-blue-600 hover:underline"
             >
-              Changer d'identifiant
+              Changer d&apos;identifiant
             </button>
             <button
               type="button"
               onClick={handleResendCode}
-              disabled={resendCode.isPending}
+              disabled={loading}
               className="text-blue-600 hover:underline disabled:opacity-50"
             >
-              {resendCode.isPending ? 'Envoi...' : 'Renvoyer le code'}
+              {loading ? 'Envoi...' : 'Renvoyer le code'}
             </button>
           </div>
         </form>

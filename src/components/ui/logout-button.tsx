@@ -3,24 +3,18 @@
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
-import { LogOutIcon, LoaderIcon } from 'lucide-react';
+import { LogOutIcon } from 'lucide-react';
 import { useCurrentUser } from '@/contexts/user-context';
-import { useRouter } from 'next/navigation';
-import { authClient } from '@/lib/auth/auth-client';
-import { ROUTES } from '@/schemas/routes';
 import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
+import { signOut } from 'next-auth/react';
 
-type LogoutButtonProps = {
-  customClass?: string;
-  redirectUrl?: string;
-};
+type LogoutButtonProps = { customClass?: string; redirectUrl?: string };
 
 export function LogoutButton({ customClass, redirectUrl }: LogoutButtonProps) {
   const t = useTranslations('auth.actions');
   const { user } = useCurrentUser();
   const [isPending, startTransition] = React.useTransition();
   const [hasLoggedOut, setHasLoggedOut] = React.useState(false);
-  const router = useRouter();
 
   if (!user) {
     return null;
@@ -33,26 +27,7 @@ export function LogoutButton({ customClass, redirectUrl }: LogoutButtonProps) {
     try {
       setHasLoggedOut(true);
 
-      // Sign out using authClient
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            // Use centralized redirect logic
-            AuthRedirectManager.handleLogoutSuccess({
-              fallbackUrl: redirectUrl,
-              method: 'replace',
-            });
-          },
-          onError: (error) => {
-            console.error('Sign out error:', error);
-            // Still redirect on error to ensure user is logged out from UI
-            AuthRedirectManager.handleLogoutSuccess({
-              fallbackUrl: redirectUrl,
-              method: 'replace',
-            });
-          },
-        },
-      });
+      await signOut({ redirectTo: '/' });
     } catch (error) {
       console.error('Logout failed:', error);
       // Fallback: still redirect to clear UI state

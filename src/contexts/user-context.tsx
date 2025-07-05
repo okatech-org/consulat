@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import type { SessionUser } from '@/lib/user';
@@ -90,12 +90,7 @@ export function useCurrentUser() {
 // Hook pour vérifier l'authentification
 export function useAuth() {
   const { user, isAuthenticated, isLoading } = useCurrentUser();
-  return {
-    user,
-    isAuthenticated,
-    isLoading,
-    isGuest: !isAuthenticated && !isLoading,
-  };
+  return { user, isAuthenticated, isLoading, isGuest: !isAuthenticated && !isLoading };
 }
 
 // Hook pour les informations utilisateur spécifiques

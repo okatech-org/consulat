@@ -70,6 +70,9 @@ export default {
         "Impossible d'envoyer le code de vérification. Veuillez réessayer.",
       phone_invalid: 'Numéro de téléphone invalide',
       email_invalid: 'Adresse email invalide',
+      invalid_identifier: "Format d'identifiant invalide",
+      no_code_pending: "Aucun code en attente. Demandez d'abord un nouveau code.",
+      code_already_used: 'Ce code a déjà été utilisé. Demandez un nouveau code.',
       sms_service_unavailable:
         "Service SMS temporairement indisponible. Veuillez utiliser l'email ou réessayer plus tard.",
       too_many_attempts: 'Trop de tentatives. Veuillez patienter avant de réessayer.',
