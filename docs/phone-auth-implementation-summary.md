@@ -1,93 +1,99 @@
-# Résumé de l'implémentation de l'authentification par téléphone
+# Authentification par téléphone/email - Implémentation
 
-## Vue d'ensemble
+## Résumé de l'implémentation
 
-J'ai implémenté un système complet d'authentification par numéro de téléphone utilisant l'API Vonage Verify V2. Cette solution permet aux utilisateurs de se connecter ou de créer un compte en utilisant uniquement leur numéro de téléphone et un code SMS.
+Cette implémentation utilise NextAuth.js avec un provider personnalisé pour l'authentification par OTP (One-Time Password) via SMS ou email.
 
-## Composants créés
+## Architecture
 
-### 1. Base de données (Prisma)
+### 1. Provider OTP personnalisé (`src/server/auth/otp-provider.ts`)
 
-- **Modèle User** : Ajout des champs `phone` et `phoneVerified`
-- **Modèle PhoneVerification** : Nouvelle table pour gérer les tentatives de vérification
+Le provider gère deux actions :
+- **send** : Envoie le code OTP via Vonage
+- **verify** : Vérifie le code OTP et authentifie l'utilisateur
 
-### 2. Backend
+**Nouveauté** : Au lieu de retourner un utilisateur temporaire lors de l'envoi du code, le provider lance une erreur spéciale avec le code `CODE_SENT` pour indiquer que le code a été envoyé avec succès.
 
-#### Service Vonage (`src/server/services/vonage.ts`)
+```typescript
+// Au lieu de retourner un utilisateur temporaire :
+// return { id: 'temp-sending-code', name: 'Sending Code', email: null, image: null };
 
-- `sendVerificationCode()` : Envoie un code SMS via Vonage
-- `verifyCode()` : Vérifie le code reçu
-- `cancelVerification()` : Annule une vérification en cours
+// Nous lançons une erreur spéciale :
+throw createCodeSentError('Code envoyé avec succès');
+```
 
-#### Routeur tRPC (`src/server/api/routers/auth.ts`)
+### 2. Gestion des erreurs
 
-- `sendVerificationCode` : Endpoint pour envoyer un code
-- `verifyCode` : Endpoint pour vérifier le code et créer l'utilisateur
-- `resendCode` : Endpoint pour renvoyer un nouveau code
+Le système utilise des erreurs personnalisées avec des codes spécifiques :
 
-#### Provider NextAuth (`src/server/auth/phone-provider.ts`)
+```typescript
+function createCodeSentError(message: string) {
+  class CodeSentError extends CredentialsSignin {
+    code = 'CODE_SENT';
+  }
+  const error = new CodeSentError();
+  error.message = message;
+  return error;
+}
+```
 
-- Provider personnalisé pour intégrer l'authentification par téléphone avec NextAuth
+### 3. Interface utilisateur (`src/components/auth/login-form.tsx`)
 
-### 3. Frontend
+Le composant de connexion gère maintenant le code `CODE_SENT` comme un succès :
 
-#### Composant PhoneLogin (`src/components/auth/phone-login.tsx`)
+```typescript
+const sendOTPCode = React.useCallback(
+  async (identifier: string) => {
+    const result = await signIn('otp', {
+      identifier,
+      action: 'send',
+      redirect: false,
+    });
 
-- Interface utilisateur complète en deux étapes
-- Gestion des erreurs et états de chargement
-- Formatage automatique des numéros de téléphone
-- Options pour renvoyer le code ou changer de numéro
+    if (result?.error) {
+      // Vérifier si c'est le code spécial CODE_SENT
+      if (result.code === 'CODE_SENT') {
+        // C'est un succès, pas une erreur
+        return;
+      }
+      
+      // Sinon, c'est une vraie erreur
+      throw new Error(errorMessage);
+    }
+  },
+  [tErrors],
+);
+```
 
-#### Page de connexion (`src/app/auth/login/page.tsx`)
+## Avantages de cette approche
 
-- Page dédiée à l'authentification
-- Redirection automatique si déjà connecté
-- Lien vers les autres méthodes de connexion
+1. **Pas de session temporaire** : Évite la création d'une session avec un utilisateur fictif
+2. **Logique plus claire** : Les callbacks NextAuth n'ont plus besoin de gérer des cas spéciaux
+3. **Gestion d'erreurs cohérente** : Utilise le système d'erreurs standard de NextAuth
+4. **Sécurité renforcée** : Pas de risque de laisser une session temporaire active
+
+## Flux d'authentification
+
+1. **Étape 1 - Envoi du code** :
+   - L'utilisateur saisit son email/téléphone
+   - Le provider lance une erreur `CODE_SENT` après envoi réussi
+   - L'interface passe à l'étape de saisie du code
+
+2. **Étape 2 - Vérification** :
+   - L'utilisateur saisit le code reçu
+   - Le provider vérifie le code et retourne l'utilisateur authentifié
+   - Une vraie session est créée
 
 ## Configuration requise
 
-### Variables d'environnement
+- NextAuth.js avec strategy JWT
+- Provider Vonage pour l'envoi des codes
+- Base de données pour stocker les codes temporaires
+- Traductions pour les messages d'erreur
 
-```env
-VONAGE_API_KEY="votre_api_key"
-VONAGE_API_SECRET="votre_api_secret"
-VONAGE_APPLICATION_ID="votre_application_id"
-VONAGE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
-```
+## Sécurité
 
-**Important** : Vonage Verify V2 nécessite une authentification JWT avec une application Vonage. Consultez le guide détaillé dans `docs/vonage-verify-v2-setup-guide.md`.
-
-### Mise à jour de la base de données
-
-```bash
-bun run db:push
-```
-
-## Flux d'utilisation
-
-1. L'utilisateur accède à `/auth/login`
-2. Il entre son numéro de téléphone au format international
-3. Un code à 6 chiffres est envoyé par SMS
-4. L'utilisateur entre le code reçu
-5. Si valide, un compte est créé/mis à jour et une session est établie
-6. L'utilisateur est redirigé vers la page d'accueil
-
-## Fonctionnalités de sécurité
-
-- Codes à usage unique avec expiration de 5 minutes
-- Un seul code actif par numéro à la fois
-- Compteur de tentatives de vérification
-- Numéros de téléphone uniques dans la base de données
-- Validation du format E.164 pour les numéros
-
-## Points d'amélioration possibles
-
-1. **Limitation de taux** : Ajouter une limite sur le nombre de SMS par numéro/IP
-2. **Blocage après échecs** : Bloquer temporairement après X tentatives échouées
-3. **Logs d'audit** : Enregistrer toutes les tentatives de connexion
-4. **Support multi-canal** : Ajouter WhatsApp ou appel vocal comme alternatives
-5. **Personnalisation** : Permettre la personnalisation du message SMS
-
-## Coûts
-
-L'utilisation de Vonage pour l'envoi de SMS est payante. Les coûts varient selon le pays de destination. Consultez la [grille tarifaire Vonage](https://www.vonage.com/communications-apis/sms/pricing/) [[memory:85132]] pour plus de détails.
+- Codes expirés après 5 minutes
+- Limitation des tentatives (3 max)
+- Validation des formats d'identifiants
+- Stockage sécurisé des requestId Vonage

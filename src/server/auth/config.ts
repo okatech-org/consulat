@@ -52,21 +52,14 @@ export const authConfig = {
     error: ROUTES.auth.auth_error,
   },
   session: {
-    strategy: 'jwt', // Utiliser JWT car CredentialsProvider ne fonctionne pas avec database
-    maxAge: 30 * 24 * 60 * 60, // 30 jours
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     jwt: async ({ token, user }) => {
-      // Lors de la première connexion, ajouter les données de l'utilisateur au token
       if (user) {
         token.id = user.id as string;
         token.role = user.role as UserRole;
-      }
-
-      // Si c'est une connexion via le provider phone/email et que c'est juste l'envoi du code
-      if (user?.id === 'temp-sending-code') {
-        // Ne pas créer de vraie session
-        return token;
       }
 
       return token;
@@ -82,13 +75,8 @@ export const authConfig = {
       }
       return session;
     },
-    signIn: async ({ user }) => {
-      // Si c'est juste l'envoi du code, on ne crée pas de session
-      if (user.id === 'temp-sending-code') {
-        return true; // Permet de continuer sans créer de vraie session
-      }
-
-      // Pour tous les autres cas, créer une session normale
+    signIn: async () => {
+      // Pour tous les cas, créer une session normale
       return true;
     },
   },

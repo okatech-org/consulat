@@ -59,10 +59,7 @@ export function ChatToggle({ customIcon }: { customIcon?: React.ReactNode }) {
         <span className="text-sm font-medium">Chat</span>
       </SheetTitle>
 
-      <SheetTrigger
-        className="aspect-square flex items-center justify-center size-[45px] p-1 rounded-full overflow-hidden"
-        asChild
-      >
+      <SheetTrigger className="aspect-square flex items-center justify-center size-[45px] p-1 rounded-full overflow-hidden">
         {customIcon ?? <IAstedButton />}
       </SheetTrigger>
 

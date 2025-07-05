@@ -16,6 +16,17 @@ function createAuthError(code: string, message: string) {
   return error;
 }
 
+// Nouvelle erreur spécifique pour l'envoi de code
+function createCodeSentError(message: string) {
+  class CodeSentError extends CredentialsSignin {
+    code = 'CODE_SENT';
+  }
+  const error = new CodeSentError();
+  error.message = message;
+  console.log('CodeSentError', error);
+  return error;
+}
+
 // Déterminer le type et le canal selon l'identifiant
 function getIdentifierType(identifier: string): {
   type: 'SMS' | 'EMAIL';
@@ -62,8 +73,6 @@ export const otpProvider: Provider = CredentialsProvider({
       // Envoyer le code via Vonage
       const result = await vonageService.sendVerificationCode(identifier, channel);
 
-      console.log("Résultat de l'envoi du code", { result, type, channel });
-
       if (!result.success) {
         throw createAuthError(
           'send_failed',
@@ -93,15 +102,8 @@ export const otpProvider: Provider = CredentialsProvider({
         },
       });
 
-      console.log('RequestId enregistré', { requestId: result.requestId, type });
-
-      // Retourner un utilisateur temporaire
-      return {
-        id: 'temp-sending-code',
-        name: 'Sending Code',
-        email: null,
-        image: null,
-      };
+      // Lancer une erreur spéciale pour indiquer que le code a été envoyé
+      throw createCodeSentError('Code envoyé avec succès');
     }
 
     // Si on vérifie le code
