@@ -12,9 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-type ModeToggleProps = {
-  trigger?: React.ReactNode;
-};
+type ModeToggleProps = { trigger?: React.ReactNode };
 export function ModeToggle({ trigger }: Readonly<ModeToggleProps>) {
   const { setTheme } = useTheme();
 
@@ -24,9 +22,15 @@ export function ModeToggle({ trigger }: Readonly<ModeToggleProps>) {
         {trigger ? (
           <>{trigger}</>
         ) : (
-          <Button variant="ghost">
-            <SunIcon className="inline-block size-[1.2rem] dark:hidden" />
-            <MoonIcon className="hidden size-[1.2rem] dark:inline-block" />
+          <Button
+            variant="ghost"
+            leftIcon={
+              <>
+                <SunIcon className="inline-block size-[1.2rem] dark:hidden" />
+                <MoonIcon className="hidden size-[1.2rem] dark:inline-block" />
+              </>
+            }
+          >
             <span className={'font-normal'}>Toggle theme</span>
           </Button>
         )}

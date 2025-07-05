@@ -25,7 +25,7 @@ export default function DynamicFields<T>({
 
   useEffect(() => {
     if (emailFieldRefs.current.length !== 0) {
-      emailFieldRefs.current[emailFieldRefs.current.length - 1].focus();
+      emailFieldRefs.current[emailFieldRefs.current.length - 1]?.focus();
     }
   }, [fields]);
 
@@ -47,10 +47,10 @@ export default function DynamicFields<T>({
           type="button"
           size="sm"
           variant={'outline'}
-          className="w-max gap-x-2 border-dashed"
+          className="w-max border-dashed"
+          leftIcon={<PlusCircle className={'size-5'} />}
           onClick={() => append()}
         >
-          <PlusCircle className={'size-5'} />
           {addLabel}
         </Button>
       )}

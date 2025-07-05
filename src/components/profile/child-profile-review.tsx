@@ -173,7 +173,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
                     />
                   </div>
                   <Button
-                    disabled={isLoading}
+                    loading={isLoading}
                     className="w-full"
                     onClick={async () => {
                       setIsLoading(true);
@@ -197,7 +197,8 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
             {selectedStatus !== RequestStatus.VALIDATED && (
               <Button
                 className="w-full"
-                disabled={isLoading || selectedStatus === request.status}
+                loading={isLoading}
+                disabled={selectedStatus === request.status}
                 onClick={async () => {
                   setIsLoading(true);
                   await updateConsularRegistrationStatus(

@@ -47,11 +47,10 @@ export function DocumentPreview({
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="icon-sm"
             onClick={() => setIsOpenAction(true)}
-          >
-            <Eye className="size-icon" />
-          </Button>
+            leftIcon={<Eye className="size-icon" />}
+          />
         </SheetTrigger>
       )}
       <SheetContent side={isMobile ? 'bottom' : 'right'} className="!max-w-5xl">
@@ -59,20 +58,32 @@ export function DocumentPreview({
           <SheetHeader>
             <SheetTitle>{title}</SheetTitle>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleZoomOut}>
-                <ZoomOut className="size-icon" />
-              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={handleZoomOut}
+                leftIcon={<ZoomOut className="size-icon" />}
+              />
               <span className="text-sm">{Math.round(zoom * 100)}%</span>
-              <Button variant="outline" size="sm" onClick={handleZoomIn}>
-                <ZoomIn className="size-icon" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleRotate}>
-                <RotateCw className="size-icon" />
-              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={handleZoomIn}
+                leftIcon={<ZoomIn className="size-icon" />}
+              />
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={handleRotate}
+                leftIcon={<RotateCw className="size-icon" />}
+              />
               {onDownload && (
-                <Button variant="outline" size="sm" onClick={onDownload}>
-                  <Download className="size-icon" />
-                </Button>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={onDownload}
+                  leftIcon={<Download className="size-icon" />}
+                />
               )}
             </div>
           </SheetHeader>
@@ -86,9 +97,7 @@ export function DocumentPreview({
                     'relative transition-transform duration-200',
                     'max-h-full max-w-full',
                   )}
-                  style={{
-                    transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                  }}
+                  style={{ transform: `scale(${zoom}) rotate(${rotation}deg)` }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

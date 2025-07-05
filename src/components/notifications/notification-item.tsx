@@ -45,8 +45,12 @@ export const NotificationItem = memo(function NotificationItem({
         </div>
         <div className="flex items-center gap-2">
           {!notification.read && (
-            <Button variant="ghost" size="sm" onClick={() => markAsRead(notification.id)}>
-              <Check className="size-4" />
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              leftIcon={<Check className="size-4" />}
+              onClick={() => markAsRead(notification.id)}
+            >
               <span className="sr-only">{t('actions.mark_as_read')}</span>
             </Button>
           )}

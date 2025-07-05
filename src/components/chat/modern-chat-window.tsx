@@ -4,11 +4,11 @@ import { useRef, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2, ChevronDown, X, TrashIcon } from 'lucide-react';
+import { Send, ChevronDown, X, TrashIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 import { useTranslations } from 'next-intl';
-import { ChatMessage } from '@/lib/ai/types';
+import type { ChatMessage } from '@/lib/ai/types';
 import {
   Dialog,
   DialogTrigger,
@@ -234,9 +234,12 @@ export function ModernChatWindow({
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="!size-6" />
-        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          leftIcon={<X className="!size-6" />}
+          onClick={onClose}
+        />
       </div>
 
       {/* Corps des messages */}
@@ -340,10 +343,9 @@ export function ModernChatWindow({
           onClick={scrollToBottom}
           size="icon"
           variant="secondary"
+          leftIcon={<ChevronDown className="h-5 w-5" />}
           className="absolute bottom-20 right-4 rounded-full h-10 w-10 shadow-md opacity-90 hover:opacity-100"
-        >
-          <ChevronDown className="h-5 w-5" />
-        </Button>
+        />
       )}
 
       {/* Saisie de message */}
@@ -361,17 +363,12 @@ export function ModernChatWindow({
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
+            disabled={!inputValue.trim()}
             size="icon"
             className="absolute top-1/2 -translate-y-1/2 right-2 h-8 w-8 rounded-full"
             loading={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="size-icon animate-spin" />
-            ) : (
-              <Send className="size-icon" />
-            )}
-          </Button>
+            leftIcon={!isLoading ? <Send className="size-icon" /> : undefined}
+          />
           <div className="absolute top-1/2 -translate-y-[250%] right-5 h-8 w-8 rounded-full">
             <Dialog>
               <DialogTrigger asChild>
@@ -380,7 +377,7 @@ export function ModernChatWindow({
                   className="rounded-full aspect-square"
                   size="icon"
                   leftIcon={<TrashIcon />}
-                ></Button>
+                />
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

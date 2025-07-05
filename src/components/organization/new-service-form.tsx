@@ -15,12 +15,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Country, Organization, ServiceCategory } from '@prisma/client';
-import { Loader2 } from 'lucide-react';
-import { ConsularServiceListingItem } from '@/types/consular-service';
-import { NewServiceSchema, NewServiceSchemaInput } from '@/schemas/consular-service';
+import { ServiceCategory } from '@prisma/client';
+import type { Country, Organization } from '@prisma/client';
+import type { ConsularServiceListingItem } from '@/types/consular-service';
+import { NewServiceSchema, type NewServiceSchemaInput } from '@/schemas/consular-service';
 import { CountrySelect } from '../ui/country-select';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 import { useState } from 'react';
 import { tryCatch } from '@/lib/utils';
 import { createService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
@@ -176,8 +176,7 @@ export function NewServiceForm({
         />
 
         <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isLoading || !form.formState.isValid}>
-            {isLoading && <Loader2 className="size-icon animate-spin" />}
+          <Button type="submit" loading={isLoading} disabled={!form.formState.isValid}>
             {initialData ? t('actions.update') : t('actions.create')}
           </Button>
         </div>

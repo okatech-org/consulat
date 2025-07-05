@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Pencil, Trash, Ban, CheckCircle, Copy } from 'lucide-react';
-import { ConsularServiceListingItem } from '@/types/consular-service';
+import type { ConsularServiceListingItem } from '@/types/consular-service';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 
@@ -33,9 +33,11 @@ export function ServiceActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="size-8 p-0">
-          <MoreHorizontal className="size-4" />
-        </Button>
+        <Button
+          variant="ghost"
+          className="size-8 p-0"
+          leftIcon={<MoreHorizontal className="size-4" />}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>

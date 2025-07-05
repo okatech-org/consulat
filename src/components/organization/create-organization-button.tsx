@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Country } from '@prisma/client';
+import type { Country } from '@prisma/client';
 import { OrganizationForm } from './organization-form';
 
 interface CreateOrganizationButtonProps {
@@ -25,8 +25,7 @@ export function CreateOrganizationButton({ countries }: CreateOrganizationButton
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 size-4" />
+        <Button leftIcon={<Plus className="size-4" />}>
           <span className={'mobile-hide-inline'}>{t('actions.create')}</span>
         </Button>
       </DialogTrigger>

@@ -37,7 +37,7 @@ import {
   ServiceCategory,
   ServiceStepType,
 } from '@prisma/client';
-import { ArrowUp, Loader2, Plus, Trash } from 'lucide-react';
+import { ArrowUp, Plus, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -76,10 +76,8 @@ export function ConsularServiceForm({
 
   const form = useForm<typeof ServiceSchema>({
     resolver: zodResolver(ServiceSchema),
-     
-    defaultValues: {
-      ...cleanedService,
-    },
+
+    defaultValues: { ...cleanedService },
   });
 
   const handleSubmit = async (data: ServiceSchemaInput) => {
@@ -92,10 +90,7 @@ export function ConsularServiceForm({
       if (result.error) {
         throw new Error(result.error);
       }
-      toast({
-        title: t('messages.updateSuccess'),
-        variant: 'success',
-      });
+      toast({ title: t('messages.updateSuccess'), variant: 'success' });
       router.refresh();
     } catch (error) {
       toast({
@@ -526,7 +521,8 @@ export function ConsularServiceForm({
                         <div className="flex gap-2">
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon-sm"
+                            leftIcon={<ArrowUp className="size-4" />}
                             onClick={() => {
                               const steps = form.getValues('steps');
                               if (index > 0) {
@@ -539,12 +535,11 @@ export function ConsularServiceForm({
                               }
                             }}
                             disabled={index === 0}
-                          >
-                            <ArrowUp className="size-4" />
-                          </Button>
+                          />
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon-sm"
+                            leftIcon={<Trash className="size-4" />}
                             onClick={() => {
                               const steps = form.getValues('steps');
                               const newSteps = steps.filter(
@@ -552,9 +547,7 @@ export function ConsularServiceForm({
                               );
                               form.setValue('steps', newSteps);
                             }}
-                          >
-                            <Trash className="size-4" />
-                          </Button>
+                          />
                         </div>
                       }
                     >
@@ -616,6 +609,7 @@ export function ConsularServiceForm({
                 <Button
                   type="button"
                   variant="outline"
+                  leftIcon={<Plus className="size-4" />}
                   onClick={() => {
                     const steps = form.getValues('steps') || [];
                     form.setValue('steps', [
@@ -631,7 +625,6 @@ export function ConsularServiceForm({
                     ]);
                   }}
                 >
-                  <Plus className="mr-2 size-4" />
                   {t('form.steps.add')}
                 </Button>
               </div>
@@ -663,8 +656,7 @@ export function ConsularServiceForm({
         </Tabs>
 
         <div className="gap-4 lg:flex lg:justify-end">
-          <Button type="submit" disabled={isLoading} className={'w-full lg:w-max'}>
-            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button type="submit" loading={isLoading} className={'w-full lg:w-max'}>
             {service ? t('actions.update') : t('actions.create')}
           </Button>
         </div>

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { AgentForm } from './agent-form'; // Import AgentForm
-import { AgentFormData } from '@/schemas/user';
+import { type AgentFormData } from '@/schemas/user';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Organization } from '@/types/organization';
+import { type Organization } from '@/types/organization';
 
 import { getServicesForOrganization } from '@/actions/agents';
 import {
@@ -65,8 +65,7 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 size-4" />
+        <Button leftIcon={<Plus className="size-4" />}>
           <span className={'mobile-hide-inline'}>Ajouter</span>
         </Button>
       </DialogTrigger>

@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { CountryCode, countryKeys } from '@/lib/autocomplete-datas';
+import { type CountryCode, countryKeys } from '@/lib/autocomplete-datas';
 import { useTranslations } from 'next-intl';
 import { FlagIcon } from './flag-icon';
 
@@ -80,6 +80,7 @@ export function CountrySelect(props: CountrySelectProps) {
             aria-expanded={open}
             className="w-full justify-between"
             disabled={disabled}
+            rightIcon={<ChevronsUpDown className="size-4 shrink-0 opacity-50" />}
           >
             <div className="flex items-center gap-2">
               {type === 'single' && selected && (
@@ -98,7 +99,6 @@ export function CountrySelect(props: CountrySelectProps) {
 
               {!selected && <span className="text-muted-foreground">{placeholder}</span>}
             </div>
-            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">

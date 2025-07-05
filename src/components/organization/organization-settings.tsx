@@ -23,7 +23,7 @@ import {
 import { Organization } from '@/types/organization';
 import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Loader2, Trash } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -559,6 +559,7 @@ export function OrganizationSettings({
                                   variant="ghost"
                                   size="icon"
                                   className={'absolute right-2 top-2'}
+                                  leftIcon={<Trash className="size-4" />}
                                   onClick={() => {
                                     const closures = form.getValues(
                                       `metadata.${country.code}.settings.closures`,
@@ -571,9 +572,7 @@ export function OrganizationSettings({
                                       ),
                                     );
                                   }}
-                                >
-                                  <Trash className="size-4" />
-                                </Button>
+                                />
                               </div>
                             </div>
                           </CardContainer>
@@ -643,8 +642,7 @@ export function OrganizationSettings({
           ))}
         </Tabs>
         <div className="actions py-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button type="submit" loading={isLoading}>
             {isLoading
               ? t_common('common.actions.saving')
               : t_common('common.actions.save')}

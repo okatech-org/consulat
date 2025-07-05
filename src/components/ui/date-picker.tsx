@@ -1,7 +1,6 @@
 'use client';
 
-import * as React from 'react';
-import { format, Locale } from 'date-fns';
+import { format, type Locale } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -51,8 +50,8 @@ export function DatePicker({
           )}
           disabled={disabled}
           onClick={() => setPopoverOpen(true)}
+          leftIcon={<CalendarIcon className="mr-1 size-4" />}
         >
-          <CalendarIcon className="mr-1 size-4" />
           {date ? (
             format(date, dateStr, { locale: mappedLocale })
           ) : (

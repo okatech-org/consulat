@@ -30,15 +30,11 @@ export function BreadcrumbMenu() {
               {index !== pathnameParts.length - 1 ? (
                 <BreadcrumbLink asChild>
                   <Link href={`/${pathnameParts.slice(0, index + 1).join('/')}`}>
-                    {/* @ts-expect-error - part is not a valid key */}
                     {isMobile ? '...' : index <= 1 ? t(part) : part}
                   </Link>
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage>
-                  {/* @ts-expect-error - part is not a valid key */}
-                  {index <= 1 ? t(part) : part}
-                </BreadcrumbPage>
+                <BreadcrumbPage>{index <= 1 ? t(part) : part}</BreadcrumbPage>
               )}
             </BreadcrumbItem>
             {index !== pathnameParts.length - 1 && <BreadcrumbSeparator />}

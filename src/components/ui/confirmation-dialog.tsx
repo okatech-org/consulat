@@ -68,7 +68,8 @@ export function ConfirmationDialog({
           <Button
             variant={variant}
             onClick={handleConfirm}
-            disabled={disabled || isPending}
+            loading={isPending}
+            disabled={disabled}
           >
             {confirmLabel || t('actions.confirm')}
           </Button>

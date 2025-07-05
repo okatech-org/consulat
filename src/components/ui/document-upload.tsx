@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { FieldValues, UseFormReturn } from 'react-hook-form';
+import { type FieldValues, type UseFormReturn } from 'react-hook-form';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import Image from 'next/image';
 import {
@@ -14,7 +14,7 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 interface DocumentUploadFieldProps<T extends FieldValues> {
   id: string;
@@ -214,12 +214,11 @@ export function DocumentUploadField<T extends FieldValues>({
                       <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
+                        size="icon-sm"
                         onClick={removeFile}
                         disabled={disabled}
-                      >
-                        <X className="size-4" />
-                      </Button>
+                        leftIcon={<X className="size-4" />}
+                      />
                     </div>
                   </div>
                 </div>

@@ -2,7 +2,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { buttonVariants } from '@/components/ui/button';
 import { ArrowRight, Check, Lock, Users, MessageSquare, Shield } from 'lucide-react';
-import React from 'react';
 import { getTranslations } from 'next-intl/server';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { GlobalAnimations } from '@/components/ui/global-animations';
@@ -82,7 +81,7 @@ export default async function LandingPage() {
                   className={buttonVariants({
                     size: 'lg',
                     className:
-                      'gap-2 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white home-button-primary',
+                      'bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white home-button-primary',
                   })}
                 >
                   {l('hero.citizen_space')}
@@ -94,7 +93,7 @@ export default async function LandingPage() {
                     size: 'lg',
                     variant: 'outline',
                     className:
-                      'gap-2 border-blue-300 bg-white hover:bg-gray-50 text-blue-700 dark:border-blue-700 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-blue-400 home-button-secondary',
+                      'border-blue-300 bg-white hover:bg-gray-50 text-blue-700 dark:border-blue-700 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-blue-400 home-button-secondary',
                   })}
                 >
                   {l('hero.government_space')}

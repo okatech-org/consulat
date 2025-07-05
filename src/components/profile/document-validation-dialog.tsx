@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DocumentStatus } from '@prisma/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+
 import { validateDocument } from '@/actions/documents';
 import { tryCatch } from '@/lib/utils';
 
@@ -40,11 +40,7 @@ export function DocumentValidationDialog({
 
   const handleSubmit = async (status: DocumentStatus) => {
     const result = await tryCatch(
-      validateDocument({
-        documentId,
-        status,
-        notes: notes.trim() || undefined,
-      }),
+      validateDocument({ documentId, status, notes: notes.trim() || undefined }),
     );
 
     if (result.error) {
@@ -91,21 +87,15 @@ export function DocumentValidationDialog({
           <Button
             variant="destructive"
             onClick={() => handleSubmit(DocumentStatus.REJECTED)}
-            disabled={isSubmitting}
+            loading={isSubmitting && status === DocumentStatus.REJECTED}
           >
-            {isSubmitting && status === DocumentStatus.REJECTED && (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            )}
             {t('validation.reject')}
           </Button>
           <Button
             variant="success"
             onClick={() => handleSubmit(DocumentStatus.VALIDATED)}
-            disabled={isSubmitting}
+            loading={isSubmitting && status === DocumentStatus.VALIDATED}
           >
-            {isSubmitting && status === DocumentStatus.VALIDATED && (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            )}
             {t('validation.validate')}
           </Button>
         </DialogFooter>

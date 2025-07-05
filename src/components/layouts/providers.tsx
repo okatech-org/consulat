@@ -3,7 +3,7 @@ import { SidebarProvider } from '../ui/sidebar';
 import { Analytics } from '@vercel/analytics/react';
 import { getMessages } from 'next-intl/server';
 import { ChatProvider } from '@/contexts/chat-context';
-import { NextIntlClientProvider, AbstractIntlMessages } from 'next-intl';
+import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { ViewportDetector } from './viewport-detector';
@@ -18,7 +18,15 @@ export async function Providers({ children }: { children: React.ReactNode }) {
   const sidebarState = cookieStore?.get('sidebar_state');
 
   return (
-    <SidebarProvider defaultOpen={sidebarState?.value === 'true'}>
+    <SidebarProvider
+      defaultOpen={sidebarState?.value ? sidebarState.value === 'true' : true}
+      style={
+        {
+          '--sidebar-width': 'calc(var(--spacing) * 72)',
+          '--header-height': 'calc(var(--spacing) * 12)',
+        } as React.CSSProperties
+      }
+    >
       <SpeedInsights />
       <Analytics />
       <NextIntlClientProvider messages={messages as AbstractIntlMessages}>

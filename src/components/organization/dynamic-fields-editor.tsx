@@ -1,5 +1,9 @@
 import { Button } from '@/components/ui/button';
-import { fieldTypes, ServiceField, ServiceFieldType } from '@/types/consular-service';
+import {
+  fieldTypes,
+  type ServiceField,
+  type ServiceFieldType,
+} from '@/types/consular-service';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -100,12 +104,18 @@ export function DynamicFieldsEditor({
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => handleEditField(index)}>
-                <Pencil className="size-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleDeleteField(index)}>
-                <Trash className="size-4" />
-              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Pencil className="size-4" />}
+                onClick={() => handleEditField(index)}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Trash className="size-4" />}
+                onClick={() => handleDeleteField(index)}
+              />
             </div>
           </div>
         </Card>
@@ -115,13 +125,13 @@ export function DynamicFieldsEditor({
       <Button
         type="button"
         variant="outline"
+        leftIcon={<Plus className="size-4" />}
         onClick={() => {
           setEditingFieldIndex(-1);
           fieldForm.reset();
           setShowFieldDialog(true);
         }}
       >
-        <Plus className="mr-2 size-4" />
         {t('form.steps.step.fields.add')}
       </Button>
 
@@ -280,12 +290,7 @@ export function DynamicFieldsEditor({
                       <TagsInput
                         value={field.value?.map((o) => o.value) || []}
                         onChange={(values) => {
-                          field.onChange(
-                            values.map((v) => ({
-                              value: v,
-                              label: v,
-                            })),
-                          );
+                          field.onChange(values.map((v) => ({ value: v, label: v })));
                         }}
                       />
                       <TradFormMessage />

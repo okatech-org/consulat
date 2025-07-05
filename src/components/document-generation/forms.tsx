@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -15,8 +15,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { DocumentTemplate, DocumentType } from '@prisma/client';
-import { CreateDocumentTemplateSchema, CreateDocumentTemplateInput } from './schemas';
+import { type DocumentTemplate, DocumentType } from '@prisma/client';
+import {
+  CreateDocumentTemplateSchema,
+  type CreateDocumentTemplateInput,
+} from './schemas';
 import {
   Select,
   SelectContent,
@@ -36,7 +39,7 @@ import { ROUTES } from '@/schemas/routes';
 import { LoaderIcon } from 'lucide-react';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
-import { Config, PDFBuilder } from './pdf-builder';
+import { type Config, PDFBuilder } from './pdf-builder';
 
 interface CreateDocumentTemplateFormProps {
   organizationId: string;
@@ -73,9 +76,7 @@ export function CreateDocumentTemplateForm({
     }
 
     if (response.data) {
-      toast({
-        title: tMessages('success.document_template.create_success'),
-      });
+      toast({ title: tMessages('success.document_template.create_success') });
       router.push(ROUTES.dashboard.doc_template_edit(response.data.id));
     }
     setLoading(false);
@@ -140,9 +141,8 @@ export function CreateDocumentTemplateForm({
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" loading={loading}>
           {t('documentTemplate.actions.submit')}
-          {loading && <LoaderIcon className="size-icon ml-1" />}
         </Button>
       </form>
     </Form>
@@ -180,9 +180,7 @@ export default function EditionForm({ template }: EditionFormProps) {
         src: 'https://fonts.gstatic.com/s/oswald/v13/Y_TKV6o8WovbUd3m_X9aAA.ttf',
       },
     ],
-    document: {
-      title: template.name,
-    },
+    document: { title: template.name },
     children: [
       {
         element: 'Page',
@@ -192,11 +190,7 @@ export default function EditionForm({ template }: EditionFormProps) {
           size: 'A4',
           orientation: 'portrait',
           wrap: true,
-          style: {
-            paddingTop: 35,
-            paddingBottom: 65,
-            paddingHorizontal: 35,
-          },
+          style: { paddingTop: 35, paddingBottom: 65, paddingHorizontal: 35 },
         },
         children: [
           {
@@ -204,13 +198,7 @@ export default function EditionForm({ template }: EditionFormProps) {
             id: crypto.randomUUID(),
             parentId: defaultPageId,
             content: 'Nouveau texte',
-            props: {
-              style: {
-                fontSize: 20,
-                textAlign: 'center',
-                fontFamily: 'Oswald',
-              },
-            },
+            props: { style: { fontSize: 20, textAlign: 'center', fontFamily: 'Oswald' } },
           },
         ],
       },
@@ -242,17 +230,11 @@ export default function EditionForm({ template }: EditionFormProps) {
     );
 
     if (response.error) {
-      toast({
-        title: response.error.message,
-        variant: 'destructive',
-      });
+      toast({ title: response.error.message, variant: 'destructive' });
     }
 
     if (response.data) {
-      toast({
-        title: 'Modèle de document mis à jour avec succès',
-        variant: 'success',
-      });
+      toast({ title: 'Modèle de document mis à jour avec succès', variant: 'success' });
 
       router.refresh();
     }
@@ -261,10 +243,7 @@ export default function EditionForm({ template }: EditionFormProps) {
   };
 
   useEffect(() => {
-    form.setValue('content', builderConfig, {
-      shouldDirty: true,
-      shouldTouch: true,
-    });
+    form.setValue('content', builderConfig, { shouldDirty: true, shouldTouch: true });
   }, [builderConfig, form]);
 
   return (

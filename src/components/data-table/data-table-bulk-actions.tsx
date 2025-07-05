@@ -15,9 +15,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Fragment, ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 
-import { Table } from '@tanstack/react-table';
+import type { Table } from '@tanstack/react-table';
 
 export type BulkAction<T> = {
   label?: ReactNode;
@@ -47,8 +47,8 @@ export function DataTableBulkActions<TData>({
         <Button
           variant="ghost"
           className="relative flex size-8 p-0 data-[state=open]:bg-muted"
+          leftIcon={<MoreHorizontal />}
         >
-          <MoreHorizontal />
           {selectedCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
               {selectedCount}

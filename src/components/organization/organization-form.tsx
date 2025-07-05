@@ -1,10 +1,8 @@
 'use client';
 
-import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Loader2 } from 'lucide-react';
 
 import {
   Form,
@@ -24,17 +22,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { OrganizationType, OrganizationStatus, Country } from '@prisma/client';
+import { OrganizationType, OrganizationStatus, type Country } from '@prisma/client';
 import {
   organizationSchema,
   type CreateOrganizationInput,
-  UpdateOrganizationInput,
+  type UpdateOrganizationInput,
   updateOrganizationSchema,
 } from '@/schemas/organization';
-import { Organization } from '@/types/organization';
+import { type Organization } from '@/types/organization';
 import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { InfoField } from '@/components/ui/info-field';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import { type CountryCode } from '@/lib/autocomplete-datas';
 import { MultiSelect } from '../ui/multi-select';
 import { FlagIcon } from '../ui/flag-icon';
 
@@ -239,18 +237,14 @@ export function OrganizationForm({
         )}
 
         {organization && (
-          <InfoField
-            label={t('form.admin_email.label')}
-            value={organization.User?.email}
-          />
+          <InfoField label={t('form.admin_email.label')} value="admin@example.com" />
         )}
 
         <div className="flex justify-end gap-4">
           <Button variant="outline" type="button" disabled={isLoading} onClick={onCancel}>
             {t_common('actions.cancel')}
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button type="submit" loading={isLoading}>
             {organization ? t_common('actions.update') : t_common('actions.add')}
           </Button>
         </div>

@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,13 +25,13 @@ import { Button } from '@/components/ui/button';
 import { MultiSelectCountries } from '@/components/ui/multi-select-countries';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { useToast } from '@/hooks/use-toast';
-import { BaseAgent } from '@/types/organization';
-import { Country } from '@prisma/client';
+import { type BaseAgent } from '@/types/organization';
+import { type Country } from '@prisma/client';
 import { getServicesForOrganization, updateAgent } from '@/actions/agents';
 import { getActiveCountries } from '@/actions/countries';
 import { tryCatch } from '@/lib/utils';
 import { PhoneNumberInput } from '../ui/phone-number';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import { type CountryCode } from '@/lib/autocomplete-datas';
 
 const editAgentSchema = z.object({
   email: z.string().email('Email invalide').optional().or(z.literal('')),
@@ -115,10 +114,7 @@ export function EditAgentDialog({
     const result = await tryCatch(updateAgent(agent.id, updateData));
 
     if (result.data) {
-      toast({
-        title: t_messages('success.update'),
-        variant: 'success',
-      });
+      toast({ title: t_messages('success.update'), variant: 'success' });
       onSuccess();
       onOpenChange(false);
     }
@@ -235,8 +231,7 @@ export function EditAgentDialog({
               >
                 {t_common('actions.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+              <Button type="submit" loading={isLoading}>
                 {t_common('actions.save')}
               </Button>
             </div>

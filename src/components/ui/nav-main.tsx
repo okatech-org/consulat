@@ -12,9 +12,8 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { NavMainItem } from '@/hooks/use-navigation';
+import type { NavMainItem } from '@/hooks/use-navigation';
 import { ROUTES } from '@/schemas/routes';
-import { useChat } from '@/contexts/chat-context';
 import { ChatToggle } from '../chat/chat-toggle';
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
@@ -47,8 +46,8 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               size="icon"
               className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
+              leftIcon={<ChatToggle customIcon={<MessageSquareIcon />} />}
             >
-              <ChatToggle customIcon={<MessageSquareIcon />} />
               <span className="sr-only">Messagerie</span>
             </Button>
           </SidebarMenuItem>

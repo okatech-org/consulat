@@ -4,13 +4,16 @@ import { useRegistrationForm } from '@/hooks/use-registration-form';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import {
+import type {
   BasicInfoFormData,
   ContactInfoFormData,
   FamilyInfoFormData,
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
-import { DocumentUploadItem, DocumentUploadSection } from './document-upload-section';
+import {
+  type DocumentUploadItem,
+  DocumentUploadSection,
+} from './document-upload-section';
 import { BasicInfoForm } from './basic-info';
 import { FamilyInfoForm } from './family-info';
 import { ContactInfoForm } from './contact-form';
@@ -23,16 +26,21 @@ import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { submitProfileForValidation, updateProfile } from '@/actions/profile';
-import { ErrorMessageKey, filterUneditedKeys, getValuable, tryCatch } from '@/lib/utils';
+import {
+  type ErrorMessageKey,
+  filterUneditedKeys,
+  getValuable,
+  tryCatch,
+} from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
-import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import { type CountryCode } from '@/lib/autocomplete-datas';
 import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
-import { Country, CountryStatus } from '@prisma/client';
+import { type Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
-import { FullProfile } from '@/types';
+import { type FullProfile } from '@/types';
 import { env } from '@/env';
 import Image from 'next/image';
 import React from 'react';
@@ -218,7 +226,7 @@ export function RegistrationForm({
   };
 
   // Gestionnaire de navigation
-   
+
   const handleNext = async () => {
     setError(undefined);
     setValidationError(undefined);
@@ -488,25 +496,25 @@ export function RegistrationForm({
                 onClick={handlePrevious}
                 variant="outline"
                 disabled={isLoading || currentStepIndex === 0}
-                className="gap-2"
+                leftIcon={<ArrowLeft className="size-icon" />}
               >
-                <ArrowLeft className="size-icon" />
                 {t('navigation.previous')}
               </Button>
 
               <Button
                 type="submit"
                 onClick={() => handleNext()}
-                disabled={isLoading}
-                className="ml-auto gap-2"
+                loading={isLoading}
+                className="ml-auto"
+                rightIcon={
+                  currentStepIndex !== totalSteps - 1 ? (
+                    <ArrowRight className="size-icon" />
+                  ) : undefined
+                }
               >
-                {isLoading ? <Loader className="size-icon animate-spin" /> : null}
                 {currentStepIndex === totalSteps - 1
                   ? t('navigation.submit')
                   : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
-                {currentStepIndex !== totalSteps - 1 && (
-                  <ArrowRight className="size-icon" />
-                )}
               </Button>
             </div>
             {!currentStepValidity && (
@@ -519,13 +527,9 @@ export function RegistrationForm({
                   {Object.entries(currentStepErrors).map(([error, value]) => (
                     <li key={error} className="text-red-500 list-disc">
                       <span className="font-medium text-sm">
-                        {/**
-                         * @ts-expect-error - This is a workaround to get the error message key*/}
                         {tInputs(`${error}.label`)}
                       </span>
                       {': '}
-                      {/**
-                       * @ts-expect-error - we use the error message key*/}
                       <span>{t_base(value.message as ErrorMessageKey)}</span>
                     </li>
                   ))}
