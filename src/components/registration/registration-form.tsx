@@ -33,7 +33,7 @@ import {
   tryCatch,
 } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
-import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import { Dialog, DialogContent } from '../ui/dialog';
@@ -496,25 +496,25 @@ export function RegistrationForm({
                 onClick={handlePrevious}
                 variant="outline"
                 disabled={isLoading || currentStepIndex === 0}
-                className="gap-2"
+                leftIcon={<ArrowLeft className="size-icon" />}
               >
-                <ArrowLeft className="size-icon" />
                 {t('navigation.previous')}
               </Button>
 
               <Button
                 type="submit"
                 onClick={() => handleNext()}
-                disabled={isLoading}
-                className="ml-auto gap-2"
+                loading={isLoading}
+                className="ml-auto"
+                rightIcon={
+                  currentStepIndex !== totalSteps - 1 ? (
+                    <ArrowRight className="size-icon" />
+                  ) : undefined
+                }
               >
-                {isLoading ? <Loader className="size-icon animate-spin" /> : null}
                 {currentStepIndex === totalSteps - 1
                   ? t('navigation.submit')
                   : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
-                {currentStepIndex !== totalSteps - 1 && (
-                  <ArrowRight className="size-icon" />
-                )}
               </Button>
             </div>
             {!currentStepValidity && (

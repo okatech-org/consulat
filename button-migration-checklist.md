@@ -1,14 +1,15 @@
 # Checklist de Migration du Composant Button
 
 ## État de la Migration
-- **Total**: 25/120+ fichiers migrés
-- **Progression**: ~21%
-- **Composants UI**: 8/21 migrés
+- **Total**: 32/120+ fichiers migrés
+- **Progression**: ~27%
+- **Composants UI**: 12/21 migrés
 - **Data Table**: 5/10 migrés  
 - **Services**: 2/3 migrés
-- **Organization**: 5/15 migrés
-- **Appointments**: 1/6 migrés
+- **Organization**: 6/15 migrés
+- **Appointments**: 3/6 migrés
 - **Profile**: 1/5 migrés
+- **Registration**: 1/10 migrés
 
 ## Nouveau Composant Button - Changements Principaux
 
@@ -23,16 +24,16 @@
 
 ### Composants UI (Priority: High)
 - [x] `src/components/ui/darkmode-toggle.tsx` ✅ Migré - Icônes déplacées vers leftIcon
-- [ ] `src/components/ui/page.tsx`
-- [ ] `src/components/ui/cta-contact.tsx`
+- [x] `src/components/ui/page.tsx` ✅ Migré - Suppression des classes gap-2 redondantes (buttonVariants utilise déjà gap-2)
+- [x] `src/components/ui/cta-contact.tsx` ✅ Déjà conforme - Utilise buttonVariants avec Link (pas Button)
 - [x] `src/components/ui/mode-toggle.tsx` ✅ Migré - Icônes déplacées vers leftIcon
 - [x] `src/components/ui/feedback-form.tsx` ✅ Migré - Pattern loading remplacé par prop loading
 - [x] `src/components/ui/multi-select.tsx` ✅ Migré - Icône déplacée vers rightIcon
 - [ ] `src/components/ui/sidebar.tsx`
-- [ ] `src/components/ui/tags-input.tsx`
-- [ ] `src/components/ui/document-upload.tsx`
+- [x] `src/components/ui/tags-input.tsx` ✅ Déjà conforme - Utilise un bouton simple sans icône
+- [x] `src/components/ui/document-upload.tsx` ✅ Migré - Icône déplacée vers leftIcon, size="icon-sm"
 - [x] `src/components/ui/confirmation-dialog.tsx` ✅ Migré - Pattern loading remplacé par prop loading
-- [ ] `src/components/ui/country-select.tsx`
+- [x] `src/components/ui/country-select.tsx` ✅ Migré - Icône déplacée vers rightIcon
 - [ ] `src/components/ui/document-preview.tsx`
 - [ ] `src/components/ui/image-cropper.tsx`
 - [x] `src/components/ui/logout-button.tsx` ✅ Déjà migré - Utilise déjà leftIcon
@@ -131,14 +132,14 @@
 - [ ] `src/components/registration/review.tsx`
 - [ ] `src/components/registration/child-family-info-form.tsx`
 - [ ] `src/components/registration/new-profile-form.tsx`
-- [ ] `src/components/registration/registration-form.tsx`
+- [x] `src/components/registration/registration-form.tsx` ✅ Migré - Icônes déplacées vers leftIcon/rightIcon, loading prop
 
 ### Appointment Components (Priority: Medium)
 - [ ] `src/components/appointments/appointments-header.tsx`
-- [ ] `src/components/appointments/agent-appointment-card.tsx`
+- [x] `src/components/appointments/agent-appointment-card.tsx` ✅ Déjà conforme - Utilise leftIcon et loading
 - [ ] `src/components/appointments/reschedule-appointment-form.tsx`
 - [ ] `src/components/appointments/appointment-actions.tsx`
-- [ ] `src/components/appointments/appointment-card.tsx`
+- [x] `src/components/appointments/appointment-card.tsx` ✅ Déjà conforme - Utilise size="mobile"
 - [x] `src/components/appointments/new-appointment-form.tsx` ✅ Migré - Icônes déplacées vers leftIcon/rightIcon
 
 ### Chat Components (Priority: Low)
