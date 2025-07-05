@@ -99,7 +99,7 @@ export function NewProfileForm({
       otp: '',
       residenceCountyCode: (availableCountries?.[0]?.code ?? '') as CountryCode,
     },
-    mode: 'onBlur',
+    mode: 'onChange',
   });
 
   // Cooldown timer for resend
