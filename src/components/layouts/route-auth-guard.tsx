@@ -2,7 +2,7 @@ import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { SessionUser } from '@/types';
+import type { SessionUser } from '@/types';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;

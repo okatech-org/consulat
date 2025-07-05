@@ -1,5 +1,4 @@
 import { getTranslations } from 'next-intl/server';
-import CardContainer from '@/components/layouts/card-container';
 import { getFullService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import {
   getOrganizations,
