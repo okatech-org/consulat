@@ -107,4 +107,7 @@ export const ROUTES = {
   terms: '#' as Route<string>,
 } as const;
 
-export type PageRoute = (typeof ROUTES)[keyof typeof ROUTES];
+export const protectedRoutes = [
+  ROUTES.dashboard.base,
+  ROUTES.user.base,
+];
