@@ -45,6 +45,7 @@ export default {
       otp_invalid: 'Code de vérification invalide ou expiré',
       otp_required: 'Le code de vérification est requis',
       CredentialsSignin: 'Code de vérification invalide ou expiré',
+      CODE_SENT: 'Code de vérification envoyé avec succès',
       invalid_credentials: 'Email ou mot de passe incorrect',
       user_not_found: 'Aucun utilisateur trouvé avec cet e-mail',
       login_success: 'Connexion réussi',
