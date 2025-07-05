@@ -3,7 +3,13 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 
-type AnimationType = 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'zoom' | 'none';
+type AnimationType =
+  | 'fade-up'
+  | 'fade-down'
+  | 'fade-left'
+  | 'fade-right'
+  | 'zoom'
+  | 'none';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -32,11 +38,11 @@ const animations = {
     hidden: { opacity: 0, x: 40 },
     visible: { opacity: 1, x: 0 },
   },
-  'zoom': {
+  zoom: {
     hidden: { opacity: 0, scale: 0.9 },
     visible: { opacity: 1, scale: 1 },
   },
-  'none': {
+  none: {
     hidden: { opacity: 1 },
     visible: { opacity: 1 },
   },
@@ -52,15 +58,16 @@ export const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   threshold = 0.1,
 }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { 
-    once, 
-    amount: threshold
+  const isInView = useInView(ref, {
+    once,
+    amount: threshold,
   });
 
   // Support pour les utilisateurs qui préfèrent les animations réduites
-  const prefersReducedMotion = typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
-    : false;
+  const prefersReducedMotion =
+    typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
 
   const chosenAnimation = prefersReducedMotion ? 'none' : animation;
 
@@ -76,4 +83,4 @@ export const AnimatedSection: React.FC<AnimatedSectionProps> = ({
       {children}
     </motion.div>
   );
-}; 
+};

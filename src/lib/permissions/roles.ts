@@ -1,4 +1,4 @@
-import { RolesConfig } from './types';
+import type { RolesConfig } from './types';
 
 export const ROLES: RolesConfig = {
   SUPER_ADMIN: {

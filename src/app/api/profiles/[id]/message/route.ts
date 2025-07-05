@@ -1,17 +1,14 @@
-import { db } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { auth } from '@/lib/auth/auth';
-import { headers } from 'next/headers';
+import { getCurrentUser } from '@/actions/user';
+import { db } from '@/server/db';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!session?.user) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json(
         { error: 'You must be logged in to send a message' },
         { status: 401 },
@@ -47,7 +44,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const createdMessage = await db.message.create({
       data: {
         content: message,
-        senderId: session.user.id,
+        senderId: user.id,
         receiverId: profile.user?.id ?? '',
         // We don't have a direct link to the profile in the Message model,
         // so we leave it unlinked at this stage
@@ -57,7 +54,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // If the profile has a user, notify them
     if (profile.user) {
       const notificationTitle = 'Nouveau message';
-      const notificationContent = `${session.user.name} vous a envoyé un message.`;
+      const notificationContent = `${user.name} vous a envoyé un message.`;
 
       // Create a notification using the notify service
       await notify({
@@ -76,8 +73,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         ],
         metadata: {
           messageId: createdMessage.id,
-          senderId: session.user.id,
-          senderName: session.user.name,
+          senderId: user.id,
+          senderName: user.name,
         },
       });
     }

@@ -25,7 +25,9 @@ export async function sendSMSOTP(phone: string, otp: string) {
     if (error instanceof Error) {
       // Erreurs spécifiques Twilio
       if (error.message.includes('21660') || error.message.includes('Mismatch')) {
-        throw new Error('Service SMS temporairement indisponible. Veuillez utiliser l\'email.');
+        throw new Error(
+          "Service SMS temporairement indisponible. Veuillez utiliser l'email.",
+        );
       }
       if (error.message.includes('not a Twilio phone number')) {
         throw new Error('Configuration SMS invalide');
@@ -33,11 +35,11 @@ export async function sendSMSOTP(phone: string, otp: string) {
       if (error.message.includes('rate limit')) {
         throw new Error('Trop de tentatives. Veuillez patienter.');
       }
-      
+
       // Propager le message d'erreur original s'il est clair
       throw error;
     }
 
-    throw new Error('Impossible d\'envoyer le code SMS');
+    throw new Error("Impossible d'envoyer le code SMS");
   }
 }

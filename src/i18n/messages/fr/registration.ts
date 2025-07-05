@@ -123,7 +123,8 @@ export default {
       help: "L'analyse automatique des documents permet de pré-remplir vos informations",
       success: {
         title: 'Analyse terminée',
-        description: 'Les informations ont été extraites avec succès',
+        description:
+          'Les informations ont étées extraites et pré-remplies avec succès. Vous pouvez continuer l\'inscription.',
         description_with_sections:
           'Les sections suivantes ont été mises à jour : {sections}',
         action: 'Continuer',

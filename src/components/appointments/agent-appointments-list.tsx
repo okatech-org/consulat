@@ -1,5 +1,5 @@
 import { AgentAppointmentCard } from './agent-appointment-card';
-import { AppointmentWithRelations } from '@/schemas/appointment';
+import type { AppointmentWithRelations } from '@/schemas/appointment';
 
 interface AgentAppointmentsListProps {
   appointments: AppointmentWithRelations[];

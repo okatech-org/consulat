@@ -1,11 +1,11 @@
 'use server';
 
-import { CountryCode } from '@/lib/autocomplete-datas';
-import { db } from '@/lib/prisma';
+import type { CountryCode } from '@/lib/autocomplete-datas';
+import { db } from '@/server/db';
 import {
-  User,
+  type User,
   RequestActionType,
-  ServiceRequest,
+  type ServiceRequest,
   NotificationType,
   PrismaClient,
   Prisma,
@@ -15,9 +15,9 @@ import { getTranslations } from 'next-intl/server';
 import { ROUTES } from '@/schemas/routes';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/lib/env/index';
 import { checkAuth } from '@/lib/auth/action';
 import { tryCatch } from '@/lib/utils';
+import { env } from '@/env';
 
 type Agent = User & { assignedRequests: ServiceRequest[] };
 

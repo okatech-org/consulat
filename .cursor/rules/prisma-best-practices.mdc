@@ -1,12 +1,12 @@
 ---
 description: Best practices for using Prisma ORM
-globs: 
-alwaysApply: true
+alwaysApply: false
 ---
-- **Centralized Prisma Client:**  Use a single, centrally managed Prisma Client instance (`src/lib/prisma.ts`) to avoid connection issues and improve performance.
+
+- **Centralized Prisma Client:** Use a single, centrally managed Prisma Client instance (`src/lib/prisma.ts`) to avoid connection issues and improve performance.
 - **Consistent Error Handling:** Implement consistent and informative error handling for all database operations, logging errors with context.
 - **Transaction Management:** Utilize Prisma's transaction API (`prisma.$transaction`) for operations that require atomicity, consistency isolation and durability (ACID).
 - **Schema Migrations:** Regularly run `prisma migrate dev` to ensure your Prisma schema is synchronized with the database.
--   **Model Relationships:** Explicitly define relationships between entities in your Prisma schema (e.g. Post-Category relation, User-Profile relation) using the `@relation` directive. Take advantage of Prisma client type generation for those
+- **Model Relationships:** Explicitly define relationships between entities in your Prisma schema (e.g. Post-Category relation, User-Profile relation) using the `@relation` directive. Take advantage of Prisma client type generation for those
 - **Types**: Explicitly declare types for all variables and params when interaction with Prisma Client orm.
--    **Eager Loading of Required Relation:** Use `include` or `select` to eager load related records that are always required and reduce the number of database roundtrips.
+- **Eager Loading of Required Relation:** Use `include` or `select` to eager load related records that are always required and reduce the number of database roundtrips.

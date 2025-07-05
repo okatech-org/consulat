@@ -1,1009 +1,1016 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 model User {
-  id                  String     @id
-  name                String?
-  roles               UserRole[] @default([USER])
-  role                UserRole   @default(USER)
-  email               String
-  phoneNumber         String?
-  phoneNumberVerified Boolean    @default(false)
-  emailVerified       Boolean    @default(false)
-  image               String?
-  createdAt           DateTime
-  updatedAt           DateTime
-  sessions            Session[]
-  accounts            Account[]
+    id                  String     @id @default(cuid())
+    name                String?
+    roles               UserRole[] @default([USER])
+    role                UserRole   @default(USER)
+    email               String?    @unique
+    phoneNumber         String?    @unique
+    phoneNumberVerified Boolean    @default(false)
+    emailVerified       DateTime?
+    image               String?
+    createdAt           DateTime   @default(now())
+    updatedAt           DateTime   @updatedAt
+    sessions            Session[]
+    accounts            Account[]
 
-  // Relations
-  profile   Profile? @relation(fields: [profileId], references: [id])
-  profileId String?  @unique
+    // Relations
+    profile   Profile? @relation(fields: [profileId], references: [id])
+    profileId String?  @unique
 
-  linkedCountries  Country[] @relation("managedCountries")
-  sentMessages     Message[] @relation("sender")
-  receivedMessages Message[] @relation("receiver")
-  country          Country?  @relation(fields: [countryCode], references: [code])
-  countryCode      String?
+    linkedCountries  Country[] @relation("managedCountries")
+    sentMessages     Message[] @relation("sender")
+    receivedMessages Message[] @relation("receiver")
+    country          Country?  @relation(fields: [countryCode], references: [code])
+    countryCode      String?
 
-  managedOrganization Organization? @relation(fields: [organizationId], references: [id])
-  organizationId      String?       @unique
+    managedOrganization Organization? @relation(fields: [organizationId], references: [id])
+    organizationId      String?       @unique
 
-  // user fields
-  notifications      Notification[]
-  submittedRequests  ServiceRequest[]
-  documents          UserDocument[]   @relation("userDocuments")
-  validatedDocuments UserDocument[]   @relation("validatedDocuments")
+    // user fields
+    notifications      Notification[]
+    submittedRequests  ServiceRequest[]
+    documents          UserDocument[]   @relation("userDocuments")
+    validatedDocuments UserDocument[]   @relation("validatedDocuments")
 
-  appointmentsToAttend Appointment[] @relation("AppointmentAttendee")
+    appointmentsToAttend Appointment[] @relation("AppointmentAttendee")
 
-  // agent & manager fields
-  assignedOrganization   Organization? @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
-  assignedOrganizationId String?
+    // agent & manager fields
+    assignedOrganization   Organization? @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
+    assignedOrganizationId String?
 
-  authoredNotes         Note[]
-  assignedServices      ConsularService[] @relation("AssignedServices")
-  assignedRequests      ServiceRequest[]  @relation("AssignedRequests")
-  managedBy             User?             @relation("ManagedBy", fields: [managedByUserId], references: [id])
-  managedByUserId       String?
-  assignedAppointments  Appointment[]     @relation("AppointmentAgent")
-  requestActions        RequestAction[]
-  maxActiveRequests     Int? // Nombre maximum de demandes actives
-  specializations       ServiceCategory[] // Spécialisations de l'agent
-  availability          Json? // Configuration de disponibilité
-  completedRequests     Int               @default(0)
-  averageProcessingTime Float?
+    authoredNotes         Note[]
+    assignedServices      ConsularService[] @relation("AssignedServices")
+    assignedRequests      ServiceRequest[]  @relation("AssignedRequests")
+    managedBy             User?             @relation("ManagedBy", fields: [managedByUserId], references: [id])
+    managedByUserId       String?
+    assignedAppointments  Appointment[]     @relation("AppointmentAgent")
+    requestActions        RequestAction[]
+    maxActiveRequests     Int? // Nombre maximum de demandes actives
+    specializations       ServiceCategory[] // Spécialisations de l'agent
+    availability          Json? // Configuration de disponibilité
+    completedRequests     Int               @default(0)
+    averageProcessingTime Float?
 
-  // manager field
-  managedAgents User[] @relation("ManagedBy")
+    // manager field
+    managedAgents User[] @relation("ManagedBy")
 
-  // Nouvelles relations pour le service de notification
-  scheduledNotifications  ScheduledNotification[]
-  notificationLogs        NotificationLog[]
-  notificationPreferences NotificationPreference[]
+    // Nouvelles relations pour le service de notification
+    scheduledNotifications  ScheduledNotification[]
+    notificationLogs        NotificationLog[]
+    notificationPreferences NotificationPreference[]
 
-  // parent authority fields
-  childAuthorities ParentalAuthority[]
-
-  @@unique([phoneNumber])
-  @@unique([email])
+    // parent authority fields
+    childAuthorities ParentalAuthority[]
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id           String   @id @default(cuid())
+    sessionToken String   @unique @map("session_token")
+    userId       String   @map("user_id")
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
-  @@map("session")
+    @@map("sessions")
 }
 
 model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime
-  updatedAt             DateTime
+    id                String  @id @default(cuid())
+    userId            String  @map("user_id")
+    type              String
+    provider          String
+    providerAccountId String  @map("provider_account_id")
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? @db.Text
+    session_state     String?
 
-  @@map("account")
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+    @@map("accounts")
 }
 
-model Verification {
-  id         String    @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
+model VerificationToken {
+    identifier String
+    token      String
+    expires    DateTime
 
-  @@map("verification")
+    @@unique([identifier, token])
+    @@map("verificationtokens")
+}
+
+// Table pour les codes OTP
+model OTPCode {
+    id         String   @id @default(cuid())
+    identifier String // email ou phone
+    code       String
+    type       String // 'EMAIL' ou 'SMS'
+    attempts   Int      @default(0)
+    verified   Boolean  @default(false)
+    expires    DateTime
+    createdAt  DateTime @default(now()) @map("created_at")
+    updatedAt  DateTime @updatedAt @map("updated_at")
+
+    @@unique([identifier, type])
+    @@map("otp_codes")
 }
 
 enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  MANAGER
-  AGENT
-  USER
+    SUPER_ADMIN
+    ADMIN
+    MANAGER
+    AGENT
+    USER
 }
 
 enum ServiceCategory {
-  IDENTITY
-  CIVIL_STATUS
-  VISA
-  CERTIFICATION
-  TRANSCRIPT
-  REGISTRATION
-  ASSISTANCE
-  TRAVEL_DOCUMENT
-  OTHER
+    IDENTITY
+    CIVIL_STATUS
+    VISA
+    CERTIFICATION
+    TRANSCRIPT
+    REGISTRATION
+    ASSISTANCE
+    TRAVEL_DOCUMENT
+    OTHER
 }
 
 enum RequestType {
-  FIRST_REQUEST
-  RENEWAL
-  MODIFICATION
-  CONSULAR_REGISTRATION
-  PASSPORT_REQUEST
-  ID_CARD_REQUEST
+    FIRST_REQUEST
+    RENEWAL
+    MODIFICATION
+    CONSULAR_REGISTRATION
+    PASSPORT_REQUEST
+    ID_CARD_REQUEST
 }
 
 enum ProcessingMode {
-  ONLINE_ONLY
-  PRESENCE_REQUIRED
-  HYBRID
-  BY_PROXY
+    ONLINE_ONLY
+    PRESENCE_REQUIRED
+    HYBRID
+    BY_PROXY
 }
 
 enum DeliveryMode {
-  IN_PERSON
-  POSTAL
-  ELECTRONIC
-  BY_PROXY
+    IN_PERSON
+    POSTAL
+    ELECTRONIC
+    BY_PROXY
 }
 
 enum Gender {
-  MALE
-  FEMALE
+    MALE
+    FEMALE
 }
 
 enum MaritalStatus {
-  SINGLE
-  MARRIED
-  DIVORCED
-  WIDOWED
-  CIVIL_UNION
-  COHABITING
+    SINGLE
+    MARRIED
+    DIVORCED
+    WIDOWED
+    CIVIL_UNION
+    COHABITING
 }
 
 enum FamilyLink {
-  FATHER
-  MOTHER
-  SPOUSE
-  LEGAL_GUARDIAN
-  CHILD
-  OTHER
+    FATHER
+    MOTHER
+    SPOUSE
+    LEGAL_GUARDIAN
+    CHILD
+    OTHER
 }
 
 enum WorkStatus {
-  EMPLOYEE
-  ENTREPRENEUR
-  UNEMPLOYED
-  RETIRED
-  STUDENT
-  OTHER
+    EMPLOYEE
+    ENTREPRENEUR
+    UNEMPLOYED
+    RETIRED
+    STUDENT
+    OTHER
 }
 
 enum NationalityAcquisition {
-  BIRTH
-  NATURALIZATION
-  MARRIAGE
-  OTHER
+    BIRTH
+    NATURALIZATION
+    MARRIAGE
+    OTHER
 }
 
 enum DocumentStatus {
-  PENDING
-  VALIDATED
-  REJECTED
-  EXPIRED
-  EXPIRING
+    PENDING
+    VALIDATED
+    REJECTED
+    EXPIRED
+    EXPIRING
 }
 
 enum RequestStatus {
-  EDITED
-  DRAFT // Brouillon - Demande en cours de remplissage
-  SUBMITTED // Soumis - En attente de vérification
-  PENDING // En traitement
-  PENDING_COMPLETION // Documents/Informations manquants
-  VALIDATED // Dossier validé - En attente de production
-  REJECTED // Rejeté - Motif spécifié
-  CARD_IN_PRODUCTION // Carte en cours de production
-  DOCUMENT_IN_PRODUCTION // Document en cours de production
-  READY_FOR_PICKUP // Prêt pour retrait et entretien
-  APPOINTMENT_SCHEDULED // RDV de retrait/entretien programmé
-  COMPLETED // Carte remise après entretien
+    EDITED
+    DRAFT // Brouillon - Demande en cours de remplissage
+    SUBMITTED // Soumis - En attente de vérification
+    PENDING // En traitement
+    PENDING_COMPLETION // Documents/Informations manquants
+    VALIDATED // Dossier validé - En attente de production
+    REJECTED // Rejeté - Motif spécifié
+    CARD_IN_PRODUCTION // Carte en cours de production
+    DOCUMENT_IN_PRODUCTION // Document en cours de production
+    READY_FOR_PICKUP // Prêt pour retrait et entretien
+    APPOINTMENT_SCHEDULED // RDV de retrait/entretien programmé
+    COMPLETED // Carte remise après entretien
 }
 
 enum DocumentType {
-  PASSPORT
-  IDENTITY_CARD
-  BIRTH_CERTIFICATE
-  RESIDENCE_PERMIT
-  PROOF_OF_ADDRESS
-  MARRIAGE_CERTIFICATE
-  DEATH_CERTIFICATE
-  DIVORCE_DECREE
-  NATIONALITY_CERTIFICATE
-  OTHER
-  VISA_PAGES
-  EMPLOYMENT_PROOF
-  NATURALIZATION_DECREE
-  IDENTITY_PHOTO
-  CONSULAR_CARD
+    PASSPORT
+    IDENTITY_CARD
+    BIRTH_CERTIFICATE
+    RESIDENCE_PERMIT
+    PROOF_OF_ADDRESS
+    MARRIAGE_CERTIFICATE
+    DEATH_CERTIFICATE
+    DIVORCE_DECREE
+    NATIONALITY_CERTIFICATE
+    OTHER
+    VISA_PAGES
+    EMPLOYMENT_PROOF
+    NATURALIZATION_DECREE
+    IDENTITY_PHOTO
+    CONSULAR_CARD
 }
 
 enum NoteType {
-  INTERNAL
-  FEEDBACK
+    INTERNAL
+    FEEDBACK
 }
 
 enum ProfileCategory {
-  ADULT // Parent ou tuteur légal
-  MINOR // Enfant de moins de 18 ans
+    ADULT // Parent ou tuteur légal
+    MINOR // Enfant de moins de 18 ans
 }
 
 enum ParentalRole {
-  FATHER
-  MOTHER
-  LEGAL_GUARDIAN
+    FATHER
+    MOTHER
+    LEGAL_GUARDIAN
 }
 
 model Profile {
-  id     String  @id @default(cuid())
-  userId String? @unique
-  user   User?
+    id     String  @id @default(cuid())
+    userId String? @unique
+    user   User?
 
-  // Nouvelle propriété pour la catégorie du profil
-  category ProfileCategory @default(ADULT)
+    // Nouvelle propriété pour la catégorie du profil
+    category ProfileCategory @default(ADULT)
 
-  parentAuthorities ParentalAuthority[]
+    parentAuthorities ParentalAuthority[]
 
-  // Relation pour les demandes effectuées pour ce profil
-  requestsFor         ServiceRequest[]
-  validationRequestId String?
+    // Relation pour les demandes effectuées pour ce profil
+    requestsFor         ServiceRequest[]
+    validationRequestId String?
 
-  // Informations personnelles
-  firstName              String?
-  lastName               String?
-  gender                 Gender?
-  birthDate              DateTime?
-  birthPlace             String?
-  birthCountry           String?
-  nationality            String?                 @default("gabon")
-  maritalStatus          MaritalStatus?          @default(SINGLE)
-  workStatus             WorkStatus?             @default(UNEMPLOYED)
-  acquisitionMode        NationalityAcquisition? @default(BIRTH)
-  passportNumber         String?
-  passportIssueDate      DateTime?
-  passportExpiryDate     DateTime?
-  passportIssueAuthority String?
+    // Informations personnelles
+    firstName              String?
+    lastName               String?
+    gender                 Gender?
+    birthDate              DateTime?
+    birthPlace             String?
+    birthCountry           String?
+    nationality            String?                 @default("gabon")
+    maritalStatus          MaritalStatus?          @default(SINGLE)
+    workStatus             WorkStatus?             @default(UNEMPLOYED)
+    acquisitionMode        NationalityAcquisition? @default(BIRTH)
+    passportNumber         String?
+    passportIssueDate      DateTime?
+    passportExpiryDate     DateTime?
+    passportIssueAuthority String?
 
-  // Documents
-  identityPicture    UserDocument? @relation("identityPicture", fields: [identityPictureId], references: [id])
-  identityPictureId  String?       @unique
-  passport           UserDocument? @relation("passport", fields: [passportId], references: [id])
-  passportId         String?       @unique
-  birthCertificate   UserDocument? @relation("birthCertificate", fields: [birthCertificateId], references: [id])
-  birthCertificateId String?       @unique
-  residencePermit    UserDocument? @relation("residencePermit", fields: [residencePermitId], references: [id])
-  residencePermitId  String?       @unique
-  addressProof       UserDocument? @relation("addressProof", fields: [addressProofId], references: [id])
-  addressProofId     String?       @unique
+    // Documents
+    identityPicture    UserDocument? @relation("identityPicture", fields: [identityPictureId], references: [id])
+    identityPictureId  String?       @unique
+    passport           UserDocument? @relation("passport", fields: [passportId], references: [id])
+    passportId         String?       @unique
+    birthCertificate   UserDocument? @relation("birthCertificate", fields: [birthCertificateId], references: [id])
+    birthCertificateId String?       @unique
+    residencePermit    UserDocument? @relation("residencePermit", fields: [residencePermitId], references: [id])
+    residencePermitId  String?       @unique
+    addressProof       UserDocument? @relation("addressProof", fields: [addressProofId], references: [id])
+    addressProofId     String?       @unique
 
-  // Contact
-  address           Address?          @relation(fields: [addressId], references: [id])
-  addressId         String?
-  phoneNumber       String?
-  email             String?
-  residentContact   EmergencyContact? @relation("residentContact")
-  residentContactId String?           @unique
-  homeLandContact   EmergencyContact? @relation("homeLandContact")
-  homeLandContactId String?           @unique
+    // Contact
+    address           Address?          @relation(fields: [addressId], references: [id])
+    addressId         String?
+    phoneNumber       String?
+    email             String?
+    residentContact   EmergencyContact? @relation("residentContact")
+    residentContactId String?           @unique
+    homeLandContact   EmergencyContact? @relation("homeLandContact")
+    homeLandContactId String?           @unique
 
-  // Gabonese specific
-  activityInGabon String?
+    // Gabonese specific
+    activityInGabon String?
 
-  // Informations familiales
-  fatherFullName String?
-  motherFullName String?
-  spouseFullName String?
+    // Informations familiales
+    fatherFullName String?
+    motherFullName String?
+    spouseFullName String?
 
-  // Informations professionnelles
-  profession      String?
-  employer        String?
-  employerAddress String?
+    // Informations professionnelles
+    profession      String?
+    employer        String?
+    employerAddress String?
 
-  // Consular card
-  cardNumber    String?
-  cardIssuedAt  DateTime?
-  cardExpiresAt DateTime?
-  cardPin       String? // NIP de 6 chiffres (optionnel)
+    // Consular card
+    cardNumber    String?
+    cardIssuedAt  DateTime?
+    cardExpiresAt DateTime?
+    cardPin       String? // NIP de 6 chiffres (optionnel)
 
-  // Métadonnées
-  status          RequestStatus  @default(DRAFT)
-  validationNotes String?
-  validatedAt     DateTime?
-  validatedBy     String?
-  submittedAt     DateTime?
-  notifications   Notification[]
+    // Métadonnées
+    status          RequestStatus  @default(DRAFT)
+    validationNotes String?
+    validatedAt     DateTime?
+    validatedBy     String?
+    submittedAt     DateTime?
+    notifications   Notification[]
 
-  assignedOrganization   Organization? @relation(fields: [assignedOrganizationId], references: [id])
-  assignedOrganizationId String?
+    assignedOrganization   Organization? @relation(fields: [assignedOrganizationId], references: [id])
+    assignedOrganizationId String?
 
-  residenceCountyCode String
+    residenceCountyCode String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model EmergencyContact {
-  id                String     @id @default(cuid())
-  firstName         String
-  lastName          String
-  email             String?
-  relationship      FamilyLink
-  phoneNumber       String?
-  address           Address?   @relation(fields: [addressId], references: [id])
-  addressId         String?
-  residentProfile   Profile?   @relation("residentContact", fields: [residentProfileId], references: [id])
-  residentProfileId String?    @unique
-  homeLandProfile   Profile?   @relation("homeLandContact", fields: [homeLandProfileId], references: [id])
-  homeLandProfileId String?    @unique
+    id                String     @id @default(cuid())
+    firstName         String
+    lastName          String
+    email             String?
+    relationship      FamilyLink
+    phoneNumber       String?
+    address           Address?   @relation(fields: [addressId], references: [id])
+    addressId         String?
+    residentProfile   Profile?   @relation("residentContact", fields: [residentProfileId], references: [id])
+    residentProfileId String?    @unique
+    homeLandProfile   Profile?   @relation("homeLandContact", fields: [homeLandProfileId], references: [id])
+    homeLandProfileId String?    @unique
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  @@index([addressId])
+    @@index([addressId])
 }
 
 model Address {
-  id                String             @id @default(cuid())
-  firstLine         String
-  secondLine        String?
-  city              String
-  zipCode           String?
-  country           String
-  profile           Profile[]
-  appointments      Appointment[]
-  emergencyContacts EmergencyContact[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+    id                String             @id @default(cuid())
+    firstLine         String
+    secondLine        String?
+    city              String
+    zipCode           String?
+    country           String
+    profile           Profile[]
+    appointments      Appointment[]
+    emergencyContacts EmergencyContact[]
+    createdAt         DateTime           @default(now())
+    updatedAt         DateTime           @updatedAt
 }
 
 // Mettre à jour le modèle Document
 model UserDocument {
-  id        String         @id @default(cuid())
-  type      DocumentType
-  status    DocumentStatus @default(PENDING)
-  fileUrl   String // URL du fichier stocké
-  fileType  String // Type de fichier
-  issuedAt  DateTime?
-  expiresAt DateTime?
-  metadata  Json? // Métadonnées additionnelles
+    id        String         @id @default(cuid())
+    type      DocumentType
+    status    DocumentStatus @default(PENDING)
+    fileUrl   String // URL du fichier stocké
+    fileType  String // Type de fichier
+    issuedAt  DateTime?
+    expiresAt DateTime?
+    metadata  Json? // Métadonnées additionnelles
 
-  userId String?
-  user   User?   @relation("userDocuments", fields: [userId], references: [id])
+    userId String?
+    user   User?   @relation("userDocuments", fields: [userId], references: [id])
 
-  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
-  serviceRequestId String?
-  validatedBy      User?           @relation("validatedDocuments", fields: [validatedById], references: [id])
-  validatedById    String?         @unique
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
+    validatedBy      User?           @relation("validatedDocuments", fields: [validatedById], references: [id])
+    validatedById    String?         @unique
 
-  // Relations inverses spécifiques
-  passportProfile         Profile? @relation("passport")
-  birthCertificateProfile Profile? @relation("birthCertificate")
-  residencePermitProfile  Profile? @relation("residencePermit")
-  addressProofProfile     Profile? @relation("addressProof")
-  identityPictureProfile  Profile? @relation("identityPicture")
+    // Relations inverses spécifiques
+    passportProfile         Profile? @relation("passport")
+    birthCertificateProfile Profile? @relation("birthCertificate")
+    residencePermitProfile  Profile? @relation("residencePermit")
+    addressProofProfile     Profile? @relation("addressProof")
+    identityPictureProfile  Profile? @relation("identityPicture")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  @@index([userId])
-  @@index([serviceRequestId])
+    @@index([userId])
+    @@index([serviceRequestId])
 }
 
 model GeneratedDocument {
-  id        String       @id @default(cuid())
-  type      DocumentType
-  fileUrl   String // URL du fichier stocké
-  fileType  String // Type de fichier
-  issuedAt  DateTime?
-  expiresAt DateTime?
-  metadata  Json? // Métadonnées additionnelles
+    id        String       @id @default(cuid())
+    type      DocumentType
+    fileUrl   String // URL du fichier stocké
+    fileType  String // Type de fichier
+    issuedAt  DateTime?
+    expiresAt DateTime?
+    metadata  Json? // Métadonnées additionnelles
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
-  serviceRequestId String?
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
 
-  template   DocumentTemplate @relation(fields: [templateId], references: [id])
-  templateId String
+    template   DocumentTemplate @relation(fields: [templateId], references: [id])
+    templateId String
 
-  @@index([serviceRequestId])
+    @@index([serviceRequestId])
 }
 
 model DocumentTemplate {
-  id          String       @id @default(cuid())
-  name        String
-  description String?
-  type        DocumentType
-  content     Json
-  metadata    Json?
+    id          String       @id @default(cuid())
+    name        String
+    description String?
+    type        DocumentType
+    content     Json
+    metadata    Json?
 
-  organization             Organization?              @relation(fields: [organizationId], references: [id])
-  organizationId           String?
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime                   @updatedAt
-  generateDocumentSettings GenerateDocumentSettings[]
-  generatedDocuments       GeneratedDocument[]
+    organization             Organization?              @relation(fields: [organizationId], references: [id])
+    organizationId           String?
+    createdAt                DateTime                   @default(now())
+    updatedAt                DateTime                   @updatedAt
+    generateDocumentSettings GenerateDocumentSettings[]
+    generatedDocuments       GeneratedDocument[]
 }
 
 model GenerateDocumentSettings {
-  id               String           @id @default(cuid())
-  serviceId        String
-  service          ConsularService  @relation(fields: [serviceId], references: [id])
-  settings         Json?
-  template         DocumentTemplate @relation(fields: [templateId], references: [id])
-  templateId       String
-  generateOnStatus RequestStatus[]
+    id               String           @id @default(cuid())
+    serviceId        String
+    service          ConsularService  @relation(fields: [serviceId], references: [id])
+    settings         Json?
+    template         DocumentTemplate @relation(fields: [templateId], references: [id])
+    templateId       String
+    generateOnStatus RequestStatus[]
 }
 
 model Message {
-  id         String  @id @default(cuid())
-  content    String
-  receiverId String
-  receiver   User    @relation("receiver", fields: [receiverId], references: [id])
-  senderId   String?
-  sender     User?   @relation("sender", fields: [senderId], references: [id])
+    id         String  @id @default(cuid())
+    content    String
+    receiverId String
+    receiver   User    @relation("receiver", fields: [receiverId], references: [id])
+    senderId   String?
+    sender     User?   @relation("sender", fields: [senderId], references: [id])
 
-  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
-  serviceRequestId String?
-  createdAt        DateTime        @default(now())
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
+    createdAt        DateTime        @default(now())
 }
 
 model Note {
-  id       String   @id @default(cuid())
-  content  String
-  type     NoteType
-  author   User?    @relation(fields: [authorId], references: [id])
-  authorId String?
+    id       String   @id @default(cuid())
+    content  String
+    type     NoteType
+    author   User?    @relation(fields: [authorId], references: [id])
+    authorId String?
 
-  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
-  serviceRequestId String?
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
 
-  createdAt DateTime @default(now())
+    createdAt DateTime @default(now())
 }
 
 // Types de démarches disponibles
 enum ConsularServiceType {
-  // Documents d'identité
-  PASSPORT_REQUEST
-  CONSULAR_CARD
+    // Documents d'identité
+    PASSPORT_REQUEST
+    CONSULAR_CARD
 
-  // État civil
-  BIRTH_REGISTRATION
-  MARRIAGE_REGISTRATION
-  DEATH_REGISTRATION
-  CONSULAR_REGISTRATION
-  NATIONALITY_CERTIFICATE
+    // État civil
+    BIRTH_REGISTRATION
+    MARRIAGE_REGISTRATION
+    DEATH_REGISTRATION
+    CONSULAR_REGISTRATION
+    NATIONALITY_CERTIFICATE
 }
 
 // Priorité de la démarche
 enum ServicePriority {
-  STANDARD
-  URGENT
+    STANDARD
+    URGENT
 }
 
 model ConsularService {
-  id          String          @id @default(cuid())
-  name        String
-  description String?
-  category    ServiceCategory
-  isActive    Boolean         @default(false)
+    id          String          @id @default(cuid())
+    name        String
+    description String?
+    category    ServiceCategory
+    isActive    Boolean         @default(false)
 
-  // Configuration
-  profileDocuments            String[]
-  requiredDocuments           DocumentType[] // Types de documents requis
-  optionalDocuments           DocumentType[] // Types de documents optionnels
-  toGenerateDocuments         DocumentType[] // Types de documents à générer
-  requiresAppointment         Boolean        @default(false)
-  appointmentDuration         Int? // Durée en minutes
-  appointmentInstructions     String?
-  deliveryAppointment         Boolean        @default(false)
-  deliveryAppointmentDuration Int?
-  deliveryAppointmentDesc     String?
+    // Configuration
+    profileDocuments            String[]
+    requiredDocuments           DocumentType[] // Types de documents requis
+    optionalDocuments           DocumentType[] // Types de documents optionnels
+    toGenerateDocuments         DocumentType[] // Types de documents à générer
+    requiresAppointment         Boolean        @default(false)
+    appointmentDuration         Int? // Durée en minutes
+    appointmentInstructions     String?
+    deliveryAppointment         Boolean        @default(false)
+    deliveryAppointmentDuration Int?
+    deliveryAppointmentDesc     String?
 
-  // Workflow et formulaires
-  steps ServiceStep[] // Étapes du service
+    // Workflow et formulaires
+    steps ServiceStep[] // Étapes du service
 
-  // Tarification
-  isFree   Boolean @default(true)
-  price    Float?
-  currency String? @default("EUR")
+    // Tarification
+    isFree   Boolean @default(true)
+    price    Float?
+    currency String? @default("EUR")
 
-  // Relations
-  organization   Organization?    @relation(fields: [organizationId], references: [id])
-  organizationId String?
-  requests       ServiceRequest[] // Demandes pour ce service
+    // Relations
+    organization   Organization?    @relation(fields: [organizationId], references: [id])
+    organizationId String?
+    requests       ServiceRequest[] // Demandes pour ce service
 
-  processingMode     ProcessingMode @default(PRESENCE_REQUIRED)
-  deliveryMode       DeliveryMode[]
-  proxyRequirements  String?
-  postalRequirements String?
+    processingMode     ProcessingMode @default(PRESENCE_REQUIRED)
+    deliveryMode       DeliveryMode[]
+    proxyRequirements  String?
+    postalRequirements String?
 
-  // Métadonnées
-  metadata                 Json? // Données additionnelles flexibles
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime                   @updatedAt
-  Country                  Country?                   @relation(fields: [countryCode], references: [code])
-  countryCode              String?
-  generateDocumentSettings GenerateDocumentSettings[]
-  appointments             Appointment[]
-  assignedTo               User[]                     @relation("AssignedServices")
+    // Métadonnées
+    metadata                 Json? // Données additionnelles flexibles
+    createdAt                DateTime                   @default(now())
+    updatedAt                DateTime                   @updatedAt
+    Country                  Country?                   @relation(fields: [countryCode], references: [code])
+    countryCode              String?
+    generateDocumentSettings GenerateDocumentSettings[]
+    appointments             Appointment[]
+    assignedTo               User[]                     @relation("AssignedServices")
 }
 
 model ServiceStep {
-  id          String  @id @default(cuid())
-  order       Int // Ordre de l'étape
-  title       String
-  description String?
-  isRequired  Boolean @default(true)
+    id          String  @id @default(cuid())
+    order       Int // Ordre de l'étape
+    title       String
+    description String?
+    isRequired  Boolean @default(true)
 
-  // Configuration
-  type        ServiceStepType @default(FORM)
-  fields      Json? // Configuration des champs pour cette étape
-  validations Json? // Règles de validation
+    // Configuration
+    type        ServiceStepType @default(FORM)
+    fields      Json? // Configuration des champs pour cette étape
+    validations Json? // Règles de validation
 
-  // Relations
-  service   ConsularService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  serviceId String
+    // Relations
+    service   ConsularService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+    serviceId String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 enum ServiceStepType {
-  FORM // Étape de formulaire
-  DOCUMENTS // Upload de documents
-  APPOINTMENT // Prise de rendez-vous
-  PAYMENT // Paiement
-  REVIEW // Revue finale
-  DELIVERY // Livraison
+    FORM // Étape de formulaire
+    DOCUMENTS // Upload de documents
+    APPOINTMENT // Prise de rendez-vous
+    PAYMENT // Paiement
+    REVIEW // Revue finale
+    DELIVERY // Livraison
 }
 
 // Modèle pour les demandes de démarches
 model ServiceRequest {
-  id       String          @id @default(cuid())
-  status   RequestStatus   @default(SUBMITTED)
-  priority ServicePriority @default(STANDARD)
+    id       String          @id @default(cuid())
+    status   RequestStatus   @default(SUBMITTED)
+    priority ServicePriority @default(STANDARD)
 
-  // Relations
-  service         ConsularService @relation(fields: [serviceId], references: [id])
-  serviceId       String
-  submittedBy     User            @relation(fields: [submittedById], references: [id])
-  submittedById   String
-  serviceCategory ServiceCategory
+    // Relations
+    service         ConsularService @relation(fields: [serviceId], references: [id])
+    serviceId       String
+    submittedBy     User            @relation(fields: [submittedById], references: [id])
+    submittedById   String
+    serviceCategory ServiceCategory
 
-  // Nouveau champ pour identifier pour qui la demande est faite
-  requestedFor   Profile? @relation(fields: [requestedForId], references: [id])
-  requestedForId String?
+    // Nouveau champ pour identifier pour qui la demande est faite
+    requestedFor   Profile? @relation(fields: [requestedForId], references: [id])
+    requestedForId String?
 
-  // Relation pour partager avec d'autres parents
-  sharedWith ParentalAuthority[] @relation("SharedWithParents")
+    // Relation pour partager avec d'autres parents
+    sharedWith ParentalAuthority[] @relation("SharedWithParents")
 
-  // Add organization relation
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
+    // Add organization relation
+    organization   Organization @relation(fields: [organizationId], references: [id])
+    organizationId String
 
-  country     Country @relation(fields: [countryCode], references: [code])
-  countryCode String
+    country     Country @relation(fields: [countryCode], references: [code])
+    countryCode String
 
-  chosenProcessingMode ProcessingMode @default(ONLINE_ONLY)
-  chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
-  // Données de la demande
-  formData             Json? // Données du formulaire
-  requiredDocuments    UserDocument[] // Documents fournis
-  notes                Note[] // Notes administratives
-  messages             Message[] // Communications
+    chosenProcessingMode ProcessingMode @default(ONLINE_ONLY)
+    chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
+    // Données de la demande
+    formData             Json? // Données du formulaire
+    requiredDocuments    UserDocument[] // Documents fournis
+    notes                Note[] // Notes administratives
+    messages             Message[] // Communications
 
-  // Rendez-vous associé (si applicable)
-  appointments Appointment[]
+    // Rendez-vous associé (si applicable)
+    appointments Appointment[]
 
-  proxyName            String?
-  proxyIdentityDoc     String?
-  proxyPowerOfAttorney String?
+    proxyName            String?
+    proxyIdentityDoc     String?
+    proxyPowerOfAttorney String?
 
-  deliveryAddress String?
-  trackingNumber  String?
-  deliveryStatus  String?
+    deliveryAddress String?
+    trackingNumber  String?
+    deliveryStatus  String?
 
-  // Suivi
-  submittedAt DateTime?
-  completedAt DateTime?
+    // Suivi
+    submittedAt DateTime?
+    completedAt DateTime?
 
-  // Ajout de champs pour le suivi et l'assignation
-  assignedToId String? // Agent assigné
-  assignedTo   User?     @relation("AssignedRequests", fields: [assignedToId], references: [id])
-  assignedAt   DateTime? // Date d'assignation
+    // Ajout de champs pour le suivi et l'assignation
+    assignedToId String? // Agent assigné
+    assignedTo   User?     @relation("AssignedRequests", fields: [assignedToId], references: [id])
+    assignedAt   DateTime? // Date d'assignation
 
-  // Champs pour la gestion des délais
-  deadline                DateTime? // Date limite de traitement
-  estimatedCompletionDate DateTime? // Date estimée de finalisation
+    // Champs pour la gestion des délais
+    deadline                DateTime? // Date limite de traitement
+    estimatedCompletionDate DateTime? // Date estimée de finalisation
 
-  // Amélioration du suivi des interactions
-  lastActionAt DateTime? // Dernière action sur la demande
-  lastActionBy String? // ID de l'utilisateur ayant effectué la dernière action
+    // Amélioration du suivi des interactions
+    lastActionAt DateTime? // Dernière action sur la demande
+    lastActionBy String? // ID de l'utilisateur ayant effectué la dernière action
 
-  // Add this relation
-  actions RequestAction[]
+    // Add this relation
+    actions RequestAction[]
 
-  generatedDocuments GeneratedDocument[]
+    generatedDocuments GeneratedDocument[]
 
-  // Métadonnées
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    // Métadonnées
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  // Indicateurs de performance
-  firstPassValidation Boolean? // Validation au premier passage
-  processingTime      Int? // Temps de traitement en heures
+    // Indicateurs de performance
+    firstPassValidation Boolean? // Validation au premier passage
+    processingTime      Int? // Temps de traitement en heures
 
-  @@index([submittedById])
-  @@index([serviceId])
-  @@index([assignedToId])
-  @@index([status])
-  @@index([lastActionAt])
-  @@index([deadline])
+    @@index([submittedById])
+    @@index([serviceId])
+    @@index([assignedToId])
+    @@index([status])
+    @@index([lastActionAt])
+    @@index([deadline])
 }
 
 // Modèle pour les rendez-vous
 model Appointment {
-  id             String            @id @default(cuid())
-  date           DateTime
-  startTime      DateTime
-  endTime        DateTime
-  instructions   String?
-  duration       Int // en minutes
-  type           AppointmentType   @default(DOCUMENT_SUBMISSION)
-  status         AppointmentStatus @default(CONFIRMED)
-  organizationId String // Pour lier au consulat spécifique
-  organization   Organization      @relation(fields: [organizationId], references: [id])
-  location       Address?          @relation(fields: [locationId], references: [id])
-  locationId     String?
-  countryCode    String
+    id             String            @id @default(cuid())
+    date           DateTime
+    startTime      DateTime
+    endTime        DateTime
+    instructions   String?
+    duration       Int // en minutes
+    type           AppointmentType   @default(DOCUMENT_SUBMISSION)
+    status         AppointmentStatus @default(CONFIRMED)
+    organizationId String // Pour lier au consulat spécifique
+    organization   Organization      @relation(fields: [organizationId], references: [id])
+    location       Address?          @relation(fields: [locationId], references: [id])
+    locationId     String?
+    countryCode    String
 
-  // Relations existantes
-  attendeeId String // Utilisateur qui prend le RDV
-  attendee   User             @relation(fields: [attendeeId], references: [id], name: "AppointmentAttendee")
-  agentId    String? // Agent assigné (optional)
-  agent      User?            @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
-  request    ServiceRequest?  @relation(fields: [requestId], references: [id])
-  requestId  String?
-  serviceId  String?
-  service    ConsularService? @relation(fields: [serviceId], references: [id])
+    // Relations existantes
+    attendeeId String // Utilisateur qui prend le RDV
+    attendee   User             @relation(fields: [attendeeId], references: [id], name: "AppointmentAttendee")
+    agentId    String? // Agent assigné (optional)
+    agent      User?            @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
+    request    ServiceRequest?  @relation(fields: [requestId], references: [id])
+    requestId  String?
+    serviceId  String?
+    service    ConsularService? @relation(fields: [serviceId], references: [id])
 
-  // Métadonnées
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  cancelledAt     DateTime?
-  cancelReason    String?
-  rescheduledFrom DateTime?
+    // Métadonnées
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
+    cancelledAt     DateTime?
+    cancelReason    String?
+    rescheduledFrom DateTime?
 
-  notifications Notification[] @relation(name: "AppointmentNotifications")
+    notifications Notification[] @relation(name: "AppointmentNotifications")
 
-  @@index([attendeeId])
-  @@index([agentId])
-  @@index([organizationId])
-  @@index([date])
-  @@index([serviceId])
-  @@index([requestId])
+    @@index([attendeeId])
+    @@index([agentId])
+    @@index([organizationId])
+    @@index([date])
+    @@index([serviceId])
+    @@index([requestId])
 }
 
 enum AppointmentType {
-  DOCUMENT_SUBMISSION
-  DOCUMENT_COLLECTION
-  INTERVIEW
-  MARRIAGE_CEREMONY
-  EMERGENCY
-  OTHER
+    DOCUMENT_SUBMISSION
+    DOCUMENT_COLLECTION
+    INTERVIEW
+    MARRIAGE_CEREMONY
+    EMERGENCY
+    OTHER
 }
 
 enum AppointmentStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-  MISSED
-  RESCHEDULED
+    PENDING
+    CONFIRMED
+    CANCELLED
+    COMPLETED
+    MISSED
+    RESCHEDULED
 }
 
 model Notification {
-  id            String             @id @default(cuid())
-  type          NotificationType
-  title         String
-  message       String             @db.Text
-  read          Boolean            @default(false)
-  profileId     String?
-  profile       Profile?           @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt     DateTime           @default(now())
-  status        NotificationStatus @default(PENDING)
-  appointmentId String?
-  appointment   Appointment?       @relation(fields: [appointmentId], references: [id], name: "AppointmentNotifications")
+    id            String             @id @default(cuid())
+    type          NotificationType
+    title         String
+    message       String             @db.Text
+    read          Boolean            @default(false)
+    profileId     String?
+    profile       Profile?           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    userId        String
+    user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt     DateTime           @default(now())
+    status        NotificationStatus @default(PENDING)
+    appointmentId String?
+    appointment   Appointment?       @relation(fields: [appointmentId], references: [id], name: "AppointmentNotifications")
 
-  // Nouveaux champs pour le service de notification multi-canal
-  priority  String    @default("normal") // low, normal, high, urgent
-  actions   String?   @db.Text // JSON string des actions
-  metadata  Json? // Données additionnelles
-  expiresAt DateTime? // Date d'expiration
+    // Nouveaux champs pour le service de notification multi-canal
+    priority  String    @default("normal") // low, normal, high, urgent
+    actions   String?   @db.Text // JSON string des actions
+    metadata  Json? // Données additionnelles
+    expiresAt DateTime? // Date d'expiration
 
-  // Relations avec les autres modèles de notification
-  notificationLogs NotificationLog[] @relation("NotificationLogs")
+    // Relations avec les autres modèles de notification
+    notificationLogs NotificationLog[] @relation("NotificationLogs")
 
-  @@index([userId])
-  @@index([profileId])
-  @@index([priority])
-  @@index([expiresAt])
+    @@index([userId])
+    @@index([profileId])
+    @@index([priority])
+    @@index([expiresAt])
 }
 
 // Modèle pour les notifications programmées
 model ScheduledNotification {
-  id           String    @id @default(cuid())
-  userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payload      Json // La requête de notification complète
-  scheduledFor DateTime
-  processed    Boolean   @default(false)
-  processedAt  DateTime?
-  createdAt    DateTime  @default(now())
+    id           String    @id @default(cuid())
+    userId       String
+    user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    payload      Json // La requête de notification complète
+    scheduledFor DateTime
+    processed    Boolean   @default(false)
+    processedAt  DateTime?
+    createdAt    DateTime  @default(now())
 
-  @@index([userId])
-  @@index([scheduledFor])
-  @@index([processed])
+    @@index([userId])
+    @@index([scheduledFor])
+    @@index([processed])
 }
 
 // Modèle pour l'historique des notifications
 model NotificationLog {
-  id             String        @id @default(cuid())
-  requestId      String
-  notificationId String?
-  notification   Notification? @relation("NotificationLogs", fields: [notificationId], references: [id], onDelete: SetNull)
-  userId         String
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  channel        String // app, email, sms, push, webhook
-  success        Boolean
-  error          String?       @db.Text
-  createdAt      DateTime      @default(now())
+    id             String        @id @default(cuid())
+    requestId      String
+    notificationId String?
+    notification   Notification? @relation("NotificationLogs", fields: [notificationId], references: [id], onDelete: SetNull)
+    userId         String
+    user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    channel        String // app, email, sms, push, webhook
+    success        Boolean
+    error          String?       @db.Text
+    createdAt      DateTime      @default(now())
 
-  @@index([userId])
-  @@index([requestId])
-  @@index([channel])
-  @@index([notificationId])
-  @@index([createdAt])
+    @@index([userId])
+    @@index([requestId])
+    @@index([channel])
+    @@index([notificationId])
+    @@index([createdAt])
 }
 
 // Modèle pour les préférences de notification
 model NotificationPreference {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String // Le type de notification (APPOINTMENT_CONFIRMATION, FEEDBACK, etc.)
-  channel   String // Le canal (app, email, sms, etc.)
-  enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    id        String   @id @default(cuid())
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    type      String // Le type de notification (APPOINTMENT_CONFIRMATION, FEEDBACK, etc.)
+    channel   String // Le canal (app, email, sms, etc.)
+    enabled   Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  @@unique([userId, type, channel])
-  @@index([userId])
-  @@index([type])
-  @@index([channel])
+    @@unique([userId, type, channel])
+    @@index([userId])
+    @@index([type])
+    @@index([channel])
 }
 
 enum NotificationType {
-  APPOINTMENT_REMINDER_3_DAYS
-  APPOINTMENT_REMINDER_1_DAY
-  APPOINTMENT_CONFIRMATION
-  APPOINTMENT_MODIFICATION
-  APPOINTMENT_CANCELLATION
-  FEEDBACK
-  VALIDATED
-  REJECTED
-  DOCUMENT_VALIDATED
-  DOCUMENT_REJECTED
-  REQUEST_SUBMITTED
-  REQUEST_ASSIGNED
-  REQUEST_COMPLETED
-  REQUEST_CANCELLED
-  REQUEST_EXPIRED
-  REQUEST_REJECTED
-  REQUEST_APPROVED
-  REQUEST_ADDITIONAL_INFO_NEEDED
-  REQUEST_PENDING_APPOINTMENT
-  REQUEST_PENDING_PAYMENT
-  REQUEST_NEW
-  CONSULAR_REGISTRATION_SUBMITTED
-  CONSULAR_REGISTRATION_VALIDATED
-  CONSULAR_REGISTRATION_REJECTED
-  CONSULAR_CARD_IN_PRODUCTION
-  CONSULAR_CARD_READY
-  CONSULAR_REGISTRATION_COMPLETED
+    APPOINTMENT_REMINDER_3_DAYS
+    APPOINTMENT_REMINDER_1_DAY
+    APPOINTMENT_CONFIRMATION
+    APPOINTMENT_MODIFICATION
+    APPOINTMENT_CANCELLATION
+    FEEDBACK
+    VALIDATED
+    REJECTED
+    DOCUMENT_VALIDATED
+    DOCUMENT_REJECTED
+    REQUEST_SUBMITTED
+    REQUEST_ASSIGNED
+    REQUEST_COMPLETED
+    REQUEST_CANCELLED
+    REQUEST_EXPIRED
+    REQUEST_REJECTED
+    REQUEST_APPROVED
+    REQUEST_ADDITIONAL_INFO_NEEDED
+    REQUEST_PENDING_APPOINTMENT
+    REQUEST_PENDING_PAYMENT
+    REQUEST_NEW
+    CONSULAR_REGISTRATION_SUBMITTED
+    CONSULAR_REGISTRATION_VALIDATED
+    CONSULAR_REGISTRATION_REJECTED
+    CONSULAR_CARD_IN_PRODUCTION
+    CONSULAR_CARD_READY
+    CONSULAR_REGISTRATION_COMPLETED
 }
 
 enum NotificationStatus {
-  PENDING
-  SENT
-  READ
-  FAILED
+    PENDING
+    SENT
+    READ
+    FAILED
 }
 
 model EmailList {
-  id          String         @id @default(cuid())
-  subscribers Subscription[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+    id          String         @id @default(cuid())
+    subscribers Subscription[]
+    createdAt   DateTime       @default(now())
+    updatedAt   DateTime       @updatedAt
 }
 
 model Subscription {
-  id          String      @id @default(cuid())
-  email       String      @unique
-  status      EmailStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  EmailList   EmailList?  @relation(fields: [emailListId], references: [id])
-  emailListId String?
+    id          String      @id @default(cuid())
+    email       String      @unique
+    status      EmailStatus @default(PENDING)
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+    EmailList   EmailList?  @relation(fields: [emailListId], references: [id])
+    emailListId String?
 }
 
 enum EmailStatus {
-  PENDING
-  CONFIRMED
-  UNSUBSCRIBED
+    PENDING
+    CONFIRMED
+    UNSUBSCRIBED
 }
 
 model AIQuestion {
-  id         String   @id @default(cuid())
-  question   String
-  frequency  Int      @default(1)
-  category   String
-  userRole   UserRole
-  isRelevant Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+    id         String   @id @default(cuid())
+    question   String
+    frequency  Int      @default(1)
+    category   String
+    userRole   UserRole
+    isRelevant Boolean  @default(true)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
 }
 
 model Country {
-  id        String        @id @default(cuid())
-  name      String
-  code      String        @unique
-  status    CountryStatus @default(ACTIVE)
-  flag      String?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+    id        String        @id @default(cuid())
+    name      String
+    code      String        @unique
+    status    CountryStatus @default(ACTIVE)
+    flag      String?
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
 
-  agents User[] @relation("managedCountries")
+    agents User[] @relation("managedCountries")
 
-  // Metadata
-  metadata          Json?
-  organizations     Organization[]
-  availableServices ConsularService[]
-  serviceRequests   ServiceRequest[]
-  users             User[]
+    // Metadata
+    metadata          Json?
+    organizations     Organization[]
+    availableServices ConsularService[]
+    serviceRequests   ServiceRequest[]
+    users             User[]
 
-  @@index([code])
+    @@index([code])
 }
 
 enum CountryStatus {
-  ACTIVE
-  INACTIVE
+    ACTIVE
+    INACTIVE
 }
 
 enum OrganizationType {
-  EMBASSY
-  CONSULATE
-  GENERAL_CONSULATE
-  HONORARY_CONSULATE
-  OTHER
+    EMBASSY
+    CONSULATE
+    GENERAL_CONSULATE
+    HONORARY_CONSULATE
+    OTHER
 }
 
 enum OrganizationStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
+    ACTIVE
+    INACTIVE
+    SUSPENDED
 }
 
 model Organization {
-  id     String             @id @default(cuid())
-  name   String
-  logo   String?
-  type   OrganizationType
-  status OrganizationStatus @default(ACTIVE)
+    id     String             @id @default(cuid())
+    name   String
+    logo   String?
+    type   OrganizationType
+    status OrganizationStatus @default(ACTIVE)
 
-  countries Country[]
+    countries Country[]
 
-  services ConsularService[]
+    services ConsularService[]
 
-  managedProfiles Profile[]
+    managedProfiles Profile[]
 
-  metadata            Json?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  adminUser           User?
-  appointments        Appointment[]
-  appointmentSettings Json?
+    metadata            Json?
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @updatedAt
+    adminUser           User?
+    appointments        Appointment[]
+    appointmentSettings Json?
 
-  agents User[] @relation("OrganizationAgents")
+    agents User[] @relation("OrganizationAgents")
 
-  serviceRequests   ServiceRequest[]
-  documentTemplates DocumentTemplate[]
+    serviceRequests   ServiceRequest[]
+    documentTemplates DocumentTemplate[]
 
-  @@map("organizations")
+    @@map("organizations")
 }
 
 enum RequestActionType {
-  ASSIGNMENT
-  STATUS_CHANGE
-  NOTE_ADDED
-  DOCUMENT_ADDED
-  DOCUMENT_VALIDATED
-  APPOINTMENT_SCHEDULED
-  PAYMENT_RECEIVED
-  COMPLETED
-  PROFILE_UPDATE
-  DOCUMENT_UPDATED
-  DOCUMENT_DELETED
+    ASSIGNMENT
+    STATUS_CHANGE
+    NOTE_ADDED
+    DOCUMENT_ADDED
+    DOCUMENT_VALIDATED
+    APPOINTMENT_SCHEDULED
+    PAYMENT_RECEIVED
+    COMPLETED
+    PROFILE_UPDATE
+    DOCUMENT_UPDATED
+    DOCUMENT_DELETED
 }
 
 model RequestAction {
-  id        String            @id @default(cuid())
-  type      RequestActionType
-  requestId String
-  request   ServiceRequest    @relation(fields: [requestId], references: [id])
-  userId    String
-  user      User              @relation(fields: [userId], references: [id])
-  data      Json?
-  createdAt DateTime          @default(now())
+    id        String            @id @default(cuid())
+    type      RequestActionType
+    requestId String
+    request   ServiceRequest    @relation(fields: [requestId], references: [id])
+    userId    String
+    user      User              @relation(fields: [userId], references: [id])
+    data      Json?
+    createdAt DateTime          @default(now())
 
-  @@index([requestId])
-  @@index([userId])
-  @@index([createdAt])
+    @@index([requestId])
+    @@index([userId])
+    @@index([createdAt])
 }
 
 model ParentalAuthority {
-  id           String       @id @default(cuid())
-  profile      Profile      @relation(fields: [profileId], references: [id])
-  profileId    String
-  role         ParentalRole
-  isActive     Boolean      @default(true)
-  parentUser   User         @relation(fields: [parentUserId], references: [id])
-  parentUserId String
+    id           String       @id @default(cuid())
+    profile      Profile      @relation(fields: [profileId], references: [id])
+    profileId    String
+    role         ParentalRole
+    isActive     Boolean      @default(true)
+    parentUser   User         @relation(fields: [parentUserId], references: [id])
+    parentUserId String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  sharedRequests ServiceRequest[] @relation("SharedWithParents")
+    sharedRequests ServiceRequest[] @relation("SharedWithParents")
 
-  @@unique([profileId, role])
-  @@index([profileId])
+    @@unique([profileId, role])
+    @@index([profileId])
 }
 
 model Sequence {
-  id             String   @id @default(cuid())
-  value          String   @default("00000")
-  countryCode    String
-  organizationId String
-  profileId      String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+    id             String   @id @default(cuid())
+    value          String   @default("00000")
+    countryCode    String
+    organizationId String
+    profileId      String
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
 }

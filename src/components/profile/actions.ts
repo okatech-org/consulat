@@ -4,7 +4,7 @@ import { checkAuth } from '@/lib/auth/action';
 import { Prisma } from '@prisma/client';
 import { GetProfilesOptions, PaginatedProfiles } from './types';
 import { tryCatch } from '@/lib/utils';
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { adaptProfilesListing } from './adapters';
 import { BaseProfileInclude } from './includes';
 

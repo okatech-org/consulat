@@ -1,9 +1,9 @@
 import { RequestStatus, ProfileCategory, Gender } from '@prisma/client';
 import { ReadonlyURLSearchParams } from 'next/navigation';
-import { BaseProfile, GetProfilesOptions, ProfilesArrayItem } from './types';
+import type { BaseProfile, GetProfilesOptions, ProfilesArrayItem } from './types';
 import { formatDate } from 'date-fns';
 import { capitalize } from '@/lib/utils';
-import { env } from '@/lib/env';
+import { env } from '@/env';
 
 const currentAppUrl = `https://consulat.ga`;
 
@@ -46,6 +46,7 @@ export function adaptSearchParams(
 ): GetProfilesOptions {
   const sortBy = searchParams.get('sort')?.split('-')[0] as keyof BaseProfile;
   const sortOrder = searchParams.get('sort')?.split('-')[1] as 'asc' | 'desc';
+  const organisationIdString  = searchParams.get('organizationId')
 
   return {
     status: searchParams
@@ -58,8 +59,9 @@ export function adaptSearchParams(
       .map((category) => category as ProfileCategory),
     page: Math.max(1, Number(searchParams.get('page') || '1')),
     limit: Math.max(1, Number(searchParams.get('limit') || '10')),
+    // @ts-expect-error - To fix
     sort: sortBy && sortOrder ? [sortBy, sortOrder] : undefined,
-    organizationId: searchParams.get('organizationId') ?? '',
+    organizationId: organisationIdString ? [organisationIdString] : undefined,
     gender: searchParams
       .get('gender')
       ?.split(',')

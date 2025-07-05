@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 
 /**
  * Format: [PAYS][ANNÉE_DÉBUT][ANNÉE_FIN][MOIS_NAISSANCE][ANNÉE_NAISSANCE]-[SEQUENCE]

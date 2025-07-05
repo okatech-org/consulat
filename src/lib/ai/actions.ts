@@ -1,8 +1,8 @@
 'use server';
 
 import OpenAI from 'openai';
-import { ContextData } from '@/lib/ai/types';
-import { db } from '@/lib/prisma';
+import type { ContextData } from '@/lib/ai/types';
+import { db } from '@/server/db';
 import { UserRole, ServiceCategory } from '@prisma/client';
 import { getKnowledgeBaseContext } from '@/lib/ai/knowledge-base';
 import {
@@ -14,8 +14,8 @@ import {
 import { FullProfileInclude, FullUserInclude } from '@/types';
 import { FullServiceRequestInclude } from '@/types/service-request';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { env } from '../env';
-import { ChatMessage } from './types';
+import { env } from '@/env';
+import type { ChatMessage } from './types';
 import { calculateProfileCompletion } from '@/lib/utils';
 
 const openai = new OpenAI();

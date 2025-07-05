@@ -2,7 +2,7 @@ import { getActiveCountries } from '@/actions/countries';
 import { NewProfileForm } from '@/components/registration/new-profile-form';
 import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';
 import { BetaBanner } from '@/components/ui/beta-banner';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getCurrentUser } from '@/lib/auth/utils';

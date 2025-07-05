@@ -1,7 +1,7 @@
 import { Vonage } from '@vonage/server-sdk';
 import { SMSMessage, SMSProvider, SMSResponse } from '../types';
 import { tryCatch } from '@/lib/utils';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 
 /**
  * Vonage SMS Provider
@@ -31,7 +31,7 @@ export class VonageProvider implements SMSProvider {
 
   async sendSMS(message: SMSMessage): Promise<SMSResponse> {
     const { error, data } = await tryCatch(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       this.client.sms
         .send({
           to: message.to,

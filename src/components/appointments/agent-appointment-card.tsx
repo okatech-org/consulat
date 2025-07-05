@@ -15,7 +15,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { AppointmentWithRelations } from '@/schemas/appointment';
+import type { AppointmentWithRelations } from '@/schemas/appointment';
 
 interface AgentAppointmentCardProps {
   appointment: AppointmentWithRelations;
@@ -109,7 +109,13 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
             </div>
           )}
         </div>
-        <Button variant="outline" asChild className="shrink-0" size="mobile" leftIcon={<ExternalLink />}>
+        <Button
+          variant="outline"
+          asChild
+          className="shrink-0"
+          size="mobile"
+          leftIcon={<ExternalLink />}
+        >
           <Link href={`${ROUTES.dashboard.appointments}/${appointment.id}`}>
             <span>{'Voir les détails'}</span>
           </Link>

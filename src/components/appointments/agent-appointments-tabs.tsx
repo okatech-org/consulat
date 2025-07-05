@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslations } from 'next-intl';
 import { AgentAppointmentsList } from './agent-appointments-list';
 import { useTabs } from '@/hooks/use-tabs';
-import { AppointmentWithRelations } from '@/schemas/appointment';
+import type { AppointmentWithRelations } from '@/schemas/appointment';
 
 interface AgentAppointmentsTabsProps {
   upcoming: AppointmentWithRelations[];

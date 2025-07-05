@@ -146,8 +146,7 @@ export function DataTableToolbar<TData>({
             onClick={onRefresh}
             disabled={isLoading}
             leftIcon={<RefreshCw className="h-4 w-4" />}
-          >
-          </Button>
+          ></Button>
         )}
         <div className={isLoading ? 'opacity-50 pointer-events-none' : ''}>
           <DataTableViewOptions table={table} />

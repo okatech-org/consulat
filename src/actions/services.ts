@@ -1,12 +1,12 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { checkAuth } from '@/lib/auth/action';
-import { FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
+import { type FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
 import { tryCatch } from '@/lib/utils';
-import { Prisma, ServiceRequest, UserDocument } from '@prisma/client';
+import { Prisma, type ServiceRequest, type UserDocument } from '@prisma/client';
 import { assignAgentToRequest } from './agents';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 
 /**
  * Get all active consular services available for the user based on their country

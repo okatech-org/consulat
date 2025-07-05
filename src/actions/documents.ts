@@ -2,25 +2,25 @@
 
 import sharp from 'sharp';
 import { getCurrentUser } from '@/actions/user';
-import { db } from '@/lib/prisma';
-import { DocumentStatus, UserDocument, DocumentType } from '@prisma/client';
-import { AppUserDocument } from '@/types';
+import { db } from '@/server/db';
+import { DocumentStatus, type UserDocument, DocumentType } from '@prisma/client';
+import type { AppUserDocument } from '@/types';
 import { checkAuth } from '@/lib/auth/action';
 import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 import { ROUTES } from '@/schemas/routes';
 import { documentSpecificFields, getFieldsForDocument } from '@/lib/document-fields';
-import { GeminiVisionAnalyzer, StructuredOutput } from '@/lib/ai/gemini-analyzer';
+import { GeminiVisionAnalyzer, type StructuredOutput } from '@/lib/ai/gemini-analyzer';
 
-import {
+import type {
   BasicInfoFormData,
   ContactInfoFormData,
   FamilyInfoFormData,
   ProfessionalInfoFormData,
 } from '@/schemas/registration';
-import { DocumentField, tryCatch } from '@/lib/utils';
+import { type DocumentField, tryCatch } from '@/lib/utils';
 
 // Types
 interface DocumentAnalysisResult {

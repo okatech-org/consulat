@@ -1,11 +1,10 @@
 ---
 description: Best practices for form handling with React Hook Form within the Consulat.ga project, focusing on custom hooks and controlled patterns.
-globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 
--   **Zod Validation**: Apply Zod schemas consistently to all forms, leveraging `zodResolver` to connect schema validation to `useForm`.
+- **Zod Validation**: Apply Zod schemas consistently to all forms, leveraging `zodResolver` to connect schema validation to `useForm`.
 
--   **Controlled Form Data**: Ensure that React Hook Form's controlled components are used to manage form state, ensuring tight integration with the hook. For libraries such as `react select`, use the `Controller` component
+- **Controlled Form Data**: Ensure that React Hook Form's controlled components are used to manage form state, ensuring tight integration with the hook. For libraries such as `react select`, use the `Controller` component
 
--   **Translation Hooks for Labels and Messages:** Embed `useTranslations` effectively to translate labels, options, descriptions, and validation messages, making the application easily adaptable to multi-language support, leveraging a structure with `messages.ts`
+- **Translation Hooks for Labels and Messages:** Embed `useTranslations` effectively to translate labels, options, descriptions, and validation messages, making the application easily adaptable to multi-language support, leveraging a structure with `messages.ts`

@@ -19,7 +19,7 @@ export async function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={sidebarState?.value === 'true'}>
-      <SpeedInsights/>
+      <SpeedInsights />
       <Analytics />
       <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
         <ThemeProvider

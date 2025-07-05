@@ -783,22 +783,22 @@ export function removeUndefined<T extends Record<string, any>>(obj: T): T {
   if (Array.isArray(obj)) {
     return (
       obj
-        // eslint-disable-next-line
+         
         .map((element) => removeUndefined<T>(element)) as unknown as T
     );
   }
 
-  // eslint-disable-next-line
+   
   if (typeof obj !== 'object' || obj === null) {
     return obj;
   }
 
   // eslint-disable-next-line
   return Object.keys(obj).reduce((acc: any, key: string) => {
-    // eslint-disable-next-line
+     
     const value = obj[key];
     if (value !== undefined) {
-      // eslint-disable-next-line
+       
       acc[key] = removeUndefined<T>(value);
     }
     return acc;

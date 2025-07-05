@@ -1,7 +1,7 @@
 'use server';
 
 import { checkAuth } from '@/lib/auth/action';
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { NewServiceSchemaInput } from '@/schemas/consular-service';
 import { ROUTES } from '@/schemas/routes';
 import type {

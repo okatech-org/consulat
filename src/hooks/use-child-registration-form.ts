@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BasicInfoSchema, BasicInfoFormData } from '@/schemas/registration';
+import { BasicInfoSchema, type BasicInfoFormData } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
 import { Gender, NationalityAcquisition } from '@prisma/client';
 import {
-  ChildCompleteFormData,
-  ChildDocumentsFormData,
-  LinkFormData,
+  type ChildCompleteFormData,
+  type ChildDocumentsFormData,
+  type LinkFormData,
   LinkInfoSchema,
 } from '@/schemas/child-registration';
 import { UserDocumentSchema } from '@/schemas/inputs';
@@ -50,14 +50,24 @@ export function useChildRegistrationForm() {
       ),
       defaultValues: {
         ...initialData?.basicInfo,
-        acquisitionMode:
-          initialData?.basicInfo?.acquisitionMode ?? NationalityAcquisition.BIRTH,
-        gender: initialData?.basicInfo?.gender ?? Gender.MALE,
-        nationality: initialData?.basicInfo?.nationality ?? 'GA',
-        birthCountry: initialData?.basicInfo?.birthCountry ?? 'GA',
       },
     }),
   };
+
+  forms.basicInfo.setValue(
+    'acquisitionMode',
+    initialData?.basicInfo?.acquisitionMode ?? NationalityAcquisition.BIRTH,
+    { shouldDirty: true },
+  );
+  forms.basicInfo.setValue('gender', initialData?.basicInfo?.gender ?? Gender.MALE, {
+    shouldDirty: true,
+  });
+  forms.basicInfo.setValue('nationality', initialData?.basicInfo?.nationality ?? 'GA', {
+    shouldDirty: true,
+  });
+  forms.basicInfo.setValue('birthCountry', initialData?.basicInfo?.birthCountry ?? 'GA', {
+    shouldDirty: true,
+  });
 
   // Sauvegarde automatique des données
   const handleDataChange = useCallback(

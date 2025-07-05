@@ -1,16 +1,13 @@
 'use server';
 
-import { auth } from '@/lib/auth/auth';
-import { db } from '@/lib/prisma';
-import { AgentSettings, AdminSettings, UserSettings } from '@/schemas/user';
-import { User } from '@prisma/client';
-import { headers } from 'next/headers';
-import { SessionUser } from '@/types';
+import { auth } from '@/server/auth';
+import { db } from '@/server/db';
+import type { AgentSettings, AdminSettings, UserSettings } from '@/schemas/user';
+import type { User } from '@prisma/client';
+import type { SessionUser } from '@/types';
 
 export const getCurrentUser = async (): Promise<SessionUser | null> => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await auth();
 
   return session?.user as unknown as SessionUser | null;
 };

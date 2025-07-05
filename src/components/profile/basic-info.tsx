@@ -1,8 +1,8 @@
 import { useTranslations } from 'next-intl';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 import { useDateLocale } from '@/lib/utils';
 
 interface ProfileBasicInfoProps {

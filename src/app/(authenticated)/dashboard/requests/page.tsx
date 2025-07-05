@@ -5,26 +5,30 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
 import {
   getServiceRequestsList,
-  GetRequestsOptions,
-  ServiceRequestListItem,
-  PaginatedServiceRequests,
+  type GetRequestsOptions,
+  type ServiceRequestListItem,
+  type PaginatedServiceRequests,
 } from '@/actions/service-requests';
 import { cn, getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { FullServiceRequest, ServiceRequestFilters } from '@/types/service-request';
-import { RequestStatus, ServiceCategory, ServicePriority, User } from '@prisma/client';
-import { SessionUser } from '@/types';
+import type { FullServiceRequest, ServiceRequestFilters } from '@/types/service-request';
+import {
+  RequestStatus,
+  ServiceCategory,
+  ServicePriority,
+  type User,
+} from '@prisma/client';
 
 // Imports pour le DataTable
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { FileText } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { useDateLocale } from '@/lib/utils';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
@@ -62,7 +66,7 @@ import {
 } from '@/components/ui/sheet';
 import { assignRequestToAgent } from '@/actions/agents';
 import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 
 // Function to adapt search parameters for service requests
 function adaptSearchParams(searchParams: URLSearchParams): ServiceRequestFilters {
@@ -103,7 +107,7 @@ export default function RequestsPage() {
   const router = useRouter();
   const t = useTranslations();
   const { formatDate } = useDateLocale();
-  const user = useCurrentUser() as SessionUser;
+  const { user } = useCurrentUser();
   const organizationId = getOrganizationIdFromUser(user);
   const [agents, setAgents] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -475,10 +479,10 @@ export default function RequestsPage() {
         />
       ),
       cell: ({ row }) => (
-        <Button 
-          variant="outline" 
-          size="mobile" 
-          className="min-w-max" 
+        <Button
+          variant="outline"
+          size="mobile"
+          className="min-w-max"
           leftIcon={<FileText className="size-icon" />}
           asChild
         >

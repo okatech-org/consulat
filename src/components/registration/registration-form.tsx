@@ -33,7 +33,7 @@ import Link from 'next/link';
 import { Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
 import { FullProfile } from '@/types';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';
 import Image from 'next/image';
 import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
@@ -218,7 +218,7 @@ export function RegistrationForm({
   };
 
   // Gestionnaire de navigation
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const handleNext = async () => {
     setError(undefined);
     setValidationError(undefined);

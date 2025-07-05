@@ -42,4 +42,4 @@ export interface CreateCountryInput {
   flag?: string;
 }
 
-export type CountryListingItem = CreateCountryInput
+export type CountryListingItem = CreateCountryInput;

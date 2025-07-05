@@ -1,6 +1,6 @@
 import { getProfileById } from '@/actions/profiles';
 import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfileDetailsView } from './profile-details-view';
@@ -8,13 +8,11 @@ import {
   getServiceRequestsByProfileId,
   getUserFullProfileById,
 } from '@/lib/user/getters';
-import { auth } from '@/lib/auth/auth';
-import { headers } from 'next/headers';
+import { getCurrentUser } from '@/lib/auth/utils';
+import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
 
 interface ProfilePageProps {
-  params: {
-    id: string;
-  };
+  params: { id: string };
 }
 
 export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
@@ -23,9 +21,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
   const profile = await getProfileById(profileId);
 
   if (!profile) {
-    return {
-      title: 'Profil non trouvé',
-    };
+    return { title: 'Profil non trouvé' };
   }
 
   return {
@@ -37,9 +33,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const awaitedParams = await params;
   const profileId = awaitedParams.id;
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const currentUser = await getCurrentUser();
 
   const profile = await getUserFullProfileById(profileId);
 
@@ -49,14 +43,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   // Determine if the user has full access to this profile
   const hasFullAccess =
-    session?.user?.roles?.includes('SUPER_ADMIN') ||
-    (session?.user?.roles?.some((role: string) =>
-      ['ADMIN', 'MANAGER', 'AGENT'].includes(role),
-    ) &&
-      session?.user?.countryCode === profile.residenceCountyCode);
+    hasRole(currentUser, 'SUPER_ADMIN') ||
+    (hasAnyRole(currentUser, ['ADMIN', 'MANAGER', 'AGENT']) &&
+      currentUser?.countryCode === profile.residenceCountyCode);
 
   // Determine if the user can contact this profile
-  const canContact = !!session?.user;
+  const canContact = !!currentUser;
 
   const requests = hasFullAccess
     ? await getServiceRequestsByProfileId(profileId)

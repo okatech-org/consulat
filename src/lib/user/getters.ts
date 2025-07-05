@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import {
   AdminSessionInclude,
   AgentSessionInclude,
@@ -83,10 +83,7 @@ export async function getUserFullProfileById(id: string): Promise<FullProfile | 
   try {
     return await db.profile.findFirst({
       where: {
-        OR: [
-          { userId: id },
-          { id: id }
-        ]
+        OR: [{ userId: id }, { id: id }],
       },
       ...FullProfileInclude,
     });

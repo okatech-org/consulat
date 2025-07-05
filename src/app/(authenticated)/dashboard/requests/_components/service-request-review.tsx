@@ -18,7 +18,7 @@ import {
 } from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { hasAnyRole, hasRole, RoleGuard } from '@/lib/permissions/utils';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 import { FullProfile } from '@/types/profile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusTimeline } from '@/components/consular/status-timeline';
@@ -35,7 +35,7 @@ export function ServiceRequestReview({
   request,
   agents = [],
 }: ServiceRequestReviewProps) {
-  const user = useCurrentUser();
+  const { user } = useCurrentUser();
   const cantUpdateRequest =
     hasRole(user, UserRole.AGENT) && request.assignedToId !== user?.id;
   const { formatDate } = useDateLocale();

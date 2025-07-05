@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
 import { getCurrentUser } from "@/lib/auth/utils"
 import Image from 'next/image';
-import { env } from "@/lib/env"
+import { env } from "@/env"
 import { HeaderLinks } from "./header-links"
 
 const logo = env.NEXT_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';

@@ -11,7 +11,7 @@ import {
   Pagination,
   useTableSearchParams,
 } from '@/hooks/use-table-search-params';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 import { OrganizationListingItem } from '@/types/organization';
 import { Country, User, UserRole } from '@prisma/client';
 import { useEffect, useState, useMemo } from 'react';
@@ -52,7 +52,7 @@ export function AgentsTable({
   managers,
 }: AgentsTablesProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const currentUser = useCurrentUser();
+  const { user: currentUser } = useCurrentUser();
   const organizationId = getOrganizationIdFromUser(currentUser as SessionUser);
 
   const defaultValues: SearchParams = useMemo(

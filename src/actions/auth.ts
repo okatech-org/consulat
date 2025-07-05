@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 
 export async function isUserExists(id?: string, email?: string, phoneNumber?: string) {
   const user = await db.user.findFirst({
@@ -20,7 +20,7 @@ export async function isUserExists(id?: string, email?: string, phoneNumber?: st
  */
 export const checkUserExists = async (identifier: string, type: 'email' | 'phone') => {
   'use server';
-  
+
   try {
     if (type === 'email') {
       const user = await db.user.findUnique({

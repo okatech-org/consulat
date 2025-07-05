@@ -1,10 +1,9 @@
 'use server';
 
 import { feedbackSchema } from '@/schemas/feedback';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 import { sendFeedbackEmail } from '@/lib/services/notifications/providers/emails';
-import { auth } from '@/lib/auth/auth';
-import { headers } from 'next/headers';
+import { getCurrentUser } from '@/lib/auth/utils';
 
 export const submitFeedback = async (formData: unknown) => {
   try {
@@ -12,11 +11,9 @@ export const submitFeedback = async (formData: unknown) => {
     const validatedFields = feedbackSchema.parse(formData);
 
     // Get current user if authenticated
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    const userId = session?.user?.id;
-    const userEmail = session?.user?.email || validatedFields.email;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
+    const userEmail = currentUser?.email || validatedFields.email;
 
     // Since we don't have a Feedback model yet, we'll just return the validated data
     // In production, you should create a Feedback model in Prisma schema
@@ -69,11 +66,9 @@ export const submitFeedback = async (formData: unknown) => {
 
 export const getFeedbacksByUser = async () => {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const currentUser = await getCurrentUser();
 
-    if (!session?.user?.id) {
+    if (!currentUser?.id) {
       throw new Error('Unauthorized');
     }
 

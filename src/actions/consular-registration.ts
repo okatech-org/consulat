@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { NoteType, type RequestStatus } from '@prisma/client';
 
 import { checkAuth } from '@/lib/auth/action';
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { ROUTES } from '@/schemas/routes';
 import { updateConsularRegistrationWithNotification } from '@/lib/services/notifications/consular-registration';
 import { generateConsularCardNumber } from '@/actions/consular-card';

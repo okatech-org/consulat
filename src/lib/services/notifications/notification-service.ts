@@ -11,7 +11,7 @@ import { AppNotificationProvider } from './providers/app-provider';
 import { EmailNotificationProvider } from './providers/email-provider';
 import { SmsNotificationProvider } from './providers/sms-provider';
 import { registerNotificationProvider } from './provider-registry';
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import { Prisma } from '@prisma/client';
 
 // Enregistrer les providers disponibles

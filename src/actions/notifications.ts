@@ -1,8 +1,8 @@
 'use server';
 
 import { getCurrentUser } from '@/actions/user';
-import { db } from '@/lib/prisma';
-import { Notification, NotificationType } from '@prisma/client';
+import { db } from '@/server/db';
+import { type Notification, NotificationType } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { sendNotificationEmail } from '@/lib/services/notifications/providers/emails';
 

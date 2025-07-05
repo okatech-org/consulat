@@ -1,11 +1,11 @@
-import { FullServiceRequest } from '@/types/service-request';
+import type { FullServiceRequest } from '@/types/service-request';
 import { useStoredTabs } from './use-tabs';
-import { ServiceField } from '@/types/consular-service';
+import type { ServiceField } from '@/types/consular-service';
 import CardContainer from '@/components/layouts/card-container';
 import {
   DocumentType,
   DeliveryMode,
-  UserDocument,
+  type UserDocument,
   AppointmentStatus,
 } from '@prisma/client';
 import { useDateLocale } from '@/lib/utils';
@@ -101,9 +101,11 @@ type StepReviewProps = {
 
 function StepReview({ fields }: StepReviewProps) {
   const { formatDate } = useDateLocale();
-  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string, type: 'pdf' | 'image' } | null>(
-    null,
-  );
+  const [previewDoc, setPreviewDoc] = useState<{
+    url: string;
+    title: string;
+    type: 'pdf' | 'image';
+  } | null>(null);
 
   function renderFieldValue(field: ReviewStepField) {
     switch (field.type) {
@@ -271,9 +273,11 @@ type DeliveryReviewProps = {
 
 function DeliveryReview({ request }: DeliveryReviewProps) {
   const t_inputs = useTranslations('inputs');
-  const [previewDoc, setPreviewDoc] = useState<{ url: string; title: string, type: 'pdf' | 'image' } | null>(
-    null,
-  );
+  const [previewDoc, setPreviewDoc] = useState<{
+    url: string;
+    title: string;
+    type: 'pdf' | 'image';
+  } | null>(null);
 
   const getDeliveryModeIcon = (mode: DeliveryMode) => {
     switch (mode) {
@@ -366,7 +370,9 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
                       setPreviewDoc({
                         url: request.proxyPowerOfAttorney,
                         title: 'Procuration',
-                        type: request.proxyPowerOfAttorney.endsWith('.pdf') ? 'pdf' : 'image',
+                        type: request.proxyPowerOfAttorney.endsWith('.pdf')
+                          ? 'pdf'
+                          : 'image',
                       })
                     }
                   >

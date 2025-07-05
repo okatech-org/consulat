@@ -1,19 +1,19 @@
 'use server';
 
-import { db } from '@/lib/prisma';
+import { db } from '@/server/db';
 import {
-  Profile,
+  type Profile,
   Gender,
   MaritalStatus,
   ProfileCategory,
   RequestStatus,
   WorkStatus,
-  UserDocument,
+  type UserDocument,
 } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { tryCatch } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
-import { FullProfile } from '@/types/profile';
+import type { FullProfile } from '@/types/profile';
 
 export interface GetProfilesOptions {
   search?: string;

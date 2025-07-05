@@ -102,10 +102,22 @@ export function DocumentCard({ document }: DocumentCardProps) {
       </CardContent>
 
       <CardFooter className="flex gap-2">
-        <Button variant="outline" size="mobile" className="flex-1" onClick={handleView} leftIcon={<Eye />}>
+        <Button
+          variant="outline"
+          size="mobile"
+          className="flex-1"
+          onClick={handleView}
+          leftIcon={<Eye />}
+        >
           {t('actions.view')}
         </Button>
-        <Button variant="outline" size="mobile" className="flex-1" onClick={handleDownload} leftIcon={<Download />}>
+        <Button
+          variant="outline"
+          size="mobile"
+          className="flex-1"
+          onClick={handleDownload}
+          leftIcon={<Download />}
+        >
           {t('actions.download')}
         </Button>
       </CardFooter>

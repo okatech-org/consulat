@@ -33,7 +33,7 @@ import { toast } from '@/hooks/use-toast';
 import { FileInput } from '../ui/file-input';
 import { FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
 import { ImageCropper } from '../ui/image-cropper';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
@@ -112,7 +112,7 @@ export function UserDocument({
   enableEditor = false,
   requestId,
 }: UserDocumentProps) {
-  const user = useCurrentUser();
+  const { user } = useCurrentUser();
   const t_errors = useTranslations('messages.errors');
   const t = useTranslations('common.documents');
   const t_common = useTranslations('common');

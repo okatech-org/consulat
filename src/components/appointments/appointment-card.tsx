@@ -4,7 +4,7 @@ import { Calendar, Clock, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
 import { AppointmentStatus } from '@prisma/client';
-import { AppointmentWithRelations } from '@/schemas/appointment';
+import type { AppointmentWithRelations } from '@/schemas/appointment';
 import { cancelAppointment } from '@/actions/appointments';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';

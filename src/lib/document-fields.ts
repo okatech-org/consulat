@@ -1,5 +1,5 @@
-import { DocumentField } from '@/lib/utils';
-import { FullProfile } from '@/types';
+import type { DocumentField } from '@/lib/utils';
+import type { FullProfile } from '@/types';
 import { DocumentType } from '@prisma/client';
 export const documentFieldsToAnalyze: DocumentField[] = [
   {
@@ -112,17 +112,11 @@ export const documentSpecificFields = {
     'passportNumber',
     'passportIssueDate',
     'passportExpiryDate',
-    'passportIssueAuthority',
-    'acquisitionMode',
+    'passportIssueAuthority'
   ],
   BIRTH_CERTIFICATE: [
     'fatherFullName',
     'motherFullName',
-    'firstName',
-    'lastName',
-    'gender',
-    'birthDate',
-    'birthPlace',
     'acquisitionMode',
   ],
   RESIDENCE_PERMIT: ['profession', 'workStatus', 'address'],

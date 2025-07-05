@@ -5,11 +5,11 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/s
 import IAstedButton from '../ui/mr-ray-button-fixed';
 import { ModernChatWindow } from './modern-chat-window';
 import { getGeminiChatCompletion, getUserContextData } from '@/lib/ai/actions';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser } from '@/contexts/user-context';
 import { useLocale } from 'next-intl';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { ChatMessage } from '@/lib/ai/types';
+import type { ChatMessage } from '@/lib/ai/types';
 
 interface Message extends ChatMessage {
   id: string;
@@ -20,7 +20,7 @@ export function ChatToggle({ customIcon }: { customIcon?: React.ReactNode }) {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [messages] = useState<Message[]>([]);
-  const user = useCurrentUser();
+  const { user } = useCurrentUser();
   const locale = useLocale();
 
   const handleSendMessage = async (message: string): Promise<string> => {
@@ -59,7 +59,10 @@ export function ChatToggle({ customIcon }: { customIcon?: React.ReactNode }) {
         <span className="text-sm font-medium">Chat</span>
       </SheetTitle>
 
-      <SheetTrigger className="aspect-square flex items-center justify-center size-[45px] p-1 rounded-full overflow-hidden">
+      <SheetTrigger
+        className="aspect-square flex items-center justify-center size-[45px] p-1 rounded-full overflow-hidden"
+        asChild
+      >
         {customIcon ?? <IAstedButton />}
       </SheetTrigger>
 

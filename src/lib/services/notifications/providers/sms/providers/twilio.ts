@@ -1,7 +1,7 @@
 import twilio, { Twilio } from 'twilio';
 import { SMSMessage, SMSProvider, SMSResponse } from '../types';
 import { tryCatch } from '@/lib/utils';
-import { env } from '@/lib/env/index';
+import { env } from '@/env';;
 
 export class TwilioProvider implements SMSProvider {
   private client: Twilio;

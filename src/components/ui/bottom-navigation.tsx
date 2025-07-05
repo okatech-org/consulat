@@ -9,9 +9,8 @@ import { useNavigation } from '@/hooks/use-navigation';
 import { MobileDrawer } from './mobile-drawer';
 import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
-import { NavMainItem } from '@/hooks/use-navigation';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { SessionUser } from '@/types';
+import { type NavMainItem } from '@/hooks/use-navigation';
+import { useCurrentUser } from '@/contexts/user-context';
 
 export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
   showLabels?: boolean;
@@ -19,12 +18,12 @@ export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement>
 
 const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
   ({ className, showLabels = true, ...props }, ref) => {
-    const currentUser = useCurrentUser();
-    const { mobileMenu } = useNavigation(currentUser as SessionUser);
+    const { user: currentUser } = useCurrentUser();
+    const { mobileMenu } = useNavigation(currentUser!);
     const pathname = usePathname();
 
     const isActive = React.useCallback(
-      (href: string, exact: boolean = false) => {
+      (href: string, exact = false) => {
         if (exact) {
           return pathname === href;
         }
@@ -58,7 +57,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       <nav
         ref={ref}
         className={cn(
-          'grid grid-cols-5 gap-1 py-2 px-4 md:hidden fixed bottom-0 left-0 -translate-y-4 right-0 z-50 mx-auto w-[calc(100%-2rem)] sm:max-w-max bg-background border rounded-full border-border',
+          'grid grid-cols-5 gap-1 py-0 px-4 md:hidden fixed bottom-0 left-0 -translate-y-4 right-0 z-50 mx-auto w-[calc(100%-2rem)] sm:max-w-max bg-background border rounded-full border-border',
           'items-center justify-around shadow-high',
           className,
         )}

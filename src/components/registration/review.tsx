@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { FullProfileUpdateFormData } from '@/schemas/registration';
+import type { FullProfileUpdateFormData } from '@/schemas/registration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,9 +86,9 @@ function ReviewSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className={'text-md'}>{title}</CardTitle>
-        <Button 
-          variant="outline" 
-          size="mobile" 
+        <Button
+          variant="outline"
+          size="mobile"
           onClick={onEdit}
           leftIcon={<Pencil className="size-4" />}
         >

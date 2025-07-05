@@ -22,8 +22,8 @@ import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { getAvailableTimeSlots, rescheduleAppointment } from '@/actions/appointments';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { AppointmentWithRelations } from '@/schemas/appointment';
-import { TimeSlotWithAgent } from '@/actions/appointments';
+import type { AppointmentWithRelations } from '@/schemas/appointment';
+import type { TimeSlotWithAgent } from '@/actions/appointments';
 import React from 'react';
 
 interface RescheduleAppointmentFormProps {
@@ -200,8 +200,8 @@ export function RescheduleAppointmentForm({
               {t('actions.back')}
             </Button>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading || !selectedTimeSlot}
               size="mobile"
               weight="medium"
