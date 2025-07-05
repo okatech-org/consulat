@@ -28,7 +28,7 @@ declare global {
 }
 
 import { PageContainer } from '@/components/layouts/page-container';
-import {
+import type {
   GetProfilesOptions,
   PaginatedProfiles,
   ProfilesArrayItem,
@@ -38,11 +38,11 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getProfiles } from '@/components/profile/actions';
 import { DataTable } from '@/components/data-table/data-table';
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
 import { FileText, Edit, Download, FolderOpen } from 'lucide-react';
@@ -50,7 +50,6 @@ import { RequestStatus, ProfileCategory, Gender } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import React from 'react';
 import {
   Dialog,
   DialogClose,
@@ -89,7 +88,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { FullProfileUpdateFormData } from '@/schemas/registration';
+import type { FullProfileUpdateFormData } from '@/schemas/registration';
 import { toast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 
@@ -546,7 +545,12 @@ export default function ProfilesPage() {
             actions={[
               {
                 component: row.original.validationRequestId ? (
-                  <Button size="sm" variant="ghost" className="w-full justify-start" asChild>   
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full justify-start"
+                    asChild
+                  >
                     <Link
                       onClick={(e) => e.stopPropagation()}
                       href={ROUTES.dashboard.service_requests(
@@ -561,23 +565,32 @@ export default function ProfilesPage() {
               },
               {
                 component: (
-                  <Button size="sm" variant="ghost" className="w-full justify-start" asChild>
-                       <Link
-                    onClick={(e) => e.stopPropagation()}
-                    href={ROUTES.listing.profile(row.original.id)}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full justify-start"
+                    asChild
                   >
-                    <FileText className="size-icon" />
-                    {t('common.actions.consult')}
-                  </Link>
+                    <Link
+                      onClick={(e) => e.stopPropagation()}
+                      href={ROUTES.listing.profile(row.original.id)}
+                    >
+                      <FileText className="size-icon" />
+                      {t('common.actions.consult')}
+                    </Link>
                   </Button>
-                  
                 ),
               },
               {
                 component: (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="sm" leftIcon={<Edit className="size-icon" />} variant="ghost" className="w-full justify-start">
+                      <Button
+                        size="sm"
+                        leftIcon={<Edit className="size-icon" />}
+                        variant="ghost"
+                        className="w-full justify-start"
+                      >
                         {t('common.actions.edit')}
                       </Button>
                     </DialogTrigger>

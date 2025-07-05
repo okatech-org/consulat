@@ -1,5 +1,3 @@
-import { Suspense } from 'react';
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { PageContainer } from '@/components/layouts/page-container';
 import { RegistrationForm } from '@/components/registration/registration-form';
 import { getActiveCountries } from '@/actions/countries';
@@ -15,12 +13,10 @@ export default async function ProfilePage() {
 
   return (
     <PageContainer title={tInputs('newProfile.title')}>
-      <Suspense fallback={<LoadingSkeleton />}>
-        {profile && (
-          <RegistrationForm availableCountries={availableCountries} profile={profile} />
-        )}
-        {!profile && <CardContainer title="Profile non trouvé"></CardContainer>}
-      </Suspense>
+      {profile && (
+        <RegistrationForm availableCountries={availableCountries} profile={profile} />
+      )}
+      {!profile && <CardContainer title="Profile non trouvé"></CardContainer>}
     </PageContainer>
   );
 }

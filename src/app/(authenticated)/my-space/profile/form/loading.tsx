@@ -6,7 +6,7 @@ import { PageContainer } from '@/components/layouts/page-container';
 export default function LoadingPage() {
   return (
     <PageContainer>
-      <LoadingSkeleton variant="list" count={4} />
+      <LoadingSkeleton variant="form" />
     </PageContainer>
   );
 }

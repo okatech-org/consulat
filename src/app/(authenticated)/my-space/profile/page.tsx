@@ -10,6 +10,10 @@ import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { PageContainer } from '@/components/layouts/page-container';
+import { ROUTES } from '@/schemas/routes';
+import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
+import { PlusIcon } from 'lucide-react';
 
 export default function ProfilePageClient() {
   // Récupérer les données via tRPC
@@ -46,15 +50,27 @@ export default function ProfilePageClient() {
   if (profileLoading) {
     return (
       <PageContainer>
-        <LoadingSkeleton />
+        <LoadingSkeleton variant="grid" columns={2} aspectRatio="4/3" />
       </PageContainer>
     );
   }
 
   if (!profile) {
     return (
-      <PageContainer>
-        <div>Profil non trouvé</div>
+      <PageContainer title="Profil non trouvé">
+        <div className="flex flex-col gap-4">
+          <p>
+            Vous n&apos;avez pas de profil consulaire. Veuillez en créer un pour
+            commencer.
+          </p>
+          <Link
+            href={ROUTES.registration}
+            className={buttonVariants({ variant: 'default' })}
+          >
+            <PlusIcon className="size-icon mr-1" />
+            Créer un profil
+          </Link>
+        </div>
       </PageContainer>
     );
   }
