@@ -9,9 +9,7 @@ export function ListingSkeleton() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <Skeleton className="h-10 w-1/2" /> {/* Titre */}
-          <Button>
-            <Plus className="size-4" />
-          </Button>
+          <Button size="icon" leftIcon={<Plus className="size-4" />} />
         </CardHeader>
 
         <CardContent>

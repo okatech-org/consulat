@@ -1,15 +1,15 @@
 # Checklist de Migration du Composant Button
 
 ## État de la Migration
-- **Total**: 32/120+ fichiers migrés
-- **Progression**: ~27%
-- **Composants UI**: 12/21 migrés
-- **Data Table**: 5/10 migrés  
+- **Total**: 39/120+ fichiers migrés
+- **Progression**: ~33%
+- **Composants UI**: 15/21 migrés
+- **Data Table**: 6/10 migrés  
 - **Services**: 2/3 migrés
 - **Organization**: 6/15 migrés
 - **Appointments**: 3/6 migrés
 - **Profile**: 1/5 migrés
-- **Registration**: 1/10 migrés
+- **Registration**: 4/10 migrés
 
 ## Nouveau Composant Button - Changements Principaux
 
@@ -34,8 +34,8 @@
 - [x] `src/components/ui/document-upload.tsx` ✅ Migré - Icône déplacée vers leftIcon, size="icon-sm"
 - [x] `src/components/ui/confirmation-dialog.tsx` ✅ Migré - Pattern loading remplacé par prop loading
 - [x] `src/components/ui/country-select.tsx` ✅ Migré - Icône déplacée vers rightIcon
-- [ ] `src/components/ui/document-preview.tsx`
-- [ ] `src/components/ui/image-cropper.tsx`
+- [x] `src/components/ui/document-preview.tsx` ✅ Migré - Icônes déplacées vers leftIcon, size="icon-sm"
+- [x] `src/components/ui/image-cropper.tsx` ✅ Déjà conforme - Boutons simples sans icônes
 - [x] `src/components/ui/logout-button.tsx` ✅ Déjà migré - Utilise déjà leftIcon
 - [ ] `src/components/ui/listing-skeleton.tsx`
 - [ ] `src/components/ui/dynamic-fields.tsx`
@@ -55,7 +55,7 @@
 - [ ] `src/components/data-table/data-table-toolbar.tsx`
 - [x] `src/components/data-table/data-table-row-actions.tsx` ✅ Migré - Icône déplacée vers leftIcon
 - [x] `src/components/data-table/data-table-faceted-filter.tsx` ✅ Migré - Icône déplacée vers children
-- [ ] `src/components/data-table.tsx`
+- [x] `src/components/data-table.tsx` ✅ Déjà conforme - Utilise des sous-composants déjà migrés
 
 ### Authentication Components (Priority: High)
 - [x] `src/components/auth/login-form.tsx` ✅ Déjà migré - Utilise déjà les nouvelles props
@@ -128,9 +128,9 @@
 - [ ] `src/components/registration/child-registration-form.tsx`
 - [x] `src/components/registration/navigation.tsx` ✅ Migré - Icône déplacée vers leftIcon
 - [ ] `src/components/registration/child-review-form.tsx`
-- [ ] `src/components/registration/document-upload-section.tsx`
-- [ ] `src/components/registration/review.tsx`
-- [ ] `src/components/registration/child-family-info-form.tsx`
+- [x] `src/components/registration/document-upload-section.tsx` ✅ Migré - Pattern loading remplacé par prop loading, icône déplacée vers leftIcon
+- [x] `src/components/registration/review.tsx` ✅ Déjà conforme - Utilise leftIcon et size="mobile"
+- [x] `src/components/registration/child-family-info-form.tsx` ✅ Déjà conforme - Utilise size="mobile" et weight="medium"
 - [ ] `src/components/registration/new-profile-form.tsx`
 - [x] `src/components/registration/registration-form.tsx` ✅ Migré - Icônes déplacées vers leftIcon/rightIcon, loading prop
 

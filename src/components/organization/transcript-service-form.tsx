@@ -3,20 +3,19 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Profile } from '@prisma/client';
+import type { Profile } from '@prisma/client';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   TranscriptDocumentSchema,
-  TranscriptDocumentInput,
+  type TranscriptDocumentInput,
   TranscriptDocumentType,
 } from '@/schemas/transcript-service';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
 import { profileFields } from '@/types/profile';
-import { ServiceField } from '@/types/consular-service';
+import type { ServiceField } from '@/types/consular-service';
 
 interface TranscriptServiceFormProps {
   userProfile?: Profile | null;
@@ -51,6 +50,7 @@ export function TranscriptServiceForm({
         value: type,
         label: t(`documentTypes.${type.toLowerCase()}`),
       })),
+      selectType: 'single',
     },
     {
       name: 'documentDate',
@@ -60,9 +60,14 @@ export function TranscriptServiceForm({
     },
     {
       name: 'issuingCountry',
-      type: 'country',
+      type: 'select',
       label: t('fields.issuingCountry'),
       required: true,
+      options: Object.values(TranscriptDocumentType).map((type) => ({
+        value: type,
+        label: t(`documentTypes.${type.toLowerCase()}`),
+      })),
+      selectType: 'single',
     },
     {
       name: 'issuingAuthority',
@@ -112,19 +117,14 @@ export function TranscriptServiceForm({
 
   const form = useForm<TranscriptDocumentInput>({
     resolver: zodResolver(TranscriptDocumentSchema),
-    defaultValues: {
-      documents: [],
-    },
+    defaultValues: { documents: [] },
   });
 
   const handleSubmit = async (data: TranscriptDocumentInput) => {
     setIsLoading(true);
     try {
       await onSubmit(data);
-      toast({
-        title: t('messages.success'),
-        variant: 'success',
-      });
+      toast({ title: t('messages.success'), variant: 'success' });
     } catch (error) {
       toast({
         title: t('messages.error'),
@@ -208,7 +208,7 @@ export function TranscriptServiceForm({
           </CardContent>
         </Card>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full" loading={isLoading}>
           {t('actions.submit')}
         </Button>
       </form>

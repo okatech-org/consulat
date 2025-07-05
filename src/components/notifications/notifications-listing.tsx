@@ -26,8 +26,12 @@ export function NotificationsListing() {
 
       {unreadCount > 0 && (
         <div className="flex justify-end px-4">
-          <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-            <Check className="size-4 mr-2" />
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Check className="size-4" />}
+            onClick={markAllAsRead}
+          >
             {t('mark_all_read')}
           </Button>
         </div>

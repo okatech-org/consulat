@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { RequestStatus, UserRole } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -57,10 +57,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
   const fieldStatus = getProfileFieldsStatus(profile);
 
   const statusOptions = STATUS_ORDER.map((item) => {
-    return {
-      value: item,
-      label: t(`inputs.requestStatus.options.${item}`),
-    };
+    return { value: item, label: t(`inputs.requestStatus.options.${item}`) };
   });
 
   function isStatusCompleted(status: RequestStatus) {
@@ -173,18 +170,13 @@ export function ProfileReview({ request }: ProfileReviewProps) {
 
                   let label = option.label;
                   if (!isCompleted && reason) {
-                    // @ts-expect-error - reason is a string
                     label += ` (${t(`admin.registrations.review.transitions.${reason}`)})`;
                   }
                   if (isCompleted) {
                     label += ` (${t('common.status.COMPLETED')})`;
                   }
 
-                  return {
-                    value: option.value,
-                    label: label,
-                    disabled: !can,
-                  };
+                  return { value: option.value, label: label, disabled: !can };
                 })}
               />
             </div>
@@ -202,7 +194,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
                     />
                   </div>
                   <Button
-                    disabled={isLoading}
+                    loading={isLoading}
                     className="w-full"
                     onClick={async () => {
                       setIsLoading(true);
@@ -227,9 +219,8 @@ export function ProfileReview({ request }: ProfileReviewProps) {
             {selectedStatus !== RequestStatus.VALIDATED && (
               <Button
                 className="w-full"
-                disabled={
-                  isLoading || selectedStatus === request.status || cantUpdateRequest
-                }
+                loading={isLoading}
+                disabled={selectedStatus === request.status || cantUpdateRequest}
                 onClick={async () => {
                   setIsLoading(true);
                   await updateConsularRegistrationStatus(

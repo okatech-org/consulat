@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { LoaderIcon, ScanBarcode } from 'lucide-react';
+import { ScanBarcode } from 'lucide-react';
 import type {
   BasicInfoFormData,
   ContactInfoFormData,
@@ -161,20 +161,18 @@ export function DocumentUploadSection({
               <Button
                 type="button"
                 onClick={handleAnalysis}
-                disabled={analysingState === 'analyzing' || isLoading}
-                className="w-full gap-2 md:w-auto"
-              >
-                {analysingState === 'analyzing' ? (
-                  <>
-                    <LoaderIcon className="size-5 animate-spin" />
-                    {t('documents.analysis.analyzing')}
-                  </>
-                ) : (
-                  <>
+                loading={analysingState === 'analyzing'}
+                disabled={isLoading}
+                className="w-full md:w-auto"
+                leftIcon={
+                  analysingState === 'analyzing' ? undefined : (
                     <ScanBarcode className="size-5" />
-                    {t('documents.analysis.start')}
-                  </>
-                )}
+                  )
+                }
+              >
+                {analysingState === 'analyzing'
+                  ? t('documents.analysis.analyzing')
+                  : t('documents.analysis.start')}
               </Button>
               {analysingState === 'idle' && (
                 <p className="text-sm text-muted-foreground">
