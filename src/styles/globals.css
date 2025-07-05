@@ -6,7 +6,7 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  
+
   /* Typography - Mobile optimized base sizes */
   --font-size-xs: 0.75rem; /* 12px */
   --font-size-sm: 0.875rem; /* 14px */
@@ -37,7 +37,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  
+
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -188,6 +188,7 @@
   --chart-3: 291 70% 50%;
   --chart-4: 199 89% 48%;
   --chart-5: 31 100% 60%;
+  --sidebar: hsl(0 0% 98%);
 }
 
 .dark {
@@ -260,6 +261,7 @@
   --chart-3: 291 50% 35%;
   --chart-4: 199 60% 35%;
   --chart-5: 31 70% 45%;
+  --sidebar: hsl(240 5.9% 10%);
 }
 
 @layer base {

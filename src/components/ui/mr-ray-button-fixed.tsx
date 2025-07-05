@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import './mr-ray-button-fixed.css';
 interface IAstedButtonProps {
   className?: string;
@@ -8,15 +8,11 @@ interface IAstedButtonProps {
 
 const IAstedButton: React.FC<IAstedButtonProps> = () => {
   // Optimize state management with single state object
-  const [state, setState] = useState({
-    isHovered: false,
-    mousePosition: { x: 0, y: 0 },
-  });
+  const [state, setState] = useState({ isHovered: false, mousePosition: { x: 0, y: 0 } });
 
   // Use refs for DOM elements and animation frame
   const buttonRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number | null>(null);
 
   // Memoize handlers with useCallback
   const handleMouseEnter = useCallback(() => {
@@ -26,80 +22,6 @@ const IAstedButton: React.FC<IAstedButtonProps> = () => {
   const handleMouseLeave = useCallback(() => {
     setState((prev) => ({ ...prev, isHovered: false }));
   }, []);
-
-  // Optimize mouse move handler with throttling
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!containerRef.current) return;
-
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-
-      setState((prev) => ({
-        ...prev,
-        mousePosition: { x, y },
-      }));
-
-      if (buttonRef.current) {
-        // Use transform3d for GPU acceleration
-        const tiltAmount = 15;
-        const glowX = x * 40;
-        const glowY = y * 40;
-
-        buttonRef.current.style.transform = `
-        perspective(800px) 
-        translate3d(0, 0, 20px)
-        rotate3d(${-y}, ${x}, ${x * y * 0.1}, ${tiltAmount}deg)
-        scale3d(${state.isHovered ? 1.05 : 1}, ${state.isHovered ? 1.05 : 1}, ${state.isHovered ? 1.2 : 1})
-      `;
-
-        buttonRef.current.style.boxShadow = `
-        ${glowX}px ${glowY}px 50px rgba(0, 102, 255, 0.4),
-        0 10px 30px rgba(0, 102, 255, 0.6)
-      `;
-      }
-    },
-    [state.isHovered],
-  );
-
-  // Optimize animation frame handling
-  useEffect(() => {
-    let lastTime = 0;
-    const fps = 60;
-    const interval = 1000 / fps;
-
-    const animateIdleMovement = (currentTime: number) => {
-      if (currentTime - lastTime >= interval) {
-        lastTime = currentTime;
-
-        if (buttonRef.current && !state.isHovered) {
-          const time = currentTime * 0.001;
-          const idleX = Math.sin(time * 0.5) * 5;
-          const idleY = Math.cos(time * 0.7) * 5;
-          const heartbeatScale = 1 + Math.sin(time * 5) * 0.03;
-
-          buttonRef.current.style.transform = `
-            perspective(1000px) 
-            translate3d(0, 0, ${1 + Math.sin(time * 2) * 5}px)
-            rotate3d(${idleY}, ${idleX}, ${Math.sin(time * 0.3) * 3}, ${5}deg)
-            scale3d(${heartbeatScale}, ${heartbeatScale}, ${heartbeatScale * 1.2})
-          `;
-        }
-      }
-      animationFrameRef.current = requestAnimationFrame(animateIdleMovement);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    animationFrameRef.current = requestAnimationFrame(animateIdleMovement);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [handleMouseMove, state.isHovered]);
 
   return (
     <div
@@ -244,7 +166,7 @@ const IAstedButton: React.FC<IAstedButtonProps> = () => {
       </div>
 
       {/* CSS Animations */}
-      <style jsx>{`
+      <style>{`
         /* Couche de réfraction pour effet de matière épaisse */
         .refraction-layer {
           position: absolute;
