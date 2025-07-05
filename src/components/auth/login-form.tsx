@@ -112,6 +112,13 @@ function useLoginActions() {
       })) as SignInResult;
 
       if (result?.error) {
+        // Vérifier si c'est le code spécial CODE_SENT
+        if (result.code === 'CODE_SENT') {
+          // C'est un succès, pas une erreur
+          return;
+        }
+
+        // Sinon, c'est une vraie erreur
         const errorMessage = tErrors(result.code);
         throw new Error(errorMessage);
       }
