@@ -41,13 +41,9 @@ import Link from 'next/link';
 import { type Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
 import { type FullProfile } from '@/types';
-import { env } from '@/env';
-import Image from 'next/image';
 import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@prisma/client';
-
-const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export function RegistrationForm({
   availableCountries,
@@ -433,16 +429,6 @@ export function RegistrationForm({
   return (
     <div className="w-full overflow-x-hidden max-w-3xl mx-auto flex flex-col md:pb-0">
       <header className="w-full border-b border-border pb-6">
-        <div className="flex mb-4 h-max w-max items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white">
-          <Image
-            src={appLogo}
-            width={200}
-            height={200}
-            alt={'Logo'}
-            className="relative h-16 w-16 rounded-md transition-transform duration-500 group-hover:scale-105"
-          />
-        </div>
-        <h1 className="text-2xl mb-4 font-bold">{tInputs('newProfile.title')}</h1>
         <StepIndicator
           steps={orderedSteps.map((step) => {
             const stepIndex = orderedSteps.indexOf(step);
@@ -491,7 +477,7 @@ export function RegistrationForm({
               />
             )}
 
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col md:flex-row justify-between gap-4">
               <Button
                 onClick={handlePrevious}
                 variant="outline"
@@ -505,7 +491,6 @@ export function RegistrationForm({
                 type="submit"
                 onClick={() => handleNext()}
                 loading={isLoading}
-                className="ml-auto"
                 rightIcon={
                   currentStepIndex !== totalSteps - 1 ? (
                     <ArrowRight className="size-icon" />

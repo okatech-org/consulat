@@ -325,20 +325,21 @@ const updateMutation = api.profile.update.useMutation({
 
 ### Priorité 1 - Routes critiques
 
-- [ ] **Auth/User**
-  - [ ] `/api/auth/*` - Conserver NextAuth
-  - [ ] `getCurrentUser()` → `api.user.getCurrent`
+- [x] **Auth/User**
+  - [x] `/api/auth/*` - Conserver NextAuth
+  - [x] `getCurrentUser()` → `api.user.getCurrent` ✅
   - [ ] `updateUserSettings()` → `api.user.updateSettings`
 
-- [ ] **Profile principal**
-  - [ ] `/my-space/profile` - Convertir en client component
-  - [ ] Toutes les actions de profil
-  - [ ] Formulaires de mise à jour
+- [x] **Profile principal**
+  - [x] `/my-space/profile` - Créé page.client.tsx (exemple) ✅
+  - [x] Router profile créé avec toutes les actions ✅
+  - [x] Exemple de formulaire de mise à jour créé ✅
 
-- [ ] **Services consulaires**
-  - [ ] `/my-space/services` - Déjà client component
-  - [ ] `/my-space/services/available`
-  - [ ] `/my-space/services/request/[id]`
+- [x] **Services consulaires**
+  - [x] Router services créé ✅
+  - [x] Hook useServices créé ✅
+  - [ ] `/my-space/services/available` - À migrer
+  - [ ] `/my-space/services/request/[id]` - À migrer
 
 ### Priorité 2 - Routes administratives
 
@@ -372,29 +373,33 @@ const updateMutation = api.profile.update.useMutation({
 
 ## 7. Routers tRPC à créer
 
+### Routers déjà créés ✅
+- `auth: authRouter` ✅
+- `user: userRouter` ✅
+- `profile: profileRouter` ✅
+- `services: servicesRouter` ✅
+- `documents: documentsRouter` ✅
+
+### Routers à créer
 ```typescript
 // src/server/api/root.ts
 export const appRouter = createTRPCRouter({
-  // Core
+  // Core ✅
   auth: authRouter,
   user: userRouter,
   profile: profileRouter,
   
-  // Services
+  // Services ✅
   services: servicesRouter,
   documents: documentsRouter,
-  appointments: appointmentsRouter,
   
-  // Admin
+  // À créer
+  appointments: appointmentsRouter,
   dashboard: dashboardRouter,
   agents: agentsRouter,
   requests: requestsRouter,
-  
-  // SuperAdmin
   countries: countriesRouter,
   organizations: organizationsRouter,
-  
-  // Others
   children: childrenRouter,
   notifications: notificationsRouter,
   feedback: feedbackRouter,
@@ -404,10 +409,26 @@ export const appRouter = createTRPCRouter({
 
 ## 8. Ordre de migration recommandé
 
-1. **Semaine 1**: Core (auth, user, profile)
-2. **Semaine 2**: Services principaux (services, documents, appointments)
-3. **Semaine 3**: Admin (dashboard, requests, agents)
-4. **Semaine 4**: Reste (children, notifications, public)
+### Phase 1 - Core (En cours 🚧)
+- [x] auth, user ✅
+- [x] profile ✅
+- [x] services, documents ✅
+- [ ] appointments
+
+### Phase 2 - Admin
+- [ ] dashboard (stats, requêtes)
+- [ ] requests (validation, gestion)
+- [ ] agents (liste, détails)
+
+### Phase 3 - SuperAdmin
+- [ ] countries (CRUD)
+- [ ] organizations (CRUD)
+
+### Phase 4 - Fonctionnalités secondaires
+- [ ] children (profils enfants)
+- [ ] notifications
+- [ ] feedback
+- [ ] profiles publics
 
 ## 9. Tests à implémenter
 
@@ -422,4 +443,48 @@ Pour chaque route migrée:
 - Surveiller les performances avec TanStack Query Devtools
 - Logger les erreurs tRPC
 - Monitorer les temps de réponse
-- Vérifier l'utilisation du cache 
+- Vérifier l'utilisation du cache
+
+## 11. Exemples de code créés
+
+### Router Profile (src/server/api/routers/profile.ts)
+- getCurrent - Récupère le profil de l'utilisateur actuel
+- getById - Récupère un profil par ID
+- getRegistrationRequest - Récupère la demande d'enregistrement
+- create - Crée un nouveau profil
+- update - Met à jour un profil complet
+- updateSection - Met à jour une section spécifique
+- submit - Soumet un profil pour validation
+- getRegistrationService - Récupère le service d'enregistrement
+
+### Router Services (src/server/api/routers/services.ts)
+- getAvailable - Services consulaires disponibles
+- getUserRequests - Demandes de l'utilisateur
+- getRequestById - Détails d'une demande
+- getServiceDetails - Détails d'un service
+- getService - Service avec ses étapes
+- submitRequest - Soumettre une demande
+
+### Router Documents (src/server/api/routers/documents.ts)
+- getUserDocuments - Liste des documents
+- getById - Document par ID
+- create - Créer un document (après upload)
+- updateMetadata - Mettre à jour les métadonnées
+- delete - Supprimer un document
+
+### Hooks créés
+- `useServices()` - Gestion des services consulaires
+- `useUserServiceRequests()` - Demandes de service
+- `useSubmitServiceRequest()` - Soumission de demande
+
+### Composants exemples
+- `ProfilePageClient` - Version client de la page profile
+- `ProfileUpdateForm` - Formulaire de mise à jour avec tRPC
+
+## 12. Prochaines étapes pour l'agent IA
+
+1. **Créer les routers manquants** dans l'ordre de priorité
+2. **Migrer les pages** une par une en créant des versions client
+3. **Remplacer les hooks existants** par des hooks tRPC
+4. **Mettre à jour les formulaires** pour utiliser les mutations tRPC
+5. **Tester chaque migration** avant de passer à la suivante 

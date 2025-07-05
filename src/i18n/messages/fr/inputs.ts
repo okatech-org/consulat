@@ -291,7 +291,7 @@ export default {
     email_description: 'Entrez le code à 6 chiffres reçu par email',
   },
   newProfile: {
-    title: 'Créez votre espace consulaire',
+    title: 'Votre profil consulaire',
     description: 'Veuillez remplir les champs ci-dessous pour créer un nouveau profil.',
     buttons: {
       get_code: "Obtenir le code d'accès",

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -59,7 +58,7 @@ export function StepIndicator({ steps, currentStep, onChange }: StepIndicatorPro
               disabled={!canAccess}
               className={cn(
                 'flex flex-col items-center',
-                !canAccess && 'cursor-not-allowed opacity-50',
+                !canAccess && 'cursor-not-allowed',
               )}
             >
               {/* Indicateur */}
