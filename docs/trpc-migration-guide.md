@@ -379,6 +379,7 @@ const updateMutation = api.profile.update.useMutation({
 - `profile: profileRouter` ✅
 - `services: servicesRouter` ✅
 - `documents: documentsRouter` ✅
+- `appointments: appointmentsRouter` ✅
 
 ### Routers à créer
 ```typescript
@@ -392,9 +393,9 @@ export const appRouter = createTRPCRouter({
   // Services ✅
   services: servicesRouter,
   documents: documentsRouter,
+  appointments: appointmentsRouter,
   
   // À créer
-  appointments: appointmentsRouter,
   dashboard: dashboardRouter,
   agents: agentsRouter,
   requests: requestsRouter,
@@ -409,11 +410,11 @@ export const appRouter = createTRPCRouter({
 
 ## 8. Ordre de migration recommandé
 
-### Phase 1 - Core (En cours 🚧)
+### Phase 1 - Core (Terminé ✅)
 - [x] auth, user ✅
 - [x] profile ✅
 - [x] services, documents ✅
-- [ ] appointments
+- [x] appointments ✅
 
 ### Phase 2 - Admin
 - [ ] dashboard (stats, requêtes)
@@ -472,14 +473,33 @@ Pour chaque route migrée:
 - updateMetadata - Mettre à jour les métadonnées
 - delete - Supprimer un document
 
+### Router Appointments (src/server/api/routers/appointments.ts)
+- getUserAppointments - Récupère les rendez-vous de l'utilisateur (groupés par statut)
+- getById - Récupère un rendez-vous par ID
+- create - Créer un nouveau rendez-vous
+- cancel - Annuler un rendez-vous
+- reschedule - Reprogrammer un rendez-vous
+- complete - Marquer comme terminé (agents)
+- markAsMissed - Marquer comme manqué (agents)
+- getAvailableTimeSlots - Récupère les créneaux disponibles
+- getAvailableServices - Services disponibles pour un pays
+- getStats - Statistiques des rendez-vous
+
 ### Hooks créés
 - `useServices()` - Gestion des services consulaires
 - `useUserServiceRequests()` - Demandes de service
 - `useSubmitServiceRequest()` - Soumission de demande
+- `useAppointments()` - Gestion des rendez-vous
+- `useAppointment(id)` - Récupérer un rendez-vous spécifique
+- `useAvailableTimeSlots()` - Créneaux disponibles
+- `useAvailableServices()` - Services disponibles
+- `useAppointmentStats()` - Statistiques des rendez-vous
 
 ### Composants exemples
 - `ProfilePageClient` - Version client de la page profile
 - `ProfileUpdateForm` - Formulaire de mise à jour avec tRPC
+- `UserAppointmentsPageClient` - Version client de la page appointments
+- `AppointmentForm` - Formulaire de création de rendez-vous avec tRPC
 
 ## 12. Prochaines étapes pour l'agent IA
 
