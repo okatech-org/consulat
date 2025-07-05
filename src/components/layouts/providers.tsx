@@ -22,7 +22,7 @@ export async function Providers({ children }: { children: React.ReactNode }) {
       defaultOpen={sidebarState?.value ? sidebarState.value === 'true' : true}
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
+          '--sidebar-width': 'calc(var(--spacing) * 64)',
           '--header-height': 'calc(var(--spacing) * 12)',
         } as React.CSSProperties
       }

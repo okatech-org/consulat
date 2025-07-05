@@ -450,9 +450,9 @@ export function RegistrationForm({
       </header>
 
       {/* Version desktop - Layout avec sidebar */}
-      <div className="w-full flex flex-col lg:flex-row lg:gap-8">
+      <div className="w-full flex flex-col lg:flex-row lg:gap-4">
         {/* Sidebar verticale pour desktop */}
-        <aside className="hidden lg:block lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
+        <aside className="hidden lg:block lg:w-80 lg:flex-shrink-0 lg:sticky lg:self-start">
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-lg font-semibold mb-6">{t('profile.title')}</h2>
             <StepIndicator
@@ -478,9 +478,6 @@ export function RegistrationForm({
         {/* Contenu principal */}
         <main className="flex-1 min-w-0">
           <div className="mx-auto w-full max-w-4xl">
-            {/* En-tête avec progression */}
-            <div className="mb-8 space-y-6"></div>
-
             {/* Contenu principal */}
             <div className="flex flex-col md:pb-10 gap-4 justify-center">
               {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
