@@ -436,6 +436,7 @@ export default {
     },
   },
   profile: {
+    title: 'Votre profil consulaire',
     birth_certificate: {
       label: 'Acte de naissance',
     },

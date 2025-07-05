@@ -427,9 +427,11 @@ export function RegistrationForm({
   };
 
   return (
-    <div className="w-full overflow-x-hidden max-w-3xl mx-auto flex flex-col md:pb-0">
-      <header className="w-full border-b border-border pb-6">
+    <div className="w-full overflow-x-hidden max-w-7xl mx-auto flex flex-col lg:pb-0">
+      {/* Version mobile/tablette - Étapes horizontales en header */}
+      <header className="w-full border-b border-border pb-6 lg:hidden">
         <StepIndicator
+          variant="horizontal"
           steps={orderedSteps.map((step) => {
             const stepIndex = orderedSteps.indexOf(step);
             const currentIndex = orderedSteps.indexOf(currentTab);
@@ -446,91 +448,120 @@ export function RegistrationForm({
           onChange={(step) => setCurrentTab(step as Step)}
         />
       </header>
-      <div className="w-full flex flex-col">
-        <div className="mx-auto w-full max-w-4xl">
-          {/* En-tête avec progression */}
-          <div className="mb-8 space-y-6"></div>
 
-          {/* Contenu principal */}
-          <div className="flex flex-col md:pb-10 gap-4 justify-center">
-            {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
-            <CardContainer>{renderCurrentStep()}</CardContainer>
-            {error && (
-              <ErrorCard
-                description={
-                  <p className="flex items-center gap-2">
-                    <Info className="size-icon" />
-                    {t_errors('invalid_step')}
-                  </p>
-                }
-              />
-            )}
+      {/* Version desktop - Layout avec sidebar */}
+      <div className="w-full flex flex-col lg:flex-row lg:gap-8">
+        {/* Sidebar verticale pour desktop */}
+        <aside className="hidden lg:block lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h2 className="text-lg font-semibold mb-6">{t('profile.title')}</h2>
+            <StepIndicator
+              variant="vertical"
+              steps={orderedSteps.map((step) => {
+                const stepIndex = orderedSteps.indexOf(step);
+                const currentIndex = orderedSteps.indexOf(currentTab);
 
-            {validationError && (
-              <ErrorCard
-                description={
-                  <p className="flex items-center gap-2">
-                    <Info className="size-icon" />
-                    {validationError}
-                  </p>
-                }
-              />
-            )}
-
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-              <Button
-                onClick={handlePrevious}
-                variant="outline"
-                disabled={isLoading || currentStepIndex === 0}
-                leftIcon={<ArrowLeft className="size-icon" />}
-              >
-                {t('navigation.previous')}
-              </Button>
-
-              <Button
-                type="submit"
-                onClick={() => handleNext()}
-                loading={isLoading}
-                rightIcon={
-                  currentStepIndex !== totalSteps - 1 ? (
-                    <ArrowRight className="size-icon" />
-                  ) : undefined
-                }
-              >
-                {currentStepIndex === totalSteps - 1
-                  ? t('navigation.submit')
-                  : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
-              </Button>
-            </div>
-            {!currentStepValidity && (
-              <div className="errors flex flex-col gap-2">
-                <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
-                  <Info className="size-icon min-w-max text-blue-500" />
-                  <span>{t('navigation.validityWarning')}</span>
-                </p>
-                <ul className="flex flex-col items-center gap-2">
-                  {Object.entries(currentStepErrors).map(([error, value]) => (
-                    <li key={error} className="text-red-500 list-disc">
-                      <span className="font-medium text-sm">
-                        {tInputs(`${error}.label`)}
-                      </span>
-                      {': '}
-                      <span>{t_base(value.message as ErrorMessageKey)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                return {
+                  title: t(`steps.${step}`),
+                  key: step,
+                  description: t(`steps.${step}_description`),
+                  isOptional: step === 'professionalInfo',
+                  isComplete: stepIndex < currentIndex,
+                };
+              })}
+              currentStep={currentTab}
+              onChange={(step) => setCurrentTab(step as Step)}
+            />
           </div>
+        </aside>
 
-          {/* Progression mobile */}
-          <MobileProgress
-            currentStepIndex={currentStepIndex}
-            totalSteps={orderedSteps.length}
-            stepTitle={t(`steps.${currentTab}`)}
-            isOptional={currentTab === 'professionalInfo'}
-          />
-        </div>
+        {/* Contenu principal */}
+        <main className="flex-1 min-w-0">
+          <div className="mx-auto w-full max-w-4xl">
+            {/* En-tête avec progression */}
+            <div className="mb-8 space-y-6"></div>
+
+            {/* Contenu principal */}
+            <div className="flex flex-col md:pb-10 gap-4 justify-center">
+              {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
+              <CardContainer>{renderCurrentStep()}</CardContainer>
+              {error && (
+                <ErrorCard
+                  description={
+                    <p className="flex items-center gap-2">
+                      <Info className="size-icon" />
+                      {t_errors('invalid_step')}
+                    </p>
+                  }
+                />
+              )}
+
+              {validationError && (
+                <ErrorCard
+                  description={
+                    <p className="flex items-center gap-2">
+                      <Info className="size-icon" />
+                      {validationError}
+                    </p>
+                  }
+                />
+              )}
+
+              <div className="flex flex-col md:flex-row justify-between gap-4">
+                <Button
+                  onClick={handlePrevious}
+                  variant="outline"
+                  disabled={isLoading || currentStepIndex === 0}
+                  leftIcon={<ArrowLeft className="size-icon" />}
+                >
+                  {t('navigation.previous')}
+                </Button>
+
+                <Button
+                  type="submit"
+                  onClick={() => handleNext()}
+                  loading={isLoading}
+                  rightIcon={
+                    currentStepIndex !== totalSteps - 1 ? (
+                      <ArrowRight className="size-icon" />
+                    ) : undefined
+                  }
+                >
+                  {currentStepIndex === totalSteps - 1
+                    ? t('navigation.submit')
+                    : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
+                </Button>
+              </div>
+              {!currentStepValidity && (
+                <div className="errors flex flex-col gap-2">
+                  <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
+                    <Info className="size-icon min-w-max text-blue-500" />
+                    <span>{t('navigation.validityWarning')}</span>
+                  </p>
+                  <ul className="flex flex-col items-center gap-2">
+                    {Object.entries(currentStepErrors).map(([error, value]) => (
+                      <li key={error} className="text-red-500 list-disc">
+                        <span className="font-medium text-sm">
+                          {tInputs(`${error}.label`)}
+                        </span>
+                        {': '}
+                        <span>{t_base(value.message as ErrorMessageKey)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Progression mobile */}
+            <MobileProgress
+              currentStepIndex={currentStepIndex}
+              totalSteps={orderedSteps.length}
+              stepTitle={t(`steps.${currentTab}`)}
+              isOptional={currentTab === 'professionalInfo'}
+            />
+          </div>
+        </main>
       </div>
       <Dialog open={!country}>
         <DialogContent>
