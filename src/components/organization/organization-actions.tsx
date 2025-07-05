@@ -1,6 +1,6 @@
 'use client';
 
-import { Organization } from '@/types/organization';
+import type { Organization } from '@/types/organization';
 import { useTranslations } from 'next-intl';
 import {
   DropdownMenu,
@@ -21,9 +21,11 @@ export function OrganizationActions({ organization }: { organization: Organizati
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="size-8 p-0">
-          <MoreHorizontal className="size-4" />
-        </Button>
+        <Button
+          variant="ghost"
+          className="size-8 p-0"
+          leftIcon={<MoreHorizontal className="size-4" />}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => openEditDialog(organization)}>

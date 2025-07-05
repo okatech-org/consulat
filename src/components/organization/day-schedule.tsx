@@ -2,7 +2,7 @@ import { Switch } from '@/components/ui/switch';
 import { TimeSelect } from '@/components/ui/time-select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { Key } from 'react';
+import type { Key } from 'react';
 import {
   FormControl,
   FormField,
@@ -10,7 +10,6 @@ import {
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import * as React from 'react';
 
 export const DaySchedule = ({
   day,
@@ -42,10 +41,7 @@ export const DaySchedule = ({
 
             if (checked) {
               form.setValue(`metadata.${countryCode}.settings.schedule.${day}.slots`, [
-                {
-                  start: '07:00',
-                  end: '20:00',
-                },
+                { start: '07:00', end: '20:00' },
               ]);
             }
           }}
@@ -108,6 +104,7 @@ export const DaySchedule = ({
                 variant="ghost"
                 size="icon"
                 className="self-end"
+                leftIcon={<X className="size-4" />}
                 onClick={() => {
                   const currentSlots = form.watch(
                     `metadata.${countryCode}.settings.schedule.${day}.slots`,
@@ -117,9 +114,7 @@ export const DaySchedule = ({
                     currentSlots.filter((_: never, i: number) => i !== index),
                   );
                 }}
-              >
-                <X className="size-4" />
-              </Button>
+              />
             </div>
           ))}
 

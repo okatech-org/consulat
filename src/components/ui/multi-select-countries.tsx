@@ -51,6 +51,7 @@ export function MultiSelectCountries({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
+          rightIcon={<ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />}
         >
           <div className="flex flex-wrap gap-1">
             {selectedCountries.length === 0 && placeholder}
@@ -60,7 +61,6 @@ export function MultiSelectCountries({
               </Badge>
             ))}
           </div>
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">

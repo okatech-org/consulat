@@ -46,8 +46,8 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               size="icon"
               className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
+              leftIcon={<ChatToggle customIcon={<MessageSquareIcon />} />}
             >
-              <ChatToggle customIcon={<MessageSquareIcon />} />
               <span className="sr-only">Messagerie</span>
             </Button>
           </SidebarMenuItem>
