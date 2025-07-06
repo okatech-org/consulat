@@ -4,10 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { FullProfile } from '@/types';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-import { ChildBasicInfoSection } from './sections/basic-info-section';
 import { DocumentsSection } from '../../profile/_utils/components/sections/documents-section';
 import { LinkInfoSection } from './sections/link-info-section';
 import { useRouter } from 'next/navigation';
+import { BasicInfoSection } from '../../profile/_utils/components/sections/basic-info-section';
 
 type ProfileTabsProps = {
   profile: FullProfile;
@@ -26,7 +26,14 @@ export function ChildProfileTabs({ profile }: ProfileTabsProps) {
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
-      content: <ChildBasicInfoSection profile={profile} />,
+      content: (
+        <BasicInfoSection
+          profile={profile}
+          onSave={() => {
+            router.refresh();
+          }}
+        />
+      ),
     },
     {
       id: 'documents',

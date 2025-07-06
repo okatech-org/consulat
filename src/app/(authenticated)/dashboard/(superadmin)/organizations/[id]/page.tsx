@@ -1,7 +1,6 @@
 import { getOrganizationById } from '@/actions/organizations';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import * as React from 'react';
 import { SettingsTabs } from '@/components/organization/settings-tabs';
 import { getActiveCountries } from '@/actions/countries';
 import { UserRole } from '@prisma/client';

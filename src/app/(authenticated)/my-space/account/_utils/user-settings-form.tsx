@@ -14,16 +14,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { toast } from '@/hooks/use-toast';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import {
   UserSettingsSchema,
   AgentSettingsSchema,
   AdminSettingsSchema,
 } from '@/schemas/user';
-import { SessionUser } from '@/types/user';
+import type { SessionUser } from '@/types/user';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Country, UserRole } from '@prisma/client';
+import { type Country, UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import { useForm } from 'react-hook-form';

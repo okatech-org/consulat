@@ -534,4 +534,38 @@ export const organizationsRouter = createTRPCRouter({
         },
       });
     }),
+
+  /**
+   * Obtenir les informations d'une organisation pour un pays spécifique
+   */
+  getCountryInfos: protectedProcedure
+    .input(z.object({ 
+      organizationId: z.string(),
+      countryCode: z.string() 
+    }))
+    .query(async ({ ctx, input }) => {
+      const data = await ctx.db.organization.findUnique({
+        where: { id: input.organizationId },
+      });
+
+      if (!data) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Organisation non trouvée.',
+        });
+      }
+
+      const { metadata, ...rest } = data;
+
+      const formattedMetadata = JSON.parse(
+        typeof metadata === 'string' ? metadata : '{}',
+      ) as Record<string, Record<string, unknown>>;
+
+      const countrySettings = formattedMetadata[input.countryCode] || {};
+
+      return {
+        ...rest,
+        settings: countrySettings,
+      };
+    }),
 }); 

@@ -1,4 +1,3 @@
-import React from 'react';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { ROUTES } from '@/schemas/routes';

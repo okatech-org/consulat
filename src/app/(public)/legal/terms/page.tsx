@@ -1,8 +1,9 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Conditions d\'Utilisation | Consulat.ga',
-  description: 'Conditions d\'utilisation de Consulat.ga - Découvrez les règles et conditions d\'utilisation de nos services.',
+  title: "Conditions d'Utilisation | Consulat.ga",
+  description:
+    "Conditions d'utilisation de Consulat.ga - Découvrez les règles et conditions d'utilisation de nos services.",
 };
 
 export default function TermsOfService() {
@@ -10,12 +11,14 @@ export default function TermsOfService() {
     <div className="container mx-auto px-4 py-16 max-w-4xl">
       <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
         <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          ⚠️ Version Bêta : Consulat.ga est actuellement en phase de test pour une durée de 3 mois. Certaines fonctionnalités peuvent être limitées ou modifiées pendant cette période.
+          ⚠️ Version Bêta : Consulat.ga est actuellement en phase de test pour une durée
+          de 3 mois. Certaines fonctionnalités peuvent être limitées ou modifiées pendant
+          cette période.
         </p>
       </div>
 
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-        Conditions d'Utilisation
+        Conditions d&apos;Utilisation
       </h1>
 
       <div className="prose dark:prose-invert max-w-none">
@@ -28,10 +31,14 @@ export default function TermsOfService() {
             1. Présentation du Service
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Consulat.ga est une plateforme SaaS (Software as a Service) développée et opérée par OKA Tech, SASU au capital de [montant], immatriculée au RCS de Paris sous le numéro [numéro], dont le siège social est situé au 59 Rue de Ponthieu, 75008 Paris, France.
+            Consulat.ga est une plateforme SaaS (Software as a Service) développée et
+            opérée par OKA Tech, SASU au capital de [montant], immatriculée au RCS de
+            Paris sous le numéro [numéro], dont le siège social est situé au 59 Rue de
+            Ponthieu, 75008 Paris, France.
           </p>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            La plateforme est actuellement en phase bêta pour une durée de 3 mois, durant laquelle certaines fonctionnalités peuvent être limitées ou modifiées.
+            La plateforme est actuellement en phase bêta pour une durée de 3 mois, durant
+            laquelle certaines fonctionnalités peuvent être limitées ou modifiées.
           </p>
         </section>
 
@@ -40,11 +47,12 @@ export default function TermsOfService() {
             2. Conditions de Service
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Le service est fourni sous forme de licence d'utilisation aux consulats et administrations diplomatiques. Les conditions suivantes s'appliquent :
+            Le service est fourni sous forme de licence d&apos;utilisation aux consulats
+            et administrations diplomatiques. Les conditions suivantes s&apos;appliquent :
           </p>
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
             <li>Licence non exclusive et non transférable</li>
-            <li>Accès limité à la durée de l'abonnement</li>
+            <li>Accès limité à la durée de l&apos;abonnement</li>
             <li>Interdiction de sous-licencier ou revendre le service</li>
             <li>Obligation de respecter les conditions de sécurité</li>
             <li>Respect des lois sur la protection des données</li>
@@ -56,10 +64,14 @@ export default function TermsOfService() {
             3. Propriété des Données
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Les administrations utilisatrices conservent l'entière propriété de leurs données. OKA Tech s'engage à :
+            Les administrations utilisatrices conservent l&apos;entière propriété de leurs
+            données. OKA Tech s&apos;engage à :
           </p>
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
-            <li>Ne pas utiliser les données à d'autres fins que la fourniture du service</li>
+            <li>
+              Ne pas utiliser les données à d&apos;autres fins que la fourniture du
+              service
+            </li>
             <li>Assurer la portabilité des données</li>
             <li>Supprimer les données sur demande</li>
             <li>Notifier immédiatement toute violation de données</li>
@@ -91,7 +103,7 @@ export default function TermsOfService() {
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
             <li>Des interruptions de service dues à la maintenance</li>
             <li>Des problèmes causés par une mauvaise utilisation du service</li>
-            <li>Des pertes de données dues à une négligence de l'utilisateur</li>
+            <li>Des pertes de données dues à une négligence de l&apos;utilisateur</li>
             <li>Des dommages indirects ou consécutifs</li>
           </ul>
         </section>
@@ -101,7 +113,8 @@ export default function TermsOfService() {
             6. Modifications des Conditions
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            OKA Tech se réserve le droit de modifier ces conditions à tout moment. Les utilisateurs seront notifiés par email de tout changement significatif.
+            OKA Tech se réserve le droit de modifier ces conditions à tout moment. Les
+            utilisateurs seront notifiés par email de tout changement significatif.
           </p>
         </section>
 
@@ -110,7 +123,8 @@ export default function TermsOfService() {
             7. Contact
           </h2>
           <p className="text-gray-600 dark:text-gray-300">
-            Pour toute question concernant ces conditions d'utilisation, veuillez nous contacter :
+            Pour toute question concernant ces conditions d&apos;utilisation, veuillez
+            nous contacter :
             <br />
             <br />
             OKA Tech
@@ -122,7 +136,11 @@ export default function TermsOfService() {
             France
             <br />
             <br />
-            Email : <a href="mailto:okatech@icloud.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+            Email :{' '}
+            <a
+              href="mailto:okatech@icloud.com"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
               okatech@icloud.com
             </a>
           </p>
@@ -130,4 +148,4 @@ export default function TermsOfService() {
       </div>
     </div>
   );
-} 
+}

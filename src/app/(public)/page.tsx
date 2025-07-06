@@ -2,7 +2,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ArrowRight, Check, Lock, Users, MessageSquare, Shield } from 'lucide-react';
-import React from 'react';
 import { getTranslations } from 'next-intl/server';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { GlobalAnimations } from '@/components/ui/global-animations';
@@ -21,7 +20,7 @@ export async function generateStaticParams() {
 // Generate metadata for SEO
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
-  
+
   return {
     title: t('home.landing.hero.consulat_ga'),
     description: t('home.landing.hero.description'),
@@ -33,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'administration digitale',
       'inscription consulaire',
       'passeport gabonais',
-      'carte consulaire'
+      'carte consulaire',
     ],
     openGraph: {
       title: t('home.landing.hero.consulat_ga'),
@@ -52,7 +51,9 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: t('home.landing.hero.consulat_ga'),
       description: t('home.landing.hero.description'),
-      images: ['https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv'],
+      images: [
+        'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv',
+      ],
     },
     alternates: {
       canonical: '/',

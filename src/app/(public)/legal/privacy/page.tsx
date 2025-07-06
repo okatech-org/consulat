@@ -1,8 +1,9 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité | Consulat.ga',
-  description: 'Politique de confidentialité de Consulat.ga - Découvrez comment nous protégeons vos données personnelles.',
+  description:
+    'Politique de confidentialité de Consulat.ga - Découvrez comment nous protégeons vos données personnelles.',
 };
 
 export default function PrivacyPolicy() {
@@ -10,7 +11,9 @@ export default function PrivacyPolicy() {
     <div className="container mx-auto px-4 py-16 max-w-4xl">
       <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
         <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          ⚠️ Version Bêta : Consulat.ga est actuellement en phase de test pour une durée de 3 mois. Certaines fonctionnalités peuvent être limitées ou modifiées pendant cette période.
+          ⚠️ Version Bêta : Consulat.ga est actuellement en phase de test pour une durée
+          de 3 mois. Certaines fonctionnalités peuvent être limitées ou modifiées pendant
+          cette période.
         </p>
       </div>
 
@@ -28,10 +31,13 @@ export default function PrivacyPolicy() {
             1. Préambule
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Consulat.ga est un produit développé et opéré par OKA Tech, SASU au capital de [montant], immatriculée au RCS de Paris sous le numéro [numéro], dont le siège social est situé au 59 Rue de Ponthieu, 75008 Paris, France.
+            Consulat.ga est un produit développé et opéré par OKA Tech, SASU au capital de
+            [montant], immatriculée au RCS de Paris sous le numéro [numéro], dont le siège
+            social est situé au 59 Rue de Ponthieu, 75008 Paris, France.
           </p>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Cette plateforme est mise à disposition des consulats et administrations diplomatiques sous forme de service (SaaS - Software as a Service).
+            Cette plateforme est mise à disposition des consulats et administrations
+            diplomatiques sous forme de service (SaaS - Software as a Service).
           </p>
         </section>
 
@@ -40,7 +46,9 @@ export default function PrivacyPolicy() {
             2. Propriété des Données
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Les données collectées et traitées via la plateforme Consulat.ga restent la propriété exclusive des administrations utilisatrices. OKA Tech agit uniquement en tant que sous-traitant au sens du RGPD.
+            Les données collectées et traitées via la plateforme Consulat.ga restent la
+            propriété exclusive des administrations utilisatrices. OKA Tech agit
+            uniquement en tant que sous-traitant au sens du RGPD.
           </p>
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
             <li>Les données sont hébergées en France sur des serveurs sécurisés</li>
@@ -65,7 +73,8 @@ export default function PrivacyPolicy() {
             <li>Données biométriques (uniquement pour les services concernés)</li>
           </ul>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Toutes les données sont traitées conformément au RGPD et à la loi Informatique et Libertés.
+            Toutes les données sont traitées conformément au RGPD et à la loi Informatique
+            et Libertés.
           </p>
         </section>
 
@@ -105,7 +114,9 @@ export default function PrivacyPolicy() {
             6. Contact
           </h2>
           <p className="text-gray-600 dark:text-gray-300">
-            Pour toute question concernant notre politique de confidentialité ou pour exercer vos droits, veuillez contacter notre Délégué à la Protection des Données :
+            Pour toute question concernant notre politique de confidentialité ou pour
+            exercer vos droits, veuillez contacter notre Délégué à la Protection des
+            Données :
             <br />
             <br />
             OKA Tech
@@ -117,7 +128,11 @@ export default function PrivacyPolicy() {
             France
             <br />
             <br />
-            Email : <a href="mailto:okatech@icloud.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+            Email :{' '}
+            <a
+              href="mailto:okatech@icloud.com"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
               okatech@icloud.com
             </a>
           </p>
@@ -125,4 +140,4 @@ export default function PrivacyPolicy() {
       </div>
     </div>
   );
-} 
+}

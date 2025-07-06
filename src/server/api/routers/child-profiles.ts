@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
-import { ParentalRole, ProfileStatus } from '@prisma/client';
+import { ParentalRole, RequestStatus } from '@prisma/client';
 import { LinkInfoSchema, ChildCompleteFormSchema } from '@/schemas/child-registration';
 import { BasicInfoSchema, FullProfileUpdateSchema } from '@/schemas/registration';
 import { FullParentalAuthorityInclude } from '@/types/parental-authority';
@@ -112,7 +112,7 @@ export const childProfilesRouter = createTRPCRouter({
             data: {
               residenceCountyCode: ctx.session.user.countryCode || '',
               category: 'MINOR',
-              status: ProfileStatus.DRAFT,
+              status: RequestStatus.DRAFT,
             },
           });
 
@@ -352,7 +352,7 @@ export const childProfilesRouter = createTRPCRouter({
           });
         }
 
-        if (profile.status !== ProfileStatus.DRAFT) {
+        if (profile.status !== RequestStatus.DRAFT) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Seuls les profils en brouillon peuvent être supprimés',
@@ -509,7 +509,7 @@ export const childProfilesRouter = createTRPCRouter({
           const updatedProfile = await tx.profile.update({
             where: { id: input.id },
             data: {
-              status: ProfileStatus.SUBMITTED,
+              status: RequestStatus.SUBMITTED,
               submittedAt: new Date(),
               validationRequestId: serviceRequest.id,
             },
