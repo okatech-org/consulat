@@ -5,10 +5,9 @@ import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
 import { AppointmentStatus } from '@prisma/client';
 import type { AppointmentWithRelations } from '@/schemas/appointment';
-import { cancelAppointment } from '@/actions/appointments';
+import { useAppointments } from '@/hooks/use-appointments';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
-import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,12 +31,12 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const t_inputs = useTranslations('inputs');
   const { formatDate } = useDateLocale();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const { cancelAppointment } = useAppointments();
 
   const getStatusColor = (status: AppointmentStatus) => {
     switch (status) {
       case 'CONFIRMED':
-        return 'success';
+        return 'default';
       case 'CANCELLED':
         return 'destructive';
       case 'COMPLETED':
@@ -45,24 +44,14 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
       case 'MISSED':
         return 'destructive';
       case 'RESCHEDULED':
-        return 'warning';
+        return 'secondary';
       default:
         return 'secondary';
     }
   };
 
-  const handleCancel = async () => {
-    try {
-      setIsLoading(true);
-      const result = await cancelAppointment(appointment.id);
-      if (result.success) {
-        router.refresh();
-      }
-    } catch (error) {
-      console.error('Error cancelling appointment:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCancel = () => {
+    cancelAppointment.mutate({ id: appointment.id });
   };
 
   const handleReschedule = () => {
@@ -111,13 +100,17 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
             variant="outline"
             size="mobile"
             onClick={handleReschedule}
-            disabled={isLoading}
+            disabled={cancelAppointment.isLoading}
           >
             {t('actions.reschedule')}
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="mobile" disabled={isLoading}>
+              <Button
+                variant="destructive"
+                size="mobile"
+                disabled={cancelAppointment.isLoading}
+              >
                 {t('actions.cancel')}
               </Button>
             </AlertDialogTrigger>

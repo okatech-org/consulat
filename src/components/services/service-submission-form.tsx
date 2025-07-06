@@ -3,21 +3,21 @@
 import { useTranslations } from 'next-intl';
 import { toast } from '@/hooks/use-toast';
 import {
-  Address,
+  type Address,
   AppointmentType,
   DeliveryMode,
-  ServiceRequest,
-  UserDocument,
+  type ServiceRequest,
+  type UserDocument,
 } from '@prisma/client';
 import { Info } from 'lucide-react';
 import { ErrorCard } from '@/components/ui/error-card';
 import { useRouter } from 'next/navigation';
-import { ConsularServiceItem } from '@/types/consular-service';
+import type { ConsularServiceItem } from '@/types/consular-service';
 import { DynamicForm } from '@/components/services/dynamic-form';
 import { submitServiceRequest } from '@/actions/services';
 import { ServiceDocumentSection } from './service-document-section';
 import { useServiceForm } from '@/hooks/use-service-form';
-import { FullProfile } from '@/types/profile';
+import type { FullProfile } from '@/types/profile';
 import { tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import { StepIndicator } from '../registration/step-indicator';

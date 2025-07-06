@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { AppUserDocument } from '@/types';
+import type { AppUserDocument } from '@/types';
 import { DocumentStatus, DocumentType } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -31,14 +31,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/documents/metadata-form';
 import { toast } from '@/hooks/use-toast';
 import { FileInput } from '../ui/file-input';
-import { FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
+import { type FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
 import { ImageCropper } from '../ui/image-cropper';
 import { useCurrentUser } from '@/contexts/user-context';
 import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { SessionUser } from '@/types/user';
+import type { SessionUser } from '@/types/user';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;

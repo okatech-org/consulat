@@ -19,12 +19,17 @@ import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ROUTES } from '@/schemas/routes';
-import { getAvailableTimeSlots, rescheduleAppointment } from '@/actions/appointments';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import type { AppointmentWithRelations } from '@/schemas/appointment';
-import type { TimeSlotWithAgent } from '@/actions/appointments';
-import React from 'react';
+import { useAppointments, useAvailableTimeSlots } from '@/hooks/use-appointments';
+
+// Type pour les créneaux avec agents disponibles
+interface TimeSlotWithAgent {
+  start: Date;
+  end: Date;
+  duration: number;
+  availableAgents: string[];
+}
 
 interface RescheduleAppointmentFormProps {
   appointment: AppointmentWithRelations;
@@ -35,11 +40,12 @@ export function RescheduleAppointmentForm({
 }: RescheduleAppointmentFormProps) {
   const t = useTranslations('appointments');
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent | null>(
     null,
   );
+
+  // Hooks tRPC
+  const { rescheduleAppointment } = useAppointments();
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
@@ -57,36 +63,19 @@ export function RescheduleAppointmentForm({
 
   const selectedDate = form.watch('date');
 
-  React.useEffect(() => {
-    if (!selectedDate || !appointment.request?.service) return;
+  // Récupérer les créneaux disponibles avec tRPC
+  const { timeSlots: availableTimeSlots, isLoading: timeSlotsLoading } =
+    useAvailableTimeSlots({
+      serviceId: appointment.request?.service?.id || '',
+      organizationId: appointment.organizationId,
+      countryCode: appointment.countryCode,
+      startDate: selectedDate || new Date(),
+      endDate: selectedDate || new Date(),
+      duration: appointment.duration,
+      agentId: appointment.agentId || undefined,
+    });
 
-    // Définir le début et la fin de la journée sélectionnée
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    getAvailableTimeSlots(
-      appointment.request.service.category,
-      appointment.organizationId,
-      appointment.countryCode,
-      startOfDay,
-      endOfDay,
-      appointment.duration,
-    )
-      .then((slots) => {
-        setAvailableTimeSlots(slots);
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [selectedDate, appointment]);
-
-  const onSubmit = async () => {
+  const onSubmit = () => {
     if (!selectedTimeSlot) return;
 
     // Vérifier qu'un agent est disponible
@@ -96,26 +85,13 @@ export function RescheduleAppointmentForm({
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const result = await rescheduleAppointment(
-        appointment.id,
-        selectedTimeSlot.start,
-        selectedTimeSlot.start,
-        selectedTimeSlot.end,
-        agentId,
-      );
-
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-
-      router.push(ROUTES.user.appointments);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+    rescheduleAppointment.mutate({
+      id: appointment.id,
+      newDate: selectedTimeSlot.start,
+      newStartTime: selectedTimeSlot.start,
+      newEndTime: selectedTimeSlot.end,
+      newAgentId: agentId,
+    });
   };
 
   return (
@@ -147,7 +123,7 @@ export function RescheduleAppointmentForm({
                 </div>
 
                 <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
-                  {availableTimeSlots.map((slot) => {
+                  {availableTimeSlots?.map((slot) => {
                     const isSelected = selectedTimeSlot?.start === slot.start;
 
                     return (
@@ -173,12 +149,13 @@ export function RescheduleAppointmentForm({
                       </Button>
                     );
                   })}
-                  {availableTimeSlots.length === 0 && (
-                    <div className="col-span-full text-center text-muted-foreground">
-                      {t('new.no_slots_available')}
-                    </div>
-                  )}
-                  {isLoading && (
+                  {(!availableTimeSlots || availableTimeSlots.length === 0) &&
+                    !timeSlotsLoading && (
+                      <div className="col-span-full text-center text-muted-foreground">
+                        {t('new.no_slots_available')}
+                      </div>
+                    )}
+                  {timeSlotsLoading && (
                     <div className="col-span-full text-center text-muted-foreground">
                       {t('new.loading')}
                     </div>
@@ -193,7 +170,7 @@ export function RescheduleAppointmentForm({
               type="button"
               variant="outline"
               onClick={() => router.back()}
-              disabled={isLoading}
+              disabled={rescheduleAppointment.isLoading}
               size="mobile"
               leftIcon={<ArrowLeft />}
             >
@@ -202,12 +179,14 @@ export function RescheduleAppointmentForm({
 
             <Button
               type="submit"
-              disabled={isLoading || !selectedTimeSlot}
+              disabled={rescheduleAppointment.isLoading || !selectedTimeSlot}
               size="mobile"
               weight="medium"
-              loading={isLoading}
+              loading={rescheduleAppointment.isLoading}
             >
-              {isLoading ? t('actions.submitting') : t('actions.confirm')}
+              {rescheduleAppointment.isLoading
+                ? t('actions.submitting')
+                : t('actions.confirm')}
             </Button>
           </CardFooter>
         </Card>

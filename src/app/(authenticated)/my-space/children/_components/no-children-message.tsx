@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslations } from 'next-intl';
 import { Baby } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -29,12 +29,7 @@ export function LinkInfoSection({ profile }: LinkInfoSectionProps) {
   };
 
   return (
-    <EditableSection
-      title={t('sections.link_info')}
-      isEditing={false}
-      isLoading={false}
-      profileStatus={profile.status}
-    >
+    <EditableSection isEditing={false} isLoading={false}>
       <div className="space-y-6">
         {profile.parentAuthorities.map((authority) => (
           <CardContainer key={authority.id} title={getParentalRoleLabel(authority.role)}>

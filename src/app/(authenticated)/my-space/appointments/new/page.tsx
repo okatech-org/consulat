@@ -35,6 +35,7 @@ export default async function NewAppointmentPage({
     | {
         request?: FullServiceRequest;
         type?: AppointmentType;
+        duration?: number;
       }
     | undefined;
 

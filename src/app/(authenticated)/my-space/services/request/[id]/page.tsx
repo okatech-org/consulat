@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import type { FullServiceRequest } from '@/types/service-request';
 import { RequestStatus } from '@prisma/client';
@@ -28,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Timeline } from '@/components/ui/timeline';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 // Define icon components
 type IconComponent = React.ReactElement;
@@ -163,16 +163,7 @@ export default function ServiceRequestDetailsPage() {
   if (loading) {
     return (
       <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center space-x-2">
-          <Skeleton className="h-8 w-8 rounded-full" />
-          <Skeleton className="h-6 w-40" />
-        </div>
-        <Skeleton className="h-12 w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-40 w-full" />
-        </div>
+        <LoadingSkeleton variant="grid" aspectRatio="4/3" />
       </div>
     );
   }

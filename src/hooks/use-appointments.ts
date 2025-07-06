@@ -18,6 +18,7 @@ export function useAppointments() {
   // Créer un rendez-vous
   const createAppointment = api.appointments.create.useMutation({
     onSuccess: () => {
+      console.log('createAppointment.onSuccess');
       toast.success(t('notifications.appointment_created'));
       utils.appointments.getUserAppointments.invalidate();
       router.push(ROUTES.user.appointments);
@@ -53,6 +54,7 @@ export function useAppointments() {
     },
     onSuccess: () => {
       toast.success(t('notifications.appointment_cancelled'));
+      router.refresh();
     },
     onError: (error, variables, context) => {
       // Restaurer les données précédentes en cas d'erreur
@@ -72,6 +74,7 @@ export function useAppointments() {
     onSuccess: () => {
       toast.success(t('notifications.appointment_rescheduled'));
       utils.appointments.getUserAppointments.invalidate();
+      router.push(ROUTES.user.appointments);
     },
     onError: (error) => {
       toast.error(error.message || t('notifications.reschedule_failed'));
@@ -83,6 +86,7 @@ export function useAppointments() {
     onSuccess: () => {
       toast.success(t('notifications.appointment_completed'));
       utils.appointments.getUserAppointments.invalidate();
+      router.refresh();
     },
     onError: (error) => {
       toast.error(error.message || t('notifications.complete_failed'));

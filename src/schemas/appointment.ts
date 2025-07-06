@@ -1,12 +1,14 @@
 import {
   AppointmentType,
+  AppointmentStatus,
+} from '@prisma/client';
+import type {
   User,
   ServiceRequest,
   Organization,
   Appointment,
   ConsularService,
 } from '@prisma/client';
-import { AppointmentStatus } from '@prisma/client';
 import { z } from 'zod';
 
 export const AppointmentSchema = z.object({
@@ -69,5 +71,5 @@ export interface AppointmentWithRelations extends Appointment {
   agent: User | null;
   request?: (ServiceRequest & { service: ConsularService }) | null;
   attendee?: User | null;
-  service?: ConsularService;
+  service?: ConsularService | null;
 }

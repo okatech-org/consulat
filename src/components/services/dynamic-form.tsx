@@ -74,7 +74,9 @@ export function DynamicForm({
           <FormItem>
             <FormLabel>{field.label}</FormLabel>
             <FormControl>{getFieldComponent(form, field, formField, userId)}</FormControl>
-            {field.description && <FormDescription>{field.description}</FormDescription>}
+            {field.description && !['file', 'photo', 'document'].includes(field.type) && (
+              <FormDescription>{field.description}</FormDescription>
+            )}
             <TradFormMessage />
           </FormItem>
         )}

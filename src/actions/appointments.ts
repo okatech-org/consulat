@@ -8,7 +8,7 @@ import type {
   OrganizationMetadataHoliday,
   WeekDay,
 } from '@/schemas/organization';
-import { ServiceCategory, UserRole, AppointmentStatus } from '@prisma/client';
+import { ServiceCategory, AppointmentStatus } from '@prisma/client';
 import { eachDayOfInterval, format, isSameDay, parseISO, addMinutes } from 'date-fns';
 import {
   type AppointmentInput,

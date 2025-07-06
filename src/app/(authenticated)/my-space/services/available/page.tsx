@@ -1,23 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useEffect, useState } from 'react';
-import {
-  Plus,
-  Search,
-  ArrowLeft,
-  X,
-  LayoutGrid,
-  LayoutList,
-  SlidersHorizontal,
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Search, ArrowLeft, X, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { getAvailableConsularServices } from '@/actions/services';
@@ -52,7 +39,7 @@ type ConsularServiceWithOrganization = {
   countryCode: string | null;
 };
 
-const UNAVAILABLE_MESSAGE = "Disponible à partir du 15 juillet 2025";
+const UNAVAILABLE_MESSAGE = 'Disponible à partir du 15 juillet 2025';
 
 export default function AvailableServicesPage() {
   const t = useTranslations('services');
@@ -111,13 +98,13 @@ export default function AvailableServicesPage() {
       value: org.id,
       label: org.name,
     }));
-    
+
     // Add consulat option
     orgOptions.push({
       value: 'consulat',
       label: 'Services consulaires',
     });
-    
+
     return orgOptions;
   };
 
@@ -176,9 +163,7 @@ export default function AvailableServicesPage() {
   return (
     <PageContainer
       title={'Services consulaires'}
-      description={
-        'Découvrez les services consulaires et démarrez une nouvelle demande.'
-      }
+      description={'Découvrez les services consulaires et démarrez une nouvelle demande.'}
       action={
         <div className="flex items-center space-x-2">
           <Link href={ROUTES.user.services}>
@@ -189,7 +174,6 @@ export default function AvailableServicesPage() {
         </div>
       }
     >
-
       {/* Search and filters section - condensed */}
       <div className="space-y-4">
         {/* Combined search and main filters */}
@@ -227,8 +211,12 @@ export default function AvailableServicesPage() {
                   <Button variant="outline" size="sm" className="h-8 text-xs">
                     <SlidersHorizontal className="h-3 w-3 mr-1" />
                     Filtres
-                    {(selectedCategories.length > 0 || selectedOrganizations.length > 0) && (
-                      <Badge variant="secondary" className="ml-1 px-1 py-0 text-xs bg-primary text-primary-foreground">
+                    {(selectedCategories.length > 0 ||
+                      selectedOrganizations.length > 0) && (
+                      <Badge
+                        variant="secondary"
+                        className="ml-1 px-1 py-0 text-xs bg-primary text-primary-foreground"
+                      >
                         {selectedCategories.length + selectedOrganizations.length}
                       </Badge>
                     )}
@@ -241,7 +229,9 @@ export default function AvailableServicesPage() {
                   <ScrollArea className="h-[calc(100vh-100px)] pr-4">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-foreground">Catégories</h3>
+                        <h3 className="text-sm font-medium text-foreground">
+                          Catégories
+                        </h3>
                         <MultiSelect
                           type="multiple"
                           options={getCategoryOptions()}
@@ -254,7 +244,9 @@ export default function AvailableServicesPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-foreground">Organismes</h3>
+                        <h3 className="text-sm font-medium text-foreground">
+                          Organismes
+                        </h3>
                         <MultiSelect
                           type="multiple"
                           options={getOrganizationOptions()}
@@ -267,7 +259,9 @@ export default function AvailableServicesPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-foreground">Disponibilité</h3>
+                        <h3 className="text-sm font-medium text-foreground">
+                          Disponibilité
+                        </h3>
                         <Button
                           variant={showActiveOnly ? 'default' : 'outline'}
                           size="sm"
@@ -283,7 +277,12 @@ export default function AvailableServicesPage() {
                     </div>
                   </ScrollArea>
                   <div className="pt-3 border-t mt-3">
-                    <Button variant="outline" size="sm" className="w-full h-8" onClick={resetFilters}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-8"
+                      onClick={resetFilters}
+                    >
                       Réinitialiser
                     </Button>
                   </div>
@@ -296,14 +295,25 @@ export default function AvailableServicesPage() {
                 size="sm"
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
                 className="h-8 text-xs"
-                aria-label={showActiveOnly ? 'Afficher tous les services' : 'Afficher seulement les services actifs'}
+                aria-label={
+                  showActiveOnly
+                    ? 'Afficher tous les services'
+                    : 'Afficher seulement les services actifs'
+                }
               >
                 Actifs
-                <div className={`ml-1 w-2 h-2 rounded-full ${showActiveOnly ? 'bg-success' : 'bg-muted-foreground'}`}></div>
+                <div
+                  className={`ml-1 w-2 h-2 rounded-full ${showActiveOnly ? 'bg-success' : 'bg-muted-foreground'}`}
+                ></div>
               </Button>
 
               {areFiltersActive && (
-                <Button variant="outline" size="sm" onClick={resetFilters} className="h-8 text-xs">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetFilters}
+                  className="h-8 text-xs"
+                >
                   <X className="h-3 w-3" />
                 </Button>
               )}
@@ -312,7 +322,7 @@ export default function AvailableServicesPage() {
             {/* Desktop filters - more compact */}
             <div className="hidden sm:flex sm:gap-2 sm:items-center sm:flex-wrap w-full">
               <span className="text-xs text-muted-foreground">Filtres :</span>
-              
+
               {/* Compact multiselects */}
               <div className="min-w-[160px] max-w-[200px]">
                 <MultiSelect
@@ -345,17 +355,23 @@ export default function AvailableServicesPage() {
                 size="sm"
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
                 className="h-8 text-xs"
-                aria-label={showActiveOnly ? 'Afficher tous les services' : 'Afficher seulement les services actifs'}
+                aria-label={
+                  showActiveOnly
+                    ? 'Afficher tous les services'
+                    : 'Afficher seulement les services actifs'
+                }
               >
                 <span className="hidden lg:inline">Actifs</span>
                 <span className="lg:hidden">Actifs</span>
-                <div className={`ml-1 w-2 h-2 rounded-full ${showActiveOnly ? 'bg-success' : 'bg-muted-foreground'}`}></div>
+                <div
+                  className={`ml-1 w-2 h-2 rounded-full ${showActiveOnly ? 'bg-success' : 'bg-muted-foreground'}`}
+                ></div>
               </Button>
 
               {areFiltersActive && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={resetFilters}
                   className="ml-auto h-8 text-xs hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
                 >
@@ -365,7 +381,6 @@ export default function AvailableServicesPage() {
               )}
 
               {/* View toggle inline */}
-              
             </div>
           </div>
 
@@ -373,7 +388,11 @@ export default function AvailableServicesPage() {
           {areFiltersActive && (
             <div className="flex flex-wrap gap-1 pt-2 border-t">
               {selectedCategories.map((category) => (
-                <Badge key={category} variant="secondary" className="text-xs py-0 px-2 h-6 bg-primary-100 text-primary-700 border-primary-200">
+                <Badge
+                  key={category}
+                  variant="secondary"
+                  className="text-xs py-0 px-2 h-6 bg-primary-100 text-primary-700 border-primary-200"
+                >
                   <span className="truncate max-w-[100px]">
                     {tInputs(`serviceCategory.options.${category}`)}
                   </span>
@@ -381,7 +400,11 @@ export default function AvailableServicesPage() {
                     variant="ghost"
                     size="icon"
                     className="h-3 w-3 ml-1 p-0 hover:bg-primary-300 rounded-full"
-                    onClick={() => setSelectedCategories(selectedCategories.filter((c) => c !== category))}
+                    onClick={() =>
+                      setSelectedCategories(
+                        selectedCategories.filter((c) => c !== category),
+                      )
+                    }
                     aria-label={`Supprimer ${tInputs(`serviceCategory.options.${category}`)}`}
                   >
                     <X className="h-2 w-2" />
@@ -390,15 +413,27 @@ export default function AvailableServicesPage() {
               ))}
 
               {selectedOrganizations.map((orgId) => {
-                const orgName = orgId === 'consulat' ? 'Services consulaires' : getUniqueOrganizations().find((org) => org.id === orgId)?.name || '';
+                const orgName =
+                  orgId === 'consulat'
+                    ? 'Services consulaires'
+                    : getUniqueOrganizations().find((org) => org.id === orgId)?.name ||
+                      '';
                 return (
-                  <Badge key={orgId} variant="secondary" className="text-xs py-0 px-2 h-6 bg-secondary-100 text-secondary-700 border-secondary-200">
+                  <Badge
+                    key={orgId}
+                    variant="secondary"
+                    className="text-xs py-0 px-2 h-6 bg-secondary-100 text-secondary-700 border-secondary-200"
+                  >
                     <span className="truncate max-w-[100px]">{orgName}</span>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-3 w-3 ml-1 p-0 hover:bg-secondary-300 rounded-full"
-                      onClick={() => setSelectedOrganizations(selectedOrganizations.filter((id) => id !== orgId))}
+                      onClick={() =>
+                        setSelectedOrganizations(
+                          selectedOrganizations.filter((id) => id !== orgId),
+                        )
+                      }
                       aria-label={`Supprimer ${orgName}`}
                     >
                       <X className="h-2 w-2" />
@@ -408,7 +443,10 @@ export default function AvailableServicesPage() {
               })}
 
               {showActiveOnly && (
-                <Badge variant="secondary" className="text-xs py-0 px-2 h-6 bg-success/5 text-success border-success/20">
+                <Badge
+                  variant="secondary"
+                  className="text-xs py-0 px-2 h-6 bg-success/5 text-success border-success/20"
+                >
                   <span>Actifs uniquement</span>
                   <Button
                     variant="ghost"
@@ -423,7 +461,10 @@ export default function AvailableServicesPage() {
               )}
 
               {searchQuery.trim() && (
-                <Badge variant="secondary" className="text-xs py-0 px-2 h-6 bg-accent text-accent-foreground border-accent">
+                <Badge
+                  variant="secondary"
+                  className="text-xs py-0 px-2 h-6 bg-accent text-accent-foreground border-accent"
+                >
                   <span className="truncate max-w-[80px]">"{searchQuery}"</span>
                   <Button
                     variant="ghost"
@@ -443,19 +484,28 @@ export default function AvailableServicesPage() {
         {/* Compact tabs with inline results summary */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <Tabs defaultValue="all">
-          <TabsList className="w-full sm:w-auto bg-card border shadow-sm h-9">
-            <TabsTrigger value="all" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7">
-              Tous les services
-              {!loading && (
-                <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs bg-muted text-muted-foreground h-4">
-                  {filteredServices.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="by-category" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7">
-              Par catégorie
-            </TabsTrigger>
-          </TabsList>
+            <TabsList className="w-full sm:w-auto bg-card border shadow-sm h-9">
+              <TabsTrigger
+                value="all"
+                className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7"
+              >
+                Tous les services
+                {!loading && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 px-1.5 py-0 text-xs bg-muted text-muted-foreground h-4"
+                  >
+                    {filteredServices.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value="by-category"
+                className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7"
+              >
+                Par catégorie
+              </TabsTrigger>
+            </TabsList>
           </Tabs>
         </div>
       </div>
@@ -507,14 +557,17 @@ export default function AvailableServicesPage() {
                     </div>
                     <div>
                       <h3 className="font-medium text-primary-900">
-                        {filteredServices.length} service{filteredServices.length > 1 ? 's' : ''} trouvé{filteredServices.length > 1 ? 's' : ''}
+                        {filteredServices.length} service
+                        {filteredServices.length > 1 ? 's' : ''} trouvé
+                        {filteredServices.length > 1 ? 's' : ''}
                       </h3>
                       <p className="text-sm text-primary-600">
-                        {filteredServices.filter(s => s.isActive).length} actuellement disponible{filteredServices.filter(s => s.isActive).length > 1 ? 's' : ''}
+                        {filteredServices.filter((s) => s.isActive).length} actuellement
+                        disponible
+                        {filteredServices.filter((s) => s.isActive).length > 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
-                  
                 </div>
 
                 {view === 'grid' ? (
@@ -523,16 +576,20 @@ export default function AvailableServicesPage() {
                       <CardContainer
                         key={service.id}
                         className={`h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 ${
-                          service.isActive ? 'hover:border-success/50' : 'hover:border-warning/50'
+                          service.isActive
+                            ? 'hover:border-success/50'
+                            : 'hover:border-warning/50'
                         }`}
                         title={
                           <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-lg leading-tight line-clamp-2">{service.name}</h3>
-                            <Badge 
-                              variant={service.isActive ? 'default' : 'secondary'} 
+                            <h3 className="font-semibold text-lg leading-tight line-clamp-2">
+                              {service.name}
+                            </h3>
+                            <Badge
+                              variant={service.isActive ? 'default' : 'secondary'}
                               className={`flex-shrink-0 ${
-                                service.isActive 
-                                  ? 'bg-success/5 text-success border-success/20' 
+                                service.isActive
+                                  ? 'bg-success/5 text-success border-success/20'
                                   : 'bg-warning/5 text-warning border-warning/20'
                               }`}
                             >
@@ -544,16 +601,17 @@ export default function AvailableServicesPage() {
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <div className="w-1 h-4 bg-primary rounded-full flex-shrink-0"></div>
                             <span className="text-sm">
-                              {service.organization?.name || t('availableServices.consulateService')}
+                              {service.organization?.name ||
+                                t('availableServices.consulateService')}
                             </span>
                           </div>
                         }
                         footerContent={
                           <div className="w-full space-y-3">
-                            <Button 
+                            <Button
                               className={`w-full text-base font-medium py-3 transition-all duration-200 ${
-                                service.isActive 
-                                  ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg' 
+                                service.isActive
+                                  ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg'
                                   : 'opacity-60 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted'
                               }`}
                               asChild={service.isActive}
@@ -561,7 +619,10 @@ export default function AvailableServicesPage() {
                               size="lg"
                             >
                               {service.isActive ? (
-                                <Link href={ROUTES.user.service_submit(service.id)} className="flex items-center justify-center gap-2">
+                                <Link
+                                  href={ROUTES.user.service_submit(service.id)}
+                                  className="flex items-center justify-center gap-2"
+                                >
                                   <Plus className="h-5 w-5" />
                                   <span>{t('actions.startProcess')}</span>
                                 </Link>
@@ -594,26 +655,33 @@ export default function AvailableServicesPage() {
                       <div
                         key={service.id}
                         className={`bg-card border-2 rounded-lg p-6 transition-all duration-200 hover:shadow-md ${
-                          service.isActive ? 'hover:border-success/50' : 'hover:border-warning/50'
+                          service.isActive
+                            ? 'hover:border-success/50'
+                            : 'hover:border-warning/50'
                         }`}
                       >
                         <div className="flex flex-col lg:flex-row gap-4">
                           <div className="flex-1 space-y-4">
                             <div className="flex items-start justify-between gap-4">
                               <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-foreground">{service.name}</h3>
+                                <h3 className="text-xl font-semibold text-foreground">
+                                  {service.name}
+                                </h3>
                                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                   <div className="flex items-center gap-2">
                                     <div className="w-1 h-4 bg-primary rounded-full"></div>
-                                    <span>{service.organization?.name || t('availableServices.consulateService')}</span>
+                                    <span>
+                                      {service.organization?.name ||
+                                        t('availableServices.consulateService')}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
-                              <Badge 
+                              <Badge
                                 variant={service.isActive ? 'default' : 'secondary'}
                                 className={`flex-shrink-0 ${
-                                  service.isActive 
-                                    ? 'bg-success/5 text-success border-success/20' 
+                                  service.isActive
+                                    ? 'bg-success/5 text-success border-success/20'
                                     : 'bg-warning/5 text-warning border-warning/20'
                                 }`}
                               >
@@ -627,10 +695,10 @@ export default function AvailableServicesPage() {
                             )}
                           </div>
                           <div className="flex flex-col items-center justify-center gap-3 lg:w-48">
-                            <Button 
+                            <Button
                               className={`w-full text-base font-medium py-3 transition-all duration-200 ${
-                                service.isActive 
-                                  ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg' 
+                                service.isActive
+                                  ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg'
                                   : 'opacity-60 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted'
                               }`}
                               asChild={service.isActive}
@@ -638,7 +706,10 @@ export default function AvailableServicesPage() {
                               size="lg"
                             >
                               {service.isActive ? (
-                                <Link href={ROUTES.user.new_service_request(service.id)} className="flex items-center justify-center gap-2">
+                                <Link
+                                  href={ROUTES.user.new_service_request(service.id)}
+                                  className="flex items-center justify-center gap-2"
+                                >
                                   <Plus className="h-5 w-5" />
                                   <span>{t('actions.startProcess')}</span>
                                 </Link>
@@ -671,7 +742,9 @@ export default function AvailableServicesPage() {
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-foreground">
-                      {areFiltersActive ? 'Aucun service trouvé' : 'Aucun service disponible'}
+                      {areFiltersActive
+                        ? 'Aucun service trouvé'
+                        : 'Aucun service disponible'}
                     </h3>
                     <p className="text-muted-foreground">
                       {areFiltersActive
@@ -681,12 +754,21 @@ export default function AvailableServicesPage() {
                   </div>
                   {areFiltersActive && (
                     <div className="space-y-3">
-                      <Button onClick={resetFilters} className="bg-primary hover:bg-primary/90">
+                      <Button
+                        onClick={resetFilters}
+                        className="bg-primary hover:bg-primary/90"
+                      >
                         <X className="mr-2 h-4 w-4" />
                         Réinitialiser les filtres
                       </Button>
                       <p className="text-sm text-muted-foreground">
-                        ou <Link href={ROUTES.user.services} className="text-primary hover:underline font-medium">retourner aux services</Link>
+                        ou{' '}
+                        <Link
+                          href={ROUTES.user.services}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          retourner aux services
+                        </Link>
                       </p>
                     </div>
                   )}
@@ -720,10 +802,15 @@ export default function AvailableServicesPage() {
                             <div className="flex items-center gap-3">
                               <div className="w-1 h-6 bg-primary rounded-full"></div>
                               <h2 className="text-2xl font-bold text-foreground">
-                                {tInputs(`serviceCategory.options.${services[0].category}`)}
+                                {tInputs(
+                                  `serviceCategory.options.${services[0].category}`,
+                                )}
                               </h2>
                             </div>
-                            <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">
+                            <Badge
+                              className="bg-primary/10 text-primary border-primary/20"
+                              variant="outline"
+                            >
                               {services.length} service{services.length > 1 ? 's' : ''}
                             </Badge>
                           </div>
@@ -733,16 +820,20 @@ export default function AvailableServicesPage() {
                               <CardContainer
                                 key={service.id}
                                 className={`h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 ${
-                                  service.isActive ? 'hover:border-success/50' : 'hover:border-warning/50'
+                                  service.isActive
+                                    ? 'hover:border-success/50'
+                                    : 'hover:border-warning/50'
                                 }`}
                                 title={
                                   <div className="flex items-start justify-between gap-2">
-                                    <h3 className="font-semibold text-lg leading-tight line-clamp-2">{service.name}</h3>
-                                    <Badge 
-                                      variant={service.isActive ? 'default' : 'secondary'} 
+                                    <h3 className="font-semibold text-lg leading-tight line-clamp-2">
+                                      {service.name}
+                                    </h3>
+                                    <Badge
+                                      variant={service.isActive ? 'default' : 'secondary'}
                                       className={`flex-shrink-0 ${
-                                        service.isActive 
-                                          ? 'bg-success/5 text-success border-success/20' 
+                                        service.isActive
+                                          ? 'bg-success/5 text-success border-success/20'
                                           : 'bg-warning/5 text-warning border-warning/20'
                                       }`}
                                     >
@@ -754,16 +845,17 @@ export default function AvailableServicesPage() {
                                   <div className="flex items-center gap-2 text-muted-foreground">
                                     <div className="w-1 h-4 bg-primary rounded-full flex-shrink-0"></div>
                                     <span className="text-sm">
-                                      {service.organization?.name || t('availableServices.consulateService')}
+                                      {service.organization?.name ||
+                                        t('availableServices.consulateService')}
                                     </span>
                                   </div>
                                 }
                                 footerContent={
                                   <div className="w-full space-y-3">
-                                    <Button 
+                                    <Button
                                       className={`w-full text-base font-medium py-3 transition-all duration-200 ${
-                                        service.isActive 
-                                          ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg' 
+                                        service.isActive
+                                          ? 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg'
                                           : 'opacity-60 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted'
                                       }`}
                                       asChild={service.isActive}
@@ -771,7 +863,12 @@ export default function AvailableServicesPage() {
                                       size="lg"
                                     >
                                       {service.isActive ? (
-                                        <Link href={ROUTES.user.new_service_request(service.id)} className="flex items-center justify-center gap-2">
+                                        <Link
+                                          href={ROUTES.user.new_service_request(
+                                            service.id,
+                                          )}
+                                          className="flex items-center justify-center gap-2"
+                                        >
                                           <Plus className="h-5 w-5" />
                                           <span>{t('actions.startProcess')}</span>
                                         </Link>
@@ -814,7 +911,9 @@ export default function AvailableServicesPage() {
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-lg font-semibold text-foreground">
-                            {areFiltersActive ? 'Aucun service trouvé' : 'Aucun service disponible'}
+                            {areFiltersActive
+                              ? 'Aucun service trouvé'
+                              : 'Aucun service disponible'}
                           </h3>
                           <p className="text-muted-foreground">
                             {areFiltersActive
@@ -824,12 +923,21 @@ export default function AvailableServicesPage() {
                         </div>
                         {areFiltersActive && (
                           <div className="space-y-3">
-                            <Button onClick={resetFilters} className="bg-primary hover:bg-primary/90">
+                            <Button
+                              onClick={resetFilters}
+                              className="bg-primary hover:bg-primary/90"
+                            >
                               <X className="mr-2 h-4 w-4" />
                               Réinitialiser les filtres
                             </Button>
                             <p className="text-sm text-muted-foreground">
-                              ou <Link href={ROUTES.user.services} className="text-primary hover:underline font-medium">retourner aux services</Link>
+                              ou{' '}
+                              <Link
+                                href={ROUTES.user.services}
+                                className="text-primary hover:underline font-medium"
+                              >
+                                retourner aux services
+                              </Link>
                             </p>
                           </div>
                         )}
@@ -845,4 +953,3 @@ export default function AvailableServicesPage() {
     </PageContainer>
   );
 }
-
