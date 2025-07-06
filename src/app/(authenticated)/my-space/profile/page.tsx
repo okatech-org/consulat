@@ -1,5 +1,6 @@
-import React, { Suspense } from 'react';
-import { getProfileRegistrationRequest, getUserFullProfile } from '@/lib/user/getters';
+'use client';
+
+import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { NotesList } from '@/components/requests/review-notes';
@@ -8,98 +9,114 @@ import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
-import { getOrganisationCountryInfos } from '@/actions/organizations';
 import { PageContainer } from '@/components/layouts/page-container';
-import { RegistrationForm } from '@/components/registration/registration-form';
-import { getActiveCountries } from '@/actions/countries';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { ROUTES } from '@/schemas/routes';
+import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
+import { PlusIcon } from 'lucide-react';
 
-type ProfilePageProps = {
-  searchParams: Promise<{
-    form: string;
-  }>;
-};
+export default function ProfilePage() {
+  const { data: currentUser } = api.user.getCurrentUser.useQuery();
+  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery(
+    undefined,
+    { enabled: !!currentUser },
+  );
 
-export default async function ProfilePage({ searchParams }: ProfilePageProps) {
-  const [currentUser, searchParamsResult] = await Promise.all([
-    getCurrentUser(),
-    searchParams,
-  ]);
+  const { data: registrationRequest } = api.profile.getRegistrationRequest.useQuery(
+    { profileId: profile?.id ?? '' },
+    { enabled: !!profile?.id },
+  );
 
-  if (!currentUser) return undefined;
+  const { data: organizationInfos } = api.organizations.getCountryInfos.useQuery(
+    {
+      organizationId: registrationRequest?.organizationId ?? '',
+      countryCode: currentUser?.countryCode ?? '',
+    },
+    { enabled: !!registrationRequest?.organizationId && !!currentUser?.countryCode },
+  );
 
-  const profile = await getUserFullProfile(currentUser.id);
-
-  if (!profile) return undefined;
-
-  if (searchParamsResult.form) {
-    const availableCountries = await getActiveCountries();
-    return <RegistrationForm availableCountries={availableCountries} profile={profile} />;
+  if (!currentUser) {
+    return null;
   }
 
-  const registrationRequest = await getProfileRegistrationRequest(profile.id);
-  const completionRate = calculateProfileCompletion(profile);
+  if (profileLoading) {
+    return (
+      <PageContainer>
+        <LoadingSkeleton variant="grid" aspectRatio="4/3" />
+      </PageContainer>
+    );
+  }
 
-  const organisationInfos =
-    registrationRequest?.organizationId && currentUser.countryCode
-      ? await getOrganisationCountryInfos(
-          registrationRequest?.organizationId,
-          currentUser.countryCode,
-        )
-      : null;
+  if (!profile) {
+    return (
+      <PageContainer title="Profil non trouvé">
+        <div className="flex flex-col gap-4">
+          <p>
+            Vous n&apos;avez pas de profil consulaire. Veuillez en créer un pour
+            commencer.
+          </p>
+          <Link
+            href={ROUTES.registration}
+            className={buttonVariants({ variant: 'default' })}
+          >
+            <PlusIcon className="size-icon mr-1" />
+            Créer un profil
+          </Link>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const completionRate = calculateProfileCompletion(profile);
 
   return (
     <PageContainer>
-      <Suspense fallback={<LoadingSkeleton />}>
-        <div className="grid grid-cols-8 gap-4">
-          <div className="col-span-full lg:col-span-5">
-            <ProfileHeader profile={profile} inMySpace={true} />
-          </div>
-          <div className="col-span-full lg:col-span-3">
-            <ProfileStatusAlert
-              status={profile.status}
-              notes={
-                registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content
-              }
-              organizationName={organisationInfos?.name}
-              organizationAddress={organisationInfos?.settings?.contact?.address}
-              requestId={registrationRequest?.id}
-            />
-          </div>
+      <div className="grid grid-cols-8 gap-4">
+        <div className="col-span-full lg:col-span-5">
+          <ProfileHeader profile={profile} inMySpace={true} />
         </div>
-        <div className="grid grid-cols-8 gap-4">
-          {profile && (
-            <div className="col-span-full flex flex-col gap-4 lg:col-span-5">
-              <ProfileTabs profile={profile} />
+        <div className="col-span-full lg:col-span-3">
+          <ProfileStatusAlert
+            status={profile.status}
+            notes={
+              registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content
+            }
+            organizationName={organizationInfos?.name}
+            // organizationAddress={organizationInfos?.settings?.contact?.address}
+            requestId={registrationRequest?.id}
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-8 gap-4">
+        {profile && (
+          <div className="col-span-full flex flex-col gap-4 lg:col-span-5">
+            <ProfileTabs profile={profile} />
+          </div>
+        )}
+        <div className={'col-span-full flex flex-col gap-4 lg:col-span-3'}>
+          {registrationRequest?.notes && registrationRequest?.notes?.length > 0 && (
+            <NotesList
+              notes={registrationRequest.notes.filter((note) => note.type === 'FEEDBACK')}
+            />
+          )}
+          <ProfileProgressBar profile={profile} />
+
+          {![
+            'SUBMITTED',
+            'PENDING',
+            'VALIDATED',
+            'READY_FOR_PICKUP',
+            'COMPLETED',
+          ].includes(profile.status) && (
+            <div className="flex flex-col items-center">
+              <SubmitProfileButton
+                canSubmit={completionRate === 100}
+                profileId={profile.id}
+              />
             </div>
           )}
-          <div className={'col-span-full flex flex-col gap-4 lg:col-span-3'}>
-            {registrationRequest?.notes && registrationRequest?.notes?.length > 0 && (
-              <NotesList
-                notes={registrationRequest.notes.filter(
-                  (note) => note.type === 'FEEDBACK',
-                )}
-              />
-            )}
-            <ProfileProgressBar profile={profile} />
-
-            {![
-              'SUBMITTED',
-              'PENDING',
-              'VALIDATED',
-              'READY_FOR_PICKUP',
-              'COMPLETED',
-            ].includes(profile.status) && (
-              <div className="flex flex-col items-center">
-                <SubmitProfileButton
-                  canSubmit={completionRate === 100}
-                  profileId={profile.id}
-                />
-              </div>
-            )}
-          </div>
         </div>
-      </Suspense>
+      </div>
     </PageContainer>
   );
 }

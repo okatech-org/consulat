@@ -1,8 +1,9 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Mentions Légales | Consulat.ga',
-  description: 'Mentions légales de Consulat.ga - Informations légales et réglementaires concernant notre plateforme.',
+  description:
+    'Mentions légales de Consulat.ga - Informations légales et réglementaires concernant notre plateforme.',
 };
 
 export default function LegalNotice() {
@@ -10,7 +11,9 @@ export default function LegalNotice() {
     <div className="container mx-auto px-4 py-16 max-w-4xl">
       <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
         <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          ⚠️ Version Bêta : Consulat.ga est actuellement en phase de test pour une durée de 3 mois. Certaines fonctionnalités peuvent être limitées ou modifiées pendant cette période.
+          ⚠️ Version Bêta : Consulat.ga est actuellement en phase de test pour une durée
+          de 3 mois. Certaines fonctionnalités peuvent être limitées ou modifiées pendant
+          cette période.
         </p>
       </div>
 
@@ -69,7 +72,9 @@ export default function LegalNotice() {
             4. Protection des Données
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            En tant que sous-traitant au sens du RGPD, OKA Tech met en œuvre toutes les mesures techniques et organisationnelles appropriées pour assurer la sécurité des données traitées.
+            En tant que sous-traitant au sens du RGPD, OKA Tech met en œuvre toutes les
+            mesures techniques et organisationnelles appropriées pour assurer la sécurité
+            des données traitées.
           </p>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
             Délégué à la Protection des Données (DPO) :
@@ -84,7 +89,10 @@ export default function LegalNotice() {
             5. Propriété Intellectuelle
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            La plateforme Consulat.ga, son code source, ses designs, logos et contenus sont la propriété exclusive de OKA Tech. Toute reproduction non autorisée constitue une contrefaçon sanctionnée par le Code de la propriété intellectuelle.
+            La plateforme Consulat.ga, son code source, ses designs, logos et contenus
+            sont la propriété exclusive de OKA Tech. Toute reproduction non autorisée
+            constitue une contrefaçon sanctionnée par le Code de la propriété
+            intellectuelle.
           </p>
         </section>
 
@@ -93,7 +101,8 @@ export default function LegalNotice() {
             6. Version Bêta
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            La plateforme est actuellement en phase de test bêta pour une durée de 3 mois. Durant cette période :
+            La plateforme est actuellement en phase de test bêta pour une durée de 3 mois.
+            Durant cette période :
           </p>
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
             <li>Certaines fonctionnalités peuvent être limitées ou modifiées</li>
@@ -108,7 +117,8 @@ export default function LegalNotice() {
             7. Loi Applicable
           </h2>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Les présentes mentions légales sont régies par le droit français. En cas de litige, les tribunaux français seront seuls compétents.
+            Les présentes mentions légales sont régies par le droit français. En cas de
+            litige, les tribunaux français seront seuls compétents.
           </p>
         </section>
 
@@ -129,7 +139,11 @@ export default function LegalNotice() {
             France
             <br />
             <br />
-            Email : <a href="mailto:okatech@icloud.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+            Email :{' '}
+            <a
+              href="mailto:okatech@icloud.com"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
               okatech@icloud.com
             </a>
           </p>
@@ -137,4 +151,4 @@ export default function LegalNotice() {
       </div>
     </div>
   );
-} 
+}

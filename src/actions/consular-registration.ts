@@ -152,14 +152,14 @@ export async function startCardProduction(requestId: string) {
     const updatedRequest = await db.serviceRequest.update({
       where: { id: requestId },
       data: {
-        status: 'CARD_IN_PRODUCTION',
+        status: 'DOCUMENT_IN_PRODUCTION',
         lastActionAt: new Date(),
         lastActionBy: authResult.user.id,
         actions: {
           create: {
             type: 'STATUS_CHANGE',
             userId: authResult.user.id,
-            data: { status: 'CARD_IN_PRODUCTION' },
+            data: { status: 'DOCUMENT_IN_PRODUCTION' },
           },
         },
       },

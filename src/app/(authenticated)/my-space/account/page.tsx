@@ -16,7 +16,7 @@ import { getActiveCountries } from '@/actions/countries';
 import { getCurrentUser } from '@/actions/user';
 import { UserSettingsForm } from './_utils/user-settings-form';
 import { getTranslations } from 'next-intl/server';
-import { SessionUser } from '@/types/user';
+import type { SessionUser } from '@/types/user';
 
 export default async function AccountPage() {
   const t = await getTranslations('account');
@@ -90,7 +90,9 @@ export default async function AccountPage() {
                 <p className="text-sm text-muted-foreground">
                   {t('two_factor_description')}
                 </p>
-                <Button variant="outline" size="mobile">{t('enable_2fa')}</Button>
+                <Button variant="outline" size="mobile">
+                  {t('enable_2fa')}
+                </Button>
               </div>
             </CardContent>
           </Card>

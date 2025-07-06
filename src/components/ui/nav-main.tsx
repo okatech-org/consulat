@@ -2,7 +2,6 @@
 
 import { MessageSquareIcon, PlusCircleIcon } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -42,14 +41,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               <PlusCircleIcon />
               <span>Action rapide</span>
             </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-              asChild
-            >
-              <ChatToggle customIcon={<MessageSquareIcon />} />
-            </Button>
+            <ChatToggle customIcon={<MessageSquareIcon className="size-7" />} />
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>

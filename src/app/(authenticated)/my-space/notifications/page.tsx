@@ -1,13 +1,19 @@
-import { PageContainer } from '@/components/layouts/page-container';
-import { NotificationsListing } from '@/components/notifications/notifications-listing';
-import { getTranslations } from 'next-intl/server';
+'use client';
 
-export default async function AdminNotificationsPage() {
-  const t = await getTranslations('notifications');
+import { PageContainer } from '@/components/layouts/page-container';
+import { useTranslations } from 'next-intl';
+import { Suspense } from 'react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { NotificationsListing } from '@/components/notifications/notifications-listing';
+
+export default function NotificationsPage() {
+  const t = useTranslations('notifications');
 
   return (
     <PageContainer title={t('title')} description={t('subtitle')}>
-      <NotificationsListing />
+      <Suspense fallback={<LoadingSkeleton variant="list" count={4} />}>
+        <NotificationsListing />
+      </Suspense>
     </PageContainer>
   );
 }

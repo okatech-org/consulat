@@ -61,7 +61,7 @@ export const ROUTES = {
     dashboard: '/my-space' as Route<string>,
     requests: '/my-space/services/requests' as Route<string>,
     profile: '/my-space/profile' as Route<string>,
-    profile_form: '/my-space/profile?form=true' as Route<string>,
+    profile_form: '/my-space/profile/form' as Route<string>,
     appointments: '/my-space/appointments' as Route<string>,
     appointments_new: '/my-space/appointments/new' as Route<string>,
     new_appointment: '/my-space/appointments/new' as Route<string>,
@@ -107,4 +107,7 @@ export const ROUTES = {
   terms: '#' as Route<string>,
 } as const;
 
-export type PageRoute = (typeof ROUTES)[keyof typeof ROUTES];
+export const protectedRoutes = [
+  ROUTES.dashboard.base,
+  ROUTES.user.base,
+];

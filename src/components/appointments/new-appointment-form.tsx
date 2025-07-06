@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppointmentType, AppointmentStatus } from '@prisma/client';
@@ -15,23 +15,23 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
-import { cn, tryCatch, useDateLocale } from '@/lib/utils';
+import { cn, useDateLocale } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
-import {
-  getAvailableTimeSlots,
-  type TimeSlotWithAgent,
-  createAppointment,
-} from '@/actions/appointments';
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { ROUTES } from '@/schemas/routes';
 import type { FullServiceRequest } from '@/types/service-request';
 import CardContainer from '../layouts/card-container';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
+import { useAppointments, useAvailableTimeSlots } from '@/hooks/use-appointments';
+
+// Type pour les créneaux avec agents disponibles
+interface TimeSlotWithAgent {
+  start: Date;
+  end: Date;
+  duration: number;
+  availableAgents: string[];
+}
 
 interface NewAppointmentFormProps {
   serviceRequests?: FullServiceRequest[];
@@ -60,24 +60,43 @@ export function NewAppointmentForm({
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
   const t_inputs = useTranslations('inputs');
-  const t_messages = useTranslations('messages');
-  const router = useRouter();
   const { formatDate } = useDateLocale();
-  const [isLoading, setIsLoading] = useState(false);
 
   const [currentTab, setCurrentTab] = useState<Step>(
     preselectedData?.type && preselectedData.request?.id ? 'slot' : 'request',
   );
 
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotWithAgent[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent>();
   const [selectedRequest, setSelectedRequest] = useState<FullServiceRequest>();
   const [availableTypes, setAvailableTypes] = useState<AppointmentType[]>([]);
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
-    defaultValues: { countryCode, organizationId, date: new Date(), attendeeId },
+    defaultValues: {
+      countryCode,
+      organizationId,
+      date: new Date(),
+      attendeeId,
+      duration: 30, // Valeur par défaut
+    },
   });
+
+  const selectedDate = form.watch('date');
+
+  // Hooks tRPC
+  const { createAppointment } = useAppointments();
+
+  // Récupérer les créneaux disponibles
+  const { timeSlots: availableTimeSlots, isLoading: timeSlotsLoading } =
+    useAvailableTimeSlots({
+      serviceId: selectedRequest?.service.id || '',
+      organizationId,
+      countryCode,
+      startDate: selectedDate || new Date(),
+      endDate: selectedDate || new Date(),
+      duration: selectedRequest?.service.appointmentDuration || 30,
+      agentId: selectedRequest?.assignedTo?.id,
+    });
 
   useLayoutEffect(() => {
     if (preselectedData?.request) {
@@ -108,10 +127,7 @@ export function NewAppointmentForm({
     }
   }, [form, preselectedData]);
 
-  const selectedDate = form.watch('date');
-
   const onSubmit = async (data: AppointmentInput) => {
-    setIsLoading(true);
     if (!selectedTimeSlot) return;
 
     const appointment = {
@@ -122,32 +138,7 @@ export function NewAppointmentForm({
       status: AppointmentStatus.CONFIRMED,
     };
 
-    const result = await tryCatch(createAppointment(appointment));
-
-    if (result.error) {
-      toast({
-        title: 'Erreur',
-        description: t_messages(result.error.message),
-        variant: 'destructive',
-      });
-    }
-
-    if (result.data) {
-      toast({
-        title: t_messages('appointments.notifications.appointment_confirmed'),
-        description: t_messages(
-          'appointments.notifications.appointment_confirmed_message',
-          {
-            date: formatDate(result.data.date, 'PPPP'),
-            time: formatDate(result.data.startTime, 'HH:mm'),
-          },
-        ),
-        variant: 'success',
-      });
-      router.push(ROUTES.user.appointments);
-    }
-
-    setIsLoading(false);
+    createAppointment.mutate(appointment);
   };
 
   const handleTabChange = (value: string) => {
@@ -257,7 +248,7 @@ export function NewAppointmentForm({
         </div>
 
         <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
-          {availableTimeSlots.map((slot) => {
+          {availableTimeSlots?.map((slot) => {
             const isSelected = selectedTimeSlot?.start === slot.start;
 
             return (
@@ -268,13 +259,14 @@ export function NewAppointmentForm({
                 disabled={!slot.availableAgents[0]}
                 className="h-auto py-4"
                 onClick={() => {
-                  const { start, end, availableAgents } = slot;
+                  const { start, end, duration, availableAgents } = slot;
                   const agentId = availableAgents[0];
 
                   if (!agentId) return;
 
                   form.setValue('startTime', start);
                   form.setValue('endTime', end);
+                  form.setValue('duration', duration);
                   form.setValue('agentId', agentId);
                   setSelectedTimeSlot(slot);
                 }}
@@ -283,12 +275,13 @@ export function NewAppointmentForm({
               </Button>
             );
           })}
-          {availableTimeSlots.length === 0 && !isLoading && (
-            <div className="col-span-full text-center text-muted-foreground">
-              {t('new.no_slots_available')}
-            </div>
-          )}
-          {isLoading && (
+          {(!availableTimeSlots || availableTimeSlots.length === 0) &&
+            !timeSlotsLoading && (
+              <div className="col-span-full text-center text-muted-foreground">
+                {t('new.no_slots_available')}
+              </div>
+            )}
+          {timeSlotsLoading && (
             <div className="col-span-full text-center text-muted-foreground">
               {t('new.loading')}
             </div>
@@ -297,36 +290,6 @@ export function NewAppointmentForm({
       </div>
     );
   };
-
-  React.useEffect(() => {
-    if (!selectedRequest || !selectedDate) return;
-
-    // Définir le début et la fin de la journée sélectionnée
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    getAvailableTimeSlots(
-      selectedRequest.service.id,
-      organizationId,
-      countryCode,
-      startOfDay,
-      endOfDay,
-      selectedRequest.service.appointmentDuration ?? 15,
-      selectedRequest.assignedTo?.id,
-    )
-      .then((slots) => {
-        setAvailableTimeSlots(slots);
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [selectedRequest, selectedDate, organizationId, countryCode]);
 
   function handleRequestChange(requestId?: string) {
     if (!requestId) {
@@ -460,6 +423,13 @@ export function NewAppointmentForm({
     form.setValue('duration', 15);
   }
 
+  useEffect(() => {
+    console.log({
+      formErros: form.formState.errors,
+      formValues: form.getValues(),
+    });
+  }, [form.watch()]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -498,7 +468,7 @@ export function NewAppointmentForm({
                   <Button
                     type="button"
                     onClick={handleNext}
-                    disabled={isLoading || !canGoNext()}
+                    disabled={createAppointment.isLoading || !canGoNext()}
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
                     {t('actions.next')}
@@ -575,7 +545,7 @@ export function NewAppointmentForm({
                       type="button"
                       variant="outline"
                       onClick={handlePrevious}
-                      disabled={isLoading}
+                      disabled={createAppointment.isLoading}
                       leftIcon={<ArrowLeft className="size-icon" />}
                     >
                       {t('actions.back')}
@@ -586,7 +556,7 @@ export function NewAppointmentForm({
                     <Button
                       type="button"
                       onClick={handleNext}
-                      disabled={isLoading || !canGoNext()}
+                      disabled={createAppointment.isLoading || !canGoNext()}
                       className={!canGoPrevious() ? 'ml-auto' : ''}
                       rightIcon={<ArrowRight className="size-icon" />}
                     >
@@ -630,7 +600,7 @@ export function NewAppointmentForm({
                       type="button"
                       variant="outline"
                       onClick={handlePrevious}
-                      disabled={isLoading}
+                      disabled={createAppointment.isLoading}
                       leftIcon={<ArrowLeft className="size-icon" />}
                     >
                       {t('actions.back')}
@@ -639,10 +609,12 @@ export function NewAppointmentForm({
 
                   <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={createAppointment.isLoading}
                     className={!canGoPrevious() ? 'ml-auto' : ''}
                   >
-                    {isLoading ? t('actions.submitting') : t('actions.confirm')}
+                    {createAppointment.isLoading
+                      ? t('actions.submitting')
+                      : t('actions.confirm')}
                   </Button>
                 </div>
               }

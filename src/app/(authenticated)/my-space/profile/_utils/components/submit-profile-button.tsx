@@ -12,10 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { submitProfileForValidation } from '@/actions/profile';
+
+import { useSubmitProfile } from '@/hooks/use-profile';
 import { useRouter } from 'next/navigation';
-import { tryCatch } from '@/lib/utils';
 
 // Définir les items de la checklist de manière statique
 const CHECKLIST_ITEMS = [
@@ -37,41 +36,24 @@ export function SubmitProfileButton({
   isChild = false,
 }: SubmitProfileButtonProps) {
   const t = useTranslations('profile.submission');
-  const tError = useTranslations('messages.errors');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
+  const submitProfile = useSubmitProfile();
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-
-    const { error, data } = await tryCatch(
-      submitProfileForValidation(profileId, isChild),
-    );
-
-    if (error) {
-      toast({
-        title: t('error.title'),
-        description: tError(error.message),
-        variant: 'destructive',
-      });
-
-      setIsDialogOpen(false);
-    }
-
-    if (data) {
-      toast({
-        title: t('success.title'),
-        description: t('success.description'),
-        variant: 'success',
+    try {
+      await submitProfile.mutateAsync({
+        profileId,
+        isChild,
       });
 
       setIsDialogOpen(false);
       router.refresh();
+    } catch (error) {
+      // L'erreur est déjà gérée par le hook useSubmitProfile
+      console.error('Error submitting profile:', error);
+      setIsDialogOpen(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (
@@ -117,11 +99,11 @@ export function SubmitProfileButton({
             <Button
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              disabled={isSubmitting}
+              disabled={submitProfile.isPending}
             >
               {t('dialog.cancel')}
             </Button>
-            <Button onClick={handleSubmit} loading={isSubmitting}>
+            <Button onClick={handleSubmit} loading={submitProfile.isPending}>
               {t('dialog.confirm')}
             </Button>
           </DialogFooter>

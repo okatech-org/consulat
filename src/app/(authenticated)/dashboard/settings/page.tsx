@@ -1,7 +1,6 @@
 import { getOrganizationById } from '@/actions/organizations';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import * as React from 'react';
 import { getCurrentUser } from '@/actions/user';
 import { SettingsTabs } from '@/components/organization/settings-tabs';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -11,10 +10,13 @@ import { UserRole } from '@prisma/client';
 import { getOrganizationIdFromUser } from '@/lib/utils';
 
 export default async function OrganizationSettingsPage() {
-  const user = await getCurrentUser();
+  const [t, user, countries] = await Promise.all([
+    getTranslations(),
+    getCurrentUser(),
+    getActiveCountries(),
+  ]);
+
   const organizationId = getOrganizationIdFromUser(user);
-  const t = await getTranslations();
-  const countries = await getActiveCountries();
 
   if (!organizationId || !user) {
     notFound();

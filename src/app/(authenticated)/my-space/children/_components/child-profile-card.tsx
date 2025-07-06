@@ -1,17 +1,15 @@
 'use client';
 
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { FullParentalAuthority } from '@/types/parental-authority';
+import type { FullParentalAuthority } from '@/types/parental-authority';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FileText, ExternalLink, Trash2 } from 'lucide-react';
 import { calculateAge, useDateLocale } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
-import { deleteChildProfile } from '@/actions/delete-child-profile';
-import { toast } from 'sonner';
+import { useChildProfiles } from '@/hooks/use-child-profiles';
 
 interface ChildProfileCardProps {
   parentalAuthority: FullParentalAuthority;
@@ -24,18 +22,14 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
   const profile = parentalAuthority.profile;
   const { formatDate } = useDateLocale();
 
+  const { deleteChild, isDeleting } = useChildProfiles();
+
   // Calculer l'âge à partir de la date de naissance
   const age = profile?.birthDate ? calculateAge(profile.birthDate.toISOString()) : 0;
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!profile?.id) return;
-
-    try {
-      await deleteChildProfile(profile.id);
-      toast.success(t('child_card.delete_success'));
-    } catch {
-      toast.error(t('child_card.delete_error'));
-    }
+    deleteChild({ id: profile.id });
   };
 
   return (
@@ -92,10 +86,11 @@ export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
             variant="destructive"
             size="sm"
             className="flex-1"
-            onClick={() => handleDelete()}
+            onClick={handleDelete}
+            disabled={isDeleting}
           >
             <Trash2 className="size-icon" />
-            {t('child_card.delete')}
+            {isDeleting ? t('child_card.deleting') : t('child_card.delete')}
           </Button>
         ) : (
           <Button disabled variant="default" size="sm" className="flex-1">

@@ -1,23 +1,21 @@
-import { getAppointment } from '@/actions/appointments';
-import { RescheduleAppointmentForm } from '@/components/appointments/reschedule-appointment-form';
+'use client';
+
 import { PageContainer } from '@/components/layouts/page-container';
-import { ErrorCard } from '@/components/ui/error-card';
 import { ROUTES } from '@/schemas/routes';
 import { ArrowLeft } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
+import { RescheduleAppointmentForm } from '@/components/appointments/reschedule-appointment-form';
+import { ErrorCard } from '@/components/ui/error-card';
+import { useAppointment } from '@/hooks/use-appointments';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
-interface RescheduleAppointmentPageProps {
-  params: {
-    id: string;
-  };
-}
+export default function RescheduleAppointmentPage() {
+  const params = useParams<{ id: string }>();
+  const t = useTranslations('appointments');
 
-export default async function RescheduleAppointmentPage({
-  params,
-}: RescheduleAppointmentPageProps) {
-  const t = await getTranslations('appointments');
-  const appointment = await getAppointment(params.id);
+  const { appointment, isLoading, error } = useAppointment(params.id);
 
   return (
     <PageContainer
@@ -29,17 +27,20 @@ export default async function RescheduleAppointmentPage({
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-icon" />
-          {'Retour'}
+          {t('actions.back')}
         </Link>
       }
     >
-      {appointment ? (
+      {isLoading && <LoadingSkeleton variant="grid" />}
+      {(!appointment && !isLoading) ||
+        (error && (
+          <ErrorCard
+            title={t('reschedule.error.not_found')}
+            description={t('reschedule.error.not_found_description')}
+          />
+        ))}
+      {appointment && !isLoading && (
         <RescheduleAppointmentForm appointment={appointment} />
-      ) : (
-        <ErrorCard
-          title={t('reschedule.error.not_found')}
-          description={t('reschedule.error.not_found_description')}
-        />
       )}
     </PageContainer>
   );

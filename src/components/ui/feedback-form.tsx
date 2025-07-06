@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { type FeedbackFormValues, feedbackSchema } from '@/schemas/feedback';
-import { submitFeedback } from '@/actions/feedback';
+import { useCreateFeedback } from '@/hooks/use-feedback';
 
 import {
   Form,
@@ -35,35 +34,34 @@ interface FeedbackFormProps {
 
 export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
   const t = useTranslations('feedback');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createFeedback, isCreating } = useCreateFeedback();
 
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
-    defaultValues: { subject: '', message: '', category: 'improvement' },
+    defaultValues: { subject: '', message: '', category: 'IMPROVEMENT' },
   });
 
-  const onSubmit = async (data: FeedbackFormValues) => {
-    setIsSubmitting(true);
-    try {
-      const result = await submitFeedback(data);
-
-      if (result.success) {
-        form.reset();
-        toast({
-          variant: 'success',
-          title: t('confirmation.title'),
-          description: t('confirmation.message'),
-        });
-        if (onSuccess) onSuccess();
-      } else {
-        toast({ variant: 'destructive', title: t('error.unknown') });
-      }
-    } catch (error) {
-      toast({ variant: 'destructive', title: t('error.unknown') });
-      console.error('Error submitting feedback:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const onSubmit = (data: FeedbackFormValues) => {
+    createFeedback(
+      {
+        subject: data.subject,
+        message: data.message,
+        category: data.category as 'BUG' | 'FEATURE' | 'IMPROVEMENT' | 'OTHER',
+        rating: data.rating,
+        email: data.email,
+      },
+      {
+        onSuccess: () => {
+          form.reset();
+          toast({
+            variant: 'success',
+            title: t('confirmation.title'),
+            description: t('confirmation.message'),
+          });
+          if (onSuccess) onSuccess();
+        },
+      },
+    );
   };
 
   return (
@@ -82,12 +80,12 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="bug">{t('form.categories.bug')}</SelectItem>
-                  <SelectItem value="feature">{t('form.categories.feature')}</SelectItem>
-                  <SelectItem value="improvement">
+                  <SelectItem value="BUG">{t('form.categories.bug')}</SelectItem>
+                  <SelectItem value="FEATURE">{t('form.categories.feature')}</SelectItem>
+                  <SelectItem value="IMPROVEMENT">
                     {t('form.categories.improvement')}
                   </SelectItem>
-                  <SelectItem value="other">{t('form.categories.other')}</SelectItem>
+                  <SelectItem value="OTHER">{t('form.categories.other')}</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -156,7 +154,7 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
           >
             {t('form.cancel')}
           </Button>
-          <Button type="submit" loading={isSubmitting}>
+          <Button type="submit" loading={isCreating}>
             {t('form.submit')}
           </Button>
         </div>

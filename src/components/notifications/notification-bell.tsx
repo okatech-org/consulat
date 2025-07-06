@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useUnreadCount } from '@/hooks/use-notifications';
 import { SheetTrigger, SheetContent, SheetHeader, SheetTitle, Sheet } from '../ui/sheet';
 import { NotificationsListing } from './notifications-listing';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -22,7 +22,7 @@ export function NotificationBell({
 }: NotificationBellProps) {
   const isMobile = useIsMobile();
 
-  const { unreadCount, isLoading } = useNotifications();
+  const { count: unreadCount, isLoading } = useUnreadCount();
   return (
     <div className={cn('relative inline-block', className)}>
       <Sheet>

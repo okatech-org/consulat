@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { z, ZodSchema } from 'zod';
 import { DocumentType } from '@prisma/client';
-import { ConsularServiceItem, ServiceField, ServiceStep } from '@/types/consular-service';
+import type { ConsularServiceItem, ServiceField, ServiceStep } from '@/types/consular-service';
 import {
   DateSchema,
   EmailSchema,
@@ -17,11 +17,11 @@ import {
   PictureFileSchema,
   BasicAddressSchema,
 } from '@/schemas/inputs';
-import { FullProfile } from '@/types/profile';
+import type { FullProfile } from '@/types/profile';
 import { createFormStorage } from '@/lib/form-storage';
 import { useStoredTabs } from './use-tabs';
 import { useTranslations } from 'next-intl';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 
 type StepFormValues = Record<string, unknown>;
 

@@ -8,7 +8,7 @@ export const feedbackSchema = z.object({
     message: 'Le message doit contenir au moins 10 caractères',
   }),
   rating: z.number().min(1).max(5).optional(),
-  category: z.enum(['bug', 'feature', 'improvement', 'other']),
+  category: z.enum(['BUG', 'FEATURE', 'IMPROVEMENT', 'OTHER']),
   email: z.string().email().optional(),
 });
 

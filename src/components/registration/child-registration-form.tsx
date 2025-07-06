@@ -120,7 +120,7 @@ export function ChildRegistrationForm() {
     setIsLoading(true);
 
     switch (currentTab) {
-      case 'link':
+      case 'link': {
         // First step - create the child profile
         const linkData = forms.link.getValues();
         const isLinkStepValid = await forms.link.trigger();
@@ -179,7 +179,8 @@ export function ChildRegistrationForm() {
         }
 
         break;
-      case 'identity':
+      }
+      case 'identity': {
         const currentForm = forms.basicInfo;
 
         const isIdentityStepValid = await currentForm.trigger();
@@ -230,7 +231,8 @@ export function ChildRegistrationForm() {
         }
 
         break;
-      case 'documents':
+      }
+      case 'documents': {
         const nextStep = orderedSteps[currentStepIndex + 1];
         // Handle documents step - just navigate to next step
         const isDocumentsStepValid = await forms.documents.trigger();
@@ -245,6 +247,7 @@ export function ChildRegistrationForm() {
         }
 
         break;
+      }
     }
 
     setIsLoading(false);
@@ -324,9 +327,11 @@ export function ChildRegistrationForm() {
   };
 
   return (
-    <div className="w-full relative max-w-3xl mx-auto min-h-full flex flex-col">
-      <header className="w-full pb-4">
+    <div className="w-full relative max-w-7xl mx-auto min-h-full flex flex-col">
+      {/* Version mobile/tablette - Étapes horizontales en header */}
+      <header className="w-full pb-4 lg:hidden">
         <StepIndicator
+          variant="horizontal"
           steps={orderedSteps.map((step) => {
             const stepIndex = orderedSteps.indexOf(step);
             const currentIndex = orderedSteps.indexOf(currentTab);
@@ -346,58 +351,94 @@ export function ChildRegistrationForm() {
           }}
         />
       </header>
-      <div className="w-full flex flex-col">
-        <div className="mx-auto w-full max-w-4xl">
-          {/* Main content */}
-          <div className="flex flex-col md:pb-10 gap-4 justify-center">
-            {currentStepIndex > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
-            <CardContainer>{stepsComponents[currentTab]}</CardContainer>
 
-            {error && (
-              <ErrorCard
-                description={
-                  <p className="flex items-center gap-2">
-                    <Info className="size-icon" />
-                    {t_errors('invalid_step')}
-                  </p>
-                }
-              />
-            )}
+      {/* Version desktop - Layout avec sidebar */}
+      <div className="w-full flex flex-col lg:flex-row lg:gap-8">
+        {/* Sidebar verticale pour desktop */}
+        <aside className="hidden lg:block lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h2 className="text-lg font-semibold mb-6">{t('profile.title')}</h2>
+            <StepIndicator
+              variant="vertical"
+              steps={orderedSteps.map((step) => {
+                const stepIndex = orderedSteps.indexOf(step);
+                const currentIndex = orderedSteps.indexOf(currentTab);
 
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-              <Button
-                onClick={handlePrevious}
-                variant="outline"
-                disabled={isLoading || currentStepIndex === 0}
-                className="gap-2"
-              >
-                <ArrowLeft className="size-4" />
-                {t('navigation.previous')}
-              </Button>
-
-              <Button
-                type="submit"
-                onClick={() => handleNext()}
-                disabled={isLoading || !stepFormMap[currentTab].formState.isValid}
-                className="gap-2"
-              >
-                {isLoading ? <Loader className="size-4 animate-spin" /> : null}
-                {currentStepIndex === totalSteps - 1
-                  ? t('navigation.submit')
-                  : `${isCurrentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
-                {currentStepIndex !== totalSteps - 1 && <ArrowRight className="size-4" />}
-              </Button>
-            </div>
-
-            {/* Mobile progress */}
-            <MobileProgress
-              currentStepIndex={currentStepIndex}
-              totalSteps={orderedSteps.length}
-              stepTitle={t(`steps.${getStepTranslation(currentTab)}`)}
-              isOptional={false}
+                return {
+                  title: t(`steps.${getStepTranslation(step)}`),
+                  key: step,
+                  description: t(`steps.${getStepTranslation(step)}_description`),
+                  isOptional: false,
+                  isComplete: stepIndex < currentIndex,
+                };
+              })}
+              currentStep={currentTab}
+              onChange={(step) => {
+                // Cast the step to our ChildSteps type since we know it's one of our step types
+                handleTabChange(step as ChildSteps);
+              }}
             />
           </div>
-        </div>
+        </aside>
+
+        {/* Contenu principal */}
+        <main className="flex-1 min-w-0">
+          <div className="mx-auto w-full max-w-4xl">
+            {/* Main content */}
+            <div className="flex flex-col md:pb-10 gap-4 justify-center">
+              {currentStepIndex > 1 && displayAnalysisWarning && (
+                <AnalysisWarningBanner />
+              )}
+              <CardContainer>{stepsComponents[currentTab]}</CardContainer>
+
+              {error && (
+                <ErrorCard
+                  description={
+                    <p className="flex items-center gap-2">
+                      <Info className="size-icon" />
+                      {t_errors('invalid_step')}
+                    </p>
+                  }
+                />
+              )}
+
+              <div className="flex flex-col md:flex-row justify-between gap-4">
+                <Button
+                  onClick={handlePrevious}
+                  variant="outline"
+                  disabled={isLoading || currentStepIndex === 0}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="size-4" />
+                  {t('navigation.previous')}
+                </Button>
+
+                <Button
+                  type="submit"
+                  onClick={() => handleNext()}
+                  disabled={isLoading || !stepFormMap[currentTab].formState.isValid}
+                  className="gap-2"
+                >
+                  {isLoading ? <Loader className="size-4 animate-spin" /> : null}
+                  {currentStepIndex === totalSteps - 1
+                    ? t('navigation.submit')
+                    : `${isCurrentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
+                  {currentStepIndex !== totalSteps - 1 && (
+                    <ArrowRight className="size-4" />
+                  )}
+                </Button>
+              </div>
+
+              {/* Mobile progress */}
+              <MobileProgress
+                currentStepIndex={currentStepIndex}
+                totalSteps={orderedSteps.length}
+                stepTitle={t(`steps.${getStepTranslation(currentTab)}`)}
+                isOptional={false}
+              />
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

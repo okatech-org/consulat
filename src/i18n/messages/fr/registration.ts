@@ -436,6 +436,7 @@ export default {
     },
   },
   profile: {
+    title: 'Complétez votre profil',
     birth_certificate: {
       label: 'Acte de naissance',
     },

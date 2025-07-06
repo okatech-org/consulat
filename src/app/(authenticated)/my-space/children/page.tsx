@@ -1,7 +1,6 @@
-import React, { Suspense } from 'react';
-import { getCurrentUser } from '@/actions/user';
-import { getTranslations } from 'next-intl/server';
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+'use client';
+
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -10,38 +9,49 @@ import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
 import { ROUTES } from '@/schemas/routes';
-import { getUserWithChildren } from '@/actions/child-profiles';
-import { tryCatch } from '@/lib/utils';
-export default async function ChildrenPage() {
-  const t = await getTranslations('user.children');
-  const user = await getCurrentUser();
+import { useChildProfiles } from '@/hooks/use-child-profiles';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
-  if (!user) return null;
+export default function ChildrenPageClient() {
+  const t = useTranslations('user.children');
 
-  const userWithChildren = await tryCatch(getUserWithChildren(user.id));
+  const { children, totalChildren, isLoading, isError } = useChildProfiles();
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <p className="text-destructive mb-4">
+          Erreur lors du chargement des profils enfants
+        </p>
+        <Button onClick={() => window.location.reload()}>Réessayer</Button>
+      </div>
+    );
+  }
 
   return (
-    <Suspense fallback={<LoadingSkeleton />}>
-      <PageContainer
-        title={t('title')}
-        description={t('subtitle')}
-        action={
-          <Button asChild size="sm">
-            <Link href={ROUTES.user.new_child}>
-              <Plus className="size-icon" />
-              <span className={'ml-1 hidden sm:inline'}>{t('add_child')}</span>
-            </Link>
-          </Button>
-        }
-      >
-        <CardContainer>
-          {userWithChildren.data && userWithChildren.data.childAuthorities?.length > 0 ? (
-            <ChildrenList parentalAuthorities={userWithChildren.data.childAuthorities} />
-          ) : (
-            <NoChildrenMessage />
-          )}
-        </CardContainer>
-      </PageContainer>
-    </Suspense>
+    <PageContainer
+      title={t('title')}
+      description={t('subtitle')}
+      action={
+        <Button asChild size="sm">
+          <Link href={ROUTES.user.new_child}>
+            <Plus className="size-icon" />
+            <span className={'ml-1 hidden sm:inline'}>{t('add_child')}</span>
+          </Link>
+        </Button>
+      }
+    >
+      <CardContainer>
+        {totalChildren > 0 ? (
+          <ChildrenList parentalAuthorities={children} />
+        ) : (
+          <NoChildrenMessage />
+        )}
+      </CardContainer>
+    </PageContainer>
   );
 }

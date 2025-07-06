@@ -1,24 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
-import {
-  getServiceRequestsList,
-  type GetRequestsOptions,
-  type ServiceRequestListItem,
-  type PaginatedServiceRequests,
-} from '@/actions/service-requests';
-import { cn, getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
+import { useCallback, useMemo, useState } from 'react';
+import { useRequests, type RequestFilters } from '@/hooks/use-requests';
+import { cn, useDateLocale } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import type { FullServiceRequest, ServiceRequestFilters } from '@/types/service-request';
-import {
-  RequestStatus,
-  ServiceCategory,
-  ServicePriority,
-  type User,
-} from '@prisma/client';
+import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
+import { useSession } from 'next-auth/react';
 
 // Imports pour le DataTable
 import type { ColumnDef } from '@tanstack/react-table';
@@ -27,7 +16,6 @@ import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
-import { useDateLocale } from '@/lib/utils';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
@@ -53,9 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
-import { updateServiceRequestStatus } from '@/actions/service-requests';
-import { updateConsularRegistrationStatus } from '@/actions/consular-registration';
+import { toast } from 'sonner';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
 import {
   SheetTrigger,
@@ -64,12 +50,28 @@ import {
   SheetTitle,
   Sheet,
 } from '@/components/ui/sheet';
-import { assignRequestToAgent } from '@/actions/agents';
-import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/contexts/user-context';
+
+// Types pour les données de la table
+type ServiceRequestListItem = {
+  id: string;
+  status: RequestStatus;
+  priority: ServicePriority;
+  serviceCategory: ServiceCategory;
+  createdAt: Date;
+  updatedAt: Date;
+  submittedBy: { id: string; email: string; name?: string } | null;
+  requestedFor: {
+    firstName: string;
+    lastName: string;
+    identityPicture?: { fileUrl: string } | null;
+  } | null;
+  assignedTo: { id: string; name?: string; email: string } | null;
+  organization: { id: string; name: string } | null;
+  country: { code: string; name: string } | null;
+};
 
 // Function to adapt search parameters for service requests
-function adaptSearchParams(searchParams: URLSearchParams): ServiceRequestFilters {
+function adaptSearchParams(searchParams: URLSearchParams): RequestFilters {
   return {
     status: searchParams.get('status')?.split(',').filter(Boolean) as
       | RequestStatus[]
@@ -86,14 +88,28 @@ function adaptSearchParams(searchParams: URLSearchParams): ServiceRequestFilters
     assignedToId: searchParams.get('assignedToId')?.split(',').filter(Boolean) as
       | string[]
       | undefined,
-    createdAt: searchParams.get('createdAt')
-      ? new Date(searchParams.get('createdAt')!)
-      : undefined,
     search: searchParams.get('search') || undefined,
   };
 }
 
-export default function RequestsPage() {
+// Schema pour les changements de statut en masse
+const statusChangeSchema = z.object({
+  status: z.nativeEnum(RequestStatus),
+});
+
+type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
+
+// Schema pour l'assignation en masse
+const assignToSchema = z.object({
+  assignedToId: z.string().min(1, 'Agent requis'),
+});
+
+type AssignToFormData = z.infer<typeof assignToSchema>;
+
+export default function RequestsPageClient() {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   const {
     params,
     pagination,
@@ -101,84 +117,33 @@ export default function RequestsPage() {
     handleParamsChange,
     handleSortingChange,
     handlePaginationChange,
-  } = useTableSearchParams<ServiceRequestListItem, ServiceRequestFilters>(
-    adaptSearchParams,
-  );
-  const router = useRouter();
+  } = useTableSearchParams<ServiceRequestListItem, RequestFilters>(adaptSearchParams);
+
   const t = useTranslations();
   const { formatDate } = useDateLocale();
-  const { user } = useCurrentUser();
-  const organizationId = getOrganizationIdFromUser(user);
-  const [agents, setAgents] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [requestsData, setRequestsData] = useState<PaginatedServiceRequests>({
-    items: [],
-    total: 0,
+
+  // Utilisation du hook tRPC pour les demandes
+  const { requests, isLoading, refetch } = useRequests({
+    ...params,
+    page: pagination.page,
+    limit: pagination.limit,
+    sortBy: sorting.field,
+    sortOrder: sorting.order,
   });
 
-  // Load organization data if user is admin
-  useEffect(() => {
-    async function loadOrganizationData() {
-      if (!organizationId) {
-        return;
-      }
+  // Récupération des agents de l'organisation (temporaire - à améliorer avec un router agents)
+  const agents: Array<{ id: string; name: string }> = [];
 
-      const organization = await getOrganizationWithSpecificIncludes(organizationId, [
-        'agents',
-      ]);
-      if (organization && organization.agents) {
-        setAgents(organization.agents as unknown as User[]);
-      }
-    }
-
-    if (user && organizationId) {
-      loadOrganizationData();
-    }
-  }, [user, organizationId]);
-
-  // Fetch requests data
-  useEffect(() => {
-    async function fetchRequestsData() {
-      const requestsOptions: GetRequestsOptions = {
-        ...params,
-        page: pagination.page,
-        limit: pagination.limit,
-        sortBy: sorting.field,
-        sortOrder: sorting.order,
-      };
-      setIsLoading(true);
-
-      try {
-        const result = await tryCatch(getServiceRequestsList(requestsOptions));
-        if (result.data) {
-          setRequestsData(result.data);
-        } else if (result.error) {
-          console.error('Error fetching service requests:', result.error);
-        }
-      } catch (error) {
-        console.error('Error in fetchRequestsData:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchRequestsData();
-  }, [user, params, pagination, sorting]);
+  // TODO: Remplacer par un hook tRPC dédié aux agents une fois le router agents créé
+  // const { data: agents = [] } = api.agents.getByOrganization.useQuery(
+  //   { organizationId: organizationId || undefined },
+  //   { enabled: !!organizationId }
+  // );
 
   // Refresh data fonction
   const handleRefresh = useCallback(() => {
-    setIsLoading(true);
-    getServiceRequestsList(params)
-      .then((data) => {
-        setRequestsData(data);
-      })
-      .catch((error) => {
-        console.error('Error refreshing data:', error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [params]);
+    refetch();
+  }, [refetch]);
 
   // Définition des statuses pour les filtres
   const statuses = useMemo(
@@ -457,7 +422,7 @@ export default function RequestsPage() {
                     .getFilteredSelectedRowModel()
                     .flatRows.map((row) => row.original)}
                   onSuccess={() => {
-                    router.refresh();
+                    refetch();
                   }}
                 />
               ),
@@ -468,9 +433,9 @@ export default function RequestsPage() {
                   selectedRows={table
                     .getFilteredSelectedRowModel()
                     .flatRows.map((row) => row.original)}
-                  agents={agents}
+                  agents={agents as any[]}
                   onSuccess={() => {
-                    router.refresh();
+                    refetch();
                   }}
                 />
               ),
@@ -479,17 +444,12 @@ export default function RequestsPage() {
         />
       ),
       cell: ({ row }) => (
-        <Button
-          variant="outline"
-          size="mobile"
-          className="min-w-max"
-          leftIcon={<FileText className="size-icon" />}
-          asChild
-        >
+        <Button variant="outline" size="sm" className="min-w-max" asChild>
           <Link
             onClick={(e) => e.stopPropagation()}
             href={ROUTES.dashboard.service_requests(row.original.id)}
           >
+            <FileText className="size-4 mr-2" />
             {t('common.actions.consult')}
           </Link>
         </Button>
@@ -497,13 +457,13 @@ export default function RequestsPage() {
     });
 
     return tableColumns;
-  }, [t, user, formatDate, statuses, handleSortingChange, agents, router]);
+  }, [t, user, formatDate, statuses, handleSortingChange, agents, refetch]);
 
   // Définition des filtres
-  const filters = useMemo<FilterOption<FullServiceRequest>[]>(() => {
+  const filters = useMemo<FilterOption<any>[]>(() => {
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
 
-    const filterOptions: FilterOption<FullServiceRequest>[] = [
+    const filterOptions: FilterOption<any>[] = [
       {
         type: 'search',
         property: 'search',
@@ -562,7 +522,7 @@ export default function RequestsPage() {
         property: 'assignedToId',
         label: t('requests.filters.assigned_to'),
         defaultValue: params.assignedToId || [],
-        options: agents.map((agent) => ({
+        options: agents.map((agent: any) => ({
           value: agent.id,
           label: agent.name || '-',
         })),
@@ -590,9 +550,9 @@ export default function RequestsPage() {
       <DataTable
         isLoading={isLoading}
         columns={columns}
-        data={requestsData.items}
+        data={requests?.items || []}
         filters={filters}
-        totalCount={requestsData.total}
+        totalCount={requests?.total || 0}
         pageIndex={pagination.page - 1}
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
@@ -605,12 +565,7 @@ export default function RequestsPage() {
   );
 }
 
-const statusChangeSchema = z.object({
-  status: z.nativeEnum(RequestStatus),
-});
-
-type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
-
+// Composant pour les changements de statut en masse
 type StatusChangeFormProps = {
   selectedRows: ServiceRequestListItem[];
   onSuccess: () => void;
@@ -620,6 +575,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { updateStatus } = useRequests();
 
   const form = useForm<StatusChangeFormData>({
     resolver: zodResolver(statusChangeSchema),
@@ -628,53 +584,41 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   const onSubmit = async (data: StatusChangeFormData) => {
     setIsSubmitting(true);
     try {
-      await handleBulkStatusUpdate(selectedRows, data.status);
+      // Mise à jour en parallèle de toutes les demandes sélectionnées
+      await Promise.all(
+        selectedRows.map((row) =>
+          updateStatus({
+            requestId: row.id,
+            status: data.status,
+          }),
+        ),
+      );
 
-      toast({
-        title: t('common.success.bulk_update_success', {
+      toast.success(
+        t('common.success.bulk_update_success', {
           count: selectedRows.length,
         }),
-        variant: 'success',
-      });
+      );
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast({
-        title: t('common.errors.save_failed'),
-        variant: 'destructive',
-      });
+      toast.error(t('common.errors.save_failed'));
       console.error('Error updating request:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleBulkStatusUpdate = async (
-    selectedRows: ServiceRequestListItem[],
-    status: RequestStatus,
-  ) => {
-    if (!selectedRows.length) return;
-
-    const updatePromises = selectedRows.map(async (row) => {
-      if (row?.requestedFor?.id) {
-        return updateConsularRegistrationStatus(row.id, row.requestedFor.id, status);
-      }
-      return updateServiceRequestStatus(row.id, status);
-    });
-
-    await Promise.all(updatePromises);
-  };
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" aria-label="Changer le status" className="justify-start">
-          Changer le status
+          Changer le statut
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className={cn('flex flex-col')}>
         <SheetHeader className="text-left border-b pb-4 mb-4">
-          <SheetTitle>Changer le status</SheetTitle>
+          <SheetTitle>Changer le statut</SheetTitle>
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -720,15 +664,10 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   );
 }
 
-const assignToChangeSchema = z.object({
-  assignedToId: z.string(),
-});
-
-type AssignToChangeFormData = z.infer<typeof assignToChangeSchema>;
-
+// Composant pour l'assignation en masse
 type AssignToChangeFormProps = {
   selectedRows: ServiceRequestListItem[];
-  agents: User[];
+  agents: any[];
   onSuccess: () => void;
 };
 
@@ -740,53 +679,48 @@ function AssignToChangeForm({
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { assign } = useRequests();
 
-  const form = useForm<AssignToChangeFormData>({
-    resolver: zodResolver(assignToChangeSchema),
+  const form = useForm<AssignToFormData>({
+    resolver: zodResolver(assignToSchema),
   });
 
-  const onSubmit = async (data: AssignToChangeFormData) => {
+  const onSubmit = async (data: AssignToFormData) => {
     setIsSubmitting(true);
     try {
-      await handleBulkAssignToUpdate(selectedRows, data.assignedToId);
+      // Assignation en parallèle de toutes les demandes sélectionnées
+      await Promise.all(
+        selectedRows.map((row) =>
+          assign({
+            requestId: row.id,
+            agentId: data.assignedToId,
+          }),
+        ),
+      );
 
-      toast({
-        title: t('common.success.bulk_update_success', {
+      toast.success(
+        t('common.success.bulk_update_success', {
           count: selectedRows.length,
         }),
-        variant: 'success',
-      });
+      );
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast({
-        title: t('common.errors.save_failed'),
-        description: `Erreur lors de l'assignation`,
-        variant: 'destructive',
-      });
-      console.error('Error updating request:', error);
+      toast.error(t('common.errors.save_failed'));
+      console.error('Error assigning requests:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleBulkAssignToUpdate = async (
-    selectedRows: ServiceRequestListItem[],
-    assignedToId: string,
-  ) => {
-    if (!selectedRows.length) return;
-
-    const updatePromises = selectedRows.map(async (row) => {
-      return assignRequestToAgent(row.id, assignedToId);
-    });
-
-    await Promise.all(updatePromises);
-  };
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" aria-label="Changer le status" className="justify-start">
+        <Button
+          variant="ghost"
+          aria-label="Assigner à un agent"
+          className="justify-start"
+        >
           Assigner à un agent
         </Button>
       </SheetTrigger>
