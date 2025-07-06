@@ -14,32 +14,36 @@ import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
+import { useCurrentUser } from '@/contexts/user-context';
 
 export default function ProfilePage() {
-  const { data: currentUser } = api.user.getCurrentUser.useQuery();
+  const { user, isLoading: userLoading } = useCurrentUser();
   const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery(
     undefined,
-    { enabled: !!currentUser },
+    { enabled: !!user },
   );
 
-  const { data: registrationRequest } = api.profile.getRegistrationRequest.useQuery(
-    { profileId: profile?.id ?? '' },
-    { enabled: !!profile?.id },
-  );
+  const { data: registrationRequest, isLoading: registrationRequestLoading } =
+    api.profile.getRegistrationRequest.useQuery(
+      { profileId: profile?.id ?? '' },
+      { enabled: !!profile?.id },
+    );
 
-  const { data: organizationInfos } = api.organizations.getCountryInfos.useQuery(
-    {
-      organizationId: registrationRequest?.organizationId ?? '',
-      countryCode: currentUser?.countryCode ?? '',
-    },
-    { enabled: !!registrationRequest?.organizationId && !!currentUser?.countryCode },
-  );
+  const { data: organizationInfos, isLoading: organizationInfosLoading } =
+    api.organizations.getCountryInfos.useQuery(
+      {
+        organizationId: registrationRequest?.organizationId ?? '',
+        countryCode: user?.countryCode ?? '',
+      },
+      { enabled: !!registrationRequest?.organizationId && !!user?.countryCode },
+    );
 
-  if (!currentUser) {
-    return null;
-  }
-
-  if (profileLoading) {
+  if (
+    profileLoading ||
+    userLoading ||
+    registrationRequestLoading ||
+    organizationInfosLoading
+  ) {
     return (
       <PageContainer>
         <LoadingSkeleton variant="grid" aspectRatio="4/3" />
