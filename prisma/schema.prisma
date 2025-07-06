@@ -69,7 +69,9 @@ model User {
     notificationPreferences NotificationPreference[]
 
     // parent authority fields
-    childAuthorities ParentalAuthority[]
+    childAuthorities  ParentalAuthority[]
+    feedbacks         Feedback[]
+    feedbackResponses Feedback[]          @relation("FeedbackResponses")
 }
 
 model Session {
@@ -560,6 +562,7 @@ model ConsularService {
     generateDocumentSettings GenerateDocumentSettings[]
     appointments             Appointment[]
     assignedTo               User[]                     @relation("AssignedServices")
+    feedbacks                Feedback[]
 }
 
 model ServiceStep {
@@ -666,6 +669,7 @@ model ServiceRequest {
     // Indicateurs de performance
     firstPassValidation Boolean? // Validation au premier passage
     processingTime      Int? // Temps de traitement en heures
+    feedbacks           Feedback[]
 
     @@index([submittedById])
     @@index([serviceId])
@@ -954,6 +958,7 @@ model Organization {
 
     serviceRequests   ServiceRequest[]
     documentTemplates DocumentTemplate[]
+    feedbacks         Feedback[]
 
     @@map("organizations")
 }
@@ -1013,4 +1018,59 @@ model Sequence {
     profileId      String
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
+}
+
+// Modèle pour les feedbacks
+model Feedback {
+    id       String           @id @default(cuid())
+    subject  String
+    message  String           @db.Text
+    category FeedbackCategory
+    rating   Int? // 1-5
+    status   FeedbackStatus   @default(PENDING)
+
+    // Relations
+    userId String?
+    user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+    email  String? // Pour les utilisateurs non connectés
+
+    // Réponse de l'admin
+    response      String?   @db.Text
+    respondedBy   User?     @relation("FeedbackResponses", fields: [respondedById], references: [id])
+    respondedById String?
+    respondedAt   DateTime?
+
+    // Service ou demande associée (optionnel)
+    serviceId String?
+    service   ConsularService? @relation(fields: [serviceId], references: [id])
+    requestId String?
+    request   ServiceRequest?  @relation(fields: [requestId], references: [id])
+
+    // Organisation associée
+    organizationId String?
+    organization   Organization? @relation(fields: [organizationId], references: [id])
+
+    // Métadonnées
+    metadata  Json?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([userId])
+    @@index([category])
+    @@index([status])
+    @@index([createdAt])
+}
+
+enum FeedbackCategory {
+    BUG
+    FEATURE
+    IMPROVEMENT
+    OTHER
+}
+
+enum FeedbackStatus {
+    PENDING
+    IN_REVIEW
+    RESOLVED
+    CLOSED
 }

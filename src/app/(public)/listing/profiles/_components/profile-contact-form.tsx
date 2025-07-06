@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,7 +14,7 @@ import {
   FormMessage,
   TradFormMessage,
 } from '@/components/ui/form';
-import { sendProfileMessage } from '../_actions/contact';
+import { useSendMessage } from '@/hooks/use-public-profiles';
 import { Input } from '@/components/ui/input';
 import CardContainer from '@/components/layouts/card-container';
 import { Loader2 } from 'lucide-react';
@@ -38,12 +36,8 @@ interface ProfileContactFormProps {
   recipientEmail: string;
 }
 
-export function ProfileContactForm({
-  userId,
-  recipientName,
-  recipientEmail,
-}: ProfileContactFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function ProfileContactForm({ userId, recipientEmail }: ProfileContactFormProps) {
+  const sendMessage = useSendMessage();
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -55,33 +49,19 @@ export function ProfileContactForm({
   });
 
   async function onSubmit(data: ContactFormValues) {
-    setIsSubmitting(true);
-
     try {
-      await sendProfileMessage(
+      await sendMessage.mutateAsync({
         userId,
-        data.message,
+        message: data.message,
         recipientEmail,
-        data.from,
-        data.contact,
-      );
-
-      toast({
-        variant: 'success',
-        title: 'Message envoyé',
-        description: `Votre message a été envoyé à ${recipientName}`,
+        from: data.from,
+        contact: data.contact,
       });
 
       form.reset();
     } catch (error) {
+      // L'erreur est déjà gérée par le hook useSendMessage
       console.error('Error sending message:', error);
-      toast({
-        title: 'Erreur',
-        description: "Une erreur est survenue lors de l'envoi du message",
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -93,8 +73,12 @@ export function ProfileContactForm({
           subtitle="Envoyez un message à cette personne. Elle recevra une notification et pourra vous répondre."
           footerContent={
             <div className="flex sm:justify-end">
-              <Button type="submit" className="w-full sm:w-max" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              <Button
+                type="submit"
+                className="w-full sm:w-max"
+                disabled={sendMessage.isPending}
+              >
+                {sendMessage.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {'Envoyer le message'}
               </Button>
             </div>
@@ -127,7 +111,7 @@ export function ProfileContactForm({
                     type="text"
                     autoComplete="email"
                     placeholder="Votre email ou numéro de téléphone"
-                    disabled={isSubmitting}
+                    disabled={sendMessage.isPending}
                   />
                 </FormControl>
                 <TradFormMessage />

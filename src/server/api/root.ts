@@ -11,6 +11,8 @@ import { countriesRouter } from '@/server/api/routers/countries';
 import { organizationsRouter } from '@/server/api/routers/organizations';
 import { childProfilesRouter } from '@/server/api/routers/child-profiles';
 import { notificationsRouter } from '@/server/api/routers/notifications';
+import { feedbackRouter } from '@/server/api/routers/feedback';
+import { publicProfilesRouter } from '@/server/api/routers/public-profiles';
 import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc';
 
 /**
@@ -32,6 +34,8 @@ export const appRouter = createTRPCRouter({
   organizations: organizationsRouter,
   childProfiles: childProfilesRouter,
   notifications: notificationsRouter,
+  feedback: feedbackRouter,
+  publicProfiles: publicProfilesRouter,
 });
 
 // export type definition of API

@@ -6,34 +6,23 @@ import {
   ProfileSectionSchema,
   CreateProfileSchema 
 } from '@/schemas/registration';
+import { FullProfileInclude } from '@/types/profile';
 import { 
   createUserProfile,
   updateProfile as updateProfileAction,
   submitProfileForValidation as submitProfileAction,
   getRegistrationServiceForUser 
 } from '@/actions/profile';
-import { getUserFullProfile, getProfileRegistrationRequest, getUserFullProfileById } from '@/lib/user/getters';
+import { getProfileRegistrationRequest } from '@/lib/user/getters';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil de l'utilisateur actuel
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
-    const profile = await getUserFullProfile(ctx.session.user.id);
-
-    if (!profile) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profile non trouvé',
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: { userId: ctx.session.user.id },
+        ...FullProfileInclude,
       });
-    }
-
-    return profile;
-  }),
-
-  // Récupérer un profil par ID
-  getById: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const profile = await getUserFullProfileById(input.id);
 
       if (!profile) {
         throw new TRPCError({
@@ -43,12 +32,48 @@ export const profileRouter = createTRPCRouter({
       }
 
       return profile;
+    } catch (error) {
+      console.error('Error fetching current profile:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération du profil',
+      });
+    }
+  }),
+
+  // Récupérer un profil par ID
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const profile = await ctx.db.profile.findUnique({
+          where: { id: input.id },
+          ...FullProfileInclude,
+        });
+
+        if (!profile) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Profile non trouvé',
+          });
+        }
+
+        return profile;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        
+        console.error('Error fetching profile by ID:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la récupération du profil',
+        });
+      }
     }),
 
   // Récupérer la demande d'enregistrement d'un profil
   getRegistrationRequest: protectedProcedure
     .input(z.object({ profileId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const request = await getProfileRegistrationRequest(input.profileId);
       return request;
     }),
@@ -75,7 +100,7 @@ export const profileRouter = createTRPCRouter({
       data: FullProfileUpdateSchema.partial(),
       requestId: z.string().optional(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const { profileId, data, requestId } = input;
 
       try {
@@ -140,7 +165,7 @@ export const profileRouter = createTRPCRouter({
       profileId: z.string(),
       isChild: z.boolean().default(false),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const { profileId, isChild } = input;
 
       try {
@@ -163,7 +188,15 @@ export const profileRouter = createTRPCRouter({
       });
     }
 
-    const service = await getRegistrationServiceForUser(ctx.session.user.countryCode);
-    return service;
+    try {
+      const service = await getRegistrationServiceForUser(ctx.session.user.countryCode);
+      return service;
+    } catch (error) {
+      console.error('Error fetching registration service:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération du service d\'enregistrement',
+      });
+    }
   }),
 });

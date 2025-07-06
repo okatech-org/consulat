@@ -1,22 +1,11 @@
-import { PageContainer } from '@/components/layouts/page-container';
-import { RegistrationForm } from '@/components/registration/registration-form';
-import { getActiveCountries } from '@/actions/countries';
-import { api } from '@/trpc/server';
-import CardContainer from '@/components/layouts/card-container';
-import { getTranslations } from 'next-intl/server';
+import ProfileFormPageClient from './page.client';
+import type { Metadata } from 'next';
 
-export default async function ProfilePage() {
-  const tInputs = await getTranslations('inputs');
-  const profile = await api.profile.getCurrent();
+export const metadata: Metadata = {
+  title: 'Modifier le profil | Consulat.ga',
+  description: 'Modifiez votre profil consulaire',
+};
 
-  const availableCountries = await getActiveCountries();
-
-  return (
-    <PageContainer title={tInputs('newProfile.title')}>
-      {profile && (
-        <RegistrationForm availableCountries={availableCountries} profile={profile} />
-      )}
-      {!profile && <CardContainer title="Profile non trouvé"></CardContainer>}
-    </PageContainer>
-  );
+export default function ProfileFormPage() {
+  return <ProfileFormPageClient />;
 }
