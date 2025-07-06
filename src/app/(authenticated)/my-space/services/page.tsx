@@ -11,7 +11,6 @@ import {
   FileText,
   AlertTriangle,
   ChevronRight,
-  Filter,
   X,
   TrendingUp,
   Calendar,
@@ -24,7 +23,7 @@ import { RequestStatus } from '@prisma/client';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import { FullServiceRequest } from '@/types/service-request';
+import type { FullServiceRequest } from '@/types/service-request';
 import { ROUTES } from '@/schemas/routes';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -53,7 +52,8 @@ const statusConfig: Record<
   EDITED: {
     label: 'Modifiée',
     color: 'text-secondary-foreground',
-    bgColor: 'bg-secondary/50 hover:bg-secondary/70 border-secondary text-secondary-foreground',
+    bgColor:
+      'bg-secondary/50 hover:bg-secondary/70 border-secondary text-secondary-foreground',
     icon: <FileText className="h-3 w-3" />,
   },
   PENDING: {
@@ -77,7 +77,8 @@ const statusConfig: Record<
   REJECTED: {
     label: 'Rejetée',
     color: 'text-destructive',
-    bgColor: 'bg-destructive/10 hover:bg-destructive/20 border-destructive/20 text-destructive',
+    bgColor:
+      'bg-destructive/10 hover:bg-destructive/20 border-destructive/20 text-destructive',
     icon: <AlertTriangle className="h-3 w-3" />,
   },
   CARD_IN_PRODUCTION: {
@@ -235,9 +236,9 @@ export default function ServicesPage() {
       description={t('description')}
       action={
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => window.location.reload()}
             className="h-8"
             aria-label="Actualiser"
@@ -246,10 +247,7 @@ export default function ServicesPage() {
             <span className="hidden sm:inline">{t('actions.refresh')}</span>
           </Button>
           <Link href={ROUTES.user.service_available}>
-            <Button 
-              size="sm"
-              className="h-8"
-            >
+            <Button size="sm" className="h-8">
               <Plus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">{t('myRequests.startNew')}</span>
             </Button>
@@ -259,13 +257,22 @@ export default function ServicesPage() {
     >
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList className="w-full sm:w-auto bg-card border shadow-sm h-9">
-          <TabsTrigger value="dashboard" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7">
+          <TabsTrigger
+            value="dashboard"
+            className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7"
+          >
             Tableau de bord
           </TabsTrigger>
-          <TabsTrigger value="my-requests" className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7">
+          <TabsTrigger
+            value="my-requests"
+            className="flex-1 sm:flex-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm h-7"
+          >
             Mes demandes
             {!loading && serviceRequests.length > 0 && (
-              <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs bg-muted text-muted-foreground h-4">
+              <Badge
+                variant="secondary"
+                className="ml-2 px-1.5 py-0 text-xs bg-muted text-muted-foreground h-4"
+              >
                 {serviceRequests.length}
               </Badge>
             )}
@@ -315,7 +322,9 @@ export default function ServicesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Attention</p>
-                  <p className="text-2xl font-bold text-destructive">{stats.needsAttention}</p>
+                  <p className="text-2xl font-bold text-destructive">
+                    {stats.needsAttention}
+                  </p>
                 </div>
                 <div className="p-2 bg-destructive/10 rounded-full">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -350,7 +359,10 @@ export default function ServicesPage() {
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center justify-between border-b pb-3 last:border-b-0">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between border-b pb-3 last:border-b-0"
+                  >
                     <div className="space-y-2">
                       <Skeleton className="h-4 w-40" />
                       <Skeleton className="h-3 w-24" />
@@ -387,7 +399,10 @@ export default function ServicesPage() {
                         </div>
                       </div>
                       <div className="flex flex-col sm:items-end mt-2 sm:mt-0 space-y-2">
-                        <Badge variant="secondary" className={`text-xs ${statusInfo.bgColor} border`}>
+                        <Badge
+                          variant="secondary"
+                          className={`text-xs ${statusInfo.bgColor} border`}
+                        >
                           {statusInfo.icon}
                           <span className="ml-1">{statusInfo.label}</span>
                         </Badge>
@@ -412,7 +427,9 @@ export default function ServicesPage() {
                   </div>
                   <div className="space-y-2">
                     <h3 className="font-medium text-foreground">Aucune demande</h3>
-                    <p className="text-sm text-muted-foreground">{t('myRequests.empty')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('myRequests.empty')}
+                    </p>
                   </div>
                   <Link href={ROUTES.user.services + '/available'}>
                     <Button size="sm" className="mt-2">
@@ -462,7 +479,8 @@ export default function ServicesPage() {
             >
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Si vous avez des questions sur vos demandes ou les services disponibles, contactez-nous.
+                  Si vous avez des questions sur vos demandes ou les services disponibles,
+                  contactez-nous.
                 </p>
                 <div className="flex items-center gap-2 text-xs text-success">
                   <CheckCircle2 className="h-3 w-3" />
@@ -508,7 +526,10 @@ export default function ServicesPage() {
                 className="h-8 text-xs"
               >
                 Toutes
-                <Badge variant="secondary" className="ml-1 px-1 py-0 text-xs bg-muted text-muted-foreground h-4">
+                <Badge
+                  variant="secondary"
+                  className="ml-1 px-1 py-0 text-xs bg-muted text-muted-foreground h-4"
+                >
                   {serviceRequests.length}
                 </Badge>
               </Button>
@@ -519,7 +540,10 @@ export default function ServicesPage() {
                 className="h-8 text-xs"
               >
                 En cours
-                <Badge variant="secondary" className="ml-1 px-1 py-0 text-xs bg-warning/10 text-warning h-4">
+                <Badge
+                  variant="secondary"
+                  className="ml-1 px-1 py-0 text-xs bg-warning/10 text-warning h-4"
+                >
                   {stats.ongoing}
                 </Badge>
               </Button>
@@ -530,7 +554,10 @@ export default function ServicesPage() {
                 className="h-8 text-xs"
               >
                 Terminées
-                <Badge variant="secondary" className="ml-1 px-1 py-0 text-xs bg-success/10 text-success h-4">
+                <Badge
+                  variant="secondary"
+                  className="ml-1 px-1 py-0 text-xs bg-success/10 text-success h-4"
+                >
                   {stats.completed}
                 </Badge>
               </Button>
@@ -544,9 +571,9 @@ export default function ServicesPage() {
               </Button>
 
               {hasActiveFilters && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={resetFilters}
                   className="ml-auto h-8 text-xs hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
                 >
@@ -560,7 +587,10 @@ export default function ServicesPage() {
             {hasActiveFilters && (
               <div className="flex flex-wrap gap-1 pt-2 border-t">
                 {activeFilter !== 'all' && (
-                  <Badge variant="secondary" className="text-xs py-0 px-2 h-6 bg-primary/10 text-primary border-primary/20">
+                  <Badge
+                    variant="secondary"
+                    className="text-xs py-0 px-2 h-6 bg-primary/10 text-primary border-primary/20"
+                  >
                     <span>Filtre: {activeFilter}</span>
                     <Button
                       variant="ghost"
@@ -573,7 +603,10 @@ export default function ServicesPage() {
                   </Badge>
                 )}
                 {searchQuery.trim() && (
-                  <Badge variant="secondary" className="text-xs py-0 px-2 h-6 bg-accent text-accent-foreground border-accent">
+                  <Badge
+                    variant="secondary"
+                    className="text-xs py-0 px-2 h-6 bg-accent text-accent-foreground border-accent"
+                  >
                     <span className="truncate max-w-[80px]">"{searchQuery}"</span>
                     <Button
                       variant="ghost"
@@ -595,17 +628,26 @@ export default function ServicesPage() {
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-primary" />
                 <span className="font-medium text-foreground">
-                  {filteredRequests.length} demande{filteredRequests.length > 1 ? 's' : ''} trouvée{filteredRequests.length > 1 ? 's' : ''}
+                  {filteredRequests.length} demande
+                  {filteredRequests.length > 1 ? 's' : ''} trouvée
+                  {filteredRequests.length > 1 ? 's' : ''}
                 </span>
                 {filteredRequests.length !== serviceRequests.length && (
                   <>
                     <span className="text-muted-foreground">sur</span>
-                    <span className="text-muted-foreground">{serviceRequests.length}</span>
+                    <span className="text-muted-foreground">
+                      {serviceRequests.length}
+                    </span>
                   </>
                 )}
               </div>
               {hasActiveFilters && (
-                <Button variant="outline" size="sm" onClick={resetFilters} className="h-7 text-xs text-primary border-primary/20 hover:bg-primary/10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetFilters}
+                  className="h-7 text-xs text-primary border-primary/20 hover:bg-primary/10"
+                >
                   Voir toutes
                 </Button>
               )}
@@ -651,10 +693,14 @@ export default function ServicesPage() {
                           {request.service?.name}
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          Soumise le {new Date(request.createdAt).toLocaleDateString('fr-FR')}
+                          Soumise le{' '}
+                          {new Date(request.createdAt).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
-                      <Badge variant="secondary" className={`text-xs ${statusInfo.bgColor} border flex-shrink-0`}>
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs ${statusInfo.bgColor} border flex-shrink-0`}
+                      >
                         {statusInfo.icon}
                         <span className="ml-1">{statusInfo.label}</span>
                       </Badge>
@@ -662,14 +708,16 @@ export default function ServicesPage() {
 
                     <div className="space-y-2">
                       <p className="text-xs text-muted-foreground">
-                        Dernière mise à jour: {formatDistanceToNow(new Date(request.updatedAt), {
+                        Dernière mise à jour:{' '}
+                        {formatDistanceToNow(new Date(request.updatedAt), {
                           addSuffix: true,
                           locale: fr,
                         })}
                       </p>
                       {request.assignedTo && (
                         <p className="text-xs text-muted-foreground">
-                          Assignée à: <span className="font-medium">{request.assignedTo.name}</span>
+                          Assignée à:{' '}
+                          <span className="font-medium">{request.assignedTo.name}</span>
                         </p>
                       )}
 
@@ -677,14 +725,21 @@ export default function ServicesPage() {
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">Progression</span>
-                            <span className="font-medium text-foreground">{progress}%</span>
+                            <span className="font-medium text-foreground">
+                              {progress}%
+                            </span>
                           </div>
                           <Progress value={progress} className="h-2" />
                         </div>
                       )}
                     </div>
 
-                    <Button variant="outline" size="sm" className="w-full group-hover:border-primary/50 transition-colors" asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full group-hover:border-primary/50 transition-colors"
+                      asChild
+                    >
                       <Link href={ROUTES.user.service_request_details(request.id)}>
                         <ChevronRight className="h-3 w-3 mr-2" />
                         {t('actions.viewDetails')}
@@ -702,7 +757,9 @@ export default function ServicesPage() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold text-foreground">
-                    {searchQuery || activeFilter !== 'all' ? 'Aucune demande trouvée' : 'Aucune demande'}
+                    {searchQuery || activeFilter !== 'all'
+                      ? 'Aucune demande trouvée'
+                      : 'Aucune demande'}
                   </h3>
                   <p className="text-muted-foreground">
                     {searchQuery || activeFilter !== 'all'
@@ -710,8 +767,11 @@ export default function ServicesPage() {
                       : t('myRequests.empty')}
                   </p>
                 </div>
-                {(searchQuery || activeFilter !== 'all') ? (
-                  <Button onClick={resetFilters} className="bg-primary hover:bg-primary/90">
+                {searchQuery || activeFilter !== 'all' ? (
+                  <Button
+                    onClick={resetFilters}
+                    className="bg-primary hover:bg-primary/90"
+                  >
                     <X className="mr-2 h-4 w-4" />
                     Réinitialiser les filtres
                   </Button>
