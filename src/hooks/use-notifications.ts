@@ -1,147 +1,279 @@
 'use client';
 
-import { useCallback, useEffect, useState, useMemo } from 'react';
-import type { Notification } from '@prisma/client';
-import {
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  getNotifications,
-} from '@/actions/notifications';
+import { useEffect, useCallback } from 'react';
+import { api } from '@/trpc/react';
+import { toast } from 'sonner';
+import { NotificationType } from '@prisma/client';
 
-// Cache structure
-type NotificationsCache = {
-  data: Notification[];
-  timestamp: number;
-  lastId: string | null;
-};
 
-// Cache expiration time in milliseconds (5 minutes)
-const CACHE_EXPIRATION = 5 * 60 * 1000;
+interface UseNotificationsOptions {
+  unreadOnly?: boolean;
+  types?: NotificationType[];
+  limit?: number;
+  autoRefresh?: boolean;
+  refreshInterval?: number;
+}
 
-// Global cache object
-let globalCache: NotificationsCache = {
-  data: [],
-  timestamp: 0,
-  lastId: null,
-};
-
-export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>(globalCache.data);
-  const [isLoading, setIsLoading] = useState(globalCache.data.length === 0);
-  const [lastUpdated, setLastUpdated] = useState<number>(globalCache.timestamp);
-  const [error, setError] = useState<Error | null>(null);
-
-  // Only fetch if cache is expired or we have no data
-  const shouldFetchFromServer = useCallback(() => {
-    const now = Date.now();
-    return (
-      globalCache.data.length === 0 || now - globalCache.timestamp > CACHE_EXPIRATION
-    );
-  }, []);
-
-  // Load notifications with cache strategy
-  const fetchNotifications = useCallback(
-    async (force = false) => {
-      // Return cached data if available and not forcing refresh
-      if (!force && !shouldFetchFromServer() && globalCache.data.length > 0) {
-        setNotifications(globalCache.data);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const result = await getNotifications();
-
-        if (result && Array.isArray(result)) {
-          // Update cache
-          globalCache = {
-            data: result,
-            timestamp: Date.now(),
-            lastId: result.length > 0 ? (result[0]?.id ?? null) : null,
-          };
-
-          setNotifications(result);
-          setLastUpdated(globalCache.timestamp);
-        }
-      } catch (err) {
-        console.error('Error fetching notifications:', err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setIsLoading(false);
-      }
+export function useNotifications(options?: UseNotificationsOptions) {
+  const utils = api.useUtils();
+  
+  const query = api.notifications.getList.useInfiniteQuery(
+    {
+      limit: options?.limit ?? 20,
+      unreadOnly: options?.unreadOnly ?? false,
+      types: options?.types,
     },
-    [shouldFetchFromServer],
-  );
-
-  // Initial load and refresh every minute
-  useEffect(() => {
-    fetchNotifications();
-
-    // Poll less frequently
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 60000); // 1 minute instead of 30s
-
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
-
-  // Mark a notification as read with optimistic updates
-  const handleMarkAsRead = useCallback(
-    async (notificationId: string) => {
-      // Optimistic update
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
-      );
-
-      try {
-        await markNotificationAsRead(notificationId);
-
-        // Update cache on success
-        globalCache.data = globalCache.data.map((n) =>
-          n.id === notificationId ? { ...n, read: true } : n,
-        );
-      } catch (err) {
-        console.error('Error marking notification as read:', err);
-        // Revert optimistic update on error
-        fetchNotifications(true);
-      }
-    },
-    [fetchNotifications],
-  );
-
-  // Mark all notifications as read with optimistic updates
-  const handleMarkAllAsRead = useCallback(async () => {
-    // Optimistic update
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-
-    try {
-      await markAllNotificationsAsRead();
-
-      // Update cache on success
-      globalCache.data = globalCache.data.map((n) => ({ ...n, read: true }));
-    } catch (err) {
-      console.error('Error marking all notifications as read:', err);
-      // Revert optimistic update on error
-      fetchNotifications(true);
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      staleTime: 30 * 1000, // 30 secondes
+      refetchInterval: options?.autoRefresh ? (options.refreshInterval ?? 30000) : false,
     }
-  }, [fetchNotifications]);
+  );
 
-  // Calculate unreadCount efficiently using useMemo
-  const unreadCount = useMemo(() => {
-    return notifications.filter((n) => !n.read).length;
-  }, [notifications]);
+  const markAsReadMutation = api.notifications.markAsRead.useMutation({
+    onMutate: async ({ id }) => {
+      // Optimistic update
+      await utils.notifications.getList.cancel();
+      await utils.notifications.getUnreadCount.cancel();
+      
+      const previousData = utils.notifications.getList.getInfiniteData({
+        limit: options?.limit ?? 20,
+        unreadOnly: options?.unreadOnly ?? false,
+        types: options?.types,
+      });
+      
+      if (previousData) {
+        utils.notifications.getList.setInfiniteData(
+          {
+            limit: options?.limit ?? 20,
+            unreadOnly: options?.unreadOnly ?? false,
+            types: options?.types,
+          },
+          {
+            ...previousData,
+            pages: previousData.pages.map((page) => ({
+              ...page,
+              items: page.items.map((notification) =>
+                notification.id === id ? { ...notification, read: true } : notification
+              ),
+            })),
+          }
+        );
+      }
+      
+      // Mettre à jour le compteur
+      const previousCount = utils.notifications.getUnreadCount.getData();
+      if (previousCount && previousCount.count > 0) {
+        utils.notifications.getUnreadCount.setData(undefined, {
+          count: previousCount.count - 1,
+        });
+      }
+      
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      // Rollback
+      if (context?.previousData) {
+        utils.notifications.getList.setInfiniteData(
+          {
+            limit: options?.limit ?? 20,
+            unreadOnly: options?.unreadOnly ?? false,
+            types: options?.types,
+          },
+          context.previousData
+        );
+      }
+      toast.error('Erreur lors du marquage de la notification');
+    },
+    onSuccess: () => {
+      utils.notifications.getList.invalidate();
+      utils.notifications.getUnreadCount.invalidate();
+    },
+  });
+
+  const markAllAsReadMutation = api.notifications.markAllAsRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.getList.invalidate();
+      utils.notifications.getUnreadCount.invalidate();
+      toast.success('Toutes les notifications ont été marquées comme lues');
+    },
+    onError: () => {
+      toast.error('Erreur lors du marquage des notifications');
+    },
+  });
+
+  const deleteMutation = api.notifications.delete.useMutation({
+    onSuccess: () => {
+      utils.notifications.getList.invalidate();
+      utils.notifications.getUnreadCount.invalidate();
+      toast.success('Notification supprimée');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la suppression');
+    },
+  });
+
+  const deleteAllReadMutation = api.notifications.deleteAllRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.getList.invalidate();
+      toast.success('Notifications lues supprimées');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la suppression');
+    },
+  });
+
+  const notifications = query.data?.pages.flatMap((page) => page.items) ?? [];
 
   return {
     notifications,
-    unreadCount,
-    isLoading,
-    error,
-    lastUpdated,
-    markAsRead: handleMarkAsRead,
-    markAllAsRead: handleMarkAllAsRead,
-    refresh: useCallback(() => fetchNotifications(true), [fetchNotifications]),
+    isLoading: query.isLoading,
+    error: query.error,
+    hasNextPage: query.hasNextPage,
+    fetchNextPage: query.fetchNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
+    markAsRead: markAsReadMutation.mutate,
+    markAllAsRead: markAllAsReadMutation.mutate,
+    deleteNotification: deleteMutation.mutate,
+    deleteAllRead: deleteAllReadMutation.mutate,
+    isMarkingAsRead: markAsReadMutation.isPending,
+    isDeleting: deleteMutation.isPending,
+    refetch: query.refetch,
   };
+}
+
+export function useUnreadCount() {
+  const query = api.notifications.getUnreadCount.useQuery(undefined, {
+    staleTime: 30 * 1000, // 30 secondes
+    refetchInterval: 30 * 1000, // Rafraîchir toutes les 30 secondes
+  });
+
+  return {
+    count: query.data?.count ?? 0,
+    isLoading: query.isLoading,
+    error: query.error,
+  };
+}
+
+export function useNotificationPreferences() {
+  const utils = api.useUtils();
+  
+  const query = api.notifications.getPreferences.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const updateMutation = api.notifications.updatePreferences.useMutation({
+    onMutate: async ({ type, channel, enabled }) => {
+      // Optimistic update
+      await utils.notifications.getPreferences.cancel();
+      
+      const previousData = utils.notifications.getPreferences.getData();
+      
+      if (previousData) {
+        const newData = { ...previousData };
+        if (!newData[type]) {
+          newData[type] = {};
+        }
+        newData[type][channel] = enabled;
+        
+        utils.notifications.getPreferences.setData(undefined, newData);
+      }
+      
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      // Rollback
+      if (context?.previousData) {
+        utils.notifications.getPreferences.setData(undefined, context.previousData);
+      }
+      toast.error('Erreur lors de la mise à jour des préférences');
+    },
+    onSuccess: () => {
+      toast.success('Préférences mises à jour');
+    },
+  });
+
+  return {
+    preferences: query.data ?? {},
+    isLoading: query.isLoading,
+    error: query.error,
+    updatePreference: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
+  };
+}
+
+export function useNotificationStats() {
+  const query = api.notifications.getStats.useQuery(undefined, {
+    staleTime: 60 * 1000, // 1 minute
+  });
+
+  return {
+    stats: query.data,
+    isLoading: query.isLoading,
+    error: query.error,
+  };
+}
+
+export function useCreateNotification() {
+  const utils = api.useUtils();
+  
+  const mutation = api.notifications.create.useMutation({
+    onSuccess: () => {
+      utils.notifications.getList.invalidate();
+      utils.notifications.getUnreadCount.invalidate();
+      utils.notifications.getStats.invalidate();
+      toast.success('Notification créée');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la création de la notification');
+    },
+  });
+
+  return {
+    createNotification: mutation.mutate,
+    isCreating: mutation.isPending,
+    error: mutation.error,
+  };
+}
+
+// Hook pour le polling temps réel des notifications
+export function useRealtimeNotifications(onNewNotification?: (notification: { id: string; type: NotificationType; title: string; message: string; read: boolean; createdAt: Date }) => void) {
+  const utils = api.useUtils();
+  const { count: previousCount } = useUnreadCount();
+
+  const checkForNewNotifications = useCallback(async () => {
+    const currentData = await utils.notifications.getUnreadCount.fetch();
+    
+    if (currentData.count > previousCount) {
+      // Nouvelle notification détectée
+      const latestNotifications = await utils.notifications.getList.fetch({
+        limit: 1,
+        unreadOnly: true,
+      });
+      
+      if (latestNotifications.items.length > 0 && onNewNotification) {
+        const notification = latestNotifications.items[0];
+        if (notification) {
+          onNewNotification({
+            id: notification.id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            read: notification.read,
+            createdAt: notification.createdAt,
+          });
+        }
+      }
+      
+      // Rafraîchir les listes
+      utils.notifications.getList.invalidate();
+      utils.notifications.getStats.invalidate();
+    }
+  }, [previousCount, utils, onNewNotification]);
+
+  useEffect(() => {
+    const interval = setInterval(checkForNewNotifications, 10000); // Vérifier toutes les 10 secondes
+    
+    return () => clearInterval(interval);
+  }, [checkForNewNotifications]);
 }

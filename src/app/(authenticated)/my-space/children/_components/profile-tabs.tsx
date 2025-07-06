@@ -1,10 +1,10 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-import { BasicInfoSection } from '../../profile/_utils/components/sections/basic-info-section';
+import { ChildBasicInfoSection } from './sections/basic-info-section';
 import { DocumentsSection } from '../../profile/_utils/components/sections/documents-section';
 import { LinkInfoSection } from './sections/link-info-section';
 import { useRouter } from 'next/navigation';
@@ -26,14 +26,7 @@ export function ChildProfileTabs({ profile }: ProfileTabsProps) {
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
-      content: (
-        <BasicInfoSection
-          profile={profile}
-          onSave={() => {
-            router.refresh();
-          }}
-        />
-      ),
+      content: <ChildBasicInfoSection profile={profile} />,
     },
     {
       id: 'documents',

@@ -6,6 +6,11 @@ import { documentsRouter } from '@/server/api/routers/documents';
 import { appointmentsRouter } from '@/server/api/routers/appointments';
 import { dashboardRouter } from '@/server/api/routers/dashboard';
 import { requestsRouter } from '@/server/api/routers/requests';
+import { agentsRouter } from '@/server/api/routers/agents';
+import { countriesRouter } from '@/server/api/routers/countries';
+import { organizationsRouter } from '@/server/api/routers/organizations';
+import { childProfilesRouter } from '@/server/api/routers/child-profiles';
+import { notificationsRouter } from '@/server/api/routers/notifications';
 import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc';
 
 /**
@@ -22,6 +27,11 @@ export const appRouter = createTRPCRouter({
   appointments: appointmentsRouter,
   dashboard: dashboardRouter,
   requests: requestsRouter,
+  agents: agentsRouter,
+  countries: countriesRouter,
+  organizations: organizationsRouter,
+  childProfiles: childProfilesRouter,
+  notifications: notificationsRouter,
 });
 
 // export type definition of API

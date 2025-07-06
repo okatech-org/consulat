@@ -1,14 +1,28 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useNotifications, useUnreadCount } from '@/hooks/use-notifications';
 import { NotificationItem } from './notification-item';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export function NotificationsListing() {
   const t = useTranslations('notifications');
-  const { notifications, markAllAsRead, unreadCount } = useNotifications();
+  const {
+    notifications,
+    markAllAsRead,
+    deleteAllRead,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useNotifications();
+  const { count: unreadCount } = useUnreadCount();
+
+  if (isLoading) {
+    return <LoadingSkeleton variant="list" count={4} />;
+  }
 
   return (
     <div className="space-y-2">
@@ -24,16 +38,41 @@ export function NotificationsListing() {
         )}
       </div>
 
-      {unreadCount > 0 && (
-        <div className="flex justify-end px-4">
+      {hasNextPage && (
+        <div className="flex justify-center pt-4">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            leftIcon={<Check className="size-4" />}
-            onClick={markAllAsRead}
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
           >
-            {t('mark_all_read')}
+            {isFetchingNextPage ? t('loading_more') : t('load_more')}
           </Button>
+        </div>
+      )}
+
+      {(unreadCount > 0 || notifications.some((n) => n.read)) && (
+        <div className="flex justify-between px-4 pt-4 border-t">
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Check className="size-4" />}
+              onClick={() => markAllAsRead()}
+            >
+              {t('mark_all_read')}
+            </Button>
+          )}
+          {notifications.some((n) => n.read) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Trash2 className="size-4" />}
+              onClick={() => deleteAllRead()}
+            >
+              {t('delete_all_read')}
+            </Button>
+          )}
         </div>
       )}
     </div>
