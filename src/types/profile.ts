@@ -1,4 +1,4 @@
-import { Prisma, UserDocument } from '@prisma/client';
+import { Prisma, type UserDocument } from '@prisma/client';
 import { FullServiceRequestInclude } from './service-request';
 
 // Base includes pour un profil

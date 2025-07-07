@@ -4,6 +4,7 @@ import { TRPCError } from '@trpc/server';
 import { NotificationType } from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
+import { FullProfileInclude } from '@/types';
 
 export const publicProfilesRouter = createTRPCRouter({
   /**
@@ -65,41 +66,7 @@ export const publicProfilesRouter = createTRPCRouter({
       try {
                  const profile = await ctx.db.profile.findUnique({
            where: { id: input.id },
-           select: {
-             id: true,
-             firstName: true,
-             lastName: true,
-             birthDate: true,
-             birthPlace: true,
-             nationality: true,
-             residenceCountyCode: true,
-             status: true, // Nécessaire pour vérifier si le profil est public
-             identityPicture: {
-               select: {
-                 fileUrl: true,
-               },
-             },
-             user: {
-               select: {
-                 id: true,
-                 email: true,
-               },
-             },
-             // Informations additionnelles pour les utilisateurs connectés
-             ...(ctx.session?.user ? {
-               email: true,
-               phoneNumber: true,
-               address: {
-                 select: {
-                   firstLine: true,
-                   secondLine: true,
-                   city: true,
-                   zipCode: true,
-                   country: true,
-                 },
-               },
-             } : {}),
-           },
+          ...FullProfileInclude
          });
 
         if (!profile) {
