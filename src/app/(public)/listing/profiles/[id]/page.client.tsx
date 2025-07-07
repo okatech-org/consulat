@@ -21,6 +21,7 @@ export default function ProfilePageClient({ profileId }: ProfilePageClientProps)
   });
 
   if (error) {
+    console.error(error);
     notFound();
   }
 
@@ -63,6 +64,7 @@ export default function ProfilePageClient({ profileId }: ProfilePageClientProps)
   }
 
   if (!profile) {
+    console.error('Profile not found');
     notFound();
   }
 
