@@ -1,30 +1,119 @@
-import type { Metadata } from 'next';
-import ProfilePageClient from './page.client';
-import { api } from '@/trpc/server';
+'use client';
 
-interface ProfilePageProps {
-  params: { id: string };
-}
+import { usePublicProfile } from '@/hooks/use-public-profiles';
+import { useParams, useRouter } from 'next/navigation';
+import type { FullProfile } from '@/types/profile';
+import { ProfileView } from '../_components/profile-view';
+import { ProfileContactForm } from '../_components/profile-contact-form';
+import type { ServiceRequest } from '@prisma/client';
+import { PageContainer } from '@/components/layouts/page-container';
+import { useCurrentUser } from '@/contexts/user-context';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/schemas/routes';
 
-export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
-  const awaitedParams = await params;
-  const profileId = awaitedParams.id;
-
-  try {
-    const profile = await api.publicProfiles.getById({ id: profileId });
-
-    return {
-      title: `${profile.firstName} ${profile.lastName} | Consulat.ga`,
-      description: `Profil consulaire de ${profile.firstName} ${profile.lastName}`,
-    };
-  } catch {
-    return { title: 'Profil non trouvé' };
+export default function ProfilePage() {
+  const params = useParams<{ id: string }>();
+  const { data: profile, isLoading, error } = usePublicProfile(params.id);
+  const { user } = useCurrentUser();
+  const router = useRouter();
+  if (error) {
+    <PageContainer
+      title={`Profile Consulaires publique`}
+      className="container py-8 max-w-screen-xl flex flex-col items-center justify-center gap-4"
+    >
+      <p>Profile non trouvé ou non accessible publiquement</p>
+      <Button
+        variant="outline"
+        onClick={() => {
+          router.push(ROUTES.listing.profiles);
+        }}
+      >
+        Retour à la liste des profiles
+      </Button>
+    </PageContainer>;
   }
+
+  if (isLoading) {
+    return (
+      <PageContainer
+        title={`Profile Consulaires publique`}
+        className="container py-8 max-w-screen-xl"
+      >
+        <LoadingSkeleton variant="form" />
+      </PageContainer>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <PageContainer
+        title={`Profile Consulaires publique`}
+        className="container py-8 max-w-screen-xl flex flex-col items-center justify-center gap-4"
+      >
+        <p>Profile non trouvé ou non accessible publiquement</p>
+        <Button
+          variant="outline"
+          onClick={() => {
+            router.push('/listing/profiles');
+          }}
+        >
+          Retour à la liste des profiles
+        </Button>
+      </PageContainer>
+    );
+  }
+
+  const hasFullAccess =
+    user?.roles?.includes('SUPER_ADMIN') ||
+    (user?.roles?.some((role) => ['ADMIN', 'MANAGER', 'AGENT'].includes(role)) &&
+      user?.countryCode === profile.residenceCountyCode);
+
+  const canContact = !!user;
+
+  const requests = undefined;
+
+  return (
+    <PageContainer
+      title={`Profile Consulaires publique`}
+      className="container py-8 max-w-screen-xl"
+    >
+      <ProfileDetailsView
+        profile={profile as FullProfile}
+        hasFullAccess={hasFullAccess ?? false}
+        canContact={canContact}
+        requests={requests}
+      />
+    </PageContainer>
+  );
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
-  const awaitedParams = await params;
-  const profileId = awaitedParams.id;
+interface ProfileDetailsViewProps {
+  profile: FullProfile;
+  hasFullAccess: boolean;
+  canContact: boolean;
+  requests?: ServiceRequest[];
+}
 
-  return <ProfilePageClient profileId={profileId} />;
+export function ProfileDetailsView({
+  profile,
+  hasFullAccess,
+  canContact,
+  requests,
+}: ProfileDetailsViewProps) {
+  return (
+    <>
+      <ProfileView profile={profile} hasFullAccess={hasFullAccess} requests={requests} />
+
+      {canContact && (
+        <div className="mt-8">
+          <ProfileContactForm
+            userId={profile.userId ?? profile.user?.id ?? ''}
+            recipientEmail={profile.user?.email ?? ''}
+            recipientName={`${profile.firstName} ${profile.lastName}`}
+          />
+        </div>
+      )}
+    </>
+  );
 }

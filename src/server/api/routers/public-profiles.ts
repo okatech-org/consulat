@@ -109,14 +109,6 @@ export const publicProfilesRouter = createTRPCRouter({
           });
         }
 
-        // Vérifier que le profil est public (validé)
-        if (!['VALIDATED', 'COMPLETED'].includes(profile.status as string)) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Profil non accessible publiquement',
-          });
-        }
-
         return profile;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
