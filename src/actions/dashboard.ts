@@ -1,7 +1,6 @@
 'use server';
 
 import { db } from '@/server/db';
-import { RequestStatus } from '@prisma/client';
 
 export interface CityProfileData {
   city: string;
@@ -14,25 +13,73 @@ export interface CityProfileData {
   };
 }
 
-// Service de géolocalisation simplifié
-const DEFAULT_COORDINATES: Record<string, { lat: number; lng: number }> = {
-  'paris-france': { lat: 48.8566, lng: 2.3522 },
-  'libreville-gabon': { lat: 0.4162, lng: 9.4673 },
-  'douala-cameroon': { lat: 4.0511, lng: 9.7679 },
-  'dakar-senegal': { lat: 14.7167, lng: -17.4677 },
-  'lyon-france': { lat: 45.7640, lng: 4.8357 },
-  'marseille-france': { lat: 43.2965, lng: 5.3698 },
-  'yaounde-cameroon': { lat: 3.8480, lng: 11.5021 },
-};
+// Cache pour éviter les appels API répétés
+const coordinatesCache = new Map<string, { lat: number; lng: number } | null>();
+
+// Service de géolocalisation avec API Nominatim
+async function getCoordinatesForCity(city: string, country: string): Promise<{ lat: number; lng: number } | null> {
+  const key = `${city.toLowerCase()}-${country.toLowerCase()}`;
+  
+  // Vérifier le cache
+  if (coordinatesCache.has(key)) {
+    return coordinatesCache.get(key)!;
+  }
+
+  try {
+    const query = `${city}, ${country}`;
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'Consulat.bis/1.0',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      coordinatesCache.set(key, null);
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (data.length > 0) {
+      const coordinates = {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      };
+      coordinatesCache.set(key, coordinates);
+      return coordinates;
+    }
+    
+    coordinatesCache.set(key, null);
+    return null;
+  } catch (error) {
+    console.error(`Error geocoding ${city}, ${country}:`, error);
+    coordinatesCache.set(key, null);
+    return null;
+  }
+}
 
 export async function getProfilesGeographicData(): Promise<CityProfileData[]> {
   try {
-    // Récupérer les profils avec leurs adresses
+    // Debug: Compter tous les profils
+    const totalProfiles = await db.profile.count();
+    console.log('Total profiles:', totalProfiles);
+
+    // Debug: Compter les profils avec adresses
+    const profilesWithAddress = await db.profile.count({
+      where: {
+        addressId: {
+          not: null,
+        },
+      },
+    });
+    console.log('Profiles with address:', profilesWithAddress);
+
+    // Récupérer les profils avec leurs adresses (sans filtre de statut pour le moment)
     const profiles = await db.profile.findMany({
       where: {
-        status: {
-          in: [RequestStatus.COMPLETED, RequestStatus.VALIDATED],
-        },
         addressId: {
           not: null,
         },
@@ -41,6 +88,8 @@ export async function getProfilesGeographicData(): Promise<CityProfileData[]> {
         address: true,
       },
     });
+
+    console.log('Found profiles with addresses:', profiles.length);
 
     // Grouper par ville et pays
     const cityGroups = new Map<string, CityProfileData>();
@@ -63,17 +112,20 @@ export async function getProfilesGeographicData(): Promise<CityProfileData[]> {
     });
 
     const cityData = Array.from(cityGroups.values()).sort((a, b) => b.count - a.count);
+    console.log('City data:', cityData);
     
-    // Ajouter les coordonnées aux données
-    return cityData.map(item => {
-      const key = `${item.city.toLowerCase()}-${item.country.toLowerCase()}`;
-      const coordinates = DEFAULT_COORDINATES[key] || undefined;
-      
-      return {
-        ...item,
-        coordinates,
-      };
-    });
+    // Ajouter les coordonnées aux données via géocodage
+    const cityDataWithCoordinates = await Promise.all(
+      cityData.map(async (item) => {
+        const coordinates = await getCoordinatesForCity(item.city, item.country);
+        return {
+          ...item,
+          coordinates: coordinates || undefined,
+        };
+      })
+    );
+
+    return cityDataWithCoordinates;
   } catch (error) {
     console.error('Error fetching geographic data:', error);
     return [];
