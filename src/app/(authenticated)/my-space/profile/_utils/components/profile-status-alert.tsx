@@ -15,7 +15,6 @@ import {
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { cn } from '@/lib/utils';
-import { OrganizationMetadataAddress } from '@/schemas/organization';
 import CardContainer from '@/components/layouts/card-container';
 
 type AlertVariant = 'default' | 'destructive' | 'secondary';
@@ -23,16 +22,12 @@ type AlertVariant = 'default' | 'destructive' | 'secondary';
 interface ProfileStatusAlertProps {
   status: RequestStatus;
   notes?: string;
-  organizationName?: string;
-  organizationAddress?: OrganizationMetadataAddress | undefined;
   requestId?: string;
 }
 
 export function ProfileStatusAlert({
   status,
   notes,
-  organizationName,
-  organizationAddress,
   requestId,
 }: ProfileStatusAlertProps) {
   const t = useTranslations('profile.status_messages');
@@ -74,10 +69,8 @@ export function ProfileStatusAlert({
           icon: FileCheck,
           title: t('ready_for_pickup.title'),
           description: t('ready_for_pickup.description', {
-            organization: organizationName || t('default.organization'),
-            address: organizationAddress
-              ? `${organizationAddress.firstLine ?? ''}, ${organizationAddress.zipCode ?? ''} ${organizationAddress.city ?? ''}`
-              : t('default.address'),
+            organization: t('default.organization'),
+            address: t('default.address'),
           }),
           action: (
             <Link

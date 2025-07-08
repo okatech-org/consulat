@@ -14,6 +14,7 @@ import {
   getRegistrationServiceForUser 
 } from '@/actions/profile';
 import { getProfileRegistrationRequest } from '@/lib/user/getters';
+import type { RouterOutputs } from '@/trpc/react';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil de l'utilisateur actuel
@@ -200,3 +201,6 @@ export const profileRouter = createTRPCRouter({
     }
   }),
 });
+
+export type FullProfile = RouterOutputs['profile']['getCurrent']
+export type RegistrationRequest = RouterOutputs['profile']['getRegistrationRequest']
