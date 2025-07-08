@@ -1,4 +1,3 @@
-import { Vonage } from '@vonage/server-sdk';
 import { Auth } from '@vonage/auth';
 import { env } from '@/env';
 import { Verify2, Channels } from '@vonage/verify2';

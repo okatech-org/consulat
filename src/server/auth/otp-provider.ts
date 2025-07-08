@@ -132,7 +132,7 @@ export const otpProvider: Provider = CredentialsProvider({
       }
 
       if (new Date() > otpCode.expires) {
-        throw createAuthError('code_expired', 'Code expiré');
+        throw createAuthError('otp_expired', 'Code expiré');
       }
 
       // Vérifier le code avec l'API Vonage
@@ -152,7 +152,7 @@ export const otpProvider: Provider = CredentialsProvider({
           );
         }
 
-        throw createAuthError('invalid_code', 'Code invalide');
+        throw createAuthError('otp_invalid', 'Code invalide');
       }
 
       // Marquer comme vérifié
