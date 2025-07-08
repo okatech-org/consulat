@@ -14,14 +14,9 @@ import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
-import { useCurrentUser } from '@/contexts/user-context';
 
 export default function ProfilePage() {
-  const { user, isLoading: userLoading } = useCurrentUser();
-  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery(
-    undefined,
-    { enabled: !!user },
-  );
+  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery();
 
   const { data: registrationRequest, isLoading: registrationRequestLoading } =
     api.profile.getRegistrationRequest.useQuery(
@@ -33,23 +28,22 @@ export default function ProfilePage() {
     api.organizations.getCountryInfos.useQuery(
       {
         organizationId: registrationRequest?.organizationId ?? '',
-        countryCode: user?.countryCode ?? '',
+        countryCode: profile?.residenceCountyCode ?? '',
       },
-      { enabled: !!registrationRequest?.organizationId && !!user?.countryCode },
+      {
+        enabled: !!registrationRequest?.organizationId && !!profile?.residenceCountyCode,
+      },
     );
 
-  if (
-    profileLoading ||
-    userLoading ||
-    registrationRequestLoading ||
-    organizationInfosLoading
-  ) {
+  if (profileLoading || registrationRequestLoading || organizationInfosLoading) {
     return (
       <PageContainer>
         <LoadingSkeleton variant="grid" aspectRatio="4/3" />
       </PageContainer>
     );
   }
+
+  console.log({ profile });
 
   if (!profile) {
     return (

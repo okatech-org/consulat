@@ -67,8 +67,7 @@ export default {
       otp_failed:
         'Votre code de vérification est invalide ou expiré, veuillez réessayer ou renvoyer un nouveau code.',
       validation_error: 'Erreur de validation',
-      send_otp_failed:
-        "Impossible d'envoyer le code de vérification. Veuillez réessayer.",
+      send_failed: "Impossible d'envoyer le code de vérification. Veuillez réessayer.",
       phone_invalid: 'Numéro de téléphone invalide',
       email_invalid: 'Adresse email invalide',
       invalid_identifier: "Format d'identifiant invalide",

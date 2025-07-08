@@ -101,7 +101,30 @@ function useResendCooldown() {
 }
 
 function useLoginActions() {
-  const tErrors = useTranslations();
+  const tAuth = useTranslations('auth');
+
+  const getErrorMessage = React.useCallback(
+    (code: string | undefined) => {
+      if (!code) return tAuth('login.errors.validation_error');
+
+      // Essayer de trouver dans errors, puis messages
+      const errorKey = `login.errors.${code}`;
+      let errorMessage = tAuth(errorKey);
+
+      if (errorMessage === errorKey) {
+        const messageKey = `login.messages.${code}`;
+        errorMessage = tAuth(messageKey);
+
+        // Si toujours pas trouvé, retourner un message générique
+        if (errorMessage === messageKey) {
+          return tAuth('login.errors.validation_error');
+        }
+      }
+
+      return errorMessage;
+    },
+    [tAuth],
+  );
 
   const sendOTPCode = React.useCallback(
     async (identifier: string) => {
@@ -119,30 +142,30 @@ function useLoginActions() {
         }
 
         // Sinon, c'est une vraie erreur
-        const errorMessage = tErrors(result.code);
+        const errorMessage = getErrorMessage(result.code);
         throw new Error(errorMessage);
       }
     },
-    [tErrors],
+    [getErrorMessage],
   );
 
   const validateOTP = React.useCallback(
-    async (otp: string, identifier: string, callbackUrl?: string) => {
+    async (otp: string, identifier: string) => {
       const result = (await signIn('otp', {
         identifier,
         code: otp,
         action: 'verify',
-        redirectTo: callbackUrl,
+        redirect: false,
       })) as SignInResult;
 
       if (result?.error) {
-        const errorMessage = tErrors(result.code);
+        const errorMessage = getErrorMessage(result.code);
         throw new Error(errorMessage);
       }
 
       return result;
     },
-    [tErrors],
+    [getErrorMessage],
   );
 
   return { sendOTPCode, validateOTP };
@@ -150,7 +173,7 @@ function useLoginActions() {
 
 export function LoginForm() {
   const router = useRouter();
-  const { data: session, update: refetchSession } = useSession();
+  const { data: session } = useSession();
   const user = session?.user;
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
@@ -187,11 +210,10 @@ export function LoginForm() {
   const handleManualRedirect = React.useCallback(() => {
     if (state.hasRedirected) return;
 
-    const callbackUrl = searchParams.get('callbackUrl');
     const redirectUrl = AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
     router.push(redirectUrl);
     setState((prev) => ({ ...prev, hasRedirected: true }));
-  }, [user, searchParams, state.hasRedirected, router]);
+  }, [user, state.hasRedirected, router, callbackUrl]);
 
   // Handlers
   const handleSendOTP = React.useCallback(
@@ -249,7 +271,7 @@ export function LoginForm() {
             ? form.getValues('email')
             : form.getValues('phoneNumber');
 
-        await validateOTP(otp, identifier, callbackUrl ?? ROUTES.user.base);
+        await validateOTP(otp, identifier);
 
         updateState({ step: 'SUCCESS', isLoading: false, error: null });
 
@@ -277,7 +299,6 @@ export function LoginForm() {
       updateState,
       handleManualRedirect,
       state.hasRedirected,
-      refetchSession,
     ],
   );
 
@@ -341,10 +362,9 @@ export function LoginForm() {
     if (user && state.step === 'IDENTIFIER' && !state.hasRedirected) {
       setState((prev) => ({ ...prev, hasRedirected: true }));
 
-      const callbackUrl = searchParams.get('callbackUrl');
       AuthRedirectManager.handleLoginSuccess(user, callbackUrl);
     }
-  }, [user, state.step, state.hasRedirected, searchParams]);
+  }, [user, state.step, state.hasRedirected, callbackUrl]);
 
   return (
     <Form {...form}>

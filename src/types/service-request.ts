@@ -4,8 +4,8 @@ import {
   ServicePriority,
   RequestActionType,
   ServiceCategory,
-  ConsularService,
-  User,
+  type ConsularService,
+  type User,
 } from '@prisma/client';
 
 // Base includes pour une demande de service
