@@ -1,20 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { OrganizationSettings } from '@/components/organization/organization-settings';
-import { CreateServiceButton } from '@/components/organization/create-service-button';
-import { ServicesTable } from '@/components/organization/services-table';
-import CardContainer from '@/components/layouts/card-container';
-import { CreateAgentButton } from '@/components/organization/create-agent-button';
-import * as React from 'react';
 import { Organization } from '@/types/organization';
-import { Country, User } from '@prisma/client';
-import { useTabs } from '@/hooks/use-tabs';
-import { AgentsTable } from '@/app/(authenticated)/dashboard/agents/_components/agents-table';
+import { Country } from '@/types/country';
+import { OrganizationSettings } from './organization-settings';
+import { CreateAgentButton } from './create-agent-button';
+import { AgentsTable } from './agents-table-with-filters';
+import CardContainer from '@/components/layouts/card-container';
+import { AircallSettings } from './aircall-settings';
+import { AircallConfig } from '@/schemas/aircall';
+import { useOrganizationSettings } from '@/hooks/use-organizations';
 
 interface SettingsTabsProps {
-  organization: Organization & { managers: User[] };
+  organization: Organization;
   availableCountries: Country[];
 }
 
@@ -22,16 +22,47 @@ export function SettingsTabs({
   organization,
   availableCountries = [],
 }: SettingsTabsProps) {
-  const t = useTranslations('organization');
-  const { handleTabChange, currentTab } = useTabs<string>('tab', 'organization');
+  const t = useTranslations('organization.settings');
+  const { updateSettings } = useOrganizationSettings(organization.id);
+  const [activeTab, setActiveTab] = useState('organization');
+
+  const handleAircallSave = async (config: AircallConfig) => {
+    // Récupérer la configuration actuelle
+    const currentMetadata = organization.metadata || {};
+    
+    // Mettre à jour la configuration Aircall pour tous les pays de l'organisation
+    const updatedMetadata = { ...currentMetadata };
+    
+    organization.countries.forEach((country) => {
+      if (!updatedMetadata[country.code]) {
+        updatedMetadata[country.code] = { settings: {} };
+      }
+      updatedMetadata[country.code].settings = {
+        ...updatedMetadata[country.code].settings,
+        aircall: config,
+      };
+    });
+
+    await updateSettings({
+      id: organization.id,
+      data: {
+        metadata: updatedMetadata,
+      },
+    });
+  };
+
+  // Récupérer la configuration Aircall (on prend celle du premier pays)
+  const firstCountry = organization.countries[0];
+  const aircallConfig = firstCountry?.code 
+    ? organization.metadata?.[firstCountry.code]?.settings?.aircall 
+    : undefined;
 
   return (
-    <Tabs defaultValue={currentTab} className="space-y-4" onValueChange={handleTabChange}>
-      <TabsList className="flex-wrap !h-auto">
-        <TabsTrigger value="organization">{t('settings.tabs.organization')}</TabsTrigger>
-        <TabsTrigger value="services">{t('settings.tabs.services')}</TabsTrigger>
-        <TabsTrigger value="agents">{t('settings.tabs.agents')}</TabsTrigger>
-        <TabsTrigger value="general">{t('settings.tabs.general')}</TabsTrigger>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="organization">{t('tabs.organization')}</TabsTrigger>
+        <TabsTrigger value="agents">{t('tabs.agents')}</TabsTrigger>
+        <TabsTrigger value="aircall">Aircall</TabsTrigger>
       </TabsList>
 
       <TabsContent value="organization" className="space-y-4">
@@ -39,26 +70,6 @@ export function SettingsTabs({
           organization={organization}
           availableCountries={availableCountries}
         />
-      </TabsContent>
-
-      <TabsContent value="services">
-        <CardContainer
-          title={t('form.linked_services.title')}
-          action={
-            <CreateServiceButton
-              initialData={{
-                organizationId: organization.id,
-              }}
-              countries={organization.countries ?? []}
-            />
-          }
-        >
-          <ServicesTable organizations={[organization]} />
-        </CardContainer>
-      </TabsContent>
-
-      <TabsContent value="general" className="space-y-4">
-        <h2>{t('settings.general.title')}</h2>
       </TabsContent>
 
       <TabsContent value="agents" className="space-y-4">
@@ -80,6 +91,13 @@ export function SettingsTabs({
             managers={organization.managers ?? []}
           />
         </CardContainer>
+      </TabsContent>
+
+      <TabsContent value="aircall" className="space-y-4">
+        <AircallSettings
+          config={aircallConfig}
+          onSave={handleAircallSave}
+        />
       </TabsContent>
     </Tabs>
   );

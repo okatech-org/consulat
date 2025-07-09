@@ -4,6 +4,7 @@ import { OrganizationType, OrganizationStatus } from '@prisma/client';
 import { Country } from '@/types/country';
 import { EmailSchema, PhoneSchema, PictureFileSchema } from '@/schemas/inputs';
 import { CountryCode } from '@/lib/autocomplete-datas';
+import { AircallConfigSchema } from '@/schemas/aircall';
 
 export const organizationSchema = z.object({
   name: z.string().min(1, 'messages.errors.name_required'),
@@ -101,6 +102,7 @@ const CountrySettingsSchema = z.object({
           versoModelUrl: z.string().optional(),
         })
         .optional(),
+      aircall: AircallConfigSchema.optional(),
     })
     .optional(),
 });
@@ -175,6 +177,7 @@ export function getDefaultValues(
           holidays: existingCountryData?.holidays || [],
           closures: existingCountryData?.closures || [],
           consularCard: existingCountryData?.consularCard ?? undefined,
+          aircall: existingCountryData?.aircall ?? undefined,
         },
       };
       return acc;
@@ -246,6 +249,26 @@ export interface OrganizationMetadataSettings {
     rectoModelUrl?: string;
     versoModelUrl?: string;
   } | null;
+  aircall?: {
+    enabled: boolean;
+    apiKey?: string;
+    apiId?: string;
+    integrationName?: string;
+    workspaceSize: 'small' | 'medium' | 'big';
+    events: {
+      onLogin: boolean;
+      onLogout: boolean;
+      onCallStart: boolean;
+      onCallEnd: boolean;
+      onCallAnswer: boolean;
+    };
+    permissions: {
+      canMakeOutboundCalls: boolean;
+      canReceiveInboundCalls: boolean;
+      canTransferCalls: boolean;
+      canRecordCalls: boolean;
+    };
+  };
 }
 
 export interface CountryMetadataCurrency {

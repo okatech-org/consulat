@@ -46,7 +46,7 @@ export const organizationsRouter = createTRPCRouter({
       
       if (!currentUser.roles?.includes('SUPER_ADMIN')) {
         if (currentUser.assignedOrganizationId) {
-          organizationFilter = { id: currentUser.assignedOrganizationId };
+          organizationFilter = { id: currentUser.assignedOrganizationId ?? currentUser.organizationId };
         } else {
           // Pas d'organisation assignée, retourner vide
           return {
@@ -245,7 +245,7 @@ export const organizationsRouter = createTRPCRouter({
       
       // Vérifier l'accès à cette organisation pour les admins
       if (!currentUser.roles?.includes('SUPER_ADMIN') && 
-          currentUser.assignedOrganizationId !== input.id) {
+          currentUser.organizationId !== input.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Vous ne pouvez modifier que votre organisation.',
