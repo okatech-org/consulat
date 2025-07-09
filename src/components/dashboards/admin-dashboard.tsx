@@ -11,6 +11,8 @@ import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { db } from '@/server/db';
 import { RequestStatus } from '@prisma/client';
+import { getProfilesGeographicData } from '@/actions/dashboard';
+import { GoogleMapsDashboard } from '@/components/dashboards/google-maps-dashboard';
 
 export default async function AdminDashboard() {
   const t = await getTranslations('admin.dashboard');
@@ -32,15 +34,15 @@ export default async function AdminDashboard() {
     pendingProfiles,
     recentRegistrations,
     upcomingAppointments,
+    geographicData,
   ] = await Promise.all([
     db.serviceRequest.count({
-      where: { status: RequestStatus.COMPLETED },
+      where: { status: { in: [RequestStatus.COMPLETED, RequestStatus.VALIDATED] } },
     }),
     db.serviceRequest.count({
       where: {
         status: {
           in: [
-            RequestStatus.VALIDATED,
             RequestStatus.CARD_IN_PRODUCTION,
             RequestStatus.READY_FOR_PICKUP,
             RequestStatus.APPOINTMENT_SCHEDULED,
@@ -87,6 +89,7 @@ export default async function AdminDashboard() {
         attendee: true,
       },
     }),
+    getProfilesGeographicData(),
   ]);
 
   return (
@@ -130,6 +133,16 @@ export default async function AdminDashboard() {
           iconClassName="bg-white dark:bg-neutral-900 text-indigo-500 dark:text-indigo-400"
         />
       </div>
+      {/* Geographic Distribution Map */}
+      <CardContainer title="Répartition géographique" className="mb-6">
+        <div className="mb-4">
+          <p className="text-sm text-muted-foreground">
+            Visualisation des concentrations de profils par ville
+          </p>
+        </div>
+        <GoogleMapsDashboard data={geographicData} height="400px" />
+      </CardContainer>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Registrations */}
         <CardContainer

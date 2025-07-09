@@ -270,6 +270,23 @@ export default {
         review: 'Examiner',
       },
     },
+    map: {
+      title: 'Répartition géographique des profils',
+      description: 'Concentration des profils par ville dans le monde',
+      loading: 'Chargement de la carte...',
+      no_data: 'Aucune donnée géographique disponible',
+      profiles_count: '{count} profil{count, plural, one {} other {s}}',
+      concentration: {
+        very_high: 'Très élevé',
+        high: 'Élevé',
+        medium: 'Moyen',
+        low: 'Faible',
+      },
+      popup: {
+        location: '{city}, {country}',
+        profiles: '{count} profil{count, plural, one {} other {s}}',
+      },
+    },
   },
   appointments: {
     title: 'Gestion des Rendez-vous',
