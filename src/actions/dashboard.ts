@@ -113,19 +113,6 @@ async function getCoordinatesForCity(city: string, country: string): Promise<{ l
 
 export async function getProfilesGeographicData(): Promise<CityProfileData[]> {
   try {
-    // Debug: Compter tous les profils
-    const totalProfiles = await db.profile.count();
-    console.log('Total profiles:', totalProfiles);
-
-    // Debug: Compter les profils avec adresses
-    const profilesWithAddress = await db.profile.count({
-      where: {
-        addressId: {
-          not: null,
-        },
-      },
-    });
-    console.log('Profiles with address:', profilesWithAddress);
 
     // Récupérer les profils avec leurs adresses (sans filtre de statut pour le moment)
     const profiles = await db.profile.findMany({
@@ -138,8 +125,6 @@ export async function getProfilesGeographicData(): Promise<CityProfileData[]> {
         address: true,
       },
     });
-
-    console.log('Found profiles with addresses:', profiles.length);
 
     // Fonction pour normaliser les noms de villes
     const normalizeCity = (city: string): string => {
@@ -212,7 +197,6 @@ export async function getProfilesGeographicData(): Promise<CityProfileData[]> {
     });
 
     const cityData = Array.from(cityGroups.values()).sort((a, b) => b.count - a.count);
-    console.log('City data:', cityData);
     
     // Géocoder toutes les villes avec Google Geocoding API (plus rapide et fiable)
     const cityDataWithCoordinates = await Promise.all(
