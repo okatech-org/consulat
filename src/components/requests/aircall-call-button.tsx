@@ -138,7 +138,7 @@ export function AircallCallButton({
         disabled={disabled || !aircall.isConnected || isCallActive}
       >
         <Phone className="size-4 mr-2" />
-        Appeler {userDisplayName || phoneNumber}
+        Appeler avec Aircall
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -131,13 +131,29 @@ export function ServiceRequestReview({
 
           <div className="flex gap-2">
             {/* Bouton d'appel Aircall */}
-            {aircallConfig?.enabled && phoneNumber && (
+            {phoneNumber && (
               <AircallCallButton
                 phoneNumber={phoneNumber}
                 userDisplayName={userDisplayName}
                 requestId={request.id}
-                config={aircallConfig}
-                disabled={cantUpdateRequest}
+                config={{
+                  enabled: true,
+                  workspaceSize: 'big',
+                  events: {
+                    onLogin: true,
+                    onLogout: true,
+                    onCallStart: true,
+                    onCallEnd: true,
+                    onCallAnswer: true,
+                  },
+                  permissions: {
+                    canMakeOutboundCalls: true,
+                    canReceiveInboundCalls: true,
+                    canTransferCalls: true,
+                    canRecordCalls: false,
+                  },
+                }}
+                disabled={true}
               />
             )}
 
