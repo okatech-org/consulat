@@ -43,7 +43,7 @@ const FALLBACK_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'algiers-algeria': { lat: 36.7538, lng: 3.0588 },
 };
 
-// Service de géolocalisation avec API Nominatim
+// Service de géolocalisation avec API Google Geocoding
 async function getCoordinatesForCity(city: string, country: string): Promise<{ lat: number; lng: number } | null> {
   const key = `${city.toLowerCase()}-${country.toLowerCase()}`;
   
@@ -62,22 +62,20 @@ async function getCoordinatesForCity(city: string, country: string): Promise<{ l
 
   try {
     const query = `${city}, ${country}`;
+    const apiKey = process.env.GEMINI_API_KEY;
     
-    // Timeout de 3 secondes au lieu de 10
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY not found');
+      coordinatesCache.set(key, null);
+      return null;
+    }
     
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`,
       {
-        headers: {
-          'User-Agent': 'Consulat.bis/1.0',
-        },
-        signal: controller.signal,
+        method: 'GET',
       }
     );
-    
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       coordinatesCache.set(key, null);
@@ -86,10 +84,11 @@ async function getCoordinatesForCity(city: string, country: string): Promise<{ l
 
     const data = await response.json();
     
-    if (data.length > 0) {
+    if (data.status === 'OK' && data.results.length > 0) {
+      const location = data.results[0].geometry.location;
       const coordinates = {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
+        lat: location.lat,
+        lng: location.lng,
       };
       coordinatesCache.set(key, coordinates);
       return coordinates;
@@ -157,30 +156,18 @@ export async function getProfilesGeographicData(): Promise<CityProfileData[]> {
     const cityData = Array.from(cityGroups.values()).sort((a, b) => b.count - a.count);
     console.log('City data:', cityData);
     
-    // Limiter aux 50 villes les plus importantes pour éviter la surcharge API
-    const topCities = cityData.slice(0, 50);
-    
-    // Ajouter les coordonnées aux données via géocodage avec délai entre les appels
-    const cityDataWithCoordinates = [];
-    
-    for (const item of topCities) {
-      const coordinates = await getCoordinatesForCity(item.city, item.country);
-      cityDataWithCoordinates.push({
-        ...item,
-        coordinates: coordinates || undefined,
-      });
-      
-      // Délai de 100ms entre les appels pour éviter la surcharge
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    
-    // Ajouter les villes restantes sans coordonnées (pour les stats)
-    const remainingCities = cityData.slice(50).map(item => ({
-      ...item,
-      coordinates: undefined,
-    }));
+    // Géocoder toutes les villes avec Google Geocoding API (plus rapide et fiable)
+    const cityDataWithCoordinates = await Promise.all(
+      cityData.map(async (item) => {
+        const coordinates = await getCoordinatesForCity(item.city, item.country);
+        return {
+          ...item,
+          coordinates: coordinates || undefined,
+        };
+      })
+    );
 
-    return [...cityDataWithCoordinates, ...remainingCities];
+    return cityDataWithCoordinates;
   } catch (error) {
     console.error('Error fetching geographic data:', error);
     return [];
