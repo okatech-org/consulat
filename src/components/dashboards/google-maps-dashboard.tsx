@@ -10,12 +10,50 @@ interface GoogleMapsProps {
   height?: string;
 }
 
+// Cache pour le géocodage
+const geocodeCache = new Map<string, google.maps.LatLng>();
+
+// Interface pour les résultats de géocodage
+interface GeocodedLocation extends ProfileLocation {
+  position: google.maps.LatLng;
+}
+
+// Fonction utilitaire pour le géocodage avec cache
+const geocodeWithCache = async (
+  geocoder: google.maps.Geocoder,
+  address: string,
+  city: string,
+  country: string,
+): Promise<google.maps.LatLng | null> => {
+  // Utiliser ville + pays comme clé de cache pour éviter les doublons
+  const cacheKey = `${city}, ${country}`;
+
+  if (geocodeCache.has(cacheKey)) {
+    return geocodeCache.get(cacheKey)!;
+  }
+
+  return new Promise((resolve) => {
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === 'OK' && results && results[0]) {
+        const position = results[0].geometry.location;
+        geocodeCache.set(cacheKey, position);
+        resolve(position);
+      } else {
+        console.warn(`Géocodage échoué pour ${address}:`, status);
+        resolve(null);
+      }
+    });
+  });
+};
+
 // Composant de rendu de la carte
 function MapComponent({ data, height = '400px' }: GoogleMapsProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodedLocations, setGeocodedLocations] = useState<GeocodedLocation[]>([]);
 
   // Initialiser la carte
   useEffect(() => {
@@ -50,6 +88,56 @@ function MapComponent({ data, height = '400px' }: GoogleMapsProps) {
     }
   }, [map]);
 
+  // Géocoder toutes les locations en parallèle
+  useEffect(() => {
+    if (!map || !data.length || isGeocoding) return;
+
+    const geocodeAllLocations = async () => {
+      setIsGeocoding(true);
+      const geocoder = new google.maps.Geocoder();
+
+      try {
+        // Traiter toutes les locations en parallèle avec un délai entre les appels
+        const geocodePromises = data.map(
+          (location, index) =>
+            new Promise<GeocodedLocation | null>((resolve) => {
+              // Ajouter un délai progressif pour éviter la surcharge de l'API
+              setTimeout(async () => {
+                const position = await geocodeWithCache(
+                  geocoder,
+                  location.address,
+                  location.city,
+                  location.country,
+                );
+
+                if (position) {
+                  resolve({
+                    ...location,
+                    position,
+                  });
+                } else {
+                  resolve(null);
+                }
+              }, index * 100); // Délai de 100ms entre chaque appel
+            }),
+        );
+
+        const results = await Promise.all(geocodePromises);
+        const validLocations = results.filter(
+          (loc): loc is GeocodedLocation => loc !== null,
+        );
+
+        setGeocodedLocations(validLocations);
+      } catch (error) {
+        console.error('Erreur lors du géocodage:', error);
+      } finally {
+        setIsGeocoding(false);
+      }
+    };
+
+    geocodeAllLocations();
+  }, [map, data, isGeocoding]);
+
   // Fonction pour obtenir la couleur selon la concentration
   const getMarkerColor = (count: number, maxCount: number): string => {
     const ratio = count / maxCount;
@@ -59,83 +147,89 @@ function MapComponent({ data, height = '400px' }: GoogleMapsProps) {
     return '#22c55e'; // Vert pour très faible concentration
   };
 
-  // Créer les marqueurs
+  // Créer les marqueurs à partir des locations géocodées
   useEffect(() => {
-    if (!map || !data.length) return;
+    if (!map || !geocodedLocations.length) return;
 
     // Nettoyer les anciens marqueurs
     markers.forEach((marker) => marker.setMap(null));
     setMarkers([]);
 
-    const geocoder = new google.maps.Geocoder();
     const bounds = new google.maps.LatLngBounds();
     const newMarkers: google.maps.Marker[] = [];
-    const maxCount = Math.max(...data.map((item) => item.count));
+    const maxCount = Math.max(...geocodedLocations.map((item) => item.count));
 
-    // Traiter chaque localisation
-    data.forEach((location) => {
-      geocoder.geocode({ address: location.address }, (results, status) => {
-        if (status === 'OK' && results && results[0]) {
-          const position = results[0].geometry.location;
+    geocodedLocations.forEach((location) => {
+      // Créer le marqueur avec couleur selon la concentration
+      const marker = new google.maps.Marker({
+        position: location.position,
+        map: map,
+        title: `${location.city}, ${location.country}`,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: getMarkerColor(location.count, maxCount),
+          fillOpacity: 0.8,
+          strokeColor: '#ffffff',
+          strokeWeight: 2,
+          scale: Math.max(8, Math.min(20, 8 + (location.count / maxCount) * 12)),
+        },
+      });
 
-          // Créer le marqueur avec couleur selon la concentration
-          const marker = new google.maps.Marker({
-            position: position,
-            map: map,
-            title: `${location.city}, ${location.country}`,
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: getMarkerColor(location.count, maxCount),
-              fillOpacity: 0.8,
-              strokeColor: '#ffffff',
-              strokeWeight: 2,
-              scale: Math.max(8, Math.min(20, 8 + (location.count / maxCount) * 12)),
-            },
-          });
-
-          // Ajouter l'événement click pour l'InfoWindow
-          marker.addListener('click', () => {
-            if (infoWindow) {
-              infoWindow.setContent(`
-                  <div style="padding: 8px; min-width: 200px;">
-                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
-                      ${location.city}, ${location.country}
-                    </h3>
-                    <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                      <strong>${location.count}</strong> profil${location.count > 1 ? 's' : ''} consulaire${location.count > 1 ? 's' : ''}
-                    </p>
-                    <p style="margin: 4px 0 0 0; color: #9ca3af; font-size: 12px;">
-                      ${location.address}
-                    </p>
-                  </div>
-                `);
-              infoWindow.open(map, marker);
-            }
-          });
-
-          newMarkers.push(marker);
-          bounds.extend(position);
-
-          // Ajuster la vue pour inclure tous les marqueurs
-          if (newMarkers.length === data.length) {
-            map.fitBounds(bounds);
-
-            // Limiter le zoom maximum
-            const listener = google.maps.event.addListener(map, 'idle', () => {
-              if (map.getZoom() && map.getZoom()! > 15) {
-                map.setZoom(15);
-              }
-              google.maps.event.removeListener(listener);
-            });
-          }
+      // Ajouter l'événement click pour l'InfoWindow
+      marker.addListener('click', () => {
+        if (infoWindow) {
+          infoWindow.setContent(`
+              <div style="padding: 8px; min-width: 200px;">
+                <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
+                  ${location.city}, ${location.country}
+                </h3>
+                <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                  <strong>${location.count}</strong> profil${location.count > 1 ? 's' : ''} consulaire${location.count > 1 ? 's' : ''}
+                </p>
+                <p style="margin: 4px 0 0 0; color: #9ca3af; font-size: 12px;">
+                  ${location.address}
+                </p>
+              </div>
+            `);
+          infoWindow.open(map, marker);
         }
       });
+
+      newMarkers.push(marker);
+      bounds.extend(location.position);
     });
 
     setMarkers(newMarkers);
-  }, [map, data, markers, infoWindow]);
 
-  return <div ref={ref} style={{ height, width: '100%' }} />;
+    // Ajuster la vue pour inclure tous les marqueurs
+    if (newMarkers.length > 0) {
+      map.fitBounds(bounds);
+
+      // Limiter le zoom maximum
+      const listener = google.maps.event.addListener(map, 'idle', () => {
+        if (map.getZoom() && map.getZoom()! > 15) {
+          map.setZoom(15);
+        }
+        google.maps.event.removeListener(listener);
+      });
+    }
+  }, [map, geocodedLocations, markers, infoWindow]);
+
+  return (
+    <div className="relative">
+      <div ref={ref} style={{ height, width: '100%' }} />
+      {isGeocoding && (
+        <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg">
+          <div className="text-center">
+            <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">
+              Géocodage en cours... ({geocodedLocations.length}/{data.length})
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Composant de rendu du statut de chargement
