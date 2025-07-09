@@ -12,7 +12,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { db } from '@/server/db';
 import { RequestStatus } from '@prisma/client';
 import { getProfilesGeographicData } from '@/actions/dashboard';
-import { GoogleMapsDashboard } from '@/components/dashboards/google-maps-dashboard';
+import { LeafletDashboardWrapper } from '@/components/dashboards/leaflet-dashboard-wrapper';
 
 export default async function AdminDashboard() {
   const t = await getTranslations('admin.dashboard');
@@ -140,7 +140,7 @@ export default async function AdminDashboard() {
             Visualisation des concentrations de profils par ville
           </p>
         </div>
-        <GoogleMapsDashboard data={geographicData} height="400px" />
+        <LeafletDashboardWrapper data={geographicData} height="400px" />
       </CardContainer>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
