@@ -56,6 +56,41 @@ export default function WorldMap({
     setIsClient(true);
   }, []);
 
+  // Calculer le centre et le zoom optimal basé sur les données
+  const getMapCenter = () => {
+    const dataWithCoordinates = data.filter((item) => item.coordinates);
+
+    if (dataWithCoordinates.length === 0) {
+      return { center: [20, 0] as [number, number], zoom: 2 };
+    }
+
+    // Trouver le plus gros cluster
+    const biggestCluster = dataWithCoordinates.reduce((max, current) =>
+      current.count > max.count ? current : max,
+    );
+
+    // Si on a un gros cluster, centrer dessus
+    if (biggestCluster.count > 10) {
+      return {
+        center: [biggestCluster.coordinates!.lat, biggestCluster.coordinates!.lng] as [
+          number,
+          number,
+        ],
+        zoom: 6,
+      };
+    }
+
+    // Sinon, calculer le centre géographique de tous les points
+    const avgLat =
+      dataWithCoordinates.reduce((sum, item) => sum + item.coordinates!.lat, 0) /
+      dataWithCoordinates.length;
+    const avgLng =
+      dataWithCoordinates.reduce((sum, item) => sum + item.coordinates!.lng, 0) /
+      dataWithCoordinates.length;
+
+    return { center: [avgLat, avgLng] as [number, number], zoom: 4 };
+  };
+
   if (!isClient) {
     return (
       <div
@@ -84,11 +119,13 @@ export default function WorldMap({
     );
   }
 
+  const { center, zoom } = getMapCenter();
+
   return (
     <div className={`rounded-lg overflow-hidden ${className}`} style={{ height }}>
       <MapContainer
-        center={[20, 0]}
-        zoom={2}
+        center={center}
+        zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
       >
