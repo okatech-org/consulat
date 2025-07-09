@@ -286,6 +286,11 @@ export default {
         location: '{city}, {country}',
         profiles: '{count} profil{count, plural, one {} other {s}}',
       },
+      fullscreen: {
+        enter: 'Mode plein écran',
+        exit: 'Quitter le plein écran',
+        not_supported: 'Mode plein écran non supporté par ce navigateur',
+      },
     },
   },
   appointments: {

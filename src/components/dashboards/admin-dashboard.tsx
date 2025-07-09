@@ -140,7 +140,7 @@ export default async function AdminDashboard() {
             Visualisation des concentrations de profils par ville
           </p>
         </div>
-        <LeafletDashboardWrapper data={geographicData} height="400px" />
+        <LeafletDashboardWrapper data={geographicData} height="600px" />
       </CardContainer>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
