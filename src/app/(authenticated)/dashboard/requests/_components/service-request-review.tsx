@@ -1,34 +1,38 @@
 'use client';
 
-import { FullServiceRequest } from '@/types/service-request';
-import { useTranslations } from 'next-intl';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { tryCatch, useDateLocale } from '@/lib/utils';
-import { Clock, User, CheckCircle2, XCircle } from 'lucide-react';
-import CardContainer from '@/components/layouts/card-container';
-import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
-import { RequestStatus, ServicePriority, User as DbUser, UserRole } from '@prisma/client';
-import { toast } from '@/hooks/use-toast';
+import { useCurrentUser } from '@/contexts/user-context';
+import { hasRole, hasAnyRole } from '@/lib/permissions/utils';
+import { UserRole, RequestStatus, ServicePriority, type User } from '@prisma/client';
+import { useDateLocale, getOrganizationIdFromUser } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Clock, XCircle, CheckCircle2, User as UserIcon } from 'lucide-react';
+import type { FullServiceRequest } from '@/types/service-request';
+import type { FullProfile } from '@/types/profile';
 import {
-  assignServiceRequest,
-  updateServiceRequest,
   updateServiceRequestStatus,
+  updateServiceRequest,
+  assignServiceRequest,
 } from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { hasAnyRole, hasRole, RoleGuard } from '@/lib/permissions/utils';
-import { useCurrentUser } from '@/contexts/user-context';
-import { FullProfile } from '@/types/profile';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RoleGuard } from '@/lib/permissions/utils';
+import { tryCatch } from '@/lib/utils';
+import { toast } from 'sonner';
+import CardContainer from '@/components/layouts/card-container';
 import { StatusTimeline } from '@/components/consular/status-timeline';
-import { Label } from '@/components/ui/label';
-import { ReviewNotes } from '../../../../../components/requests/review-notes';
+import { ReviewNotes } from '@/components/requests/review-notes';
 import useServiceReview from '@/hooks/use-service-review';
+import { AircallCallButton } from '@/components/requests/aircall-call-button';
+import { useOrganization } from '@/hooks/use-organizations';
 
 interface ServiceRequestReviewProps {
   request: FullServiceRequest & { profile: FullProfile | null };
-  agents: DbUser[];
+  agents: User[];
 }
 
 export function ServiceRequestReview({
@@ -44,6 +48,18 @@ export function ServiceRequestReview({
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
   const { currentTab, tabs, setCurrentTab } = useServiceReview(request);
+
+  // Récupérer l'organisation de l'utilisateur connecté
+  const userOrganizationId = getOrganizationIdFromUser(user);
+  const { organization } = useOrganization(userOrganizationId || '');
+
+  // Récupérer la configuration Aircall de l'organisation
+  const firstCountry = organization?.countries?.[0];
+  const aircallConfig =
+    firstCountry?.code && organization?.metadata
+      ? (organization.metadata as Record<string, any>)?.[firstCountry.code]?.settings
+          ?.aircall
+      : undefined;
 
   const handleStatusUpdate = async (newStatus: RequestStatus) => {
     setIsUpdating(true);
@@ -76,6 +92,12 @@ export function ServiceRequestReview({
     }
   };
 
+  // Récupérer le numéro de téléphone de l'utilisateur
+  const phoneNumber = request.submittedBy?.phoneNumber || request.profile?.phoneNumber;
+  const userDisplayName =
+    request.submittedBy?.name ||
+    `${request.profile?.firstName} ${request.profile?.lastName}`.trim();
+
   return (
     <div className="space-y-6">
       {/* En-tête avec statut et actions */}
@@ -91,8 +113,13 @@ export function ServiceRequestReview({
             </h2>
             {request.submittedBy && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
-                <User className="size-4" />
+                <UserIcon className="size-4" />
                 {request.submittedBy.name}
+                {phoneNumber && (
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {phoneNumber}
+                  </span>
+                )}
               </div>
             )}
             <div className="flex items-center gap-2">
@@ -103,6 +130,17 @@ export function ServiceRequestReview({
           </div>
 
           <div className="flex gap-2">
+            {/* Bouton d'appel Aircall */}
+            {aircallConfig?.enabled && phoneNumber && (
+              <AircallCallButton
+                phoneNumber={phoneNumber}
+                userDisplayName={userDisplayName}
+                requestId={request.id}
+                config={aircallConfig}
+                disabled={cantUpdateRequest}
+              />
+            )}
+
             {request.status === 'SUBMITTED' && (
               <>
                 <Button
