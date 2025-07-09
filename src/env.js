@@ -56,6 +56,7 @@ export const env = createEnv({
     NEXT_PUBLIC_ORG_LOGO: z.string().url(),
     NEXT_PUBLIC_APP_NAME: z.string(),
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: z.string().optional(),
+    NEXT_PUBLIC_GEMINI_API_KEY: z.string(),
   },
 
   /**
@@ -89,6 +90,7 @@ export const env = createEnv({
     NEXT_PUBLIC_ORG_LOGO: process.env.NEXT_PUBLIC_ORG_LOGO,
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: process.env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH,
+    NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
