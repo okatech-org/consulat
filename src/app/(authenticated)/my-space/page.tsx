@@ -1,8 +1,6 @@
 import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
-import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { calculateProfileCompletion } from '@/lib/utils';
-import { getUserFullProfileById } from '@/lib/user/getters';
 import { PageContainer } from '@/components/layouts/page-container';
 import { UserSpaceNavigation } from '@/components/layouts/user-space-navigation';
 import { ProfileStatusCard } from '@/components/user/profile-status-card';
@@ -15,17 +13,11 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { api } from '@/trpc/server';
 
 export default async function UserDashboard() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return null;
-  }
-
   // Fetch user profile
-  const userProfile = await getUserFullProfileById(user.id);
+  const userProfile = await api.profile.getCurrent();
 
   // Calculate profile completion percentage
   const profileCompletion = userProfile ? calculateProfileCompletion(userProfile) : 0;
@@ -41,7 +33,9 @@ export default async function UserDashboard() {
   }
 
   // Fetch user service requests
-  const serviceRequestsData = await getServiceRequestsByUser(user.id);
+  const serviceRequestsData = await api.requests.getByUser({
+    userId: userProfile.userId ?? '',
+  });
 
   // Transform service requests to match expected interface
   const serviceRequests = serviceRequestsData.map((request) => ({
@@ -55,7 +49,9 @@ export default async function UserDashboard() {
   }));
 
   // Fetch user appointments
-  const appointmentsResponse = await getUserAppointments({ userId: user.id });
+  const appointmentsResponse = await getUserAppointments({
+    userId: userProfile.userId ?? '',
+  });
   const appointments = appointmentsResponse.data || {
     upcoming: [],
     past: [],
@@ -80,7 +76,7 @@ export default async function UserDashboard() {
               profileCompletion={profileCompletion}
               profileStatus={userProfile?.status}
               missingDocuments={missingDocuments}
-              userName={user.name ?? undefined}
+              userName={userProfile?.firstName ?? undefined}
               urgentActions={[]}
               className="border-2 shadow-lg"
             />

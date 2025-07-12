@@ -36,7 +36,7 @@ export function useChildProfiles(options?: {
       }
 
       console.error('Erreur création profil enfant:', error);
-      toast.error('Erreur lors de la création du profil enfant');
+      toast.error(error.message || 'Erreur lors de la création du profil enfant');
     },
     onSuccess: (data) => {
       // Invalidation et notification de succès
@@ -70,7 +70,7 @@ export function useChildProfiles(options?: {
       }
 
       console.error('Erreur suppression profil enfant:', error);
-      toast.error('Erreur lors de la suppression du profil');
+      toast.error(error.message);
     },
     onSuccess: (data) => {
       utils.profile.getByParent.invalidate();

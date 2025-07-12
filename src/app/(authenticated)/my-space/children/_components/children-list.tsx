@@ -1,6 +1,5 @@
-import React from 'react';
 import { ChildProfileCard } from './child-profile-card';
-import { FullParentalAuthority } from '@/types/parental-authority';
+import type { FullParentalAuthority } from '@/types/parental-authority';
 
 interface ChildrenListProps {
   parentalAuthorities: FullParentalAuthority[];
