@@ -137,6 +137,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidthOnMobile = false,
       children,
       disabled,
+      type = 'button',
       ...props
     },
     ref,
@@ -162,6 +163,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           fullWidthOnMobile={fullWidthOnMobile}
           disabled={disabled || loading}
           ref={ref}
+          type={type}
           {...props}
         >
           {children}
@@ -186,6 +188,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={isDisabled}
         aria-disabled={isDisabled}
+        type={type}
         {...props}
       >
         <>

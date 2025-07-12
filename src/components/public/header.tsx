@@ -1,10 +1,12 @@
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
 import { ROUTES } from "@/schemas/routes"
-import { getCurrentUser } from "@/lib/auth/utils"
 import Image from 'next/image';
 import { env } from "@/env"
-import { HeaderLinks } from "./header-links"
+import { Button } from "../ui/button";
+import { NavUser } from "../ui/nav-user";
+import { ThemeToggleSingle } from "../layouts/theme-toggle-single";
+import { auth } from "@/server/auth";
+import { getTranslations } from "next-intl/server";
 
 const logo = env.NEXT_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
 const appName = env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
@@ -12,9 +14,7 @@ const appName = env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
 
 export async function PublicHeader() {
   const t = await getTranslations('home')
-  const user = await getCurrentUser();
-  const isAuth = !!user;
-
+  const session = await auth();
 
   return (
     <header className="fixed top-0 z-50 border-b border-neutral-200 bg-white/80 py-2 backdrop-blur-md dark:border-neutral-800 dark:bg-black/80 w-full">
@@ -38,9 +38,19 @@ export async function PublicHeader() {
         </Link>
         
         <div className="flex items-center gap-3">
-          
-          <HeaderLinks />
-
+          {!session?.user && <ThemeToggleSingle />}
+          {session?.user ? <NavUser /> : (
+            <Button 
+              variant="default" 
+              size="mobile"
+              weight="medium"
+              asChild
+            >
+              <Link prefetch href={ROUTES.auth.login}>
+                {t('nav.login')}
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>
