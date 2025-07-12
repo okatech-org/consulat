@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
  * Hook pour récupérer la liste des profils publics
  */
 export function usePublicProfiles() {
-  return api.publicProfiles.getList.useQuery(undefined, {
+  return api.profile.getList.useQuery(undefined, {
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     retry: 2,
@@ -18,14 +18,14 @@ export function usePublicProfiles() {
  * Hook pour récupérer un profil public par ID
  */
 export function usePublicProfile(profileId: string) {
-  return api.publicProfiles.getById.useQuery(
+  return api.profile.getById.useQuery(
     { id: profileId },
     {
       enabled: !!profileId,
       staleTime: 10 * 60 * 1000, // 10 minutes - les profils publics changent rarement
       refetchOnWindowFocus: false,
       retry: 2,
-    }
+    },
   );
 }
 
@@ -33,7 +33,7 @@ export function usePublicProfile(profileId: string) {
  * Hook pour envoyer un message à un propriétaire de profil
  */
 export function useSendMessage() {
-  return api.publicProfiles.sendMessage.useMutation({
+  return api.profile.sendMessage.useMutation({
     onSuccess: () => {
       toast({
         title: 'Message envoyé',
@@ -45,7 +45,8 @@ export function useSendMessage() {
       console.error('Error sending message:', error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Une erreur est survenue lors de l\'envoi du message',
+        description:
+          error.message || "Une erreur est survenue lors de l'envoi du message",
         variant: 'destructive',
       });
     },
@@ -62,4 +63,4 @@ export function usePublicProfilesActions() {
     sendMessage: sendMessage.mutate,
     isSendingMessage: sendMessage.isPending,
   };
-} 
+}

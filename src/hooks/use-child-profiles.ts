@@ -13,67 +13,67 @@ export function useChildProfiles(options?: {
   includeInactive?: boolean;
 }) {
   const utils = api.useUtils();
-  
-  const query = api.childProfiles.getByParent.useQuery(options, {
+
+  const query = api.profile.getByParent.useQuery(options, {
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
 
-  const createMutation = api.childProfiles.create.useMutation({
+  const createMutation = api.profile.createChildProfile.useMutation({
     onMutate: async () => {
       // Annuler les requêtes en cours
-      await utils.childProfiles.getByParent.cancel();
-      
+      await utils.profile.getByParent.cancel();
+
       // Sauvegarder l'état précédent pour rollback
-      const previousData = utils.childProfiles.getByParent.getData(options);
-      
+      const previousData = utils.profile.getByParent.getData(options);
+
       return { previousData };
     },
     onError: (error, newChildData, context) => {
       // Rollback en cas d'erreur
       if (context?.previousData) {
-        utils.childProfiles.getByParent.setData(options, context.previousData);
+        utils.profile.getByParent.setData(options, context.previousData);
       }
-      
+
       console.error('Erreur création profil enfant:', error);
       toast.error('Erreur lors de la création du profil enfant');
     },
     onSuccess: (data) => {
       // Invalidation et notification de succès
-      utils.childProfiles.getByParent.invalidate();
+      utils.profile.getByParent.invalidate();
       toast.success(data.message || 'Profil enfant créé avec succès');
     },
   });
 
-  const deleteMutation = api.childProfiles.delete.useMutation({
+  const deleteMutation = api.profile.deleteChildProfile.useMutation({
     onMutate: async ({ id }) => {
-      await utils.childProfiles.getByParent.cancel();
-      
-      const previousData = utils.childProfiles.getByParent.getData(options);
-      
+      await utils.profile.getByParent.cancel();
+
+      const previousData = utils.profile.getByParent.getData(options);
+
       // Mise à jour optimiste - retirer le profil
       if (previousData) {
-        utils.childProfiles.getByParent.setData(options, {
+        utils.profile.getByParent.setData(options, {
           ...previousData,
           parentalAuthorities: previousData.parentalAuthorities.filter(
-            auth => auth.profile.id !== id
+            (auth) => auth.profile.id !== id,
           ),
           total: previousData.total - 1,
         });
       }
-      
+
       return { previousData };
     },
     onError: (error, variables, context) => {
       if (context?.previousData) {
-        utils.childProfiles.getByParent.setData(options, context.previousData);
+        utils.profile.getByParent.setData(options, context.previousData);
       }
-      
+
       console.error('Erreur suppression profil enfant:', error);
       toast.error('Erreur lors de la suppression du profil');
     },
     onSuccess: (data) => {
-      utils.childProfiles.getByParent.invalidate();
+      utils.profile.getByParent.invalidate();
       toast.success(data.message || 'Profil enfant supprimé avec succès');
     },
   });
@@ -82,23 +82,23 @@ export function useChildProfiles(options?: {
     // Données
     children: query.data?.parentalAuthorities ?? [],
     totalChildren: query.data?.total ?? 0,
-    
+
     // États
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
-    
+
     // Actions
     createChild: createMutation.mutate,
     deleteChild: deleteMutation.mutate,
-    
+
     // États des mutations
     isCreating: createMutation.isPending,
     isDeleting: deleteMutation.isPending,
-    
+
     // Utilitaires
     refetch: query.refetch,
-    invalidate: () => utils.childProfiles.getByParent.invalidate(),
+    invalidate: () => utils.profile.getByParent.invalidate(),
   };
 }
 
@@ -107,67 +107,70 @@ export function useChildProfiles(options?: {
  */
 export function useChildProfile(id: string) {
   const utils = api.useUtils();
-  
-  const query = api.childProfiles.getById.useQuery(
+
+  const query = api.profile.getById.useQuery(
     { id },
     {
       enabled: !!id,
       staleTime: 3 * 60 * 1000, // 3 minutes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
-  const updateBasicInfoMutation = api.childProfiles.updateBasicInfo.useMutation({
+  const updateBasicInfoMutation = api.profile.updateBasicInfo.useMutation({
     onMutate: async ({ id }) => {
-      await utils.childProfiles.getById.cancel({ id });
-      
-      const previousData = utils.childProfiles.getById.getData({ id });
-      
+      await utils.profile.getById.cancel({ id });
+
+      const previousData = utils.profile.getById.getData({ id });
+
       return { previousData };
     },
     onError: (error, variables, context) => {
       if (context?.previousData) {
-        utils.childProfiles.getById.setData({ id: variables.id }, context.previousData);
+        utils.profile.getById.setData({ id: variables.id }, context.previousData);
       }
-      
+
       console.error('Erreur mise à jour profil enfant:', error);
       toast.error('Erreur lors de la mise à jour du profil');
     },
     onSuccess: (data) => {
-      utils.childProfiles.getById.invalidate({ id });
-      utils.childProfiles.getByParent.invalidate();
+      utils.profile.getById.invalidate({ id });
+      utils.profile.getByParent.invalidate();
       toast.success(data.message || 'Profil mis à jour avec succès');
     },
   });
 
-  const submitMutation = api.childProfiles.submitForValidation.useMutation({
+  const submitMutation = api.profile.submitChildProfileForValidation.useMutation({
     onMutate: async ({ id }) => {
-      await utils.childProfiles.getById.cancel({ id });
-      
-      const previousData = utils.childProfiles.getById.getData({ id });
-      
+      await utils.profile.getById.cancel({ id });
+
+      const previousData = utils.profile.getById.getData({ id });
+
       // Mise à jour optimiste du statut
       if (previousData) {
-        utils.childProfiles.getById.setData({ id }, {
-          ...previousData,
-          status: 'SUBMITTED',
-          submittedAt: new Date(),
-        });
+        utils.profile.getById.setData(
+          { id },
+          {
+            ...previousData,
+            status: 'SUBMITTED',
+            submittedAt: new Date(),
+          },
+        );
       }
-      
+
       return { previousData };
     },
     onError: (error, variables, context) => {
       if (context?.previousData) {
-        utils.childProfiles.getById.setData({ id: variables.id }, context.previousData);
+        utils.profile.getById.setData({ id: variables.id }, context.previousData);
       }
-      
+
       console.error('Erreur soumission profil enfant:', error);
       toast.error('Erreur lors de la soumission du profil');
     },
     onSuccess: (data) => {
-      utils.childProfiles.getById.invalidate({ id });
-      utils.childProfiles.getByParent.invalidate();
+      utils.profile.getById.invalidate({ id });
+      utils.profile.getByParent.invalidate();
       toast.success(data.message || 'Profil soumis pour validation avec succès');
     },
   });
@@ -175,23 +178,23 @@ export function useChildProfile(id: string) {
   return {
     // Données
     profile: query.data,
-    
+
     // États
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
-    
+
     // Actions
     updateBasicInfo: updateBasicInfoMutation.mutate,
     submitForValidation: submitMutation.mutate,
-    
+
     // États des mutations
     isUpdating: updateBasicInfoMutation.isPending,
     isSubmitting: submitMutation.isPending,
-    
+
     // Utilitaires
     refetch: query.refetch,
-    invalidate: () => utils.childProfiles.getById.invalidate({ id }),
+    invalidate: () => utils.profile.getById.invalidate({ id }),
   };
 }
 
@@ -199,12 +202,12 @@ export function useChildProfile(id: string) {
  * Hook pour les statistiques des profils enfants
  */
 export function useChildProfilesStats(parentId?: string) {
-  const query = api.childProfiles.getStats.useQuery(
+  const query = api.profile.getChildProfileStats.useQuery(
     parentId ? { parentId } : undefined,
     {
       staleTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   return {
@@ -221,20 +224,20 @@ export function useChildProfilesStats(parentId?: string) {
  */
 export function useParentalAuthority() {
   const utils = api.useUtils();
-  
-  const updateMutation = api.childProfiles.updateParentalAuthority.useMutation({
+
+  const updateMutation = api.profile.updateParentalAuthority.useMutation({
     onMutate: async ({ profileId, parentUserId, role, isActive }) => {
       // Annuler les requêtes en cours
-      await utils.childProfiles.getByParent.cancel();
-      await utils.childProfiles.getById.cancel({ id: profileId });
-      
+      await utils.profile.getByParent.cancel();
+      await utils.profile.getById.cancel({ id: profileId });
+
       // Sauvegarder les données précédentes
-      const previousListData = utils.childProfiles.getByParent.getData();
-      const previousProfileData = utils.childProfiles.getById.getData({ id: profileId });
-      
+      const previousListData = utils.profile.getByParent.getData();
+      const previousProfileData = utils.profile.getById.getData({ id: profileId });
+
       // Mise à jour optimiste dans la liste
       if (previousListData) {
-        const updatedAuthorities = previousListData.parentalAuthorities.map(auth => {
+        const updatedAuthorities = previousListData.parentalAuthorities.map((auth) => {
           if (auth.profile.id === profileId && auth.parentUserId === parentUserId) {
             return {
               ...auth,
@@ -244,30 +247,33 @@ export function useParentalAuthority() {
           }
           return auth;
         });
-        
-        utils.childProfiles.getByParent.setData(undefined, {
+
+        utils.profile.getByParent.setData(undefined, {
           ...previousListData,
           parentalAuthorities: updatedAuthorities,
         });
       }
-      
+
       return { previousListData, previousProfileData };
     },
     onError: (error, variables, context) => {
       // Rollback
       if (context?.previousListData) {
-        utils.childProfiles.getByParent.setData(undefined, context.previousListData);
+        utils.profile.getByParent.setData(undefined, context.previousListData);
       }
       if (context?.previousProfileData) {
-        utils.childProfiles.getById.setData({ id: variables.profileId }, context.previousProfileData);
+        utils.profile.getById.setData(
+          { id: variables.profileId },
+          context.previousProfileData,
+        );
       }
-      
+
       console.error('Erreur mise à jour autorité parentale:', error);
-      toast.error('Erreur lors de la mise à jour de l\'autorité parentale');
+      toast.error("Erreur lors de la mise à jour de l'autorité parentale");
     },
     onSuccess: (data) => {
-      utils.childProfiles.getByParent.invalidate();
-      utils.childProfiles.getById.invalidate();
+      utils.profile.getByParent.invalidate();
+      utils.profile.getById.invalidate();
       toast.success(data.message || 'Autorité parentale mise à jour');
     },
   });
@@ -284,12 +290,12 @@ export function useParentalAuthority() {
 export function useChildProfileCreation() {
   const router = useRouter();
   const utils = api.useUtils();
-  
-  const createMutation = api.childProfiles.create.useMutation({
+
+  const createMutation = api.profile.createChildProfile.useMutation({
     onSuccess: (data) => {
-      utils.childProfiles.getByParent.invalidate();
+      utils.profile.getByParent.invalidate();
       toast.success(data.message || 'Profil enfant créé avec succès');
-      
+
       // Navigation vers la page du profil créé
       router.push(ROUTES.user.child_profile(data.id));
     },
@@ -311,13 +317,13 @@ export function useChildProfileCreation() {
 export function useChildProfileUpdate(profileId: string) {
   const router = useRouter();
   const utils = api.useUtils();
-  
-  const updateMutation = api.childProfiles.updateBasicInfo.useMutation({
+
+  const updateMutation = api.profile.updateBasicInfo.useMutation({
     onSuccess: (data) => {
-      utils.childProfiles.getById.invalidate({ id: profileId });
-      utils.childProfiles.getByParent.invalidate();
+      utils.profile.getById.invalidate({ id: profileId });
+      utils.profile.getByParent.invalidate();
       toast.success(data.message || 'Profil mis à jour avec succès');
-      
+
       // Optionnel: navigation vers la liste des enfants
       // router.push(ROUTES.user.children);
     },
@@ -327,12 +333,12 @@ export function useChildProfileUpdate(profileId: string) {
     },
   });
 
-  const submitMutation = api.childProfiles.submitForValidation.useMutation({
+  const submitMutation = api.profile.submitChildProfileForValidation.useMutation({
     onSuccess: (data) => {
-      utils.childProfiles.getById.invalidate({ id: profileId });
-      utils.childProfiles.getByParent.invalidate();
+      utils.profile.getById.invalidate({ id: profileId });
+      utils.profile.getByParent.invalidate();
       toast.success(data.message || 'Profil soumis pour validation avec succès');
-      
+
       // Navigation vers la liste des enfants après soumission
       router.push(ROUTES.user.children);
     },
@@ -348,4 +354,4 @@ export function useChildProfileUpdate(profileId: string) {
     isUpdating: updateMutation.isPending,
     isSubmitting: submitMutation.isPending,
   };
-} 
+}

@@ -66,42 +66,6 @@ export default async function UserDashboard() {
   const notifications = await getNotifications();
   const recentNotifications = notifications.slice(0, 3);
 
-  // Déterminer les actions urgentes
-  const urgentActions = [];
-
-  // Profil incomplet
-  if (profileCompletion < 75) {
-    urgentActions.push({
-      title: 'Compléter votre profil',
-      description: `Il vous manque ${100 - profileCompletion}% pour finaliser`,
-      href: ROUTES.user.profile,
-      variant: 'urgent' as const,
-    });
-  }
-
-  // Documents manquants critiques
-  if (missingDocuments.length > 3) {
-    urgentActions.push({
-      title: 'Documents manquants',
-      description: `${missingDocuments.length} documents à fournir`,
-      href: ROUTES.user.documents,
-      variant: 'important' as const,
-    });
-  }
-
-  // Demandes avec actions requises
-  const pendingRequests = serviceRequests.filter(
-    (req) => req.status === 'REJECTED' || req.status === 'READY_FOR_PICKUP',
-  );
-  if (pendingRequests.length > 0) {
-    urgentActions.push({
-      title: 'Demandes nécessitant une action',
-      description: `${pendingRequests.length} demande${pendingRequests.length > 1 ? 's' : ''} en attente`,
-      href: ROUTES.user.requests,
-      variant: 'important' as const,
-    });
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <PageContainer className="max-w-7xl mx-auto">
@@ -117,7 +81,7 @@ export default async function UserDashboard() {
               profileStatus={userProfile?.status}
               missingDocuments={missingDocuments}
               userName={user.name ?? undefined}
-              urgentActions={urgentActions}
+              urgentActions={[]}
               className="border-2 shadow-lg"
             />
 
@@ -273,7 +237,7 @@ export default async function UserDashboard() {
 
             {/* Aide contextuelle */}
             <CardContainer
-              title={<span className="text-blue-800">Besoin d'aide ?</span>}
+              title={<span className="text-blue-800">Besoin d&apos;aide ?</span>}
               className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
             >
               <div className="space-y-3">
