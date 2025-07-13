@@ -1,7 +1,7 @@
 import { UserRole } from '@prisma/client';
-import { Route } from 'next';
-import { LucideProps } from 'lucide-react';
-import { ReactElement } from 'react';
+import type { Route } from 'next';
+import type { LucideProps } from 'lucide-react';
+import type { ReactElement } from 'react';
 
 export type NavItem = {
   title: string;

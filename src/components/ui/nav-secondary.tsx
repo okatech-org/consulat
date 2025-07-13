@@ -8,7 +8,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { NavItem } from '@/types/navigation';
+import type { NavItem } from '@/types/navigation';
 import { NotificationsMenu } from '@/components/notifications/notifications-menu';
 
 export function NavSecondary({

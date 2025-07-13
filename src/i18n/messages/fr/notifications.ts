@@ -38,6 +38,10 @@ export default {
     schedule_pickup: 'Prendre RDV',
     mark_as_read: 'Marquer comme lu',
     clear_all: 'Tout effacer',
+    load_more: 'Charger plus',
+    loading_more: 'Chargement...',
+    mark_all_read: 'Tout marquer comme lu',
+    delete_all_read: 'Tout effacer',
   },
   filters: {
     search: 'Rechercher dans les notifications',

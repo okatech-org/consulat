@@ -31,6 +31,12 @@ export function NavUser() {
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
   const isAdmin = userInfos.role !== 'USER';
+  const initials = userInfos.name
+    .split(' ')
+    .slice(0, 1)
+    .map((name) => name[0])
+    .join('. ');
+  const name = userInfos.name.split(' ').slice(1).join(' ').trim();
 
   return (
     <SidebarMenu>
@@ -51,7 +57,9 @@ export function NavUser() {
                 )}
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{userInfos.name}</span>
+                <span className="truncate font-medium">
+                  {name} {initials}
+                </span>
                 <span className="truncate text-xs text-muted-foreground">
                   {userInfos.email}
                 </span>
@@ -77,7 +85,9 @@ export function NavUser() {
                   )}
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{userInfos.name}</span>
+                  <span className="truncate font-medium">
+                    {name} {initials}
+                  </span>
                   <span className="truncate text-xs text-muted-foreground">
                     {userInfos.email ?? ''}
                   </span>

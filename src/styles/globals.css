@@ -1,11 +1,12 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans:
+    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   /* Typography - Mobile optimized base sizes */
   --font-size-xs: 0.75rem; /* 12px */
@@ -147,17 +148,17 @@
   --shadow-elevation-low: 0 1px 2px -1px
     hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%));
 
-  --shadow-elevation-medium: 0 3px 5px -2px
-      hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%)),
+  --shadow-elevation-medium:
+    0 3px 5px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%)),
     0 7px 14px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%));
 
-  --shadow-elevation-high: 0 -2px 5px -1px
-      hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%)),
+  --shadow-elevation-high:
+    0 -2px 5px -1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%)),
     0 8px 10px -6px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 8%)),
     0 16px 24px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 4%));
 
-  --shadow-elevation-modal: 0 24px 38px 3px
-      hsl(var(--shadow-color) / calc(var(--shadow-strength) + 8%)),
+  --shadow-elevation-modal:
+    0 24px 38px 3px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 8%)),
     0 9px 46px 8px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 6%)),
     0 11px 15px -7px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 10%));
 
@@ -165,8 +166,8 @@
   --shadow-interactive-rest: 0 1px 2px 0
     hsl(var(--shadow-color) / calc(var(--shadow-strength) + 7%));
 
-  --shadow-interactive-hover: 0 3px 6px -1px
-      hsl(var(--shadow-color) / calc(var(--shadow-strength) + 10%)),
+  --shadow-interactive-hover:
+    0 3px 6px -1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 10%)),
     0 2px 5px -1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 6%));
 
   --shadow-interactive-active: 0 1px 2px 0
@@ -425,7 +426,7 @@
   }
 
   .size-icon {
-    @apply !size-6 sm:!size-4;
+    @apply !size-6 sm:!size-5;
   }
 
   .size-icon-button {
@@ -497,7 +498,8 @@
   }
 
   .bg-checkered {
-    background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+    background-image:
+      linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
       linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
       linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
       linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
@@ -512,16 +514,31 @@
 
 /* Animations et keyframes */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
 }
 
 @keyframes progress {
-  0% { width: 0; }
-  100% { width: 100%; }
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 @keyframes slideIn {
@@ -536,8 +553,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -552,25 +573,46 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes bell-ring {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(15deg); }
-  50% { transform: rotate(-15deg); }
-  75% { transform: rotate(5deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes shine {
-  100% { left: 125%; }
+  100% {
+    left: 125%;
+  }
 }
 
 .animate-shake {
@@ -658,7 +700,9 @@
 .card-flip-enter-active {
   opacity: 1;
   transform: rotateY(0);
-  transition: opacity 300ms, transform 300ms;
+  transition:
+    opacity 300ms,
+    transform 300ms;
 }
 
 .card-flip-exit {
@@ -669,7 +713,9 @@
 .card-flip-exit-active {
   opacity: 0;
   transform: rotateY(180deg);
-  transition: opacity 300ms, transform 300ms;
+  transition:
+    opacity 300ms,
+    transform 300ms;
 }
 
 .card-container {
