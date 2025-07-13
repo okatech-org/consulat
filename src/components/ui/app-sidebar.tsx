@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { NavMain } from '@/components/ui/nav-main';
+import { NavMainEnhanced } from '@/components/ui/nav-main-enhanced';
 import { NavUser } from '@/components/ui/nav-user';
 import {
   Sidebar,
@@ -47,7 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={menu} />
+        <NavMainEnhanced items={menu} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

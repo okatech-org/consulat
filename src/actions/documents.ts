@@ -9,7 +9,7 @@ import { checkAuth } from '@/lib/auth/action';
 import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { env } from '@/env';;
+import { env } from '@/env';
 import { ROUTES } from '@/schemas/routes';
 import { documentSpecificFields, getFieldsForDocument } from '@/lib/document-fields';
 import { GeminiVisionAnalyzer, type StructuredOutput } from '@/lib/ai/gemini-analyzer';
@@ -484,7 +484,10 @@ export async function getUserDocumentsList(): Promise<AppUserDocument[]> {
 
     return documents.map((document) => ({
       ...document,
-      metadata: JSON.parse(document.metadata as string),
+      metadata:
+        typeof document.metadata === 'object' && document.metadata !== null
+          ? (document.metadata as Record<string, any>) // eslint-disable-line @typescript-eslint/no-explicit-any
+          : {},
     }));
   } catch (error) {
     console.error('Error fetching user components:', error);

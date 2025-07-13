@@ -16,6 +16,9 @@ import {
   MessageSquare,
   FolderIcon,
   FileIcon,
+  Home,
+  Plus,
+  Bell,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
@@ -108,9 +111,9 @@ export function useNavigation(user: SessionUser) {
 
   const UserNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {
-      title: t('dashboard'),
+      title: t('my-space'),
       url: ROUTES.user.dashboard,
-      icon: LayoutDashboard,
+      icon: Home,
       roles: [UserRole.USER],
     },
     {
@@ -120,9 +123,27 @@ export function useNavigation(user: SessionUser) {
       roles: [UserRole.USER],
     },
     {
-      title: t('services'),
-      url: ROUTES.user.services,
+      title: t('my_requests'),
+      url: ROUTES.user.requests,
       icon: FolderIcon,
+      roles: [UserRole.USER],
+    },
+    {
+      title: t('appointments'),
+      url: ROUTES.user.appointments,
+      icon: Calendar,
+      roles: [UserRole.USER],
+    },
+    {
+      title: t('documents'),
+      url: ROUTES.user.documents,
+      icon: FileText,
+      roles: [UserRole.USER],
+    },
+    {
+      title: t('new_request'),
+      url: ROUTES.user.services,
+      icon: Plus,
       roles: [UserRole.USER],
     },
     {
@@ -132,9 +153,15 @@ export function useNavigation(user: SessionUser) {
       roles: [UserRole.USER],
     },
     {
-      title: t('appointments'),
-      url: ROUTES.user.appointments,
-      icon: Calendar,
+      title: t('notifications'),
+      url: ROUTES.user.notifications,
+      icon: Bell,
+      roles: [UserRole.USER],
+    },
+    {
+      title: t('settings'),
+      url: ROUTES.user.settings,
+      icon: Settings,
       roles: [UserRole.USER],
     },
   ];

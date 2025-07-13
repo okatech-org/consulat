@@ -1,14 +1,9 @@
 'use client';
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-} from '@/components/ui/sidebar';
-import { UserSidebarNav } from './user-sidebar-nav';
+import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 import { UserSidebarFooter } from './user-sidebar-footer';
 import { UserSidebarHeader } from './user-sidebar-header';
+import { UserSidebarNav } from './user-sidebar-nav';
 
 export function UserSidebar() {
   return (

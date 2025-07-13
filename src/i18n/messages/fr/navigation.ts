@@ -18,7 +18,7 @@ export default {
     profile: 'Mon profil',
     feedback: 'Retour utilisateur',
     my_requests: 'Mes demandes',
-    new_request: 'Nouvelle demande',
+    new_request: 'Nouvelle démarche',
     available: 'Nouvelle démarche',
     profiles: 'Profils consulaires',
     'document-templates': 'Modèles de documents',
