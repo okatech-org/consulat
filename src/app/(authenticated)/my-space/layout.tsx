@@ -11,7 +11,7 @@ export default async function MySpaceLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <RouteAuthGuard roles={['USER']} fallbackUrl={ROUTES.user.dashboard}>
+    <RouteAuthGuard roles={['USER']} fallbackUrl={ROUTES.auth.login}>
       <SidebarProvider>
         <UserSidebar />
         <SidebarInset className="bg-background overflow-hidden">

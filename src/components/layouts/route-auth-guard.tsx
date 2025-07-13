@@ -2,23 +2,22 @@ import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import type { SessionUser } from '@/types';
+import { getCurrentUser } from '@/actions/user';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
   roles?: UserRole[];
   fallbackUrl?: string;
   fallbackComponent?: React.ReactNode;
-  user?: SessionUser;
 }
 
-export function RouteAuthGuard({
+export async function RouteAuthGuard({
   children,
   roles,
-  user,
   fallbackUrl,
   fallbackComponent,
 }: BaseLayoutProps) {
+  const user = await getCurrentUser();
   if (!user) redirect(ROUTES.auth.login);
 
   if (roles && !hasAnyRole(user, roles)) {
