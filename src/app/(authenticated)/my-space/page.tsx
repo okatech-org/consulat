@@ -2,7 +2,7 @@ import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
-import { UserSpaceNavigation } from '@/components/layouts/user-space-navigation';
+
 import { ProfileStatusCard } from '@/components/user/profile-status-card';
 import { RequestsTimeline } from '@/components/user/requests-timeline';
 import CardContainer from '@/components/layouts/card-container';
@@ -65,9 +65,6 @@ export default async function UserDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <PageContainer className="max-w-7xl mx-auto">
-        {/* Navigation contextuelle */}
-        <UserSpaceNavigation className="mb-6" />
-
         <div className="grid lg:grid-cols-12 gap-6">
           {/* Zone principale - Informations critiques */}
           <div className="lg:col-span-8 space-y-6">
