@@ -31,6 +31,7 @@ import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { toast } from '@/hooks/use-toast';
 import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 import { checkUserExists } from '@/actions/auth';
+import { RoleGuard } from '@/lib/permissions/utils';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
@@ -177,7 +178,10 @@ export function LoginForm() {
   const user = session?.user;
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
+  const redirectUrl = AuthRedirectManager.getRedirectUrl(
+    user,
+    searchParams.get('callbackUrl'),
+  );
 
   // State management
   const [state, setState] = React.useState<LoginFormState>({
@@ -210,10 +214,9 @@ export function LoginForm() {
   const handleManualRedirect = React.useCallback(() => {
     if (state.hasRedirected) return;
 
-    const redirectUrl = AuthRedirectManager.getRedirectUrl(user || null, callbackUrl);
     router.push(redirectUrl);
     setState((prev) => ({ ...prev, hasRedirected: true }));
-  }, [user, state.hasRedirected, router, callbackUrl]);
+  }, [user, state.hasRedirected, router, redirectUrl]);
 
   // Handlers
   const handleSendOTP = React.useCallback(
@@ -275,11 +278,7 @@ export function LoginForm() {
 
         updateState({ step: 'SUCCESS', isLoading: false, error: null });
 
-        setTimeout(() => {
-          if (!state.hasRedirected) {
-            handleManualRedirect();
-          }
-        }, 1500);
+        handleManualRedirect();
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Erreur de validation';
@@ -288,7 +287,6 @@ export function LoginForm() {
 
         form.setValue('otp', '');
 
-        // Afficher aussi un toast pour une meilleure visibilité
         toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
       }
     },
@@ -357,15 +355,6 @@ export function LoginForm() {
     }
   }, [state.error, state.step, state.method, form]);
 
-  // Auto-redirect if user is already logged in
-  React.useEffect(() => {
-    if (user && state.step === 'IDENTIFIER' && !state.hasRedirected) {
-      setState((prev) => ({ ...prev, hasRedirected: true }));
-
-      AuthRedirectManager.handleLoginSuccess(user, callbackUrl);
-    }
-  }, [user, state.step, state.hasRedirected, callbackUrl]);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
@@ -396,13 +385,11 @@ export function LoginForm() {
                   leftIcon={<CheckCircle2 className="size-4" />}
                   rightIcon={<ArrowRight className="size-4" />}
                 >
-                  {user &&
-                  (Array.isArray(user.roles) ? user.roles : [user.roles]).some(
-                    (role: string) =>
-                      ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT'].includes(role),
-                  )
-                    ? t('go_to_dashboard')
-                    : t('go_to_my_space')}
+                  <RoleGuard roles={['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT']}>
+                    {t('go_to_dashboard')}
+                  </RoleGuard>
+
+                  <RoleGuard roles={['USER']}>{t('go_to_my_space')}</RoleGuard>
                 </Button>
 
                 <p className="text-xs text-muted-foreground">{t('auto_redirect_info')}</p>

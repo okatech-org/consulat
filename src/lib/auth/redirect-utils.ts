@@ -1,6 +1,6 @@
 import { ROUTES } from '@/schemas/routes';
-import { SessionUser } from '@/types';
 import { hasAnyRole } from '@/lib/permissions/utils';
+import type { SessionUser } from '@/types';
 
 export type RedirectMethod = 'replace' | 'push' | 'server';
 
@@ -17,7 +17,7 @@ export class AuthRedirectManager {
   /**
    * Get the appropriate redirect URL based on user role and context
    */
-  static getRedirectUrl(user: SessionUser | null, callbackUrl?: string | null): string {
+  static getRedirectUrl(user?: SessionUser, callbackUrl?: string | null): string {
     // If there's a callback URL, use it (but validate it's safe)
     if (callbackUrl && this.isSafeCallbackUrl(callbackUrl)) {
       return callbackUrl;
@@ -27,9 +27,6 @@ export class AuthRedirectManager {
     if (!user) {
       return ROUTES.auth.login;
     }
-
-    // Determine redirect based on user roles
-    const roles = Array.isArray(user.roles) ? user.roles : [user.roles];
 
     // Priority: SUPER_ADMIN > ADMIN > MANAGER > AGENT > USER
     if (hasAnyRole(user, ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT'])) {

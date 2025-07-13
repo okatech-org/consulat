@@ -5,21 +5,100 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
-import { useNavigation } from '@/hooks/use-navigation';
-import { MobileDrawer } from './mobile-drawer';
 import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
 import { type NavMainItem } from '@/hooks/use-navigation';
 import { useCurrentUser } from '@/contexts/user-context';
+import { useUserSidebarData } from '@/hooks/use-user-sidebar-data';
+import { ROUTES } from '@/schemas/routes';
+import {
+  Home,
+  User,
+  FileText,
+  Calendar,
+  FolderOpen,
+  Plus,
+  Users,
+  Bell,
+  Settings,
+} from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { CountBadge } from '../layouts/count-badge';
+import { ProfileCompletionBadge } from '../layouts/profile-completion-badge';
+import { UserMobileDrawer } from '../layouts/user-mobile-drawer';
+import type { UserNavigationItem } from '../layouts/user-sidebar';
 
-export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
+export interface UserBottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
   showLabels?: boolean;
 }
 
-const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
+const UserBottomNavigation = React.forwardRef<HTMLElement, UserBottomNavigationProps>(
   ({ className, showLabels = true, ...props }, ref) => {
+    const t = useTranslations('navigation.menu');
+    const {
+      data: {
+        profileCompletion,
+        activeRequests,
+        childrenCount,
+        notificationsCount,
+        upcomingAppointments,
+      },
+    } = useUserSidebarData();
+
+    const navigationItems: UserNavigationItem[] = [
+      {
+        title: t('my-space'),
+        url: ROUTES.user.dashboard,
+        icon: Home,
+      },
+      {
+        title: t('profile'),
+        url: ROUTES.user.profile,
+        icon: User,
+        badge: <ProfileCompletionBadge percentage={profileCompletion} />,
+      },
+      {
+        title: t('services'),
+        url: ROUTES.user.services,
+        icon: FileText,
+        badge: <CountBadge count={activeRequests} />,
+      },
+      {
+        title: t('appointments'),
+        url: ROUTES.user.appointments,
+        icon: Calendar,
+        badge: <CountBadge count={upcomingAppointments} />,
+      },
+      {
+        title: t('documents'),
+        url: ROUTES.user.documents,
+        icon: FolderOpen,
+      },
+      {
+        title: t('available'),
+        url: ROUTES.user.service_available,
+        icon: Plus,
+      },
+      {
+        title: t('children'),
+        url: ROUTES.user.children,
+        icon: Users,
+        badge: <CountBadge count={childrenCount} />,
+      },
+      {
+        title: t('notifications'),
+        url: ROUTES.user.notifications,
+        icon: Bell,
+        badge: <CountBadge count={notificationsCount} variant="destructive" />,
+      },
+      {
+        title: t('settings'),
+        url: ROUTES.user.account,
+        icon: Settings,
+      },
+    ] as const;
+
     const { user: currentUser } = useCurrentUser();
-    const { mobileMenu } = useNavigation(currentUser!);
     const pathname = usePathname();
 
     const isActive = React.useCallback(
@@ -32,8 +111,8 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       [pathname],
     );
 
-    const twoFirstItems = mobileMenu.slice(0, 2);
-    const thirdItem = mobileMenu[2];
+    const twoFirstItems = navigationItems.slice(0, 2);
+    const thirdItem = navigationItems[2];
 
     const menu = [
       ...twoFirstItems,
@@ -92,12 +171,13 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
           );
         })}
         <div className="flex flex-col items-center justify-center">
-          <MobileDrawer items={mobileMenu} />
+          <UserMobileDrawer items={navigationItems} />
         </div>
       </nav>
     );
   },
 );
-BottomNavigation.displayName = 'BottomNavigation';
 
-export { BottomNavigation };
+UserBottomNavigation.displayName = 'UserBottomNavigation';
+
+export { UserBottomNavigation };

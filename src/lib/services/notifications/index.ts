@@ -3,8 +3,8 @@
 import {
   NotificationChannel,
   NotificationType,
-  NotificationRequest,
-  NotificationResponse,
+  type NotificationRequest,
+  type NotificationResponse,
 } from '@/types/notifications';
 import { sendNotification } from './notification-service';
 import { sendSMSOTP } from '@/actions/email';
@@ -43,7 +43,7 @@ export async function notify({
   const request: NotificationRequest = {
     type,
     title,
-    message,
+    message: `${title} \n\n${message}`,
     channels,
     recipient: {
       userId,

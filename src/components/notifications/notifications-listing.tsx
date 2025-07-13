@@ -46,7 +46,7 @@ export function NotificationsListing() {
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
           >
-            {isFetchingNextPage ? t('loading_more') : t('load_more')}
+            {isFetchingNextPage ? t('actions.loading_more') : t('actions.load_more')}
           </Button>
         </div>
       )}
@@ -60,7 +60,7 @@ export function NotificationsListing() {
               leftIcon={<Check className="size-4" />}
               onClick={() => markAllAsRead()}
             >
-              {t('mark_all_read')}
+              {t('actions.mark_all_read')}
             </Button>
           )}
           {notifications.some((n) => n.read) && (
@@ -70,7 +70,7 @@ export function NotificationsListing() {
               leftIcon={<Trash2 className="size-4" />}
               onClick={() => deleteAllRead()}
             >
-              {t('delete_all_read')}
+              {t('actions.delete_all_read')}
             </Button>
           )}
         </div>

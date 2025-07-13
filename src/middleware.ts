@@ -4,16 +4,16 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Continue with your existing security headers logic
   const response = NextResponse.next();
 
-  // Add security headers
   const searchParams = request.nextUrl.searchParams.toString();
+
   response.headers.set(
     'x-current-path',
     pathname + (searchParams ? `?${searchParams}` : ''),
   );
-  response.headers.set('x-params-string', searchParams);
+
+  return response;
 }
 
 export const config = {

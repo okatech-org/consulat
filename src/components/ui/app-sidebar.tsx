@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 
-import { NavMain } from '@/components/ui/nav-main';
 import { NavUser } from '@/components/ui/nav-user';
 import {
   Sidebar,
@@ -22,6 +21,7 @@ import { FlagIcon } from './flag-icon';
 import { useNavigation } from '@/hooks/use-navigation';
 import type { SessionUser } from '@/types/user';
 import Image from 'next/image';
+import { NavMain } from './nav-main';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const appName = env.NEXT_PUBLIC_APP_NAME;

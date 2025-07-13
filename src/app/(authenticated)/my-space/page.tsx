@@ -1,10 +1,8 @@
 import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
-import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { calculateProfileCompletion } from '@/lib/utils';
-import { getUserFullProfileById } from '@/lib/user/getters';
 import { PageContainer } from '@/components/layouts/page-container';
-import { UserSpaceNavigation } from '@/components/layouts/user-space-navigation';
+
 import { ProfileStatusCard } from '@/components/user/profile-status-card';
 import { RequestsTimeline } from '@/components/user/requests-timeline';
 import CardContainer from '@/components/layouts/card-container';
@@ -15,17 +13,11 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { api } from '@/trpc/server';
 
 export default async function UserDashboard() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return null;
-  }
-
   // Fetch user profile
-  const userProfile = await getUserFullProfileById(user.id);
+  const userProfile = await api.profile.getCurrent();
 
   // Calculate profile completion percentage
   const profileCompletion = userProfile ? calculateProfileCompletion(userProfile) : 0;
@@ -41,7 +33,9 @@ export default async function UserDashboard() {
   }
 
   // Fetch user service requests
-  const serviceRequestsData = await getServiceRequestsByUser(user.id);
+  const serviceRequestsData = await api.requests.getByUser({
+    userId: userProfile.userId ?? '',
+  });
 
   // Transform service requests to match expected interface
   const serviceRequests = serviceRequestsData.map((request) => ({
@@ -55,7 +49,9 @@ export default async function UserDashboard() {
   }));
 
   // Fetch user appointments
-  const appointmentsResponse = await getUserAppointments({ userId: user.id });
+  const appointmentsResponse = await getUserAppointments({
+    userId: userProfile.userId ?? '',
+  });
   const appointments = appointmentsResponse.data || {
     upcoming: [],
     past: [],
@@ -66,48 +62,9 @@ export default async function UserDashboard() {
   const notifications = await getNotifications();
   const recentNotifications = notifications.slice(0, 3);
 
-  // Déterminer les actions urgentes
-  const urgentActions = [];
-
-  // Profil incomplet
-  if (profileCompletion < 75) {
-    urgentActions.push({
-      title: 'Compléter votre profil',
-      description: `Il vous manque ${100 - profileCompletion}% pour finaliser`,
-      href: ROUTES.user.profile,
-      variant: 'urgent' as const,
-    });
-  }
-
-  // Documents manquants critiques
-  if (missingDocuments.length > 3) {
-    urgentActions.push({
-      title: 'Documents manquants',
-      description: `${missingDocuments.length} documents à fournir`,
-      href: ROUTES.user.documents,
-      variant: 'important' as const,
-    });
-  }
-
-  // Demandes avec actions requises
-  const pendingRequests = serviceRequests.filter(
-    (req) => req.status === 'REJECTED' || req.status === 'READY_FOR_PICKUP',
-  );
-  if (pendingRequests.length > 0) {
-    urgentActions.push({
-      title: 'Demandes nécessitant une action',
-      description: `${pendingRequests.length} demande${pendingRequests.length > 1 ? 's' : ''} en attente`,
-      href: ROUTES.user.requests,
-      variant: 'important' as const,
-    });
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <PageContainer className="max-w-7xl mx-auto">
-        {/* Navigation contextuelle */}
-        <UserSpaceNavigation className="mb-6" />
-
         <div className="grid lg:grid-cols-12 gap-6">
           {/* Zone principale - Informations critiques */}
           <div className="lg:col-span-8 space-y-6">
@@ -116,8 +73,8 @@ export default async function UserDashboard() {
               profileCompletion={profileCompletion}
               profileStatus={userProfile?.status}
               missingDocuments={missingDocuments}
-              userName={user.name ?? undefined}
-              urgentActions={urgentActions}
+              userName={userProfile?.firstName ?? undefined}
+              urgentActions={[]}
               className="border-2 shadow-lg"
             />
 
@@ -273,7 +230,7 @@ export default async function UserDashboard() {
 
             {/* Aide contextuelle */}
             <CardContainer
-              title={<span className="text-blue-800">Besoin d'aide ?</span>}
+              title={<span className="text-blue-800">Besoin d&apos;aide ?</span>}
               className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
             >
               <div className="space-y-3">
