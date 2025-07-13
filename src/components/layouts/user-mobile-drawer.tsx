@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
-import { Button } from './button';
+import { Button } from '../ui/button';
 import {
   Sheet,
   SheetContent,
@@ -14,22 +14,21 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetClose,
-} from './sheet';
+} from '../ui/sheet';
 
-import type { NavMainItem } from '@/hooks/use-navigation';
 import { ThemeToggleSingle } from '../layouts/theme-toggle-single';
 import { NotificationBell } from '../notifications/notification-bell';
-import { LogoutButton } from './logout-button';
+import { LogoutButton } from '../ui/logout-button';
+import type { UserNavigationItem } from './user-sidebar';
 
-export interface MobileDrawerProps extends React.HTMLAttributes<HTMLDivElement> {
-  items: NavMainItem[];
+export interface UserMobileDrawerProps extends React.HTMLAttributes<HTMLDivElement> {
+  items: UserNavigationItem[];
   title?: string;
   triggerClassName?: string;
-  triggerChildren?: React.ReactNode;
   closeTriggerOnSelect?: boolean;
 }
 
-const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
+const UserMobileDrawer = React.forwardRef<HTMLDivElement, UserMobileDrawerProps>(
   (
     {
       className,
@@ -60,7 +59,7 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
       }
     };
 
-    const renderItems = (items: NavMainItem[], level = 0) => {
+    const renderItems = (items: UserNavigationItem[], level = 0) => {
       return items.map((item, index) => (
         <React.Fragment key={index}>
           <div className={cn(index > 0 && 'border-b')}>
@@ -79,7 +78,8 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
                 )}
               >
                 {item.icon && <item.icon className="size-icon" />}
-                <span>{item.title}</span>
+                <span className="min-w-max mr-auto">{item.title}</span>
+                {item.badge}
               </Link>
             </SheetClose>
           </div>
@@ -127,6 +127,7 @@ const MobileDrawer = React.forwardRef<HTMLDivElement, MobileDrawerProps>(
     );
   },
 );
-MobileDrawer.displayName = 'MobileDrawer';
 
-export { MobileDrawer };
+UserMobileDrawer.displayName = 'UserMobileDrawer';
+
+export { UserMobileDrawer };

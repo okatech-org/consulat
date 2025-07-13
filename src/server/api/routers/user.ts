@@ -31,4 +31,24 @@ export const userRouter = createTRPCRouter({
     });
     return count;
   }),
+
+  getActiveRequestsCount: protectedProcedure.query(async ({ ctx }) => {
+    const count = await ctx.db.serviceRequest.count({
+      where: {
+        submittedById: ctx.session.user.id,
+        status: {
+          in: [
+            'DRAFT',
+            'SUBMITTED',
+            'EDITED',
+            'PENDING',
+            'PENDING_COMPLETION',
+            'VALIDATED',
+            'CARD_IN_PRODUCTION',
+          ],
+        },
+      },
+    });
+    return count;
+  }),
 });

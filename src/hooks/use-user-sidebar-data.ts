@@ -1,43 +1,91 @@
 'use client';
 
-import { useCurrentProfile } from '@/hooks/use-profile';
-import { useUserServiceRequests } from '@/hooks/use-services';
-import { useChildProfiles } from '@/hooks/use-child-profiles';
-import { useUnreadCount } from '@/hooks/use-notifications';
-import { calculateProfileCompletion } from '@/lib/utils';
 import { api } from '@/trpc/react';
-import { useMemo } from 'react';
+import { calculateProfileCompletion } from '@/lib/utils';
+import { useCurrentUser } from '@/contexts/user-context';
+
+export interface NavigationData {
+  profileCompletion: number;
+  activeRequests: number;
+  documentsCount: number;
+  childrenCount: number;
+  notificationsCount: number;
+  upcomingAppointments: number;
+}
+
+// Cache duration: 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export function useUserSidebarData() {
-  const { data: profile } = useCurrentProfile();
-  const { requests } = useUserServiceRequests();
-  const { totalChildren } = useChildProfiles();
-  const { count: notificationsCount } = useUnreadCount();
+  const { user } = useCurrentUser();
 
-  // Récupération du nombre de documents
-  const { data: documents } = api.documents.getUserDocuments.useQuery();
+  // Get current profile for completion calculation
+  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery(
+    undefined,
+    {
+      staleTime: CACHE_DURATION,
+      enabled: !!user?.id,
+    },
+  );
 
-  // Calculs memoized pour les performances
-  const profileCompletion = useMemo(() => {
-    return profile ? calculateProfileCompletion(profile) : 0;
-  }, [profile]);
+  const completion = profile ? calculateProfileCompletion(profile) : 0;
 
-  const requestsCount = useMemo(() => {
-    return (
-      requests?.filter((r) => ['PENDING', 'SUBMITTED', 'PROCESSING'].includes(r.status))
-        .length || 0
-    );
-  }, [requests]);
+  // tRPC queries with proper caching
+  const { data: documentsCount = 0, isLoading: documentsLoading } =
+    api.user.getDocumentsCount.useQuery(undefined, {
+      staleTime: CACHE_DURATION,
+      enabled: !!user?.id,
+    });
 
-  const documentsCount = useMemo(() => {
-    return documents?.length || 0;
-  }, [documents]);
+  const { data: childrenCount = 0, isLoading: childrenLoading } =
+    api.user.getChildrenCount.useQuery(undefined, {
+      staleTime: CACHE_DURATION,
+      enabled: !!user?.id,
+    });
 
-  return {
-    profileCompletion,
-    requestsCount,
+  const { data: upcomingAppointments = 0, isLoading: appointmentsLoading } =
+    api.user.getUpcomingAppointmentsCount.useQuery(undefined, {
+      staleTime: CACHE_DURATION,
+      enabled: !!user?.id,
+    });
+
+  const { data: activeRequests = 0, isLoading: requestsLoading } =
+    api.user.getActiveRequestsCount.useQuery(undefined, {
+      staleTime: CACHE_DURATION,
+      enabled: !!user?.id,
+    });
+
+  const { data: notificationsResult, isLoading: notificationsLoading } =
+    api.notifications.getUnreadCount.useQuery(undefined, {
+      staleTime: CACHE_DURATION,
+      enabled: !!user?.id,
+    });
+
+  const loading =
+    documentsLoading ||
+    childrenLoading ||
+    appointmentsLoading ||
+    requestsLoading ||
+    notificationsLoading ||
+    profileLoading;
+
+  const data: NavigationData = {
+    profileCompletion: completion,
+    activeRequests,
     documentsCount,
-    childrenCount: totalChildren,
-    notificationsCount,
+    childrenCount,
+    notificationsCount: notificationsResult || 0,
+    upcomingAppointments,
   };
+
+  // Invalidate cache function
+  const invalidateCache = () => {
+    // Use tRPC utils to invalidate queries
+    const utils = api.useUtils();
+    utils.user.invalidate();
+    utils.notifications.getUnreadCount.invalidate();
+    utils.profile.getCurrent.invalidate();
+  };
+
+  return { data, loading, invalidateCache };
 }

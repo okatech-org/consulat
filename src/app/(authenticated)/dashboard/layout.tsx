@@ -19,10 +19,8 @@ export default async function DashboardLayout({
         <AppSidebar />
         <SidebarInset className="bg-background overflow-hidden">
           <SiteHeader />
-          <div className="flex-1 relative">
-            <div className="absolute py-6 pb-safe md:pb-6 inset-0 overflow-y-scroll overflow-x-hidden container">
-              {children}
-            </div>
+          <div className="absolute pt-14 pb-safe md:pb-6! inset-0 overflow-y-scroll overflow-x-hidden container">
+            {children}
           </div>
           <BottomNavigation />
         </SidebarInset>

@@ -14,7 +14,7 @@ export const notificationsRouter = createTRPCRouter({
         cursor: z.string().optional(),
         unreadOnly: z.boolean().default(false),
         types: z.array(z.nativeEnum(NotificationType)).optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const where: Prisma.NotificationWhereInput = {
@@ -61,7 +61,7 @@ export const notificationsRouter = createTRPCRouter({
       },
     });
 
-    return { count };
+    return count;
   }),
 
   // Marquer une notification comme lue
@@ -148,7 +148,7 @@ export const notificationsRouter = createTRPCRouter({
 
     // Créer une map des préférences par type et canal
     const preferencesMap: Record<string, Record<string, boolean>> = {};
-    
+
     preferences.forEach((pref) => {
       if (!preferencesMap[pref.type]) {
         preferencesMap[pref.type] = {};
@@ -166,7 +166,7 @@ export const notificationsRouter = createTRPCRouter({
         type: z.string(),
         channel: z.string(),
         enabled: z.boolean(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const preference = await ctx.db.notificationPreference.upsert({
@@ -196,10 +196,12 @@ export const notificationsRouter = createTRPCRouter({
         type: z.nativeEnum(NotificationType),
         title: z.string(),
         message: z.string(),
-        channels: z.array(z.nativeEnum(NotificationChannel)).default([NotificationChannel.APP]),
+        channels: z
+          .array(z.nativeEnum(NotificationChannel))
+          .default([NotificationChannel.APP]),
         priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
         metadata: z.record(z.unknown()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const result = await notify({
@@ -241,12 +243,13 @@ export const notificationsRouter = createTRPCRouter({
     return {
       total,
       unread,
-      byType: byType.reduce((acc, item) => {
-        acc[item.type] = item._count.id;
-        return acc;
-      }, {} as Record<NotificationType, number>),
+      byType: byType.reduce(
+        (acc, item) => {
+          acc[item.type] = item._count.id;
+          return acc;
+        },
+        {} as Record<NotificationType, number>,
+      ),
     };
   }),
-
-
-}); 
+});

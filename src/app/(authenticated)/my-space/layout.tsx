@@ -1,7 +1,7 @@
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/ui/site-header';
 import { UserSidebar } from '@/components/layouts/user-sidebar';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { UserBottomNavigation } from '@/components/ui/user-bottom-navigation';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { ROUTES } from '@/schemas/routes';
 
@@ -19,7 +19,7 @@ export default async function MySpaceLayout({
           <div className="absolute pt-14 pb-safe md:pb-6! inset-0 overflow-y-scroll overflow-x-hidden container">
             {children}
           </div>
-          <BottomNavigation />
+          <UserBottomNavigation />
         </SidebarInset>
       </SidebarProvider>
     </RouteAuthGuard>

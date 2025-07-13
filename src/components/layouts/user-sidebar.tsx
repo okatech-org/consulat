@@ -31,8 +31,9 @@ import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { CountBadge } from './count-badge';
 import { ProfileCompletionBadge } from './profile-completion-badge';
+import { Skeleton } from '../ui/skeleton';
 
-type UserNavigationItem = {
+export type UserNavigationItem = {
   title: string;
   url: string;
   icon: LucideIcon;
@@ -44,11 +45,14 @@ export function UserSidebar() {
   const pathname = usePathname();
   const t = useTranslations('navigation.menu');
   const {
-    profileCompletion,
-    requestsCount,
-    documentsCount,
-    childrenCount,
-    notificationsCount,
+    data: {
+      profileCompletion,
+      activeRequests,
+      childrenCount,
+      notificationsCount,
+      upcomingAppointments,
+    },
+    loading,
   } = useUserSidebarData();
 
   const navigationItems: UserNavigationItem[] = [
@@ -61,24 +65,36 @@ export function UserSidebar() {
       title: t('profile'),
       url: ROUTES.user.profile,
       icon: User,
-      badge: <ProfileCompletionBadge percentage={profileCompletion} />,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <ProfileCompletionBadge percentage={profileCompletion} />
+      ),
     },
     {
       title: t('services'),
       url: ROUTES.user.services,
       icon: FileText,
-      badge: <CountBadge count={requestsCount} />,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <CountBadge count={activeRequests} />
+      ),
     },
     {
       title: t('appointments'),
       url: ROUTES.user.appointments,
       icon: Calendar,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <CountBadge count={upcomingAppointments} />
+      ),
     },
     {
       title: t('documents'),
       url: ROUTES.user.documents,
       icon: FolderOpen,
-      badge: <CountBadge count={documentsCount} />,
     },
     {
       title: t('available'),
@@ -89,7 +105,11 @@ export function UserSidebar() {
       title: t('children'),
       url: ROUTES.user.children,
       icon: Users,
-      badge: <CountBadge count={childrenCount} />,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <CountBadge count={childrenCount} />
+      ),
     },
   ] as const;
   const secondaryNavItems: UserNavigationItem[] = [
@@ -148,7 +168,7 @@ export function UserSidebar() {
                   >
                     <Link href={item.url}>
                       <item.icon className="size-icon" />
-                      <span className="min-w-max">{item.title}</span>
+                      <span className="min-w-max mr-auto">{item.title}</span>
                       {item.badge}
                     </Link>
                   </SidebarMenuButton>
@@ -169,7 +189,7 @@ export function UserSidebar() {
                   >
                     <Link href={item.url}>
                       <item.icon className="size-icon" />
-                      <span className="min-w-max">{item.title}</span>
+                      <span className="min-w-max mr-auto">{item.title}</span>
                       {item.badge}
                     </Link>
                   </SidebarMenuButton>

@@ -1,7 +1,7 @@
 import {
   NotificationChannel,
-  NotificationRequest,
-  NotificationResult,
+  type NotificationRequest,
+  type NotificationResult,
 } from '@/types/notifications';
 
 // Interface commune pour tous les providers de notification

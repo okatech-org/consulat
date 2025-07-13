@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface CountBadgeProps {
@@ -17,9 +16,26 @@ export function CountBadge({ count, variant = 'secondary', className }: CountBad
     return count.toString();
   };
 
+  const getVariantStyles = (variant: string) => {
+    switch (variant) {
+      case 'destructive':
+        return 'border-destructive text-destructive bg-destructive/20';
+      case 'default':
+        return 'bg-blue-500 text-white';
+      default:
+        return 'bg-foreground/10 text-foreground/50';
+    }
+  };
+
   return (
-    <Badge variant={variant} className={cn('ml-auto', className)}>
+    <span
+      className={cn(
+        'inline-flex items-center justify-center rounded-full text-xs font-medium min-w-[1.25rem] h-5 px-1.5',
+        getVariantStyles(variant),
+        className,
+      )}
+    >
       {formatCount(count)}
-    </Badge>
+    </span>
   );
 }
