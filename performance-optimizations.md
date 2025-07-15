@@ -16,19 +16,18 @@ Cette analyse identifie tous les points d'amélioration de performance liés aux
 
 ### Optimisations proposées
 
-#### ✅ Parallélisation des requêtes
+#### Parallélisation des requêtes
 
-- [x] **COMPLÉTÉ** - Paralléliser `getUserProfile()`, `getRecentRequests()`, `getUpcomingAppointments()` dans le dashboard
-- [x] **COMPLÉTÉ** - Utiliser `Promise.all()` pour charger les données en parallèle
-- [x] **GAIN RÉALISÉ** : **60-70% de réduction du temps de chargement** (3-4s → 800ms-1s)
+- [ ] - Paralléliser `getUserProfile()`, `getRecentRequests()`, `getUpcomingAppointments()` dans le dashboard
+- [ ] - Utiliser `Promise.all()` pour charger les données en parallèle
 
-#### ✅ Optimisation des requêtes
+#### Optimisation des requêtes
 
-- [x] **COMPLÉTÉ** - Créer des requêtes dédiées pour le dashboard avec seulement les champs nécessaires
-- [x] **COMPLÉTÉ** - Limiter les résultats (4 dernières demandes, 3 notifications)
-- [x] **COMPLÉTÉ** - Nouvelles routes tRPC optimisées : `getRecentForDashboard()`
+- [ ] - Créer des requêtes dédiées pour le dashboard avec seulement les champs nécessaires
+- [ ] - Limiter les résultats (4 dernières demandes, 3 notifications)
+- [ ] - Nouvelles routes tRPC optimisées : `getRecentForDashboard()`
 
-#### ✅ Mise en cache
+#### Mise en cache
 
 - [ ] Implémenter le cache Next.js avec `revalidate` pour les données statiques
 - [ ] Cache des statistiques utilisateur (1-5 minutes)
