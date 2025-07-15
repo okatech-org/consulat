@@ -218,3 +218,78 @@ export const profileFields: ProfileField[] = [
     category: 'professional',
   },
 ];
+
+// Type optimisé pour le dashboard
+export const DashboardProfileSelect = {
+  select: {
+    // Champs essentiels
+    id: true,
+    userId: true,
+    status: true,
+
+    // Champs pour ProfileStatusCard
+    firstName: true,
+    lastName: true,
+
+    // Champs pour calcul de completion
+    birthDate: true,
+    birthPlace: true,
+    nationality: true,
+    gender: true,
+    email: true,
+    phoneNumber: true,
+    maritalStatus: true,
+    fatherFullName: true,
+    motherFullName: true,
+    spouseFullName: true,
+    workStatus: true,
+    profession: true,
+    employer: true,
+    employerAddress: true,
+
+    // Champs pour vérifier les documents manquants
+    identityPicture: {
+      select: {
+        id: true,
+        fileUrl: true,
+      },
+    },
+    passport: {
+      select: {
+        id: true,
+        fileUrl: true,
+      },
+    },
+    birthCertificate: {
+      select: {
+        id: true,
+        fileUrl: true,
+      },
+    },
+    residencePermit: {
+      select: {
+        id: true,
+        fileUrl: true,
+      },
+    },
+    addressProof: {
+      select: {
+        id: true,
+        fileUrl: true,
+      },
+    },
+
+    // Champ adresse (requis pour completion)
+    address: {
+      select: {
+        id: true,
+        firstLine: true,
+        city: true,
+        zipCode: true,
+        country: true,
+      },
+    },
+  },
+} as const;
+
+export type DashboardProfile = Prisma.ProfileGetPayload<typeof DashboardProfileSelect>;
