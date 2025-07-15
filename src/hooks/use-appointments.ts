@@ -12,15 +12,15 @@ export function useAppointments() {
   const router = useRouter();
   const utils = api.useUtils();
 
-  // Récupérer les rendez-vous de l'utilisateur
-  const appointments = api.appointments.getUserAppointments.useQuery();
+  // Récupérer les rendez-vous de l'utilisateur (version optimisée)
+  const appointments = api.appointments.getUserAppointmentsDashboard.useQuery();
 
   // Créer un rendez-vous
   const createAppointment = api.appointments.create.useMutation({
     onSuccess: () => {
       console.log('createAppointment.onSuccess');
       toast.success(t('notifications.appointment_created'));
-      utils.appointments.getUserAppointments.invalidate();
+      utils.appointments.getUserAppointmentsDashboard.invalidate();
       router.push(ROUTES.user.appointments);
     },
     onError: (error) => {
@@ -30,42 +30,13 @@ export function useAppointments() {
 
   // Annuler un rendez-vous
   const cancelAppointment = api.appointments.cancel.useMutation({
-    onMutate: async (variables) => {
-      // Annuler les requêtes en cours
-      await utils.appointments.getUserAppointments.cancel();
-      
-      // Snapshot des données actuelles
-      const previousAppointments = utils.appointments.getUserAppointments.getData();
-      
-      // Mise à jour optimiste
-      if (previousAppointments) {
-        utils.appointments.getUserAppointments.setData(undefined, {
-          ...previousAppointments,
-          upcoming: previousAppointments.upcoming.filter(apt => apt.id !== variables.id),
-          cancelled: [
-            ...previousAppointments.cancelled,
-            ...previousAppointments.upcoming.filter(apt => apt.id === variables.id)
-              .map(apt => ({ ...apt, status: 'CANCELLED' as const }))
-          ],
-        });
-      }
-      
-      return { previousAppointments };
-    },
     onSuccess: () => {
       toast.success(t('notifications.appointment_cancelled'));
+      utils.appointments.getUserAppointmentsDashboard.invalidate();
       router.refresh();
     },
-    onError: (error, variables, context) => {
-      // Restaurer les données précédentes en cas d'erreur
-      if (context?.previousAppointments) {
-        utils.appointments.getUserAppointments.setData(undefined, context.previousAppointments);
-      }
+    onError: (error) => {
       toast.error(error.message || t('notifications.cancel_failed'));
-    },
-    onSettled: () => {
-      // Toujours invalider pour s'assurer que les données sont à jour
-      utils.appointments.getUserAppointments.invalidate();
     },
   });
 
@@ -73,7 +44,7 @@ export function useAppointments() {
   const rescheduleAppointment = api.appointments.reschedule.useMutation({
     onSuccess: () => {
       toast.success(t('notifications.appointment_rescheduled'));
-      utils.appointments.getUserAppointments.invalidate();
+      utils.appointments.getUserAppointmentsDashboard.invalidate();
       router.push(ROUTES.user.appointments);
     },
     onError: (error) => {
@@ -85,7 +56,7 @@ export function useAppointments() {
   const completeAppointment = api.appointments.complete.useMutation({
     onSuccess: () => {
       toast.success(t('notifications.appointment_completed'));
-      utils.appointments.getUserAppointments.invalidate();
+      utils.appointments.getUserAppointmentsDashboard.invalidate();
       router.refresh();
     },
     onError: (error) => {
@@ -97,7 +68,7 @@ export function useAppointments() {
   const markAsMissed = api.appointments.markAsMissed.useMutation({
     onSuccess: () => {
       toast.success(t('notifications.appointment_missed'));
-      utils.appointments.getUserAppointments.invalidate();
+      utils.appointments.getUserAppointmentsDashboard.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || t('notifications.mark_missed_failed'));
@@ -109,7 +80,7 @@ export function useAppointments() {
     appointments: appointments.data,
     isLoading: appointments.isLoading,
     error: appointments.error,
-    
+
     // Mutations
     createAppointment: {
       mutate: createAppointment.mutate,
@@ -131,18 +102,15 @@ export function useAppointments() {
       mutate: markAsMissed.mutate,
       isLoading: markAsMissed.isPending,
     },
-    
+
     // Utilities
-    refresh: () => utils.appointments.getUserAppointments.invalidate(),
+    refresh: () => utils.appointments.getUserAppointmentsDashboard.invalidate(),
   };
 }
 
 // Hook pour récupérer un rendez-vous spécifique
 export function useAppointment(id: string) {
-  const appointment = api.appointments.getById.useQuery(
-    { id },
-    { enabled: !!id }
-  );
+  const appointment = api.appointments.getById.useQuery({ id }, { enabled: !!id });
 
   return {
     appointment: appointment.data,
@@ -161,10 +129,9 @@ export function useAvailableTimeSlots(params: {
   duration: number;
   agentId?: string;
 }) {
-  const timeSlots = api.appointments.getAvailableTimeSlots.useQuery(
-    params,
-    { enabled: !!(params.serviceId && params.organizationId && params.countryCode) }
-  );
+  const timeSlots = api.appointments.getAvailableTimeSlots.useQuery(params, {
+    enabled: !!(params.serviceId && params.organizationId && params.countryCode),
+  });
 
   return {
     timeSlots: timeSlots.data,
@@ -177,7 +144,7 @@ export function useAvailableTimeSlots(params: {
 export function useAvailableServices(countryCode: string) {
   const services = api.appointments.getAvailableServices.useQuery(
     { countryCode },
-    { enabled: !!countryCode }
+    { enabled: !!countryCode },
   );
 
   return {
@@ -211,4 +178,4 @@ export type RescheduleAppointmentInput = {
   newStartTime: Date;
   newEndTime: Date;
   newAgentId: string;
-}; 
+};

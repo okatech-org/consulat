@@ -14,10 +14,11 @@ import {
   type AppointmentInput,
   AppointmentSchema,
   type AppointmentWithRelations,
+  type GroupedAppointmentsDashboard,
 } from '@/schemas/appointment';
 import { notifyAppointment } from '@/lib/services/notifications';
 import { getTranslations } from 'next-intl/server';
-import { env } from '@/env';;
+import { env } from '@/env';
 import { ROUTES } from '@/schemas/routes';
 import { NotificationChannel } from '@/types/notifications';
 
@@ -430,6 +431,152 @@ export async function getUserAppointments(params: {
     return { success: true, data: grouped };
   } catch (error) {
     console.error('Failed to fetch user appointments:', error);
+    return { success: false, error: 'Failed to fetch appointments' };
+  }
+}
+
+// Fonction optimisée pour récupérer les rendez-vous avec pagination et sélection optimisée
+export async function getUserAppointmentsDashboard(params: {
+  userId?: string;
+  agentId?: string;
+  limit?: number;
+}): Promise<{
+  success: boolean;
+  data?: GroupedAppointmentsDashboard;
+  error?: string;
+}> {
+  try {
+    const limit = params.limit || 10;
+    const now = new Date();
+
+    const baseWhere = {
+      OR: [{ attendeeId: params.userId }, { agentId: params.agentId }],
+    };
+
+    const optimizedSelect = {
+      id: true,
+      date: true,
+      startTime: true,
+      endTime: true,
+      duration: true,
+      type: true,
+      status: true,
+      instructions: true,
+      organization: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      service: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      agent: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      request: {
+        select: {
+          service: {
+            select: {
+              name: true,
+              category: true,
+            },
+          },
+        },
+      },
+    };
+
+    // Requêtes parallèles pour chaque statut
+    const [upcomingData, pastData, cancelledData] = await Promise.all([
+      // Rendez-vous à venir
+      Promise.all([
+        db.appointment.findMany({
+          where: {
+            ...baseWhere,
+            status: { not: 'CANCELLED' },
+            startTime: { gte: now },
+          },
+          select: optimizedSelect,
+          orderBy: { startTime: 'asc' },
+          take: limit,
+        }),
+        db.appointment.count({
+          where: {
+            ...baseWhere,
+            status: { not: 'CANCELLED' },
+            startTime: { gte: now },
+          },
+        }),
+      ]),
+
+      // Rendez-vous passés
+      Promise.all([
+        db.appointment.findMany({
+          where: {
+            ...baseWhere,
+            status: { not: 'CANCELLED' },
+            startTime: { lt: now },
+          },
+          select: optimizedSelect,
+          orderBy: { startTime: 'desc' },
+          take: limit,
+        }),
+        db.appointment.count({
+          where: {
+            ...baseWhere,
+            status: { not: 'CANCELLED' },
+            startTime: { lt: now },
+          },
+        }),
+      ]),
+
+      // Rendez-vous annulés
+      Promise.all([
+        db.appointment.findMany({
+          where: {
+            ...baseWhere,
+            status: 'CANCELLED',
+          },
+          select: optimizedSelect,
+          orderBy: { cancelledAt: 'desc' },
+          take: limit,
+        }),
+        db.appointment.count({
+          where: {
+            ...baseWhere,
+            status: 'CANCELLED',
+          },
+        }),
+      ]),
+    ]);
+
+    const grouped = {
+      upcoming: {
+        appointments: upcomingData[0],
+        totalCount: upcomingData[1],
+        hasMore: upcomingData[0].length === limit,
+      },
+      past: {
+        appointments: pastData[0],
+        totalCount: pastData[1],
+        hasMore: pastData[0].length === limit,
+      },
+      cancelled: {
+        appointments: cancelledData[0],
+        totalCount: cancelledData[1],
+        hasMore: cancelledData[0].length === limit,
+      },
+    };
+
+    return { success: true, data: grouped };
+  } catch (error) {
+    console.error('Failed to fetch dashboard appointments:', error);
     return { success: false, error: 'Failed to fetch appointments' };
   }
 }
