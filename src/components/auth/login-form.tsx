@@ -377,7 +377,7 @@ export function LoginForm() {
 
               <div className="space-y-3">
                 <Button
-                  onClick={handleManualRedirect}
+                  asChild
                   size="mobile"
                   weight="medium"
                   fullWidthOnMobile={true}
@@ -385,11 +385,13 @@ export function LoginForm() {
                   leftIcon={<CheckCircle2 className="size-4" />}
                   rightIcon={<ArrowRight className="size-4" />}
                 >
-                  <RoleGuard roles={['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT']}>
-                    {t('go_to_dashboard')}
-                  </RoleGuard>
+                  <Link href={redirectUrl}>
+                    <RoleGuard roles={['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT']}>
+                      {t('go_to_dashboard')}
+                    </RoleGuard>
 
-                  <RoleGuard roles={['USER']}>{t('go_to_my_space')}</RoleGuard>
+                    <RoleGuard roles={['USER']}>{t('go_to_my_space')}</RoleGuard>
+                  </Link>
                 </Button>
 
                 <p className="text-xs text-muted-foreground">{t('auto_redirect_info')}</p>
