@@ -121,7 +121,7 @@ export function UserSidebar() {
     },
     {
       title: t('settings'),
-      url: ROUTES.user.account,
+      url: ROUTES.user.settings,
       icon: Settings,
     },
   ] as const;
