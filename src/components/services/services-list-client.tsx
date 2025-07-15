@@ -7,7 +7,6 @@ import { useUserServiceRequestsDashboard } from '@/hooks/use-services';
 import { type DashboardServiceRequest } from '@/server/api/routers/services';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
@@ -30,8 +29,6 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useChat } from '@/contexts/chat-context';
-import { ChatToggle } from '../chat/chat-toggle';
 
 interface ServicesListClientProps {
   initialData: {
@@ -154,7 +151,6 @@ const getProgressPercentage = (status: RequestStatus): number => {
 };
 
 export function ServicesListClient({ initialData }: ServicesListClientProps) {
-  const { toggleChat } = useChat();
   const t = useTranslations('services');
   const [activeFilter, setActiveFilter] = useState<
     'all' | 'ongoing' | 'completed' | 'archived'
@@ -412,14 +408,14 @@ export function ServicesListClient({ initialData }: ServicesListClientProps) {
             title="Besoin d'aide ?"
             subtitle="Assistance pour vos demandes"
             footerContent={
-              <ChatToggle
-                customIcon={
-                  <Button variant="outline" className="w-full" onClick={toggleChat}>
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    Obtenir de l&apos;aide
-                  </Button>
-                }
-              />
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => console.log('Chat feature not implemented')}
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Obtenir de l&apos;aide
+              </Button>
             }
           >
             <div className="space-y-3">
