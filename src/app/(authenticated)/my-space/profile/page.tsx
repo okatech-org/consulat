@@ -12,13 +12,19 @@ import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 
+// Cache optimisé pour la page profil
+export const revalidate = 600; // 10 minutes
+
 export default async function ProfilePage() {
   const session = await auth();
-  const profile = await api.profile.getCurrent();
 
-  const registrationRequest = await api.profile.getRegistrationRequest({
-    profileId: session?.user?.profileId ?? '',
-  });
+  // Paralléliser les requêtes indépendantes
+  const [profile, registrationRequest] = await Promise.all([
+    api.profile.getCurrent(),
+    api.profile.getRegistrationRequest({
+      profileId: session?.user?.profileId ?? '',
+    }),
+  ]);
 
   if (!profile) {
     return (

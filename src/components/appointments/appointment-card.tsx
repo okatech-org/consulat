@@ -4,7 +4,10 @@ import { Calendar, Clock, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
 import { AppointmentStatus } from '@prisma/client';
-import type { AppointmentWithRelations } from '@/schemas/appointment';
+import type {
+  AppointmentWithRelations,
+  DashboardAppointment,
+} from '@/schemas/appointment';
 import { useAppointments } from '@/hooks/use-appointments';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
@@ -22,10 +25,11 @@ import {
 import CardContainer from '../layouts/card-container';
 
 interface AppointmentCardProps {
-  appointment: AppointmentWithRelations;
+  appointment: AppointmentWithRelations | DashboardAppointment;
+  onUpdate?: () => void;
 }
 
-export function AppointmentCard({ appointment }: AppointmentCardProps) {
+export function AppointmentCard({ appointment, onUpdate }: AppointmentCardProps) {
   const t = useTranslations('appointments');
   const t_common = useTranslations('common');
   const t_inputs = useTranslations('inputs');
@@ -52,6 +56,11 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
 
   const handleCancel = () => {
     cancelAppointment.mutate({ id: appointment.id });
+    // Appeler onUpdate après la mutation pour rafraîchir les données
+    if (onUpdate) {
+      // Petit délai pour laisser la mutation se terminer
+      setTimeout(onUpdate, 500);
+    }
   };
 
   const handleReschedule = () => {

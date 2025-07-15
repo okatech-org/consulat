@@ -1,7 +1,4 @@
-import {
-  AppointmentType,
-  AppointmentStatus,
-} from '@prisma/client';
+import { AppointmentType, AppointmentStatus } from '@prisma/client';
 import type {
   User,
   ServiceRequest,
@@ -72,4 +69,47 @@ export interface AppointmentWithRelations extends Appointment {
   request?: (ServiceRequest & { service: ConsularService }) | null;
   attendee?: User | null;
   service?: ConsularService | null;
+}
+
+// Type optimisé pour la liste des rendez-vous (dashboard)
+export interface DashboardAppointment {
+  id: string;
+  date: Date;
+  startTime: Date;
+  endTime: Date;
+  duration: number;
+  type: AppointmentType;
+  status: AppointmentStatus;
+  instructions?: string | null;
+  organization: {
+    id: string;
+    name: string;
+  };
+  service: {
+    id: string;
+    name: string;
+  } | null;
+  agent: {
+    id: string;
+    name: string | null;
+  } | null;
+  request?: {
+    service: {
+      name: string;
+      category: string;
+    };
+  } | null;
+}
+
+// Interface pour les rendez-vous groupés avec pagination
+export interface PaginatedAppointments {
+  appointments: DashboardAppointment[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
+export interface GroupedAppointmentsDashboard {
+  upcoming: PaginatedAppointments;
+  past: PaginatedAppointments;
+  cancelled: PaginatedAppointments;
 }

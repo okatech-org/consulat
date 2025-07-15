@@ -1,8 +1,8 @@
 import { ChildProfileCard } from './child-profile-card';
-import type { FullParentalAuthority } from '@/types/parental-authority';
+import type { ChildProfileCardData } from '@/types/parental-authority';
 
 interface ChildrenListProps {
-  parentalAuthorities: FullParentalAuthority[];
+  parentalAuthorities: ChildProfileCardData[];
 }
 
 export function ChildrenList({ parentalAuthorities }: ChildrenListProps) {

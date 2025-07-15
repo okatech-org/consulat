@@ -1,6 +1,6 @@
 import { getNotifications } from '@/actions/notifications';
 import { getUserAppointments } from '@/actions/appointments';
-import { calculateProfileCompletion } from '@/lib/utils';
+import { calculateDashboardProfileCompletion } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 
 import { ProfileStatusCard } from '@/components/user/profile-status-card';
@@ -15,12 +15,24 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { api } from '@/trpc/server';
 
+// Cache de page optimisé
+export const revalidate = 300; // 5 minutes
+
+// Métadonnées optimisées pour la performance
+export const metadata = {
+  title: 'Mon Espace - Dashboard',
+  description: 'Tableau de bord personnel - Profil consulaire et démarches',
+  robots: { index: false, follow: false }, // Page privée
+};
+
 export default async function UserDashboard() {
-  // Fetch user profile
-  const userProfile = await api.profile.getCurrent();
+  // Fetch optimized user profile for dashboard (reduced data transfer)
+  const userProfile = await api.profile.getDashboard();
 
   // Calculate profile completion percentage
-  const profileCompletion = userProfile ? calculateProfileCompletion(userProfile) : 0;
+  const profileCompletion = userProfile
+    ? calculateDashboardProfileCompletion(userProfile)
+    : 0;
 
   // Get missing documents
   const missingDocuments = [];
@@ -32,10 +44,12 @@ export default async function UserDashboard() {
     if (!userProfile.addressProof) missingDocuments.push('proof_of_address');
   }
 
-  // Fetch user service requests
-  const serviceRequestsData = await api.requests.getByUser({
-    userId: userProfile.userId ?? '',
-  });
+  // Parallelize all dependent requests using Promise.all()
+  const [serviceRequestsData, appointmentsResponse, notifications] = await Promise.all([
+    api.requests.getByUser({ userId: userProfile.userId ?? '' }),
+    getUserAppointments({ userId: userProfile.userId ?? '' }),
+    getNotifications(),
+  ]);
 
   // Transform service requests to match expected interface
   const serviceRequests = serviceRequestsData.map((request) => ({
@@ -48,18 +62,13 @@ export default async function UserDashboard() {
     updatedAt: request.updatedAt?.toISOString(),
   }));
 
-  // Fetch user appointments
-  const appointmentsResponse = await getUserAppointments({
-    userId: userProfile.userId ?? '',
-  });
   const appointments = appointmentsResponse.data || {
     upcoming: [],
     past: [],
     cancelled: [],
   };
 
-  // Fetch recent notifications
-  const notifications = await getNotifications();
+  // Limit notifications for dashboard display
   const recentNotifications = notifications.slice(0, 3);
 
   return (

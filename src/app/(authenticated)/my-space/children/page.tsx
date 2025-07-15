@@ -1,6 +1,4 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -9,28 +7,15 @@ import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
 import { ROUTES } from '@/schemas/routes';
-import { useChildProfiles } from '@/hooks/use-child-profiles';
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { api } from '@/trpc/server';
 
-export default function ChildrenPageClient() {
-  const t = useTranslations('user.children');
+// Cache optimisé pour la liste des enfants
+export const revalidate = 300; // 5 minutes
 
-  const { children, totalChildren, isLoading, isError } = useChildProfiles();
+export default async function ChildrenPage() {
+  const t = await getTranslations('user.children');
 
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
-
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8">
-        <p className="text-destructive mb-4">
-          Erreur lors du chargement des profils enfants
-        </p>
-        <Button onClick={() => window.location.reload()}>Réessayer</Button>
-      </div>
-    );
-  }
+  const childrenData = await api.profile.getChildrenForDashboard();
 
   return (
     <PageContainer
@@ -46,8 +31,8 @@ export default function ChildrenPageClient() {
       }
     >
       <CardContainer>
-        {totalChildren > 0 ? (
-          <ChildrenList parentalAuthorities={children} />
+        {childrenData.parentalAuthorities.length > 0 ? (
+          <ChildrenList parentalAuthorities={childrenData.parentalAuthorities} />
         ) : (
           <NoChildrenMessage />
         )}

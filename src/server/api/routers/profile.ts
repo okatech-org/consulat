@@ -7,7 +7,7 @@ import {
   CreateProfileSchema,
   BasicInfoSchema,
 } from '@/schemas/registration';
-import { FullProfileInclude } from '@/types/profile';
+import { FullProfileInclude, DashboardProfileSelect } from '@/types/profile';
 import {
   createUserProfile,
   updateProfile as updateProfileAction,
@@ -23,9 +23,218 @@ import { NotificationChannel } from '@/types/notifications';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import { LinkInfoSchema } from '@/schemas/child-registration';
-import { FullParentalAuthorityInclude } from '@/types/parental-authority';
+import {
+  FullParentalAuthorityInclude,
+  DashboardChildProfileSelect,
+} from '@/types/parental-authority';
 
 export const profileRouter = createTRPCRouter({
+  // Récupérer le profil optimisé pour le dashboard
+  getDashboard: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: { userId: ctx.session.user.id },
+        ...DashboardProfileSelect,
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile non trouvé',
+        });
+      }
+
+      return profile;
+    } catch (error) {
+      console.error('Error fetching dashboard profile:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération du profil',
+      });
+    }
+  }),
+
+  // Requêtes optimisées pour le lazy loading des sections
+  getBasicInfo: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: { userId: ctx.session.user.id },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          birthDate: true,
+          birthPlace: true,
+          birthCountry: true,
+          nationality: true,
+          gender: true,
+          acquisitionMode: true,
+          cardNumber: true,
+          cardPin: true,
+          status: true,
+        },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile non trouvé',
+        });
+      }
+
+      return profile;
+    } catch (error) {
+      console.error('Error fetching basic info:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des informations de base',
+      });
+    }
+  }),
+
+  getContactInfo: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: { userId: ctx.session.user.id },
+        select: {
+          id: true,
+          email: true,
+          phoneNumber: true,
+          address: {
+            select: {
+              id: true,
+              firstLine: true,
+              secondLine: true,
+              city: true,
+              zipCode: true,
+              country: true,
+            },
+          },
+          residentContact: {
+            include: {
+              address: true,
+            },
+          },
+          homeLandContact: {
+            include: {
+              address: true,
+            },
+          },
+          status: true,
+        },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile non trouvé',
+        });
+      }
+
+      return profile;
+    } catch (error) {
+      console.error('Error fetching contact info:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des informations de contact',
+      });
+    }
+  }),
+
+  getFamilyInfo: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: { userId: ctx.session.user.id },
+        select: {
+          id: true,
+          maritalStatus: true,
+          fatherFullName: true,
+          motherFullName: true,
+          spouseFullName: true,
+          status: true,
+        },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile non trouvé',
+        });
+      }
+
+      return profile;
+    } catch (error) {
+      console.error('Error fetching family info:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des informations familiales',
+      });
+    }
+  }),
+
+  getProfessionalInfo: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: { userId: ctx.session.user.id },
+        select: {
+          id: true,
+          workStatus: true,
+          profession: true,
+          employer: true,
+          employerAddress: true,
+          status: true,
+        },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile non trouvé',
+        });
+      }
+
+      return profile;
+    } catch (error) {
+      console.error('Error fetching professional info:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des informations professionnelles',
+      });
+    }
+  }),
+
+  getDocuments: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: { userId: ctx.session.user.id },
+        select: {
+          id: true,
+          passport: true,
+          birthCertificate: true,
+          residencePermit: true,
+          addressProof: true,
+          identityPicture: true,
+          status: true,
+        },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile non trouvé',
+        });
+      }
+
+      return profile;
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des documents',
+      });
+    }
+  }),
+
   // Récupérer le profil de l'utilisateur actuel
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
     try {
@@ -781,6 +990,7 @@ export const profileRouter = createTRPCRouter({
         }
 
         // Formater les dates si présentes
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updateData: any = { ...input.data };
         if (updateData.birthDate) {
           updateData.birthDate = new Date(updateData.birthDate);
@@ -938,6 +1148,50 @@ export const profileRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erreur lors de la récupération des statistiques',
+        });
+      }
+    }),
+
+  /**
+   * Récupérer les profils enfants optimisés pour le dashboard
+   */
+  getChildrenForDashboard: protectedProcedure
+    .input(z.object({ parentId: z.string().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      const parentId = input?.parentId || ctx.session.user.id;
+
+      // Vérifier que l'utilisateur peut voir ces profils
+      if (
+        parentId !== ctx.session.user.id &&
+        !ctx.session.user.roles?.includes('ADMIN')
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Non autorisé à voir ces profils enfants',
+        });
+      }
+
+      try {
+        const parentalAuthorities = await ctx.db.parentalAuthority.findMany({
+          where: {
+            parentUserId: parentId,
+            isActive: true,
+          },
+          select: DashboardChildProfileSelect,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+
+        return {
+          parentalAuthorities,
+          total: parentalAuthorities.length,
+        };
+      } catch (error) {
+        console.error('Error fetching children for dashboard:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la récupération des profils enfants pour le dashboard',
         });
       }
     }),

@@ -1,15 +1,19 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Profile } from '@prisma/client';
-import { CountryIndicator, phoneCountries } from '@/lib/autocomplete-datas';
-import { FullProfile, SessionUser } from '@/types';
-import { UseFormReturn } from 'react-hook-form';
-import { DateTimeFormatOptions, useLocale } from 'next-intl';
-import { es, fr, enUS, Locale } from 'date-fns/locale';
+import type { Profile } from '@prisma/client';
+import type { CountryIndicator } from '@/lib/autocomplete-datas';
+import { phoneCountries } from '@/lib/autocomplete-datas';
+import type { FullProfile, SessionUser } from '@/types';
+import type { DashboardProfile } from '@/types/profile';
+import type { UseFormReturn } from 'react-hook-form';
+import type { DateTimeFormatOptions } from 'next-intl';
+import { useLocale } from 'next-intl';
+import type { Locale } from 'date-fns/locale';
+import { es, fr, enUS } from 'date-fns/locale';
 import { format } from 'date-fns';
 import messages from '@/i18n/messages/fr/messages';
 
-import { Primitive } from 'type-fest';
+import type { Primitive } from 'type-fest';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -381,6 +385,54 @@ export function calculateProfileCompletion(profile: FullProfile | null): number 
   const completedRequired = requiredFields.filter(
     (field) => profile[field] !== null && profile[field] !== '',
   ).length;
+
+  const totalWeight = requiredFields.length;
+  return Math.round((completedRequired / totalWeight) * 100);
+}
+
+// Version optimisée pour le dashboard avec moins de données
+export function calculateDashboardProfileCompletion(
+  profile: DashboardProfile | null,
+): number {
+  if (!profile) return 0;
+
+  const requiredFields = [
+    'firstName',
+    'lastName',
+    'birthDate',
+    'birthPlace',
+    'nationality',
+    'gender',
+    'email',
+    'phoneNumber',
+    'maritalStatus',
+    'fatherFullName',
+    'motherFullName',
+  ];
+
+  // Ajouter les champs conditionnels
+  if (profile.workStatus === 'EMPLOYEE') {
+    requiredFields.push('employer', 'profession', 'employerAddress');
+  }
+
+  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
+    requiredFields.push('spouseFullName');
+  }
+
+  // Ajouter les vérifications d'adresse et de documents
+  if (profile.address) {
+    requiredFields.push('address');
+  }
+
+  const completedRequired = requiredFields.filter((field) => {
+    if (field === 'address') {
+      return profile.address && profile.address.firstLine && profile.address.city;
+    }
+    return (
+      profile[field as keyof DashboardProfile] !== null &&
+      profile[field as keyof DashboardProfile] !== ''
+    );
+  }).length;
 
   const totalWeight = requiredFields.length;
   return Math.round((completedRequired / totalWeight) * 100);
@@ -781,24 +833,17 @@ export function undefinedToNull<T>(obj: T) {
 // eslint-disable-next-line
 export function removeUndefined<T extends Record<string, any>>(obj: T): T {
   if (Array.isArray(obj)) {
-    return (
-      obj
-         
-        .map((element) => removeUndefined<T>(element)) as unknown as T
-    );
+    return obj.map((element) => removeUndefined<T>(element)) as unknown as T;
   }
 
-   
   if (typeof obj !== 'object' || obj === null) {
     return obj;
   }
 
   // eslint-disable-next-line
   return Object.keys(obj).reduce((acc: any, key: string) => {
-     
     const value = obj[key];
     if (value !== undefined) {
-       
       acc[key] = removeUndefined<T>(value);
     }
     return acc;
