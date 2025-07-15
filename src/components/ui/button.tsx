@@ -33,10 +33,10 @@ const buttonVariants = cva(
         destructive:
           'bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90 hover:shadow-lg active:shadow-sm',
         destructiveOutline:
-          'border-2 border-destructive text-destructive bg-background shadow-sm hover:bg-destructive/5 hover:border-destructive/80 active:bg-destructive/10',
+          'border border-destructive text-destructive bg-background shadow-sm hover:bg-destructive/5 hover:border-destructive/80 active:bg-destructive/10',
         // Secondary actions - clearly differentiated from primary
         outline:
-          'border-2 border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 active:bg-accent/80',
+          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 active:bg-accent/80',
         secondary:
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md active:shadow-sm',
         // Tertiary actions

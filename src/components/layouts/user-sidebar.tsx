@@ -62,6 +62,11 @@ export function UserSidebar() {
       icon: Home,
     },
     {
+      title: t('my_requests'),
+      url: ROUTES.user.requests,
+      icon: FileText,
+    },
+    {
       title: t('profile'),
       url: ROUTES.user.profile,
       icon: User,
@@ -95,11 +100,6 @@ export function UserSidebar() {
       title: t('documents'),
       url: ROUTES.user.documents,
       icon: FolderOpen,
-    },
-    {
-      title: t('available'),
-      url: ROUTES.user.service_available,
-      icon: Plus,
     },
     {
       title: t('children'),

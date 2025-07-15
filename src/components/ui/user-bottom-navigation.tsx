@@ -52,6 +52,11 @@ const UserBottomNavigation = React.forwardRef<HTMLElement, UserBottomNavigationP
         icon: Home,
       },
       {
+        title: t('my_requests'),
+        url: ROUTES.user.requests,
+        icon: FileText,
+      },
+      {
         title: t('profile'),
         url: ROUTES.user.profile,
         icon: User,
@@ -73,11 +78,6 @@ const UserBottomNavigation = React.forwardRef<HTMLElement, UserBottomNavigationP
         title: t('documents'),
         url: ROUTES.user.documents,
         icon: FolderOpen,
-      },
-      {
-        title: t('available'),
-        url: ROUTES.user.service_available,
-        icon: Plus,
       },
       {
         title: t('children'),

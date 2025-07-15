@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Consulaires - Sous-pages</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Navigation */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .nav-back {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover {
+            color: #1d4ed8;
+        }
+
+        .nav-breadcrumb {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .nav-breadcrumb a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        /* Page switcher */
+        .page-switcher {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .page-btn.active {
+            background: #1e40af;
+            color: white;
+            border-color: #1e40af;
+        }
+
+        .page-btn:hover:not(.active) {
+            background: #f3f4f6;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Styles communs */
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background-color: #1e40af;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+        }
+
+        .btn-outline {
+            background-color: white;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-outline:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-processing {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-completed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Contact Page */
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-card {
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            text-align: center;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .contact-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-icon {
+            width: 3rem;
+            height: 3rem;
+            background: #1e40af;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .contact-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-info {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Details page */
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .progress-container {
+            background: #f1f5f9;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .progress-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            border-radius: 0.5rem;
+            height: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #1e40af;
+            transition: width 0.3s ease;
+            border-radius: 0.5rem;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #64748b;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .progress-step.completed {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .progress-step.current {
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .info-value {
+            color: #6b7280;
+            text-align: right;
+        }
+
+        /* Documents section */
+        .documents-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .document-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background: #fafbfc;
+        }
+
+        .document-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .document-icon {
+            width: 2rem;
+            height: 2rem;
+            background: #3b82f6;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .document-name {
+            font-weight: 500;
+        }
+
+        .document-status {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* History page */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+            min-width: 150px;
+        }
+
+        .search-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .requests-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .request-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .request-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .request-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .request-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .request-progress {
+            background: #f1f5f9;
+            border-radius: 0.375rem;
+            height: 0.25rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .request-progress-bar {
+            height: 100%;
+            background: #1e40af;
+            transition: width 0.3s ease;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* New request page */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .service-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-card-header {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .service-badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .service-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-org {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .service-card-content {
+            padding: 1.5rem;
+        }
+
+        .service-description {
+            color: #4b5563;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .service-footer {
+            display: flex;
+            justify-content: center;
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .page-switcher {
+                gap: 0.5rem;
+            }
+
+            .page-btn {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
+
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-select,
+            .search-input {
+                min-width: auto;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .request-header,
+            .progress-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .request-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .progress-steps {
+                font-size: 0.6rem;
+            }
+
+            .progress-step {
+                min-width: 80px;
+            }
+        }
+
+        /* Icons */
+        .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            fill: currentColor;
+        }
+
+        .icon-white {
+            fill: white;
+        }
+
+        .icon-small {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <div class="nav-header">
+            <a href="#" class="nav-back" onclick="showMainPage()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+                Retour
+            </a>
+            <div class="nav-breadcrumb">
+                <a href="#">Mon espace</a> > <a href="#">Démarches et services</a> > <span id="current-page-name">Services consulaires</span>
+            </div>
+        </div>
+
+        <!-- Page Switcher -->
+        <div class="page-switcher">
+            <button class="page-btn active" onclick="showPage('contact')">Nous contacter</button>
+            <button class="page-btn" onclick="showPage('details')">Voir les détails</button>
+            <button class="page-btn" onclick="showPage('history')">Historique des demandes</button>
+            <button class="page-btn" onclick="showPage('new-request')">Nouvelle demande</button>
+        </div>
+
+        <!-- Page: Contact -->
+        <div id="contact" class="page active">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">Nous contacter</h1>
+                    <p class="card-subtitle">Choisissez le moyen de contact qui vous convient le mieux</p>
+                </div>
+                <div class="card-content">
+                    <div class="contact-methods">
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <svg class="icon icon-white" viewBox="0 0 24 24">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                </svg>
+                            </div>
+                            <h3 class="contact-title">Assistance d'urgence</h3>
+                            <p class="contact-info">Pour les situations d'urgence uniquement</p>
+                            <a href="tel:+33123456789" class="btn btn-primary">Appeler maintenant</a>
+                        </div>
+
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <svg class="icon icon-white" viewBox="0 0 24 24">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="contact-title">Chat en ligne</h3>
+                            <p class="contact-info">Assistance immédiate par chat</p>
+                            <button class="btn btn-primary">Démarrer le chat</button>
+                        </div>
+
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <svg class="icon icon-white" viewBox="0 0 24 24">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                            </div>
+                            <h3 class="contact-title">Email</h3>
+                            <p class="contact-info">Réponse sous 24-48h</p>
+                            <a href="mailto:contact@consulat.ga" class="btn btn-primary">Envoyer un email</a>
+                        </div>
+
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <svg class="icon icon-white" viewBox="0 0 24 24">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                    <polyline points="9,22 9,12 15,12 15,22"/>
+                                </svg>
+                            </div>
+                            <h3 class="contact-title">Se rendre au consulat</h3>
+                            <p class="contact-info">Rendez-vous sur place</p>
+                            <button class="btn btn-primary">Prendre RDV</button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Informations de contact</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Adresse</span>
+                                    <span class="info-value">26 bis avenue Raphaël<br>75016 Paris, France</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Téléphone</span>
+                                    <span class="info-value">+33 1 45 00 97 57</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Email</span>
+                                    <span class="info-value">contact@consulat.ga</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Horaires</span>
+                                    <span class="info-value">Lun-Ven: 9h-17h<br>Fermé le weekend</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page: Details -->
+        <div id="details" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">Inscription Consulaire</h1>
+                    <p class="card-subtitle">Détails de votre demande en cours</p>
+                </div>
+                <div class="card-content">
+                    <!-- Progress Section -->
+                    <div class="progress-container">
+                        <div class="progress-header">
+                            <h3 class="progress-title">Progression de votre demande</h3>
+                            <span class="status-badge status-processing">En traitement</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: 44%;"></div>
+                        </div>
+                        <div class="progress-steps">
+                            <div class="progress-step completed">✓ Soumise</div>
+                            <div class="progress-step completed">✓ Vérifiée</div>
+                            <div class="progress-step current">• En traitement</div>
+                            <div class="progress-step">Validation</div>
+                            <div class="progress-step">Terminée</div>
+                        </div>
+                    </div>
+
+                    <!-- Information Details -->
+                    <div class="detail-section">
+                        <h3>Informations de la demande</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Numéro de demande</span>
+                                <span class="info-value">#IC-2025-001234</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Date de soumission</span>
+                                <span class="info-value">06/07/2025</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Dernière mise à jour</span>
+                                <span class="info-value">Il y a 6 jours</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Assignée à</span>
+                                <span class="info-value">Gwenaëlle NTSAGA</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Délai estimé</span>
+                                <span class="info-value">10-15 jours ouvrés</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Frais</span>
+                                <span class="info-value">Gratuit</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documents Section -->
+                    <div class="detail-section">
+                        <h3>Documents fournis</h3>
+                        <div class="documents-list">
+                            <div class="document-item">
+                                <div class="document-info">
+                                    <div class="document-icon">
+                                        <svg class="icon icon-white" viewBox="0 0 24 24">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                            <polyline points="14,2 14,8 20,8"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="document-name">Passeport gabonais</div>
+                                        <div class="document-status">Vérifié ✓</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline">
+                                    <svg class="icon icon-small" viewBox="0 0 24 24">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    Voir
+                                </button>
+                            </div>
+
+                            <div class="document-item">
+                                <div class="document-info">
+                                    <div class="document-icon">
+                                        <svg class="icon icon-white" viewBox="0 0 24 24">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                            <polyline points="14,2 14,8 20,8"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="document-name">Justificatif de domicile</div>
+                                        <div class="document-status">En cours de vérification</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline">
+                                    <svg class="icon icon-small" viewBox="0 0 24 24">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    Voir
+                                </button>
+                            </div>
+
+                            <div class="document-item">
+                                <div class="document-info">
+                                    <div class="document-icon">
+                                        <svg class="icon icon-white" viewBox="0 0 24 24">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                            <polyline points="14,2 14,8 20,8"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="document-name">Acte de naissance</div>
+                                        <div class="document-status">Vérifié ✓</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline">
+                                    <svg class="icon icon-small" viewBox="0 0 24 24">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    Voir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="detail-section">
+                        <h3>Actions disponibles</h3>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                Contacter l'agent
+                            </button>
+                            <button class="btn btn-outline">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                </svg>
+                                Ajouter un document
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page: History -->
+        <div id="history" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">Historique des demandes</h1>
+                    <p class="card-subtitle">Retrouvez toutes vos demandes passées et en cours</p>
+                </div>
+                <div class="card-content">
+                    <!-- Filters -->
+                    <div class="filter-bar">
+                        <input type="text" class="search-input" placeholder="Rechercher par nom ou ID...">
+                        <select class="filter-select">
+                            <option>Toutes les demandes</option>
+                            <option>En cours</option>
+                            <option>Terminées</option>
+                            <option>En attente</option>
+                        </select>
+                        <select class="filter-select">
+                            <option>Tous les services</option>
+                            <option>Inscription Consulaire</option>
+                            <option>Certificat de vie</option>
+                            <option>Attestations</option>
+                        </select>
+                    </div>
+
+                    <!-- Requests List -->
+                    <div class="requests-grid">
+                        <!-- Request 1 - En cours -->
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div>
+                                    <h3 class="request-title">Inscription Consulaire</h3>
+                                    <div class="request-meta">
+                                        <span>Soumise le 06/07/2025</span>
+                                        <span>Assignée à: Gwenaëlle NTSAGA</span>
+                                        <span>ID: #IC-2025-001234</span>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-processing">En traitement</span>
+                            </div>
+                            <div class="request-progress">
+                                <div class="request-progress-bar" style="width: 44%;"></div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="btn btn-primary">Voir les détails</button>
+                                <button class="btn btn-outline">Contacter</button>
+                            </div>
+                        </div>
+
+                        <!-- Request 2 - Terminée -->
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div>
+                                    <h3 class="request-title">Certificat de vie</h3>
+                                    <div class="request-meta">
+                                        <span>Soumise le 06/07/2025</span>
+                                        <span>Assignée à: Jacqueline MPEMBA</span>
+                                        <span>ID: #CV-2025-000891</span>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-completed">Terminée</span>
+                            </div>
+                            <div class="request-progress">
+                                <div class="request-progress-bar" style="width: 100%;"></div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="btn btn-outline">Télécharger</button>
+                                <button class="btn btn-outline">Voir les détails</button>
+                            </div>
+                        </div>
+
+                        <!-- Request 3 - En cours -->
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div>
+                                    <h3 class="request-title">Inscription Consulaire</h3>
+                                    <div class="request-meta">
+                                        <span>Soumise le 21/06/2025</span>
+                                        <span>Assignée à: Gwenaëlle NTSAGA</span>
+                                        <span>ID: #IC-2025-000987</span>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-processing">En traitement</span>
+                            </div>
+                            <div class="request-progress">
+                                <div class="request-progress-bar" style="width: 33%;"></div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="btn btn-primary">Voir les détails</button>
+                                <button class="btn btn-outline">Contacter</button>
+                            </div>
+                        </div>
+
+                        <!-- Request 4 - Terminée ancienne -->
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div>
+                                    <h3 class="request-title">Inscription Consulaire</h3>
+                                    <div class="request-meta">
+                                        <span>Soumise le 28/03/2025</span>
+                                        <span>Assignée à: Gwenaëlle NTSAGA</span>
+                                        <span>ID: #IC-2025-000654</span>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-completed">Terminée</span>
+                            </div>
+                            <div class="request-progress">
+                                <div class="request-progress-bar" style="width: 100%;"></div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="btn btn-outline">Voir les détails</button>
+                                <button class="btn btn-outline">Télécharger la carte</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page: New Request -->
+        <div id="new-request" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">Nouvelle demande</h1>
+                    <p class="card-subtitle">Choisissez le service consulaire dont vous avez besoin</p>
+                </div>
+                <div class="card-content">
+                    <!-- Search and filters -->
+                    <div class="filter-bar">
+                        <input type="text" class="search-input" placeholder="Rechercher un service par nom, description ou organisme...">
+                        <select class="filter-select">
+                            <option>Toutes catégories</option>
+                            <option>État civil</option>
+                            <option>Identité</option>
+                            <option>Attestations</option>
+                            <option>Légalisations</option>
+                        </select>
+                        <select class="filter-select">
+                            <option>Tous organismes</option>
+                            <option>Consulat Général du Gabon</option>
+                            <option>Ministère des Affaires Étrangères</option>
+                        </select>
+                    </div>
+
+                    <!-- Services Grid -->
+                    <div class="services-grid">
+                        <!-- Service 1 -->
+                        <div class="service-card" onclick="startRequest('attestation-capacite')">
+                            <div class="service-card-header">
+                                <span class="service-badge">Actif</span>
+                                <h3 class="service-title">Attestation de capacité juridique</h3>
+                                <p class="service-org">Consulat Général du Gabon en France</p>
+                            </div>
+                            <div class="service-card-content">
+                                <p class="service-description">
+                                    Ce document permet d'attester qu'un ressortissant gabonais résidant en France n'a pas fait l'objet de condamnations à des peines privatives de liberté...
+                                </p>
+                            </div>
+                            <div class="service-footer">
+                                <button class="btn btn-primary">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 2v20m-10-10h20"/>
+                                    </svg>
+                                    Démarrer la demande
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Service 2 -->
+                        <div class="service-card" onclick="startRequest('attestation-concordance')">
+                            <div class="service-card-header">
+                                <span class="service-badge">Actif</span>
+                                <h3 class="service-title">Attestation de concordance</h3>
+                                <p class="service-org">Consulat Général du Gabon en France</p>
+                            </div>
+                            <div class="service-card-content">
+                                <p class="service-description">
+                                    L'attestation de concordance est un document permettant à toute personne ayant constaté une incohérence dans un document (acte de naissance...)
+                                </p>
+                            </div>
+                            <div class="service-footer">
+                                <button class="btn btn-primary">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 2v20m-10-10h20"/>
+                                    </svg>
+                                    Démarrer la demande
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Service 3 -->
+                        <div class="service-card" onclick="startRequest('attestation-rapatriement')">
+                            <div class="service-card-header">
+                                <span class="service-badge">Actif</span>
+                                <h3 class="service-title">Attestation de rapatriement de corps</h3>
+                                <p class="service-org">Consulat Général du Gabon en France</p>
+                            </div>
+                            <div class="service-card-content">
+                                <p class="service-description">
+                                    À la suite du décès d'un ressortissant gabonais, résidant ou de passage en France, le Consulat Général établit une attestation de rapatriement...
+                                </p>
+                            </div>
+                            <div class="service-footer">
+                                <button class="btn btn-primary">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 2v20m-10-10h20"/>
+                                    </svg>
+                                    Démarrer la demande
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Service 4 -->
+                        <div class="service-card" onclick="startRequest('attestation-revenus')">
+                            <div class="service-card-header">
+                                <span class="service-badge">Actif</span>
+                                <h3 class="service-title">Attestation de revenus</h3>
+                                <p class="service-org">Consulat Général du Gabon en France</p>
+                            </div>
+                            <div class="service-card-content">
+                                <p class="service-description">
+                                    Document attestant des revenus d'un ressortissant gabonais en France pour diverses démarches administratives au Gabon.
+                                </p>
+                            </div>
+                            <div class="service-footer">
+                                <button class="btn btn-primary">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 2v20m-10-10h20"/>
+                                    </svg>
+                                    Démarrer la demande
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Service 5 -->
+                        <div class="service-card" onclick="startRequest('attestation-patronymique')">
+                            <div class="service-card-header">
+                                <span class="service-badge">Actif</span>
+                                <h3 class="service-title">Attestation patronymique</h3>
+                                <p class="service-org">Consulat Général du Gabon en France</p>
+                            </div>
+                            <div class="service-card-content">
+                                <p class="service-description">
+                                    Attestation confirmant l'identité et les noms d'usage d'un ressortissant gabonais, utile pour les démarches administratives.
+                                </p>
+                            </div>
+                            <div class="service-footer">
+                                <button class="btn btn-primary">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 2v20m-10-10h20"/>
+                                    </svg>
+                                    Démarrer la demande
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Service 6 -->
+                        <div class="service-card" onclick="startRequest('certificat-expatriation')">
+                            <div class="service-card-header">
+                                <span class="service-badge">Actif</span>
+                                <h3 class="service-title">Certificat d'expatriation</h3>
+                                <p class="service-org">Consulat Général du Gabon en France</p>
+                            </div>
+                            <div class="service-card-content">
+                                <p class="service-description">
+                                    Certificat attestant de la résidence habituelle d'un ressortissant gabonais en France, requis pour certaines démarches.
+                                </p>
+                            </div>
+                            <div class="service-footer">
+                                <button class="btn btn-primary">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 2v20m-10-10h20"/>
+                                    </svg>
+                                    Démarrer la demande
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help section -->
+                    <div class="card" style="margin-top: 2rem; background: #f8fafc;">
+                        <div class="card-content">
+                            <h3 style="margin-bottom: 1rem; color: #1f2937;">Besoin d'aide ?</h3>
+                            <p style="color: #6b7280; margin-bottom: 1rem;">
+                                Vous ne trouvez pas le service que vous cherchez ou vous avez des questions sur une démarche ?
+                            </p>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <button class="btn btn-primary" onclick="showPage('contact')">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                    Nous contacter
+                                </button>
+                                <button class="btn btn-outline">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                    Guide d'aide
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Page navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.page-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Add active class to corresponding button
+            event.target.classList.add('active');
+            
+            // Update breadcrumb
+            const pageNames = {
+                'contact': 'Nous contacter',
+                'details': 'Détails de la demande',
+                'history': 'Historique des demandes',
+                'new-request': 'Nouvelle demande'
+            };
+            document.getElementById('current-page-name').textContent = pageNames[pageId];
+        }
+
+        // Mock function to start a new request
+        function startRequest(serviceId) {
+            alert(`Démarrage de la demande pour: ${serviceId}\n\nCette fonctionnalité redirigera vers le formulaire de demande.`);
+        }
+
+        // Mock function to show main page
+        function showMainPage() {
+            alert('Retour vers la page principale des services consulaires');
+        }
+
+        // Search functionality (basic demo)
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInputs = document.querySelectorAll('.search-input');
+            searchInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    console.log('Recherche:', searchTerm);
+                    // Here you would implement the actual search logic
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+                            
