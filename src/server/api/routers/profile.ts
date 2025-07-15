@@ -23,7 +23,10 @@ import { NotificationChannel } from '@/types/notifications';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import { LinkInfoSchema } from '@/schemas/child-registration';
-import { FullParentalAuthorityInclude } from '@/types/parental-authority';
+import {
+  FullParentalAuthorityInclude,
+  DashboardChildProfileSelect,
+} from '@/types/parental-authority';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil optimisé pour le dashboard
@@ -1145,6 +1148,50 @@ export const profileRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erreur lors de la récupération des statistiques',
+        });
+      }
+    }),
+
+  /**
+   * Récupérer les profils enfants optimisés pour le dashboard
+   */
+  getChildrenForDashboard: protectedProcedure
+    .input(z.object({ parentId: z.string().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      const parentId = input?.parentId || ctx.session.user.id;
+
+      // Vérifier que l'utilisateur peut voir ces profils
+      if (
+        parentId !== ctx.session.user.id &&
+        !ctx.session.user.roles?.includes('ADMIN')
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Non autorisé à voir ces profils enfants',
+        });
+      }
+
+      try {
+        const parentalAuthorities = await ctx.db.parentalAuthority.findMany({
+          where: {
+            parentUserId: parentId,
+            isActive: true,
+          },
+          select: DashboardChildProfileSelect,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+
+        return {
+          parentalAuthorities,
+          total: parentalAuthorities.length,
+        };
+      } catch (error) {
+        console.error('Error fetching children for dashboard:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la récupération des profils enfants pour le dashboard',
         });
       }
     }),

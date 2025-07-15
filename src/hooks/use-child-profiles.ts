@@ -6,7 +6,28 @@ import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 
 /**
+ * Hook optimisé pour la liste des enfants (dashboard)
+ * Utilise des requêtes optimisées sans over-fetching
+ */
+export function useChildrenDashboard(options?: { parentId?: string }) {
+  const query = api.profile.getChildrenForDashboard.useQuery(options, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    children: query.data?.parentalAuthorities || [],
+    totalChildren: query.data?.total || 0,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
+}
+
+/**
  * Hook principal pour la gestion des profils enfants d'un parent
+ * Utilise FullParentalAuthority pour les détails complets
  */
 export function useChildProfiles(options?: {
   parentId?: string;
@@ -23,6 +44,7 @@ export function useChildProfiles(options?: {
     onMutate: async () => {
       // Annuler les requêtes en cours
       await utils.profile.getByParent.cancel();
+      await utils.profile.getChildrenForDashboard.cancel();
 
       // Sauvegarder l'état précédent pour rollback
       const previousData = utils.profile.getByParent.getData(options);
@@ -41,6 +63,7 @@ export function useChildProfiles(options?: {
     onSuccess: (data) => {
       // Invalidation et notification de succès
       utils.profile.getByParent.invalidate();
+      utils.profile.getChildrenForDashboard.invalidate();
       toast.success(data.message || 'Profil enfant créé avec succès');
     },
   });
@@ -48,6 +71,7 @@ export function useChildProfiles(options?: {
   const deleteMutation = api.profile.deleteChildProfile.useMutation({
     onMutate: async ({ id }) => {
       await utils.profile.getByParent.cancel();
+      await utils.profile.getChildrenForDashboard.cancel();
 
       const previousData = utils.profile.getByParent.getData(options);
 
@@ -74,6 +98,7 @@ export function useChildProfiles(options?: {
     },
     onSuccess: (data) => {
       utils.profile.getByParent.invalidate();
+      utils.profile.getChildrenForDashboard.invalidate();
       toast.success(data.message || 'Profil enfant supprimé avec succès');
     },
   });

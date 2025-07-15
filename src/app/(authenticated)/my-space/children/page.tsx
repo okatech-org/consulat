@@ -9,13 +9,16 @@ import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
 import { ROUTES } from '@/schemas/routes';
-import { useChildProfiles } from '@/hooks/use-child-profiles';
+import { useChildrenDashboard } from '@/hooks/use-child-profiles';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+
+// Cache optimisé pour la liste des enfants
+export const dynamic = 'force-dynamic'; // Nécessaire pour les hooks côté client
 
 export default function ChildrenPageClient() {
   const t = useTranslations('user.children');
 
-  const { children, totalChildren, isLoading, isError } = useChildProfiles();
+  const { children, totalChildren, isLoading, isError } = useChildrenDashboard();
 
   if (isLoading) {
     return <LoadingSkeleton />;

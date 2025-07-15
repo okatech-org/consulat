@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import type { FullParentalAuthority } from '@/types/parental-authority';
+import type { ChildProfileCardData } from '@/types/parental-authority';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ import { ROUTES } from '@/schemas/routes';
 import { useChildProfiles } from '@/hooks/use-child-profiles';
 
 interface ChildProfileCardProps {
-  parentalAuthority: FullParentalAuthority;
+  parentalAuthority: ChildProfileCardData;
 }
 
 export function ChildProfileCard({ parentalAuthority }: ChildProfileCardProps) {
