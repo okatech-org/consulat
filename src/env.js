@@ -10,6 +10,7 @@ export const env = createEnv({
     AUTH_SECRET:
       process.env.NODE_ENV === 'production' ? z.string() : z.string().optional(),
     DATABASE_URL: z.string().url(),
+    DIRECT_URL: z.string().url(),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     VONAGE_API_KEY: z.string(),
     VONAGE_API_SECRET: z.string(),
@@ -91,6 +92,7 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: process.env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH,
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+    DIRECT_URL: process.env.DIRECT_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
