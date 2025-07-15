@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface LoadingSkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'card' | 'list' | 'grid' | 'form' | 'text' | 'avatar' | 'custom';
+  variant?: 'card' | 'list' | 'grid' | 'form' | 'text' | 'avatar' | 'custom' | 'button';
   count?: number;
   rows?: number;
   columns?: number;
@@ -178,6 +178,14 @@ const LoadingSkeleton = React.forwardRef<HTMLDivElement, LoadingSkeletonProps>(
       </div>
     );
 
+    // Generate button skeleton
+    const renderButtonSkeleton = () => (
+      <div className={cn('animate-pulse rounded-md bg-muted', className)}>
+        <div className={cn('h-3 w-1/4 rounded-md bg-muted')} />
+        <div className={cn('h-3 w-1/4 rounded-md bg-muted')} />
+      </div>
+    );
+
     // Main render function based on variant
     const renderSkeleton = () => {
       switch (variant) {
@@ -207,6 +215,8 @@ const LoadingSkeleton = React.forwardRef<HTMLDivElement, LoadingSkeletonProps>(
           return renderTextSkeleton();
         case 'avatar':
           return renderAvatarSkeleton();
+        case 'button':
+          return renderButtonSkeleton();
         default:
           return null;
       }
