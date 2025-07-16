@@ -17,7 +17,12 @@ import {
 import { getProfileRegistrationRequest } from '@/lib/user/getters';
 import type { RouterOutputs } from '@/trpc/react';
 import { getUserSession } from '@/lib/getters';
-import { NotificationType, ParentalRole, RequestStatus } from '@prisma/client';
+import {
+  NotificationType,
+  ParentalRole,
+  RequestStatus,
+  type Address,
+} from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { revalidatePath } from 'next/cache';
@@ -27,6 +32,8 @@ import {
   FullParentalAuthorityInclude,
   DashboardChildProfileSelect,
 } from '@/types/parental-authority';
+import type { CountryCode } from '@/lib/autocomplete-datas';
+import type { OrganizationMetadataSettings } from '@/schemas/organization';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil optimisé pour le dashboard
@@ -54,188 +61,32 @@ export const profileRouter = createTRPCRouter({
     }
   }),
 
-  // Requêtes optimisées pour le lazy loading des sections
-  getBasicInfo: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          birthDate: true,
-          birthPlace: true,
-          birthCountry: true,
-          nationality: true,
-          gender: true,
-          acquisitionMode: true,
-          cardNumber: true,
-          cardPin: true,
-          status: true,
-        },
-      });
+  getCurrentOrganizationContactData: protectedProcedure.query(async ({ ctx }) => {
+    const profile = await ctx.db.profile.findFirst({
+      where: { userId: ctx.session.user.id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        assignedOrganization: true,
+        residenceCountyCode: true,
+      },
+    });
 
-      if (!profile) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile non trouvé',
-        });
+    const metadata: Record<
+      CountryCode,
+      {
+        settings: OrganizationMetadataSettings;
       }
+    > = JSON.parse((profile?.assignedOrganization?.metadata as string) ?? '{}');
 
-      return profile;
-    } catch (error) {
-      console.error('Error fetching basic info:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des informations de base',
-      });
-    }
+    const userCountryCode = profile?.residenceCountyCode;
+
+    const userMetadata = metadata[userCountryCode as CountryCode];
+
+    return userMetadata?.settings;
   }),
 
-  getContactInfo: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
-        select: {
-          id: true,
-          email: true,
-          phoneNumber: true,
-          address: {
-            select: {
-              id: true,
-              firstLine: true,
-              secondLine: true,
-              city: true,
-              zipCode: true,
-              country: true,
-            },
-          },
-          residentContact: {
-            include: {
-              address: true,
-            },
-          },
-          homeLandContact: {
-            include: {
-              address: true,
-            },
-          },
-          status: true,
-        },
-      });
-
-      if (!profile) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile non trouvé',
-        });
-      }
-
-      return profile;
-    } catch (error) {
-      console.error('Error fetching contact info:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des informations de contact',
-      });
-    }
-  }),
-
-  getFamilyInfo: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
-        select: {
-          id: true,
-          maritalStatus: true,
-          fatherFullName: true,
-          motherFullName: true,
-          spouseFullName: true,
-          status: true,
-        },
-      });
-
-      if (!profile) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile non trouvé',
-        });
-      }
-
-      return profile;
-    } catch (error) {
-      console.error('Error fetching family info:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des informations familiales',
-      });
-    }
-  }),
-
-  getProfessionalInfo: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
-        select: {
-          id: true,
-          workStatus: true,
-          profession: true,
-          employer: true,
-          employerAddress: true,
-          status: true,
-        },
-      });
-
-      if (!profile) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile non trouvé',
-        });
-      }
-
-      return profile;
-    } catch (error) {
-      console.error('Error fetching professional info:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des informations professionnelles',
-      });
-    }
-  }),
-
-  getDocuments: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
-        select: {
-          id: true,
-          passport: true,
-          birthCertificate: true,
-          residencePermit: true,
-          addressProof: true,
-          identityPicture: true,
-          status: true,
-        },
-      });
-
-      if (!profile) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile non trouvé',
-        });
-      }
-
-      return profile;
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des documents',
-      });
-    }
-  }),
-
-  // Récupérer le profil de l'utilisateur actuel
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
     try {
       const profile = await ctx.db.profile.findFirst({

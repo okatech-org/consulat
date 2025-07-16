@@ -20,6 +20,62 @@ export default {
     select_agent: 'Sélectionner un agent',
     deadline: 'Date limite',
   },
+
+  // Section pour les détails de demande côté utilisateur
+  details: {
+    back: 'Retour',
+    subtitle: 'Détails de votre demande en cours',
+    error_title: 'Erreur',
+    error_loading: 'Impossible de charger les détails de la demande',
+    retry: 'Réessayer',
+
+    breadcrumb: {
+      my_space: 'Mon espace',
+      requests: 'Demandes',
+      details: 'Détails',
+    },
+
+    progress: {
+      title: 'Progression de votre demande',
+      steps: {
+        submitted: 'Soumise',
+        verified: 'Vérifiée',
+        processing: 'En traitement',
+        validation: 'Validation',
+        completed: 'Terminée',
+      },
+    },
+
+    info: {
+      title: 'Informations de la demande',
+      request_number: 'Numéro de demande',
+      submission_date: 'Date de soumission',
+      last_update: 'Dernière mise à jour',
+      days_ago: 'Il y a {count} jour(s)',
+      assigned_to: 'Assignée à',
+      estimated_deadline: 'Délai estimé',
+      business_days: '10-15 jours ouvrés',
+      fees: 'Frais',
+      free: 'Gratuit',
+    },
+
+    documents: {
+      title: 'Documents fournis',
+      passport: 'Passeport gabonais',
+      address_proof: 'Justificatif de domicile',
+      verified: 'Vérifié',
+      under_review: 'En cours de vérification',
+      view: 'Voir',
+    },
+
+    actions: {
+      title: 'Actions disponibles',
+      contact_agent: "Contacter l'agent",
+      add_document: 'Ajouter un document',
+      contact_consulate: 'Contacter le consulat',
+    },
+  },
+
   status: {
     submitted: 'Soumise',
     in_progress: 'En cours',

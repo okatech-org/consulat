@@ -13,7 +13,7 @@ export const ROUTES = {
   auth: {
     base: '/auth' as Route<string>,
     login: '/auth/login' as Route<string>,
-    register: '/registration' as Route<string>, 
+    register: '/registration' as Route<string>,
     auth_error: '/auth/error' as Route<string>,
     unauthorized: '/auth/unauthorized' as Route<string>,
   },
@@ -59,12 +59,15 @@ export const ROUTES = {
   user: {
     base: '/my-space' as Route<string>,
     dashboard: '/my-space' as Route<string>,
-    requests: '/my-space/services/requests' as Route<string>,
+    requests: '/my-space/requests' as Route<string>,
     profile: '/my-space/profile' as Route<string>,
     profile_form: '/my-space/profile/form' as Route<string>,
     appointments: '/my-space/appointments' as Route<string>,
     appointments_new: '/my-space/appointments/new' as Route<string>,
     new_appointment: '/my-space/appointments/new' as Route<string>,
+    appointment_reschedule: (id: string) =>
+      `/my-space/appointments/reschedule/${id}` as Route<string>,
+    contact: '/my-space/contact' as Route<string>,
     documents: '/my-space/documents' as Route<string>,
     services: '/my-space/services' as Route<string>,
     service_submit: (serviceId?: string) =>
@@ -75,9 +78,9 @@ export const ROUTES = {
       serviceId
         ? `/my-space/services/new?serviceId=${serviceId}`
         : ('/my-space/services/new' as Route<string>),
-    service_request_details: (id: string) =>
-      `/my-space/services/request/${id}` as Route<string>,
+    service_request_details: (id: string) => `/my-space/requests/${id}` as Route<string>,
     service_available: '/my-space/services/available' as Route<string>,
+    contact_support: '/my-space/contact' as Route<string>,
     settings: '/my-space/settings' as Route<string>,
     notifications: '/my-space/notifications' as Route<string>,
     children: '/my-space/children' as Route<string>,
@@ -107,7 +110,4 @@ export const ROUTES = {
   terms: '#' as Route<string>,
 } as const;
 
-export const protectedRoutes = [
-  ROUTES.dashboard.base,
-  ROUTES.user.base,
-];
+export const protectedRoutes = [ROUTES.dashboard.base, ROUTES.user.base];

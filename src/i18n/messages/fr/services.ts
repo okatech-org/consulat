@@ -497,4 +497,33 @@ export default {
     generateFrom: 'Générer à partir du modèle',
     selectTemplate: 'Sélectionner un modèle',
   },
+  new_request: {
+    title: 'Nouvelle demande',
+    subtitle: 'Choisissez le service consulaire dont vous avez besoin',
+    search_placeholder: 'Rechercher un service par nom, description ou organisme...',
+    loading: 'Chargement des services...',
+    start_request: 'Démarrer la demande',
+    no_description: 'Aucune description disponible',
+    available_from: 'Bientôt disponible',
+    consulat_services: 'Consulat Général du Gabon',
+    no_services_found: 'Aucun service trouvé',
+    no_services_description: 'Aucun service ne correspond à vos critères de recherche',
+    reset_filters: 'Réinitialiser les filtres',
+    load_more: 'Charger plus',
+    filters: {
+      all_categories: 'Toutes catégories',
+      all_organizations: 'Tous organismes',
+    },
+    status: {
+      active: 'Actif',
+      coming_soon: 'Bientôt disponible',
+    },
+    help: {
+      title: "Besoin d'aide ?",
+      description:
+        'Vous ne trouvez pas le service que vous cherchez ou vous avez des questions sur une démarche ?',
+      contact: 'Nous contacter',
+      guide: "Guide d'aide",
+    },
+  },
 } as const;

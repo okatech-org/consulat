@@ -2,10 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { OrganizationStatus, OrganizationType } from '@prisma/client';
-import { 
-  organizationSchema, 
-  updateOrganizationSchema
-} from '@/schemas/organization';
+import { organizationSchema, updateOrganizationSchema } from '@/schemas/organization';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 import { env } from '@/env';
@@ -13,24 +10,51 @@ import { sendAdminWelcomeEmail } from '@/lib/services/notifications/providers/em
 
 export const organizationsRouter = createTRPCRouter({
   /**
+   * Récupérer les infos d'une organisation par ID avec des select spécifiques dynamiques
+   */
+  getByIdWithSelect: protectedProcedure
+    .input(z.object({ id: z.string(), select: z.array(z.string()).optional() }))
+    .query(async ({ ctx, input }) => {
+      const { id, select } = input;
+      const organization = await ctx.db.organization.findUnique({
+        where: { id },
+        select: select
+          ? select.reduce(
+              (acc, field) => {
+                acc[field] = true;
+                return acc;
+              },
+              {} as Record<string, boolean>,
+            )
+          : undefined,
+      });
+
+      return organization;
+    }),
+
+  /**
    * Récupérer la liste de toutes les organisations
    */
   getList: protectedProcedure
     .input(
-      z.object({
-        search: z.string().optional(),
-        type: z.array(z.nativeEnum(OrganizationType)).optional(),
-        status: z.array(z.nativeEnum(OrganizationStatus)).optional(),
-        countryId: z.string().optional(),
-        page: z.number().min(1).default(1),
-        limit: z.number().min(1).max(100).default(10),
-      }).optional()
+      z
+        .object({
+          search: z.string().optional(),
+          type: z.array(z.nativeEnum(OrganizationType)).optional(),
+          status: z.array(z.nativeEnum(OrganizationStatus)).optional(),
+          countryId: z.string().optional(),
+          page: z.number().min(1).default(1),
+          limit: z.number().min(1).max(100).default(10),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session?.user?.roles?.some((role) =>
+          ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Accès refusé. Permissions insuffisantes.',
@@ -43,10 +67,12 @@ export const organizationsRouter = createTRPCRouter({
       // Filtrer par organisation pour les non-super-admins
       const currentUser = ctx.session.user;
       let organizationFilter = {};
-      
+
       if (!currentUser.roles?.includes('SUPER_ADMIN')) {
         if (currentUser.assignedOrganizationId) {
-          organizationFilter = { id: currentUser.assignedOrganizationId ?? currentUser.organizationId };
+          organizationFilter = {
+            id: currentUser.assignedOrganizationId ?? currentUser.organizationId,
+          };
         } else {
           // Pas d'organisation assignée, retourner vide
           return {
@@ -104,9 +130,11 @@ export const organizationsRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session?.user?.roles?.some((role) =>
+          ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Accès refusé. Permissions insuffisantes.',
@@ -114,13 +142,15 @@ export const organizationsRouter = createTRPCRouter({
       }
 
       const currentUser = ctx.session.user;
-      
+
       // Vérifier l'accès à cette organisation
-      if (!currentUser.roles?.includes('SUPER_ADMIN') && 
-          currentUser.assignedOrganizationId !== input.id) {
+      if (
+        !currentUser.roles?.includes('SUPER_ADMIN') &&
+        currentUser.assignedOrganizationId !== input.id
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Vous ne pouvez accéder qu\'à votre organisation.',
+          message: "Vous ne pouvez accéder qu'à votre organisation.",
         });
       }
 
@@ -153,7 +183,9 @@ export const organizationsRouter = createTRPCRouter({
 
       return {
         ...organization,
-        metadata: organization.metadata ? JSON.parse(organization.metadata as string) : null,
+        metadata: organization.metadata
+          ? JSON.parse(organization.metadata as string)
+          : null,
       };
     }),
 
@@ -228,13 +260,13 @@ export const organizationsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         data: updateOrganizationSchema,
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN'].includes(role)
-      )) {
+      if (
+        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Permissions insuffisantes pour modifier cette organisation.',
@@ -242,10 +274,12 @@ export const organizationsRouter = createTRPCRouter({
       }
 
       const currentUser = ctx.session.user;
-      
+
       // Vérifier l'accès à cette organisation pour les admins
-      if (!currentUser.roles?.includes('SUPER_ADMIN') && 
-          currentUser.organizationId !== input.id) {
+      if (
+        !currentUser.roles?.includes('SUPER_ADMIN') &&
+        currentUser.organizationId !== input.id
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Vous ne pouvez modifier que votre organisation.',
@@ -289,13 +323,13 @@ export const organizationsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         status: z.nativeEnum(OrganizationStatus),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN'].includes(role)
-      )) {
+      if (
+        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Permissions insuffisantes pour modifier le statut.',
@@ -303,10 +337,12 @@ export const organizationsRouter = createTRPCRouter({
       }
 
       const currentUser = ctx.session.user;
-      
+
       // Vérifier l'accès pour les admins
-      if (!currentUser.roles?.includes('SUPER_ADMIN') && 
-          currentUser.assignedOrganizationId !== input.id) {
+      if (
+        !currentUser.roles?.includes('SUPER_ADMIN') &&
+        currentUser.assignedOrganizationId !== input.id
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Vous ne pouvez modifier que votre organisation.',
@@ -348,13 +384,15 @@ export const organizationsRouter = createTRPCRouter({
           countryIds: z.array(z.string()).optional(),
           metadata: z.record(z.any()).optional(),
         }),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session?.user?.roles?.some((role) =>
+          ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Permissions insuffisantes pour modifier les paramètres.',
@@ -362,10 +400,12 @@ export const organizationsRouter = createTRPCRouter({
       }
 
       const currentUser = ctx.session.user;
-      
+
       // Vérifier l'accès pour les non-super-admins
-      if (!currentUser.roles?.includes('SUPER_ADMIN') && 
-          currentUser.assignedOrganizationId !== input.id) {
+      if (
+        !currentUser.roles?.includes('SUPER_ADMIN') &&
+        currentUser.assignedOrganizationId !== input.id
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Vous ne pouvez modifier que votre organisation.',
@@ -403,7 +443,9 @@ export const organizationsRouter = createTRPCRouter({
 
       return {
         ...organization,
-        metadata: organization.metadata ? JSON.parse(organization.metadata as string) : null,
+        metadata: organization.metadata
+          ? JSON.parse(organization.metadata as string)
+          : null,
       };
     }),
 
@@ -445,7 +487,8 @@ export const organizationsRouter = createTRPCRouter({
       if (organization._count.services > 0 || organization._count.agents > 0) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: 'Impossible de supprimer cette organisation car elle contient des services ou des agents.',
+          message:
+            'Impossible de supprimer cette organisation car elle contient des services ou des agents.',
         });
       }
 
@@ -462,58 +505,57 @@ export const organizationsRouter = createTRPCRouter({
   /**
    * Obtenir les statistiques des organisations
    */
-  getStats: protectedProcedure
-    .query(async ({ ctx }) => {
-      // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN'].includes(role)
-      )) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès refusé. Permissions insuffisantes.',
-        });
+  getStats: protectedProcedure.query(async ({ ctx }) => {
+    // Vérifier les permissions
+    if (
+      !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+    ) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Accès refusé. Permissions insuffisantes.',
+      });
+    }
+
+    const currentUser = ctx.session.user;
+    let where = {};
+
+    // Filtrer par organisation pour les non-super-admins
+    if (!currentUser.roles?.includes('SUPER_ADMIN')) {
+      if (currentUser.assignedOrganizationId) {
+        where = { id: currentUser.assignedOrganizationId };
+      } else {
+        return {
+          totalOrganizations: 0,
+          activeOrganizations: 0,
+          inactiveOrganizations: 0,
+          consulateOrganizations: 0,
+          embassyOrganizations: 0,
+        };
       }
+    }
 
-      const currentUser = ctx.session.user;
-      let where = {};
-      
-      // Filtrer par organisation pour les non-super-admins
-      if (!currentUser.roles?.includes('SUPER_ADMIN')) {
-        if (currentUser.assignedOrganizationId) {
-          where = { id: currentUser.assignedOrganizationId };
-        } else {
-          return {
-            totalOrganizations: 0,
-            activeOrganizations: 0,
-            inactiveOrganizations: 0,
-            consulateOrganizations: 0,
-            embassyOrganizations: 0,
-          };
-        }
-      }
+    const [
+      totalOrganizations,
+      activeOrganizations,
+      inactiveOrganizations,
+      consulateOrganizations,
+      embassyOrganizations,
+    ] = await Promise.all([
+      ctx.db.organization.count({ where }),
+      ctx.db.organization.count({ where: { ...where, status: 'ACTIVE' } }),
+      ctx.db.organization.count({ where: { ...where, status: 'INACTIVE' } }),
+      ctx.db.organization.count({ where: { ...where, type: 'CONSULATE' } }),
+      ctx.db.organization.count({ where: { ...where, type: 'EMBASSY' } }),
+    ]);
 
-      const [
-        totalOrganizations,
-        activeOrganizations,
-        inactiveOrganizations,
-        consulateOrganizations,
-        embassyOrganizations,
-      ] = await Promise.all([
-        ctx.db.organization.count({ where }),
-        ctx.db.organization.count({ where: { ...where, status: 'ACTIVE' } }),
-        ctx.db.organization.count({ where: { ...where, status: 'INACTIVE' } }),
-        ctx.db.organization.count({ where: { ...where, type: 'CONSULATE' } }),
-        ctx.db.organization.count({ where: { ...where, type: 'EMBASSY' } }),
-      ]);
-
-      return {
-        totalOrganizations,
-        activeOrganizations,
-        inactiveOrganizations,
-        consulateOrganizations,
-        embassyOrganizations,
-      };
-    }),
+    return {
+      totalOrganizations,
+      activeOrganizations,
+      inactiveOrganizations,
+      consulateOrganizations,
+      embassyOrganizations,
+    };
+  }),
 
   /**
    * Obtenir une organisation par pays
@@ -539,10 +581,12 @@ export const organizationsRouter = createTRPCRouter({
    * Obtenir les informations d'une organisation pour un pays spécifique
    */
   getCountryInfos: protectedProcedure
-    .input(z.object({ 
-      organizationId: z.string(),
-      countryCode: z.string() 
-    }))
+    .input(
+      z.object({
+        organizationId: z.string(),
+        countryCode: z.string(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const data = await ctx.db.organization.findUnique({
         where: { id: input.organizationId },
@@ -568,4 +612,4 @@ export const organizationsRouter = createTRPCRouter({
         settings: countrySettings,
       };
     }),
-}); 
+});

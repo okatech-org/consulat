@@ -18,9 +18,9 @@ import {
 import {
   generateOrganizationSettingsSchema,
   getDefaultValues,
-  OrganizationSettingsFormData,
+  type OrganizationSettingsFormData,
 } from '@/schemas/organization';
-import { Organization } from '@/types/organization';
+import type { Organization } from '@/types/organization';
 import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Trash } from 'lucide-react';
@@ -35,9 +35,9 @@ import { useTabs } from '@/hooks/use-tabs';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { DaySchedule } from './day-schedule';
 import { updateOrganizationSettings } from '@/actions/organizations';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
-import { Country } from '@prisma/client';
+import type { Country } from '@prisma/client';
 import { FileInput } from '@/components/ui/file-input';
 import { useFile } from '@/hooks/use-file';
 

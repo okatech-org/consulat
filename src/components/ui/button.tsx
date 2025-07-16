@@ -28,31 +28,31 @@ const buttonVariants = cva(
       variant: {
         // Primary action - high contrast, clear hierarchy
         default:
-          'bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg active:shadow-sm',
+          'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-lg active:shadow-sm',
         // Destructive actions - clear warning with better contrast
         destructive:
-          'bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90 hover:shadow-lg active:shadow-sm',
+          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-lg active:shadow-sm',
         destructiveOutline:
-          'border-2 border-destructive text-destructive bg-background shadow-sm hover:bg-destructive/5 hover:border-destructive/80 active:bg-destructive/10',
+          'border border-destructive text-destructive bg-background shadow-sm hover:bg-destructive/5 hover:border-destructive/80 active:bg-destructive/10',
         // Secondary actions - clearly differentiated from primary
         outline:
-          'border-2 border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 active:bg-accent/80',
+          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 active:bg-accent/80',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md active:shadow-sm',
+          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-sm active:shadow-sm',
         // Tertiary actions
         ghost: 'hover:bg-accent hover:text-accent-foreground active:bg-accent/80',
         // Links - clearly differentiated from buttons
         link: 'text-primary underline-offset-4 hover:underline focus-visible:ring-1 active:scale-100',
         success:
-          'bg-green-500 text-white shadow-md hover:bg-green-600 hover:shadow-lg active:shadow-sm',
+          'bg-green-500 text-white shadow-sm hover:bg-green-600 hover:shadow-lg active:shadow-sm',
         warning:
-          'bg-yellow-500 text-white shadow-md hover:bg-yellow-600 hover:shadow-lg active:shadow-sm',
+          'bg-yellow-500 text-white shadow-sm hover:bg-yellow-600 hover:shadow-lg active:shadow-sm',
         error:
-          'bg-red-500 text-white shadow-md hover:bg-red-600 hover:shadow-lg active:shadow-sm',
+          'bg-red-500 text-white shadow-sm hover:bg-red-600 hover:shadow-lg active:shadow-sm',
       },
       size: {
         // Touch-friendly sizes based on 44px minimum touch target
-        default: 'h-10 px-6 py-2.5 text-base', // 44px height minimum
+        default: 'h-10 px-4 py-2.5 text-base', // 44px height minimum
         sm: 'h-9 px-4 py-2 text-sm', // 36px for compact interfaces
         lg: 'h-12 px-8 py-3 text-lg', // 48px for primary actions
         xl: 'h-14 px-10 py-4 text-xl', // 56px for hero CTAs
@@ -60,7 +60,7 @@ const buttonVariants = cva(
         'icon-sm': 'h-9 w-9',
         'icon-lg': 'h-12 w-12',
         // Mobile-specific sizes
-        mobile: 'h-10 px-6 py-3 text-base', // Optimized for mobile
+        mobile: 'h-10 px-4 py-3 text-base', // Optimized for mobile
         'mobile-full': 'h-12 w-full px-6 py-3 text-base', // Full-width mobile buttons
       },
       // Visual weight for better hierarchy

@@ -23,6 +23,7 @@ export default {
     profiles: 'Profils consulaires',
     'document-templates': 'Modèles de documents',
     agents: 'Agents',
+    contact: 'Contacts consulaires',
   },
   dashboard: {
     title: 'Accueil',

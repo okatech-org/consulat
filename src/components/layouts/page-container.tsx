@@ -22,7 +22,9 @@ export const PageContainer = ({
           {(title || description) && (
             <div>
               {title && <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>}
-              {description && <div className="text-muted-foreground">{description}</div>}
+              {description && (
+                <p className="text-muted-foreground hidden md:block">{description}</p>
+              )}
             </div>
           )}
           {action && <div>{action}</div>}

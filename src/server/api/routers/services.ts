@@ -121,7 +121,7 @@ export const servicesRouter = createTRPCRouter({
       try {
         const where = {
           countryCode: ctx.session.user.countryCode,
-          ...(category && { category }),
+          ...(category ? { category } : { category: { notIn: ['REGISTRATION'] } }),
           ...(typeof isActive === 'boolean' && { isActive }),
           ...(organizationId && { organizationId }),
           ...(search && {
@@ -367,7 +367,6 @@ export const servicesRouter = createTRPCRouter({
           ...input,
           submittedById: ctx.session.user.id,
           status: 'SUBMITTED',
-          priority: 'NORMAL',
           formData: input.formData as Prisma.JsonObject,
           requiredDocuments: input.requiredDocuments?.map((doc) => ({ id: doc.id })),
         });

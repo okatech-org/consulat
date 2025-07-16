@@ -1,264 +1,181 @@
-import { getNotifications } from '@/actions/notifications';
-import { getUserAppointments } from '@/actions/appointments';
-import { calculateDashboardProfileCompletion } from '@/lib/utils';
-import { PageContainer } from '@/components/layouts/page-container';
-
-import { ProfileStatusCard } from '@/components/user/profile-status-card';
-import { RequestsTimeline } from '@/components/user/requests-timeline';
-import CardContainer from '@/components/layouts/card-container';
+import { api } from '@/trpc/server';
+import { CurrentRequestCard } from './_components/current-request-card';
+import { QuickActions } from './_components/quick-actions';
+import { RecentHistory } from './_components/recent-history';
+import { EmptyState } from './_components/empty-state';
+import { UserOverview } from './_components/user-overview';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Bell, ArrowRight, FileText } from 'lucide-react';
+import { Plus, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { api } from '@/trpc/server';
+import { getTranslations } from 'next-intl/server';
+import type { FullServiceRequest } from '@/types/service-request';
 
-// Cache de page optimisé
-export const revalidate = 300; // 5 minutes
+interface SerializableRequest {
+  id: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  service: { name: string };
+  assignedTo?: { name: string };
+}
 
-// Métadonnées optimisées pour la performance
-export const metadata = {
-  title: 'Mon Espace - Dashboard',
-  description: 'Tableau de bord personnel - Profil consulaire et démarches',
-  robots: { index: false, follow: false }, // Page privée
-};
+interface Stats {
+  inProgress: number;
+  completed: number;
+  pending: number;
+  appointments: number;
+}
 
-export default async function UserDashboard() {
-  // Fetch optimized user profile for dashboard (reduced data transfer)
-  const userProfile = await api.profile.getDashboard();
+function calculateStats(requests: FullServiceRequest[]): Stats {
+  if (!requests) return { inProgress: 0, completed: 0, pending: 0, appointments: 0 };
 
-  // Calculate profile completion percentage
-  const profileCompletion = userProfile
-    ? calculateDashboardProfileCompletion(userProfile)
-    : 0;
-
-  // Get missing documents
-  const missingDocuments = [];
-  if (userProfile) {
-    if (!userProfile.identityPicture) missingDocuments.push('identity_photo');
-    if (!userProfile.passport) missingDocuments.push('passport');
-    if (!userProfile.birthCertificate) missingDocuments.push('birth_certificate');
-    if (!userProfile.residencePermit) missingDocuments.push('residence_permit');
-    if (!userProfile.addressProof) missingDocuments.push('proof_of_address');
-  }
-
-  // Parallelize all dependent requests using Promise.all()
-  const [serviceRequestsData, appointmentsResponse, notifications] = await Promise.all([
-    api.requests.getByUser({ userId: userProfile.userId ?? '' }),
-    getUserAppointments({ userId: userProfile.userId ?? '' }),
-    getNotifications(),
-  ]);
-
-  // Transform service requests to match expected interface
-  const serviceRequests = serviceRequestsData.map((request) => ({
-    id: request.id,
-    service: {
-      name: request.service.name,
-    },
-    status: request.status,
-    createdAt: request.createdAt.toISOString(),
-    updatedAt: request.updatedAt?.toISOString(),
-  }));
-
-  const appointments = appointmentsResponse.data || {
-    upcoming: [],
-    past: [],
-    cancelled: [],
+  return {
+    inProgress: requests.filter((req) =>
+      ['SUBMITTED', 'VALIDATED', 'PROCESSING'].includes(req.status),
+    ).length,
+    completed: requests.filter((req) => req.status === 'COMPLETED').length,
+    pending: requests.filter((req) => req.status === 'DRAFT').length,
+    appointments: 2, // Mock data - à remplacer par un vrai calcul
   };
+}
 
-  // Limit notifications for dashboard display
-  const recentNotifications = notifications.slice(0, 3);
+function getCurrentRequest(requests: FullServiceRequest[]): FullServiceRequest | null {
+  if (!requests) return null;
+
+  const activeRequests = requests.filter((req) =>
+    ['SUBMITTED', 'VALIDATED', 'PROCESSING'].includes(req.status),
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <PageContainer className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-12 gap-6">
-          {/* Zone principale - Informations critiques */}
-          <div className="lg:col-span-8 space-y-6">
-            {/* Hero Zone - Statut du profil avec actions prioritaires */}
-            <ProfileStatusCard
-              profileCompletion={profileCompletion}
-              profileStatus={userProfile?.status}
-              missingDocuments={missingDocuments}
-              userName={userProfile?.firstName ?? undefined}
-              urgentActions={[]}
-              className="border-2 shadow-lg"
-            />
+    activeRequests.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )[0] || null
+  );
+}
 
-            {/* Timeline des demandes */}
-            <RequestsTimeline requests={serviceRequests} maxVisible={4} />
+function serializeRequest(request: FullServiceRequest): SerializableRequest {
+  return {
+    id: request.id,
+    status: request.status,
+    createdAt:
+      request.createdAt instanceof Date
+        ? request.createdAt.toISOString()
+        : request.createdAt,
+    updatedAt:
+      request.updatedAt instanceof Date
+        ? request.updatedAt.toISOString()
+        : request.updatedAt,
+    service: { name: request.service.name },
+    assignedTo: request.assignedTo
+      ? { name: request.assignedTo.name || 'Non assigné' }
+      : undefined,
+  };
+}
 
-            {/* Prochains rendez-vous */}
-            {appointments.upcoming.length > 0 && (
-              <CardContainer
-                title="Prochains rendez-vous"
-                action={
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link
-                      href={ROUTES.user.appointments}
-                      className="flex items-center gap-1"
-                    >
-                      <span>Voir tout</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                }
-              >
-                <div className="space-y-4">
-                  {appointments.upcoming.slice(0, 2).map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-md">
-                          <Calendar className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-foreground">
-                            {appointment.request?.service?.name || 'Rendez-vous'}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(appointment.date), 'dd MMM yyyy à HH:mm', {
-                              locale: fr,
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={ROUTES.user.appointments}>Gérer</Link>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContainer>
-            )}
-          </div>
+function serializeRecentHistory(requests: FullServiceRequest[]) {
+  return requests.slice(0, 3).map((request) => ({
+    id: request.id,
+    status: request.status,
+    createdAt:
+      request.createdAt instanceof Date ? request.createdAt : new Date(request.createdAt),
+    service: { name: request.service.name },
+  }));
+}
 
-          {/* Sidebar - Notifications et actions rapides */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Notifications prioritaires */}
-            <CardContainer
-              title={
-                <div className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  <span>Notifications</span>
-                  {notifications.filter((n) => !n.read).length > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      {notifications.filter((n) => !n.read).length}
-                    </Badge>
-                  )}
-                </div>
-              }
-              action={
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={ROUTES.user.notifications}>Voir tout</Link>
-                </Button>
-              }
-            >
-              <div className="space-y-3">
-                {recentNotifications.length > 0 ? (
-                  recentNotifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-3 rounded-lg border transition-all hover:shadow-sm ${
-                        notification.read
-                          ? 'bg-muted/50 border-border'
-                          : 'bg-primary/5 border-primary/20'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h4 className="font-medium text-sm text-foreground line-clamp-1">
-                          {notification.title}
-                        </h4>
-                        {!notification.read && (
-                          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1" />
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                        {notification.message}
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(notification.createdAt), 'dd MMM', {
-                          locale: fr,
-                        })}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-6">
-                    <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Aucune notification récente
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContainer>
+export default async function MySpacePage() {
+  let requests: FullServiceRequest[] = [];
+  let error: string | null = null;
 
-            {/* Actions rapides */}
-            <CardContainer title="Actions rapides">
-              <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link href={ROUTES.user.services}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Nouvelle demande
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link href={ROUTES.user.appointments}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Prendre rendez-vous
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link href={ROUTES.user.documents}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Mes documents
-                  </Link>
-                </Button>
-              </div>
-            </CardContainer>
+  try {
+    // Utilisation simple de l'api tRPC côté serveur
+    requests = await api.services.getUserRequests();
+  } catch (err) {
+    console.error('Error fetching requests:', err);
+    error = 'Erreur lors du chargement des données';
+  }
 
-            {/* Aide contextuelle */}
-            <CardContainer
-              title={<span className="text-blue-800">Besoin d&apos;aide ?</span>}
-              className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
-            >
-              <div className="space-y-3">
-                <p className="text-sm text-blue-800">
-                  Notre équipe est là pour vous accompagner dans vos démarches.
-                </p>
-                <div className="space-y-2">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Guide d&apos;utilisation
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full" asChild>
-                    <Link href={ROUTES.user.feedback}>Contacter le support</Link>
-                  </Button>
-                </div>
-              </div>
-            </CardContainer>
-          </div>
+  const t = await getTranslations('dashboard.unified');
+
+  // Récupérer le profil utilisateur et les statistiques parallèlement
+  const [profile, documentsCount, childrenCount, upcomingAppointmentsCount] =
+    await Promise.all([
+      api.profile.getDashboard().catch(() => null),
+      api.user.getDocumentsCount().catch(() => 0),
+      api.user.getChildrenCount().catch(() => 0),
+      api.user.getUpcomingAppointmentsCount().catch(() => 0),
+    ]);
+
+  // Calculer les statistiques utilisateur
+  const stats = calculateStats(requests);
+
+  // Demande en cours la plus récente
+  const currentRequest = getCurrentRequest(requests);
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive mb-4">{t('error')}</p>
+        <form action={ROUTES.user.base}>
+          <Button variant="outline" type="submit">
+            {t('retry')}
+          </Button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header style SaaS non-centré */}
+      <div className="flex justify-between items-start flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-left">{t('title')}</h1>
+          <p className="text-muted-foreground text-left">{t('subtitle')}</p>
         </div>
-      </PageContainer>
+        <div className="flex gap-2 items-center">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={ROUTES.user.contact}>
+              <HelpCircle className="size-icon" />
+              {t('help')}
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link href={ROUTES.user.services}>
+              <Plus className="size-icon" />
+              {t('new_request')}
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Section profil utilisateur v15 */}
+      <UserOverview
+        stats={{
+          ...stats,
+          appointments: upcomingAppointmentsCount,
+        }}
+        profile={profile}
+        documentsCount={documentsCount}
+        childrenCount={childrenCount}
+      />
+
+      {/* Demande en cours ou état vide */}
+      {currentRequest ? (
+        <CurrentRequestCard request={serializeRequest(currentRequest)} />
+      ) : (
+        <EmptyState />
+      )}
+
+      {/* Contenu principal */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <QuickActions />
+        </div>
+        <div className="space-y-6">
+          <RecentHistory requests={serializeRecentHistory(requests)} />
+        </div>
+      </div>
     </div>
   );
 }
