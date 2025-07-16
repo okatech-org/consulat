@@ -29,6 +29,7 @@ import { Separator } from '@/components/ui/separator';
 import { CardTitle } from '@/components/ui/card';
 import { SessionUser } from '@/types';
 import Link from 'next/link';
+import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
 
 interface RequestOverviewProps {
   request: FullServiceRequest & { profile?: FullProfile | null };
@@ -116,15 +117,18 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
                     {t('requests.service_request.view_profile')}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-4xl">
+                <SheetContent
+                  side="right"
+                  className="w-full sm:max-w-4xl overflow-y-auto"
+                >
                   <SheetHeader>
                     <SheetTitle>
                       {t('requests.service_request.applicant_profile')}
                     </SheetTitle>
                   </SheetHeader>
 
-                  <div className="mt-6">
-                    <UserProfile profile={request.profile} />
+                  <div className="mt-4">
+                    <ProfileTabs profile={request.profile} requestId={request.id} />
                   </div>
                 </SheetContent>
               </Sheet>
