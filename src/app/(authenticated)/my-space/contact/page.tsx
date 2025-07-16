@@ -1,5 +1,5 @@
 import { PageContainer } from '@/components/layouts/page-container';
-import { ContactMethods } from '../components/contact-methods';
+import { ContactMethods } from '../_components/contact-methods';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';

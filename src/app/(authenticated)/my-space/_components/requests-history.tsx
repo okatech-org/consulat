@@ -1,16 +1,10 @@
 'use client';
 
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multi-select';
+import CardContainer from '@/components/layouts/card-container';
 import { useUserServiceRequests } from '@/hooks/use-services';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -23,6 +17,14 @@ export function RequestsHistory() {
   const { requests, isLoading, error } = useUserServiceRequests();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const statusOptions = [
+    { value: 'all', label: 'Tous les statuts' },
+    { value: 'PROCESSING', label: 'En cours' },
+    { value: 'COMPLETED', label: 'Terminées' },
+    { value: 'SUBMITTED', label: 'Soumises' },
+    { value: 'DRAFT', label: 'Brouillons' },
+  ];
 
   // Filtrer les demandes
   const filteredRequests = useMemo(() => {
@@ -45,6 +47,9 @@ export function RequestsHistory() {
       VALIDATED: { label: 'Validée', color: 'bg-blue-100 text-blue-800' },
       SUBMITTED: { label: 'Soumise', color: 'bg-gray-100 text-gray-800' },
       DRAFT: { label: 'Brouillon', color: 'bg-gray-50 text-gray-600' },
+      REJECTED: { label: 'Rejetée', color: 'bg-red-100 text-red-800' },
+      CANCELLED: { label: 'Annulée', color: 'bg-red-100 text-red-800' },
+      PENDING: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
     };
 
     return (
@@ -62,6 +67,9 @@ export function RequestsHistory() {
       VALIDATED: 50,
       PROCESSING: 75,
       COMPLETED: 100,
+      REJECTED: 100,
+      CANCELLED: 100,
+      PENDING: 0,
     };
     return progressMap[status as keyof typeof progressMap] || 0;
   };
@@ -70,11 +78,11 @@ export function RequestsHistory() {
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
-          <Card key={i} className="p-6">
+          <CardContainer key={i}>
             <div className="h-4 bg-muted rounded w-1/3 mb-2" />
             <div className="h-3 bg-muted rounded w-1/2 mb-4" />
             <div className="h-2 bg-muted rounded w-full" />
-          </Card>
+          </CardContainer>
         ))}
       </div>
     );
@@ -82,19 +90,21 @@ export function RequestsHistory() {
 
   if (error) {
     return (
-      <Card className="p-6 text-center">
-        <p className="text-destructive mb-4">
-          Erreur l&apos;ors du chargement de l&apos;historique
-        </p>
-        <Button variant="outline">Réessayer</Button>
-      </Card>
+      <CardContainer>
+        <div className="text-center">
+          <p className="text-destructive mb-4">
+            Erreur l&apos;ors du chargement de l&apos;historique
+          </p>
+          <Button variant="outline">Réessayer</Button>
+        </div>
+      </CardContainer>
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Filtres */}
-      <Card className="p-4">
+      <CardContainer>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <Input
@@ -103,20 +113,17 @@ export function RequestsHistory() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="PROCESSING">En cours</SelectItem>
-              <SelectItem value="COMPLETED">Terminées</SelectItem>
-              <SelectItem value="SUBMITTED">Soumises</SelectItem>
-              <SelectItem value="DRAFT">Brouillons</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full sm:w-48">
+            <MultiSelect
+              type="single"
+              options={statusOptions}
+              selected={statusFilter}
+              onChange={setStatusFilter}
+              placeholder="Sélectionner un statut"
+            />
+          </div>
         </div>
-      </Card>
+      </CardContainer>
 
       {/* Liste des demandes */}
       {filteredRequests.length > 0 ? (
@@ -126,7 +133,10 @@ export function RequestsHistory() {
             const progress = getProgress(request.status);
 
             return (
-              <Card key={request.id} className="p-6 hover:shadow-md transition-shadow">
+              <CardContainer
+                key={request.id}
+                className="hover:shadow-md transition-shadow"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="font-semibold text-lg">{request.service.name}</h3>
@@ -177,41 +187,45 @@ export function RequestsHistory() {
                     </Button>
                   )}
                 </div>
-              </Card>
+              </CardContainer>
             );
           })}
         </div>
       ) : (
-        <Card className="p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
-            <FileText className="h-8 w-8 text-muted-foreground" />
+        <CardContainer>
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">
+              {searchTerm || statusFilter !== 'all'
+                ? 'Aucune demande trouvée'
+                : "Aucune demande dans l'historique"}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm || statusFilter !== 'all'
+                ? 'Essayez de modifier vos filtres de recherche.'
+                : "Vous n'avez pas encore fait de demande de service."}
+            </p>
+            {searchTerm || statusFilter !== 'all' ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('all');
+                }}
+              >
+                Réinitialiser les filtres
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link href={ROUTES.user.service_available}>
+                  Faire ma première demande
+                </Link>
+              </Button>
+            )}
           </div>
-          <h3 className="text-lg font-semibold mb-2">
-            {searchTerm || statusFilter !== 'all'
-              ? 'Aucune demande trouvée'
-              : "Aucune demande dans l'historique"}
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            {searchTerm || statusFilter !== 'all'
-              ? 'Essayez de modifier vos filtres de recherche.'
-              : "Vous n'avez pas encore fait de demande de service."}
-          </p>
-          {searchTerm || statusFilter !== 'all' ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('all');
-              }}
-            >
-              Réinitialiser les filtres
-            </Button>
-          ) : (
-            <Button asChild>
-              <Link href={ROUTES.user.service_available}>Faire ma première demande</Link>
-            </Button>
-          )}
-        </Card>
+        </CardContainer>
       )}
     </div>
   );

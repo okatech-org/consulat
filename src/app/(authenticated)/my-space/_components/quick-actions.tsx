@@ -1,18 +1,18 @@
 'use client';
 
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  FileText, 
-  Calendar, 
-  ShieldCheck, 
-  User, 
-  Lightbulb, 
-  HelpCircle, 
-  ArrowRight 
+import {
+  FileText,
+  Calendar,
+  ShieldCheck,
+  User,
+  Lightbulb,
+  HelpCircle,
+  ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
+import CardContainer from '@/components/layouts/card-container';
 
 export function QuickActions() {
   const actions = [
@@ -61,20 +61,18 @@ export function QuickActions() {
   ];
 
   return (
-    <Card className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-xl font-semibold">Services et Actions</h2>
-          <p className="text-muted-foreground text-sm">Accédez rapidement à vos services</p>
-        </div>
+    <CardContainer
+      title="Services et Actions"
+      subtitle="Accédez rapidement à vos services"
+      action={
         <Button variant="outline" size="sm" asChild>
           <Link href={ROUTES.user.service_available}>
             Voir tous les services
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
-      </div>
-
+      }
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {actions.map((action, index) => {
           const Icon = action.icon;
@@ -84,7 +82,9 @@ export function QuickActions() {
               href={action.href}
               className="flex items-center gap-4 p-4 rounded-lg border hover:border-primary hover:bg-accent/50 transition-all duration-200 group"
             >
-              <div className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center text-white group-hover:scale-105 transition-transform`}>
+              <div
+                className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center text-white group-hover:scale-105 transition-transform`}
+              >
                 <Icon className="h-6 w-6" />
               </div>
               <div className="flex-1">
@@ -97,6 +97,6 @@ export function QuickActions() {
           );
         })}
       </div>
-    </Card>
+    </CardContainer>
   );
 }

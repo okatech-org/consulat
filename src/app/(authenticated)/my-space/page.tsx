@@ -1,6 +1,6 @@
 import { getCurrentUser } from '@/lib/auth/utils';
 import { redirect } from 'next/navigation';
-import { UnifiedDashboard } from './components/unified-dashboard';
+import { UnifiedDashboard } from './_components/unified-dashboard';
 import { PageContainer } from '@/components/layouts/page-container';
 
 export const metadata = {
@@ -10,14 +10,14 @@ export const metadata = {
 
 export default async function MySpacePage() {
   const user = await getCurrentUser();
-  
+
   if (!user) {
     redirect('/auth/signin');
   }
 
   return (
     <PageContainer>
-      <UnifiedDashboard userId={user.id} />
+      <UnifiedDashboard />
     </PageContainer>
   );
 }
