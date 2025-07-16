@@ -28,27 +28,27 @@ const buttonVariants = cva(
       variant: {
         // Primary action - high contrast, clear hierarchy
         default:
-          'bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg active:shadow-sm',
+          'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-lg active:shadow-sm',
         // Destructive actions - clear warning with better contrast
         destructive:
-          'bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90 hover:shadow-lg active:shadow-sm',
+          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-lg active:shadow-sm',
         destructiveOutline:
           'border border-destructive text-destructive bg-background shadow-sm hover:bg-destructive/5 hover:border-destructive/80 active:bg-destructive/10',
         // Secondary actions - clearly differentiated from primary
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 active:bg-accent/80',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md active:shadow-sm',
+          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-sm active:shadow-sm',
         // Tertiary actions
         ghost: 'hover:bg-accent hover:text-accent-foreground active:bg-accent/80',
         // Links - clearly differentiated from buttons
         link: 'text-primary underline-offset-4 hover:underline focus-visible:ring-1 active:scale-100',
         success:
-          'bg-green-500 text-white shadow-md hover:bg-green-600 hover:shadow-lg active:shadow-sm',
+          'bg-green-500 text-white shadow-sm hover:bg-green-600 hover:shadow-lg active:shadow-sm',
         warning:
-          'bg-yellow-500 text-white shadow-md hover:bg-yellow-600 hover:shadow-lg active:shadow-sm',
+          'bg-yellow-500 text-white shadow-sm hover:bg-yellow-600 hover:shadow-lg active:shadow-sm',
         error:
-          'bg-red-500 text-white shadow-md hover:bg-red-600 hover:shadow-lg active:shadow-sm',
+          'bg-red-500 text-white shadow-sm hover:bg-red-600 hover:shadow-lg active:shadow-sm',
       },
       size: {
         // Touch-friendly sizes based on 44px minimum touch target

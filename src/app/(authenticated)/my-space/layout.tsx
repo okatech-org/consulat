@@ -5,6 +5,11 @@ import { UserBottomNavigation } from '@/components/ui/user-bottom-navigation';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { ROUTES } from '@/schemas/routes';
 
+export const metadata = {
+  title: 'Mon Espace Consulaire',
+  description: 'Gérez vos demandes et accédez à tous vos services consulaires',
+};
+
 export default async function MySpaceLayout({
   children,
 }: Readonly<{

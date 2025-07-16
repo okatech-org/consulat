@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
+import { useTranslations } from 'next-intl';
 
 interface CurrentRequestCardProps {
   request: {
@@ -22,6 +23,8 @@ interface CurrentRequestCardProps {
 }
 
 export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
+  const t = useTranslations('dashboard.unified.current_request');
+  
   const getProgress = (status: string) => {
     const progressMap = {
       DRAFT: 0,
@@ -43,11 +46,11 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
   };
 
   const getSteps = () => [
-    { label: 'Demande soumise', completed: true, date: '06/07/2025 - 14h30' },
-    { label: 'Documents vérifiés', completed: getProgress(request.status) >= 40, date: '07/07/2025 - 10h15' },
-    { label: 'En cours de traitement', current: request.status === 'PROCESSING', agent: request.assignedTo?.name },
-    { label: 'Validation finale', completed: false, status: 'En attente' },
-    { label: 'Demande terminée', completed: request.status === 'COMPLETED', status: 'Prête pour retrait' },
+    { label: t('steps.request_submitted'), completed: true, date: '06/07/2025 - 14h30' },
+    { label: t('steps.documents_verified'), completed: getProgress(request.status) >= 40, date: '07/07/2025 - 10h15' },
+    { label: t('steps.processing'), current: request.status === 'PROCESSING', agent: request.assignedTo?.name },
+    { label: t('steps.final_validation'), completed: false, status: t('steps.waiting') },
+    { label: t('steps.request_completed'), completed: request.status === 'COMPLETED', status: t('steps.ready_for_pickup') },
   ];
 
   return (
@@ -58,26 +61,26 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
           <div>
             <h2 className="text-xl font-bold mb-2">{request.service.name}</h2>
             <p className="text-blue-100 text-sm">
-              Demande soumise {formatDistanceToNow(new Date(request.createdAt), {
+              {t('submitted_ago')} {formatDistanceToNow(new Date(request.createdAt), {
                 addSuffix: true,
                 locale: fr,
               })}
-              {request.assignedTo && ` • Assignée à ${request.assignedTo.name}`}
+              {request.assignedTo && ` • ${t('assigned_to')} ${request.assignedTo.name}`}
             </p>
           </div>
           <Badge className={`${getStatusColor(request.status)} text-xs`}>
-            {request.status === 'PROCESSING' ? 'En traitement' : request.status}
+            {request.status === 'PROCESSING' ? t('status.processing') : t(`status.${request.status.toLowerCase()}`)}
           </Badge>
         </div>
 
         <div className="mb-6">
           <Progress value={getProgress(request.status)} className="h-2 mb-3" />
           <div className="grid grid-cols-5 gap-2 text-xs">
-            <div className="text-center">✓ Soumise</div>
-            <div className="text-center">✓ Vérifiée</div>
-            <div className="text-center font-semibold">• En traitement</div>
-            <div className="text-center opacity-70">Validation</div>
-            <div className="text-center opacity-70">Terminée</div>
+            <div className="text-center">✓ {t('progress.submitted')}</div>
+            <div className="text-center">✓ {t('progress.verified')}</div>
+            <div className="text-center font-semibold">• {t('progress.in_processing')}</div>
+            <div className="text-center opacity-70">{t('progress.validation')}</div>
+            <div className="text-center opacity-70">{t('progress.completed')}</div>
           </div>
         </div>
 
@@ -85,16 +88,16 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
           <Button asChild variant="secondary" className="bg-white text-blue-900">
             <Link href={ROUTES.user.service_request_details(request.id)}>
               <Eye className="mr-2 h-4 w-4" />
-              Voir les détails
+              {t('actions.view_details')}
             </Link>
           </Button>
           <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
             <MessageSquare className="mr-2 h-4 w-4" />
-            Contacter l'agent
+            {t('actions.contact_agent')}
           </Button>
           <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
             <FileText className="mr-2 h-4 w-4" />
-            Ajouter un document
+            {t('actions.add_document')}
           </Button>
         </div>
       </div>
@@ -104,13 +107,13 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
         <div className="text-center mb-4">
           <h2 className="text-lg font-bold mb-1">{request.service.name}</h2>
           <p className="text-blue-100 text-xs mb-2">
-            Demande soumise {formatDistanceToNow(new Date(request.createdAt), {
+            {t('submitted_ago')} {formatDistanceToNow(new Date(request.createdAt), {
               addSuffix: true,
               locale: fr,
             })}
           </p>
           <Badge className={`${getStatusColor(request.status)} text-xs`}>
-            {request.status === 'PROCESSING' ? 'En traitement' : request.status}
+            {request.status === 'PROCESSING' ? t('status.processing') : t(`status.${request.status.toLowerCase()}`)}
           </Badge>
         </div>
 
@@ -141,7 +144,7 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
               <div className="flex-1">
                 <div className="text-sm font-medium">{step.label}</div>
                 <div className="text-xs opacity-80">
-                  {step.date || (step.agent ? `Par ${step.agent}` : step.status || 'En attente')}
+                  {step.date || (step.agent ? `${t('steps.by')} ${step.agent}` : step.status || t('steps.waiting'))}
                 </div>
               </div>
             </div>
@@ -152,17 +155,17 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
           <Button asChild className="w-full bg-white text-blue-900">
             <Link href={ROUTES.user.service_request_details(request.id)}>
               <Eye className="mr-2 h-4 w-4" />
-              Voir les détails
+              {t('actions.view_details')}
             </Link>
           </Button>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" className="border-white/30 text-white">
               <MessageSquare className="mr-1 h-4 w-4" />
-              Contacter
+              {t('actions.contact')}
             </Button>
             <Button variant="outline" className="border-white/30 text-white">
               <FileText className="mr-1 h-4 w-4" />
-              Document
+              {t('actions.document')}
             </Button>
           </div>
         </div>

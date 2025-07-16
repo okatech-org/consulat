@@ -3,39 +3,43 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Phone, MessageCircle, Mail, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { ROUTES } from '@/schemas/routes';
 
 export function ContactMethods() {
+  const t = useTranslations('dashboard.contact');
+  
   const contactMethods = [
     {
-      title: 'Assistance d\'urgence',
-      description: 'Pour les situations d\'urgence uniquement',
+      title: t('methods.emergency.title'),
+      description: t('methods.emergency.description'),
       icon: Phone,
-      action: 'Appeler maintenant',
+      action: t('methods.emergency.action'),
       href: 'tel:+33123456789',
       color: 'bg-red-500',
     },
     {
-      title: 'Chat en direct',
-      description: 'Assistance immédiate par chat',
+      title: t('methods.chat.title'),
+      description: t('methods.chat.description'),
       icon: MessageCircle,
-      action: 'Démarrer le chat',
-      href: '#',
+      action: t('methods.chat.action'),
+      href: ROUTES.user.feedback,
       color: 'bg-blue-500',
     },
     {
-      title: 'Email',
-      description: 'Réponse sous 24-48h',
+      title: t('methods.email.title'),
+      description: t('methods.email.description'),
       icon: Mail,
-      action: 'Envoyer un email',
+      action: t('methods.email.action'),
       href: 'mailto:contact@consulat.ga',
       color: 'bg-green-500',
     },
     {
-      title: 'Se rendre au consulat',
-      description: 'Rendez-vous sur place',
+      title: t('methods.consulate.title'),
+      description: t('methods.consulate.description'),
       icon: MapPin,
-      action: 'Prendre RDV',
-      href: '#',
+      action: t('methods.consulate.action'),
+      href: ROUTES.user.appointments,
       color: 'bg-purple-500',
     },
   ];
@@ -63,31 +67,29 @@ export function ContactMethods() {
 
       {/* Informations de contact */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Informations de contact</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('info.title')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium mb-1">Adresse</h4>
-              <p className="text-sm text-muted-foreground">
-                26 bis avenue Raphaël<br />
-                75016 Paris, France
+              <h4 className="font-medium mb-1">{t('info.address')}</h4>
+              <p className="text-sm text-muted-foreground whitespace-pre-line">
+                {t('info.address_value')}
               </p>
             </div>
             <div>
-              <h4 className="font-medium mb-1">Téléphone</h4>
-              <p className="text-sm text-muted-foreground">+33 1 45 00 97 57</p>
+              <h4 className="font-medium mb-1">{t('info.phone')}</h4>
+              <p className="text-sm text-muted-foreground">{t('info.phone_value')}</p>
             </div>
           </div>
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium mb-1">Email</h4>
-              <p className="text-sm text-muted-foreground">contact@consulat.ga</p>
+              <h4 className="font-medium mb-1">{t('info.email')}</h4>
+              <p className="text-sm text-muted-foreground">{t('info.email_value')}</p>
             </div>
             <div>
-              <h4 className="font-medium mb-1">Horaires</h4>
-              <p className="text-sm text-muted-foreground">
-                Lun-Ven: 9h-17h<br />
-                Fermé le weekend
+              <h4 className="font-medium mb-1">{t('info.hours')}</h4>
+              <p className="text-sm text-muted-foreground whitespace-pre-line">
+                {t('info.hours_value')}
               </p>
             </div>
           </div>

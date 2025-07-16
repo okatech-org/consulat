@@ -1,6 +1,5 @@
 'use client';
 
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, FileText } from 'lucide-react';
@@ -8,37 +7,86 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
+import { useTranslations } from 'next-intl';
+import CardContainer from '@/components/layouts/card-container';
+import type { RequestStatus } from '@prisma/client';
 
 interface RecentHistoryProps {
   requests: Array<{
     id: string;
-    status: string;
-    createdAt: string;
+    status: RequestStatus;
+    createdAt: Date;
     service: { name: string };
   }>;
 }
 
 export function RecentHistory({ requests }: RecentHistoryProps) {
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
+  const t = useTranslations('dashboard.unified.recent_history');
+  const tStatus = useTranslations('dashboard.unified.current_request.status');
+
+  const getStatusBadge = (status: RequestStatus) => {
+    const statusMap: Record<
+      RequestStatus,
+      { label: string; variant: 'default' | 'secondary' | 'outline'; color: string }
+    > = {
       COMPLETED: {
-        label: 'Terminée',
+        label: tStatus('completed'),
         variant: 'default' as const,
         color: 'bg-green-100 text-green-800',
       },
-      PROCESSING: {
-        label: 'En traitement',
-        variant: 'secondary' as const,
-        color: 'bg-amber-100 text-amber-800',
-      },
       VALIDATED: {
-        label: 'Validée',
+        label: tStatus('validated'),
         variant: 'outline' as const,
         color: 'bg-blue-100 text-blue-800',
       },
       SUBMITTED: {
-        label: 'Soumise',
+        label: tStatus('submitted'),
         variant: 'outline' as const,
+        color: 'bg-gray-100 text-gray-800',
+      },
+      PENDING: {
+        label: tStatus('pending'),
+        variant: 'outline' as const,
+        color: 'bg-yellow-100 text-yellow-800',
+      },
+      REJECTED: {
+        label: tStatus('rejected'),
+        variant: 'outline' as const,
+        color: 'bg-red-100 text-red-800',
+      },
+      DRAFT: {
+        label: tStatus('draft'),
+        variant: 'outline' as const,
+        color: 'bg-gray-100 text-gray-800',
+      },
+      EDITED: {
+        label: tStatus('edited'),
+        variant: 'outline',
+        color: 'bg-gray-100 text-gray-800',
+      },
+      PENDING_COMPLETION: {
+        label: tStatus('pending_completion'),
+        variant: 'outline',
+        color: 'bg-gray-100 text-gray-800',
+      },
+      CARD_IN_PRODUCTION: {
+        label: tStatus('card_in_production'),
+        variant: 'outline',
+        color: 'bg-gray-100 text-gray-800',
+      },
+      DOCUMENT_IN_PRODUCTION: {
+        label: tStatus('document_in_production'),
+        variant: 'outline',
+        color: 'bg-gray-100 text-gray-800',
+      },
+      READY_FOR_PICKUP: {
+        label: tStatus('ready_for_pickup'),
+        variant: 'outline',
+        color: 'bg-gray-100 text-gray-800',
+      },
+      APPOINTMENT_SCHEDULED: {
+        label: tStatus('appointment_scheduled'),
+        variant: 'outline',
         color: 'bg-gray-100 text-gray-800',
       },
     };
@@ -53,24 +101,22 @@ export function RecentHistory({ requests }: RecentHistoryProps) {
   };
 
   return (
-    <Card className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h3 className="text-lg font-semibold">Historique récent</h3>
-          <p className="text-muted-foreground text-sm">Vos dernières demandes</p>
-        </div>
+    <CardContainer
+      title={t('title')}
+      subtitle={t('subtitle')}
+      action={
         <Button variant="outline" size="sm" asChild>
           <Link href={ROUTES.user.requests}>
-            Voir tout
-            <ArrowRight className="ml-2 h-4 w-4" />
+            {t('view_all')}
+            <ArrowRight className="size-icon" />
           </Link>
         </Button>
-      </div>
-
+      }
+    >
       {requests && requests.length > 0 ? (
         <div className="space-y-4">
           {requests.map((request) => {
-            const statusInfo = getStatusBadge(request.status);
+            const statusInfo = getStatusBadge(request.status as RequestStatus);
             return (
               <div
                 key={request.id}
@@ -105,15 +151,15 @@ export function RecentHistory({ requests }: RecentHistoryProps) {
           <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
             <FileText className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h4 className="font-medium mb-2">Aucun historique</h4>
+          <h4 className="font-medium mb-2">{t('no_history')}</h4>
           <p className="text-sm text-muted-foreground mb-4">
-            Vous n&apos;avez pas encore de demandes dans votre historique.
+            {t('no_history_description')}
           </p>
           <Button size="sm" asChild>
-            @<Link href={ROUTES.user.services}>Faire ma première demande</Link>
+            <Link href={ROUTES.user.services}>{t('make_first_request')}</Link>
           </Button>
         </div>
       )}
-    </Card>
+    </CardContainer>
   );
 }

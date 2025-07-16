@@ -12,18 +12,20 @@ import { FileText, Eye, Download, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function RequestsHistory() {
   const { requests, isLoading, error } = useUserServiceRequests();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const t = useTranslations('dashboard.history');
 
   const statusOptions = [
-    { value: 'all', label: 'Tous les statuts' },
-    { value: 'PROCESSING', label: 'En cours' },
-    { value: 'COMPLETED', label: 'Terminées' },
-    { value: 'SUBMITTED', label: 'Soumises' },
-    { value: 'DRAFT', label: 'Brouillons' },
+    { value: 'all', label: t('statuses.all') },
+    { value: 'PROCESSING', label: t('statuses.processing') },
+    { value: 'COMPLETED', label: t('statuses.completed') },
+    { value: 'SUBMITTED', label: t('statuses.submitted') },
+    { value: 'DRAFT', label: t('statuses.draft') },
   ];
 
   // Filtrer les demandes
@@ -42,14 +44,14 @@ export function RequestsHistory() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      COMPLETED: { label: 'Terminée', color: 'bg-green-100 text-green-800' },
-      PROCESSING: { label: 'En traitement', color: 'bg-amber-100 text-amber-800' },
-      VALIDATED: { label: 'Validée', color: 'bg-blue-100 text-blue-800' },
-      SUBMITTED: { label: 'Soumise', color: 'bg-gray-100 text-gray-800' },
-      DRAFT: { label: 'Brouillon', color: 'bg-gray-50 text-gray-600' },
-      REJECTED: { label: 'Rejetée', color: 'bg-red-100 text-red-800' },
-      CANCELLED: { label: 'Annulée', color: 'bg-red-100 text-red-800' },
-      PENDING: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
+      COMPLETED: { label: t('labels.completed'), color: 'bg-green-100 text-green-800' },
+      PROCESSING: { label: t('labels.processing'), color: 'bg-amber-100 text-amber-800' },
+      VALIDATED: { label: t('labels.validated'), color: 'bg-blue-100 text-blue-800' },
+      SUBMITTED: { label: t('labels.submitted'), color: 'bg-gray-100 text-gray-800' },
+      DRAFT: { label: t('labels.draft'), color: 'bg-gray-50 text-gray-600' },
+      REJECTED: { label: t('labels.rejected'), color: 'bg-red-100 text-red-800' },
+      CANCELLED: { label: t('labels.cancelled'), color: 'bg-red-100 text-red-800' },
+      PENDING: { label: t('labels.pending'), color: 'bg-yellow-100 text-yellow-800' },
     };
 
     return (
@@ -93,9 +95,9 @@ export function RequestsHistory() {
       <CardContainer>
         <div className="text-center">
           <p className="text-destructive mb-4">
-            Erreur l&apos;ors du chargement de l&apos;historique
+            {t('error.loading')}
           </p>
-          <Button variant="outline">Réessayer</Button>
+          <Button variant="outline">{t('error.retry')}</Button>
         </div>
       </CardContainer>
     );
@@ -108,7 +110,7 @@ export function RequestsHistory() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Rechercher par nom ou ID..."
+              placeholder={t('search_placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -119,7 +121,7 @@ export function RequestsHistory() {
               options={statusOptions}
               selected={statusFilter}
               onChange={setStatusFilter}
-              placeholder="Sélectionner un statut"
+              placeholder={t('status_placeholder')}
             />
           </div>
         </div>
@@ -142,13 +144,13 @@ export function RequestsHistory() {
                     <h3 className="font-semibold text-lg">{request.service.name}</h3>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-1">
                       <span>
-                        Soumise{' '}
+                        {t('submitted_ago')}{' '}
                         {formatDistanceToNow(new Date(request.createdAt), {
                           addSuffix: true,
                           locale: fr,
                         })}
                       </span>
-                      <span>ID: #{request.id.slice(-8)}</span>
+                      <span>{t('id_label')}: #{request.id.slice(-8)}</span>
                     </div>
                   </div>
                   <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
@@ -169,21 +171,21 @@ export function RequestsHistory() {
                   <Button size="sm" asChild>
                     <Link href={ROUTES.user.service_request_details(request.id)}>
                       <Eye className="mr-2 h-4 w-4" />
-                      Voir les détails
+                      {t('actions.view_details')}
                     </Link>
                   </Button>
 
                   {request.status === 'COMPLETED' && (
                     <Button variant="outline" size="sm">
                       <Download className="mr-2 h-4 w-4" />
-                      Télécharger
+                      {t('actions.download')}
                     </Button>
                   )}
 
                   {['PROCESSING', 'VALIDATED', 'SUBMITTED'].includes(request.status) && (
                     <Button variant="outline" size="sm">
                       <MessageSquare className="mr-2 h-4 w-4" />
-                      Contacter l&apos;agent
+                      {t('actions.contact_agent')}
                     </Button>
                   )}
                 </div>
@@ -199,13 +201,13 @@ export function RequestsHistory() {
             </div>
             <h3 className="text-lg font-semibold mb-2">
               {searchTerm || statusFilter !== 'all'
-                ? 'Aucune demande trouvée'
-                : "Aucune demande dans l'historique"}
+                ? t('empty.no_results')
+                : t('empty.no_requests')}
             </h3>
             <p className="text-muted-foreground mb-4">
               {searchTerm || statusFilter !== 'all'
-                ? 'Essayez de modifier vos filtres de recherche.'
-                : "Vous n'avez pas encore fait de demande de service."}
+                ? t('empty.no_results_description')
+                : t('empty.no_requests_description')}
             </p>
             {searchTerm || statusFilter !== 'all' ? (
               <Button
@@ -215,12 +217,12 @@ export function RequestsHistory() {
                   setStatusFilter('all');
                 }}
               >
-                Réinitialiser les filtres
+                {t('empty.reset_filters')}
               </Button>
             ) : (
               <Button asChild>
                 <Link href={ROUTES.user.service_available}>
-                  Faire ma première demande
+                  {t('empty.first_request')}
                 </Link>
               </Button>
             )}

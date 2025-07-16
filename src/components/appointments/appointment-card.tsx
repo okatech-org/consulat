@@ -1,3 +1,5 @@
+'use client';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin } from 'lucide-react';
@@ -42,11 +44,11 @@ export function AppointmentCard({ appointment, onUpdate }: AppointmentCardProps)
       case 'CONFIRMED':
         return 'default';
       case 'CANCELLED':
-        return 'destructive';
+        return 'outline';
       case 'COMPLETED':
         return 'default';
       case 'MISSED':
-        return 'destructive';
+        return 'outline';
       case 'RESCHEDULED':
         return 'secondary';
       default:
@@ -64,7 +66,7 @@ export function AppointmentCard({ appointment, onUpdate }: AppointmentCardProps)
   };
 
   const handleReschedule = () => {
-    router.push(`${ROUTES.user.appointments}/reschedule/${appointment.id}`);
+    router.push(ROUTES.user.appointment_reschedule(appointment.id));
   };
 
   return (
@@ -116,7 +118,7 @@ export function AppointmentCard({ appointment, onUpdate }: AppointmentCardProps)
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
-                variant="destructive"
+                variant="destructiveOutline"
                 size="mobile"
                 disabled={cancelAppointment.isLoading}
               >

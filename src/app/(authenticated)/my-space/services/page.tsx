@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { useTableSearchParams } from '@/hooks/use-table-search-params';
 
 type ConsularServiceWithOrganization = {
   id: string;
@@ -39,6 +40,44 @@ type ConsularServiceWithOrganization = {
   countryCode: string | null;
 };
 
+interface ServiceFilters {
+  search?: string;
+  categories?: ServiceCategory[];
+  organizations?: string[];
+  activeOnly?: boolean;
+}
+
+// Fonction pour adapter les paramètres d'URL vers les filtres
+const adaptSearchParams = (searchParams: URLSearchParams): ServiceFilters => {
+  const filters: ServiceFilters = {};
+
+  // Search query
+  const search = searchParams.get('search');
+  if (search) filters.search = search;
+
+  // Categories - attendues comme string séparées par des virgules
+  const categoriesParam = searchParams.get('categories');
+  if (categoriesParam) {
+    filters.categories = categoriesParam
+      .split(',')
+      .filter((cat) =>
+        Object.values(ServiceCategory).includes(cat as ServiceCategory),
+      ) as ServiceCategory[];
+  }
+
+  // Organizations - attendues comme string séparées par des virgules
+  const organizationsParam = searchParams.get('organizations');
+  if (organizationsParam) {
+    filters.organizations = organizationsParam.split(',');
+  }
+
+  // Active only - attendu comme boolean string
+  const activeOnly = searchParams.get('activeOnly');
+  if (activeOnly === 'true') filters.activeOnly = true;
+
+  return filters;
+};
+
 const UNAVAILABLE_MESSAGE = 'Disponible à partir du 15 juillet 2025';
 
 export default function AvailableServicesPage() {
@@ -48,13 +87,19 @@ export default function AvailableServicesPage() {
     ConsularServiceWithOrganization[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [view] = useState<'grid' | 'list'>('grid');
 
-  // Filters
-  const [selectedCategories, setSelectedCategories] = useState<ServiceCategory[]>([]);
-  const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
-  const [showActiveOnly, setShowActiveOnly] = useState(false);
+  // Utilisation du hook pour gérer les filtres via URL
+  const { params, handleParamsChange } = useTableSearchParams<
+    ConsularServiceWithOrganization,
+    ServiceFilters
+  >(adaptSearchParams);
+
+  // Extraction des filtres depuis les paramètres
+  const searchQuery = params.search || '';
+  const selectedCategories = params.categories || [];
+  const selectedOrganizations = params.organizations || [];
+  const showActiveOnly = params.activeOnly || false;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,10 +193,10 @@ export default function AvailableServicesPage() {
   );
 
   const resetFilters = () => {
-    setSelectedCategories([]);
-    setSelectedOrganizations([]);
-    setShowActiveOnly(false);
-    setSearchQuery('');
+    handleParamsChange('categories', []);
+    handleParamsChange('organizations', []);
+    handleParamsChange('activeOnly', false);
+    handleParamsChange('search', '');
   };
 
   const areFiltersActive =
@@ -186,7 +231,7 @@ export default function AvailableServicesPage() {
               placeholder="Rechercher un service par nom, description ou organisme..."
               className="pl-10 pr-4 py-2 text-sm focus:border-primary transition-colors"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleParamsChange('search', e.target.value)}
               aria-label="Rechercher des services"
             />
             {searchQuery && (
@@ -194,7 +239,7 @@ export default function AvailableServicesPage() {
                 variant="ghost"
                 size="icon"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6"
-                onClick={() => setSearchQuery('')}
+                onClick={() => handleParamsChange('search', '')}
                 aria-label="Effacer la recherche"
               >
                 <X className="h-4 w-4" />
@@ -236,7 +281,7 @@ export default function AvailableServicesPage() {
                           type="multiple"
                           options={getCategoryOptions()}
                           selected={selectedCategories}
-                          onChange={setSelectedCategories}
+                          onChange={(value) => handleParamsChange('categories', value)}
                           placeholder="Toutes les catégories"
                           searchPlaceholder="Rechercher..."
                           emptyText="Aucune catégorie trouvée"
@@ -251,7 +296,7 @@ export default function AvailableServicesPage() {
                           type="multiple"
                           options={getOrganizationOptions()}
                           selected={selectedOrganizations}
-                          onChange={setSelectedOrganizations}
+                          onChange={(value) => handleParamsChange('organizations', value)}
                           placeholder="Tous les organismes"
                           searchPlaceholder="Rechercher..."
                           emptyText="Aucun organisme trouvé"
@@ -266,7 +311,9 @@ export default function AvailableServicesPage() {
                           variant={showActiveOnly ? 'default' : 'outline'}
                           size="sm"
                           className="w-full justify-start h-8"
-                          onClick={() => setShowActiveOnly(!showActiveOnly)}
+                          onClick={() =>
+                            handleParamsChange('activeOnly', !showActiveOnly)
+                          }
                         >
                           <span>Services actifs uniquement</span>
                           {showActiveOnly && (
@@ -293,7 +340,7 @@ export default function AvailableServicesPage() {
               <Button
                 variant={showActiveOnly ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setShowActiveOnly(!showActiveOnly)}
+                onClick={() => handleParamsChange('activeOnly', !showActiveOnly)}
                 className="h-8 text-xs"
                 aria-label={
                   showActiveOnly
@@ -329,11 +376,12 @@ export default function AvailableServicesPage() {
                   type="multiple"
                   options={getCategoryOptions()}
                   selected={selectedCategories}
-                  onChange={setSelectedCategories}
+                  onChange={(value) => handleParamsChange('categories', value)}
                   placeholder="Catégories"
                   searchPlaceholder="Rechercher..."
                   emptyText="Aucune catégorie trouvée"
                   className="text-xs h-8"
+                  showSelected={false}
                 />
               </div>
 
@@ -342,18 +390,19 @@ export default function AvailableServicesPage() {
                   type="multiple"
                   options={getOrganizationOptions()}
                   selected={selectedOrganizations}
-                  onChange={setSelectedOrganizations}
+                  onChange={(value) => handleParamsChange('organizations', value)}
                   placeholder="Organismes"
                   searchPlaceholder="Rechercher..."
                   emptyText="Aucun organisme trouvé"
                   className="text-xs h-8"
+                  showSelected={false}
                 />
               </div>
 
               <Button
                 variant={showActiveOnly ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setShowActiveOnly(!showActiveOnly)}
+                onClick={() => handleParamsChange('activeOnly', !showActiveOnly)}
                 className="h-8 text-xs"
                 aria-label={
                   showActiveOnly
@@ -375,8 +424,8 @@ export default function AvailableServicesPage() {
                   onClick={resetFilters}
                   className="ml-auto h-8 text-xs hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
                 >
-                  <X className="h-3 w-3 mr-1" />
-                  Reset
+                  <X className="size-icon" />
+                  Effacer
                 </Button>
               )}
 
@@ -401,7 +450,8 @@ export default function AvailableServicesPage() {
                     size="icon"
                     className="h-3 w-3 ml-1 p-0 hover:bg-primary-300 rounded-full"
                     onClick={() =>
-                      setSelectedCategories(
+                      handleParamsChange(
+                        'categories',
                         selectedCategories.filter((c) => c !== category),
                       )
                     }
@@ -430,7 +480,8 @@ export default function AvailableServicesPage() {
                       size="icon"
                       className="h-3 w-3 ml-1 p-0 hover:bg-secondary-300 rounded-full"
                       onClick={() =>
-                        setSelectedOrganizations(
+                        handleParamsChange(
+                          'organizations',
                           selectedOrganizations.filter((id) => id !== orgId),
                         )
                       }
@@ -452,7 +503,7 @@ export default function AvailableServicesPage() {
                     variant="ghost"
                     size="icon"
                     className="h-3 w-3 ml-1 p-0 hover:bg-success/30 rounded-full"
-                    onClick={() => setShowActiveOnly(false)}
+                    onClick={() => handleParamsChange('activeOnly', false)}
                     aria-label="Supprimer le filtre actifs"
                   >
                     <X className="h-2 w-2" />
@@ -465,12 +516,14 @@ export default function AvailableServicesPage() {
                   variant="secondary"
                   className="text-xs py-0 px-2 h-6 bg-accent text-accent-foreground border-accent"
                 >
-                  <span className="truncate max-w-[80px]">"{searchQuery}"</span>
+                  <span className="truncate max-w-[80px]">
+                    &ldquo;{searchQuery}&rdquo;
+                  </span>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-3 w-3 ml-1 p-0 hover:bg-accent/60 rounded-full"
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => handleParamsChange('search', '')}
                     aria-label="Supprimer la recherche"
                   >
                     <X className="h-2 w-2" />

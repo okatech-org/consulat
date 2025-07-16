@@ -13,61 +13,64 @@ import {
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import CardContainer from '@/components/layouts/card-container';
+import { useTranslations } from 'next-intl';
 
 export function QuickActions() {
+  const t = useTranslations('dashboard.unified.quick_actions');
+
   const actions = [
     {
-      title: 'Certificat de vie',
-      description: 'Obtenez votre certificat de vie pour vos démarches de pension',
+      title: t('actions.life_certificate.title'),
+      description: t('actions.life_certificate.description'),
       icon: FileText,
-      href: ROUTES.user.service_available,
+      href: ROUTES.user.services + '?categories=CERTIFICATION',
       color: 'bg-blue-500',
     },
     {
-      title: 'Prendre un rendez-vous',
-      description: 'Planifiez votre visite au consulat',
+      title: t('actions.appointment.title'),
+      description: t('actions.appointment.description'),
       icon: Calendar,
       href: ROUTES.user.appointments,
       color: 'bg-green-500',
     },
     {
-      title: 'Légalisation de document',
-      description: 'Faites légaliser vos documents officiels',
+      title: t('actions.document_legalization.title'),
+      description: t('actions.document_legalization.description'),
       icon: ShieldCheck,
-      href: ROUTES.user.service_available,
+      href: ROUTES.user.services + '?categories=CERTIFICATION',
       color: 'bg-purple-500',
     },
     {
-      title: 'Mise à jour du profil',
-      description: 'Complétez ou modifiez vos informations personnelles',
+      title: t('actions.profile_update.title'),
+      description: t('actions.profile_update.description'),
       icon: User,
       href: ROUTES.user.profile,
       color: 'bg-orange-500',
     },
     {
-      title: 'Attestations diverses',
-      description: 'Demandez vos attestations de résidence, revenus, etc.',
+      title: t('actions.various_certificates.title'),
+      description: t('actions.various_certificates.description'),
       icon: Lightbulb,
-      href: ROUTES.user.service_available,
+      href: ROUTES.user.services,
       color: 'bg-indigo-500',
     },
     {
-      title: 'Support consulaire',
-      description: 'Contactez notre équipe pour toute assistance',
+      title: t('actions.consular_support.title'),
+      description: t('actions.consular_support.description'),
       icon: HelpCircle,
-      href: ROUTES.user.feedback,
+      href: ROUTES.user.contact,
       color: 'bg-cyan-500',
     },
   ];
 
   return (
     <CardContainer
-      title="Services et Actions"
-      subtitle="Accédez rapidement à vos services"
+      title={t('title')}
+      subtitle={t('subtitle')}
       action={
         <Button variant="outline" size="sm" asChild>
-          <Link href={ROUTES.user.service_available}>
-            Voir tous les services
+          <Link href={ROUTES.user.services}>
+            {t('view_all_services')}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>

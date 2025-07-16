@@ -45,6 +45,7 @@ interface MultiSelectSingleProps<T> {
   disabled?: boolean;
   autoComplete?: string;
   className?: string;
+  showSelected?: boolean;
 }
 
 export function MultiSelect<T>({
@@ -58,6 +59,7 @@ export function MultiSelect<T>({
   disabled = false,
   autoComplete = 'off',
   className = '',
+  showSelected = true,
 }: MultiSelectMultipleProps<T> | MultiSelectSingleProps<T>) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
@@ -199,7 +201,7 @@ export function MultiSelect<T>({
       </div>
 
       {/* Display selected options below the button for multiple selection */}
-      {type === 'multiple' && selectedOptions.length > 0 && (
+      {type === 'multiple' && selectedOptions.length > 0 && showSelected && (
         <div className="flex flex-wrap gap-1">
           {selectedOptions.map((option) => (
             <Badge

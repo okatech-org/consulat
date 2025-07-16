@@ -470,7 +470,7 @@ const sidebarMenuButtonVariants = cva(
     variants: {
       variant: {
         default:
-          'data-[active=true]:bg-sidebar-accent/10 data-[active=true]:text-sidebar-accent data-[active=true]:border-l-2 data-[active=true]:border-sidebar-accent hover:bg-sidebar-accent/10 hover:text-sidebar-accent-foreground active:bg-sidebar-accent/10 active:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent/20 dark:hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/10 hover:text-sidebar-accent dark:active:bg-sidebar-accent/20 dark:active:text-sidebar-accent-foreground dark:data-[active=true]:bg-sidebar-accent/20 dark:data-[active=true]:text-sidebar-accent-foreground',
+          'data-[active=true]:bg-sidebar-accent/10 data-[active=true]:text-sidebar-accent data-[active=true]:border-l-2 data-[active=true]:border-sidebar-accent hover:bg-sidebar-accent/10 hover:text-sidebar-accent-foreground active:bg-sidebar-accent/10 active:text-sidebar-accent dark:hover:bg-sidebar-accent/20 dark:hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/10 hover:text-sidebar-accent dark:active:bg-sidebar-accent/20 dark:active:text-sidebar-accent-foreground dark:data-[active=true]:bg-sidebar-accent/20 dark:data-[active=true]:text-sidebar-accent-foreground',
         outline:
           'bg-background bg-red! shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]',
       },
