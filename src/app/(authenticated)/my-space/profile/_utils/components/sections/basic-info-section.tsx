@@ -15,7 +15,7 @@ import {
 } from '@/lib/utils';
 import { updateProfile } from '@/actions/profile';
 import { BasicInfoForm } from '@/components/registration/basic-info';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 
 interface BasicInfoSectionProps {
   profile: FullProfile;

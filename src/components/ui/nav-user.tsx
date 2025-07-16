@@ -60,9 +60,7 @@ export function NavUser() {
                 <span className="truncate font-medium">
                   {name} {initials}
                 </span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {userInfos.email}
-                </span>
+                <span className="truncate text-xs opacity-90">{userInfos.email}</span>
               </div>
               <MoreVerticalIcon className="ml-auto size-4" />
             </SidebarMenuButton>

@@ -7,7 +7,6 @@ import {
   ServiceCategory,
   Prisma,
   RequestActionType,
-  UserRole,
 } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
 import { FullProfileInclude } from '@/types';
@@ -15,7 +14,10 @@ import type { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 
-import type { CreateProfileInput, FullProfileUpdateFormData } from '@/schemas/registration';
+import type {
+  CreateProfileInput,
+  FullProfileUpdateFormData,
+} from '@/schemas/registration';
 import {
   NameSchema,
   CountryCodeSchema,
@@ -429,6 +431,7 @@ export async function submitProfileForValidation(
       status: 'SUBMITTED',
       submittedAt: new Date(),
       validationRequestId: serviceRequest.id,
+      assignedOrganizationId: registrationService.organizationId,
     },
   });
 }

@@ -12,25 +12,19 @@ export const metadata = {
 
 export default function HistoryPage() {
   return (
-    <PageContainer>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={ROUTES.user.dashboard}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Historique des demandes</h1>
-            <p className="text-muted-foreground">
-              Retrouvez toutes vos demandes passées et en cours
-            </p>
-          </div>
-        </div>
-
-        <RequestsHistory />
-      </div>
+    <PageContainer
+      title="Historique des demandes"
+      description="Retrouvez toutes vos demandes passées et en cours"
+      action={
+        <Button variant="outline" size="sm" asChild>
+          <Link href={ROUTES.user.dashboard}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Link>
+        </Button>
+      }
+    >
+      <RequestsHistory />
     </PageContainer>
   );
 }

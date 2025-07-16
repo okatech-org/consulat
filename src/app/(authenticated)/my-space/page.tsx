@@ -5,7 +5,7 @@ import { RecentHistory } from './_components/recent-history';
 import { EmptyState } from './_components/empty-state';
 import { UserOverview } from './_components/user-overview';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Plus, HelpCircle } from 'lucide-react';
+import { Plus, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { getTranslations } from 'next-intl/server';
@@ -134,16 +134,6 @@ export default async function MySpacePage() {
           <p className="text-muted-foreground text-left">{t('subtitle')}</p>
         </div>
         <div className="flex gap-2 items-center">
-          <form action={ROUTES.user.base}>
-            <Button
-              variant="outline"
-              size="sm"
-              type="submit"
-              leftIcon={<RefreshCw className="size-icon" />}
-            >
-              {t('refresh')}
-            </Button>
-          </form>
           <Button variant="outline" size="sm" asChild>
             <Link href={ROUTES.user.contact}>
               <HelpCircle className="size-icon" />

@@ -1,13 +1,13 @@
 import {
   OrganizationType,
   OrganizationStatus,
-  Country,
-  User,
-  ServiceCategory,
+  type Country,
+  type User,
+  type ServiceCategory,
   Prisma,
 } from '@prisma/client';
-import { ConsularServiceListingItem } from '@/types/consular-service';
-import { CountryListingItem } from '@/types/country';
+import type { ConsularServiceListingItem } from '@/types/consular-service';
+import type { CountryListingItem } from '@/types/country';
 
 export interface Organization {
   id: string;

@@ -14,6 +14,14 @@ export function useCurrentProfile() {
   });
 }
 
+export function useCurrentProfileOrganizationContactData() {
+  return api.profile.getCurrentOrganizationContactData.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+}
+
 /**
  * Hook pour récupérer un profil par ID
  */
@@ -25,7 +33,7 @@ export function useProfile(profileId: string) {
       staleTime: 10 * 60 * 1000, // 10 minutes
       refetchOnWindowFocus: false,
       retry: 2,
-    }
+    },
   );
 }
 
@@ -39,7 +47,7 @@ export function useProfileRegistrationRequest(profileId: string) {
       enabled: !!profileId,
       staleTime: 2 * 60 * 1000, // 2 minutes - les demandes changent plus fréquemment
       refetchOnWindowFocus: false,
-    }
+    },
   );
 }
 
@@ -74,7 +82,8 @@ export function useCreateProfile() {
       console.error('Error creating profile:', error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Une erreur est survenue lors de la création du profil',
+        description:
+          error.message || 'Une erreur est survenue lors de la création du profil',
         variant: 'destructive',
       });
     },
@@ -92,11 +101,11 @@ export function useUpdateProfile() {
       // Optimistic update - annuler les requêtes en cours
       await utils.profile.getCurrent.cancel();
       await utils.profile.getById.cancel({ id: profileId });
-      
+
       // Sauvegarder l'état précédent
       const previousCurrentProfile = utils.profile.getCurrent.getData();
       const previousProfile = utils.profile.getById.getData({ id: profileId });
-      
+
       return { previousCurrentProfile, previousProfile, profileId };
     },
     onError: (error, variables, context) => {
@@ -107,11 +116,12 @@ export function useUpdateProfile() {
       if (context?.previousProfile && context?.profileId) {
         utils.profile.getById.setData({ id: context.profileId }, context.previousProfile);
       }
-      
+
       console.error('Error updating profile:', error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Une erreur est survenue lors de la mise à jour du profil',
+        description:
+          error.message || 'Une erreur est survenue lors de la mise à jour du profil',
         variant: 'destructive',
       });
     },
@@ -151,7 +161,8 @@ export function useUpdateProfileSection() {
       console.error('Error updating profile section:', error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Une erreur est survenue lors de la mise à jour de la section',
+        description:
+          error.message || 'Une erreur est survenue lors de la mise à jour de la section',
         variant: 'destructive',
       });
     },
@@ -181,7 +192,8 @@ export function useSubmitProfile() {
       console.error('Error submitting profile:', error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Une erreur est survenue lors de la soumission du profil',
+        description:
+          error.message || 'Une erreur est survenue lors de la soumission du profil',
         variant: 'destructive',
       });
     },
@@ -203,11 +215,11 @@ export function useProfileActions() {
     updateProfile: updateProfile.mutate,
     updateProfileSection: updateProfileSection.mutate,
     submitProfile: submitProfile.mutate,
-    
+
     // États de chargement
     isCreatingProfile: createProfile.isPending,
     isUpdatingProfile: updateProfile.isPending,
     isUpdatingProfileSection: updateProfileSection.isPending,
     isSubmittingProfile: submitProfile.isPending,
   };
-} 
+}

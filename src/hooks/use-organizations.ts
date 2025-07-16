@@ -31,10 +31,10 @@ export function useOrganizations(options?: {
     onMutate: async (newOrganization) => {
       // Annuler les requêtes en cours
       await utils.organizations.getList.cancel();
-      
+
       // Snapshot des données précédentes
       const previousData = utils.organizations.getList.getData(options);
-      
+
       // Optimistically update
       if (previousData) {
         const optimisticOrganization = {
@@ -59,7 +59,7 @@ export function useOrganizations(options?: {
           total: previousData.total + 1,
         });
       }
-      
+
       return { previousData };
     },
     onError: (error, newOrganization, context) => {
@@ -67,10 +67,12 @@ export function useOrganizations(options?: {
       if (context?.previousData) {
         utils.organizations.getList.setData(options, context.previousData);
       }
-      
+
       toast({
         title: 'Erreur lors de la création',
-        description: error.message || 'Une erreur est survenue lors de la création de l\'organisation.',
+        description:
+          error.message ||
+          "Une erreur est survenue lors de la création de l'organisation.",
         variant: 'destructive',
       });
     },
@@ -92,30 +94,33 @@ export function useOrganizations(options?: {
     onMutate: async ({ id, data: updateData }) => {
       await utils.organizations.getList.cancel();
       await utils.organizations.getById.cancel({ id });
-      
+
       const previousListData = utils.organizations.getList.getData(options);
       const previousOrganizationData = utils.organizations.getById.getData({ id });
-      
+
       // Update dans la liste
       if (previousListData) {
-        const updatedItems = previousListData.items.map(item =>
-          item.id === id ? { ...item, ...updateData } : item
+        const updatedItems = previousListData.items.map((item) =>
+          item.id === id ? { ...item, ...updateData } : item,
         );
-        
+
         utils.organizations.getList.setData(options, {
           ...previousListData,
           items: updatedItems,
         });
       }
-      
+
       // Update dans le détail
       if (previousOrganizationData) {
-        utils.organizations.getById.setData({ id }, {
-          ...previousOrganizationData,
-          ...updateData,
-        });
+        utils.organizations.getById.setData(
+          { id },
+          {
+            ...previousOrganizationData,
+            ...updateData,
+          },
+        );
       }
-      
+
       return { previousListData, previousOrganizationData };
     },
     onError: (error, { id }, context) => {
@@ -126,10 +131,12 @@ export function useOrganizations(options?: {
       if (context?.previousOrganizationData) {
         utils.organizations.getById.setData({ id }, context.previousOrganizationData);
       }
-      
+
       toast({
         title: 'Erreur lors de la mise à jour',
-        description: error.message || 'Une erreur est survenue lors de la mise à jour de l\'organisation.',
+        description:
+          error.message ||
+          "Une erreur est survenue lors de la mise à jour de l'organisation.",
         variant: 'destructive',
       });
     },
@@ -150,30 +157,33 @@ export function useOrganizations(options?: {
     onMutate: async ({ id, status }) => {
       await utils.organizations.getList.cancel();
       await utils.organizations.getById.cancel({ id });
-      
+
       const previousListData = utils.organizations.getList.getData(options);
       const previousOrganizationData = utils.organizations.getById.getData({ id });
-      
+
       // Update dans la liste
       if (previousListData) {
-        const updatedItems = previousListData.items.map(item =>
-          item.id === id ? { ...item, status } : item
+        const updatedItems = previousListData.items.map((item) =>
+          item.id === id ? { ...item, status } : item,
         );
-        
+
         utils.organizations.getList.setData(options, {
           ...previousListData,
           items: updatedItems,
         });
       }
-      
+
       // Update dans le détail
       if (previousOrganizationData) {
-        utils.organizations.getById.setData({ id }, {
-          ...previousOrganizationData,
-          status,
-        });
+        utils.organizations.getById.setData(
+          { id },
+          {
+            ...previousOrganizationData,
+            status,
+          },
+        );
       }
-      
+
       return { previousListData, previousOrganizationData };
     },
     onError: (error, { id }, context) => {
@@ -184,10 +194,11 @@ export function useOrganizations(options?: {
       if (context?.previousOrganizationData) {
         utils.organizations.getById.setData({ id }, context.previousOrganizationData);
       }
-      
+
       toast({
         title: 'Erreur lors de la mise à jour du statut',
-        description: error.message || 'Une erreur est survenue lors de la mise à jour du statut.',
+        description:
+          error.message || 'Une erreur est survenue lors de la mise à jour du statut.',
         variant: 'destructive',
       });
     },
@@ -207,19 +218,19 @@ export function useOrganizations(options?: {
   const deleteOrganizationMutation = api.organizations.delete.useMutation({
     onMutate: async ({ id }) => {
       await utils.organizations.getList.cancel();
-      
+
       const previousData = utils.organizations.getList.getData(options);
-      
+
       // Retirer optimistiquement de la liste
       if (previousData) {
-        const filteredItems = previousData.items.filter(item => item.id !== id);
+        const filteredItems = previousData.items.filter((item) => item.id !== id);
         utils.organizations.getList.setData(options, {
           ...previousData,
           items: filteredItems,
           total: previousData.total - 1,
         });
       }
-      
+
       return { previousData };
     },
     onError: (error, { id }, context) => {
@@ -227,17 +238,19 @@ export function useOrganizations(options?: {
       if (context?.previousData) {
         utils.organizations.getList.setData(options, context.previousData);
       }
-      
+
       toast({
         title: 'Erreur lors de la suppression',
-        description: error.message || 'Une erreur est survenue lors de la suppression de l\'organisation.',
+        description:
+          error.message ||
+          "Une erreur est survenue lors de la suppression de l'organisation.",
         variant: 'destructive',
       });
     },
     onSuccess: () => {
       toast({
         title: 'Organisation supprimée',
-        description: 'L\'organisation a été supprimée avec succès.',
+        description: "L'organisation a été supprimée avec succès.",
       });
     },
     onSettled: () => {
@@ -252,24 +265,24 @@ export function useOrganizations(options?: {
     total: organizationsQuery.data?.total ?? 0,
     pages: organizationsQuery.data?.pages ?? 0,
     currentPage: organizationsQuery.data?.currentPage ?? 1,
-    
+
     // Loading states
     isLoading: organizationsQuery.isLoading,
     isError: organizationsQuery.isError,
     error: organizationsQuery.error,
-    
+
     // Mutations
     createOrganization: createOrganizationMutation.mutate,
     updateOrganization: updateOrganizationMutation.mutate,
     updateStatus: updateStatusMutation.mutate,
     deleteOrganization: deleteOrganizationMutation.mutate,
-    
+
     // Mutation states
     isCreating: createOrganizationMutation.isPending,
     isUpdating: updateOrganizationMutation.isPending,
     isUpdatingStatus: updateStatusMutation.isPending,
     isDeleting: deleteOrganizationMutation.isPending,
-    
+
     // Utils
     refetch: organizationsQuery.refetch,
     invalidate: () => utils.organizations.getList.invalidate(),
@@ -289,7 +302,7 @@ export function useOrganization(id: string) {
         if (error.data?.code === 'NOT_FOUND') return false;
         return failureCount < 3;
       },
-    }
+    },
   );
 
   return {
@@ -329,17 +342,20 @@ export function useOrganizationSettings(id: string) {
   const updateSettingsMutation = api.organizations.updateSettings.useMutation({
     onMutate: async ({ id, data }) => {
       await utils.organizations.getById.cancel({ id });
-      
+
       const previousData = utils.organizations.getById.getData({ id });
-      
+
       // Update optimistique
       if (previousData) {
-        utils.organizations.getById.setData({ id }, {
-          ...previousData,
-          ...data,
-        });
+        utils.organizations.getById.setData(
+          { id },
+          {
+            ...previousData,
+            ...data,
+          },
+        );
       }
-      
+
       return { previousData };
     },
     onError: (error, { id }, context) => {
@@ -347,10 +363,12 @@ export function useOrganizationSettings(id: string) {
       if (context?.previousData) {
         utils.organizations.getById.setData({ id }, context.previousData);
       }
-      
+
       toast({
         title: 'Erreur lors de la mise à jour',
-        description: error.message || 'Une erreur est survenue lors de la mise à jour des paramètres.',
+        description:
+          error.message ||
+          'Une erreur est survenue lors de la mise à jour des paramètres.',
         variant: 'destructive',
       });
     },
@@ -388,18 +406,20 @@ export function useOrganizationCreation() {
         title: 'Organisation créée avec succès',
         description: `L'organisation ${data.name} a été créée.`,
       });
-      
+
       // Invalider les caches
       utils.organizations.getList.invalidate();
       utils.organizations.getStats.invalidate();
-      
+
       // Naviguer vers la page des organisations
       router.push(ROUTES.sa.organizations);
     },
     onError: (error) => {
       toast({
         title: 'Erreur lors de la création',
-        description: error.message || 'Une erreur est survenue lors de la création de l\'organisation.',
+        description:
+          error.message ||
+          "Une erreur est survenue lors de la création de l'organisation.",
         variant: 'destructive',
       });
     },
@@ -423,7 +443,7 @@ export function useOrganizationByCountry(countryCode: string) {
       enabled: !!countryCode,
       staleTime: 10 * 60 * 1000, // 10 minutes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   return {
@@ -433,4 +453,4 @@ export function useOrganizationByCountry(countryCode: string) {
     error: organizationQuery.error,
     refetch: organizationQuery.refetch,
   };
-} 
+}

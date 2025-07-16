@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import type { DashboardProfile } from '@/types/profile';
 import { useDateLocale } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface UserOverviewProps {
   stats: {
@@ -56,9 +57,18 @@ export function UserOverview({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
         {/* Informations utilisateur */}
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-semibold text-lg">
-            {getInitials(profile?.firstName, profile?.lastName)}
-          </div>
+          <Avatar className="size-12 bg-muted md:size-20">
+            {profile?.identityPicture ? (
+              <AvatarImage
+                src={profile?.identityPicture.fileUrl}
+                alt={profile?.firstName || ''}
+              />
+            ) : (
+              <AvatarFallback>
+                {getInitials(profile?.firstName, profile?.lastName)}
+              </AvatarFallback>
+            )}
+          </Avatar>
           <div>
             <h3 className="font-semibold text-lg">
               {getDisplayName(profile?.firstName, profile?.lastName)}

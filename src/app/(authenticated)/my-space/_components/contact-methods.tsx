@@ -1,21 +1,167 @@
 'use client';
 
+import CardContainer from '@/components/layouts/card-container';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Phone, MessageCircle, Mail, MapPin } from 'lucide-react';
+import { MessageCircle, Mail, MapPin, AlertTriangle, Globe } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
+import { useCurrentProfileOrganizationContactData } from '@/hooks/use-profile';
+import { ChatToggle } from '@/components/chat/chat-toggle';
+import Link from 'next/link';
+
+type WeekDay =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
 
 export function ContactMethods() {
   const t = useTranslations('dashboard.contact');
-  
+  const { data: contactData, isLoading } = useCurrentProfileOrganizationContactData();
+
+  // Si pas de données de contact, l'utilisateur n'est pas associé à un organisme
+  if (!isLoading && !contactData) {
+    return (
+      <div className="space-y-6">
+        <CardContainer
+          title={t('no_organization.title')}
+          className="border-amber-200 bg-amber-50"
+        >
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+              <AlertTriangle className="h-8 w-8 text-amber-600" />
+            </div>
+            <p className="text-amber-800">{t('no_organization.description')}</p>
+            <Button asChild className="bg-amber-600 hover:bg-amber-700">
+              <Link href={ROUTES.registration}>{t('no_organization.action')}</Link>
+            </Button>
+          </div>
+        </CardContainer>
+
+        <CardContainer title={t('support.title')}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="p-6 text-center hover:border-primary transition-all hover:shadow-lg hover:-translate-y-1">
+              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="font-semibold mb-2">{t('support.chat.title')}</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {t('support.chat.description')}
+              </p>
+              <div className="flex justify-center">
+                <ChatToggle
+                  customIcon={
+                    <Button className="w-full">{t('support.chat.action')}</Button>
+                  }
+                />
+              </div>
+            </Card>
+
+            <Card className="p-6 text-center hover:border-primary transition-all hover:shadow-lg hover:-translate-y-1">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="font-semibold mb-2">{t('support.feedback.title')}</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {t('support.feedback.description')}
+              </p>
+              <Button className="w-full" asChild>
+                <Link href={ROUTES.user.feedback}>{t('support.feedback.action')}</Link>
+              </Button>
+            </Card>
+          </div>
+        </CardContainer>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-32 bg-muted rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Formatage des horaires
+  const formatSchedule = () => {
+    if (!contactData?.schedule) return t('info.hours_unavailable');
+
+    const days: WeekDay[] = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
+    const openDays = days.filter((day) => {
+      const daySchedule = contactData.schedule[day];
+      return daySchedule?.isOpen;
+    });
+
+    if (openDays.length === 0) return t('info.closed');
+
+    // Grouper les jours consécutifs avec les mêmes horaires
+    const groupedDays: WeekDay[][] = [];
+    if (openDays.length > 0) {
+      let currentGroup = [openDays[0]!];
+
+      for (let i = 1; i < openDays.length; i++) {
+        const currentDay = contactData.schedule[openDays[i]!];
+        const previousDay = contactData.schedule[openDays[i - 1]!];
+
+        if (
+          currentDay &&
+          previousDay &&
+          JSON.stringify(currentDay.slots) === JSON.stringify(previousDay.slots)
+        ) {
+          currentGroup.push(openDays[i]!);
+        } else {
+          groupedDays.push(currentGroup);
+          currentGroup = [openDays[i]!];
+        }
+      }
+      groupedDays.push(currentGroup);
+    }
+
+    return groupedDays
+      .map((group) => {
+        const firstDay = group[0];
+        const lastDay = group[group.length - 1];
+        const daySchedule = contactData.schedule[firstDay!];
+
+        if (!daySchedule || !firstDay || !lastDay) return '';
+
+        const dayRange =
+          group.length === 1
+            ? t(`days.${firstDay}`)
+            : `${t(`days.${firstDay}`)} - ${t(`days.${lastDay}`)}`;
+
+        const timeSlots = daySchedule.slots
+          .map((slot: { start: string; end: string }) => `${slot.start} - ${slot.end}`)
+          .join(', ');
+
+        return `${dayRange}: ${timeSlots}`;
+      })
+      .filter(Boolean)
+      .join('\n');
+  };
+
   const contactMethods = [
     {
       title: t('methods.emergency.title'),
       description: t('methods.emergency.description'),
-      icon: Phone,
+      icon: AlertTriangle,
       action: t('methods.emergency.action'),
-      href: 'tel:+33123456789',
+      href: `tel:${contactData?.contact?.phone || '#'}`,
       color: 'bg-red-500',
     },
     {
@@ -23,7 +169,7 @@ export function ContactMethods() {
       description: t('methods.chat.description'),
       icon: MessageCircle,
       action: t('methods.chat.action'),
-      href: ROUTES.user.feedback,
+      isChat: true,
       color: 'bg-blue-500',
     },
     {
@@ -31,7 +177,7 @@ export function ContactMethods() {
       description: t('methods.email.description'),
       icon: Mail,
       action: t('methods.email.action'),
-      href: 'mailto:contact@consulat.ga',
+      href: `mailto:${contactData?.contact?.email || '#'}`,
       color: 'bg-green-500',
     },
     {
@@ -44,57 +190,91 @@ export function ContactMethods() {
     },
   ];
 
-  return (
-    <div className="space-y-6">
-      {/* Méthodes de contact */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {contactMethods.map((method, index) => {
-          const Icon = method.icon;
-          return (
-            <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
-              <div className={`w-16 h-16 ${method.color} rounded-full flex items-center justify-center text-white mx-auto mb-4`}>
-                <Icon className="h-8 w-8" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{method.title}</h3>
-              <p className="text-muted-foreground text-sm mb-4">{method.description}</p>
-              <Button asChild>
-                <a href={method.href}>{method.action}</a>
-              </Button>
-            </Card>
-          );
-        })}
-      </div>
+  const formatAddress = () => {
+    if (!contactData?.contact?.address) return t('info.address_unavailable');
 
-      {/* Informations de contact */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">{t('info.title')}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-1">{t('info.address')}</h4>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">
-                {t('info.address_value')}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">{t('info.phone')}</h4>
-              <p className="text-sm text-muted-foreground">{t('info.phone_value')}</p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-1">{t('info.email')}</h4>
-              <p className="text-sm text-muted-foreground">{t('info.email_value')}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">{t('info.hours')}</h4>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">
-                {t('info.hours_value')}
-              </p>
-            </div>
-          </div>
+    const { firstLine, city, zipCode, country } = contactData.contact.address;
+    return `${firstLine}\n${zipCode} ${city}, ${country}`;
+  };
+
+  return (
+    <>
+      <CardContainer>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {contactMethods.map((method, index) => {
+            const Icon = method.icon;
+            return (
+              <Card
+                key={index}
+                className="p-6 text-center hover:border-primary transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Icon className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="font-semibold mb-2">{method.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{method.description}</p>
+
+                {method.isChat ? (
+                  <div className="flex justify-center">
+                    <ChatToggle
+                      customIcon={<Button className="w-full">{method.action}</Button>}
+                    />
+                  </div>
+                ) : (
+                  <Button className="w-full" asChild>
+                    <a href={method.href}>{method.action}</a>
+                  </Button>
+                )}
+              </Card>
+            );
+          })}
         </div>
-      </Card>
-    </div>
+      </CardContainer>
+
+      <CardContainer
+        className="bg-muted/50"
+        title={t('info.title')}
+        contentClass="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div className="flex justify-between items-start p-3 bg-background rounded">
+          <span className="font-medium">{t('info.address')}</span>
+          <span className="text-muted-foreground text-right text-sm whitespace-pre-line">
+            {formatAddress()}
+          </span>
+        </div>
+        <div className="flex justify-between items-start p-3 bg-background rounded">
+          <span className="font-medium">{t('info.phone')}</span>
+          <span className="text-muted-foreground">
+            {contactData?.contact?.phone || t('info.phone_unavailable')}
+          </span>
+        </div>
+        <div className="flex justify-between items-start p-3 bg-background rounded">
+          <span className="font-medium">{t('info.email')}</span>
+          <span className="text-muted-foreground">
+            {contactData?.contact?.email || t('info.email_unavailable')}
+          </span>
+        </div>
+        <div className="flex justify-between items-start p-3 bg-background rounded">
+          <span className="font-medium">{t('info.hours')}</span>
+          <span className="text-muted-foreground text-right text-sm whitespace-pre-line">
+            {formatSchedule()}
+          </span>
+        </div>
+        {contactData?.contact?.website && (
+          <div className="flex justify-between items-start p-3 bg-background rounded md:col-span-2">
+            <span className="font-medium">{t('info.website')}</span>
+            <a
+              href={contactData.contact.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline flex items-center gap-2"
+            >
+              <Globe className="h-4 w-4" />
+              {contactData.contact.website}
+            </a>
+          </div>
+        )}
+      </CardContainer>
+    </>
   );
 }

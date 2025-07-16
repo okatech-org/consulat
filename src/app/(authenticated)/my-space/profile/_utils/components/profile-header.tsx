@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Share2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { ProfileStatusBadge } from './profile-status-badge';
 import { ConsularCardPreview } from '@/app/(authenticated)/my-space/profile/_utils/components/consular-card-preview';
 import CardContainer from '@/components/layouts/card-container';

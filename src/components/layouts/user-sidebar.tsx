@@ -18,7 +18,7 @@ import {
   FileText,
   FolderOpen,
   Home,
-  Plus,
+  MailIcon,
   Settings,
   User,
   Users,
@@ -62,11 +62,6 @@ export function UserSidebar() {
       icon: Home,
     },
     {
-      title: t('my_requests'),
-      url: ROUTES.user.requests,
-      icon: FileText,
-    },
-    {
       title: t('profile'),
       url: ROUTES.user.profile,
       icon: User,
@@ -75,6 +70,11 @@ export function UserSidebar() {
       ) : (
         <ProfileCompletionBadge percentage={profileCompletion} />
       ),
+    },
+    {
+      title: t('my_requests'),
+      url: ROUTES.user.requests,
+      icon: FileText,
     },
     {
       title: t('services'),
@@ -110,6 +110,11 @@ export function UserSidebar() {
       ) : (
         <CountBadge count={childrenCount} />
       ),
+    },
+    {
+      title: t('contact'),
+      url: ROUTES.user.contact,
+      icon: MailIcon,
     },
   ] as const;
   const secondaryNavItems: UserNavigationItem[] = [

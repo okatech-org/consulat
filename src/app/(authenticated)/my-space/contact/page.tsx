@@ -10,27 +10,21 @@ import { useTranslations } from 'next-intl';
 
 export default function ContactPage() {
   const t = useTranslations('dashboard.contact');
-  
-  return (
-    <PageContainer>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={ROUTES.user.dashboard}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('back')}
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{t('title')}</h1>
-            <p className="text-muted-foreground">
-              {t('description')}
-            </p>
-          </div>
-        </div>
 
-        <ContactMethods />
-      </div>
+  return (
+    <PageContainer
+      title={t('title')}
+      description={t('description')}
+      action={
+        <Button variant="outline" size="sm" asChild>
+          <Link href={ROUTES.user.dashboard}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t('back')}
+          </Link>
+        </Button>
+      }
+    >
+      <ContactMethods />
     </PageContainer>
   );
 }

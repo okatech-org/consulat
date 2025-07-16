@@ -232,6 +232,30 @@ export default {
     title: 'Nous contacter',
     description: 'Choisissez le moyen de contact qui vous convient le mieux',
     back: 'Retour',
+
+    // Cas où l'utilisateur n'a pas d'organisme associé
+    no_organization: {
+      title: 'Aucun organisme consulaire associé',
+      description:
+        "Vous devez d'abord soumettre votre demande d'inscription consulaire pour accéder aux services de contact de votre organisme.",
+      action: 'Démarrer mon inscription consulaire',
+    },
+
+    // Section support pour les utilisateurs non associés
+    support: {
+      title: 'Support et assistance',
+      chat: {
+        title: 'Chat en direct avec Ray',
+        description: 'Assistant virtuel disponible 24h/7j',
+        action: 'Démarrer le chat',
+      },
+      feedback: {
+        title: 'Envoyer un commentaire',
+        description: 'Partagez vos questions ou suggestions',
+        action: 'Contacter le support',
+      },
+    },
+
     methods: {
       emergency: {
         title: "Assistance d'urgence",
@@ -254,16 +278,34 @@ export default {
         action: 'Prendre RDV',
       },
     },
+
     info: {
       title: 'Informations de contact',
       address: 'Adresse',
       phone: 'Téléphone',
       email: 'Email',
       hours: 'Horaires',
+      website: 'Site web',
       address_value: '26 bis avenue Raphaël\n75016 Paris, France',
       phone_value: '+33 1 45 00 97 57',
       email_value: 'contact@consulat.ga',
       hours_value: 'Lun-Ven: 9h-17h\nFermé le weekend',
+      address_unavailable: 'Adresse non disponible',
+      phone_unavailable: 'Téléphone non disponible',
+      email_unavailable: 'Email non disponible',
+      hours_unavailable: 'Horaires non disponibles',
+      closed: 'Fermé',
+    },
+
+    // Jours de la semaine pour les horaires
+    days: {
+      monday: 'Lun',
+      tuesday: 'Mar',
+      wednesday: 'Mer',
+      thursday: 'Jeu',
+      friday: 'Ven',
+      saturday: 'Sam',
+      sunday: 'Dim',
     },
   },
 
@@ -313,6 +355,144 @@ export default {
     error: {
       loading: "Erreur lors du chargement de l'historique",
       retry: 'Réessayer',
+    },
+  },
+
+  // Service request details page
+  request_details: {
+    contact: {
+      title: 'Nous contacter',
+      subtitle: 'Choisissez le moyen de contact qui vous convient le mieux',
+      emergency: {
+        title: "Assistance d'urgence",
+        description: "Pour les situations d'urgence uniquement",
+        action: 'Appeler maintenant',
+      },
+      chat: {
+        title: 'Chat en ligne',
+        description: 'Assistance immédiate par chat',
+        action: 'Démarrer le chat',
+      },
+      email: {
+        title: 'Email',
+        description: 'Réponse sous 24-48h',
+        action: 'Envoyer un email',
+      },
+      visit: {
+        title: 'Se rendre au consulat',
+        description: 'Rendez-vous sur place',
+        action: 'Prendre RDV',
+      },
+      info: {
+        title: 'Informations de contact',
+        address: 'Adresse',
+        phone: 'Téléphone',
+        email: 'Email',
+        hours: 'Horaires',
+        office_hours: 'Lun-Ven: 9h-17h\nFermé le weekend',
+      },
+    },
+    details: {
+      title: 'Détails de votre demande en cours',
+      progress: {
+        title: 'Progression de votre demande',
+        steps: {
+          submitted: 'Soumise',
+          verified: 'Vérifiée',
+          processing: 'En traitement',
+          validation: 'Validation',
+          completed: 'Terminée',
+        },
+      },
+      info: {
+        title: 'Informations de la demande',
+        request_number: 'Numéro de demande',
+        submission_date: 'Date de soumission',
+        last_update: 'Dernière mise à jour',
+        assigned_to: 'Assignée à',
+        estimated_deadline: 'Délai estimé',
+        fees: 'Frais',
+        free: 'Gratuit',
+        days_ago: 'il y a {count} jours',
+        business_days: '{count} jours ouvrés',
+      },
+      documents: {
+        title: 'Documents fournis',
+        verified: 'Vérifié',
+        under_review: 'En cours de vérification',
+        view: 'Voir',
+      },
+      actions: {
+        title: 'Actions disponibles',
+        contact_agent: "Contacter l'agent",
+        add_document: 'Ajouter un document',
+      },
+    },
+    history: {
+      title: 'Historique des demandes',
+      subtitle: 'Retrouvez toutes vos demandes passées et en cours',
+      filters: {
+        search: 'Rechercher par nom ou ID...',
+        all_requests: 'Toutes les demandes',
+        in_progress: 'En cours',
+        completed: 'Terminées',
+        pending: 'En attente',
+        all_services: 'Tous les services',
+        consular_registration: 'Inscription Consulaire',
+        life_certificate: 'Certificat de vie',
+        certificates: 'Attestations',
+      },
+      request_info: {
+        submitted_on: 'Soumise le',
+        assigned_to: 'Assignée à',
+        id: 'ID',
+      },
+      actions: {
+        view_details: 'Voir les détails',
+        contact: 'Contacter',
+        download: 'Télécharger',
+        download_card: 'Télécharger la carte',
+      },
+    },
+    new_request: {
+      title: 'Nouvelle demande',
+      subtitle: 'Choisissez le service consulaire dont vous avez besoin',
+      filters: {
+        search: 'Rechercher un service par nom, description ou organisme...',
+        all_categories: 'Toutes catégories',
+        civil_status: 'État civil',
+        identity: 'Identité',
+        certificates: 'Attestations',
+        legalizations: 'Légalisations',
+        all_organizations: 'Tous organismes',
+        gabon_consulate: 'Consulat Général du Gabon',
+        foreign_affairs: 'Ministère des Affaires Étrangères',
+      },
+      service_status: {
+        active: 'Actif',
+      },
+      service_action: 'Démarrer la demande',
+      help: {
+        title: "Besoin d'aide ?",
+        description:
+          'Vous ne trouvez pas le service que vous cherchez ou vous avez des questions sur une démarche ?',
+        contact: 'Nous contacter',
+        guide: "Guide d'aide",
+      },
+    },
+    navigation: {
+      back: 'Retour',
+      breadcrumb: {
+        my_space: 'Mon espace',
+        procedures: 'Démarches et services',
+        consular_services: 'Services consulaires',
+      },
+      tabs: {
+        contact: 'Nous contacter',
+        details: 'Voir les détails',
+        history: 'Historique des demandes',
+        new_request: 'Nouvelle demande',
+      },
     },
   },
 } as const;
