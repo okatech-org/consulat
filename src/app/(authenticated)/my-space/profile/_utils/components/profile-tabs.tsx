@@ -1,7 +1,7 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { BasicInfoSection } from './sections/basic-info-section';
 import { ContactInfoSection } from './sections/contact-info-section';
 import { DocumentsSection } from './sections/documents-section';
@@ -12,7 +12,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { useTabs } from '@/hooks/use-tabs';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
-import { ServiceRequest } from '@prisma/client';
+import type { ServiceRequest } from '@prisma/client';
 import { RequestsSection } from './sections/requests-section';
 import { MobileProfileNavigation } from './mobile-profile-navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
