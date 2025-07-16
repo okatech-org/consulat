@@ -12,124 +12,16 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { ROUTES } from '@/schemas/routes';
-import {
-  Bell,
-  Calendar,
-  FileText,
-  FolderOpen,
-  Home,
-  MailIcon,
-  Settings,
-  User,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
+import { Home } from 'lucide-react';
 import Link from 'next/link';
 import { NavUser } from '../ui/nav-user';
-import { useUserSidebarData } from '@/hooks/use-user-sidebar-data';
-import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
-import { CountBadge } from './count-badge';
-import { ProfileCompletionBadge } from './profile-completion-badge';
-import { Skeleton } from '../ui/skeleton';
-
-export type UserNavigationItem = {
-  title: string;
-  url: string;
-  icon: LucideIcon;
-  badge?: React.ReactNode;
-  items?: UserNavigationItem[];
-};
+import { useUserNavigation } from '@/hooks/use-navigation';
 
 export function UserSidebar() {
   const pathname = usePathname();
-  const t = useTranslations('navigation.menu');
-  const {
-    data: {
-      profileCompletion,
-      activeRequests,
-      childrenCount,
-      notificationsCount,
-      upcomingAppointments,
-    },
-    loading,
-  } = useUserSidebarData();
 
-  const navigationItems: UserNavigationItem[] = [
-    {
-      title: t('my-space'),
-      url: ROUTES.user.dashboard,
-      icon: Home,
-    },
-    {
-      title: t('profile'),
-      url: ROUTES.user.profile,
-      icon: User,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <ProfileCompletionBadge percentage={profileCompletion} />
-      ),
-    },
-    {
-      title: t('my_requests'),
-      url: ROUTES.user.requests,
-      icon: FileText,
-    },
-    {
-      title: t('services'),
-      url: ROUTES.user.services,
-      icon: FileText,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <CountBadge count={activeRequests} />
-      ),
-    },
-    {
-      title: t('appointments'),
-      url: ROUTES.user.appointments,
-      icon: Calendar,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <CountBadge count={upcomingAppointments} />
-      ),
-    },
-    {
-      title: t('documents'),
-      url: ROUTES.user.documents,
-      icon: FolderOpen,
-    },
-    {
-      title: t('children'),
-      url: ROUTES.user.children,
-      icon: Users,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <CountBadge count={childrenCount} />
-      ),
-    },
-    {
-      title: t('contact'),
-      url: ROUTES.user.contact,
-      icon: MailIcon,
-    },
-  ] as const;
-  const secondaryNavItems: UserNavigationItem[] = [
-    {
-      title: t('notifications'),
-      url: ROUTES.user.notifications,
-      icon: Bell,
-      badge: <CountBadge count={notificationsCount} variant="destructive" />,
-    },
-    {
-      title: t('settings'),
-      url: ROUTES.user.settings,
-      icon: Settings,
-    },
-  ] as const;
+  const { menu, secondaryMenu } = useUserNavigation();
 
   const isActive = (url: string) => {
     if (url === ROUTES.dashboard.base || ROUTES.user.base) {
@@ -164,7 +56,7 @@ export function UserSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => (
+              {menu.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
@@ -185,7 +77,7 @@ export function UserSidebar() {
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
-              {secondaryNavItems.map((item) => (
+              {secondaryMenu.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

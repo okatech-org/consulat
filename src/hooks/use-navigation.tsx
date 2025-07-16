@@ -11,23 +11,36 @@ import {
   FileText,
   Calendar,
   User,
-  Baby,
   Users,
   MessageSquare,
   FolderIcon,
   FileIcon,
   Home,
-  Plus,
   Bell,
+  type LucideIcon,
+  FolderOpen,
+  MailIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CountBadge } from '@/components/layouts/count-badge';
+import { ProfileCompletionBadge } from '@/components/layouts/profile-completion-badge';
+import { useUserSidebarData } from './use-user-sidebar-data';
 
 export type NavMainItem = {
   title: string;
   url: string;
   icon: React.ElementType;
   roles: UserRole[];
+};
+
+export type UserNavigationItem = {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  badge?: React.ReactNode;
+  items?: UserNavigationItem[];
 };
 
 export function useNavigation(user: SessionUser) {
@@ -109,67 +122,7 @@ export function useNavigation(user: SessionUser) {
     },
   ];
 
-  const UserNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
-    {
-      title: t('my-space'),
-      url: ROUTES.user.dashboard,
-      icon: Home,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('profile'),
-      url: ROUTES.user.profile,
-      icon: User,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('my_requests'),
-      url: ROUTES.user.requests,
-      icon: FolderIcon,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('appointments'),
-      url: ROUTES.user.appointments,
-      icon: Calendar,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('documents'),
-      url: ROUTES.user.documents,
-      icon: FileText,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('new_request'),
-      url: ROUTES.user.services,
-      icon: Plus,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('children'),
-      url: ROUTES.user.children,
-      icon: Baby,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('notifications'),
-      url: ROUTES.user.notifications,
-      icon: Bell,
-      roles: [UserRole.USER],
-    },
-    {
-      title: t('settings'),
-      url: ROUTES.user.settings,
-      icon: Settings,
-      roles: [UserRole.USER],
-    },
-  ];
-
-  const menuItems: Array<NavMainItem & { roles: UserRole[] }> = [
-    ...UserNavigation,
-    ...AdminNavigation,
-  ];
+  const menuItems: Array<NavMainItem & { roles: UserRole[] }> = [...AdminNavigation];
 
   const menu = menuItems.filter((item) => {
     return item.roles.some((role) => currentUserRoles.includes(role));
@@ -204,4 +157,101 @@ export function useNavigation(user: SessionUser) {
   ];
 
   return { menu, mobileMenu };
+}
+
+export function useUserNavigation() {
+  const t = useTranslations('navigation.menu');
+  const {
+    data: {
+      profileCompletion,
+      activeRequests,
+      childrenCount,
+      notificationsCount,
+      upcomingAppointments,
+    },
+    loading,
+  } = useUserSidebarData();
+
+  const userNavigationItems: UserNavigationItem[] = [
+    {
+      title: t('my-space'),
+      url: ROUTES.user.dashboard,
+      icon: Home,
+    },
+    {
+      title: t('profile'),
+      url: ROUTES.user.profile,
+      icon: User,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <ProfileCompletionBadge percentage={profileCompletion} />
+      ),
+    },
+    {
+      title: t('my_requests'),
+      url: ROUTES.user.requests,
+      icon: FileText,
+    },
+    {
+      title: t('services'),
+      url: ROUTES.user.services,
+      icon: FileText,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <CountBadge count={activeRequests} />
+      ),
+    },
+    {
+      title: t('appointments'),
+      url: ROUTES.user.appointments,
+      icon: Calendar,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <CountBadge count={upcomingAppointments} />
+      ),
+    },
+    {
+      title: t('documents'),
+      url: ROUTES.user.documents,
+      icon: FolderOpen,
+    },
+    {
+      title: t('children'),
+      url: ROUTES.user.children,
+      icon: Users,
+      badge: loading ? (
+        <Skeleton className="h-4 w-4" />
+      ) : (
+        <CountBadge count={childrenCount} />
+      ),
+    },
+    {
+      title: t('contact'),
+      url: ROUTES.user.contact,
+      icon: MailIcon,
+    },
+  ] as const;
+
+  const userSecondaryNavItems: UserNavigationItem[] = [
+    {
+      title: t('notifications'),
+      url: ROUTES.user.notifications,
+      icon: Bell,
+      badge: <CountBadge count={notificationsCount} variant="destructive" />,
+    },
+    {
+      title: t('settings'),
+      url: ROUTES.user.settings,
+      icon: Settings,
+    },
+  ] as const;
+
+  return {
+    menu: userNavigationItems,
+    secondaryMenu: userSecondaryNavItems,
+    mobileMenu: [...userNavigationItems, ...userSecondaryNavItems],
+  };
 }

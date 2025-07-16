@@ -177,12 +177,11 @@ export function RequestsHistory() {
                         Voir les détails
                       </Link>
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Contacter
-                    </Button>
+                    {/**
+                     * TODO: Add download button when the request is completed
+                     */}
                     {request.status === 'COMPLETED' && (
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" disabled>
                         <Download className="mr-2 h-4 w-4" />
                         Télécharger
                       </Button>

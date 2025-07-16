@@ -52,7 +52,7 @@ const buttonVariants = cva(
       },
       size: {
         // Touch-friendly sizes based on 44px minimum touch target
-        default: 'h-10 px-6 py-2.5 text-base', // 44px height minimum
+        default: 'h-10 px-4 py-2.5 text-base', // 44px height minimum
         sm: 'h-9 px-4 py-2 text-sm', // 36px for compact interfaces
         lg: 'h-12 px-8 py-3 text-lg', // 48px for primary actions
         xl: 'h-14 px-10 py-4 text-xl', // 56px for hero CTAs
@@ -60,7 +60,7 @@ const buttonVariants = cva(
         'icon-sm': 'h-9 w-9',
         'icon-lg': 'h-12 w-12',
         // Mobile-specific sizes
-        mobile: 'h-10 px-6 py-3 text-base', // Optimized for mobile
+        mobile: 'h-10 px-4 py-3 text-base', // Optimized for mobile
         'mobile-full': 'h-12 w-full px-6 py-3 text-base', // Full-width mobile buttons
       },
       // Visual weight for better hierarchy

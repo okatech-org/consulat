@@ -72,6 +72,7 @@ export default {
       title: 'Actions disponibles',
       contact_agent: "Contacter l'agent",
       add_document: 'Ajouter un document',
+      contact_consulate: 'Contacter le consulat',
     },
   },
 

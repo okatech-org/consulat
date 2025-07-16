@@ -318,12 +318,16 @@ export default function ServiceRequestDetailsPage() {
           <div>
             <h3 className="font-semibold text-lg mb-4">{t('actions.title')}</h3>
             <div className="flex flex-wrap gap-4">
-              <Button disabled>
-                <MessageCircle className="h-4 w-4 mr-2" />
-                {t('actions.contact_agent')}
-              </Button>
-              <Button variant="outline" disabled>
-                <FileText className="h-4 w-4 mr-2" />
+              <Link href={ROUTES.user.contact}>
+                <Button leftIcon={<MessageCircle className="size-icon" />}>
+                  {t('actions.contact_consulate')}
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                disabled
+                leftIcon={<FileText className="size-icon" />}
+              >
                 {t('actions.add_document')}
               </Button>
             </div>
