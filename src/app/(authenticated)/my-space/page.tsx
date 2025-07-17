@@ -43,8 +43,8 @@ function calculateStats(requests: FullServiceRequest[]): Stats {
 function getCurrentRequest(requests: FullServiceRequest[]): FullServiceRequest | null {
   if (!requests) return null;
 
-  const activeRequests = requests.filter((req) =>
-    ['SUBMITTED', 'VALIDATED', 'PROCESSING'].includes(req.status),
+  const activeRequests = requests.filter(
+    (req) => !['DRAFT', 'CANCELLED', 'COMPLETED'].includes(req.status),
   );
 
   return (

@@ -407,14 +407,14 @@ export function UserDocument({
 
             {allowEdit && (
               <Button
-                variant="outline"
+                variant="link"
                 size="sm"
                 className="ml-2"
                 onClick={() => setIsReplacing(true)}
                 disabled={isLoading || disabled}
+                leftIcon={<UploadIcon className="size-icon" />}
               >
                 {t_common('upload.actions.reupload')}
-                <UploadIcon className="size-icon" />
               </Button>
             )}
 
@@ -425,8 +425,8 @@ export function UserDocument({
                   size="sm"
                   onClick={() => setIsDialogOpen(true)}
                   disabled={disabled || isLoading}
+                  leftIcon={<CheckCircle2 className="size-icon" />}
                 >
-                  <CheckCircle2 className="size-icon" />
                   <span>Validation</span>
                 </Button>
               </div>

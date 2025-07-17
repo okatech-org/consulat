@@ -77,6 +77,7 @@ export default {
         "Service SMS temporairement indisponible. Veuillez utiliser l'email ou réessayer plus tard.",
       too_many_attempts: 'Trop de tentatives. Veuillez patienter avant de réessayer.',
       send_error: "Erreur d'envoi",
+      user_not_found: 'Aucun compte associé à cet identifiant. Veuillez vous inscrire.',
     },
     back_home: "Retour à l'accueil",
     hero: {

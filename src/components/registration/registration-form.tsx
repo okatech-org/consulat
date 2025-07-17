@@ -607,7 +607,7 @@ export function SelectRegistrationCountryForm({ countries }: { countries: Countr
         />
       </div>
       <Button asChild>
-        <Link href={`${ROUTES.registration}?country=${selectedCountry}`}>
+        <Link href={`${ROUTES.user.profile_form}?country=${selectedCountry}`}>
           {t('modal.continue')}
         </Link>
       </Button>

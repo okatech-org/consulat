@@ -132,18 +132,20 @@ export function FileInput({
           setIsOpenAction={setPreviewOpen}
         />
 
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDeleteAction?.();
-          }}
-          className="absolute top-2 right-2"
-        >
-          <TrashIcon className="size-icon" />
-        </Button>
+        {onDeleteAction && (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteAction?.();
+            }}
+            className="absolute top-2 right-2"
+          >
+            <TrashIcon className="size-icon" />
+          </Button>
+        )}
       </div>
     );
   }

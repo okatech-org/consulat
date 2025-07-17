@@ -110,7 +110,7 @@ export default {
     valid: 'Valide',
     complete: 'Complet',
     draft: 'Brouillon',
-    submitted: 'Soumis',
+    submitted: 'Envoyé',
     review: 'En traitement',
     card_in_production: 'Carte en production',
     ready_for_pickup: 'Prêt à récupérer',

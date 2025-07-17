@@ -197,7 +197,7 @@ export function ImageCropper({
 
         <div className="space-y-4">
           <div
-            className="flex justify-center p-2 bg-gray-50 dark:bg-gray-900 rounded-md touch-none"
+            className="flex justify-center p-2 bg-gray-50 rounded-md touch-none"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}

@@ -39,7 +39,7 @@ const getStatusInfo = (status: RequestStatus) => {
       progress: 0,
     },
     SUBMITTED: {
-      label: 'Soumise',
+      label: 'Envoyé',
       color: 'bg-blue-400',
       icon: <FileText className="h-5 w-5" />,
       progress: 20,
