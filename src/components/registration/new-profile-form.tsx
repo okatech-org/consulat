@@ -124,18 +124,14 @@ export function NewProfileForm({
     setError(null);
 
     try {
-      const signupData = {
+      const result = (await signIn('signup-auth', {
         firstName: data.firstName,
         lastName: data.lastName,
-        email: data.email || '',
+        email: data.email,
         phone: data.phoneNumber,
         countryCode: data.residenceCountyCode,
         verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
         action: 'send',
-      };
-
-      const result = (await signIn('signup', {
-        ...signupData,
         redirect: false,
       })) as SignInResult;
 
@@ -145,18 +141,20 @@ export function NewProfileForm({
         const specificCode = result.code;
 
         switch (specificCode) {
-          case 'email_taken':
-            errorMessage = 'messages.errors.user_email_already_exists';
-            break;
-          case 'phone_taken':
-            errorMessage = 'messages.errors.user_phone_already_exists';
-            break;
-          case 'invalid_country':
-            errorMessage = 'messages.errors.invalid_country';
+          case 'invalid_identifier':
+            errorMessage = 'messages.errors.invalid_identifier';
             break;
           case 'send_failed':
             errorMessage = 'messages.errors.code_not_sent_otp';
             break;
+          case 'CODE_SENT':
+            // Ce n'est pas vraiment une erreur, mais NextAuth traite ça comme tel
+            setShowOTP(true);
+            setCanResend(false);
+            setResendCooldown(60);
+            toast({ title: tAuth('messages.otp_sent'), variant: 'success' });
+            setIsLoading(false);
+            return true;
           default:
             errorMessage = 'messages.errors.generic_error';
             break;
@@ -187,19 +185,15 @@ export function NewProfileForm({
     setError(null);
 
     try {
-      const signupData = {
+      const result = (await signIn('signup-auth', {
         firstName: data.firstName,
         lastName: data.lastName,
-        email: data.email || '',
+        email: data.email,
         phone: data.phoneNumber,
         countryCode: data.residenceCountyCode,
         verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
         code: data.otp,
         action: 'verify',
-      };
-
-      const result = (await signIn('signup', {
-        ...signupData,
         redirect: false,
       })) as SignInResult;
 
@@ -239,9 +233,10 @@ export function NewProfileForm({
       }
 
       if (result?.ok) {
-        // Inscription réussie, rediriger vers le formulaire de profil
+        // Inscription réussie, rediriger vers le tableau de bord
         setIsLoading(false);
         router.push(ROUTES.user.profile_form);
+        router.refresh();
       } else {
         setError('messages.errors.generic_error' as ErrorMessageKey);
         setIsLoading(false);
@@ -257,7 +252,30 @@ export function NewProfileForm({
     if (!canResend) return;
 
     const data = form.getValues();
-    await sendOTPCode(data);
+
+    try {
+      const result = (await signIn('signup-auth', {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phoneNumber,
+        countryCode: data.residenceCountyCode,
+        verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
+        action: 'send',
+        redirect: false,
+      })) as SignInResult;
+
+      if (result?.error && result.code !== 'CODE_SENT') {
+        setError('messages.errors.code_not_sent_otp' as ErrorMessageKey);
+      } else {
+        setCanResend(false);
+        setResendCooldown(60);
+        toast({ title: tAuth('messages.otp_sent'), variant: 'success' });
+      }
+    } catch (err) {
+      console.error('Erreur renvoi OTP:', err);
+      setError('messages.errors.generic_error' as ErrorMessageKey);
+    }
   };
 
   const onFinalSubmit = async (data: CreateProfileInput) => {

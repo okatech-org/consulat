@@ -63,7 +63,7 @@ export function SubmitProfileButton({
         className="w-full md:w-max"
         variant="default"
         disabled={!canSubmit}
-        size="lg"
+        size="default"
         rightIcon={<SendHorizonal className="size-4" />}
       >
         {t('submit_button')}
