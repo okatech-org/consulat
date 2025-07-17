@@ -35,12 +35,12 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
       PROCESSING: 60,
       CARD_IN_PRODUCTION: 80,
       COMPLETED: 100,
-      REJECTED: 0,
-      CANCELLED: 0,
+      REJECTED: 100,
+      CANCELLED: 100,
       PENDING: 10,
-      PENDING_COMPLETION: 0,
+      PENDING_COMPLETION: 30,
       READY_FOR_PICKUP: 95,
-      DOCUMENT_IN_PRODUCTION: 10,
+      DOCUMENT_IN_PRODUCTION: 80,
     };
     return progressMap[status as keyof typeof progressMap] || 0;
   };

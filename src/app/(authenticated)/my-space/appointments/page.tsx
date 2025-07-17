@@ -1,6 +1,8 @@
-import { getCurrentUser } from '@/actions/user';
-import { api } from '@/trpc/server';
-import { getTranslations } from 'next-intl/server';
+'use client';
+
+import { useCurrentUser } from '@/contexts/user-context';
+import { api } from '@/trpc/react';
+import { useTranslations } from 'next-intl';
 import { PageContainer } from '@/components/layouts/page-container';
 import { Calendar } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
@@ -9,30 +11,31 @@ import Link from 'next/link';
 import { AppointmentCard } from '@/components/appointments/appointment-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CardContainer from '@/components/layouts/card-container';
-import type {
-  DashboardAppointment,
-  GroupedAppointmentsDashboard,
-} from '@/schemas/appointment';
+import type { DashboardAppointment } from '@/schemas/appointment';
+import { useTabs } from '@/hooks/use-tabs';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useSearchParams } from 'next/navigation';
 
-// Cache pour 5 minutes
-export const revalidate = 300;
+export default function UserAppointmentsPage() {
+  const searchParams = useSearchParams();
+  const urlTab = searchParams?.get('tab') as 'upcoming' | 'past' | 'cancelled';
+  const { user } = useCurrentUser();
+  const t = useTranslations('appointments');
+  const { currentTab, handleTabChange } = useTabs<'upcoming' | 'past' | 'cancelled'>(
+    'appointments',
+    urlTab ?? 'upcoming',
+  );
 
-interface AppointmentsPageProps {
-  searchParams: { tab?: string };
-}
-
-export default async function UserAppointmentsPage({
-  searchParams,
-}: AppointmentsPageProps) {
-  const { tab = 'upcoming' } = await searchParams;
-  const user = await getCurrentUser();
-  const t = await getTranslations('appointments');
-
-  // Récupérer les rendez-vous côté serveur avec l'API optimisée
-  const appointments = (await api.appointments.getUserAppointmentsDashboard({
-    userId: user?.id,
-    limit: 10,
-  })) as GroupedAppointmentsDashboard;
+  const { data: appointments, isLoading } =
+    api.appointments.getUserAppointmentsDashboard.useQuery(
+      {
+        userId: user?.id,
+        limit: 10,
+      },
+      {
+        enabled: !!user?.id,
+      },
+    );
 
   const renderAppointments = (
     items: DashboardAppointment[] = [],
@@ -55,6 +58,59 @@ export default async function UserAppointmentsPage({
     );
   };
 
+  if (isLoading) {
+    return (
+      <PageContainer
+        title="Mes rendez-vous"
+        description="Gérez vos rendez-vous consulaires"
+        action={<div className="h-10 w-36 animate-pulse rounded-md bg-muted" />}
+      >
+        <Tabs defaultValue="upcoming">
+          <TabsList>
+            <TabsTrigger value="upcoming">
+              <div className="flex items-center gap-2">À venir</div>
+            </TabsTrigger>
+            <TabsTrigger value="past">Passés</TabsTrigger>
+            <TabsTrigger value="cancelled">Annulés</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upcoming" className="space-y-4">
+            <CardContainer title="Rendez-vous à venir">
+              <LoadingSkeleton
+                variant="card"
+                count={3}
+                size="md"
+                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              />
+            </CardContainer>
+          </TabsContent>
+
+          <TabsContent value="past" className="space-y-4">
+            <CardContainer title="Rendez-vous passés">
+              <LoadingSkeleton
+                variant="card"
+                count={3}
+                size="md"
+                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              />
+            </CardContainer>
+          </TabsContent>
+
+          <TabsContent value="cancelled" className="space-y-4">
+            <CardContainer title="Rendez-vous annulés">
+              <LoadingSkeleton
+                variant="card"
+                count={2}
+                size="md"
+                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              />
+            </CardContainer>
+          </TabsContent>
+        </Tabs>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer
       title={t('title')}
@@ -69,7 +125,12 @@ export default async function UserAppointmentsPage({
         </Link>
       }
     >
-      <Tabs value={tab} defaultValue="upcoming">
+      <Tabs
+        value={currentTab}
+        onValueChange={(value) =>
+          handleTabChange(value as 'upcoming' | 'past' | 'cancelled')
+        }
+      >
         <TabsList>
           <TabsTrigger value="upcoming" asChild>
             <Link href="?tab=upcoming">
