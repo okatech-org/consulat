@@ -12,17 +12,11 @@ import {
   createUserProfile,
   updateProfile as updateProfileAction,
   submitProfileForValidation as submitProfileAction,
-  getRegistrationServiceForUser,
 } from '@/actions/profile';
 import { getProfileRegistrationRequest } from '@/lib/user/getters';
 import type { RouterOutputs } from '@/trpc/react';
 import { getUserSession } from '@/lib/getters';
-import {
-  NotificationType,
-  ParentalRole,
-  RequestStatus,
-  type Address,
-} from '@prisma/client';
+import { NotificationType, ParentalRole, RequestStatus } from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { revalidatePath } from 'next/cache';
@@ -34,6 +28,7 @@ import {
 } from '@/types/parental-authority';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import type { OrganizationMetadataSettings } from '@/schemas/organization';
+import { db } from '@/server/db';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil optimisé pour le dashboard
@@ -331,7 +326,13 @@ export const profileRouter = createTRPCRouter({
     }
 
     try {
-      const service = await getRegistrationServiceForUser(ctx.session.user.countryCode);
+      const service = await db.consularService.findFirst({
+        where: {
+          countryCode: ctx.session.user.countryCode,
+          category: 'REGISTRATION',
+        },
+      });
+
       return service;
     } catch (error) {
       console.error('Error fetching registration service:', error);

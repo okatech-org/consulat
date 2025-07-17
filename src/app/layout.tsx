@@ -5,9 +5,10 @@ import { Geist } from 'next/font/google';
 
 import { TRPCReactProvider } from '@/trpc/react';
 import { SessionProvider } from 'next-auth/react';
-import { UserProvider } from '@/contexts/user-context';
 import { env } from '@/env';
 import { Providers } from '@/components/layouts/providers';
+import { auth } from '@/server/auth';
+import { getLocale } from 'next-intl/server';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -120,17 +121,18 @@ const geist = Geist({
   variable: '--font-geist-sans',
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
+  const locale = await getLocale();
+
   return (
-    <html lang="fr" className={`${geist.variable}`}>
+    <html lang={locale} className={`${geist.variable}`}>
       <body>
         <TRPCReactProvider>
-          <SessionProvider>
-            <UserProvider>
-              <Providers>{children}</Providers>
-            </UserProvider>
+          <SessionProvider session={session}>
+            <Providers>{children}</Providers>
           </SessionProvider>
         </TRPCReactProvider>
       </body>
