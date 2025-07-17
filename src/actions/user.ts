@@ -2,7 +2,6 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
-import type { AgentSettings, AdminSettings, UserSettings } from '@/schemas/user';
 import type { User } from '@prisma/client';
 import type { SessionUser } from '@/types';
 
@@ -39,10 +38,7 @@ export const getUserByPhone = async (phoneNumber: string): Promise<User | null> 
   });
 };
 
-export const updateUserData = async (
-  userId: string,
-  data: AgentSettings | AdminSettings | UserSettings,
-) => {
+export const updateUserData = async (userId: string, data: Partial<User>) => {
   return await db.user.update({
     where: {
       id: userId,

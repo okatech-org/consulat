@@ -32,10 +32,10 @@ export function EditableSection({
           variant="default"
           onClick={onSave}
           className="h-8 px-2"
-          disabled={isLoading || isEditing}
+          leftIcon={<Save className="size-4" />}
+          loading={isLoading || isEditing}
         >
-          <Save className="size-4" />
-          <span>{t('actions.save')}</span>
+          {t('actions.save')}
         </Button>
       )}
     </div>

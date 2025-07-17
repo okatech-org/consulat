@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 import { getTranslations } from 'next-intl/server';
-import { env } from '@/env';;
+import { env } from '@/env';
 import { OTPEmailToHtml } from './components/OTPEmail';
 import { AdminWelcomeEmailToHtml } from './components/AdminWelcomeEmail';
 import { NotificationEmailToHtml } from './components/NotificationEmail';
@@ -135,6 +135,7 @@ interface SendFeedbackEmailParams {
     rating?: number;
     email?: string;
     userId?: string;
+    phoneNumber?: string;
     createdAt: Date;
   };
 }
@@ -156,6 +157,7 @@ export async function sendFeedbackEmail({ to, feedbackData }: SendFeedbackEmailP
       user_info_label: t('user_info_label'),
       user_email_label: t('user_email_label'),
       user_id_label: t('user_id_label'),
+      user_phone_number_label: t('user_phone_number_label'),
       date_label: t('date_label'),
       outro: t('outro'),
       signature: t('signature', { appName }),

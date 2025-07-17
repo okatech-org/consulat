@@ -53,6 +53,7 @@ export default {
     user_info_label: 'Informations utilisateur',
     user_email_label: 'Email',
     user_id_label: 'ID Utilisateur',
+    user_phone_number_label: 'Téléphone',
     date_label: 'Date de soumission',
     outro:
       "Le retour a été enregistré dans la base de données. Vous pouvez y répondre directement à l'utilisateur par email si nécessaire.",

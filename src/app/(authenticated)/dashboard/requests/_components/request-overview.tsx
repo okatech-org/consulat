@@ -4,32 +4,21 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Clock, User, Calendar, MapPin, ClipboardList } from 'lucide-react';
-import { FullServiceRequest } from '@/types/service-request';
-import { UserRole } from '@prisma/client';
+import type { FullServiceRequest } from '@/types/service-request';
 import { ROUTES } from '@/schemas/routes';
 import { useDateLocale } from '@/lib/utils';
-import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
+import { hasAnyRole } from '@/lib/permissions/utils';
 import { Timeline } from '@/components/ui/timeline';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import CardContainer from '@/components/layouts/card-container';
 import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
-import { BaseAgent } from '@/types/organization';
-import { useRouter } from 'next/navigation';
-import { assignServiceRequest } from '@/actions/service-requests';
-import { FullProfile } from '@/types/profile';
-import { UserProfile } from '@/components/profile/user-profile';
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import type { BaseAgent } from '@/types/organization';
+import type { FullProfile } from '@/types/profile';
 import { Separator } from '@/components/ui/separator';
 import { CardTitle } from '@/components/ui/card';
-import { SessionUser } from '@/types';
+import type { SessionUser } from '@/types';
 import Link from 'next/link';
-import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
+import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 
 interface RequestOverviewProps {
   request: FullServiceRequest & { profile?: FullProfile | null };
@@ -109,30 +98,15 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             <h3 className="font-medium">{request.submittedBy.name}</h3>
             <p className="text-sm text-muted-foreground">{request.submittedBy.email}</p>
 
-            {request.profile && (
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <User className="size-4" />
-                    {t('requests.service_request.view_profile')}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="right"
-                  className="w-full sm:max-w-4xl overflow-y-auto"
-                >
-                  <SheetHeader>
-                    <SheetTitle>
-                      {t('requests.service_request.applicant_profile')}
-                    </SheetTitle>
-                  </SheetHeader>
-
-                  <div className="mt-4">
-                    <ProfileTabs profile={request.profile} requestId={request.id} />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            )}
+            <div className="flex gap-2 flex-col md:flex-row">
+              {request.profile && <ProfileLookupSheet profile={request.profile} />}
+              {request.profile?.category === 'MINOR' && (
+                <ProfileLookupSheet
+                  userId={request.submittedById}
+                  triggerLabel={'Voir le profil du demandeur'}
+                />
+              )}
+            </div>
           </CardContainer>
         </div>
         <CardContainer

@@ -11,9 +11,10 @@ import { BasicInfoSection } from '../../profile/_utils/components/sections/basic
 
 type ProfileTabsProps = {
   profile: FullProfile;
+  requestId?: string;
 };
 
-export function ChildProfileTabs({ profile }: ProfileTabsProps) {
+export function ChildProfileTabs({ profile, requestId }: ProfileTabsProps) {
   const t = useTranslations('profile');
   const router = useRouter();
 
@@ -32,6 +33,7 @@ export function ChildProfileTabs({ profile }: ProfileTabsProps) {
           onSave={() => {
             router.refresh();
           }}
+          requestId={requestId}
         />
       ),
     },
@@ -51,6 +53,7 @@ export function ChildProfileTabs({ profile }: ProfileTabsProps) {
           onSave={() => {
             router.refresh();
           }}
+          requestId={requestId}
         />
       ),
     },
