@@ -42,9 +42,9 @@ export default {
     },
     status: {
       draft: 'Brouillon',
-      submitted: 'Soumis',
+      submitted: 'Envoyé',
       in_review: 'En cours de vérification',
-      validated: 'Validé',
+      validated: 'Validée',
       rejected: 'Rejeté',
     },
     actions: {

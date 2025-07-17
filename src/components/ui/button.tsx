@@ -29,6 +29,12 @@ const buttonVariants = cva(
         // Primary action - high contrast, clear hierarchy
         default:
           'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-lg active:shadow-sm',
+        defaultReverse:
+          'bg-primary-foreground text-primary shadow-sm hover:bg-primary-foreground/90 hover:shadow-lg active:shadow-sm',
+        secondary:
+          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-sm active:shadow-sm',
+        secondaryReverse:
+          'bg-secondary-foreground text-secondary shadow-sm hover:bg-secondary-foreground/90 hover:shadow-lg active:shadow-sm',
         // Destructive actions - clear warning with better contrast
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-lg active:shadow-sm',
@@ -37,8 +43,6 @@ const buttonVariants = cva(
         // Secondary actions - clearly differentiated from primary
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 active:bg-accent/80',
-        secondary:
-          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-sm active:shadow-sm',
         // Tertiary actions
         ghost: 'hover:bg-accent hover:text-accent-foreground active:bg-accent/80',
         // Links - clearly differentiated from buttons

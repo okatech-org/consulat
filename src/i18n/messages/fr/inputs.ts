@@ -666,7 +666,7 @@ export default {
     label: 'Statut de la demande',
     options: {
       DRAFT: 'Brouillon',
-      SUBMITTED: 'Envoyée',
+      SUBMITTED: 'Envoyé',
       PENDING: 'En traitement',
       PENDING_COMPLETION: 'En attente de complément',
       VALIDATED: 'Dossier validé',
