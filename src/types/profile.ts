@@ -1,5 +1,6 @@
 import { Prisma, type UserDocument } from '@prisma/client';
 import { FullServiceRequestInclude } from './service-request';
+import { UserSessionInclude } from '@/lib/user';
 
 // Base includes pour un profil
 export const BaseProfileInclude = {
@@ -20,7 +21,11 @@ export const BaseProfileInclude = {
 // Includes complet pour un profil avec tous les documents
 export const FullProfileInclude = {
   include: {
-    user: true,
+    user: {
+      select: {
+        ...UserSessionInclude,
+      },
+    },
     residentContact: {
       include: {
         address: true,

@@ -44,7 +44,7 @@ function getCurrentRequest(requests: FullServiceRequest[]): FullServiceRequest |
   if (!requests) return null;
 
   const activeRequests = requests.filter(
-    (req) => !['DRAFT', 'CANCELLED', 'COMPLETED'].includes(req.status),
+    (req) => !['DRAFT', 'CANCELLED', 'COMPLETED', 'REJECTED'].includes(req.status),
   );
 
   return (

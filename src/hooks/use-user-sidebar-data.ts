@@ -3,6 +3,7 @@
 import { api } from '@/trpc/react';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { useCurrentUser } from '@/contexts/user-context';
+import { useProfile } from '@/contexts/profile-context';
 
 export interface NavigationData {
   profileCompletion: number;
@@ -18,15 +19,7 @@ const CACHE_DURATION = 5 * 60 * 1000;
 
 export function useUserSidebarData() {
   const { user } = useCurrentUser();
-
-  // Get current profile for completion calculation
-  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery(
-    undefined,
-    {
-      staleTime: CACHE_DURATION,
-      enabled: !!user?.id,
-    },
-  );
+  const { profile } = useProfile();
 
   const completion = profile ? calculateProfileCompletion(profile) : 0;
 
@@ -66,8 +59,7 @@ export function useUserSidebarData() {
     childrenLoading ||
     appointmentsLoading ||
     requestsLoading ||
-    notificationsLoading ||
-    profileLoading;
+    notificationsLoading;
 
   const data: NavigationData = {
     profileCompletion: completion,

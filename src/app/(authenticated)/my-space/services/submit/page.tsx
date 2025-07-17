@@ -3,14 +3,12 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { ServiceSubmissionForm } from '@/components/services/service-submission-form';
-import { getCurrentUser } from '@/actions/user';
 import { getTranslations } from 'next-intl/server';
 import { tryCatch } from '@/lib/utils';
-import { getUserFullProfile } from '@/lib/user/getters';
 import { ServiceErrorCard } from '@/components/services/service-error-card';
 import { getFullService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
+import { api } from '@/trpc/server';
 
-// Composant serveur pour la page
 export default async function ServiceSubmissionPage({
   searchParams,
 }: {
@@ -19,8 +17,7 @@ export default async function ServiceSubmissionPage({
   const awaitedParams = await searchParams;
   const serviceId = awaitedParams.serviceId;
   const t = await getTranslations('services');
-  const user = await getCurrentUser();
-  const userProfile = await getUserFullProfile(user?.id ?? '');
+  const userProfile = await api.profile.getCurrent();
 
   const { data: serviceDetails, error } = await tryCatch(getFullService(serviceId));
 

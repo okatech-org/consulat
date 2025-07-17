@@ -1,44 +1,33 @@
-import { auth } from '@/server/auth';
-import { api } from '@/trpc/server';
+'use client';
+
 import { PageContainer } from '@/components/layouts/page-container';
 import { NotesList } from '@/components/requests/review-notes';
-import { buttonVariants } from '@/components/ui/button';
 import { calculateProfileCompletion } from '@/lib/utils';
-import { ROUTES } from '@/schemas/routes';
-import { Link, PlusIcon } from 'lucide-react';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileProgressBar } from './_utils/components/profile-progress-bar';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
+import { useProfile } from '@/contexts/profile-context';
+import { ROUTES } from '@/schemas/routes';
+import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
 
-// Cache optimisé pour la page profil
-export const revalidate = 600; // 10 minutes
-
-export default async function ProfilePage() {
-  const session = await auth();
-
-  // Paralléliser les requêtes indépendantes
-  const [profile, registrationRequest] = await Promise.all([
-    api.profile.getCurrent(),
-    api.profile.getRegistrationRequest({
-      profileId: session?.user?.profileId ?? '',
-    }),
-  ]);
+export default function ProfilePage() {
+  const { profile } = useProfile();
+  const registrationRequest = profile?.requestsFor?.find(
+    (r) => r.status === profile.status,
+  );
 
   if (!profile) {
     return (
-      <PageContainer>
+      <PageContainer title="Aucun profil trouvé">
         <div className="flex flex-col gap-4">
-          <p>
-            Vous n&apos;avez pas de profil consulaire. Veuillez en créer un pour
-            commencer.
-          </p>
+          <p>Vous n&apos;avez pas de profil. Veuillez en créer un.</p>
           <Link
-            href={ROUTES.registration}
-            className={buttonVariants({ variant: 'default' })}
+            href={ROUTES.user.profile_form}
+            className={buttonVariants({ variant: 'outline' })}
           >
-            <PlusIcon className="size-icon mr-1" />
             Créer un profil
           </Link>
         </div>
@@ -67,7 +56,7 @@ export default async function ProfilePage() {
           <ProfileTabs profile={profile} />
         </div>
         <div className={'col-span-full flex flex-col gap-4 lg:col-span-3'}>
-          {registrationRequest?.notes && registrationRequest?.notes?.length > 0 && (
+          {registrationRequest && registrationRequest.notes?.length > 0 && (
             <NotesList
               notes={registrationRequest.notes.filter((note) => note.type === 'FEEDBACK')}
             />
