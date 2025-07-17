@@ -27,6 +27,27 @@ export default {
     and_more: '... et {count} autres',
     complete_profile: 'Compléter mon profil',
   },
+  lookup: {
+    view_profile: 'Voir le profil',
+    profile_details: 'Détails du profil',
+    profile_by_email: 'Profil par email',
+    profile_by_phone: 'Profil par téléphone',
+    profile_by_id: 'Profil par ID',
+    search_profile: 'Rechercher un profil',
+    search_placeholder: 'Entrez un email, téléphone ou ID utilisateur',
+    search_hint: 'Email, téléphone ou ID utilisateur',
+    search_description:
+      'Vous pouvez rechercher par adresse email, numéro de téléphone ou ID utilisateur.',
+    loading: 'Chargement...',
+    not_found: 'Profil non trouvé',
+    search_again: 'Nouvelle recherche',
+    errors: {
+      user_not_found: 'Aucun utilisateur trouvé avec cet email ou ce numéro de téléphone',
+      profile_not_found: 'Aucun profil trouvé pour cet utilisateur',
+      lookup_failed: 'Erreur lors de la recherche. Veuillez réessayer',
+      unknown: "Une erreur inconnue s'est produite",
+    },
+  },
   tabs: {
     personal: 'Informations personnelles',
     contact: 'Contact',

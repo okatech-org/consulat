@@ -2,17 +2,17 @@
 
 import { useTranslations } from 'next-intl';
 import { ParentalRole } from '@prisma/client';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { EditableSection } from '../../../profile/_utils/components/editable-section';
 import CardContainer from '@/components/layouts/card-container';
 import { InfoField } from '@/components/ui/info-field';
+import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 
 interface LinkInfoSectionProps {
   profile: FullProfile;
 }
 
 export function LinkInfoSection({ profile }: LinkInfoSectionProps) {
-  const t = useTranslations('profile');
   const t_registration = useTranslations('registration');
 
   const getParentalRoleLabel = (role: ParentalRole) => {
@@ -60,6 +60,9 @@ export function LinkInfoSection({ profile }: LinkInfoSectionProps) {
                   className={'col-span-2'}
                 />
               )}
+              <div className="col-span-2">
+                <ProfileLookupSheet userId={authority.parentUser.id} />
+              </div>
             </div>
           </CardContainer>
         ))}

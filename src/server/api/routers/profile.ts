@@ -140,6 +140,54 @@ export const profileRouter = createTRPCRouter({
       }
     }),
 
+  // Rechercher un profil par email ou téléphone
+  getByQuery: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string().optional(),
+        email: z.string().optional(),
+        phoneNumber: z.string().optional(),
+        providedProfile: z.any().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      if (input.providedProfile) {
+        return input.providedProfile;
+      }
+
+      try {
+        const user = await ctx.db.user.findFirst({
+          where: {
+            ...(input.userId && { id: input.userId }),
+            ...(input.email && { email: input.email }),
+            ...(input.phoneNumber && { phoneNumber: input.phoneNumber }),
+          },
+          include: {
+            profile: {
+              ...FullProfileInclude,
+            },
+          },
+        });
+
+        if (!user?.profile) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Profil non trouvé',
+          });
+        }
+
+        return user.profile;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+
+        console.error('Error finding profile by contact:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la recherche du profil',
+        });
+      }
+    }),
+
   // Récupérer la demande d'enregistrement d'un profil
   getRegistrationRequest: protectedProcedure
     .input(z.object({ profileId: z.string() }))

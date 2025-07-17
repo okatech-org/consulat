@@ -9,6 +9,7 @@ import { useCreateFeedback } from '@/hooks/use-feedback';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -46,9 +47,10 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
       {
         subject: data.subject,
         message: data.message,
-        category: data.category as 'BUG' | 'FEATURE' | 'IMPROVEMENT' | 'OTHER',
+        category: data.category,
         rating: data.rating,
         email: data.email,
+        phoneNumber: data.phoneNumber,
       },
       {
         onSuccess: () => {
@@ -139,6 +141,28 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
                   value={field.value || ''}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('form.phoneNumber')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="tel"
+                  placeholder={t('form.phoneNumberPlaceholder')}
+                  {...field}
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormDescription>
+                <p>Nous pourrons vous contacter directement si nécessaire.</p>
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

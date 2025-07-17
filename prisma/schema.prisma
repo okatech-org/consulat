@@ -1035,6 +1035,8 @@ model Feedback {
     user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
     email  String? // Pour les utilisateurs non connectés
 
+    phoneNumber String?
+
     // Réponse de l'admin
     response      String?   @db.Text
     respondedBy   User?     @relation("FeedbackResponses", fields: [respondedById], references: [id])

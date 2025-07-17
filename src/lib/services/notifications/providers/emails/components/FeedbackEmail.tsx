@@ -1,5 +1,4 @@
 import { Text, Section, Heading, Container, Hr, render } from '@react-email/components';
-import * as React from 'react';
 import { EmailLayout } from './EmailLayout';
 
 interface FeedbackEmailProps {
@@ -10,6 +9,7 @@ interface FeedbackEmailProps {
     rating?: number;
     email?: string;
     userId?: string;
+    phoneNumber?: string;
     createdAt: Date;
   };
   content: {
@@ -24,6 +24,7 @@ interface FeedbackEmailProps {
     user_info_label: string;
     user_email_label: string;
     user_id_label: string;
+    user_phone_number_label: string;
     date_label: string;
     outro: string;
     signature: string;
@@ -96,6 +97,13 @@ export const FeedbackEmail = ({ feedbackData, content }: FeedbackEmailProps) => 
           {feedbackData.userId && (
             <Text className="mb-2">
               <strong>{content.user_id_label}:</strong> {feedbackData.userId}
+            </Text>
+          )}
+
+          {feedbackData.phoneNumber && (
+            <Text className="mb-2">
+              <strong>{content.user_phone_number_label}:</strong>{' '}
+              {feedbackData.phoneNumber}
             </Text>
           )}
 

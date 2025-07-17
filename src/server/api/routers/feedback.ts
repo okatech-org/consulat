@@ -2,70 +2,64 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { sendFeedbackEmail } from '@/lib/services/notifications/providers/emails';
 import { env } from '@/env';
-
-// Types temporaires en attendant la génération Prisma
-enum FeedbackCategory {
-  BUG = 'BUG',
-  FEATURE = 'FEATURE',
-  IMPROVEMENT = 'IMPROVEMENT',
-  OTHER = 'OTHER',
-}
+import { FeedbackCategory } from '@/schemas/feedback';
 
 const feedbackCreateSchema = z.object({
   subject: z.string().min(3),
   message: z.string().min(10),
-  category: z.nativeEnum(FeedbackCategory),
+  category: FeedbackCategory,
   rating: z.number().min(1).max(5).optional(),
   email: z.string().email().optional(),
   serviceId: z.string().optional(),
   requestId: z.string().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 export const feedbackRouter = createTRPCRouter({
   // Créer un feedback (public ou authentifié)
-  create: publicProcedure
-    .input(feedbackCreateSchema)
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session?.user?.id;
-      const userEmail = ctx.session?.user?.email || input.email;
-      
-      // Pour l'instant, on retourne juste les données validées
-      // TODO: Sauvegarder dans la base de données une fois le modèle Prisma généré
-      const feedback = {
-        id: `feedback-${Date.now()}`,
-        subject: input.subject,
-        message: input.message,
-        category: input.category,
-        rating: input.rating,
-        email: userEmail,
-        userId,
-        serviceId: input.serviceId,
-        requestId: input.requestId,
-        createdAt: new Date(),
-      };
+  create: publicProcedure.input(feedbackCreateSchema).mutation(async ({ ctx, input }) => {
+    const userId = ctx.session?.user?.id;
+    const userEmail = ctx.session?.user?.email || input.email;
 
-      // Envoyer un email au contact technique si configuré
-      if (env.TECHNICAL_CONTACT_EMAIL) {
-        try {
-          await sendFeedbackEmail({
-            to: env.TECHNICAL_CONTACT_EMAIL,
-            feedbackData: {
-              subject: input.subject,
-              message: input.message,
-              category: input.category,
-              rating: input.rating,
-              email: userEmail,
-              userId,
-              createdAt: feedback.createdAt,
-            },
-          });
-        } catch (error) {
-          console.error('Failed to send feedback email:', error);
-        }
+    // Pour l'instant, on retourne juste les données validées
+    // TODO: Sauvegarder dans la base de données une fois le modèle Prisma généré
+    const feedback = {
+      id: `feedback-${Date.now()}`,
+      subject: input.subject,
+      message: input.message,
+      category: input.category,
+      rating: input.rating,
+      email: userEmail,
+      phoneNumber: input.phoneNumber,
+      userId,
+      serviceId: input.serviceId,
+      requestId: input.requestId,
+      createdAt: new Date(),
+    };
+
+    // Envoyer un email au contact technique si configuré
+    if (env.TECHNICAL_CONTACT_EMAIL) {
+      try {
+        await sendFeedbackEmail({
+          to: env.TECHNICAL_CONTACT_EMAIL,
+          feedbackData: {
+            subject: input.subject,
+            message: input.message,
+            category: input.category,
+            rating: input.rating,
+            email: userEmail,
+            phoneNumber: input.phoneNumber,
+            userId,
+            createdAt: feedback.createdAt,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to send feedback email:', error);
       }
+    }
 
-      return feedback;
-    }),
+    return feedback;
+  }),
 
   // Récupérer mes feedbacks
   getMyFeedbacks: protectedProcedure.query(async () => {
@@ -95,4 +89,4 @@ export const feedbackRouter = createTRPCRouter({
       recentFeedbacks: [],
     };
   }),
-}); 
+});
