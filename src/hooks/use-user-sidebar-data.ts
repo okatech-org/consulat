@@ -21,8 +21,6 @@ export function useUserSidebarData() {
   const { user } = useCurrentUser();
   const { profile } = useProfile();
 
-  console.log({ profile, user });
-
   const completion = profile ? calculateProfileCompletion(profile) : 0;
 
   // tRPC queries with proper caching
