@@ -11,6 +11,7 @@ import { auth } from '@/server/auth';
 import { getLocale } from 'next-intl/server';
 import { RoleBasedDataProvider } from '@/contexts/role-data-context';
 import { loadRoleBasedData } from '@/lib/role-data-loader';
+import ErrorBoundary from '@/components/error-boundary';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -133,13 +134,15 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${geist.variable}`}>
       <body>
-        <TRPCReactProvider>
-          <SessionProvider session={session}>
-            <RoleBasedDataProvider initialData={roleData}>
-              <Providers>{children}</Providers>
-            </RoleBasedDataProvider>
-          </SessionProvider>
-        </TRPCReactProvider>
+        <ErrorBoundary>
+          <TRPCReactProvider>
+            <SessionProvider session={session}>
+              <RoleBasedDataProvider initialData={roleData}>
+                <Providers>{children}</Providers>
+              </RoleBasedDataProvider>
+            </SessionProvider>
+          </TRPCReactProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
