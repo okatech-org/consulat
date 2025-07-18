@@ -12,17 +12,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { useUserServiceRequests } from '@/hooks/use-services';
-import { Eye, Download, MessageSquare, LoaderIcon } from 'lucide-react';
+import { Eye, Download } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
+import { useUserData } from '@/hooks/use-role-data';
 
 export function RequestsHistory() {
+  const { requests } = useUserData();
   const { formatDate } = useDateLocale();
-  const { requests, isLoading, error } = useUserServiceRequests();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [serviceFilter, setServiceFilter] = useState<string>('all');
@@ -84,28 +84,6 @@ export function RequestsHistory() {
     };
     return progressMap[status as keyof typeof progressMap] || 0;
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <LoaderIcon className="h-4 w-4 animate-spin" />
-          <span>Chargement de l&apos;historique...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-16">
-        <p className="text-destructive mb-4">{t('error.loading')}</p>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          {t('error.retry')}
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div>

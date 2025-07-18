@@ -23,7 +23,6 @@ function createCodeSentError(message: string) {
   }
   const error = new CodeSentError();
   error.message = message;
-  console.log('CodeSentError', error);
   return error;
 }
 

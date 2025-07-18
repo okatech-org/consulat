@@ -139,8 +139,9 @@ export default function AvailableServicesPage() {
               variant="outline"
               size="icon"
               aria-label={t('actions.backToServices')}
+              leftIcon={<ArrowLeft className="h-4 w-4" />}
             >
-              <ArrowLeft className="h-4 w-4" />
+              {t('actions.backToServices')}
             </Button>
           </Link>
         </div>

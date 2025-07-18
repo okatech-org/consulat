@@ -1,24 +1,27 @@
 import type {
   User,
-  Appointment,
   Organization,
   UserRole,
   Notification,
-  Country,
   UserDocument,
 } from '@prisma/client';
 import type { FullProfile } from '@/types/profile';
-import type { FullServiceRequest } from '@/types/service-request';
-import type { ConsularServiceItem } from '@/types/consular-service';
-import type { ChildProfileCardData } from '@/types/parental-authority';
-import type { BaseAgent } from '@/types/organization';
+import type { RequestDetails, RequestListItem } from '@/server/api/routers/requests/misc';
+import type {
+  UserSession,
+  AgentSession,
+  ManagerSession,
+  AdminSession,
+  SuperAdminSession,
+} from '@/types/user';
+import type { ServiceListItem } from '@/server/api/routers/services/misc';
+import type { GroupedAppointments } from '@/server/api/routers/appointments/misc';
 
 // Données communes à tous les utilisateurs
 interface BaseUserData {
   user: User;
   notifications: Notification[];
   stats: {
-    profileCompletion: number;
     unreadNotifications: number;
   };
 }
@@ -26,139 +29,46 @@ interface BaseUserData {
 // Données pour un utilisateur standard
 export interface UserData extends BaseUserData {
   role: 'USER';
-  requests: FullServiceRequest[];
-  appointments: Appointment[];
-  children: ChildProfileCardData[];
+  user: UserSession;
+  profile: FullProfile | null;
+  requests: RequestListItem[];
+  currentRequest: RequestDetails | null;
+  appointments: GroupedAppointments | null | undefined;
+  children: FullProfile['parentAuthorities'];
   documents: UserDocument[];
-  availableServices: ConsularServiceItem[];
+  availableServices: ServiceListItem[];
+  organizationData?: Pick<Organization, 'id' | 'name' | 'metadata'>;
   stats: BaseUserData['stats'] & {
     pendingRequests: number;
     upcomingAppointments: number;
     documentsCount: number;
     childrenCount: number;
+    profileCompletion: number;
   };
 }
 
 // Données pour un agent
 export interface AgentData extends BaseUserData {
   role: 'AGENT';
-  assignedRequests: FullServiceRequest[];
-  agentAppointments: Appointment[];
-  assignedProfiles: FullProfile[];
-  organizationData: Organization;
-  agentStats: {
-    requestsToProcess: number;
-    appointmentsToday: number;
-    completedThisWeek: number;
-    averageProcessingTime: number;
-  };
+  user: AgentSession;
 }
 
 // Données pour un manager
 export interface ManagerData extends BaseUserData {
   role: 'MANAGER';
-  // Données agent héritées
-  assignedRequests: FullServiceRequest[];
-  agentAppointments: Appointment[];
-  assignedProfiles: FullProfile[];
-  organizationData: Organization;
-  agentStats: {
-    requestsToProcess: number;
-    appointmentsToday: number;
-    completedThisWeek: number;
-    averageProcessingTime: number;
-  };
-  // Données spécifiques manager
-  teamAgents: BaseAgent[];
-  teamStats: {
-    totalRequests: number;
-    processingRequests: number;
-    completedRequests: number;
-    teamPerformance: Record<string, number>;
-  };
-  organizationRequests: FullServiceRequest[];
+  user: ManagerSession;
 }
 
 // Données pour un admin
 export interface AdminData extends BaseUserData {
   role: 'ADMIN';
-  // Données agent héritées
-  assignedRequests: FullServiceRequest[];
-  agentAppointments: Appointment[];
-  assignedProfiles: FullProfile[];
-  organizationData: Organization;
-  agentStats: {
-    requestsToProcess: number;
-    appointmentsToday: number;
-    completedThisWeek: number;
-    averageProcessingTime: number;
-  };
-  // Données manager héritées
-  teamAgents: BaseAgent[];
-  teamStats: {
-    totalRequests: number;
-    processingRequests: number;
-    completedRequests: number;
-    teamPerformance: Record<string, number>;
-  };
-  organizationRequests: FullServiceRequest[];
-  // Données spécifiques admin
-  organizations: Organization[];
-  allAgents: BaseAgent[];
-  systemStats: {
-    totalProfiles: number;
-    totalRequests: number;
-    totalAppointments: number;
-    completionRate: number;
-  };
-  pendingValidations: FullProfile[];
+  user: AdminSession;
 }
 
 // Données pour un super admin
 export interface SuperAdminData extends BaseUserData {
   role: 'SUPER_ADMIN';
-  // Données agent héritées
-  assignedRequests: FullServiceRequest[];
-  agentAppointments: Appointment[];
-  assignedProfiles: FullProfile[];
-  organizationData: Organization;
-  agentStats: {
-    requestsToProcess: number;
-    appointmentsToday: number;
-    completedThisWeek: number;
-    averageProcessingTime: number;
-  };
-  // Données manager héritées
-  teamAgents: BaseAgent[];
-  teamStats: {
-    totalRequests: number;
-    processingRequests: number;
-    completedRequests: number;
-    teamPerformance: Record<string, number>;
-  };
-  organizationRequests: FullServiceRequest[];
-  // Données admin héritées
-  organizations: Organization[];
-  allAgents: BaseAgent[];
-  systemStats: {
-    totalProfiles: number;
-    totalRequests: number;
-    totalAppointments: number;
-    completionRate: number;
-  };
-  pendingValidations: FullProfile[];
-  // Données spécifiques super admin
-  countries: Country[];
-  globalStats: {
-    totalUsers: number;
-    totalOrganizations: number;
-    totalRequests: number;
-    systemHealth: {
-      uptime: number;
-      errors: number;
-      performance: number;
-    };
-  };
+  user: SuperAdminSession;
 }
 
 // Type union pour toutes les données possibles

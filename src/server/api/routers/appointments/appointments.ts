@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { AppointmentSchema } from '@/schemas/appointment';
-import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus, Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import {
   createAppointment as createAppointmentAction,
@@ -15,8 +15,66 @@ import {
   getAvailableTimeSlots as getAvailableTimeSlotsAction,
   getAvailableServices as getAvailableServicesAction,
 } from '@/actions/appointments';
+import { AppointmentListItemSelect, type GroupedAppointments } from './misc';
 
 export const appointmentsRouter = createTRPCRouter({
+  // Récupérer la liste des rendez-vous
+  getList: protectedProcedure
+    .input(
+      z
+        .object({
+          userId: z.string().optional(),
+          agentId: z.string().optional(),
+          limit: z.number().min(1).max(50).optional(),
+          offset: z.number().min(0).optional(),
+          sortBy: z.enum(['date', 'startTime', 'endTime', 'status']).optional(),
+          sortOrder: z.enum(['asc', 'desc']).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const where: Prisma.AppointmentWhereInput = {};
+
+      if (input?.userId) {
+        where.OR = [{ attendeeId: input.userId }, { agentId: input.userId }];
+      }
+
+      const appointments = await ctx.db.appointment.findMany({
+        where,
+        select: AppointmentListItemSelect,
+        ...(input?.limit && { take: input.limit }),
+        ...(input?.offset && { skip: input.offset }),
+        ...(input?.sortBy &&
+          input?.sortOrder && {
+            orderBy: {
+              [input.sortBy]: input.sortOrder,
+            },
+          }),
+      });
+
+      const now = new Date();
+
+      const groupedAppointments = appointments.reduce(
+        (acc, appointment) => {
+          const appointmentDate = new Date(appointment.startTime);
+          if (appointment.status === AppointmentStatus.CANCELLED) {
+            acc.cancelled.push(appointment);
+          } else if (appointmentDate < now) {
+            acc.past.push(appointment);
+          } else {
+            acc.upcoming.push(appointment);
+          }
+          return acc;
+        },
+        {
+          upcoming: [],
+          past: [],
+          cancelled: [],
+        } as GroupedAppointments,
+      );
+
+      return groupedAppointments;
+    }),
   // Récupérer les rendez-vous de l'utilisateur
   getUserAppointments: protectedProcedure
     .input(

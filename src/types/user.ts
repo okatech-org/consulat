@@ -7,6 +7,7 @@ export const UserSessionInclude: Prisma.UserSelect = {
   email: true,
   phoneNumber: true,
   roles: true,
+  role: true,
   image: true,
   countryCode: true,
 } as const;
@@ -51,9 +52,13 @@ export type ManagerSession = Prisma.UserGetPayload<{
 export type SuperAdminSession = Prisma.UserGetPayload<{
   select: typeof UserSessionInclude;
 }>;
+export type UserSession = Prisma.UserGetPayload<{
+  select: typeof UserSessionInclude;
+}>;
 
 export type SessionUser =
   | AgentSession
   | AdminSession
   | ManagerSession
-  | SuperAdminSession;
+  | SuperAdminSession
+  | UserSession;

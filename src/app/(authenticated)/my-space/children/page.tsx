@@ -1,4 +1,6 @@
-import { getTranslations } from 'next-intl/server';
+'use client';
+
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -7,15 +9,12 @@ import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
 import { ROUTES } from '@/schemas/routes';
-import { api } from '@/trpc/server';
-
-// Cache optimisé pour la liste des enfants
-export const revalidate = 300; // 5 minutes
+import { useUserData } from '@/hooks/use-role-data';
 
 export default async function ChildrenPage() {
-  const t = await getTranslations('user.children');
+  const t = useTranslations('user.children');
 
-  const childrenData = await api.profile.getChildrenForDashboard();
+  const { children } = useUserData();
 
   return (
     <PageContainer
@@ -31,8 +30,8 @@ export default async function ChildrenPage() {
       }
     >
       <CardContainer>
-        {childrenData.parentalAuthorities.length > 0 ? (
-          <ChildrenList parentalAuthorities={childrenData.parentalAuthorities} />
+        {children && children.length > 0 ? (
+          <ChildrenList authorities={children} />
         ) : (
           <NoChildrenMessage />
         )}

@@ -8,13 +8,13 @@ import { ProfileProgressBar } from './_utils/components/profile-progress-bar';
 import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
-import { useProfile } from '@/contexts/profile-context';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
+import { useUserData } from '@/hooks/use-role-data';
 
 export default function ProfilePage() {
-  const { profile } = useProfile();
+  const { profile } = useUserData();
   const registrationRequest = profile?.requestsFor?.find(
     (r) => r.status === profile.status,
   );

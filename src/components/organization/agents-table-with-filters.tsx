@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getActiveCountries } from '@/actions/countries';
 import { getOrganizations } from '@/actions/organizations';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
@@ -337,8 +337,8 @@ export function AgentsTableWithFilters({ organizationId }: AgentsTableWithFilter
                           <span className="text-destructive">Supprimer</span>
                         </>
                       ),
-                      onClick: (row: AgentListItem) => {
-                        console.log("Supprimer l'agent", row);
+                      onClick: () => {
+                        // TODO: Implémenter la suppression d'agent
                       },
                     },
                   ]

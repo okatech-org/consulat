@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { AircallConfig } from '@/schemas/aircall';
 
 declare global {
@@ -83,7 +83,12 @@ export function useAircall({
 
   // Initialiser Aircall Workspace
   useEffect(() => {
-    if (!config.enabled || !isScriptLoaded || !window.AircallWorkspace || workspaceRef.current) {
+    if (
+      !config.enabled ||
+      !isScriptLoaded ||
+      !window.AircallWorkspace ||
+      workspaceRef.current
+    ) {
       return;
     }
 
@@ -93,26 +98,21 @@ export function useAircall({
         integrationToLoad: config.integrationName || 'consulat-ga',
         size: config.workspaceSize || 'medium',
         onLogin: (settings: any) => {
-          console.log('Aircall: Connexion réussie', settings);
           setIsConnected(true);
           setIsLoaded(true);
           onLogin?.(settings);
         },
         onLogout: () => {
-          console.log('Aircall: Déconnexion');
           setIsConnected(false);
           onLogout?.();
         },
         onCallStart: (data: any) => {
-          console.log('Aircall: Appel démarré', data);
           onCallStart?.(data);
         },
         onCallEnd: (data: any) => {
-          console.log('Aircall: Appel terminé', data);
           onCallEnd?.(data);
         },
         onCallAnswer: (data: any) => {
-          console.log('Aircall: Appel répondu', data);
           onCallAnswer?.(data);
         },
         onError: (error: any) => {
@@ -124,8 +124,8 @@ export function useAircall({
 
       workspaceRef.current = workspace;
     } catch (err) {
-      console.error('Erreur lors de l\'initialisation d\'Aircall:', err);
-      setError('Erreur lors de l\'initialisation d\'Aircall');
+      console.error("Erreur lors de l'initialisation d'Aircall:", err);
+      setError("Erreur lors de l'initialisation d'Aircall");
       onError?.(err);
     }
   }, [
@@ -149,7 +149,7 @@ export function useAircall({
         try {
           workspaceRef.current.destroy();
         } catch (err) {
-          console.error('Erreur lors de la destruction d\'Aircall:', err);
+          console.error("Erreur lors de la destruction d'Aircall:", err);
         }
       }
     };
@@ -158,7 +158,7 @@ export function useAircall({
   // Fonctions utilitaires
   const makeCall = (phoneNumber: string) => {
     if (!workspaceRef.current || !isConnected) {
-      console.warn('Aircall n\'est pas connecté');
+      console.warn("Aircall n'est pas connecté");
       return false;
     }
 
@@ -166,15 +166,15 @@ export function useAircall({
       workspaceRef.current.dial(phoneNumber);
       return true;
     } catch (err) {
-      console.error('Erreur lors de l\'appel:', err);
-      setError('Erreur lors de l\'appel');
+      console.error("Erreur lors de l'appel:", err);
+      setError("Erreur lors de l'appel");
       return false;
     }
   };
 
   const hangupCall = () => {
     if (!workspaceRef.current || !isConnected) {
-      console.warn('Aircall n\'est pas connecté');
+      console.warn("Aircall n'est pas connecté");
       return false;
     }
 
@@ -182,14 +182,14 @@ export function useAircall({
       workspaceRef.current.hangup();
       return true;
     } catch (err) {
-      console.error('Erreur lors de la fermeture d\'appel:', err);
+      console.error("Erreur lors de la fermeture d'appel:", err);
       return false;
     }
   };
 
   const openDialer = () => {
     if (!workspaceRef.current || !isConnected) {
-      console.warn('Aircall n\'est pas connecté');
+      console.warn("Aircall n'est pas connecté");
       return false;
     }
 
@@ -197,7 +197,7 @@ export function useAircall({
       workspaceRef.current.openDialer();
       return true;
     } catch (err) {
-      console.error('Erreur lors de l\'ouverture du dialer:', err);
+      console.error("Erreur lors de l'ouverture du dialer:", err);
       return false;
     }
   };
@@ -211,4 +211,4 @@ export function useAircall({
     openDialer,
     workspace: workspaceRef.current,
   };
-} 
+}

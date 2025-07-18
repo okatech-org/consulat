@@ -18,7 +18,6 @@ export function useAppointments() {
   // Créer un rendez-vous
   const createAppointment = api.appointments.create.useMutation({
     onSuccess: () => {
-      console.log('createAppointment.onSuccess');
       toast.success(t('notifications.appointment_created'));
       utils.appointments.getUserAppointmentsDashboard.invalidate();
       router.push(ROUTES.user.appointments);

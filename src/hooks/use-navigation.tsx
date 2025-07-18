@@ -23,10 +23,9 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 import { CountBadge } from '@/components/layouts/count-badge';
 import { ProfileCompletionBadge } from '@/components/layouts/profile-completion-badge';
-import { useUserSidebarData } from './use-user-sidebar-data';
+import { useUserData } from './use-role-data';
 
 export type NavMainItem = {
   title: string;
@@ -161,16 +160,7 @@ export function useNavigation(user: SessionUser) {
 
 export function useUserNavigation() {
   const t = useTranslations('navigation.menu');
-  const {
-    data: {
-      profileCompletion,
-      activeRequests,
-      childrenCount,
-      notificationsCount,
-      upcomingAppointments,
-    },
-    loading,
-  } = useUserSidebarData();
+  const { stats } = useUserData();
 
   const userNavigationItems: UserNavigationItem[] = [
     {
@@ -182,36 +172,24 @@ export function useUserNavigation() {
       title: t('profile'),
       url: ROUTES.user.profile,
       icon: User,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <ProfileCompletionBadge percentage={profileCompletion} />
-      ),
+      badge: <ProfileCompletionBadge percentage={stats.profileCompletion} />,
     },
     {
       title: t('my_requests'),
       url: ROUTES.user.requests,
       icon: FileText,
+      badge: <CountBadge count={stats.pendingRequests} />,
     },
     {
       title: t('services'),
       url: ROUTES.user.services,
       icon: FileText,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <CountBadge count={activeRequests} />
-      ),
     },
     {
       title: t('appointments'),
       url: ROUTES.user.appointments,
       icon: Calendar,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <CountBadge count={upcomingAppointments} />
-      ),
+      badge: <CountBadge count={stats.upcomingAppointments} />,
     },
     {
       title: t('documents'),
@@ -222,11 +200,7 @@ export function useUserNavigation() {
       title: t('children'),
       url: ROUTES.user.children,
       icon: Users,
-      badge: loading ? (
-        <Skeleton className="h-4 w-4" />
-      ) : (
-        <CountBadge count={childrenCount} />
-      ),
+      badge: <CountBadge count={stats.childrenCount} />,
     },
     {
       title: t('contact'),
@@ -240,7 +214,7 @@ export function useUserNavigation() {
       title: t('notifications'),
       url: ROUTES.user.notifications,
       icon: Bell,
-      badge: <CountBadge count={notificationsCount} variant="destructive" />,
+      badge: <CountBadge count={stats.unreadNotifications} variant="destructive" />,
     },
     {
       title: t('settings'),

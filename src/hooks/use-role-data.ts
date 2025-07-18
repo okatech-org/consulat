@@ -1,6 +1,7 @@
 'use client';
 
 import { useRoleDataContext } from '@/contexts/role-data-context';
+import type { SessionUser } from '@/types';
 import type {
   RoleData,
   UserData,
@@ -82,4 +83,11 @@ export function useCurrentRole(): RoleData['role'] | null {
 export function useIsAuthenticated(): boolean {
   const data = useRoleData();
   return data !== null;
+}
+
+export function useCurrentUser(): { user: SessionUser } {
+  const data = useRoleData();
+  return {
+    user: data?.user as SessionUser,
+  };
 }

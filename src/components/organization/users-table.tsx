@@ -107,8 +107,8 @@ export function UsersTable({ agents }: UsersTableProps) {
                     </span>
                   </>
                 ),
-                onClick: (row) => {
-                  console.log("Supprimer l'agent", row);
+                onClick: () => {
+                  // TODO: Implémenter la suppression d'utilisateur
                 },
               },
             ]}

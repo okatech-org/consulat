@@ -1,33 +1,33 @@
 'use client';
 
 import {
-  AgentListItem,
-  AgentsListRequestOptions,
-  AgentsListResult,
+  type AgentListItem,
+  type AgentsListRequestOptions,
+  type AgentsListResult,
   getAgentsList,
 } from '@/actions/agents';
 import {
-  Sorting,
-  Pagination,
+  type Sorting,
+  type Pagination,
   useTableSearchParams,
 } from '@/hooks/use-table-search-params';
-import { useCurrentUser } from '@/contexts/user-context';
-import { OrganizationListingItem } from '@/types/organization';
-import { Country, User, UserRole } from '@prisma/client';
+import { useCurrentUser } from '@/hooks/use-role-data';
+import type { OrganizationListingItem } from '@/types/organization';
+import { type Country, type User, UserRole } from '@prisma/client';
 import { useEffect, useState, useMemo } from 'react';
 import { getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { ROUTES } from '@/schemas/routes';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnDef, Column, Row } from '@tanstack/react-table';
+import type { ColumnDef, Column, Row } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTable } from '@/components/data-table/data-table';
-import { ConsularServiceListingItem } from '@/types/consular-service';
-import { SessionUser } from '@/types';
+import type { ConsularServiceListingItem } from '@/types/consular-service';
+import type { SessionUser } from '@/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type AgentsTablesProps = {

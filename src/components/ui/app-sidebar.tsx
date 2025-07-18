@@ -15,7 +15,7 @@ import {
 import { env } from '@/env';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { FlagIcon } from './flag-icon';
 import { useNavigation } from '@/hooks/use-navigation';

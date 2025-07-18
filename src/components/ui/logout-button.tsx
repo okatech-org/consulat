@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { LogOutIcon } from 'lucide-react';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 import { signOut } from 'next-auth/react';
 

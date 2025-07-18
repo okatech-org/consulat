@@ -1,4 +1,5 @@
 import { auth } from '@/server/auth';
+import { api } from '@/trpc/server';
 import type {
   RoleData,
   UserData,
@@ -7,7 +8,16 @@ import type {
   AdminData,
   SuperAdminData,
 } from '@/types/role-data';
-import type { UserRole } from '@prisma/client';
+import type {
+  AdminSession,
+  AgentSession,
+  ManagerSession,
+  SessionUser,
+  SuperAdminSession,
+  UserSession,
+} from '@/types/user';
+import { UserRole } from '@prisma/client';
+import { calculateProfileCompletion } from './utils';
 
 /**
  * Charge les données appropriées selon le rôle de l'utilisateur connecté
@@ -20,11 +30,8 @@ export async function loadRoleBasedData(): Promise<RoleData | null> {
     return null;
   }
 
-  const userRole = session.user.roles?.[0] || ('USER' as UserRole);
-  const userId = session.user.id;
-
   try {
-    const roleData = await loadDataForRole(userRole, userId);
+    const roleData = await loadDataForRole(session.user);
     return roleData;
   } catch (error) {
     console.error('Erreur lors du chargement des données par rôle:', error);
@@ -32,151 +39,109 @@ export async function loadRoleBasedData(): Promise<RoleData | null> {
   }
 }
 
-async function loadDataForRole(role: UserRole, userId: string): Promise<RoleData> {
-  switch (role) {
+async function loadDataForRole(user: SessionUser): Promise<RoleData | null> {
+  switch (user.role) {
     case 'USER':
-      return loadUserData(userId);
+      return loadUserData(user);
 
     case 'AGENT':
-      return loadAgentData(userId);
+      return loadAgentData(user);
 
     case 'MANAGER':
-      return loadManagerData(userId);
+      return loadManagerData(user);
 
     case 'ADMIN':
-      return loadAdminData(userId);
+      return loadAdminData(user);
 
     case 'SUPER_ADMIN':
-      return loadSuperAdminData(userId);
+      return loadSuperAdminData(user);
 
     default:
-      return loadUserData(userId);
+      return null;
   }
 }
 
-async function loadUserData(userId: string): Promise<UserData> {
-  // Simuler les données de base pour éviter les erreurs tRPC complexes
-  // Dans une vraie implémentation, vous utiliseriez api.createCaller ou des appels directs à la base
+async function loadUserData(user: SessionUser): Promise<UserData> {
+  const [
+    profile,
+    requests,
+    appointments,
+    documents,
+    availableServices,
+    currentRequest,
+    unreadNotifications,
+  ] = await Promise.all([
+    api.profile.getCurrent(),
+    api.requests.getList({}),
+    api.appointments.getList({ userId: user.id }),
+    api.documents.getUserDocuments(),
+    api.services.getAvailable(),
+    api.requests.getCurrent(),
+    api.notifications.getUnreadCount(),
+  ]);
 
   return {
-    role: 'USER',
-    user: {
-      id: userId,
-      name: 'Utilisateur Test',
-      email: 'user@test.com',
-      roles: ['USER'],
-    } as any,
-    profile: {} as any,
+    role: UserRole.USER,
+    user: user as UserSession,
+    profile: profile,
     notifications: [],
-    requests: [],
-    appointments: [],
-    children: [],
-    documents: [],
-    availableServices: [],
+    requests: requests.items,
+    currentRequest: currentRequest || null,
+    appointments: appointments,
+    children: profile.parentAuthorities,
+    documents: documents,
+    availableServices: availableServices,
     stats: {
-      profileCompletion: 75,
-      unreadNotifications: 3,
-      pendingRequests: 2,
-      upcomingAppointments: 1,
-      documentsCount: 5,
-      childrenCount: 0,
+      profileCompletion: calculateProfileCompletion(profile),
+      unreadNotifications: unreadNotifications,
+      pendingRequests: requests.items.length,
+      upcomingAppointments: appointments?.upcoming.length || 0,
+      documentsCount: documents.length,
+      childrenCount: profile.parentAuthorities.length,
     },
   };
 }
 
-async function loadAgentData(userId: string): Promise<AgentData> {
-  const userData = await loadUserData(userId);
-
+async function loadAgentData(user: SessionUser): Promise<AgentData> {
   return {
-    ...userData,
     role: 'AGENT',
-    assignedRequests: [],
-    agentAppointments: [],
-    assignedProfiles: [],
-    organizationData: {} as any,
-    agentStats: {
-      requestsToProcess: 5,
-      appointmentsToday: 3,
-      completedThisWeek: 12,
-      averageProcessingTime: 2.5,
+    user: user as AgentSession,
+    notifications: [],
+    stats: {
+      unreadNotifications: 0,
     },
   };
 }
 
-async function loadManagerData(userId: string): Promise<ManagerData> {
-  const agentData = await loadAgentData(userId);
-
+async function loadManagerData(user: SessionUser): Promise<ManagerData> {
   return {
-    ...agentData,
     role: 'MANAGER',
-    teamAgents: [],
-    teamStats: {
-      totalRequests: 45,
-      processingRequests: 23,
-      completedRequests: 22,
-      teamPerformance: {},
+    user: user as ManagerSession,
+    notifications: [],
+    stats: {
+      unreadNotifications: 0,
     },
-    organizationRequests: [],
   };
 }
 
-async function loadAdminData(userId: string): Promise<AdminData> {
-  const managerData = await loadManagerData(userId);
-
+async function loadAdminData(user: SessionUser): Promise<AdminData> {
   return {
-    ...managerData,
     role: 'ADMIN',
-    organizations: [],
-    allAgents: [],
-    systemStats: {
-      totalProfiles: 1250,
-      totalRequests: 3400,
-      totalAppointments: 890,
-      completionRate: 92,
+    user: user as AdminSession,
+    notifications: [],
+    stats: {
+      unreadNotifications: 0,
     },
-    pendingValidations: [],
   };
 }
 
-async function loadSuperAdminData(userId: string): Promise<SuperAdminData> {
-  const adminData = await loadAdminData(userId);
-
+async function loadSuperAdminData(user: SessionUser): Promise<SuperAdminData> {
   return {
-    ...adminData,
     role: 'SUPER_ADMIN',
-    countries: [],
-    globalStats: {
-      totalUsers: 15000,
-      totalOrganizations: 45,
-      totalRequests: 125000,
-      systemHealth: {
-        uptime: 99.9,
-        errors: 2,
-        performance: 95,
-      },
+    user: user as SuperAdminSession,
+    notifications: [],
+    stats: {
+      unreadNotifications: 0,
     },
   };
-}
-
-/**
- * Fonction utilitaire pour calculer le pourcentage de completion du profil
- */
-export function calculateProfileCompletion(profile: any): number {
-  if (!profile) return 0;
-
-  const requiredFields = [
-    'firstName',
-    'lastName',
-    'birthDate',
-    'birthPlace',
-    'nationality',
-    'gender',
-    'maritalStatus',
-  ];
-
-  const completedFields = requiredFields.filter(
-    (field) => profile[field] && profile[field] !== '',
-  );
-
-  return Math.round((completedFields.length / requiredFields.length) * 100);
 }

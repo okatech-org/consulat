@@ -11,7 +11,6 @@ import {
   FileText,
   AlertTriangle,
   Calendar,
-  EyeIcon,
   MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

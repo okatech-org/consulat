@@ -423,13 +423,6 @@ export function NewAppointmentForm({
     form.setValue('duration', 15);
   }
 
-  useEffect(() => {
-    console.log({
-      formErros: form.formState.errors,
-      formValues: form.getValues(),
-    });
-  }, [form.watch()]);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

@@ -42,8 +42,6 @@ export class GeminiChatService {
         generationConfig: this.model.generationConfig,
       });
 
-      console.log({ chat });
-
       // Send message with context
       const result = await chat.sendMessage(`${context}\n\nUser message: ${userMessage}`);
       const response = await result.response;

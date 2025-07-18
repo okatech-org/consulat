@@ -97,7 +97,6 @@ export function DocumentUploadSection({
 
       if (results.success && results.mergedData) {
         setAnalysingState('success');
-        console.log('results.mergedData', results.mergedData);
         onAnalysisComplete?.(results.mergedData);
       }
     } catch (error) {

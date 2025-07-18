@@ -141,7 +141,6 @@ function SuggestionCard({ suggestion }: { suggestion: ProfileSuggestion }) {
             className="h-auto p-0 text-xs"
             onClick={() => {
               // Implémenter la logique d'action
-              console.log('Action:', suggestion.action);
             }}
             disabled={true}
           >
