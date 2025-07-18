@@ -1,88 +1,55 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
-import { RequestStatus, ServicePriority, ServiceCategory } from '@prisma/client';
+import { RequestStatus, ServicePriority } from '@prisma/client';
 
 // Import existing request actions
-import { 
+import {
   getServiceRequestsList,
   getServiceRequest,
   assignServiceRequest,
   updateServiceRequestStatus,
   updateServiceRequest,
-  getServiceRequestsByUser,
 } from '@/actions/service-requests';
-import { 
+import {
   validateConsularRegistration,
   updateConsularRegistrationStatus,
   startCardProduction,
 } from '@/actions/consular-registration';
-import { 
-  validateRegistrationRequest 
-} from '@/actions/registrations';
-import { 
-  reassignRequest 
-} from '@/actions/manager-dashboard';
-
-// Schema pour les filtres de demandes
-const requestFiltersSchema = z.object({
-  search: z.string().optional(),
-  status: z.array(z.nativeEnum(RequestStatus)).optional(),
-  priority: z.array(z.nativeEnum(ServicePriority)).optional(),
-  serviceCategory: z.array(z.nativeEnum(ServiceCategory)).optional(),
-  assignedToId: z.array(z.string()).optional(),
-  organizationId: z.array(z.string()).optional(),
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(10),
-  sortBy: z.string().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-});
-
-// Schema pour la mise à jour de statut
-const statusUpdateSchema = z.object({
-  requestId: z.string(),
-  status: z.nativeEnum(RequestStatus),
-  notes: z.string().optional(),
-});
-
-// Schema pour l'assignation
-const assignmentSchema = z.object({
-  requestId: z.string(),
-  agentId: z.string(),
-});
-
-// Schema pour la validation consulaire
-const consularValidationSchema = z.object({
-  requestId: z.string(),
-  profileId: z.string(),
-  residenceCountryCode: z.string(),
-  status: z.nativeEnum(RequestStatus),
-  validityYears: z.number().min(1).max(10).default(3),
-  notes: z.string().optional(),
-  organizationId: z.string().optional(),
-});
+import { validateRegistrationRequest } from '@/actions/registrations';
+import { reassignRequest } from '@/actions/manager-dashboard';
+import {
+  requestFiltersSchema,
+  statusUpdateSchema,
+  assignmentSchema,
+  consularValidationSchema,
+} from './inputs';
+import { RequestDetailsSelect, RequestListItemSelect } from './misc';
 
 export const requestsRouter = createTRPCRouter({
   // Récupérer la liste des demandes avec filtres et pagination
-  getList: protectedProcedure
-    .input(requestFiltersSchema)
-    .query(async ({ input }) => {
-      try {
-        const result = await getServiceRequestsList(input);
-        return result;
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to fetch requests',
-        });
-      }
-    }),
+  getList: protectedProcedure.input(requestFiltersSchema).query(async ({ input }) => {
+    try {
+      const result = await getServiceRequestsList(input);
+      return result;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nous n'avons pas pu récupérer les demandes",
+      });
+    }
+  }),
 
   // Récupérer une demande par ID
   getById: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
     .query(async ({ input }) => {
       try {
         const request = await getServiceRequest(input.id);
@@ -90,63 +57,82 @@ export const requestsRouter = createTRPCRouter({
       } catch (error) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: error instanceof Error ? error.message : 'Request not found',
+          message:
+            error instanceof Error
+              ? error.message
+              : "La demande à laquelle vous tentez d'accéder n'existe pas",
         });
       }
     }),
 
   // Récupérer les demandes d'un utilisateur spécifique
   getByUser: protectedProcedure
-    .input(z.object({
-      userId: z.string(),
-    }))
+    .input(
+      z.object({
+        userId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (input.userId !== ctx.session.user.id && 
-          !ctx.session.user.roles?.some(role => 
-            ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role)
-          )) {
+      if (
+        input.userId !== ctx.session.user.id &&
+        !ctx.session.user.roles?.some((role) =>
+          ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message: "Vous n'avez pas les permissions pour accéder à cette demande",
         });
       }
 
       try {
-        const requests = await getServiceRequestsByUser(input.userId);
-        return requests;
+        const result = await ctx.db.serviceRequest.findMany({
+          where: {
+            OR: [{ submittedById: input.userId }, { assignedToId: input.userId }],
+          },
+          select: RequestListItemSelect,
+        });
+
+        return result;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to fetch user requests',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu récupérer les demandes de l'utilisateur",
         });
       }
     }),
 
   // Assigner une demande à un agent
-  assign: protectedProcedure
-    .input(assignmentSchema)
-    .mutation(async ({ input, ctx }) => {
-      // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role)
-      )) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Access denied',
-        });
-      }
+  assign: protectedProcedure.input(assignmentSchema).mutation(async ({ input, ctx }) => {
+    // Vérifier les permissions
+    if (
+      !ctx.session.user.roles?.some((role) =>
+        ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
+      )
+    ) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'avez pas les permissions pour assigner une demande",
+      });
+    }
 
-      try {
-        const result = await assignServiceRequest(input.requestId, input.agentId);
-        return result;
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to assign request',
-        });
-      }
-    }),
+    try {
+      const result = await assignServiceRequest(input.requestId, input.agentId);
+      return result;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nous n'avons pas pu assigner la demande",
+      });
+    }
+  }),
 
   // Réassigner une demande (pour les managers)
   reassign: protectedProcedure
@@ -156,7 +142,7 @@ export const requestsRouter = createTRPCRouter({
       if (!ctx.session.user.roles?.includes('MANAGER')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Only managers can reassign requests',
+          message: 'Seuls les managers peuvent réassigner des demandes',
         });
       }
 
@@ -166,7 +152,10 @@ export const requestsRouter = createTRPCRouter({
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to reassign request',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu réassigner la demande",
         });
       }
     }),
@@ -176,12 +165,15 @@ export const requestsRouter = createTRPCRouter({
     .input(statusUpdateSchema)
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session.user.roles?.some((role) =>
+          ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message:
+            "Vous n'avez pas les permissions pour mettre à jour le statut de la demande",
         });
       }
 
@@ -189,52 +181,62 @@ export const requestsRouter = createTRPCRouter({
         const result = await updateServiceRequestStatus(
           input.requestId,
           input.status,
-          input.notes
+          input.notes,
         );
         return result;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to update request status',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu mettre à jour le statut de la demande",
         });
       }
     }),
 
   // Mettre à jour une demande (données générales)
   update: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      priority: z.nativeEnum(ServicePriority).optional(),
-      organizationId: z.string().optional(),
-      assignedToId: z.string().optional(),
-      notes: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        priority: z.nativeEnum(ServicePriority).optional(),
+        organizationId: z.string().optional(),
+        assignedToId: z.string().optional(),
+        notes: z.string().optional(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session.user.roles?.some((role) =>
+          ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message: "Vous n'avez pas les permissions pour mettre à jour la demande",
         });
       }
 
       try {
         const result = await updateServiceRequest(input);
-        
+
         if ('error' in result) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: result.error,
           });
         }
-        
+
         return result.data;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to update request',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu mettre à jour la demande",
         });
       }
     }),
@@ -244,12 +246,15 @@ export const requestsRouter = createTRPCRouter({
     .input(consularValidationSchema)
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session.user.roles?.some((role) =>
+          ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message:
+            "Vous n'avez pas les permissions pour valider l'inscription consulaire",
         });
       }
 
@@ -261,33 +266,41 @@ export const requestsRouter = createTRPCRouter({
           input.status,
           input.validityYears,
           input.notes,
-          input.organizationId
+          input.organizationId,
         );
         return result;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to validate consular registration',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu valider l'inscription consulaire",
         });
       }
     }),
 
   // Mettre à jour le statut d'une inscription consulaire
   updateConsularStatus: protectedProcedure
-    .input(z.object({
-      requestId: z.string(),
-      profileId: z.string(),
-      status: z.nativeEnum(RequestStatus),
-      notes: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        requestId: z.string(),
+        profileId: z.string(),
+        status: z.nativeEnum(RequestStatus),
+        notes: z.string().optional(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session.user.roles?.some((role) =>
+          ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message:
+            "Vous n'avez pas les permissions pour mettre à jour le statut de l'inscription consulaire",
         });
       }
 
@@ -296,30 +309,37 @@ export const requestsRouter = createTRPCRouter({
           input.requestId,
           input.profileId,
           input.status,
-          input.notes
+          input.notes,
         );
         return result;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to update consular status',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu mettre à jour le statut de l'inscription consulaire",
         });
       }
     }),
 
   // Démarrer la production de carte
   startCardProduction: protectedProcedure
-    .input(z.object({
-      requestId: z.string(),
-    }))
+    .input(
+      z.object({
+        requestId: z.string(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role)
-      )) {
+      if (
+        !ctx.session.user.roles?.some((role) =>
+          ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message: "Vous n'avez pas les permissions pour démarrer la production de carte",
         });
       }
 
@@ -329,54 +349,65 @@ export const requestsRouter = createTRPCRouter({
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to start card production',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu démarrer la production de carte",
         });
       }
     }),
 
   // Valider une demande d'inscription (pour les admins)
   validateRegistration: protectedProcedure
-    .input(z.object({
-      requestId: z.string(),
-      profileId: z.string(),
-      status: z.nativeEnum(RequestStatus),
-      notes: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        requestId: z.string(),
+        profileId: z.string(),
+        status: z.nativeEnum(RequestStatus),
+        notes: z.string().optional(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN'].includes(role)
-      )) {
+      if (
+        !ctx.session.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Only admins can validate registrations',
+          message:
+            "Vous n'avez pas les permissions pour valider une demande d'inscription",
         });
       }
 
       try {
         const result = await validateRegistrationRequest(input);
-        
+
         if ('error' in result) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: result.error,
           });
         }
-        
+
         return result.data;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to validate registration',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu valider la demande d'inscription",
         });
       }
     }),
 
   // Obtenir l'historique des actions d'une demande
   getActionHistory: protectedProcedure
-    .input(z.object({
-      requestId: z.string(),
-    }))
+    .input(
+      z.object({
+        requestId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       try {
         const actions = await ctx.db.requestAction.findMany({
@@ -400,18 +431,21 @@ export const requestsRouter = createTRPCRouter({
 
         return actions;
       } catch (error) {
+        console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch action history',
+          message: "Nous n'avons pas pu récupérer l'historique des actions de la demande",
         });
       }
     }),
 
   // Obtenir les notes d'une demande
   getNotes: protectedProcedure
-    .input(z.object({
-      requestId: z.string(),
-    }))
+    .input(
+      z.object({
+        requestId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       try {
         const notes = await ctx.db.note.findMany({
@@ -435,20 +469,23 @@ export const requestsRouter = createTRPCRouter({
 
         return notes;
       } catch (error) {
+        console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch notes',
+          message: "Nous n'avons pas pu récupérer les notes de la demande",
         });
       }
     }),
 
   // Ajouter une note à une demande
   addNote: protectedProcedure
-    .input(z.object({
-      requestId: z.string(),
-      content: z.string().min(1),
-      type: z.enum(['INTERNAL', 'FEEDBACK', 'VALIDATION']).default('INTERNAL'),
-    }))
+    .input(
+      z.object({
+        requestId: z.string(),
+        content: z.string().min(1),
+        type: z.enum(['INTERNAL', 'FEEDBACK', 'VALIDATION']).default('INTERNAL'),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         const note = await ctx.db.note.create({
@@ -472,21 +509,24 @@ export const requestsRouter = createTRPCRouter({
 
         return note;
       } catch (error) {
+        console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to add note',
+          message: "Nous n'avons pas pu ajouter la note à la demande",
         });
       }
     }),
 
   // Obtenir les statistiques des demandes par statut
   getStatusStats: protectedProcedure
-    .input(z.object({
-      organizationId: z.string().optional(),
-      agentId: z.string().optional(),
-      startDate: z.date().optional(),
-      endDate: z.date().optional(),
-    }))
+    .input(
+      z.object({
+        organizationId: z.string().optional(),
+        agentId: z.string().optional(),
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const whereClause: {
         organizationId?: string;
@@ -530,20 +570,35 @@ export const requestsRouter = createTRPCRouter({
 
         return {
           byStatus: Object.fromEntries(
-            statusStats.map(stat => [stat.status, stat._count])
+            statusStats.map((stat) => [stat.status, stat._count]),
           ),
           byPriority: Object.fromEntries(
-            priorityStats.map(stat => [stat.priority, stat._count])
+            priorityStats.map((stat) => [stat.priority, stat._count]),
           ),
           byCategory: Object.fromEntries(
-            categoryStats.map(stat => [stat.serviceCategory, stat._count])
+            categoryStats.map((stat) => [stat.serviceCategory, stat._count]),
           ),
         };
       } catch (error) {
+        console.error(error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch status statistics',
+          message: "Nous n'avons pas pu récupérer les statistiques des demandes",
         });
       }
     }),
-}); 
+
+  getCurrent: protectedProcedure.query(async ({ ctx }) => {
+    const request = await ctx.db.serviceRequest.findFirst({
+      where: {
+        submittedById: ctx.session.user.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: RequestDetailsSelect,
+    });
+
+    return request;
+  }),
+});

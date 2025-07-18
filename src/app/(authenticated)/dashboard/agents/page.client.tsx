@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAgents, type AgentFilters } from '@/hooks/use-agents';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { getOrganizationIdFromUser } from '@/lib/utils';
 // import { api } from '@/trpc/react';

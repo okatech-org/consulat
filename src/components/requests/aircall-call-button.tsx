@@ -33,27 +33,23 @@ export function AircallCallButton({
   const aircall = useAircall({
     config,
     domElementId: `aircall-workspace-${requestId}`,
-    onLogin: (settings) => {
-      console.log('Aircall connecté:', settings);
+    onLogin: () => {
       toast({
         title: 'Aircall connecté',
         description: 'Vous pouvez maintenant passer des appels.',
       });
     },
     onLogout: () => {
-      console.log('Aircall déconnecté');
       setCallStatus('idle');
     },
-    onCallStart: (data) => {
-      console.log('Appel démarré:', data);
+    onCallStart: () => {
       setCallStatus('calling');
       toast({
         title: 'Appel en cours',
         description: `Appel vers ${phoneNumber}`,
       });
     },
-    onCallEnd: (data) => {
-      console.log('Appel terminé:', data);
+    onCallEnd: () => {
       setCallStatus('ended');
       toast({
         title: 'Appel terminé',
@@ -65,8 +61,7 @@ export function AircallCallButton({
         setCallStatus('idle');
       }, 2000);
     },
-    onCallAnswer: (data) => {
-      console.log('Appel répondu:', data);
+    onCallAnswer: () => {
       setCallStatus('connected');
       toast({
         title: 'Appel connecté',

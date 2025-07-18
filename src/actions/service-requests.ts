@@ -8,7 +8,6 @@ import {
   type ServiceRequestFilters,
   FullServiceRequestInclude,
   type ServiceRequestStats,
-  type FullServiceRequest,
 } from '@/types/service-request';
 import {
   Prisma,
@@ -24,6 +23,12 @@ import { getTranslations } from 'next-intl/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/env';
+import {
+  RequestDetailsSelect,
+  RequestListItemSelect,
+  type RequestDetails,
+  type RequestListItem,
+} from '@/server/api/routers/requests/misc';
 
 // Options pour la récupération des demandes
 export interface GetRequestsOptions extends ServiceRequestFilters {
@@ -31,45 +36,24 @@ export interface GetRequestsOptions extends ServiceRequestFilters {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  userId?: string;
 }
 
-export async function getServiceRequestsByUser(userId: string) {
-  await checkAuth();
-
+export async function getServiceRequestsByUser(
+  userId: string,
+): Promise<RequestListItem[]> {
   const requests = await db.serviceRequest.findMany({
     where: {
       OR: [{ submittedById: userId }, { assignedToId: userId }],
     },
-    ...FullServiceRequestInclude,
+    select: RequestListItemSelect,
   });
 
   return requests;
 }
 
-const ServiceRequestListItemSelect: Prisma.ServiceRequestSelect = {
-  id: true,
-  status: true,
-  priority: true,
-  serviceCategory: true,
-  createdAt: true,
-  updatedAt: true,
-  submittedBy: true,
-  requestedFor: {
-    include: {
-      identityPicture: true,
-    },
-  },
-  assignedTo: true,
-  organization: true,
-  country: true,
-};
-
-export type ServiceRequestListItem = Prisma.ServiceRequestGetPayload<{
-  select: typeof ServiceRequestListItemSelect;
-}>;
-
 export interface PaginatedServiceRequests {
-  items: ServiceRequestListItem[];
+  items: RequestListItem[];
   total: number;
 }
 
@@ -79,7 +63,7 @@ export interface PaginatedServiceRequests {
 export async function getServiceRequestsList(
   options?: GetRequestsOptions,
 ): Promise<PaginatedServiceRequests> {
-  const { user } = await checkAuth(['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']);
+  const { user } = await checkAuth();
 
   const {
     search,
@@ -92,6 +76,7 @@ export async function getServiceRequestsList(
     limit = 10,
     sortBy = 'createdAt',
     sortOrder = 'desc',
+    userId,
   } = options || {};
 
   const where: Prisma.ServiceRequestWhereInput = {};
@@ -100,6 +85,11 @@ export async function getServiceRequestsList(
     where.assignedToId = { in: [user.id] };
   }
 
+  if (user.roles.includes(UserRole.USER)) {
+    where.submittedById = user.id;
+  }
+
+  if (userId) where.submittedById = userId;
   if (status) where.status = { in: status };
   if (priority) where.priority = { in: priority };
   if (serviceCategory) where.serviceCategory = { in: serviceCategory };
@@ -123,7 +113,7 @@ export async function getServiceRequestsList(
   const [requests, total] = await Promise.all([
     db.serviceRequest.findMany({
       where,
-      select: ServiceRequestListItemSelect,
+      select: RequestListItemSelect,
       ...(sortBy && {
         orderBy:
           sortBy === 'firstName' || sortBy === 'lastName'
@@ -387,12 +377,10 @@ export async function getServiceRequestStats(): Promise<ServiceRequestStats> {
 /**
  * Récupérer une demande de service par son ID
  */
-export async function getServiceRequest(id: string): Promise<FullServiceRequest> {
-  await checkAuth();
-
+export async function getServiceRequest(id: string): Promise<RequestDetails> {
   const request = await db.serviceRequest.findUnique({
     where: { id },
-    ...FullServiceRequestInclude,
+    select: RequestDetailsSelect,
   });
 
   if (!request) {
@@ -400,12 +388,10 @@ export async function getServiceRequest(id: string): Promise<FullServiceRequest>
       cause: 'SERVICE_REQUEST_NOT_FOUND',
     });
   }
-  // Type assertion remains useful, assuming FullServiceRequest type will be fixed
-  const typedRequest = request as unknown as FullServiceRequest;
 
   // Parse metadata for each document if metadata exists and is a string
   // This map operates on the structure included by Prisma
-  typedRequest.requiredDocuments = typedRequest.requiredDocuments.map((doc) => {
+  request.requiredDocuments = request.requiredDocuments.map((doc) => {
     let parsedMetadata = doc.metadata; // Default to original
     if (typeof doc.metadata === 'string') {
       try {
@@ -419,7 +405,7 @@ export async function getServiceRequest(id: string): Promise<FullServiceRequest>
     return { ...doc, metadata: parsedMetadata };
   });
 
-  return typedRequest;
+  return request;
 }
 
 interface AddNoteInput {

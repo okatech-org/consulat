@@ -2,30 +2,34 @@
 
 import { Card } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
-import type { DashboardProfile } from '@/types/profile';
 import { useDateLocale } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useUserData } from '@/hooks/use-role-data';
+import type { RequestListItem } from '@/server/api/routers/requests/misc';
 
-interface UserOverviewProps {
-  stats: {
-    inProgress: number;
-    completed: number;
-    pending: number;
-    appointments: number;
-  };
-  profile: DashboardProfile | null;
-  documentsCount: number;
-  childrenCount: number;
+interface Stats {
+  inProgress: number;
+  completed: number;
+  pending: number;
 }
 
-export function UserOverview({
-  stats,
-  profile,
-  documentsCount,
-  childrenCount,
-}: UserOverviewProps) {
+function calculateRequestStats(requests: RequestListItem[]): Stats {
+  if (!requests) return { inProgress: 0, completed: 0, pending: 0 };
+
+  return {
+    inProgress: requests.filter((req) =>
+      ['SUBMITTED', 'VALIDATED', 'PROCESSING'].includes(req.status),
+    ).length,
+    completed: requests.filter((req) => req.status === 'COMPLETED').length,
+    pending: requests.filter((req) => req.status === 'DRAFT').length,
+  };
+}
+
+export function UserOverview() {
+  const { profile, requests, stats } = useUserData();
   const { formatDate } = useDateLocale();
   const t = useTranslations('dashboard.unified.user_overview');
+  const requestStats = calculateRequestStats(requests);
 
   // Générer les initiales à partir du profil
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -85,25 +89,31 @@ export function UserOverview({
         {/* Statistiques */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {requestStats.inProgress}
+            </div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.in_progress')}
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {requestStats.completed}
+            </div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.completed')}
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-amber-600">{documentsCount}</div>
+            <div className="text-2xl font-bold text-amber-600">
+              {stats.documentsCount}
+            </div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.documents')}
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-cyan-600">{childrenCount}</div>
+            <div className="text-2xl font-bold text-cyan-600">{stats.childrenCount}</div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.children')}
             </div>

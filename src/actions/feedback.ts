@@ -1,7 +1,7 @@
 'use server';
 
 import { feedbackSchema } from '@/schemas/feedback';
-import { env } from '@/env';;
+import { env } from '@/env';
 import { sendFeedbackEmail } from '@/lib/services/notifications/providers/emails';
 import { getCurrentUser } from '@/lib/auth/utils';
 
@@ -30,8 +30,6 @@ export const submitFeedback = async (formData: unknown) => {
     };
 
     // TODO: Create a Feedback model in Prisma and use it here
-    // For now, we'll just log the feedback
-    console.log('Feedback received:', feedback);
 
     // Send email notification to the technical contact
     if (env.TECHNICAL_CONTACT_EMAIL) {
@@ -48,7 +46,6 @@ export const submitFeedback = async (formData: unknown) => {
             createdAt: new Date(),
           },
         });
-        console.log('Feedback email sent to technical contact');
       } catch (emailError) {
         console.error('Failed to send feedback email:', emailError);
         // Continue execution even if email fails

@@ -212,7 +212,6 @@ export default function AgentsTest() {
             <div className="flex gap-2">
               <Button
                 onClick={() => {
-                  console.log('Test création agent');
                   // createAgent({...}); // À implémenter avec de vraies données
                 }}
                 disabled={isCreating}
@@ -223,7 +222,6 @@ export default function AgentsTest() {
               <Button
                 onClick={() => {
                   if (firstAgentId) {
-                    console.log('Test mise à jour agent');
                     // updateAgent({ id: firstAgentId, data: {...} }); // À implémenter
                   }
                 }}

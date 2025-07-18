@@ -23,7 +23,11 @@ export const FullProfileInclude = {
   include: {
     user: {
       select: {
-        ...UserSessionInclude,
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        countryCode: true,
       },
     },
     residentContact: {
@@ -43,7 +47,16 @@ export const FullProfileInclude = {
     addressProof: true,
     identityPicture: true,
     requestsFor: {
-      ...FullServiceRequestInclude,
+      select: {
+        id: true,
+        status: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     },
     parentAuthorities: {
       include: {
@@ -54,6 +67,16 @@ export const FullProfileInclude = {
             email: true,
             phoneNumber: true,
             roles: true,
+            image: true,
+          },
+        },
+        profile: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            birthDate: true,
+            status: true,
           },
         },
       },

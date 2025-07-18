@@ -941,8 +941,6 @@ export function handleTableParamChange(
 ) {
   const params = new URLSearchParams(queryParams?.toString() || '');
 
-  console.log(params.toString());
-
   if (option.type === 'sort') {
     if (option.value) {
       params.set('sort', option.value.toString());

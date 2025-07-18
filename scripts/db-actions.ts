@@ -24,9 +24,6 @@ async function main() {
       });
 
       if (serviceRequest?.organizationId) {
-        console.log(
-          `Updating profile ${profile.id} with organization ${serviceRequest.organizationId}`,
-        );
         await prisma.profile.update({
           where: { id: profile.id },
           data: {

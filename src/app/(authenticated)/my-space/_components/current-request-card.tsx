@@ -11,20 +11,14 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import type { RequestStatus } from '@prisma/client';
+import { useUserData } from '@/hooks/use-role-data';
+import { EmptyState } from './empty-state';
 
-interface CurrentRequestCardProps {
-  request: {
-    id: string;
-    status: string;
-    createdAt: string;
-    updatedAt?: string;
-    service: { name: string };
-    assignedTo?: { name: string };
-  };
-}
-
-export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
+export function CurrentRequestCard() {
+  const { currentRequest } = useUserData();
   const t = useTranslations('dashboard.unified.current_request');
+
+  if (!currentRequest) return <EmptyState />;
 
   const getProgress = (status: RequestStatus) => {
     const progressMap = {
@@ -49,18 +43,18 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
     { label: t('steps.request_submitted'), completed: true, date: '06/07/2025 - 14h30' },
     {
       label: t('steps.documents_verified'),
-      completed: getProgress(request.status as RequestStatus) >= 40,
+      completed: getProgress(currentRequest.status as RequestStatus) >= 40,
       date: '07/07/2025 - 10h15',
     },
     {
       label: t('steps.processing'),
-      current: request.status === 'PROCESSING',
-      agent: request.assignedTo?.name,
+      current: currentRequest.status === 'PENDING',
+      agent: currentRequest.assignedTo?.name,
     },
     { label: t('steps.final_validation'), completed: false, status: t('steps.waiting') },
     {
       label: t('steps.request_completed'),
-      completed: request.status === 'COMPLETED',
+      completed: currentRequest.status === 'COMPLETED',
       status: t('steps.ready_for_pickup'),
     },
   ];
@@ -71,26 +65,27 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
       <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-primary-foreground p-6 hidden md:block">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-xl font-bold mb-2">{request.service.name}</h2>
+            <h2 className="text-xl font-bold mb-2">{currentRequest.service.name}</h2>
             <p className="text-primary-foreground/80 text-sm">
               {t('submitted_ago')}{' '}
-              {formatDistanceToNow(new Date(request.createdAt), {
+              {formatDistanceToNow(new Date(currentRequest.createdAt), {
                 addSuffix: true,
                 locale: fr,
               })}
-              {request.assignedTo && ` • ${t('assigned_to')} ${request.assignedTo.name}`}
+              {currentRequest.assignedTo &&
+                ` • ${t('assigned_to')} ${currentRequest.assignedTo.name}`}
             </p>
           </div>
           <Badge variant="outlineReverse">
-            {request.status === 'PROCESSING'
+            {currentRequest.status === 'PENDING'
               ? t('status.processing')
-              : t(`status.${request.status.toLowerCase()}`)}
+              : t(`status.${currentRequest.status.toLowerCase()}`)}
           </Badge>
         </div>
 
         <div className="mb-6">
           <Progress
-            value={getProgress(request.status as RequestStatus)}
+            value={getProgress(currentRequest.status as RequestStatus)}
             className="h-2 mb-3 bg-primary-foreground/20 text-primary-foreground"
             indicatorClassName="bg-primary-foreground"
           />
@@ -107,7 +102,7 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
 
         <div className="flex gap-3">
           <Link
-            href={ROUTES.user.service_request_details(request.id)}
+            href={ROUTES.user.service_request_details(currentRequest.id)}
             className={buttonVariants({ variant: 'defaultReverse', size: 'default' })}
           >
             <Eye className="size-icon" />
@@ -126,18 +121,18 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
       {/* Version mobile */}
       <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-4 md:hidden">
         <div className="text-center mb-4">
-          <h2 className="text-lg font-bold mb-1">{request.service.name}</h2>
+          <h2 className="text-lg font-bold mb-1">{currentRequest.service.name}</h2>
           <p className="text-blue-100 text-xs mb-2">
             {t('submitted_ago')}{' '}
-            {formatDistanceToNow(new Date(request.createdAt), {
+            {formatDistanceToNow(new Date(currentRequest.createdAt), {
               addSuffix: true,
               locale: fr,
             })}
           </p>
           <Badge variant="outlineReverse">
-            {request.status === 'PROCESSING'
+            {currentRequest.status === 'PENDING'
               ? t('status.processing')
-              : t(`status.${request.status.toLowerCase()}`)}
+              : t(`status.${currentRequest.status.toLowerCase()}`)}
           </Badge>
         </div>
 
@@ -180,7 +175,7 @@ export function CurrentRequestCard({ request }: CurrentRequestCardProps) {
 
         <div className="space-y-2">
           <Link
-            href={ROUTES.user.service_request_details(request.id)}
+            href={ROUTES.user.service_request_details(currentRequest.id)}
             className={
               buttonVariants({ variant: 'defaultReverse', size: 'default' }) + ' w-full'
             }

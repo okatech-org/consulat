@@ -37,7 +37,7 @@ import {
   Eye,
   Users,
 } from 'lucide-react';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
@@ -526,22 +526,6 @@ export default function AgentDetailPage() {
         ]);
 
       setFormListDatas({
-        countries: countriesData ?? [],
-        services: services ?? [],
-        organizations: organizations ?? [],
-        managers:
-          managers.data?.map((manager) => ({
-            id: manager.id,
-            name: manager.name || '',
-          })) || [],
-        agents:
-          agents.data?.map((agent) => ({
-            id: agent.id,
-            name: agent.name || '',
-          })) || [],
-      });
-
-      console.log({
         countries: countriesData ?? [],
         services: services ?? [],
         organizations: organizations ?? [],

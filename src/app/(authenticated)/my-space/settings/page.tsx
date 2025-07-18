@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -10,19 +12,14 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { PageContainer } from '@/components/layouts/page-container';
-import { getActiveCountries } from '@/actions/countries';
-import { getCurrentUser } from '@/actions/user';
 import { UserSettingsForm } from './_utils/user-settings-form';
-import { getTranslations } from 'next-intl/server';
 import type { SessionUser } from '@/types/user';
+import { useTranslations } from 'next-intl';
+import { useUserData } from '@/hooks/use-role-data';
 
-// Cache de 5 minutes pour la page settings
-export const revalidate = 300;
-
-export default async function SettingsPage() {
-  const t = await getTranslations('account');
-  const countries = await getActiveCountries();
-  const user = await getCurrentUser();
+export default function SettingsPage() {
+  const { user } = useUserData();
+  const t = useTranslations('account');
 
   return (
     <PageContainer title={t('title')}>
@@ -41,10 +38,7 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent>
               {user && (
-                <UserSettingsForm
-                  user={user as SessionUser}
-                  availableCountries={countries}
-                />
+                <UserSettingsForm user={user as SessionUser} availableCountries={[]} />
               )}
             </CardContent>
           </Card>

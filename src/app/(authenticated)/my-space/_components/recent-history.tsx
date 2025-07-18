@@ -10,17 +10,10 @@ import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
 import type { RequestStatus } from '@prisma/client';
+import { useUserData } from '@/hooks/use-role-data';
 
-interface RecentHistoryProps {
-  requests: Array<{
-    id: string;
-    status: RequestStatus;
-    createdAt: Date;
-    service: { name: string };
-  }>;
-}
-
-export function RecentHistory({ requests }: RecentHistoryProps) {
+export function RecentHistory() {
+  const { requests } = useUserData();
   const t = useTranslations('dashboard.unified.recent_history');
   const tStatus = useTranslations('dashboard.unified.current_request.status');
 

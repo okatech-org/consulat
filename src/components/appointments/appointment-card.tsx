@@ -5,11 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
-import { AppointmentStatus } from '@prisma/client';
-import type {
-  AppointmentWithRelations,
-  DashboardAppointment,
-} from '@/schemas/appointment';
+import { AppointmentStatus, ServiceCategory } from '@prisma/client';
 import { useAppointments } from '@/hooks/use-appointments';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
@@ -25,9 +21,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import CardContainer from '../layouts/card-container';
+import type { AppointmentListItem } from '@/server/api/routers/appointments/misc';
 
 interface AppointmentCardProps {
-  appointment: AppointmentWithRelations | DashboardAppointment;
+  appointment: AppointmentListItem;
   onUpdate?: () => void;
 }
 
@@ -71,9 +68,9 @@ export function AppointmentCard({ appointment, onUpdate }: AppointmentCardProps)
 
   return (
     <CardContainer
-      title={appointment.request?.service.name ?? t('type.options.OTHER')}
+      title={appointment.service?.name ?? t('type.options.OTHER')}
       subtitle={t_inputs(
-        `serviceCategory.options.${appointment.request?.service.category ?? 'OTHER'}`,
+        `serviceCategory.options.${appointment.service?.category ?? 'OTHER'}` as ServiceCategory,
       )}
       action={
         <Badge variant={getStatusColor(appointment.status)}>

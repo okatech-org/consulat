@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/s
 import IAstedButton from '../ui/mr-ray-button-fixed';
 import { ModernChatWindow } from './modern-chat-window';
 import { getGeminiChatCompletion, getUserContextData } from '@/lib/ai/actions';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { useLocale } from 'next-intl';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';

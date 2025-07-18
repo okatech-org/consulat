@@ -372,7 +372,7 @@ export async function createAppointment(data: AppointmentInput) {
   return appointment;
 }
 
-interface GroupedAppointments {
+export interface GroupedAppointments {
   upcoming: AppointmentWithRelations[];
   past: AppointmentWithRelations[];
   cancelled: AppointmentWithRelations[];

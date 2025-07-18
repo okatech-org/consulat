@@ -7,7 +7,7 @@ import { ProfileView } from '../_components/profile-view';
 import { ProfileContactForm } from '../_components/profile-contact-form';
 import type { ServiceRequest } from '@prisma/client';
 import { PageContainer } from '@/components/layouts/page-container';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/schemas/routes';

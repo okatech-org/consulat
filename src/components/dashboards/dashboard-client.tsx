@@ -62,8 +62,6 @@ export default function DashboardClient() {
 
   // Rendu conditionnel basé sur le type de dashboard
   const renderDashboardContent = () => {
-    console.log('dashboardType', dashboardType);
-    console.log('data', data);
     if (!data) return null;
 
     switch (dashboardType) {

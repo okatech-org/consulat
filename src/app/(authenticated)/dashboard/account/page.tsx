@@ -31,8 +31,8 @@ import type { UserSettings } from '@/schemas/user';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/contexts/user-context';
 import { hasRole } from '@/lib/permissions/utils';
+import { useCurrentUser } from '@/hooks/use-role-data';
 
 export default function AdminAccountPage() {
   const t_messages = useTranslations('messages');

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { RequestStatus } from '@prisma/client';
 import { useUserServiceRequestsDashboard } from '@/hooks/use-services';
-import { type DashboardServiceRequest } from '@/server/api/routers/services';
+import { type DashboardServiceRequest } from '@/server/api/routers/services/services';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -408,11 +408,7 @@ export function ServicesListClient({ initialData }: ServicesListClientProps) {
             title="Besoin d'aide ?"
             subtitle="Assistance pour vos demandes"
             footerContent={
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => console.log('Chat feature not implemented')}
-              >
+              <Button variant="outline" className="w-full" onClick={() => {}}>
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 Obtenir de l&apos;aide
               </Button>

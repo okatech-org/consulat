@@ -10,6 +10,7 @@ import {
   submitServiceRequest,
 } from '@/actions/services';
 import { ServiceCategory, RequestStatus, type Prisma } from '@prisma/client';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 
 // Types optimisés pour le dashboard des services
 export type DashboardService = {
@@ -263,9 +264,17 @@ export const servicesRouter = createTRPCRouter({
     }),
 
   // Récupérer les services consulaires disponibles (ancienne version)
-  getAvailable: protectedProcedure.query(async () => {
+  getAvailable: protectedProcedure.query(async ({ ctx }) => {
     try {
-      const services = await getAvailableConsularServices();
+      if (!ctx.session.user.countryCode) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            "Vous n'avez pas de pays associé à votre compte, veuillez compléter votre profil consulaire",
+        });
+      }
+      const countryCode = ctx.session.user.countryCode as CountryCode;
+      const services = await getAvailableConsularServices(countryCode);
       return services;
     } catch (error) {
       throw new TRPCError({

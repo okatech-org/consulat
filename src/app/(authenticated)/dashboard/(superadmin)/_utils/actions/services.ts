@@ -257,8 +257,6 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
       });
     });
 
-    console.log({ service, data });
-
     revalidatePath(ROUTES.dashboard.services);
     return { data: service };
   } catch (error) {

@@ -33,7 +33,7 @@ import { toast } from '@/hooks/use-toast';
 import { FileInput } from '../ui/file-input';
 import { type FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
 import { ImageCropper } from '../ui/image-cropper';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';

@@ -2,32 +2,31 @@
 
 import { db } from '@/server/db';
 import { checkAuth } from '@/lib/auth/action';
-import { type FullServiceRequest, FullServiceRequestInclude } from '@/types/service-request';
+import {
+  type FullServiceRequest,
+  FullServiceRequestInclude,
+} from '@/types/service-request';
 import { tryCatch } from '@/lib/utils';
 import { Prisma, type ServiceRequest, type UserDocument } from '@prisma/client';
 import { assignAgentToRequest } from './agents';
 import type { CountryCode } from '@/lib/autocomplete-datas';
+import {
+  ServiceListItemSelect,
+  type ServiceListItem,
+} from '@/server/api/routers/services/misc';
 
 /**
  * Get all active consular services available for the user based on their country
  */
-export async function getAvailableConsularServices() {
-  const authResult = await checkAuth();
-
+export async function getAvailableConsularServices(
+  countryCode: CountryCode,
+): Promise<ServiceListItem[]> {
   try {
     const services = await db.consularService.findMany({
       where: {
-        countryCode: authResult.user.countryCode,
+        countryCode,
       },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          },
-        },
-      },
+      select: ServiceListItemSelect,
       orderBy: {
         name: 'asc',
       },
@@ -35,8 +34,8 @@ export async function getAvailableConsularServices() {
 
     return services;
   } catch (error) {
-    console.error('Error fetching consular services:', error);
-    throw new Error('Failed to fetch consular services');
+    console.error('Erreur lors de la récupération des services consulaires:', error);
+    throw new Error("Nous n'avons pas pu trouver les services consulaires");
   }
 }
 

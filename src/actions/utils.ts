@@ -78,7 +78,6 @@ export async function deleteFiles(keys: string[]) {
 export async function deleteFile(fileUrl: string) {
   const fileKey = fileUrl.split('/').pop();
   if (fileKey) {
-    const result = await utapi.deleteFiles(fileKey);
-    console.log({ result });
+    await utapi.deleteFiles(fileKey);
   }
 }

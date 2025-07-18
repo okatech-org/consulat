@@ -598,7 +598,6 @@ export function OrganizationSettings({
                           <FileInput
                             onChangeAction={async (file) => {
                               const fileUrl = await handleFileUpload(file);
-                              console.log({ fileUrl });
                               if (fileUrl) {
                                 field.onChange(fileUrl);
                               }
@@ -620,7 +619,6 @@ export function OrganizationSettings({
                           <FileInput
                             onChangeAction={async (file) => {
                               const fileUrl = await handleFileUpload(file);
-                              console.log({ fileUrl });
                               if (fileUrl) {
                                 field.onChange(fileUrl);
                               }

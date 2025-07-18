@@ -2,7 +2,7 @@
 
 import { api } from '@/trpc/react';
 import { calculateProfileCompletion } from '@/lib/utils';
-import { useCurrentUser } from '@/contexts/user-context';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { useProfile } from '@/contexts/profile-context';
 
 export interface NavigationData {

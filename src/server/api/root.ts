@@ -1,16 +1,16 @@
-import { authRouter } from '@/server/api/routers/auth';
-import { profileRouter } from '@/server/api/routers/profile';
-import { servicesRouter } from '@/server/api/routers/services';
-import { documentsRouter } from '@/server/api/routers/documents';
-import { appointmentsRouter } from '@/server/api/routers/appointments';
-import { dashboardRouter } from '@/server/api/routers/dashboard';
+import { authRouter } from '@/server/api/routers/auth/auth';
+import { profileRouter } from '@/server/api/routers/profiles/profile';
+import { servicesRouter } from '@/server/api/routers/services/services';
+import { documentsRouter } from '@/server/api/routers/documents/documents';
+import { appointmentsRouter } from '@/server/api/routers/appointments/appointments';
+import { dashboardRouter } from '@/server/api/routers/dashboard/dashboard';
 import { requestsRouter } from '@/server/api/routers/requests';
-import { agentsRouter } from '@/server/api/routers/agents';
-import { countriesRouter } from '@/server/api/routers/countries';
-import { organizationsRouter } from '@/server/api/routers/organizations';
-import { notificationsRouter } from '@/server/api/routers/notifications';
-import { feedbackRouter } from '@/server/api/routers/feedback';
-import { userRouter } from '@/server/api/routers/user';
+import { agentsRouter } from '@/server/api/routers/agents/agents';
+import { countriesRouter } from '@/server/api/routers/countries/countries';
+import { organizationsRouter } from '@/server/api/routers/organizations/organizations';
+import { notificationsRouter } from '@/server/api/routers/notifications/notifications';
+import { feedbackRouter } from '@/server/api/routers/feedbacks/feedback';
+import { userRouter } from '@/server/api/routers/users/user';
 import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc';
 
 /**
