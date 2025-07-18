@@ -9,6 +9,8 @@ import { env } from '@/env';
 import { Providers } from '@/components/layouts/providers';
 import { auth } from '@/server/auth';
 import { getLocale } from 'next-intl/server';
+import { RoleBasedDataProvider } from '@/contexts/role-data-context';
+import { loadRoleBasedData } from '@/lib/role-data-loader';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -125,6 +127,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
+  const roleData = session ? await loadRoleBasedData() : null;
   const locale = await getLocale();
 
   return (
@@ -132,7 +135,9 @@ export default async function RootLayout({
       <body>
         <TRPCReactProvider>
           <SessionProvider session={session}>
-            <Providers>{children}</Providers>
+            <RoleBasedDataProvider initialData={roleData}>
+              <Providers>{children}</Providers>
+            </RoleBasedDataProvider>
           </SessionProvider>
         </TRPCReactProvider>
       </body>
