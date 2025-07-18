@@ -261,7 +261,7 @@ export default function ServiceRequestDetailsPage() {
               )}
               <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
                 <span className="font-medium">{t('info.estimated_deadline')}</span>
-                <span className="text-muted-foreground">{t('info.business_days')}</span>
+                <span className="text-muted-foreground">{'N/A'}</span>
               </div>
               <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
                 <span className="font-medium">{t('info.fees')}</span>
