@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import {
   Form,
   FormControl,
@@ -32,6 +32,7 @@ import { toast } from '@/hooks/use-toast';
 import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 import { checkUserExists } from '@/actions/auth';
 import { RoleGuard } from '@/lib/permissions/utils';
+import { useCurrentUser } from '@/hooks/use-role-data';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
@@ -174,8 +175,7 @@ function useLoginActions() {
 
 export function LoginForm() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const user = session?.user;
+  const { user } = useCurrentUser();
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
   const redirectUrl = AuthRedirectManager.getRedirectUrl(

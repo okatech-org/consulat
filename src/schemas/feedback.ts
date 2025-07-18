@@ -13,6 +13,8 @@ export const feedbackSchema = z.object({
   category: FeedbackCategory,
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
+  serviceId: z.string().optional(),
+  requestId: z.string().optional(),
 });
 
 export type FeedbackFormValues = z.infer<typeof feedbackSchema>;
