@@ -2,25 +2,12 @@ import { LoginForm } from '@/components/auth/login-form';
 import { env } from '@/env';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
-import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
 import { BetaBanner } from '@/components/ui/beta-banner';
-import { getCurrentUser } from '@/actions/user';
-import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function LoginPage() {
   const t = await getTranslations('auth.login');
-  const user = await getCurrentUser();
-  const headersList = await headers();
-  const searchParams = new URLSearchParams(headersList.get('x-params-string') ?? '');
-  const callbackUrl = searchParams.get('callbackUrl');
-
-  if (user) {
-    const redirectUrl = AuthRedirectManager.getRedirectUrl(user, callbackUrl);
-    redirect(redirectUrl);
-  }
 
   return (
     <div className="w-dvw bg-background h-dvh pt-8 p-6 md:pt-6 min-h-max overflow-x-hidden md:overflow-hidden flex items-center justify-center md:grid md:grid-cols-2">

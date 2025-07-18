@@ -1,7 +1,10 @@
 'use server';
 
+import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 import { tryCatch } from '@/lib/utils';
+import { auth } from '@/server/auth';
 import { UTApi } from 'uploadthing/server';
+import { headers } from 'next/headers';
 
 const utapi = new UTApi({
   token: process.env.UPLOADTHING_TOKEN,

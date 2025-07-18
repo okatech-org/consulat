@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import {
   Form,
   FormControl,
@@ -29,7 +29,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { toast } from '@/hooks/use-toast';
-import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 import { checkUserExists } from '@/actions/auth';
 import { RoleGuard } from '@/lib/permissions/utils';
 
@@ -174,14 +173,10 @@ function useLoginActions() {
 
 export function LoginForm() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const user = session?.user;
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
-  const redirectUrl = AuthRedirectManager.getRedirectUrl(
-    user,
-    searchParams.get('callbackUrl'),
-  );
+  const callbackUrl = searchParams.get('callbackUrl');
+  const redirectUrl = callbackUrl ?? '/my-space';
 
   // State management
   const [state, setState] = React.useState<LoginFormState>({
@@ -213,7 +208,7 @@ export function LoginForm() {
   // Manual redirect for success state
   const handleManualRedirect = () => {
     router.push(redirectUrl);
-    setState((prev) => ({ ...prev, hasRedirected: true }));
+    router.refresh();
   };
 
   // Handlers
@@ -383,13 +378,7 @@ export function LoginForm() {
                   leftIcon={<CheckCircle2 className="size-4" />}
                   rightIcon={<ArrowRight className="size-4" />}
                 >
-                  <Link href={redirectUrl}>
-                    <RoleGuard roles={['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'AGENT']}>
-                      {t('go_to_dashboard')}
-                    </RoleGuard>
-
-                    <RoleGuard roles={['USER']}>{t('go_to_my_space')}</RoleGuard>
-                  </Link>
+                  <Link href={redirectUrl}>{t('go_to_my_space')}</Link>
                 </Button>
 
                 <p className="text-xs text-muted-foreground">{t('auto_redirect_info')}</p>
