@@ -176,6 +176,7 @@ export function LoginForm() {
   const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
+  console.log(user);
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
   const redirectUrl = AuthRedirectManager.getRedirectUrl(
