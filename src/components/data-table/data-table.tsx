@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -14,12 +14,12 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  Row,
+  type Row,
 } from '@tanstack/react-table';
 
 import { DataTablePagination } from './data-table-pagination';
-import { DataTableToolbar, FilterOption } from './data-table-toolbar';
-import { BulkAction, DataTableBulkActions } from './data-table-bulk-actions';
+import { DataTableToolbar, type FilterOption } from './data-table-toolbar';
+import { type BulkAction, DataTableBulkActions } from './data-table-bulk-actions';
 
 import {
   Table,

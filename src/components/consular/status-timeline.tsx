@@ -2,31 +2,17 @@
 
 import { RequestStatus } from '@prisma/client';
 import { Check } from 'lucide-react';
-import { STATUS_ORDER, canSwitchTo } from '@/lib/validations/status-transitions';
+import { STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { FullServiceRequest } from '@/types/service-request';
-import { FullProfile } from '@/types/profile';
+import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StatusTimelineProps {
   currentStatus: RequestStatus;
-  request: FullServiceRequest;
-  profile: FullProfile;
   className?: string;
 }
 
-export function StatusTimeline({
-  currentStatus,
-  request,
-  profile,
-  className,
-}: StatusTimelineProps) {
+export function StatusTimeline({ currentStatus, className }: StatusTimelineProps) {
   const t = useTranslations('inputs.requestStatus.options');
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
 
@@ -42,7 +28,6 @@ export function StatusTimeline({
             const isCompleted = index <= currentIndex;
             const isCurrent = index === currentIndex;
             const isPending = index > currentIndex;
-            const transitionCheck = canSwitchTo(status, request, profile);
 
             return (
               <TooltipProvider key={status}>
@@ -50,7 +35,7 @@ export function StatusTimeline({
                   <TooltipTrigger asChild>
                     <div
                       className={cn('flex flex-1 flex-col items-center gap-2', {
-                        'cursor-not-allowed': !transitionCheck.can && isPending,
+                        'cursor-not-allowed': isPending,
                       })}
                     >
                       {/* Cercle avec numéro ou check */}
@@ -86,11 +71,6 @@ export function StatusTimeline({
                       </p>
                     </div>
                   </TooltipTrigger>
-                  {isPending && !transitionCheck.can && (
-                    <TooltipContent>
-                      <p className="text-xs md:text-sm">{transitionCheck.reason}</p>
-                    </TooltipContent>
-                  )}
                 </Tooltip>
               </TooltipProvider>
             );

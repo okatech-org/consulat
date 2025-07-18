@@ -1,38 +1,19 @@
-import type { FullServiceRequest } from '@/types/service-request';
 import { useStoredTabs } from './use-tabs';
 import type { ServiceField } from '@/types/consular-service';
 import CardContainer from '@/components/layouts/card-container';
-import {
-  DocumentType,
-  DeliveryMode,
-  type UserDocument,
-  AppointmentStatus,
-} from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
 import { useDateLocale } from '@/lib/utils';
-import {
-  CheckCircle2,
-  XCircle,
-  Calendar,
-  MapPin,
-  Clock,
-  Package,
-  Truck,
-  UserCheck,
-  AlertTriangle,
-  Shield,
-  Eye,
-} from 'lucide-react';
+import { CheckCircle2, XCircle, Calendar, MapPin, Clock, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DisplayAddress } from '@/components/ui/display-address';
 import { DocumentPreview } from '@/components/ui/document-preview';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
-import { documentValidations, validateDocument } from '@/lib/document-validation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { InfoField } from '@/components/ui/info-field';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import type { AppUserDocument } from '@/types';
+import { UserDocument } from '@/components/documents/user-document';
 
 export type ServiceReviewTab = {
   value: string;
@@ -45,7 +26,7 @@ export type ReviewStepField = ServiceField & {
   value: any;
 };
 
-export default function useServiceReview(request: FullServiceRequest) {
+export default function useServiceReview(request: RequestDetails) {
   const service = request.service;
 
   const tabs: ServiceReviewTab[] = [];
@@ -96,7 +77,7 @@ export default function useServiceReview(request: FullServiceRequest) {
 
 type StepReviewProps = {
   fields: ReviewStepField[];
-  request: FullServiceRequest;
+  request: RequestDetails;
 };
 
 function StepReview({ fields }: StepReviewProps) {
@@ -189,10 +170,11 @@ function StepReview({ fields }: StepReviewProps) {
 }
 
 type AppointmentReviewProps = {
-  request: FullServiceRequest;
+  request: RequestDetails;
 };
 
 function AppointmentReview({ request }: AppointmentReviewProps) {
+  const t_inputs = useTranslations('inputs');
   const { formatDate } = useDateLocale();
 
   const appointment = request.appointments?.[0];
@@ -214,7 +196,6 @@ function AppointmentReview({ request }: AppointmentReviewProps) {
             <p className="text-sm text-muted-foreground">Date</p>
             <p className="font-medium">{formatDate(appointment.date, 'PPP')}</p>
           </div>
-          <CheckCircle2 className="text-success size-5" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -226,18 +207,16 @@ function AppointmentReview({ request }: AppointmentReviewProps) {
               {formatDate(appointment.endTime, 'p')}
             </p>
           </div>
-          <CheckCircle2 className="text-success size-5" />
         </div>
       </div>
 
-      {appointment.location && (
+      {appointment.locationId && (
         <div className="flex items-start gap-3">
           <MapPin className="mt-1 size-5 text-muted-foreground" />
           <div className="flex-1">
             <p className="text-sm text-muted-foreground">Adresse</p>
-            <DisplayAddress address={appointment.location} />
+            <DisplayAddress address={appointment.location?.address ?? ''} />
           </div>
-          <CheckCircle2 className="text-success size-5" />
         </div>
       )}
 
@@ -260,7 +239,7 @@ function AppointmentReview({ request }: AppointmentReviewProps) {
                   : 'outline'
           }
         >
-          {appointment.status}
+          {t_inputs(`appointment.status.options.${appointment.status}`)}
         </Badge>
       </div>
     </CardContainer>
@@ -268,7 +247,7 @@ function AppointmentReview({ request }: AppointmentReviewProps) {
 }
 
 type DeliveryReviewProps = {
-  request: FullServiceRequest;
+  request: RequestDetails;
 };
 
 function DeliveryReview({ request }: DeliveryReviewProps) {
@@ -279,33 +258,16 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
     type: 'pdf' | 'image';
   } | null>(null);
 
-  const getDeliveryModeIcon = (mode: DeliveryMode) => {
-    switch (mode) {
-      case 'IN_PERSON':
-        return <UserCheck className="size-5 text-muted-foreground" />;
-      case 'POSTAL':
-        return <Truck className="size-5 text-muted-foreground" />;
-      case 'ELECTRONIC':
-        return <Package className="size-5 text-muted-foreground" />;
-      case 'BY_PROXY':
-        return <UserCheck className="size-5 text-muted-foreground" />;
-      default:
-        return <Package className="size-5 text-muted-foreground" />;
-    }
-  };
-
   return (
     <>
       <CardContainer title="Option de livraison" contentClass="space-y-4">
         <div className="flex items-center gap-3">
-          {getDeliveryModeIcon(request.chosenDeliveryMode)}
           <div className="flex-1">
             <p className="text-sm text-muted-foreground">Mode de livraison</p>
             <p className="font-medium">
               {t_inputs(`deliveryMode.options.${request.chosenDeliveryMode}`)}
             </p>
           </div>
-          <CheckCircle2 className="text-success size-5" />
         </div>
 
         {request.chosenDeliveryMode === 'POSTAL' && request.deliveryAddress && (
@@ -315,7 +277,6 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
               <p className="text-sm text-muted-foreground">Adresse de livraison</p>
               <p className="whitespace-pre-line">{request.deliveryAddress}</p>
             </div>
-            <CheckCircle2 className="text-success size-5" />
           </div>
         )}
 
@@ -323,12 +284,10 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
           <>
             {request.proxyName && (
               <div className="flex items-center gap-3">
-                <UserCheck className="size-5 text-muted-foreground" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Nom du mandataire</p>
                   <p className="font-medium">{request.proxyName}</p>
                 </div>
-                <CheckCircle2 className="text-success size-5" />
               </div>
             )}
 
@@ -380,7 +339,6 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
                     <span className="text-sm">Voir la procuration</span>
                   </Button>
                 </div>
-                <CheckCircle2 className="text-success size-5" />
               </div>
             )}
           </>
@@ -388,12 +346,10 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
 
         {request.trackingNumber && (
           <div className="flex items-center gap-3">
-            <Package className="size-5 text-muted-foreground" />
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Numéro de suivi</p>
               <p className="font-medium">{request.trackingNumber}</p>
             </div>
-            <CheckCircle2 className="text-success size-5" />
           </div>
         )}
 
@@ -401,18 +357,23 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Statut de livraison</p>
-              <p className="font-medium">{request.deliveryStatus}</p>
+              <p className="font-medium">
+                {t_inputs(`deliveryStatus.options.${request.deliveryStatus}`)}
+              </p>
             </div>
-            <CheckCircle2 className="text-success size-5" />
           </div>
         )}
 
-        <div className="pt-2 border-t">
-          <p className="text-sm font-medium">Mode de traitement</p>
-          <p className="text-sm text-muted-foreground">
-            {t_inputs(`processingMode.options.${request.chosenProcessingMode}`)}
-          </p>
-        </div>
+        {request.chosenProcessingMode && (
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Mode de traitement</p>
+              <p className="font-medium">
+                {t_inputs(`processingMode.options.${request.chosenProcessingMode}`)}
+              </p>
+            </div>
+          </div>
+        )}
       </CardContainer>
       {previewDoc && (
         <DocumentPreview
@@ -427,10 +388,7 @@ function DeliveryReview({ request }: DeliveryReviewProps) {
   );
 }
 
-function getStepFieldsValue(
-  request: FullServiceRequest,
-  stepId: string,
-): ReviewStepField[] {
+function getStepFieldsValue(request: RequestDetails, stepId: string): ReviewStepField[] {
   const step = request.service.steps.find((step) => step.id === stepId);
   if (!step || !step.fields) return [];
 
@@ -451,52 +409,15 @@ function getStepFieldsValue(
 }
 
 interface ServiceRequestDocumentsProps {
-  request: FullServiceRequest;
+  request: RequestDetails;
 }
 
 export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProps) {
-  const service = request.service;
-  const userDocuments = request.submittedBy?.documents || [];
   const t_inputs = useTranslations('inputs');
-  const t = useTranslations('common');
-  const t_errors = useTranslations('messages.errors');
+  const service = request.service;
+  const userDocuments: AppUserDocument[] = request.submittedBy.documents || [];
   const t_review = useTranslations('admin.registrations.review');
-  const router = useRouter();
-  const { formatDate } = useDateLocale();
 
-  const handleDownload = async (url: string, filename: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      // Get file extension from content type
-      const contentType = response.headers.get('content-type');
-      const extension = contentType?.split('/')[1] || 'pdf';
-      a.download = `${filename}.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Error downloading document:', error);
-    }
-  };
-
-  const [selectedDocument, setSelectedDocument] = useState<{
-    id: string;
-    type: string;
-    url?: string;
-    title?: string;
-  } | null>(null);
-  const [previewDoc, setPreviewDoc] = useState<{
-    url: string;
-    title: string;
-    type: 'pdf' | 'image';
-  } | null>(null);
-
-  // Combine required and optional documents
   const allServiceDocuments = [
     ...service.requiredDocuments.map((type) => ({ type, required: true })),
     ...service.optionalDocuments.map((type) => ({ type, required: false })),
@@ -504,7 +425,9 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
 
   // Map service documents to user documents
   const documentsToDisplay = allServiceDocuments.map((serviceDoc) => {
-    const userDoc = userDocuments.find((doc) => doc.type === serviceDoc.type);
+    const userDoc = userDocuments.find(
+      (doc: AppUserDocument) => doc.type === serviceDoc.type,
+    );
     return {
       type: serviceDoc.type,
       required: serviceDoc.required,
@@ -518,280 +441,31 @@ export function ServiceRequestDocuments({ request }: ServiceRequestDocumentsProp
       contentClass="grid sm:grid-cols-2 gap-4 sm:gap-6"
     >
       {documentsToDisplay.map((docItem) => {
-        const { type, required, document } = docItem;
-        const validation = document
-          ? validateDocument(document, true)
-          : { isValid: false, errors: [] };
+        const { document, type } = docItem;
 
         return (
-          <div
-            key={type}
-            className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <p className="font-medium">{t_inputs(`userDocument.options.${type}`)}</p>
-
-                {required && (
-                  <Badge variant="outline">{t_review('documents.required')}</Badge>
-                )}
-                {document?.status && (
-                  <Badge
-                    variant={
-                      document.status === 'VALIDATED'
-                        ? 'default'
-                        : document.status === 'REJECTED'
-                          ? 'destructive'
-                          : document.status === 'PENDING'
-                            ? 'secondary'
-                            : 'outline'
-                    }
-                  >
-                    {t(`status.${document.status}`)}
-                  </Badge>
-                )}
-              </div>
-              {document && (
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  {document.issuedAt && (
-                    <p>
-                      {t_review('documents.issued_at')}:{' '}
-                      {formatDate(document.issuedAt, 'PPP')}
-                    </p>
-                  )}
-                  {document.expiresAt && (
-                    <p>
-                      {t_review('documents.expires_at')}:{' '}
-                      {formatDate(document.expiresAt, 'PPP')}
-                    </p>
-                  )}
-                </div>
-              )}
-              {!document && (
-                <p className="text-sm text-muted-foreground">
-                  {required
-                    ? t_errors('not_provided') + ' (Requis)'
-                    : t_errors('not_provided') + ' (Optionnel)'}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {document ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setPreviewDoc({
-                        url: document.fileUrl,
-                        title: t_inputs(`userDocument.options.${type}`),
-                        type: document.fileType as 'pdf' | 'image',
-                      })
-                    }
-                  >
-                    <Eye className="size-4" />
-                    <span className="text-sm">Voir</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setSelectedDocument({
-                        id: document.id,
-                        type: type,
-                      })
-                    }
-                  >
-                    <Shield className="size-4" />
-                    <span className="text-sm">Valider</span>
-                  </Button>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      {validation.isValid ? (
-                        <CheckCircle2 className="text-success size-5" />
-                      ) : (
-                        <AlertTriangle className="size-5 text-warning" />
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {validation.isValid
-                        ? t_review('documents.valid')
-                        : validation.errors.join(', ')}
-                    </TooltipContent>
-                  </Tooltip>
-                </>
-              ) : required ? (
-                <XCircle className="size-5 text-destructive" />
-              ) : (
-                <Badge variant="outline">Non fourni</Badge>
-              )}
-            </div>
-          </div>
+          <UserDocument
+            key={document?.id}
+            document={document}
+            label={t_inputs(`userDocument.options.${type}`)}
+          />
         );
       })}
-
-      {selectedDocument && !selectedDocument.url && (
-        <DocumentValidationDialog
-          documentId={selectedDocument.id}
-          documentType={selectedDocument.type}
-          isOpen={!!selectedDocument}
-          onClose={() => setSelectedDocument(null)}
-          onValidated={() => {
-            router.refresh();
-          }}
-        />
-      )}
-      {previewDoc && (
-        <DocumentPreview
-          isOpen={!!previewDoc}
-          setIsOpenAction={() => setPreviewDoc(null)}
-          url={previewDoc.url}
-          title={previewDoc.title}
-          type={previewDoc.type}
-          onDownload={() =>
-            handleDownload(previewDoc.url, previewDoc.title || 'document')
-          }
-        />
-      )}
     </CardContainer>
   );
 }
 
-export function DocumentReview({ document: localDocument }: { document: UserDocument }) {
-  const validation = validateDocument(localDocument, true);
-
+export function DocumentReview({
+  document: localDocument,
+}: {
+  document: AppUserDocument;
+}) {
   const t_inputs = useTranslations('inputs');
-  const t_review = useTranslations('admin.registrations.review');
-  const t = useTranslations('common');
-  const t_errors = useTranslations('messages.errors');
-  const { formatDate } = useDateLocale();
-  const [open, setOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const router = useRouter();
-
-  const handleDownload = async (url: string, filename: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      // Get file extension from content type
-      const contentType = response.headers.get('content-type');
-      const extension = contentType?.split('/')[1] || 'pdf';
-      a.download = `${filename}.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Error downloading document:', error);
-    }
-  };
 
   return (
-    <div
-      key={localDocument.id}
-      className="flex flex-col justify-between pb-4 border-b gap-4 last:border-0"
-    >
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <p className="font-medium">
-            {t_inputs(`userDocument.options.${localDocument.type}`)}
-          </p>
-
-          {documentValidations?.[localDocument?.type as DocumentType]?.required && (
-            <Badge variant="outline">{t_review('documents.required')}</Badge>
-          )}
-          {localDocument?.status && (
-            <Badge
-              variant={
-                localDocument.status === 'VALIDATED'
-                  ? 'default'
-                  : localDocument.status === 'REJECTED'
-                    ? 'destructive'
-                    : localDocument.status === 'PENDING'
-                      ? 'secondary'
-                      : 'outline'
-              }
-            >
-              {t(`status.${localDocument.status}`)}
-            </Badge>
-          )}
-        </div>
-        {localDocument && (
-          <div className="space-y-1 text-sm text-muted-foreground">
-            {localDocument.issuedAt && (
-              <p>
-                {t_review('documents.issued_at')}:{' '}
-                {formatDate(localDocument.issuedAt, 'PPP')}
-              </p>
-            )}
-            {localDocument.expiresAt && (
-              <p>
-                {t_review('documents.expires_at')}:{' '}
-                {formatDate(localDocument.expiresAt, 'PPP')}
-              </p>
-            )}
-          </div>
-        )}
-        {!localDocument && validation.errors.length === 0 && (
-          <p className="text-sm text-muted-foreground">{t_errors('not_provided')}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        {localDocument && (
-          <>
-            <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
-              <Eye className="size-4" />
-              <span className="text-sm">Voir</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-              <Shield className="size-4" />
-              <span className="text-sm">Valider</span>
-            </Button>
-            <Tooltip>
-              <TooltipTrigger>
-                {validation.isValid ? (
-                  <CheckCircle2 className="text-success size-5" />
-                ) : (
-                  <AlertTriangle className="size-5 text-warning" />
-                )}
-              </TooltipTrigger>
-              <TooltipContent>
-                {validation.isValid
-                  ? t_review('documents.valid')
-                  : validation.errors.join(', ')}
-              </TooltipContent>
-            </Tooltip>
-          </>
-        )}
-      </div>
-      <DocumentValidationDialog
-        documentId={localDocument.id}
-        documentType={localDocument.type}
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        onValidated={() => {
-          setOpen(false);
-          router.refresh();
-        }}
-      />
-      {previewOpen && (
-        <DocumentPreview
-          isOpen={previewOpen}
-          setIsOpenAction={setPreviewOpen}
-          url={localDocument.fileUrl}
-          title={t_inputs(`userDocument.options.${localDocument.type}`)}
-          type={localDocument.fileType as 'pdf' | 'image'}
-          onDownload={() =>
-            handleDownload(
-              localDocument.fileUrl,
-              `${localDocument.type.toLowerCase()}.${localDocument.fileUrl.split('.').pop()}`,
-            )
-          }
-        />
-      )}
-    </div>
+    <UserDocument
+      document={localDocument}
+      label={t_inputs(`userDocument.options.${localDocument.type}`)}
+    />
   );
 }

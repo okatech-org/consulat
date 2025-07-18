@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Clock, User, Calendar, MapPin, ClipboardList } from 'lucide-react';
-import type { FullServiceRequest } from '@/types/service-request';
 import { ROUTES } from '@/schemas/routes';
 import { useDateLocale } from '@/lib/utils';
 import { hasAnyRole } from '@/lib/permissions/utils';
@@ -13,20 +12,21 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import CardContainer from '@/components/layouts/card-container';
 import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
 import type { BaseAgent } from '@/types/organization';
-import type { FullProfile } from '@/types/profile';
 import { Separator } from '@/components/ui/separator';
 import { CardTitle } from '@/components/ui/card';
 import type { SessionUser } from '@/types';
 import Link from 'next/link';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
 
 interface RequestOverviewProps {
-  request: FullServiceRequest & { profile?: FullProfile | null };
+  request: RequestDetails;
   user: SessionUser;
   agents: BaseAgent[];
 }
 
 export function RequestOverview({ request, user, agents = [] }: RequestOverviewProps) {
+  console.log('request', request);
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
@@ -99,8 +99,10 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             <p className="text-sm text-muted-foreground">{request.submittedBy.email}</p>
 
             <div className="flex gap-2 flex-col md:flex-row">
-              {request.profile && <ProfileLookupSheet profile={request.profile} />}
-              {request.profile?.category === 'MINOR' && (
+              {request.requestedFor && (
+                <ProfileLookupSheet profileId={request.requestedFor.id} />
+              )}
+              {request.requestedFor?.category === 'MINOR' && (
                 <ProfileLookupSheet
                   userId={request.submittedById}
                   triggerLabel={'Voir le profil du demandeur'}
@@ -108,6 +110,38 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
               )}
             </div>
           </CardContainer>
+          {/* Appointment Info if exists */}
+          {request.appointments && request.appointments.length > 0 && (
+            <div className="space-y-4">
+              <CardTitle className="text-xl">{t('requests.view.appointment')}</CardTitle>
+              {request.appointments.map((appointment) => (
+                <CardContainer
+                  key={appointment.id}
+                  className="border-l-4 border-l-primary"
+                  contentClass="space-y-2 p-4!"
+                >
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="size-4" />
+                    {formatDate(appointment.date, 'PPP')}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="size-4" />
+                    {t('common.duration.in_minutes', {
+                      minutes: appointment.duration,
+                    })}
+                  </div>
+                  {appointment.location && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="size-4" />
+                      <span>
+                        {`${appointment.location.firstLine}, ${appointment.location.secondLine}, ${appointment.location.zipCode} ${appointment.location.city}`}
+                      </span>
+                    </div>
+                  )}
+                </CardContainer>
+              ))}
+            </div>
+          )}
         </div>
         <CardContainer
           className="col-span-full md:col-span-4"
@@ -141,40 +175,6 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             <Separator className="my-4" />
           </div>
 
-          {/* Appointment Info if exists */}
-          {request.appointments && request.appointments.length > 0 && (
-            <div className="space-y-4">
-              <CardTitle className="text-xl">{t('requests.view.appointment')}</CardTitle>
-              {request.appointments.map((appointment) => (
-                <CardContainer
-                  key={appointment.id}
-                  className="border-l-4 border-l-primary"
-                  contentClass="space-y-2"
-                >
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="size-4" />
-                    {formatDate(appointment.date, 'PPP')}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="size-4" />
-                    {t('common.duration.in_minutes', {
-                      minutes: appointment.duration,
-                    })}
-                  </div>
-                  {appointment.location && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="size-4" />
-                      <span>
-                        {`${appointment.location.firstLine}, ${appointment.location.secondLine}, ${appointment.location.zipCode} ${appointment.location.city}`}
-                      </span>
-                    </div>
-                  )}
-                </CardContainer>
-              ))}
-              <Separator className="my-4" />
-            </div>
-          )}
-
           {/* Action History */}
           <div className="flex-grow">
             <h4 className="font-medium mb-3">{t('requests.view.history')}</h4>
@@ -182,7 +182,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
               <Timeline>
                 {request.actions
                   .reverse()
-                  .slice(0, 6)
+                  .slice(0, 4)
                   .map((action) => (
                     <Timeline.Item
                       key={action.id}

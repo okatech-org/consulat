@@ -155,7 +155,7 @@ function getFieldComponent(
         <UserDocument
           document={formField.value as AppUserDocument}
           description={field.description}
-          label={''}
+          label={field.label}
           onUpload={formField.onChange}
           onDelete={() => formField.onChange(null)}
           accept={field.accept}
@@ -167,7 +167,7 @@ function getFieldComponent(
         <UserDocument
           document={formField.value as AppUserDocument}
           description={field.description}
-          label={''}
+          label={field.label}
           onUpload={formField.onChange}
           onDelete={() => formField.onChange(null)}
           accept={field.accept}
@@ -179,7 +179,7 @@ function getFieldComponent(
         <UserDocument
           document={formField.value as AppUserDocument}
           description={field.description}
-          label={''}
+          label={field.label}
           onUpload={formField.onChange}
           onDelete={() => formField.onChange(null)}
           accept={field.accept}

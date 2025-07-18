@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { RequestStatus } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -10,11 +10,9 @@ import {
   calculateChildProfileCompletion,
   getChildProfileFieldsStatus,
 } from '@/lib/utils';
-import type { FullServiceRequest } from '@/types/service-request';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
 import { ReviewNotes } from '../requests/review-notes';
-import type { FullProfile } from '@/types/profile';
 import { Label } from '@/components/ui/label';
 import CardContainer from '@/components/layouts/card-container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -28,14 +26,20 @@ import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { ChildProfileTabs } from '@/app/(authenticated)/my-space/children/_components/profile-tabs';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '../ui/loading-skeleton';
 
 interface ChildProfileReviewProps {
-  request: FullServiceRequest & { profile: FullProfile | null };
+  request: RequestDetails;
 }
 
-export function ChildProfileReview({ request }: ChildProfileReviewProps) {
+export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
   const t = useTranslations();
-  const profile = request?.profile;
+  const { data: profile } = api.profile.getByQuery.useQuery({
+    profileId: request.requestedForId ?? undefined,
+  });
+
   const user = request.submittedBy;
   const [isLoading, setIsLoading] = useState(false);
   const { formatDate } = useDateLocale();
@@ -102,11 +106,7 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
         </div>
       </CardContainer>
       <CardContainer>
-        <StatusTimeline
-          currentStatus={request.status}
-          request={request}
-          profile={profile}
-        />
+        <StatusTimeline currentStatus={request.status} />
       </CardContainer>
 
       {/* Contenu principal */}
@@ -217,5 +217,13 @@ export function ChildProfileReview({ request }: ChildProfileReviewProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export function ChildProfileReview({ request }: ChildProfileReviewProps) {
+  return (
+    <Suspense fallback={<LoadingSkeleton variant="form" className="w-full" />}>
+      <ChildProfileReviewBase request={request} />
+    </Suspense>
   );
 }

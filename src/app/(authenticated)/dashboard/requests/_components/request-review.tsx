@@ -1,12 +1,11 @@
-import type { FullServiceRequest } from '@/types/service-request';
 import { ProfileReview } from '../../../../../components/profile/profile-review';
 import { ServiceRequestReview } from './service-request-review';
 import type { BaseAgent } from '@/types/organization';
 import { ChildProfileReview } from '../../../../../components/profile/child-profile-review';
-import type { FullProfile } from '@/types';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
 
 interface RequestReviewProps {
-  request: FullServiceRequest & { profile: FullProfile };
+  request: RequestDetails;
   agents: BaseAgent[];
 }
 
@@ -16,16 +15,11 @@ export default async function RequestReview({
 }: RequestReviewProps) {
   switch (request.serviceCategory) {
     case 'REGISTRATION':
-      if (request.profile.category === 'MINOR') {
-        return <ChildProfileReview request={{ ...request, profile: request.profile }} />;
+      if (request.requestedFor?.category === 'MINOR') {
+        return <ChildProfileReview request={request} />;
       }
-      return <ProfileReview request={{ ...request, profile: request.profile }} />;
+      return <ProfileReview request={request} />;
     default:
-      return (
-        <ServiceRequestReview
-          request={{ ...request, profile: request.profile }}
-          agents={agents}
-        />
-      );
+      return <ServiceRequestReview request={request} agents={agents} />;
   }
 }

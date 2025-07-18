@@ -4,7 +4,6 @@ import { getCurrentUser } from '@/actions/user';
 import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
 import { getOrganizationAgents } from '@/actions/organizations';
-import { getUserFullProfile, getUserFullProfileById } from '@/lib/user/getters';
 import { tryCatch } from '@/lib/utils';
 
 interface Props {
@@ -27,32 +26,17 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
-  const profile = request.requestedForId
-    ? await getUserFullProfileById(request.requestedForId)
-    : await getUserFullProfile(user.id);
-
   const { data: agents = [] } = request.organizationId
     ? await getOrganizationAgents(request.organizationId)
     : { data: [] };
 
-  if (!profile) {
-    return notFound();
-  }
-
   if (review) {
-    return <RequestReview request={{ ...request, profile }} agents={agents} />;
+    return <RequestReview request={request} agents={agents} />;
   }
 
   return (
     <div className="space-y-6">
-      <RequestOverview
-        request={{
-          ...request,
-          profile,
-        }}
-        user={user}
-        agents={agents}
-      />
+      <RequestOverview request={request} user={user} agents={agents} />
     </div>
   );
 }
