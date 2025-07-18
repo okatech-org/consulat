@@ -1,7 +1,7 @@
 import { ProfileCategory, RequestStatus } from '@prisma/client';
-import { FullProfile } from '@/types/profile';
 import { calculateChildProfileCompletion, calculateProfileCompletion } from '@/lib/utils';
-import { FullServiceRequest } from '@/types/service-request';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import type { FullProfile } from '@/server/api/routers/profiles/profile';
 
 type TransitionCheck = {
   can: boolean;
@@ -10,7 +10,7 @@ type TransitionCheck = {
 
 export function canSwitchTo(
   targetStatus: RequestStatus,
-  request: FullServiceRequest,
+  request: RequestDetails,
   profile: FullProfile,
   allow: boolean = false,
 ): TransitionCheck {
@@ -69,10 +69,8 @@ function allDocumentsValidated(profile: FullProfile, category: ProfileCategory):
 export const STATUS_ORDER: RequestStatus[] = [
   'SUBMITTED',
   'PENDING',
-  'PENDING_COMPLETION',
   'VALIDATED',
   'DOCUMENT_IN_PRODUCTION',
   'READY_FOR_PICKUP',
   'COMPLETED',
-  'REJECTED',
 ];

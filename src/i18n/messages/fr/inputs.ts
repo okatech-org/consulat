@@ -239,6 +239,14 @@ export default {
     placeholder: 'Code NIP',
   },
   appointment: {
+    status: {
+      label: 'Statut du rendez-vous',
+      options: {
+        PENDING: 'En attente',
+        CONFIRMED: 'Confirmé',
+        CANCELLED: 'Annulé',
+      },
+    },
     date: {
       label: 'Date du rendez-vous',
       placeholder: 'Sélectionner une date',

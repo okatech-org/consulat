@@ -22,12 +22,14 @@ export const RequestListItemSelect: Prisma.ServiceRequestSelect = {
       lastName: true,
       email: true,
       phoneNumber: true,
+      category: true,
     },
   },
   submittedBy: {
     select: {
       id: true,
       name: true,
+      profileId: true,
     },
   },
   assignedTo: {
@@ -51,6 +53,15 @@ export type RequestListItem = Prisma.ServiceRequestGetPayload<{
 
 export const RequestDetailsSelect: Prisma.ServiceRequestSelect = {
   ...RequestListItemSelect,
+  formData: true,
+  submittedBy: {
+    select: {
+      id: true,
+      name: true,
+      profileId: true,
+      documents: true,
+    },
+  },
   requiredDocuments: {
     include: {
       validatedBy: {
@@ -90,6 +101,16 @@ export const RequestDetailsSelect: Prisma.ServiceRequestSelect = {
       id: true,
       name: true,
       steps: true,
+      requiredDocuments: true,
+      optionalDocuments: true,
+      deliveryMode: true,
+      processingMode: true,
+      deliveryAppointment: true,
+      deliveryAppointmentDuration: true,
+      deliveryAppointmentDesc: true,
+      appointmentDuration: true,
+      appointmentInstructions: true,
+      requiresAppointment: true,
     },
   },
   appointments: {
@@ -97,6 +118,14 @@ export const RequestDetailsSelect: Prisma.ServiceRequestSelect = {
       location: true,
     },
   },
+  deliveryAddress: true,
+  proxyName: true,
+  proxyIdentityDoc: true,
+  proxyPowerOfAttorney: true,
+  trackingNumber: true,
+  deliveryStatus: true,
+  chosenDeliveryMode: true,
+  chosenProcessingMode: true,
 };
 
 export type RequestDetails = Prisma.ServiceRequestGetPayload<{

@@ -142,6 +142,7 @@ export const profileRouter = createTRPCRouter({
         userId: z.string().optional(),
         email: z.string().optional(),
         phoneNumber: z.string().optional(),
+        profileId: z.string().optional(),
         providedProfile: z.any().optional(),
       }),
     )
@@ -156,6 +157,7 @@ export const profileRouter = createTRPCRouter({
             ...(input.userId && { id: input.userId }),
             ...(input.email && { email: input.email }),
             ...(input.phoneNumber && { phoneNumber: input.phoneNumber }),
+            ...(input.profileId && { profileId: input.profileId }),
           },
           include: {
             profile: {

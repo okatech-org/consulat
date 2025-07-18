@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { PenIcon, CheckCircle2, Info, UploadIcon } from 'lucide-react';
+import { CheckCircle2, Info, UploadIcon } from 'lucide-react';
 import { tryCatch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -394,17 +394,6 @@ export function UserDocument({
 
         {document && (
           <div className="absolute right-0 bottom-0 translate-y-[120%] flex items-center gap-1">
-            {allowEdit && hasAdminRole && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsUpdating(true)}
-                disabled={disabled || isLoading}
-              >
-                <PenIcon className="size-icon" />
-              </Button>
-            )}
-
             {allowEdit && (
               <Button
                 variant="link"

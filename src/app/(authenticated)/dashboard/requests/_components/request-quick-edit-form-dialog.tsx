@@ -22,12 +22,12 @@ import {
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { updateServiceRequest } from '@/actions/service-requests';
-import { FullServiceRequest } from '@/types/service-request';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
-import { RequestStatus, ServicePriority, User } from '@prisma/client';
+import { RequestStatus, ServicePriority, type User } from '@prisma/client';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { filterUneditedKeys } from '@/lib/utils';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
 
 // Schéma de validation pour le formulaire
 const formSchema = z.object({
@@ -45,7 +45,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface RequestQuickEditFormDialogProps {
-  request: FullServiceRequest;
+  request: RequestDetails;
   agents: User[];
 }
 

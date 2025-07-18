@@ -26,6 +26,8 @@ interface ProfileLookupSheetProps {
   phoneNumber?: string;
   userId?: string;
 
+  profileId?: string;
+
   // Autres props
   requestId?: string;
   triggerLabel?: string;
@@ -38,6 +40,7 @@ export function ProfileLookupSheet({
   email,
   phoneNumber,
   userId,
+  profileId,
   requestId,
   triggerLabel,
   triggerVariant = 'outline',
@@ -55,9 +58,10 @@ export function ProfileLookupSheet({
       userId,
       email,
       phoneNumber,
+      profileId,
     },
     {
-      enabled: open && !!(userId || email || phoneNumber) && !providedProfile,
+      enabled: !!(userId || email || phoneNumber || profileId) && !providedProfile,
       retry: false,
     },
   );
@@ -138,7 +142,7 @@ export function ProfileLookupSheet({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{getTriggerButton()}</SheetTrigger>
-      <SheetContent className="w-full max-w-4xl overflow-y-auto sm:max-w-2xl">
+      <SheetContent className="w-full max-w-4xl overflow-y-auto sm:max-w-4xl">
         <SheetHeader>
           <SheetTitle>{t('profile.lookup.profile_details')}</SheetTitle>
         </SheetHeader>

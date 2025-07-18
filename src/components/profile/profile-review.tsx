@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { RequestStatus, UserRole } from '@prisma/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -10,11 +10,9 @@ import {
   getProfileFieldsStatus,
   tryCatch,
 } from '@/lib/utils';
-import type { FullServiceRequest } from '@/types/service-request';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
 import { ReviewNotes } from '../requests/review-notes';
-import type { FullProfile } from '@/types/profile';
 import { Label } from '@/components/ui/label';
 import CardContainer from '@/components/layouts/card-container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,18 +29,23 @@ import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/compo
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
 import type { SessionUser } from '@/types';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import { LoadingSkeleton } from '../ui/loading-skeleton';
+import { api } from '@/trpc/react';
 
 interface ProfileReviewProps {
-  request: FullServiceRequest & { profile: FullProfile | null };
+  request: RequestDetails;
 }
 
-export function ProfileReview({ request }: ProfileReviewProps) {
+export function ProfileReviewBase({ request }: ProfileReviewProps) {
   const { user: currentUser } = useCurrentUser();
   const cantUpdateRequest =
     hasRole(currentUser, UserRole.AGENT) && request.assignedToId !== currentUser?.id;
   const isAdmin = hasAnyRole(currentUser as SessionUser, ['ADMIN', 'SUPER_ADMIN']);
   const t = useTranslations();
-  const profile = request?.profile;
+  const { data: profile } = api.profile.getByQuery.useQuery({
+    profileId: request.requestedFor?.id ?? undefined,
+  });
   const user = request.submittedBy;
   const [isLoading, setIsLoading] = useState(false);
   const { formatDate } = useDateLocale();
@@ -80,12 +83,12 @@ export function ProfileReview({ request }: ProfileReviewProps) {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-1">
-              <h2 className="text-xl md:text-2xl flex items-center gap-2 font-semibold">
-                {profile.firstName} {profile.lastName}{' '}
+              <h2 className="text-lg md:text-xl flex flex-col items-start gap-2 font-semibold">
                 <ProfileStatusBadge
                   status={request.status}
                   label={t(`inputs.requestStatus.options.${request.status}`)}
                 />
+                {profile.firstName} {profile.lastName}{' '}
               </h2>
               {profile?.email && (
                 <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
@@ -115,11 +118,7 @@ export function ProfileReview({ request }: ProfileReviewProps) {
       {/* En-tête avec statut et actions */}
 
       <CardContainer>
-        <StatusTimeline
-          currentStatus={request.status}
-          request={request}
-          profile={profile}
-        />
+        <StatusTimeline currentStatus={request.status} />
       </CardContainer>
 
       {/* Contenu principal */}
@@ -238,5 +237,13 @@ export function ProfileReview({ request }: ProfileReviewProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export function ProfileReview({ request }: ProfileReviewProps) {
+  return (
+    <Suspense fallback={<LoadingSkeleton variant="form" className="w-full" />}>
+      <ProfileReviewBase request={request} />
+    </Suspense>
   );
 }

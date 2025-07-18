@@ -141,19 +141,6 @@ export const organizationsRouter = createTRPCRouter({
         });
       }
 
-      const currentUser = ctx.session.user;
-
-      // Vérifier l'accès à cette organisation
-      if (
-        !currentUser.roles?.includes('SUPER_ADMIN') &&
-        currentUser.assignedOrganizationId !== input.id
-      ) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous ne pouvez accéder qu'à votre organisation.",
-        });
-      }
-
       const organization = await ctx.db.organization.findUnique({
         where: { id: input.id },
         include: {
