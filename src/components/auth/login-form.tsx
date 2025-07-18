@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import {
   Form,
   FormControl,
@@ -32,7 +32,6 @@ import { toast } from '@/hooks/use-toast';
 import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 import { checkUserExists } from '@/actions/auth';
 import { RoleGuard } from '@/lib/permissions/utils';
-import { useCurrentUser } from '@/hooks/use-role-data';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
@@ -175,7 +174,8 @@ function useLoginActions() {
 
 export function LoginForm() {
   const router = useRouter();
-  const { user } = useCurrentUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
   const redirectUrl = AuthRedirectManager.getRedirectUrl(
@@ -211,12 +211,10 @@ export function LoginForm() {
   }, []);
 
   // Manual redirect for success state
-  const handleManualRedirect = React.useCallback(() => {
-    if (state.hasRedirected) return;
-
+  const handleManualRedirect = () => {
     router.push(redirectUrl);
     setState((prev) => ({ ...prev, hasRedirected: true }));
-  }, [user, state.hasRedirected, router, redirectUrl]);
+  };
 
   // Handlers
   const handleSendOTP = React.useCallback(
