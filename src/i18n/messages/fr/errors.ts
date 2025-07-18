@@ -3,7 +3,19 @@ export default {
     error_title: 'Erreur',
     success_title: 'Succès',
     unknown_error: 'Une erreur inattendue est survenue',
-    try_again: 'Veuillez réessayer plus tard',
+    try_again: 'Réessayer',
+    go_home: "Retour à l'accueil",
+    report_error: 'Signaler cette erreur',
+  },
+  network: {
+    title: 'Problème de connexion',
+    description:
+      'Impossible de se connecter au serveur. Vérifiez votre connexion internet.',
+  },
+  chunk: {
+    title: 'Mise à jour disponible',
+    description: "Une nouvelle version de l'application est disponible.",
+    reload: 'Recharger',
   },
   auth: {
     update_profile: 'Erreur lors de la mise à jour du profil',
