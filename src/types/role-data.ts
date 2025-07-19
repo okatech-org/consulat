@@ -51,24 +51,98 @@ export interface UserData extends BaseUserData {
 export interface AgentData extends BaseUserData {
   role: 'AGENT';
   user: AgentSession;
+  assignedRequests: RequestListItem[];
+  agentAppointments: GroupedAppointments | null;
+  agentStats: {
+    pendingRequests: number;
+    processingRequests: number;
+    completedRequests: number;
+    totalRequests: number;
+    upcomingAppointments: number;
+    completedAppointments: number;
+  };
 }
 
 // Données pour un manager
 export interface ManagerData extends BaseUserData {
   role: 'MANAGER';
   user: ManagerSession;
+  managedAgents: Array<{
+    id: string;
+    name: string | null;
+    email: string | null;
+    completedRequests: number | null;
+    _count: { assignedRequests: number };
+  }>;
+  managerStats: {
+    totalAgents: number;
+    pendingRequests: number;
+    processingRequests: number;
+    completedRequests: number;
+    avgProcessingTime: number;
+    trend: { value: number; isPositive: boolean };
+  };
+  recentRequests: RequestListItem[];
+  requestsByStatus: Record<string, number>;
 }
 
 // Données pour un admin
 export interface AdminData extends BaseUserData {
   role: 'ADMIN';
   user: AdminSession;
+  organizationData: Organization | null;
+  adminStats: {
+    completedRequests: number;
+    processingRequests: number;
+    validatedProfiles: number;
+    pendingProfiles: number;
+    totalUsers: number;
+    totalAppointments: number;
+  };
+  recentData: {
+    recentRegistrations: Array<{
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      updatedAt: string;
+      user?: { email?: string };
+    }>;
+    upcomingAppointments: Array<{
+      id: string;
+      date: string;
+      attendee?: { name?: string };
+      request?: { service?: { name?: string } };
+    }>;
+  };
 }
 
 // Données pour un super admin
 export interface SuperAdminData extends BaseUserData {
   role: 'SUPER_ADMIN';
   user: SuperAdminSession;
+  organizations: Array<{
+    id: string;
+    name: string;
+    type: string;
+    status: string;
+    countries: Array<{ id: string; name: string; code: string }>;
+    _count: { services: number; agents: number };
+  }>;
+  countries: Array<{
+    id: string;
+    name: string;
+    code: string;
+    status: string;
+    _count: { organizations: number; users: number };
+  }>;
+  superAdminStats: {
+    totalCountries: number;
+    totalOrganizations: number;
+    totalServices: number;
+    totalUsers: number;
+    activeCountries: number;
+    activeOrganizations: number;
+  };
 }
 
 // Type union pour toutes les données possibles

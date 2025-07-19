@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  useDashboard,
-  useRealTimeStats,
-  useStatsCardColors,
-} from '@/hooks/use-dashboard';
+import { useRealTimeStats, useStatsCardColors } from '@/hooks/use-dashboard';
 import { StatsCard } from '@/components/ui/stats-card';
 import { PageContainer } from '@/components/layouts/page-container';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
@@ -23,22 +19,52 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
+import {
+  useUserData,
+  useAgentData,
+  useManagerData,
+  useAdminData,
+  useSuperAdminData,
+  useCurrentRole,
+} from '@/hooks/use-role-data';
 
 export default function DashboardClient() {
   const t = useTranslations('dashboard');
   const colors = useStatsCardColors();
-  const startDate = new Date();
-  const endDate = subDays(startDate, 30);
-
-  const { data, isLoading, error, dashboardType, refresh } = useDashboard({
-    startDate,
-    endDate,
-  });
+  const role = useCurrentRole();
 
   const { stats: realTimeStats, lastUpdated } = useRealTimeStats();
+
+  // Utiliser les hooks spécifiques selon le rôle
+  const getData = () => {
+    try {
+      switch (role) {
+        case 'USER':
+          return { data: useUserData(), error: null, isLoading: false };
+        case 'AGENT':
+          return { data: useAgentData(), error: null, isLoading: false };
+        case 'MANAGER':
+          return { data: useManagerData(), error: null, isLoading: false };
+        case 'ADMIN':
+          return { data: useAdminData(), error: null, isLoading: false };
+        case 'SUPER_ADMIN':
+          return { data: useSuperAdminData(), error: null, isLoading: false };
+        default:
+          return { data: null, error: new Error('Rôle non reconnu'), isLoading: false };
+      }
+    } catch (error) {
+      return { data: null, error: error as Error, isLoading: false };
+    }
+  };
+
+  const { data, error, isLoading } = getData();
+
+  const refresh = () => {
+    window.location.reload();
+  };
 
   if (isLoading) {
     return (
@@ -64,15 +90,17 @@ export default function DashboardClient() {
   const renderDashboardContent = () => {
     if (!data) return null;
 
-    switch (dashboardType) {
-      case 'superadmin':
+    switch (role) {
+      case 'SUPER_ADMIN':
         return <SuperAdminDashboard data={data} colors={colors} />;
-      case 'admin':
+      case 'ADMIN':
         return <AdminDashboard data={data} colors={colors} />;
-      case 'manager':
+      case 'MANAGER':
         return <ManagerDashboard data={data} colors={colors} />;
-      case 'agent':
+      case 'AGENT':
         return <AgentDashboard data={data} colors={colors} />;
+      case 'USER':
+        return <UserDashboard data={data} colors={colors} />;
       default:
         return null;
     }
@@ -80,8 +108,8 @@ export default function DashboardClient() {
 
   return (
     <PageContainer
-      title={t(`${dashboardType}.title`)}
-      description={t(`${dashboardType}.description`)}
+      title={t(role ? `${role.toLowerCase()}.title` : 'title')}
+      description={t(role ? `${role.toLowerCase()}.description` : 'description')}
     >
       {/* Statistiques en temps réel */}
       {realTimeStats && (
@@ -128,41 +156,80 @@ export default function DashboardClient() {
   );
 }
 
+// Composant User Dashboard
+function UserDashboard({ data, colors }: { data: unknown; colors: unknown }) {
+  const t = useTranslations('dashboard.user');
+  const userData = data as any;
+
+  if (!userData.stats) return null;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title={t('stats.profile_completion')}
+          value={`${userData.stats.profileCompletion}%`}
+          icon={Users}
+          {...(colors as any).users}
+        />
+        <StatsCard
+          title={t('stats.pending_requests')}
+          value={userData.stats.pendingRequests || 0}
+          icon={Clock}
+          {...(colors as any).pending}
+        />
+        <StatsCard
+          title={t('stats.upcoming_appointments')}
+          value={userData.stats.upcomingAppointments || 0}
+          icon={Calendar}
+          {...(colors as any).processing}
+        />
+        <StatsCard
+          title={t('stats.documents_count')}
+          value={userData.stats.documentsCount || 0}
+          icon={FileText}
+          {...(colors as any).completed}
+        />
+      </div>
+    </div>
+  );
+}
+
 // Composant SuperAdmin Dashboard
 function SuperAdminDashboard({ data, colors }: { data: unknown; colors: unknown }) {
   const t = useTranslations('dashboard.superadmin');
-  const dashboardData = data as { stats?: Record<string, number> };
+  const superAdminData = data as any;
 
-  if (!dashboardData?.stats) return null;
+  if (!superAdminData.superAdminStats) return null;
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t('stats.countries')}
-          value={dashboardData.stats.totalCountries || 0}
-          description={`${dashboardData.stats.activeCountries || 0} ${t('stats.active')}`}
+          value={superAdminData.superAdminStats.totalCountries || 0}
+          description={`${superAdminData.superAdminStats.activeCountries || 0} ${t('stats.active')}`}
           icon={Globe}
-          {...(colors as Record<string, Record<string, string>>).pending}
+          {...(colors as any).pending}
         />
         <StatsCard
           title={t('stats.organizations')}
-          value={dashboardData.stats.totalOrganizations || 0}
-          description={`${dashboardData.stats.activeOrganizations || 0} ${t('stats.active')}`}
+          value={superAdminData.superAdminStats.totalOrganizations || 0}
+          description={`${superAdminData.superAdminStats.activeOrganizations || 0} ${t('stats.active')}`}
           icon={Building2}
-          {...(colors as Record<string, Record<string, string>>).processing}
+          {...(colors as any).processing}
         />
         <StatsCard
           title={t('stats.services')}
-          value={dashboardData.stats.totalServices || 0}
+          value={superAdminData.superAdminStats.totalServices || 0}
           icon={Settings}
-          {...(colors as Record<string, Record<string, string>>).users}
+          {...(colors as any).users}
         />
         <StatsCard
           title={t('stats.users')}
-          value={dashboardData.stats.totalUsers || 0}
+          value={superAdminData.superAdminStats.totalUsers || 0}
           icon={Users}
-          {...(colors as Record<string, Record<string, string>>).completed}
+          {...(colors as any).completed}
         />
       </div>
     </div>
@@ -172,105 +239,98 @@ function SuperAdminDashboard({ data, colors }: { data: unknown; colors: unknown 
 // Composant Admin Dashboard
 function AdminDashboard({ data, colors }: { data: unknown; colors: unknown }) {
   const t = useTranslations('dashboard.admin');
-  const dashboardData = data as {
-    stats?: Record<string, number>;
-    recentData?: {
-      recentRegistrations?: Array<{
-        id: string;
-        firstName?: string;
-        lastName?: string;
-        updatedAt: string;
-        user?: { email?: string };
-      }>;
-      upcomingAppointments?: Array<{
-        id: string;
-        date: string;
-        attendee?: { name?: string };
-        request?: { service?: { name?: string } };
-      }>;
-    };
-  };
+  const adminData = data as any;
 
-  if (!dashboardData?.stats) return null;
+  if (!adminData.adminStats) return null;
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t('stats.completed_requests')}
-          value={dashboardData.stats.completedRequests || 0}
+          value={adminData.adminStats.completedRequests || 0}
           icon={CheckCircle}
-          {...(colors as Record<string, Record<string, string>>).completed}
+          {...(colors as any).completed}
         />
         <StatsCard
           title={t('stats.processing_requests')}
-          value={dashboardData.stats.processingRequests || 0}
+          value={adminData.adminStats.processingRequests || 0}
           icon={Clock}
-          {...(colors as Record<string, Record<string, string>>).processing}
+          {...(colors as any).processing}
         />
         <StatsCard
           title={t('stats.validated_profiles')}
-          value={dashboardData.stats.validatedProfiles || 0}
+          value={adminData.adminStats.validatedProfiles || 0}
           icon={Users}
-          {...(colors as Record<string, Record<string, string>>).users}
+          {...(colors as any).users}
         />
         <StatsCard
           title={t('stats.pending_profiles')}
-          value={dashboardData.stats.pendingProfiles || 0}
+          value={adminData.adminStats.pendingProfiles || 0}
           icon={FileText}
-          {...(colors as Record<string, Record<string, string>>).pending}
+          {...(colors as any).pending}
         />
       </div>
 
       {/* Données récentes */}
-      {dashboardData.recentData && (
+      {adminData.recentData && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Inscriptions récentes */}
           <Card>
             <CardHeader>
               <CardTitle>{t('recent.registrations')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {dashboardData.recentData.recentRegistrations?.map((profile) => (
-                  <div key={profile.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">
-                        {profile.firstName} {profile.lastName}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {profile.user?.email}
-                      </p>
+              <div className="space-y-4">
+                {adminData.recentData.recentRegistrations
+                  ?.slice(0, 5)
+                  .map((registration: any) => (
+                    <div
+                      key={registration.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {registration.firstName} {registration.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {registration.user?.email}
+                        </p>
+                      </div>
+                      <Badge variant="outline">
+                        {format(new Date(registration.updatedAt), 'dd/MM', {
+                          locale: fr,
+                        })}
+                      </Badge>
                     </div>
-                    <Badge variant="outline">
-                      {format(new Date(profile.updatedAt), 'dd/MM', { locale: fr })}
-                    </Badge>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
 
-          {/* Rendez-vous à venir */}
           <Card>
             <CardHeader>
               <CardTitle>{t('recent.appointments')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {dashboardData.recentData.upcomingAppointments?.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{appointment.attendee?.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {appointment.request?.service?.name}
-                      </p>
+              <div className="space-y-4">
+                {adminData.recentData.upcomingAppointments
+                  ?.slice(0, 5)
+                  .map((appointment: any) => (
+                    <div
+                      key={appointment.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="font-medium">{appointment.attendee?.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {appointment.request?.service?.name}
+                        </p>
+                      </div>
+                      <Badge variant="outline">
+                        {format(new Date(appointment.date), 'dd/MM', { locale: fr })}
+                      </Badge>
                     </div>
-                    <Badge variant="outline">
-                      {format(new Date(appointment.date), 'dd/MM HH:mm', { locale: fr })}
-                    </Badge>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
@@ -283,67 +343,58 @@ function AdminDashboard({ data, colors }: { data: unknown; colors: unknown }) {
 // Composant Manager Dashboard
 function ManagerDashboard({ data, colors }: { data: unknown; colors: unknown }) {
   const t = useTranslations('dashboard.manager');
-  const dashboardData = data as {
-    stats?: Record<string, number> & { trend?: { value: number; isPositive: boolean } };
-    managedAgents?: Array<{
-      id: string;
-      name?: string;
-      completedRequests?: number;
-      _count: { assignedRequests: number };
-    }>;
-  };
+  const managerData = data as any;
 
-  if (!dashboardData?.stats) return null;
+  if (!managerData.managerStats) return null;
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t('stats.total_agents')}
-          value={dashboardData.stats.totalAgents || 0}
+          value={managerData.managerStats.totalAgents || 0}
           icon={Users}
-          {...(colors as Record<string, Record<string, string>>).users}
+          {...(colors as any).users}
         />
         <StatsCard
           title={t('stats.pending_requests')}
-          value={dashboardData.stats.pendingRequests || 0}
+          value={managerData.managerStats.pendingRequests || 0}
           icon={Clock}
-          {...(colors as Record<string, Record<string, string>>).pending}
+          {...(colors as any).pending}
         />
         <StatsCard
           title={t('stats.processing_requests')}
-          value={dashboardData.stats.processingRequests || 0}
+          value={managerData.managerStats.processingRequests || 0}
           icon={FileText}
-          {...(colors as Record<string, Record<string, string>>).processing}
+          {...(colors as any).processing}
         />
         <StatsCard
           title={t('stats.completed_requests')}
-          value={dashboardData.stats.completedRequests || 0}
+          value={managerData.managerStats.completedRequests || 0}
           icon={CheckCircle}
-          trend={dashboardData.stats.trend}
-          {...(colors as Record<string, Record<string, string>>).completed}
+          trend={managerData.managerStats.trend}
+          {...(colors as any).completed}
         />
       </div>
 
       {/* Agents managés */}
-      {dashboardData.managedAgents && (
+      {managerData.managedAgents && managerData.managedAgents.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>{t('managed_agents')}</CardTitle>
+            <CardTitle>{t('managed_agents.title')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {dashboardData.managedAgents.slice(0, 5).map((agent) => (
-                <div key={agent.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{agent.name || 'Agent'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {agent._count.assignedRequests} {t('assigned_requests')}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{agent.completedRequests || 0}</p>
-                    <p className="text-xs text-muted-foreground">{t('completed')}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {managerData.managedAgents.slice(0, 6).map((agent: any) => (
+                <div key={agent.id} className="p-4 border rounded-lg">
+                  <p className="font-medium">{agent.name}</p>
+                  <div className="flex justify-between mt-2 text-sm text-muted-foreground">
+                    <span>
+                      {t('managed_agents.active')}: {agent._count?.assignedRequests || 0}
+                    </span>
+                    <span>
+                      {t('managed_agents.completed')}: {agent.completedRequests || 0}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -358,64 +409,60 @@ function ManagerDashboard({ data, colors }: { data: unknown; colors: unknown }) 
 // Composant Agent Dashboard
 function AgentDashboard({ data, colors }: { data: unknown; colors: unknown }) {
   const t = useTranslations('dashboard.agent');
-  const dashboardData = data as {
-    stats?: Record<string, number>;
-    recentRequests?: Array<{
-      id: string;
-      status: string;
-      createdAt: string;
-      service?: { name?: string };
-    }>;
-  };
+  const agentData = data as any;
 
-  if (!dashboardData?.stats) return null;
+  if (!agentData.agentStats) return null;
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t('stats.upcoming_appointments')}
-          value={dashboardData.stats.upcomingAppointments || 0}
+          value={agentData.agentStats.upcomingAppointments || 0}
           icon={Calendar}
-          {...(colors as Record<string, Record<string, string>>).pending}
+          {...(colors as any).pending}
         />
         <StatsCard
           title={t('stats.pending_requests')}
-          value={dashboardData.stats.pendingRequests || 0}
+          value={agentData.agentStats.pendingRequests || 0}
           icon={Clock}
-          {...(colors as Record<string, Record<string, string>>).processing}
+          {...(colors as any).processing}
         />
         <StatsCard
           title={t('stats.processing_requests')}
-          value={dashboardData.stats.processingRequests || 0}
+          value={agentData.agentStats.processingRequests || 0}
           icon={FileText}
-          {...(colors as Record<string, Record<string, string>>).users}
+          {...(colors as any).users}
         />
         <StatsCard
           title={t('stats.completed_requests')}
-          value={dashboardData.stats.completedRequests || 0}
+          value={agentData.agentStats.completedRequests || 0}
           icon={CheckCircle}
-          {...(colors as Record<string, Record<string, string>>).completed}
+          {...(colors as any).completed}
         />
       </div>
 
       {/* Demandes récentes */}
-      {dashboardData.recentRequests && (
+      {agentData.assignedRequests && agentData.assignedRequests.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>{t('recent_requests')}</CardTitle>
+            <CardTitle>{t('recent_requests.title')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {dashboardData.recentRequests.map((request) => (
+            <div className="space-y-4">
+              {agentData.assignedRequests.slice(0, 5).map((request: any) => (
                 <div key={request.id} className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">{request.service?.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(request.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                      {format(new Date(request.createdAt), 'dd/MM/yyyy')}
                     </p>
                   </div>
-                  <Badge variant="outline">{request.status}</Badge>
+                  <Badge
+                    variant={request.status === 'COMPLETED' ? 'default' : 'secondary'}
+                  >
+                    {request.status}
+                  </Badge>
                 </div>
               ))}
             </div>
