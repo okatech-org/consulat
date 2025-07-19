@@ -37,3 +37,16 @@ export type StatsByPeriod = DashboardRouterOutputs['getStatsByPeriod'];
 
 // Types pour getRealTimeStats
 export type RealTimeStats = DashboardRouterOutputs['getRealTimeStats'];
+
+// Types pour getProfilesGeographicData
+export type GetProfilesGeographicDataInput =
+  DashboardRouterInputs['getProfilesGeographicData'];
+export type ProfilesGeographicData = DashboardRouterOutputs['getProfilesGeographicData'];
+
+export interface ProfileLocation {
+  id: string;
+  address: string;
+  city: string;
+  country: string;
+  count: number;
+}

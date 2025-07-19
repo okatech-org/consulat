@@ -8,13 +8,16 @@ import { DocumentsSection } from '../../profile/_utils/components/sections/docum
 import { LinkInfoSection } from './sections/link-info-section';
 import { useRouter } from 'next/navigation';
 import { BasicInfoSection } from '../../profile/_utils/components/sections/basic-info-section';
+import { useState } from 'react';
+import { useTabs } from '@/hooks/use-tabs';
 
 type ProfileTabsProps = {
   profile: FullProfile;
   requestId?: string;
+  noTabs?: boolean;
 };
 
-export function ChildProfileTabs({ profile, requestId }: ProfileTabsProps) {
+export function ChildProfileTabs({ profile, requestId, noTabs }: ProfileTabsProps) {
   const t = useTranslations('profile');
   const router = useRouter();
 
@@ -59,8 +62,17 @@ export function ChildProfileTabs({ profile, requestId }: ProfileTabsProps) {
     },
   ];
 
+  type Tab = (typeof profileTabs)[number]['id'];
+
+  const { currentTab, handleTabChange } = useTabs<Tab>('tab', 'link-info');
+  const [localTabs, setLocalTabs] = useState<Tab>('link-info');
+
   return (
-    <Tabs className={'col-span-full lg:col-span-6'} defaultValue="link-info">
+    <Tabs
+      className={'col-span-full lg:col-span-6'}
+      value={noTabs ? localTabs : currentTab}
+      onValueChange={noTabs ? setLocalTabs : handleTabChange}
+    >
       <TabsList className="mb-2 w-max">
         <div className="carousel-zone flex  gap-2">
           {profileTabs.map((tab) => (

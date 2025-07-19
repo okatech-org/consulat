@@ -35,14 +35,13 @@ import { DataTable } from '@/components/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
-import { FileText, Edit, Download, FolderOpen } from 'lucide-react';
+import { FileText, Edit, Download, FolderOpen, Eye } from 'lucide-react';
 import { RequestStatus, ProfileCategory, Gender } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import {
   Dialog,
@@ -86,6 +85,7 @@ import type { FullProfileUpdateFormData } from '@/schemas/registration';
 import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { api } from '@/trpc/react';
+import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -515,71 +515,57 @@ export default function ProfilesPage() {
           />
         ),
         cell: ({ row }) => (
-          <DataTableRowActions
-            actions={[
-              {
-                component: row.original.validationRequestId ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full justify-start"
-                    asChild
+          <div className="flex items-center gap-1">
+            {row.original.validationRequestId && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    className={
+                      buttonVariants({ variant: 'ghost', size: 'icon' }) +
+                      ' aspect-square p-0'
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    href={ROUTES.dashboard.service_requests(
+                      row.original.validationRequestId,
+                    )}
                   >
-                    <Link
-                      onClick={(e) => e.stopPropagation()}
-                      href={ROUTES.dashboard.service_requests(
-                        row.original.validationRequestId,
-                      )}
-                    >
-                      <FileText className="size-icon" />
-                      {'Voir la demande'}
-                    </Link>
-                  </Button>
-                ) : null,
-              },
-              {
-                component: (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full justify-start"
-                    asChild
-                  >
-                    <Link
-                      onClick={(e) => e.stopPropagation()}
-                      href={ROUTES.listing.profile(row.original.id)}
-                    >
-                      <FileText className="size-icon" />
-                      {t('common.actions.consult')}
-                    </Link>
-                  </Button>
-                ),
-              },
-              {
-                component: (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        size="sm"
-                        leftIcon={<Edit className="size-icon" />}
-                        variant="ghost"
-                        className="w-full justify-start"
-                      >
-                        {t('common.actions.edit')}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>{t('common.actions.edit')}</DialogTitle>
-                      </DialogHeader>
-                      <QuickEditForm profile={row.original} onSuccess={() => refetch()} />
-                    </DialogContent>
-                  </Dialog>
-                ),
-              },
-            ]}
-            row={row}
-          />
+                    <FileText className="size-icon" />
+                    <span className="sr-only">Voir la demande</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>Voir la demande</span>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <ProfileLookupSheet
+              profileId={row.original.id}
+              icon={<Eye className="size-icon" />}
+              tooltipContent="Aperçu du profil"
+            />
+            <Dialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <Button size="icon" variant="ghost" className="aspect-square p-0">
+                      <Edit className="size-icon" />
+                      <span className="sr-only"> {t('common.actions.edit')}</span>
+                    </Button>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>Modification rapide</span>
+                </TooltipContent>
+              </Tooltip>
+
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{t('common.actions.edit')}</DialogTitle>
+                </DialogHeader>
+                <QuickEditForm profile={row.original} onSuccess={() => refetch()} />
+              </DialogContent>
+            </Dialog>
+          </div>
         ),
       },
     ],
@@ -720,20 +706,6 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="cardNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('inputs.cardNumber.label')}</FormLabel>
-              <FormControl>
-                <Input placeholder="123456" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="status"

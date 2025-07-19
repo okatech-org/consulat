@@ -10,6 +10,7 @@ import {
   getAgentPerformanceMetrics as getAgentPerformanceMetricsAction,
 } from '@/actions/manager-dashboard';
 import { getServiceRequestStats as getServiceRequestStatsAction } from '@/actions/service-requests';
+import type { ProfileLocation } from './types';
 
 export const dashboardRouter = createTRPCRouter({
   // Statistiques générales du dashboard admin
@@ -52,17 +53,19 @@ export const dashboardRouter = createTRPCRouter({
       const [
         completedRequests,
         processingRequests,
-        validatedProfiles,
+        pendingRequests,
+        completedProfiles,
         pendingProfiles,
-        totalUsers,
+        totalProfiles,
         totalAppointments,
-        recentRegistrations,
         upcomingAppointments,
       ] = await Promise.all([
         ctx.db.serviceRequest.count({
           where: {
             ...(input.organizationId ? { organizationId: input.organizationId } : {}),
-            status: RequestStatus.COMPLETED,
+            status: {
+              in: [RequestStatus.COMPLETED, RequestStatus.REJECTED],
+            },
             ...dateFilter,
           },
         }),
@@ -73,8 +76,22 @@ export const dashboardRouter = createTRPCRouter({
               in: [
                 RequestStatus.VALIDATED,
                 RequestStatus.CARD_IN_PRODUCTION,
+                RequestStatus.DOCUMENT_IN_PRODUCTION,
                 RequestStatus.READY_FOR_PICKUP,
                 RequestStatus.APPOINTMENT_SCHEDULED,
+              ],
+            },
+            ...dateFilter,
+          },
+        }),
+        ctx.db.serviceRequest.count({
+          where: {
+            ...(input.organizationId ? { organizationId: input.organizationId } : {}),
+            status: {
+              in: [
+                RequestStatus.SUBMITTED,
+                RequestStatus.PENDING,
+                RequestStatus.PENDING_COMPLETION,
               ],
             },
             ...dateFilter,
@@ -91,39 +108,20 @@ export const dashboardRouter = createTRPCRouter({
           where: {
             ...whereClause,
             status: {
-              in: [RequestStatus.SUBMITTED, RequestStatus.PENDING],
+              notIn: [RequestStatus.COMPLETED, RequestStatus.REJECTED],
             },
             ...dateFilter,
           },
         }),
-        ctx.db.user.count({
-          where: input.organizationId
-            ? { assignedOrganizationId: input.organizationId }
-            : {},
+        ctx.db.profile.count({
+          where: {
+            assignedOrganizationId: input.organizationId,
+          },
         }),
         ctx.db.appointment.count({
           where: {
             ...(input.organizationId ? { organizationId: input.organizationId } : {}),
             ...dateFilter,
-          },
-        }),
-        ctx.db.profile.findMany({
-          where: {
-            ...whereClause,
-            status: {
-              in: [RequestStatus.SUBMITTED, RequestStatus.PENDING],
-            },
-          },
-          take: 5,
-          orderBy: { updatedAt: 'desc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
           },
         }),
         ctx.db.appointment.findMany({
@@ -161,13 +159,13 @@ export const dashboardRouter = createTRPCRouter({
         stats: {
           completedRequests,
           processingRequests,
-          validatedProfiles,
+          pendingRequests,
           pendingProfiles,
-          totalUsers,
+          completedProfiles,
+          totalProfiles,
           totalAppointments,
         },
         recentData: {
-          recentRegistrations,
           upcomingAppointments,
         },
       };
@@ -194,7 +192,7 @@ export const dashboardRouter = createTRPCRouter({
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message: "Vous n'avez pas les permissions pour accéder à cette page.",
         });
       }
 
@@ -403,7 +401,7 @@ export const dashboardRouter = createTRPCRouter({
           message:
             error instanceof Error
               ? error.message
-              : 'Failed to fetch agent performance metrics',
+              : "Erreur lors du chargement des métriques de performance de l'agent",
         });
       }
     }),
@@ -419,10 +417,126 @@ export const dashboardRouter = createTRPCRouter({
         message:
           error instanceof Error
             ? error.message
-            : 'Failed to fetch service request stats',
+            : 'Erreur lors du chargement des statistiques des demandes de service',
       });
     }
   }),
+
+  // Données géographiques des profils
+  getProfilesGeographicData: protectedProcedure
+    .input(
+      z.object({
+        organizationId: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const profiles = await ctx.db.profile.findMany({
+          where: {
+            assignedOrganizationId: input.organizationId,
+            addressId: { not: null },
+          },
+          include: {
+            address: true,
+          },
+        });
+
+        // Fonction pour normaliser les noms de villes
+        const normalizeCity = (city: string): string => {
+          return city
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, ' ') // Remplacer les espaces multiples par un seul
+            .replace(/[()]/g, '') // Supprimer les parenthèses
+            .replace(/\s*-\s*/g, '-') // Normaliser les tirets
+            .split(' ')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+        };
+
+        // Fonction pour corriger les pays
+        const normalizeCountry = (country: string, city: string): string => {
+          const cityLower = city.toLowerCase();
+
+          // Corrections spécifiques pour les villes africaines
+          if (cityLower.includes('libreville') || cityLower.includes('port-gentil')) {
+            return 'Gabon';
+          }
+          if (
+            cityLower.includes('douala') ||
+            cityLower.includes('yaounde') ||
+            cityLower.includes('yaoundé')
+          ) {
+            return 'Cameroon';
+          }
+          if (cityLower.includes('dakar')) {
+            return 'Senegal';
+          }
+          if (cityLower.includes('abidjan')) {
+            return 'Ivory Coast';
+          }
+
+          // Normaliser les pays
+          const countryMap: Record<string, string> = {
+            fr: 'France',
+            france: 'France',
+            ga: 'Gabon',
+            gabon: 'Gabon',
+            cm: 'Cameroon',
+            cameroon: 'Cameroon',
+            sn: 'Senegal',
+            senegal: 'Senegal',
+          };
+
+          return countryMap[country.toLowerCase()] || country;
+        };
+
+        // Grouper par adresse complète
+        const locationGroups = new Map<string, ProfileLocation>();
+
+        profiles.forEach((profile) => {
+          if (!profile.address) return;
+
+          // Ignorer les codes postaux ou les entrées invalides
+          if (/^\d+$/.test(profile.address.city.trim())) return;
+          if (profile.address.city.trim().length < 2) return;
+
+          const normalizedCity = normalizeCity(profile.address.city);
+          const normalizedCountry = normalizeCountry(
+            profile.address.country,
+            profile.address.city,
+          );
+
+          // Construire l'adresse complète pour Google Maps
+          const fullAddress = `${profile.address.firstLine}${profile.address.secondLine ? ', ' + profile.address.secondLine : ''}, ${normalizedCity}${profile.address.zipCode ? ', ' + profile.address.zipCode : ''}, ${normalizedCountry}`;
+
+          // Utiliser la ville + pays comme clé pour grouper
+          const key = `${normalizedCity}-${normalizedCountry}`;
+
+          if (locationGroups.has(key)) {
+            locationGroups.get(key)!.count += 1;
+          } else {
+            locationGroups.set(key, {
+              id: key,
+              address: fullAddress,
+              city: normalizedCity,
+              country: normalizedCountry,
+              count: 1,
+            });
+          }
+        });
+
+        return Array.from(locationGroups.values()).sort((a, b) => b.count - a.count);
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Erreur lors du chargement des données géographiques des profils',
+        });
+      }
+    }),
 
   // Statistiques par période (pour les graphiques)
   getStatsByPeriod: protectedProcedure

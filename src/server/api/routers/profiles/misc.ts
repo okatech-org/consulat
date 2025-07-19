@@ -31,6 +31,7 @@ export const ProfileListItemSelect: Prisma.ProfileSelect = {
   status: true,
   category: true,
   gender: true,
+  validationRequestId: true,
 };
 
 export type ProfileListItemSelectResult = Prisma.ProfileGetPayload<{

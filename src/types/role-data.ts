@@ -18,7 +18,11 @@ import type { ServiceListItem } from '@/server/api/routers/services/misc';
 import type { GroupedAppointments } from '@/server/api/routers/appointments/misc';
 import type { CountryListItem } from '@/server/api/routers/countries/types';
 import type { OrganizationListItem } from '@/server/api/routers/organizations/types';
-import type { AdminStats, SuperAdminStats } from '@/server/api/routers/dashboard/types';
+import type {
+  AdminStats,
+  ProfilesGeographicData,
+  SuperAdminStats,
+} from '@/server/api/routers/dashboard/types';
 
 // Données communes à tous les utilisateurs
 interface BaseUserData {
@@ -54,7 +58,6 @@ export interface UserData extends BaseUserData {
 export interface AgentData extends BaseUserData {
   role: 'AGENT';
   user: AgentSession;
-  assignedRequests: RequestListItem[];
   agentAppointments: GroupedAppointments | null;
   agentStats: {
     pendingRequests: number;
@@ -117,6 +120,7 @@ export interface AdminData extends BaseUserData {
       request?: { service?: { name?: string } };
     }>;
   };
+  profilesGeographicData: ProfilesGeographicData;
 }
 
 // Données pour un super admin

@@ -104,19 +104,19 @@ async function loadUserData(user: SessionUser): Promise<UserData> {
 
 async function loadAgentData(user: SessionUser): Promise<AgentData> {
   try {
-    const [agentStatsData, unreadNotifications] = await Promise.all([
-      api.dashboard.getAgentStats({ agentId: user.id }),
-      api.notifications.getUnreadCount(),
-    ]);
+    const [agentStatsData, unreadNotifications, notifications, appointments] =
+      await Promise.all([
+        api.dashboard.getAgentStats({ agentId: user.id }),
+        api.notifications.getUnreadCount(),
+        api.notifications.getList({}),
+        api.appointments.getList({ userId: user.id }),
+      ]);
 
     return {
       role: 'AGENT',
       user: user as AgentSession,
-      notifications: [],
-      assignedRequests: (agentStatsData.recentRequests ||
-        []) as AgentData['assignedRequests'],
-      agentAppointments: (agentStatsData.appointments ||
-        null) as AgentData['agentAppointments'],
+      notifications: notifications.items || [],
+      agentAppointments: appointments,
       agentStats: agentStatsData.stats,
       stats: {
         unreadNotifications,
@@ -129,7 +129,6 @@ async function loadAgentData(user: SessionUser): Promise<AgentData> {
       role: 'AGENT',
       user: user as AgentSession,
       notifications: [],
-      assignedRequests: [],
       agentAppointments: null,
       agentStats: {
         pendingRequests: 0,
@@ -209,7 +208,12 @@ async function loadManagerData(user: SessionUser): Promise<ManagerData> {
 
 async function loadAdminData(user: SessionUser): Promise<AdminData> {
   try {
-    const [adminStatsData, organizationData, unreadNotifications] = await Promise.all([
+    const [
+      adminStatsData,
+      organizationData,
+      unreadNotifications,
+      profilesGeographicData,
+    ] = await Promise.all([
       api.dashboard.getAdminStats({
         organizationId: user.assignedOrganizationId || undefined,
       }),
@@ -220,6 +224,9 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
           })
         : Promise.resolve(null),
       api.notifications.getUnreadCount(),
+      api.dashboard.getProfilesGeographicData({
+        organizationId: user.assignedOrganizationId || undefined,
+      }),
     ]);
 
     return {
@@ -232,6 +239,7 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
       stats: {
         unreadNotifications,
       },
+      profilesGeographicData: profilesGeographicData,
     };
   } catch (error) {
     console.error('Erreur lors du chargement des données admin:', error);
