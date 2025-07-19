@@ -51,6 +51,7 @@ export interface UserData extends BaseUserData {
 export interface AgentData extends BaseUserData {
   role: 'AGENT';
   user: AgentSession;
+  profile?: FullProfile | null;
   assignedRequests: RequestListItem[];
   agentAppointments: GroupedAppointments | null;
   agentStats: {
@@ -67,11 +68,12 @@ export interface AgentData extends BaseUserData {
 export interface ManagerData extends BaseUserData {
   role: 'MANAGER';
   user: ManagerSession;
+  profile?: FullProfile | null;
   managedAgents: Array<{
     id: string;
-    name: string | null;
-    email: string | null;
-    completedRequests: number | null;
+    name?: string | null;
+    email?: string | null;
+    completedRequests?: number | null;
     _count: { assignedRequests: number };
   }>;
   managerStats: {
@@ -90,7 +92,15 @@ export interface ManagerData extends BaseUserData {
 export interface AdminData extends BaseUserData {
   role: 'ADMIN';
   user: AdminSession;
-  organizationData: Organization | null;
+  profile?: FullProfile | null;
+  organizationData: {
+    id: string;
+    name: string;
+    type: string;
+    status: string;
+    countries: Array<{ id: string; name: string; code: string }>;
+    _count: { services: number; agents: number };
+  } | null;
   adminStats: {
     completedRequests: number;
     processingRequests: number;
@@ -120,6 +130,7 @@ export interface AdminData extends BaseUserData {
 export interface SuperAdminData extends BaseUserData {
   role: 'SUPER_ADMIN';
   user: SuperAdminSession;
+  profile?: FullProfile | null;
   organizations: Array<{
     id: string;
     name: string;

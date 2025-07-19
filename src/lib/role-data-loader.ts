@@ -238,7 +238,7 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
       notifications: [],
       organizationData: organizationData as AdminData['organizationData'],
       adminStats: adminStatsData.stats,
-      recentData: adminStatsData.recentData as any, // Utiliser les vraies données même avec des types différents
+      recentData: adminStatsData.recentData as unknown as AdminData['recentData'], // Utiliser les vraies données avec un cast plus sûr
       stats: {
         unreadNotifications,
       },
