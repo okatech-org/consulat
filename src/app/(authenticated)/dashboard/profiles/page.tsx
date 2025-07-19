@@ -193,18 +193,19 @@ export default function ProfilesPage() {
     () => [
       {
         id: 'id',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={'ID'}
-            sortHandler={(direction) =>
-              handleSortingChange({
-                field: 'id',
-                order: direction,
-              })
-            }
-            labels={{ asc: 'A-Z', desc: 'Z-A' }}
-          />
+        header: ({ table }) => (
+          <label className="flex items-center gap-2 px-2 cursor-pointer">
+            <Checkbox
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && 'indeterminate')
+              }
+              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              aria-label="Select all"
+              className="translate-y-[2px]"
+            />
+            <span>ID</span>
+          </label>
         ),
         cell: ({ row }) => (
           <label className="flex items-center gap-2 px-2 cursor-pointer">
