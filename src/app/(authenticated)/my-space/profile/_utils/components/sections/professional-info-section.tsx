@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Profile, WorkStatus } from '@prisma/client';
+import type { Profile } from '@prisma/client';
+import { WorkStatus } from '@prisma/client';
 import {
   ProfessionalInfoSchema,
   type ProfessionalInfoFormData,
@@ -14,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ProfessionalInfoForm } from '@/components/registration/professional-info';
+import { ProfessionalInfoDisplay } from './professional-info-display';
 
 interface ProfessionalInfoSectionProps {
   profile: Profile;
@@ -29,7 +31,6 @@ export function ProfessionalInfoSection({
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ProfessionalInfoFormData>({
@@ -68,17 +69,19 @@ export function ProfessionalInfoSection({
         variant: 'success',
       });
       setIsLoading(false);
-      setIsEditing(false);
       onSave();
     }
   };
 
   return (
     <EditableSection
-      isEditing={isEditing}
       onSave={handleSave}
       isLoading={isLoading}
       id="professional-info"
+      previewContent={
+        // @ts-expect-error - Profile type compatibility
+        <ProfessionalInfoDisplay profile={profile} />
+      }
     >
       <ProfessionalInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
     </EditableSection>

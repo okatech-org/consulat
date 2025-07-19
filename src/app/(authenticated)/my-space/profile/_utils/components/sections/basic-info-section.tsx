@@ -15,6 +15,7 @@ import {
 } from '@/lib/utils';
 import { updateProfile } from '@/actions/profile';
 import { BasicInfoForm } from '@/components/registration/basic-info';
+import { BasicInfoDisplay } from './basic-info-display';
 import type { FullProfile } from '@/types';
 
 interface BasicInfoSectionProps {
@@ -28,7 +29,6 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
   const { formatDate } = useDateLocale();
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const basicInfo = extractFieldsFromObject(profile, [
@@ -96,7 +96,6 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
         description: t_messages('success.profile.update_description'),
         variant: 'success',
       });
-      setIsEditing(false);
       onSave();
     }
 
@@ -105,14 +104,15 @@ export function BasicInfoSection({ profile, onSave, requestId }: BasicInfoSectio
 
   return (
     <EditableSection
-      isEditing={isEditing}
       onSave={handleSave}
       isLoading={isLoading}
       id="basic-info"
+      previewContent={<BasicInfoDisplay profile={profile} />}
     >
       <BasicInfoForm
+        // @ts-expect-error - Type conflict in React Hook Form versions
         form={form}
-        onSubmit={handleSave}
+        onSubmit={() => void handleSave()}
         isLoading={isLoading}
         profileId={profile.id}
       />
