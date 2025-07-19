@@ -1,10 +1,10 @@
 'use client';
 
-import type { FullProfile } from '@/types/profile';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
+import type { ProfilesListItem } from '@/server/api/routers/profiles/types';
 
 // Helper function to get initials from a name
 function getInitials(name: string): string {
@@ -17,7 +17,7 @@ function getInitials(name: string): string {
 }
 
 interface ProfilesListProps {
-  profiles: FullProfile[];
+  profiles: ProfilesListItem[];
 }
 
 export default function ProfilesList({ profiles }: ProfilesListProps) {
@@ -36,9 +36,9 @@ export default function ProfilesList({ profiles }: ProfilesListProps) {
           <Card className="h-full transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center gap-4">
               <Avatar className="h-12 w-12">
-                {profile.identityPicture ? (
+                {profile.IDPictureUrl ? (
                   <AvatarImage
-                    src={profile.identityPicture.fileUrl}
+                    src={profile.IDPictureUrl}
                     alt={`${profile.firstName} ${profile.lastName}`}
                   />
                 ) : (
