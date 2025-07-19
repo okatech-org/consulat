@@ -487,6 +487,9 @@ export const profileRouter = createTRPCRouter({
           { lastName: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
           { phoneNumber: { contains: search, mode: 'insensitive' } },
+          { cardNumber: { contains: search, mode: 'insensitive' } },
+          { cardPin: { contains: search, mode: 'insensitive' } },
+          { id: { contains: search, mode: 'insensitive' } },
         ];
       }
 
