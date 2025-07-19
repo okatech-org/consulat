@@ -28,6 +28,8 @@ export const FullProfileInclude = {
         email: true,
         image: true,
         countryCode: true,
+        phoneNumber: true,
+        roles: true,
       },
     },
     residentContact: {
@@ -59,7 +61,9 @@ export const FullProfileInclude = {
       },
     },
     parentAuthorities: {
-      include: {
+      select: {
+        id: true,
+        role: true,
         parentUser: {
           select: {
             id: true,

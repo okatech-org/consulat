@@ -151,13 +151,28 @@ export const profileRouter = createTRPCRouter({
         return input.providedProfile;
       }
 
+      if (input.profileId) {
+        const profile = await ctx.db.profile.findUnique({
+          where: { id: input.profileId },
+          ...FullProfileInclude,
+        });
+
+        if (!profile) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Profil non trouvé',
+          });
+        }
+
+        return profile;
+      }
+
       try {
         const user = await ctx.db.user.findFirst({
           where: {
             ...(input.userId && { id: input.userId }),
             ...(input.email && { email: input.email }),
             ...(input.phoneNumber && { phoneNumber: input.phoneNumber }),
-            ...(input.profileId && { profileId: input.profileId }),
           },
           include: {
             profile: {
