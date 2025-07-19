@@ -10,7 +10,7 @@ import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client'
 
 // Imports pour le DataTable
 import type { ColumnDef } from '@tanstack/react-table';
-import { FileText } from 'lucide-react';
+import { Eye, FileText } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { DialogClose } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
@@ -51,31 +51,14 @@ import {
 } from '@/components/ui/sheet';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
+import type { RequestListItem } from '@/server/api/routers/requests/types';
 
 // Types pour les agents
 type Agent = {
   id: string;
   name: string;
   email?: string;
-};
-
-// Types pour les données de la table
-type ServiceRequestListItem = {
-  id: string;
-  status: RequestStatus;
-  priority: ServicePriority;
-  serviceCategory: ServiceCategory;
-  createdAt: Date;
-  updatedAt: Date;
-  submittedBy: { id: string; email: string | null; name?: string | null } | null;
-  requestedFor: {
-    firstName: string | null;
-    lastName: string | null;
-    identityPicture?: { fileUrl: string } | null;
-  } | null;
-  assignedTo: { id: string; name?: string | null; email: string | null } | null;
-  organization: { id: string; name: string } | null;
-  country: { code: string; name: string } | null;
 };
 
 // Function to adapt search parameters for service requests
@@ -124,7 +107,7 @@ export default function RequestsPageClient() {
     handleParamsChange,
     handleSortingChange,
     handlePaginationChange,
-  } = useTableSearchParams<ServiceRequestListItem, RequestFilters>(adaptSearchParams);
+  } = useTableSearchParams<RequestListItem, RequestFilters>(adaptSearchParams);
 
   const t = useTranslations();
   const { formatDate } = useDateLocale();
@@ -155,8 +138,8 @@ export default function RequestsPageClient() {
   );
 
   // Définition des colonnes de la table
-  const columns = useMemo<ColumnDef<ServiceRequestListItem>[]>(() => {
-    const tableColumns: ColumnDef<ServiceRequestListItem>[] = [
+  const columns = useMemo<ColumnDef<RequestListItem>[]>(() => {
+    const tableColumns: ColumnDef<RequestListItem>[] = [
       {
         id: 'id',
         header: ({ table }) => (
@@ -211,7 +194,7 @@ export default function RequestsPageClient() {
         header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
         enableSorting: false,
         cell: ({ row }) => {
-          const url = row.original.requestedFor?.identityPicture?.fileUrl as string;
+          const url = row.original.requestedFor?.identityPicture?.fileUrl || '';
           return url ? (
             <Avatar className="bg-muted">
               <AvatarImage src={url} />
@@ -229,7 +212,7 @@ export default function RequestsPageClient() {
             title={t('inputs.firstName.label')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'firstName' as keyof ServiceRequestListItem,
+                field: 'firstName' as keyof RequestListItem,
                 order: direction,
               })
             }
@@ -257,7 +240,7 @@ export default function RequestsPageClient() {
             title={t('inputs.lastName.label')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'lastName' as keyof ServiceRequestListItem,
+                field: 'lastName' as keyof RequestListItem,
                 order: direction,
               })
             }
@@ -408,7 +391,7 @@ export default function RequestsPageClient() {
             title={t('requests.table.assigned_to')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'assignedTo' as keyof ServiceRequestListItem,
+                field: 'assignedTo' as keyof RequestListItem,
                 order: direction,
               })
             }
@@ -461,15 +444,31 @@ export default function RequestsPageClient() {
         />
       ),
       cell: ({ row }) => (
-        <Button variant="outline" size="sm" className="min-w-max" asChild>
-          <Link
-            onClick={(e) => e.stopPropagation()}
-            href={ROUTES.dashboard.service_requests(row.original.id)}
-          >
-            <FileText className="size-4 mr-2" />
-            {t('common.actions.consult')}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                className={
+                  buttonVariants({ variant: 'ghost', size: 'icon' }) +
+                  ' aspect-square p-0'
+                }
+                href={ROUTES.dashboard.service_requests(row.original.id)}
+              >
+                <FileText className="size-icon" />
+                <span className="sr-only">{t('common.actions.consult')}</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <span>{t('common.actions.consult')}</span>
+            </TooltipContent>
+          </Tooltip>
+
+          <ProfileLookupSheet
+            profileId={row.original.requestedFor?.id}
+            icon={<Eye className="size-icon" />}
+            tooltipContent="Aperçu du profil"
+          />
+        </div>
       ),
     });
 
@@ -477,10 +476,10 @@ export default function RequestsPageClient() {
   }, [t, user, formatDate, statuses, handleSortingChange, agents, refetch]);
 
   // Définition des filtres
-  const filters = useMemo<FilterOption<ServiceRequestListItem>[]>(() => {
+  const filters = useMemo<FilterOption<RequestListItem>[]>(() => {
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
 
-    const filterOptions: FilterOption<ServiceRequestListItem>[] = [
+    const filterOptions: FilterOption<RequestListItem>[] = [
       {
         type: 'search',
         property: 'search',
@@ -604,7 +603,7 @@ export default function RequestsPageClient() {
 
 // Composant pour les changements de statut en masse
 type StatusChangeFormProps = {
-  selectedRows: ServiceRequestListItem[];
+  selectedRows: RequestListItem[];
   onSuccess: () => void;
 };
 
@@ -703,7 +702,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
 
 // Composant pour l'assignation en masse
 type AssignToChangeFormProps = {
-  selectedRows: ServiceRequestListItem[];
+  selectedRows: RequestListItem[];
   agents: Agent[];
   onSuccess: () => void;
 };

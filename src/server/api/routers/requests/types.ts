@@ -10,6 +10,7 @@ export type RequestsRouterOutputs = inferRouterOutputs<typeof requestsRouter>;
 // Types spécifiques pour getList
 export type RequestListQueryInput = RequestsRouterInputs['getList'];
 export type RequestListQueryResult = RequestsRouterOutputs['getList'];
+export type RequestListItem = RequestsRouterOutputs['getList']['items'][number];
 
 // Types pour getById
 export type GetRequestByIdInput = RequestsRouterInputs['getById'];
