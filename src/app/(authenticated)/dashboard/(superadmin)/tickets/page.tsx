@@ -6,10 +6,8 @@ import { api } from '@/trpc/react';
 import { PageContainer } from '@/components/layouts/page-container';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TicketDetailsDialog } from './_components/ticket-details-dialog';
-import { TicketResponseDialog } from './_components/ticket-response-dialog';
-import { TicketStatusDialog } from './_components/ticket-status-dialog';
-import { Eye, MessageSquare, Edit, Star } from 'lucide-react';
+import { TicketActionSheet } from './_components/ticket-action-sheet';
+import { Eye, Settings, Star } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -125,9 +123,7 @@ export default function TicketsPage() {
   } = useTableSearchParams<FeedbackWithRelations, TicketFilters>(adaptSearchParams);
 
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [showResponseDialog, setShowResponseDialog] = useState(false);
-  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showActionSheet, setShowActionSheet] = useState(false);
 
   // Requête pour récupérer la liste des tickets
   const {
@@ -146,24 +142,6 @@ export default function TicketsPage() {
       staleTime: 5 * 60 * 1000,
     },
   );
-
-  // Mutation pour changer le statut
-  const updateStatusMutation = api.feedback.updateStatus.useMutation({
-    onSuccess: () => {
-      toast({
-        variant: 'success',
-        title: t('statusUpdate.success'),
-      });
-      refetch();
-      setShowStatusDialog(false);
-    },
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: t('statusUpdate.error'),
-      });
-    },
-  });
 
   // Options pour les filtres
   const statuses = useMemo(
@@ -420,59 +398,18 @@ export default function TicketsPage() {
           />
         ),
         cell: ({ row }) => (
-          <DataTableRowActions
-            actions={[
-              {
-                component: (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      setSelectedTicket(row.original.id);
-                      setShowDetailsDialog(true);
-                    }}
-                  >
-                    <Eye className="size-icon" />
-                    {t('feedback.admin.tickets.list.actions.view')}
-                  </Button>
-                ),
-              },
-              {
-                component: (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      setSelectedTicket(row.original.id);
-                      setShowResponseDialog(true);
-                    }}
-                  >
-                    <MessageSquare className="size-icon" />
-                    {t('feedback.admin.tickets.list.actions.respond')}
-                  </Button>
-                ),
-              },
-              {
-                component: (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      setSelectedTicket(row.original.id);
-                      setShowStatusDialog(true);
-                    }}
-                  >
-                    <Edit className="size-icon" />
-                    {t('feedback.admin.tickets.list.actions.changeStatus')}
-                  </Button>
-                ),
-              },
-            ]}
-            row={row}
-          />
+          <Button
+            size="sm"
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => {
+              setSelectedTicket(row.original.id);
+              setShowActionSheet(true);
+            }}
+            leftIcon={<Settings className="size-icon" />}
+          >
+            Gérer
+          </Button>
         ),
       },
     ],
@@ -516,15 +453,6 @@ export default function TicketsPage() {
     [t, params, statuses, categories, handleParamsChange],
   );
 
-  const handleStatusUpdate = (status: FeedbackStatus) => {
-    if (selectedTicket) {
-      updateStatusMutation.mutate({
-        feedbackId: selectedTicket,
-        status,
-      });
-    }
-  };
-
   return (
     <PageContainer
       title={t('feedback.admin.tickets.title')}
@@ -549,32 +477,13 @@ export default function TicketsPage() {
         onRefresh={() => refetch()}
       />
 
-      {/* Dialogs */}
-      {selectedTicket && (
-        <>
-          <TicketDetailsDialog
-            ticketId={selectedTicket}
-            open={showDetailsDialog}
-            onOpenChange={setShowDetailsDialog}
-          />
-          <TicketResponseDialog
-            ticketId={selectedTicket}
-            open={showResponseDialog}
-            onOpenChange={setShowResponseDialog}
-            onSuccess={() => {
-              refetch();
-              setShowResponseDialog(false);
-            }}
-          />
-          <TicketStatusDialog
-            ticketId={selectedTicket}
-            open={showStatusDialog}
-            onOpenChange={setShowStatusDialog}
-            onStatusUpdate={handleStatusUpdate}
-            isLoading={updateStatusMutation.isPending}
-          />
-        </>
-      )}
+      {/* Action Sheet */}
+      <TicketActionSheet
+        ticketId={selectedTicket}
+        open={showActionSheet}
+        onOpenChange={setShowActionSheet}
+        onSuccess={() => refetch()}
+      />
     </PageContainer>
   );
 }

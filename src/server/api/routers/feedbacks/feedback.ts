@@ -178,8 +178,6 @@ export const feedbackRouter = createTRPCRouter({
           ...(organizationId && { organizationId }),
         };
 
-        const allFeedbacks = await ctx.db.feedback.findMany();
-
         const [feedbacks, total] = await Promise.all([
           ctx.db.feedback.findMany({
             where,
@@ -225,8 +223,6 @@ export const feedbackRouter = createTRPCRouter({
           }),
           ctx.db.feedback.count({ where }),
         ]);
-
-        console.log({ allFeedbacks });
 
         return {
           feedbacks,
