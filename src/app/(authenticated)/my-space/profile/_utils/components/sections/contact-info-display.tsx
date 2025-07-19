@@ -13,7 +13,7 @@ interface ContactInfoDisplayProps {
 
 export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
   const t_profile = useTranslations('profile.fields');
-  const t_assets = useTranslations('assets');
+  const t_inputs = useTranslations('inputs');
 
   return (
     <div className="space-y-6">
@@ -77,8 +77,8 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
                 label="Relation"
                 value={
                   profile.residentContact.relationship
-                    ? t_assets(
-                        `family_link.${profile.residentContact.relationship.toLowerCase()}`,
+                    ? t_inputs(
+                        `familyLink.options.${profile.residentContact.relationship}`,
                       )
                     : undefined
                 }
@@ -127,8 +127,8 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
                 label="Relation"
                 value={
                   profile.homeLandContact.relationship
-                    ? t_assets(
-                        `family_link.${profile.homeLandContact.relationship.toLowerCase()}`,
+                    ? t_inputs(
+                        `familyLink.options.${profile.homeLandContact.relationship}`,
                       )
                     : undefined
                 }

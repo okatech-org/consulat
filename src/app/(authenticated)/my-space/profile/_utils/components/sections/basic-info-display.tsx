@@ -25,7 +25,7 @@ interface BasicInfoDisplayProps {
 
 export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
   const t_profile = useTranslations('profile.fields');
-  const t_assets = useTranslations('assets');
+  const t_inputs = useTranslations('inputs');
   const { formatDate } = useDateLocale();
 
   return (
@@ -57,9 +57,7 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
         <InfoField
           label={t_profile('gender')}
           value={
-            profile.gender
-              ? t_assets(`gender.${profile.gender.toLowerCase()}`)
-              : undefined
+            profile.gender ? t_inputs(`gender.options.${profile.gender}`) : undefined
           }
           icon={<User className="size-4" />}
           required
@@ -122,9 +120,7 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
           label={t_profile('acquisitionMode')}
           value={
             profile.acquisitionMode
-              ? t_assets(
-                  `nationality_acquisition.${profile.acquisitionMode.toLowerCase()}`,
-                )
+              ? t_inputs(`nationality_acquisition.options.${profile.acquisitionMode}`)
               : undefined
           }
           icon={<Flag className="size-4" />}

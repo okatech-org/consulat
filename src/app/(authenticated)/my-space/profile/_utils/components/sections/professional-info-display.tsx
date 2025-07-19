@@ -12,7 +12,7 @@ interface ProfessionalInfoDisplayProps {
 
 export function ProfessionalInfoDisplay({ profile }: ProfessionalInfoDisplayProps) {
   const t_profile = useTranslations('profile.fields');
-  const t_assets = useTranslations('assets');
+  const t_inputs = useTranslations('inputs');
 
   return (
     <div className="space-y-6">
@@ -21,7 +21,7 @@ export function ProfessionalInfoDisplay({ profile }: ProfessionalInfoDisplayProp
         label={t_profile('workStatus')}
         value={
           profile.workStatus
-            ? t_assets(`work_status.${profile.workStatus.toLowerCase()}`)
+            ? t_inputs(`workStatus.options.${profile.workStatus}`)
             : undefined
         }
         icon={<Briefcase className="size-4" />}

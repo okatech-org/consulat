@@ -12,7 +12,7 @@ interface FamilyInfoDisplayProps {
 
 export function FamilyInfoDisplay({ profile }: FamilyInfoDisplayProps) {
   const t_profile = useTranslations('profile.fields');
-  const t_assets = useTranslations('assets');
+  const t_inputs = useTranslations('inputs');
 
   return (
     <div className="space-y-6">
@@ -22,7 +22,7 @@ export function FamilyInfoDisplay({ profile }: FamilyInfoDisplayProps) {
           label={t_profile('maritalStatus')}
           value={
             profile.maritalStatus
-              ? t_assets(`marital_status.${profile.maritalStatus.toLowerCase()}`)
+              ? t_inputs(`maritalStatus.options.${profile.maritalStatus}`)
               : undefined
           }
           icon={<Heart className="size-4" />}
