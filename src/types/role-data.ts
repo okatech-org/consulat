@@ -101,7 +101,7 @@ export interface AdminData extends BaseUserData {
     countries: Array<{ id: string; name: string; code: string }>;
     _count: { services: number; agents: number };
   } | null;
-  adminStats: AdminStats;
+  adminStats: AdminStats['stats'];
   recentData: {
     recentRegistrations: Array<{
       id: string;

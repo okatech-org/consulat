@@ -19,15 +19,14 @@ import { useCurrentUser } from '@/hooks/use-role-data';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { FlagIcon } from './flag-icon';
 import { useNavigation } from '@/hooks/use-navigation';
-import type { SessionUser } from '@/types/user';
 import Image from 'next/image';
 import { NavMain } from './nav-main';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const appName = env.NEXT_PUBLIC_APP_NAME;
   const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
-  const { user: currentUser } = useCurrentUser();
-  const { menu } = useNavigation(currentUser as SessionUser);
+  const { user } = useCurrentUser();
+  const { menu } = useNavigation();
 
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
@@ -38,8 +37,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href={ROUTES.base}>
                 {appLogo && <Image src={appLogo} alt={appName} width={32} height={32} />}
                 <span className="text-sm font-semibold">{appName}</span>
-                {currentUser?.countryCode && (
-                  <FlagIcon countryCode={currentUser?.countryCode as CountryCode} />
+                {user?.countryCode && (
+                  <FlagIcon countryCode={user?.countryCode as CountryCode} />
                 )}
               </Link>
             </SidebarMenuButton>
