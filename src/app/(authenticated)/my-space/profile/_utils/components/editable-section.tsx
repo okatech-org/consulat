@@ -1,42 +1,91 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Edit, Save, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
 interface EditableSectionProps {
   children: React.ReactNode;
+  previewContent?: React.ReactNode;
   onSave?: () => Promise<void>;
-  isEditing: boolean;
   isLoading?: boolean;
   allowEdit?: boolean;
   id?: string;
+  defaultEditing?: boolean;
 }
 
 export function EditableSection({
   children,
+  previewContent,
   onSave,
-  isEditing = true,
   isLoading = false,
   allowEdit = true,
   id,
+  defaultEditing = false,
 }: EditableSectionProps) {
-  const t = useTranslations('profile');
+  const t = useTranslations('profile.actions');
+  const [isEditing, setIsEditing] = useState(defaultEditing);
+
+  const handleSave = async () => {
+    if (onSave) {
+      await onSave();
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
 
   return (
     <div className="flex flex-col gap-4" id={id}>
-      {children}
-
-      {allowEdit && (
-        <Button
-          variant="default"
-          onClick={onSave}
-          className="h-8 px-2"
-          leftIcon={<Save className="size-4" />}
-          loading={isLoading || isEditing}
-        >
-          {t('actions.save')}
-        </Button>
+      {isEditing ? (
+        <>
+          {children}
+          {allowEdit && (
+            <div className="flex gap-3">
+              <Button
+                variant="default"
+                onClick={handleSave}
+                className="h-10 px-4"
+                leftIcon={<Save className="size-4" />}
+                loading={isLoading}
+              >
+                {t('save')}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                className="h-10 px-4"
+                leftIcon={<X className="size-4" />}
+                disabled={isLoading}
+              >
+                {t('cancel')}
+              </Button>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {previewContent || children}
+          {allowEdit && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                onClick={handleEdit}
+                className="h-10 px-4"
+                leftIcon={<Edit className="size-4" />}
+              >
+                {t('edit')}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

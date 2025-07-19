@@ -8,9 +8,10 @@ import { ContactInfoSchema, type ContactInfoFormData } from '@/schemas/registrat
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
+import { ContactInfoDisplay } from './contact-info-display';
 
 interface ContactInfoSectionProps {
   profile: FullProfile;
@@ -26,12 +27,11 @@ export function ContactInfoSection({
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ContactInfoFormData>({
     resolver: zodResolver(ContactInfoSchema),
-    // @ts-expect-error -- TODO: fic the don't accept null values
+    // @ts-expect-error -- TODO: fix the don't accept null values
     defaultValues: {
       ...profile,
       phoneNumber: profile.phoneNumber ?? '+33-',
@@ -86,7 +86,6 @@ export function ContactInfoSection({
         description: t_messages('success.update_description'),
         variant: 'success',
       });
-      setIsEditing(false);
       setIsLoading(false);
       onSave();
     }
@@ -94,13 +93,14 @@ export function ContactInfoSection({
 
   return (
     <EditableSection
-      isEditing={isEditing}
       onSave={handleSave}
       isLoading={isLoading}
       id="contact-info"
+      previewContent={<ContactInfoDisplay profile={profile} />}
     >
       <ContactInfoForm
         profile={profile}
+        // @ts-expect-error - Type conflict in React Hook Form versions
         form={form}
         onSubmitAction={handleSave}
         isLoading={isLoading}

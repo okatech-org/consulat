@@ -31,9 +31,8 @@ export const sendOTPViaNotifications: OTPSendFunction = async (
     }
 
     if (channel === 'sms') {
-      // Utiliser le service SMS existant (Twilio/Vonage)
       const { error, data } = await tryCatch(
-        sendSMS(target, `Votre code de vérification : ${code}`),
+        sendSMS(target, `Votre code de connexion sur consulat.ga : ${code}`),
       );
 
       if (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -8,9 +8,10 @@ import { FamilyInfoSchema, type FamilyInfoFormData } from '@/schemas/registratio
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from '@/actions/profile';
-import { FullProfile } from '@/types';
+import type { FullProfile } from '@/types';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { FamilyInfoForm } from '@/components/registration/family-info';
+import { FamilyInfoDisplay } from './family-info-display';
 
 interface FamilyInfoSectionProps {
   profile: FullProfile;
@@ -26,7 +27,6 @@ export function FamilyInfoSection({
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FamilyInfoFormData>({
@@ -61,7 +61,6 @@ export function FamilyInfoSection({
         description: t_messages('success.update_description'),
         variant: 'success',
       });
-      setIsEditing(false);
       setIsLoading(false);
       onSave();
     }
@@ -69,12 +68,17 @@ export function FamilyInfoSection({
 
   return (
     <EditableSection
-      isEditing={isEditing}
       onSave={handleSave}
       isLoading={isLoading}
       id="family-info"
+      previewContent={<FamilyInfoDisplay profile={profile} />}
     >
-      <FamilyInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
+      <FamilyInfoForm
+        // @ts-expect-error - Type conflict in React Hook Form versions
+        form={form}
+        onSubmit={handleSave}
+        isLoading={isLoading}
+      />
     </EditableSection>
   );
 }
