@@ -60,7 +60,9 @@ export type GetByParentInput = ProfilesRouterInputs['getByParent'];
 export type ProfilesByParent = ProfilesRouterOutputs['getByParent'];
 
 // Types pour getList
-export type ProfilesList = ProfilesRouterOutputs['getList'];
+export type ProfilesListResult = ProfilesRouterOutputs['getList'];
+export type ProfilesListInput = ProfilesRouterInputs['getList'];
+export type ProfilesListItem = ProfilesRouterOutputs['getList']['items'][number];
 
 // Types pour sendMessage
 export type SendMessageInput = ProfilesRouterInputs['sendMessage'];

@@ -1,6 +1,5 @@
 'use client';
 
-// Type declarations for File System Access API
 declare global {
   interface Window {
     showDirectoryPicker(options?: {
@@ -28,16 +27,10 @@ declare global {
 }
 
 import { PageContainer } from '@/components/layouts/page-container';
-import type {
-  GetProfilesOptions,
-  PaginatedProfiles,
-  ProfilesArrayItem,
-  ProfilesFilters,
-} from '@/components/profile/types';
+import type { ProfilesArrayItem, ProfilesFilters } from '@/components/profile/types';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getProfiles } from '@/components/profile/actions';
+import { useMemo, useState } from 'react';
 import { DataTable } from '@/components/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -92,6 +85,7 @@ import {
 import type { FullProfileUpdateFormData } from '@/schemas/registration';
 import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { api } from '@/trpc/react';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -131,36 +125,21 @@ export default function ProfilesPage() {
     handlePaginationChange,
     handleSortingChange,
   } = useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<PaginatedProfiles>({
-    items: [],
-    total: 0,
-  });
-
-  const fetchProfiles = useCallback(async () => {
-    setIsLoading(true);
-
-    const defaultOptions: GetProfilesOptions = {
-      page: 1,
-      limit: 10,
-    };
-
-    const requestsOptions: GetProfilesOptions = {
-      ...defaultOptions,
+  const {
+    isLoading,
+    data: result,
+    refetch,
+  } = api.profile.getList.useQuery(
+    {
+      page: pagination.page,
+      limit: pagination.limit,
+      sort: sorting,
       ...params,
-      ...pagination,
-      ...sorting,
-    };
-
-    const profiles = await getProfiles(requestsOptions);
-    setResults(profiles);
-
-    setIsLoading(false);
-  }, [params, pagination, sorting]);
-
-  useEffect(() => {
-    fetchProfiles();
-  }, [fetchProfiles]);
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+    },
+  );
 
   const statuses = useMemo(
     () =>
@@ -217,7 +196,7 @@ export default function ProfilesPage() {
             />
 
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger asChild>
                 <Button
                   variant="link"
                   size="sm"
@@ -518,7 +497,7 @@ export default function ProfilesPage() {
                     selectedRows={table
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
-                    onSuccess={fetchProfiles}
+                    onSuccess={() => refetch()}
                   />
                 ),
               },
@@ -528,7 +507,7 @@ export default function ProfilesPage() {
                     selectedRows={table
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
-                    onSuccess={fetchProfiles}
+                    onSuccess={() => refetch()}
                   />
                 ),
               },
@@ -593,7 +572,7 @@ export default function ProfilesPage() {
                       <DialogHeader>
                         <DialogTitle>{t('common.actions.edit')}</DialogTitle>
                       </DialogHeader>
-                      <QuickEditForm profile={row.original} onSuccess={fetchProfiles} />
+                      <QuickEditForm profile={row.original} onSuccess={() => refetch()} />
                     </DialogContent>
                   </Dialog>
                 ),
@@ -604,7 +583,7 @@ export default function ProfilesPage() {
         ),
       },
     ],
-    [handleSortingChange, t, categories, statuses, genders, fetchProfiles],
+    [handleSortingChange, t, categories, statuses, genders, refetch],
   );
 
   const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
@@ -661,9 +640,9 @@ export default function ProfilesPage() {
       <DataTable
         isLoading={isLoading}
         columns={columns}
-        data={results.items}
+        data={result?.items || []}
         filters={filters}
-        totalCount={results.total}
+        totalCount={result?.total || 0}
         pageIndex={pagination.page - 1}
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
@@ -683,6 +662,7 @@ export default function ProfilesPage() {
           { id: 'id', position: 'left' },
           { id: 'actions', position: 'right' },
         ]}
+        onRefresh={() => refetch()}
       />
     </PageContainer>
   );

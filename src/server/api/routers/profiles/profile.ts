@@ -7,7 +7,11 @@ import {
   CreateProfileSchema,
   BasicInfoSchema,
 } from '@/schemas/registration';
-import { FullProfileInclude, DashboardProfileSelect } from '@/types/profile';
+import {
+  FullProfileInclude,
+  DashboardProfileSelect,
+  BaseProfileInclude,
+} from '@/types/profile';
 import {
   createUserProfile,
   updateProfile as updateProfileAction,
@@ -16,7 +20,7 @@ import {
 import { getProfileRegistrationRequest } from '@/lib/user/getters';
 import type { RouterOutputs } from '@/trpc/react';
 import { getUserSession } from '@/lib/getters';
-import { NotificationType, ParentalRole, RequestStatus } from '@prisma/client';
+import { NotificationType, ParentalRole, Prisma, RequestStatus } from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { revalidatePath } from 'next/cache';
@@ -29,6 +33,9 @@ import {
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import type { OrganizationMetadataSettings } from '@/schemas/organization';
 import { db } from '@/server/db';
+import { GetProfileListInput, ProfileListItemSelect } from './misc';
+import { adaptProfilesListing } from '@/components/profile/adapters';
+import { hasRole } from '@/lib/permissions/utils';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil optimisé pour le dashboard
@@ -449,44 +456,80 @@ export const profileRouter = createTRPCRouter({
   /**
    * Récupérer la liste des profils publics
    */
-  getList: publicProcedure.query(async ({ ctx }) => {
-    try {
-      const profiles = await ctx.db.profile.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          birthDate: true,
-          residenceCountyCode: true,
-          identityPicture: {
-            select: {
-              fileUrl: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              email: true,
-            },
-          },
-        },
-        where: {
-          firstName: {
-            not: null,
-          },
-          lastName: {
-            not: null,
-          },
-          status: {
-            in: ['VALIDATED', 'COMPLETED'], // Seulement les profils validés
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+  getList: publicProcedure.input(GetProfileListInput).query(async ({ ctx, input }) => {
+    const user = ctx.session?.user;
 
-      return profiles;
+    if (!user) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Vous devez être connecté pour accéder à cette ressource',
+      });
+    }
+
+    try {
+      const {
+        search,
+        status,
+        category,
+        page = 1,
+        limit = 10,
+        organizationId,
+        gender,
+        sort,
+      } = input;
+
+      const where: Prisma.ProfileWhereInput = {};
+
+      // Apply filters
+      if (search) {
+        where.OR = [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { phoneNumber: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (status && status.length > 0) {
+        where.status = { in: status };
+      } else {
+        where.status = { not: 'DRAFT' };
+      }
+
+      if (category && category.length > 0) {
+        where.category = { in: category };
+      }
+
+      if (gender && gender.length > 0) {
+        where.gender = { in: gender };
+      }
+
+      // Apply organization filter for admins
+      if (hasRole(user, 'ADMIN') && organizationId) {
+        where.assignedOrganizationId = { in: organizationId };
+      }
+
+      const result = await ctx.db.$transaction([
+        ctx.db.profile.count({ where }),
+        ctx.db.profile.findMany({
+          where,
+          select: ProfileListItemSelect,
+          ...(sort && {
+            orderBy: {
+              [sort.field as keyof typeof BaseProfileInclude.include]: sort.order,
+            },
+          }),
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+      ]);
+
+      const [total, items] = result;
+
+      return {
+        items: adaptProfilesListing(items),
+        total,
+      };
     } catch (error) {
       console.error('Error fetching public profiles:', error);
       throw new TRPCError({
