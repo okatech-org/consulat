@@ -246,6 +246,7 @@ export default {
       expiring_soon: '{count} expirent bientôt',
       completed_requests: 'Demandes traitées',
       processing_requests: 'Demandes en traitement',
+      pending_requests: 'Demandes en attente',
       validated_profiles: 'Inscriptions validées',
       pending_profiles: 'Inscriptions en attente',
     },

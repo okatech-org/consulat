@@ -16,6 +16,7 @@ import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/compo
 import type { FullProfile } from '@/types/profile';
 import { ChildProfileTabs } from '@/app/(authenticated)/my-space/children/_components/profile-tabs';
 import { api } from '@/trpc/react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 interface ProfileLookupSheetProps {
   // Mode direct : profil fourni directement
@@ -32,7 +33,10 @@ interface ProfileLookupSheetProps {
   requestId?: string;
   triggerLabel?: string;
   triggerVariant?: 'default' | 'outline' | 'ghost';
+  triggerIcon?: React.ReactNode;
   children?: React.ReactNode;
+  tooltipContent?: string;
+  icon?: React.ReactNode;
 }
 
 export function ProfileLookupSheet({
@@ -44,7 +48,10 @@ export function ProfileLookupSheet({
   requestId,
   triggerLabel,
   triggerVariant = 'outline',
+  triggerIcon,
   children,
+  tooltipContent,
+  icon,
 }: ProfileLookupSheetProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
@@ -73,13 +80,33 @@ export function ProfileLookupSheet({
       return children;
     }
 
+    if (icon && tooltipContent) {
+      return (
+        <Button variant="ghost" size="icon" className="aspect-square p-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2">
+                {icon}
+                <span className="sr-only">
+                  {triggerLabel || t('profile.lookup.view_profile')}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <span>{tooltipContent}</span>
+            </TooltipContent>
+          </Tooltip>
+        </Button>
+      );
+    }
+
     const label = triggerLabel || t('profile.lookup.view_profile');
 
     return (
       <Button
         variant={triggerVariant}
         size="sm"
-        leftIcon={<User className="size-icon" />}
+        leftIcon={triggerIcon || <User className="size-icon" />}
       >
         {label}
       </Button>
@@ -128,9 +155,13 @@ export function ProfileLookupSheet({
       return (
         <div className="space-y-4">
           {fetchedProfile.category === 'MINOR' ? (
-            <ChildProfileTabs profile={fetchedProfile} requestId={requestId} />
+            <ChildProfileTabs
+              profile={fetchedProfile}
+              requestId={requestId}
+              noTabs={true}
+            />
           ) : (
-            <ProfileTabs profile={fetchedProfile} requestId={requestId} />
+            <ProfileTabs profile={fetchedProfile} requestId={requestId} noTabs={true} />
           )}
         </div>
       );

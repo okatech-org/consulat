@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Country } from '@/types/country';
-import { countrySchema, CountrySchemaInput } from '@/schemas/country';
+import type { Country } from '@/types/country';
+import { countrySchema, type CountrySchemaInput } from '@/schemas/country';
 import {
   Form,
   FormControl,
@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { updateCountry } from '@/actions/countries';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { CountrySelect } from '@/components/ui/country-select';

@@ -164,7 +164,7 @@ export const feedbackRouter = createTRPCRouter({
       if (ctx.session.user.role !== 'SUPER_ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          message: "Vous n'avez pas les permissions pour accéder à cette page.",
         });
       }
 
@@ -327,7 +327,7 @@ export const feedbackRouter = createTRPCRouter({
               await notify({
                 userId: feedback.user?.id || 'anonymous',
                 type: NotificationType.FEEDBACK,
-                title: `Réponse à votre feedback : ${feedback.subject}`,
+                title: `Nouveau message de la plateforme consula.ga \n Réponse à votre retour utilisateur au sujet de :  ${feedback.subject}`,
                 message: response,
                 channels: notificationChannels,
                 email: feedback.user?.email || feedback.email || undefined,

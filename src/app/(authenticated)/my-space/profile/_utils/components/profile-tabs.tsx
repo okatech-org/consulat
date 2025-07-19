@@ -16,14 +16,16 @@ import type { ServiceRequest } from '@prisma/client';
 import { RequestsSection } from './sections/requests-section';
 import { MobileProfileNavigation } from './mobile-profile-navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useState } from 'react';
 
 type ProfileTabsProps = {
   profile: FullProfile;
   requestId?: string;
   requests?: ServiceRequest[];
+  noTabs?: boolean;
 };
 
-export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) {
+export function ProfileTabs({ profile, requestId, requests, noTabs }: ProfileTabsProps) {
   const t = useTranslations('profile');
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -103,6 +105,7 @@ export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) 
   type Tab = (typeof profileTabs)[number]['id'];
 
   const { currentTab, handleTabChange } = useTabs<Tab>('tab', 'basic-info');
+  const [localTabs, setLocalTabs] = useState<Tab>('basic-info');
 
   // Use Accordion on mobile, Tabs on desktop
   if (isMobile) {
@@ -118,8 +121,8 @@ export function ProfileTabs({ profile, requestId, requests }: ProfileTabsProps) 
   return (
     <Tabs
       className={'col-span-full lg:col-span-6'}
-      value={currentTab}
-      onValueChange={handleTabChange}
+      value={noTabs ? localTabs : currentTab}
+      onValueChange={noTabs ? setLocalTabs : handleTabChange}
     >
       <TabsList className="mb-2 w-full flex-wrap !h-auto">
         <div className="flex items-center flex-wrap">

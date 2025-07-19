@@ -7,11 +7,22 @@ import { toast } from '@/hooks/use-toast';
  * Hook pour récupérer la liste des profils publics
  */
 export function usePublicProfiles() {
-  return api.profile.getList.useQuery(undefined, {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 2,
-  });
+  return api.profile.getList.useQuery(
+    {
+      page: 1,
+      limit: 10,
+      status: ['VALIDATED'],
+      sort: {
+        field: 'createdAt',
+        order: 'desc',
+      },
+    },
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+      retry: 2,
+    },
+  );
 }
 
 /**

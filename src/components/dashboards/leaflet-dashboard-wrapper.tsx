@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import type { ProfileLocation } from '@/actions/dashboard';
+import type { ProfilesGeographicData } from '@/server/api/routers/dashboard/types';
 
 interface LeafletDashboardWrapperProps {
-  data: ProfileLocation[];
+  data: ProfilesGeographicData;
   height?: string;
 }
 

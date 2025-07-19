@@ -20,42 +20,40 @@ export function useRoleData<T extends RoleData = RoleData>(): T | null {
 // Hooks spécifiques par rôle avec type guards
 export function useUserData(): UserData {
   const data = useRoleData();
-  if (!data || data.role !== 'USER') {
-    throw new Error(
-      'useUserData peut seulement être utilisé par un utilisateur avec le rôle USER',
-    );
+  if (data?.role !== 'USER') {
+    throw new Error("Vous n'avez pas les permissions pour accéder à cette page.");
   }
   return data;
 }
 
 export function useAgentData(): AgentData {
   const data = useRoleData();
-  if (!data || !['AGENT', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'].includes(data.role)) {
-    throw new Error('useAgentData nécessite au minimum le rôle AGENT');
+  if (data?.role !== 'AGENT') {
+    throw new Error("Vous n'avez pas les permissions pour accéder à cette page.");
   }
   return data as AgentData;
 }
 
 export function useManagerData(): ManagerData {
   const data = useRoleData();
-  if (!data || !['MANAGER', 'ADMIN', 'SUPER_ADMIN'].includes(data.role)) {
-    throw new Error('useManagerData nécessite au minimum le rôle MANAGER');
+  if (data?.role !== 'MANAGER') {
+    throw new Error("Vous n'avez pas les permissions pour accéder à cette page.");
   }
   return data as ManagerData;
 }
 
 export function useAdminData(): AdminData {
   const data = useRoleData();
-  if (!data || !['ADMIN', 'SUPER_ADMIN'].includes(data.role)) {
-    throw new Error('useAdminData nécessite au minimum le rôle ADMIN');
+  if (data?.role !== 'ADMIN') {
+    throw new Error("Vous n'avez pas les permissions pour accéder à cette page.");
   }
   return data as AdminData;
 }
 
 export function useSuperAdminData(): SuperAdminData {
   const data = useRoleData();
-  if (!data || data.role !== 'SUPER_ADMIN') {
-    throw new Error('useSuperAdminData nécessite le rôle SUPER_ADMIN');
+  if (data?.role !== 'SUPER_ADMIN') {
+    throw new Error("Vous n'avez pas les permissions pour accéder à cette page");
   }
   return data;
 }

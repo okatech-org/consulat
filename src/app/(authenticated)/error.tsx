@@ -13,6 +13,7 @@ import {
 import { AlertTriangle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
+import { PageContainer } from '@/components/layouts/page-container';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -46,8 +47,8 @@ export default function AuthenticatedError({ error, reset }: ErrorProps) {
     error?.message?.includes('auth') || error?.message?.includes('unauthorized');
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-lg">
+    <PageContainer className="h-screen w-screen flex items-center justify-center p-0">
+      <Card className="max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <AlertTriangle className="h-12 w-12 text-destructive" />
@@ -106,6 +107,6 @@ export default function AuthenticatedError({ error, reset }: ErrorProps) {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

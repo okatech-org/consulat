@@ -64,6 +64,7 @@ export default {
           status: 'Statut',
           category: 'Catégorie',
           organization: 'Organisation',
+          search: 'Rechercher...',
         },
         columns: {
           id: 'ID',
@@ -72,6 +73,7 @@ export default {
           status: 'Statut',
           rating: 'Note',
           user: 'Utilisateur',
+          organization: 'Organisation',
           createdAt: 'Créé le',
           actions: 'Actions',
         },
@@ -126,6 +128,18 @@ export default {
         cancel: 'Annuler',
         success: 'Statut mis à jour avec succès',
         error: 'Erreur lors de la mise à jour du statut',
+      },
+      bulk: {
+        statusUpdate: {
+          title: 'Changer le statut en lot',
+          success: '{count} tickets mis à jour avec succès',
+          error: 'Erreur lors de la mise à jour des tickets',
+        },
+        actions: {
+          cancel: 'Annuler',
+          save: 'Enregistrer',
+          saving: 'Enregistrement...',
+        },
       },
     },
     stats: {

@@ -1,6 +1,5 @@
 'use client';
 
-// Type declarations for File System Access API
 declare global {
   interface Window {
     showDirectoryPicker(options?: {
@@ -28,27 +27,21 @@ declare global {
 }
 
 import { PageContainer } from '@/components/layouts/page-container';
-import type {
-  GetProfilesOptions,
-  PaginatedProfiles,
-  ProfilesArrayItem,
-  ProfilesFilters,
-} from '@/components/profile/types';
+import type { ProfilesArrayItem, ProfilesFilters } from '@/components/profile/types';
+import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getProfiles } from '@/components/profile/actions';
+import { useMemo, useState } from 'react';
 import { DataTable } from '@/components/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
-import { FileText, Edit, Download, FolderOpen } from 'lucide-react';
+import { FileText, Edit, Download, FolderOpen, Eye } from 'lucide-react';
 import { RequestStatus, ProfileCategory, Gender } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import {
   Dialog,
@@ -89,8 +82,10 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import type { FullProfileUpdateFormData } from '@/schemas/registration';
-import { toast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { api } from '@/trpc/react';
+import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -130,36 +125,21 @@ export default function ProfilesPage() {
     handlePaginationChange,
     handleSortingChange,
   } = useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<PaginatedProfiles>({
-    items: [],
-    total: 0,
-  });
-
-  const fetchProfiles = useCallback(async () => {
-    setIsLoading(true);
-
-    const defaultOptions: GetProfilesOptions = {
-      page: 1,
-      limit: 10,
-    };
-
-    const requestsOptions: GetProfilesOptions = {
-      ...defaultOptions,
+  const {
+    isLoading,
+    data: result,
+    refetch,
+  } = api.profile.getList.useQuery(
+    {
+      page: pagination.page,
+      limit: pagination.limit,
+      sort: sorting,
       ...params,
-      ...pagination,
-      ...sorting,
-    };
-
-    const profiles = await getProfiles(requestsOptions);
-    setResults(profiles);
-
-    setIsLoading(false);
-  }, [params, pagination, sorting]);
-
-  useEffect(() => {
-    fetchProfiles();
-  }, [fetchProfiles]);
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+    },
+  );
 
   const statuses = useMemo(
     () =>
@@ -191,60 +171,54 @@ export default function ProfilesPage() {
   const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
     () => [
       {
-        id: 'select',
+        id: 'id',
         header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && 'indeterminate')
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-            className="translate-y-[2px]"
-          />
+          <label className="flex items-center gap-2 px-2 cursor-pointer">
+            <Checkbox
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && 'indeterminate')
+              }
+              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              aria-label="Select all"
+              className="translate-y-[2px]"
+            />
+            <span>ID</span>
+          </label>
         ),
         cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-            className="translate-y-[2px]"
-          />
+          <label className="flex items-center gap-2 px-2 cursor-pointer">
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+              className="translate-y-[2px]"
+            />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(row.original.id);
+                    toast.success('ID copié dans le presse-papiers');
+                  }}
+                >
+                  <span className="uppercase text-muted-foreground">
+                    {row.original.id.slice(0, 6)}...
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <span className="uppercase">{row.original.id}</span> (cliquez pour copier)
+              </TooltipContent>
+            </Tooltip>
+          </label>
         ),
         enableSorting: false,
         enableHiding: false,
-      },
-      {
-        accessorKey: 'id',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={'ID'}
-            sortHandler={(direction) =>
-              handleSortingChange({
-                field: 'id',
-                order: direction,
-              })
-            }
-            labels={{ asc: 'A-Z', desc: 'Z-A' }}
-          />
-        ),
-        cell: ({ row }) => (
-          <button
-            type="button"
-            className="text-muted-foreground cursor-pointer"
-            onClick={() => {
-              navigator.clipboard.writeText(row.original.id);
-              toast({
-                title: 'ID copié dans le presse-papiers',
-                variant: 'success',
-              });
-            }}
-          >
-            {row.original.id}
-          </button>
-        ),
-        enableSorting: false,
       },
       {
         accessorKey: 'cardNumber',
@@ -523,7 +497,7 @@ export default function ProfilesPage() {
                     selectedRows={table
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
-                    onSuccess={fetchProfiles}
+                    onSuccess={() => refetch()}
                   />
                 ),
               },
@@ -533,7 +507,7 @@ export default function ProfilesPage() {
                     selectedRows={table
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
-                    onSuccess={fetchProfiles}
+                    onSuccess={() => refetch()}
                   />
                 ),
               },
@@ -541,75 +515,61 @@ export default function ProfilesPage() {
           />
         ),
         cell: ({ row }) => (
-          <DataTableRowActions
-            actions={[
-              {
-                component: row.original.validationRequestId ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full justify-start"
-                    asChild
+          <div className="flex items-center gap-1">
+            {row.original.validationRequestId && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    className={
+                      buttonVariants({ variant: 'ghost', size: 'icon' }) +
+                      ' aspect-square p-0'
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    href={ROUTES.dashboard.service_requests(
+                      row.original.validationRequestId,
+                    )}
                   >
-                    <Link
-                      onClick={(e) => e.stopPropagation()}
-                      href={ROUTES.dashboard.service_requests(
-                        row.original.validationRequestId,
-                      )}
-                    >
-                      <FileText className="size-icon" />
-                      {'Voir la demande'}
-                    </Link>
-                  </Button>
-                ) : null,
-              },
-              {
-                component: (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full justify-start"
-                    asChild
-                  >
-                    <Link
-                      onClick={(e) => e.stopPropagation()}
-                      href={ROUTES.listing.profile(row.original.id)}
-                    >
-                      <FileText className="size-icon" />
-                      {t('common.actions.consult')}
-                    </Link>
-                  </Button>
-                ),
-              },
-              {
-                component: (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        size="sm"
-                        leftIcon={<Edit className="size-icon" />}
-                        variant="ghost"
-                        className="w-full justify-start"
-                      >
-                        {t('common.actions.edit')}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>{t('common.actions.edit')}</DialogTitle>
-                      </DialogHeader>
-                      <QuickEditForm profile={row.original} onSuccess={fetchProfiles} />
-                    </DialogContent>
-                  </Dialog>
-                ),
-              },
-            ]}
-            row={row}
-          />
+                    <FileText className="size-icon" />
+                    <span className="sr-only">Voir la demande</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>Voir la demande</span>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <ProfileLookupSheet
+              profileId={row.original.id}
+              icon={<Eye className="size-icon" />}
+              tooltipContent="Aperçu du profil"
+            />
+            <Dialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <Button size="icon" variant="ghost" className="aspect-square p-0">
+                      <Edit className="size-icon" />
+                      <span className="sr-only"> {t('common.actions.edit')}</span>
+                    </Button>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>Modification rapide</span>
+                </TooltipContent>
+              </Tooltip>
+
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{t('common.actions.edit')}</DialogTitle>
+                </DialogHeader>
+                <QuickEditForm profile={row.original} onSuccess={() => refetch()} />
+              </DialogContent>
+            </Dialog>
+          </div>
         ),
       },
     ],
-    [handleSortingChange, t, categories, statuses, genders, fetchProfiles],
+    [handleSortingChange, t, categories, statuses, genders, refetch],
   );
 
   const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
@@ -666,15 +626,14 @@ export default function ProfilesPage() {
       <DataTable
         isLoading={isLoading}
         columns={columns}
-        data={results.items}
+        data={result?.items || []}
         filters={filters}
-        totalCount={results.total}
+        totalCount={result?.total || 0}
         pageIndex={pagination.page - 1}
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         hiddenColumns={[
-          'id',
           'cardPin',
           'email',
           'shareUrl',
@@ -685,6 +644,11 @@ export default function ProfilesPage() {
           'category',
         ]}
         activeSorting={[sorting.field, sorting.order]}
+        sticky={[
+          { id: 'id', position: 'left' },
+          { id: 'actions', position: 'right' },
+        ]}
+        onRefresh={() => refetch()}
       />
     </PageContainer>
   );
@@ -724,24 +688,15 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
       const result = await tryCatch(updateProfile(profile.id, editedData as any));
 
       if (result.error) {
-        toast({
-          title: t('errors.common.unknown_error'),
-          variant: 'destructive',
-        });
+        toast.error(t('errors.common.unknown_error'));
         console.error(result.error);
         return;
       }
 
-      toast({
-        title: t('profile.update_success'),
-        variant: 'success',
-      });
+      toast.success(t('profile.update_success'));
       onSuccess();
     } catch (error) {
-      toast({
-        title: t('errors.common.unknown_error'),
-        variant: 'destructive',
-      });
+      toast.error(t('errors.common.unknown_error'));
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -751,20 +706,6 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="cardNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('inputs.cardNumber.label')}</FormLabel>
-              <FormControl>
-                <Input placeholder="123456" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="status"
@@ -835,17 +776,13 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
         );
       });
       await Promise.all(updatePromises);
-      toast({
-        title: t('common.success.bulk_update_success', { count: selectedRows.length }),
-        variant: 'success',
-      });
+      toast.success(
+        t('common.success.bulk_update_success', { count: selectedRows.length }),
+      );
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast({
-        title: t('common.errors.save_failed'),
-        variant: 'destructive',
-      });
+      toast.error(t('common.errors.save_failed'));
       console.error('Error updating profiles:', error);
     } finally {
       setIsSubmitting(false);
@@ -934,12 +871,9 @@ function ExportWithDirectoryForm({
 
     // Check if File System Access API is supported
     if (!('showDirectoryPicker' in window)) {
-      toast({
-        title: 'Fonctionnalité non supportée',
-        description:
-          'Votre navigateur ne supporte pas la sélection de dossier. Utilisez Chrome, Edge ou un navigateur compatible.',
-        variant: 'destructive',
-      });
+      toast.error(
+        'Votre navigateur ne supporte pas la sélection de dossier. Utilisez Chrome, Edge ou un navigateur compatible.',
+      );
       return;
     }
 
@@ -1030,11 +964,9 @@ function ExportWithDirectoryForm({
 
       await Promise.all(imagePromises);
 
-      toast({
-        title: 'Export réussi',
-        description: `${selectedRows.length} profils exportés avec succès dans le dossier sélectionné.`,
-        variant: 'success',
-      });
+      toast.success(
+        `${selectedRows.length} profils exportés avec succès dans le dossier sélectionné.`,
+      );
 
       setOpen(false);
       onSuccess();
@@ -1044,11 +976,7 @@ function ExportWithDirectoryForm({
         return;
       }
 
-      toast({
-        title: "Erreur lors de l'export",
-        description: "Une erreur est survenue lors de l'export. Veuillez réessayer.",
-        variant: 'destructive',
-      });
+      toast.error("Une erreur est survenue lors de l'export. Veuillez réessayer.");
       console.error('Export error:', error);
     } finally {
       setIsExporting(false);

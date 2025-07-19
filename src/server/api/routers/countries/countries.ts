@@ -11,18 +11,20 @@ export const countriesRouter = createTRPCRouter({
    */
   getList: protectedProcedure
     .input(
-      z.object({
-        search: z.string().optional(),
-        status: z.array(z.enum(['ACTIVE', 'INACTIVE'])).optional(),
-        page: z.number().min(1).default(1),
-        limit: z.number().min(1).max(100).default(10),
-      }).optional()
+      z
+        .object({
+          search: z.string().optional(),
+          status: z.array(z.enum(['ACTIVE', 'INACTIVE'])).optional(),
+          page: z.number().min(1).default(1),
+          limit: z.number().min(1).max(100).default(10),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN'].includes(role)
-      )) {
+      if (
+        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Accès refusé. Permissions insuffisantes.',
@@ -47,7 +49,14 @@ export const countriesRouter = createTRPCRouter({
           where,
           skip,
           take: limit,
-          include: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            metadata: true,
             _count: {
               select: {
                 organizations: true,
@@ -61,7 +70,7 @@ export const countriesRouter = createTRPCRouter({
       ]);
 
       return {
-        items: items.map(item => ({
+        items: items.map((item) => ({
           ...item,
           metadata: item.metadata ? JSON.parse(item.metadata as string) : null,
         })),
@@ -78,9 +87,9 @@ export const countriesRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN'].includes(role)
-      )) {
+      if (
+        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Accès refusé. Permissions insuffisantes.',
@@ -202,7 +211,7 @@ export const countriesRouter = createTRPCRouter({
 
       // Vérifier si le pays existe
       const existingCountry = await ctx.db.country.findUnique({
-        where: { id },
+        where: { id: id ?? undefined },
       });
 
       if (!existingCountry) {
@@ -213,7 +222,7 @@ export const countriesRouter = createTRPCRouter({
       }
 
       const country = await ctx.db.country.update({
-        where: { id },
+        where: { id: id ?? undefined },
         data: {
           ...rest,
           flag: rest.flag ?? undefined,
@@ -276,7 +285,8 @@ export const countriesRouter = createTRPCRouter({
       if (existingCountry._count.organizations > 0 || existingCountry._count.users > 0) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: 'Impossible de supprimer ce pays car il est utilisé par des organisations ou des utilisateurs.',
+          message:
+            'Impossible de supprimer ce pays car il est utilisé par des organisations ou des utilisateurs.',
         });
       }
 
@@ -293,28 +303,27 @@ export const countriesRouter = createTRPCRouter({
   /**
    * Obtenir les statistiques des pays
    */
-  getStats: protectedProcedure
-    .query(async ({ ctx }) => {
-      // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.some(role => 
-        ['SUPER_ADMIN', 'ADMIN'].includes(role)
-      )) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès refusé. Permissions insuffisantes.',
-        });
-      }
+  getStats: protectedProcedure.query(async ({ ctx }) => {
+    // Vérifier les permissions
+    if (
+      !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+    ) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Accès refusé. Permissions insuffisantes.',
+      });
+    }
 
-      const [totalCountries, activeCountries, inactiveCountries] = await Promise.all([
-        ctx.db.country.count(),
-        ctx.db.country.count({ where: { status: 'ACTIVE' } }),
-        ctx.db.country.count({ where: { status: 'INACTIVE' } }),
-      ]);
+    const [totalCountries, activeCountries, inactiveCountries] = await Promise.all([
+      ctx.db.country.count(),
+      ctx.db.country.count({ where: { status: 'ACTIVE' } }),
+      ctx.db.country.count({ where: { status: 'INACTIVE' } }),
+    ]);
 
-      return {
-        totalCountries,
-        activeCountries,
-        inactiveCountries,
-      };
-    }),
-}); 
+    return {
+      totalCountries,
+      activeCountries,
+      inactiveCountries,
+    };
+  }),
+});

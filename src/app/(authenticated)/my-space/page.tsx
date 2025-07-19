@@ -9,11 +9,9 @@ import { Plus, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { PageContainer } from '@/components/layouts/page-container';
-import { useUserData } from '@/hooks/use-role-data';
 import { useTranslations } from 'next-intl';
 
 export default function MySpacePage() {
-  const { requests } = useUserData();
   const t = useTranslations('dashboard.unified');
 
   return (

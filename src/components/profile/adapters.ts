@@ -4,6 +4,7 @@ import type { BaseProfile, GetProfilesOptions, ProfilesArrayItem } from './types
 import { formatDate } from 'date-fns';
 import { capitalize } from '@/lib/utils';
 import { env } from '@/env';
+import type { ProfileListItemSelectResult } from '@/server/api/routers/profiles/misc';
 
 const currentAppUrl = `https://consulat.ga`;
 
@@ -19,7 +20,7 @@ function getFilePath(item: BaseProfile) {
   return `${env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH}${getFileName(item)}.${getFileExtension(item)}`;
 }
 
-export function adaptProfilesListing(profileItems: BaseProfile[]): ProfilesArrayItem[] {
+export function adaptProfilesListing(profileItems: ProfileListItemSelectResult[]) {
   return profileItems.map((item) => {
     const { identityPicture, ...rest } = item;
 
@@ -46,7 +47,7 @@ export function adaptSearchParams(
 ): GetProfilesOptions {
   const sortBy = searchParams.get('sort')?.split('-')[0] as keyof BaseProfile;
   const sortOrder = searchParams.get('sort')?.split('-')[1] as 'asc' | 'desc';
-  const organisationIdString  = searchParams.get('organizationId')
+  const organisationIdString = searchParams.get('organizationId');
 
   return {
     status: searchParams

@@ -7,6 +7,8 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -19,15 +21,23 @@ import { useCurrentUser } from '@/hooks/use-role-data';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { FlagIcon } from './flag-icon';
 import { useNavigation } from '@/hooks/use-navigation';
-import type { SessionUser } from '@/types/user';
 import Image from 'next/image';
 import { NavMain } from './nav-main';
+import { usePathname } from 'next/navigation';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const appName = env.NEXT_PUBLIC_APP_NAME;
   const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
-  const { user: currentUser } = useCurrentUser();
-  const { menu } = useNavigation(currentUser as SessionUser);
+  const { user } = useCurrentUser();
+  const { menu, secondaryMenu } = useNavigation();
+  const pathname = usePathname();
+
+  const isActive = (url: string) => {
+    if (url === ROUTES.dashboard.base || ROUTES.user.base) {
+      return pathname === url;
+    }
+    return pathname.startsWith(url);
+  };
 
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
@@ -38,8 +48,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href={ROUTES.base}>
                 {appLogo && <Image src={appLogo} alt={appName} width={32} height={32} />}
                 <span className="text-sm font-semibold">{appName}</span>
-                {currentUser?.countryCode && (
-                  <FlagIcon countryCode={currentUser?.countryCode as CountryCode} />
+                {user?.countryCode && (
+                  <FlagIcon countryCode={user?.countryCode as CountryCode} />
                 )}
               </Link>
             </SidebarMenuButton>
@@ -48,6 +58,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={menu} />
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {secondaryMenu?.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="size-icon" />
+                      <span className="min-w-max mr-auto">{item.title}</span>
+                      {item.badge}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

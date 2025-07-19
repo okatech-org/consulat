@@ -1,7 +1,6 @@
 'use client';
 
 import { ROUTES } from '@/schemas/routes';
-import type { SessionUser } from '@/types/user';
 import { UserRole } from '@prisma/client';
 import {
   Settings,
@@ -20,18 +19,21 @@ import {
   type LucideIcon,
   FolderOpen,
   MailIcon,
+  Ticket,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { CountBadge } from '@/components/layouts/count-badge';
 import { ProfileCompletionBadge } from '@/components/layouts/profile-completion-badge';
-import { useUserData } from './use-role-data';
+import { useRoleData, useUserData } from './use-role-data';
+import type { AgentData, AdminData, ManagerData } from '@/types/role-data';
 
 export type NavMainItem = {
   title: string;
   url: string;
   icon: React.ElementType;
   roles: UserRole[];
+  badge?: React.ReactNode;
 };
 
 export type UserNavigationItem = {
@@ -42,15 +44,12 @@ export type UserNavigationItem = {
   items?: UserNavigationItem[];
 };
 
-export function useNavigation(user: SessionUser) {
+export function useNavigation() {
   const t = useTranslations('navigation.menu');
-  const currentUserRoles = user?.roles ?? [];
-  const isAdmin = hasAnyRole(user, [
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-    UserRole.MANAGER,
-    UserRole.AGENT,
-  ]);
+  const roleData = useRoleData<AdminData | ManagerData | AgentData>();
+  if (!roleData) return { menu: [], mobileMenu: [] };
+  const user = roleData?.user;
+  const stats = roleData?.stats;
 
   const AdminNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {
@@ -99,7 +98,7 @@ export function useNavigation(user: SessionUser) {
       title: t('appointments'),
       url: ROUTES.dashboard.appointments,
       icon: Calendar,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
     },
     {
       title: t('users'),
@@ -114,24 +113,40 @@ export function useNavigation(user: SessionUser) {
       roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
     {
-      title: t('settings'),
-      url: ROUTES.dashboard.settings,
-      icon: Settings,
-      roles: [UserRole.ADMIN],
+      title: t('tickets'),
+      url: ROUTES.dashboard.tickets,
+      icon: Ticket,
+      roles: [UserRole.SUPER_ADMIN],
     },
   ];
+
+  const secondaryMenu: NavMainItem[] = [
+    {
+      title: t('notifications'),
+      url: ROUTES.dashboard.notifications,
+      icon: Bell,
+      badge: <CountBadge count={stats?.unreadNotifications ?? 0} variant="destructive" />,
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+    },
+    {
+      title: t('settings'),
+      url: ROUTES.user.settings,
+      icon: Settings,
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+    },
+  ] as const;
 
   const menuItems: Array<NavMainItem & { roles: UserRole[] }> = [...AdminNavigation];
 
   const menu = menuItems.filter((item) => {
-    return item.roles.some((role) => currentUserRoles.includes(role));
+    return hasAnyRole(user, item.roles);
   });
 
   const mobileMenu = [
     ...menu,
     {
       title: t('account'),
-      url: isAdmin ? ROUTES.dashboard.account_settings : ROUTES.user.account,
+      url: ROUTES.dashboard.account_settings,
       icon: User,
       roles: [
         UserRole.USER,
@@ -143,7 +158,7 @@ export function useNavigation(user: SessionUser) {
     },
     {
       title: t('feedback'),
-      url: isAdmin ? ROUTES.dashboard.feedback : ROUTES.user.feedback,
+      url: ROUTES.dashboard.feedback,
       icon: MessageSquare,
       roles: [
         UserRole.USER,
@@ -153,9 +168,10 @@ export function useNavigation(user: SessionUser) {
         UserRole.AGENT,
       ],
     },
+    ...secondaryMenu,
   ];
 
-  return { menu, mobileMenu };
+  return { menu, mobileMenu, secondaryMenu };
 }
 
 export function useUserNavigation() {

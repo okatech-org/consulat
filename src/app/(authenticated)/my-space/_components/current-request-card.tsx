@@ -44,7 +44,7 @@ export function CurrentRequestCard() {
     {
       label: t('steps.documents_verified'),
       completed: getProgress(currentRequest.status as RequestStatus) >= 40,
-      date: '07/07/2025 - 10h15',
+      date: 'N/A',
     },
     {
       label: t('steps.processing'),

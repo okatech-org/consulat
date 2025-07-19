@@ -426,7 +426,7 @@
   }
 
   .size-icon {
-    @apply size-5;
+    @apply size-5!;
   }
 
   .size-icon-button {

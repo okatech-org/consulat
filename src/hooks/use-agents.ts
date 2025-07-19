@@ -72,23 +72,23 @@ export function useAgents(filters: AgentFilters = {}) {
     {
       staleTime: 30 * 1000, // 30 secondes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   // Mutation pour créer un agent
   const createAgentMutation = api.agents.create.useMutation({
     onSuccess: (newAgent) => {
       toast.success(`Agent ${newAgent.name} créé avec succès`);
-      
+
       // Invalider la liste des agents
       utils.agents.getList.invalidate();
-      
+
       // Optionnel : rediriger vers la page de détail
       router.push(ROUTES.dashboard.agent_detail(newAgent.id));
     },
     onError: (error) => {
-      console.error('Erreur lors de la création de l\'agent:', error);
-      toast.error('Erreur lors de la création de l\'agent');
+      console.error("Erreur lors de la création de l'agent:", error);
+      toast.error("Erreur lors de la création de l'agent");
     },
   });
 
@@ -103,43 +103,40 @@ export function useAgents(filters: AgentFilters = {}) {
       const previousAgentsList = utils.agents.getList.getData();
       const previousAgent = utils.agents.getById.getData({ id });
 
-             // Optimistic update pour la liste
-       if (previousAgentsList) {
-         utils.agents.getList.setData(
-           filters, // Utiliser les filtres actuels
-           (old) => {
-             if (!old) return old;
-             return {
-               ...old,
-               items: old.items.map((agent) =>
-                 agent.id === id ? { ...agent, ...data } : agent
-               ),
-             };
-           }
-         );
-       }
+      // Optimistic update pour la liste
+      if (previousAgentsList) {
+        utils.agents.getList.setData(
+          filters, // Utiliser les filtres actuels
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              items: old.items.map((agent) =>
+                agent.id === id ? { ...agent, ...data } : agent,
+              ),
+            };
+          },
+        );
+      }
 
       // Optimistic update pour l'agent individuel
       if (previousAgent) {
-        utils.agents.getById.setData(
-          { id },
-          (old) => {
-            if (!old) return old;
-            return { ...old, ...data };
-          }
-        );
+        utils.agents.getById.setData({ id }, (old) => {
+          if (!old) return old;
+          return { ...old, ...data };
+        });
       }
 
       return { previousAgentsList, previousAgent };
     },
     onError: (error, { id }, context) => {
-      console.error('Erreur lors de la mise à jour de l\'agent:', error);
-      toast.error('Erreur lors de la mise à jour de l\'agent');
+      console.error("Erreur lors de la mise à jour de l'agent:", error);
+      toast.error("Erreur lors de la mise à jour de l'agent");
 
-             // Restaurer les données précédentes
-       if (context?.previousAgentsList) {
-         utils.agents.getList.setData(filters, context.previousAgentsList);
-       }
+      // Restaurer les données précédentes
+      if (context?.previousAgentsList) {
+        utils.agents.getList.setData(filters, context.previousAgentsList);
+      }
       if (context?.previousAgent) {
         utils.agents.getById.setData({ id }, context.previousAgent);
       }
@@ -158,7 +155,7 @@ export function useAgents(filters: AgentFilters = {}) {
   const assignRequestMutation = api.agents.assignRequest.useMutation({
     onSuccess: (updatedRequest) => {
       toast.success('Demande assignée avec succès');
-      
+
       // Invalider les données liées
       utils.agents.getList.invalidate();
       utils.agents.getById.invalidate();
@@ -166,8 +163,8 @@ export function useAgents(filters: AgentFilters = {}) {
       utils.requests.getById.invalidate({ id: updatedRequest.id });
     },
     onError: (error) => {
-      console.error('Erreur lors de l\'assignation:', error);
-      toast.error('Erreur lors de l\'assignation de la demande');
+      console.error("Erreur lors de l'assignation:", error);
+      toast.error("Erreur lors de l'assignation de la demande");
     },
   });
 
@@ -175,7 +172,7 @@ export function useAgents(filters: AgentFilters = {}) {
   const reassignRequestMutation = api.agents.reassignRequest.useMutation({
     onSuccess: () => {
       toast.success('Demande réassignée avec succès');
-      
+
       // Invalider les données liées
       utils.agents.getList.invalidate();
       utils.agents.getById.invalidate();
@@ -194,18 +191,18 @@ export function useAgents(filters: AgentFilters = {}) {
     page: agentsData?.page || 1,
     limit: agentsData?.limit || 10,
     totalPages: agentsData?.totalPages || 0,
-    
+
     // États
     isLoading,
     error,
-    
+
     // Actions
     refetch,
     createAgent: createAgentMutation.mutate,
     updateAgent: updateAgentMutation.mutate,
     assignRequest: assignRequestMutation.mutate,
     reassignRequest: reassignRequestMutation.mutate,
-    
+
     // États des mutations
     isCreating: createAgentMutation.isPending,
     isUpdating: updateAgentMutation.isPending,
@@ -231,7 +228,7 @@ export function useAgent(id: string) {
       enabled: !!id,
       staleTime: 60 * 1000, // 1 minute
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   // Mutation pour mettre à jour l'agent
@@ -240,19 +237,16 @@ export function useAgent(id: string) {
       await utils.agents.getById.cancel({ id });
       const previousAgent = utils.agents.getById.getData({ id });
 
-      utils.agents.getById.setData(
-        { id },
-        (old) => {
-          if (!old) return old;
-          return { ...old, ...data };
-        }
-      );
+      utils.agents.getById.setData({ id }, (old) => {
+        if (!old) return old;
+        return { ...old, ...data };
+      });
 
       return { previousAgent };
     },
     onError: (error, _, context) => {
       console.error('Erreur lors de la mise à jour:', error);
-      toast.error('Erreur lors de la mise à jour de l\'agent');
+      toast.error("Erreur lors de la mise à jour de l'agent");
 
       if (context?.previousAgent) {
         utils.agents.getById.setData({ id }, context.previousAgent);
@@ -284,7 +278,7 @@ export function useAvailableAgents(
   organizationId: string,
   countryCode: string,
   serviceId: string,
-  enabled = true
+  enabled = true,
 ) {
   const {
     data: availableAgents,
@@ -300,7 +294,7 @@ export function useAvailableAgents(
       enabled: enabled && !!organizationId && !!countryCode && !!serviceId,
       staleTime: 2 * 60 * 1000, // 2 minutes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   return {
@@ -325,7 +319,7 @@ export function useAgentPerformance(agentId: string, enabled = true) {
       enabled: enabled && !!agentId,
       staleTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   return {
@@ -353,7 +347,7 @@ export function useAgentsStats(organizationId?: string, managerId?: string) {
     {
       staleTime: 2 * 60 * 1000, // 2 minutes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   return {
@@ -373,7 +367,7 @@ export function useAgentAssignment() {
   const assignRequestMutation = api.agents.assignRequest.useMutation({
     onSuccess: (updatedRequest) => {
       toast.success('Demande assignée avec succès');
-      
+
       // Invalider toutes les données liées
       utils.agents.getList.invalidate();
       utils.agents.getById.invalidate();
@@ -382,15 +376,15 @@ export function useAgentAssignment() {
       utils.dashboard.invalidate();
     },
     onError: (error) => {
-      console.error('Erreur lors de l\'assignation:', error);
-      toast.error('Erreur lors de l\'assignation de la demande');
+      console.error("Erreur lors de l'assignation:", error);
+      toast.error("Erreur lors de l'assignation de la demande");
     },
   });
 
   const reassignRequestMutation = api.agents.reassignRequest.useMutation({
     onSuccess: () => {
       toast.success('Demande réassignée avec succès');
-      
+
       // Invalider toutes les données liées
       utils.agents.getList.invalidate();
       utils.agents.getById.invalidate();
@@ -409,4 +403,4 @@ export function useAgentAssignment() {
     isAssigning: assignRequestMutation.isPending,
     isReassigning: reassignRequestMutation.isPending,
   };
-} 
+}

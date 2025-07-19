@@ -1,11 +1,10 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
-import { RequestStatus, ServicePriority } from '@prisma/client';
+import { Prisma, RequestStatus, ServicePriority, UserRole } from '@prisma/client';
 
 // Import existing request actions
 import {
-  getServiceRequestsList,
   getServiceRequest,
   assignServiceRequest,
   updateServiceRequestStatus,
@@ -28,20 +27,87 @@ import { RequestDetailsSelect, RequestListItemSelect } from './misc';
 
 export const requestsRouter = createTRPCRouter({
   // Récupérer la liste des demandes avec filtres et pagination
-  getList: protectedProcedure.input(requestFiltersSchema).query(async ({ input }) => {
-    try {
-      const result = await getServiceRequestsList(input);
-      return result;
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message:
-          error instanceof Error
-            ? error.message
-            : "Nous n'avons pas pu récupérer les demandes",
-      });
-    }
-  }),
+  getList: protectedProcedure
+    .input(requestFiltersSchema)
+    .query(async ({ ctx, input }) => {
+      try {
+        const {
+          search,
+          status,
+          priority,
+          serviceCategory,
+          assignedToId,
+          organizationId,
+          page = 1,
+          limit = 10,
+          sortBy = 'createdAt',
+          sortOrder = 'desc',
+          userId,
+        } = input || {};
+
+        const where: Prisma.ServiceRequestWhereInput = {};
+
+        if (ctx.session.user.roles.includes(UserRole.AGENT)) {
+          where.assignedToId = { in: [ctx.session.user.id] };
+        }
+
+        if (ctx.session.user.roles.includes(UserRole.USER)) {
+          where.submittedById = ctx.session.user.id;
+        }
+
+        if (userId) where.submittedById = userId;
+        if (status) where.status = { in: status };
+        if (priority) where.priority = { in: priority };
+        if (serviceCategory) where.serviceCategory = { in: serviceCategory };
+        if (assignedToId && !ctx.session.user.roles.includes(UserRole.MANAGER)) {
+          where.assignedToId = { in: assignedToId };
+        }
+        if (organizationId) where.organizationId = { in: organizationId };
+
+        if (search) {
+          where.OR = [
+            { requestedFor: { firstName: { contains: search, mode: 'insensitive' } } },
+            { requestedFor: { lastName: { contains: search, mode: 'insensitive' } } },
+            { requestedFor: { email: { contains: search, mode: 'insensitive' } } },
+            { requestedFor: { phoneNumber: { contains: search, mode: 'insensitive' } } },
+            { requestedFor: { cardNumber: { contains: search, mode: 'insensitive' } } },
+            {
+              requestedFor: { passportNumber: { contains: search, mode: 'insensitive' } },
+            },
+            { service: { name: { contains: search, mode: 'insensitive' } } },
+          ];
+        }
+
+        const [requests, total] = await Promise.all([
+          ctx.db.serviceRequest.findMany({
+            where,
+            select: RequestListItemSelect,
+            ...(sortBy && {
+              orderBy:
+                sortBy === 'firstName' || sortBy === 'lastName'
+                  ? { requestedFor: { [sortBy]: sortOrder } }
+                  : { [sortBy]: sortOrder },
+            }),
+            skip: (page - 1) * limit,
+            take: limit,
+          }),
+          ctx.db.serviceRequest.count({ where }),
+        ]);
+
+        return {
+          items: requests,
+          total,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nous n'avons pas pu récupérer les demandes",
+        });
+      }
+    }),
 
   // Récupérer une demande par ID
   getById: protectedProcedure
@@ -50,10 +116,12 @@ export const requestsRouter = createTRPCRouter({
         id: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       try {
-        const request = await getServiceRequest(input.id);
-        return request;
+        return ctx.db.serviceRequest.findUnique({
+          where: { id: input.id },
+          select: RequestDetailsSelect,
+        });
       } catch (error) {
         throw new TRPCError({
           code: 'NOT_FOUND',

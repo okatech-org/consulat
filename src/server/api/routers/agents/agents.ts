@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { db } from '@/server/db';
 import { Prisma, UserRole, RequestActionType, NotificationType } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { notify } from '@/lib/services/notifications';
@@ -8,248 +7,100 @@ import { NotificationChannel } from '@/types/notifications';
 import { env } from '@/env';
 import { ROUTES } from '@/schemas/routes';
 import { getTranslations } from 'next-intl/server';
-
-// Types et sélecteurs Prisma
-const AgentListItemSelect: Prisma.UserSelect = {
-  id: true,
-  name: true,
-  email: true,
-  phoneNumber: true,
-  roles: true,
-  assignedServices: {
-    select: {
-      id: true,
-      name: true,
-    },
-  },
-  linkedCountries: {
-    select: {
-      id: true,
-      name: true,
-      code: true,
-    },
-  },
-  assignedOrganizationId: true,
-  managedByUserId: true,
-  completedRequests: true,
-  averageProcessingTime: true,
-  _count: {
-    select: {
-      assignedRequests: {
-        where: {
-          status: {
-            notIn: ['COMPLETED', 'REJECTED'],
-          },
-        },
-      },
-    },
-  },
-};
-
-const AgentDetailsSelect: Prisma.UserSelect = {
-  ...AgentListItemSelect,
-  assignedRequests: {
-    select: {
-      id: true,
-      status: true,
-      priority: true,
-      serviceCategory: true,
-      createdAt: true,
-      assignedAt: true,
-      service: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      requester: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
-  },
-  specializations: true,
-  availability: true,
-  managedAgents: {
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phoneNumber: true,
-      linkedCountries: {
-        select: {
-          id: true,
-          name: true,
-          code: true,
-        },
-      },
-      assignedServices: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      completedRequests: true,
-      averageProcessingTime: true,
-      assignedRequests: {
-        where: {
-          status: {
-            notIn: ['COMPLETED', 'REJECTED'],
-          },
-        },
-        select: {
-          id: true,
-          status: true,
-        },
-      },
-    },
-  },
-  managedBy: {
-    select: {
-      id: true,
-      name: true,
-      email: true,
-    },
-  },
-};
-
-// Schémas de validation
-const agentFiltersSchema = z.object({
-  search: z.string().optional(),
-  linkedCountries: z.array(z.string()).optional(),
-  assignedServices: z.array(z.string()).optional(),
-  assignedOrganizationId: z.array(z.string()).optional(),
-  managedByUserId: z.array(z.string()).optional(),
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(10),
-  sortBy: z.object({
-    field: z.enum(['name', 'email', 'createdAt', 'completedRequests']),
-    direction: z.enum(['asc', 'desc']),
-  }).optional(),
-});
-
-const createAgentSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().email(),
-  phoneNumber: z.string().optional(),
-  countryIds: z.array(z.string()),
-  serviceIds: z.array(z.string()),
-  assignedOrganizationId: z.string(),
-  role: z.enum([UserRole.AGENT, UserRole.MANAGER]).default(UserRole.AGENT),
-  managedByUserId: z.string().optional(),
-  managedAgentIds: z.array(z.string()).optional(),
-});
-
-const updateAgentSchema = z.object({
-  name: z.string().optional(),
-  email: z.string().email().optional(),
-  phoneNumber: z.string().optional(),
-  countryIds: z.array(z.string()).optional(),
-  serviceIds: z.array(z.string()).optional(),
-  managedByUserId: z.string().nullable().optional(),
-  role: z.enum([UserRole.AGENT, UserRole.MANAGER]).optional(),
-  managedAgentIds: z.array(z.string()).optional(),
-});
-
-const assignRequestSchema = z.object({
-  requestId: z.string(),
-  agentId: z.string(),
-});
+import {
+  AgentDetailsSelect,
+  agentFiltersSchema,
+  assignRequestSchema,
+  createAgentSchema,
+  updateAgentSchema,
+} from './misc';
+import { AgentListItemSelect } from './misc';
 
 export const agentsRouter = createTRPCRouter({
   // Récupérer la liste des agents avec filtres et pagination
-  getList: protectedProcedure
-    .input(agentFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      // Vérifier les permissions
-      const user = ctx.session.user;
-      const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
-      if (!user.roles.some(role => allowedRoles.includes(role))) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Insufficient permissions to view agents',
-        });
-      }
+  getList: protectedProcedure.input(agentFiltersSchema).query(async ({ ctx, input }) => {
+    // Vérifier les permissions
+    const user = ctx.session.user;
+    const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
+    if (!user.roles.some((role) => allowedRoles.includes(role))) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Insufficient permissions to view agents',
+      });
+    }
 
-      const {
-        search,
-        linkedCountries,
-        assignedServices,
-        assignedOrganizationId,
-        managedByUserId,
+    const {
+      search,
+      linkedCountries,
+      assignedServices,
+      assignedOrganizationId,
+      managedByUserId,
+      page,
+      limit,
+      sortBy,
+    } = input;
+
+    // Construire les filtres
+    const where: Prisma.UserWhereInput = {
+      OR: [{ roles: { has: UserRole.AGENT } }, { roles: { has: UserRole.MANAGER } }],
+    };
+
+    // Filtres par défaut selon le rôle
+    if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
+      where.managedByUserId = user.id;
+    }
+
+    if (managedByUserId?.length) {
+      where.managedByUserId = { in: managedByUserId };
+    }
+
+    if (assignedServices?.length) {
+      where.assignedServices = { some: { id: { in: assignedServices } } };
+    }
+
+    if (linkedCountries?.length) {
+      where.linkedCountries = { some: { code: { in: linkedCountries } } };
+    }
+
+    if (assignedOrganizationId?.length) {
+      where.assignedOrganizationId = { in: assignedOrganizationId };
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phoneNumber: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    try {
+      const [items, total] = await Promise.all([
+        ctx.db.user.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          select: AgentListItemSelect,
+          orderBy: sortBy ? { [sortBy.field]: sortBy.direction } : { createdAt: 'desc' },
+        }),
+        ctx.db.user.count({ where }),
+      ]);
+
+      return {
+        items,
+        total,
         page,
         limit,
-        sortBy,
-      } = input;
-
-      // Construire les filtres
-      const where: Prisma.UserWhereInput = {
-        OR: [
-          { roles: { has: UserRole.AGENT } },
-          { roles: { has: UserRole.MANAGER } },
-        ],
+        totalPages: Math.ceil(total / limit),
       };
-
-      // Filtres par défaut selon le rôle
-      if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
-        where.managedByUserId = user.id;
-      }
-
-      if (managedByUserId?.length) {
-        where.managedByUserId = { in: managedByUserId };
-      }
-
-      if (assignedServices?.length) {
-        where.assignedServices = { some: { id: { in: assignedServices } } };
-      }
-
-      if (linkedCountries?.length) {
-        where.linkedCountries = { some: { code: { in: linkedCountries } } };
-      }
-
-      if (assignedOrganizationId?.length) {
-        where.assignedOrganizationId = { in: assignedOrganizationId };
-      }
-
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { phoneNumber: { contains: search, mode: 'insensitive' } },
-        ];
-      }
-
-      try {
-        const [items, total] = await Promise.all([
-          ctx.db.user.findMany({
-            where,
-            skip: (page - 1) * limit,
-            take: limit,
-            select: AgentListItemSelect,
-            orderBy: sortBy ? { [sortBy.field]: sortBy.direction } : { createdAt: 'desc' },
-          }),
-          ctx.db.user.count({ where }),
-        ]);
-
-        return {
-          items,
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        };
-      } catch (error) {
-        console.error('Error fetching agents:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch agents',
-        });
-      }
-    }),
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch agents',
+      });
+    }
+  }),
 
   // Récupérer un agent par ID avec détails complets
   getById: protectedProcedure
@@ -257,8 +108,8 @@ export const agentsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const user = ctx.session.user;
       const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
-      
-      if (!user.roles.some(role => allowedRoles.includes(role))) {
+
+      if (!user.roles.some((role) => allowedRoles.includes(role))) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to view agent details',
@@ -300,105 +151,107 @@ export const agentsRouter = createTRPCRouter({
     }),
 
   // Créer un nouvel agent
-  create: protectedProcedure
-    .input(createAgentSchema)
-    .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
-      if (!user.roles.some(role => ['ADMIN', 'SUPER_ADMIN'].includes(role))) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Insufficient permissions to create agents',
-        });
-      }
+  create: protectedProcedure.input(createAgentSchema).mutation(async ({ ctx, input }) => {
+    const user = ctx.session.user;
+    if (!user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Insufficient permissions to create agents',
+      });
+    }
 
-      const {
-        firstName,
-        lastName,
-        countryIds,
-        serviceIds,
-        role,
-        managedByUserId,
-        managedAgentIds,
-        ...rest
-      } = input;
+    const {
+      firstName,
+      lastName,
+      countryIds,
+      serviceIds,
+      role,
+      managedByUserId,
+      managedAgentIds,
+      ...rest
+    } = input;
 
-      try {
-        const agent = await ctx.db.user.create({
-          data: {
-            ...rest,
-            name: `${firstName} ${lastName}`,
-            roles: [role],
-            role,
-            ...(managedByUserId && { managedByUserId }),
-            linkedCountries: {
-              connect: countryIds.map((id) => ({ id })),
-            },
-            ...(serviceIds.length > 0 && {
-              assignedServices: {
-                connect: serviceIds.map((id) => ({ id })),
-              },
-            }),
+    try {
+      const agent = await ctx.db.user.create({
+        data: {
+          ...rest,
+          name: `${firstName} ${lastName}`,
+          roles: [role],
+          role,
+          ...(managedByUserId && { managedByUserId }),
+          linkedCountries: {
+            connect: countryIds.map((id) => ({ id })),
           },
-          select: AgentDetailsSelect,
-        });
-
-        // Si c'est un manager, assigner les agents
-        if (role === UserRole.MANAGER && managedAgentIds?.length) {
-          await ctx.db.user.updateMany({
-            where: {
-              id: { in: managedAgentIds },
+          ...(serviceIds.length > 0 && {
+            assignedServices: {
+              connect: serviceIds.map((id) => ({ id })),
             },
-            data: {
-              managedByUserId: agent.id,
-            },
-          });
-        }
-
-        // Notification de bienvenue
-        const t = await getTranslations('agent.notifications');
-        await notify({
-          userId: agent.id,
-          type: NotificationType.FEEDBACK,
-          title: t('welcome.title'),
-          message: t('welcome.message', {
-            organization: agent.assignedOrganization?.name ?? 'N/A',
           }),
-          channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
-          email: agent.email || undefined,
-          priority: 'high',
-          actions: [
-            {
-              label: t('welcome.action'),
-              url: `${env.NEXT_PUBLIC_URL}${ROUTES.dashboard.base}`,
-              primary: true,
-            },
-          ],
-          metadata: {
-            createdBy: user.id,
-            createdByName: user.name || '',
-            assignedServices: serviceIds,
+        },
+        select: AgentDetailsSelect,
+      });
+
+      // Si c'est un manager, assigner les agents
+      if (role === UserRole.MANAGER && managedAgentIds?.length) {
+        await ctx.db.user.updateMany({
+          where: {
+            id: { in: managedAgentIds },
+          },
+          data: {
+            managedByUserId: agent.id,
           },
         });
-
-        return agent;
-      } catch (error) {
-        console.error('Error creating agent:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create agent',
-        });
       }
-    }),
+
+      // Notification de bienvenue
+      const t = await getTranslations('agent.notifications');
+      await notify({
+        userId: agent.id,
+        type: NotificationType.FEEDBACK,
+        title: t('welcome.title'),
+        message: t('welcome.message', {
+          organization: agent.assignedOrganization?.name ?? 'N/A',
+        }),
+        channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
+        email: agent.email || undefined,
+        priority: 'high',
+        actions: [
+          {
+            label: t('welcome.action'),
+            url: `${env.NEXT_PUBLIC_URL}${ROUTES.dashboard.base}`,
+            primary: true,
+          },
+        ],
+        metadata: {
+          createdBy: user.id,
+          createdByName: user.name || '',
+          assignedServices: serviceIds,
+        },
+      });
+
+      return agent;
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to create agent',
+      });
+    }
+  }),
 
   // Mettre à jour un agent
   update: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      data: updateAgentSchema,
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        data: updateAgentSchema,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.user;
-      if (!user.roles.some(role => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))) {
+      if (
+        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to update agents',
@@ -514,7 +367,9 @@ export const agentsRouter = createTRPCRouter({
     .input(assignRequestSchema)
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.user;
-      if (!user.roles.some(role => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))) {
+      if (
+        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to assign requests',
@@ -641,14 +496,18 @@ export const agentsRouter = createTRPCRouter({
 
   // Réassigner une demande (pour les managers)
   reassignRequest: protectedProcedure
-    .input(z.object({
-      requestId: z.string(),
-      fromAgentId: z.string(),
-      toAgentId: z.string(),
-    }))
+    .input(
+      z.object({
+        requestId: z.string(),
+        fromAgentId: z.string(),
+        toAgentId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const user = ctx.session.user;
-      if (!user.roles.some(role => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))) {
+      if (
+        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to reassign requests',
@@ -678,7 +537,10 @@ export const agentsRouter = createTRPCRouter({
             });
           }
 
-          if (fromAgent.managedByUserId !== user.id || toAgent.managedByUserId !== user.id) {
+          if (
+            fromAgent.managedByUserId !== user.id ||
+            toAgent.managedByUserId !== user.id
+          ) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'You can only reassign between agents you manage',
@@ -729,14 +591,18 @@ export const agentsRouter = createTRPCRouter({
 
   // Récupérer les agents disponibles pour un service/pays
   getAvailable: protectedProcedure
-    .input(z.object({
-      organizationId: z.string(),
-      countryCode: z.string(),
-      serviceId: z.string(),
-    }))
+    .input(
+      z.object({
+        organizationId: z.string(),
+        countryCode: z.string(),
+        serviceId: z.string(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const user = ctx.session.user;
-      if (!user.roles.some(role => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))) {
+      if (
+        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to view available agents',
@@ -801,7 +667,9 @@ export const agentsRouter = createTRPCRouter({
     .input(z.object({ agentId: z.string() }))
     .query(async ({ ctx, input }) => {
       const user = ctx.session.user;
-      if (!user.roles.some(role => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))) {
+      if (
+        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to view performance metrics',
@@ -858,38 +726,49 @@ export const agentsRouter = createTRPCRouter({
         });
 
         // Calculer les métriques
-        const completedRequests = requests.filter(r => r.status === 'COMPLETED').length;
-        const pendingRequests = requests.filter(r => 
-          ['SUBMITTED', 'PENDING', 'PENDING_COMPLETION'].includes(r.status)
+        const completedRequests = requests.filter((r) => r.status === 'COMPLETED').length;
+        const pendingRequests = requests.filter((r) =>
+          ['SUBMITTED', 'PENDING', 'PENDING_COMPLETION'].includes(r.status),
         ).length;
-        const processingRequests = requests.filter(r => 
-          ['VALIDATED', 'CARD_IN_PRODUCTION', 'READY_FOR_PICKUP', 'APPOINTMENT_SCHEDULED'].includes(r.status)
+        const processingRequests = requests.filter((r) =>
+          [
+            'VALIDATED',
+            'CARD_IN_PRODUCTION',
+            'READY_FOR_PICKUP',
+            'APPOINTMENT_SCHEDULED',
+          ].includes(r.status),
         ).length;
 
         // Calculer le temps de traitement moyen
         const completedWithTime = requests.filter(
-          req => req.status === 'COMPLETED' && req.completedAt && req.submittedAt
+          (req) => req.status === 'COMPLETED' && req.completedAt && req.submittedAt,
         );
 
-        const avgProcessingTime = completedWithTime.length > 0
-          ? completedWithTime.reduce((acc, req) => {
-              const time = req.completedAt!.getTime() - req.submittedAt!.getTime();
-              return acc + time;
-            }, 0) / completedWithTime.length / (1000 * 60 * 60) // Convertir en heures
-          : 0;
+        const avgProcessingTime =
+          completedWithTime.length > 0
+            ? completedWithTime.reduce((acc, req) => {
+                const time = req.completedAt!.getTime() - req.submittedAt!.getTime();
+                return acc + time;
+              }, 0) /
+              completedWithTime.length /
+              (1000 * 60 * 60) // Convertir en heures
+            : 0;
 
         // Statistiques par catégorie
-        const categoriesStats = requests.reduce((acc, req) => {
-          const category = req.serviceCategory;
-          if (!acc[category]) {
-            acc[category] = { total: 0, completed: 0 };
-          }
-          acc[category].total++;
-          if (req.status === 'COMPLETED') {
-            acc[category].completed++;
-          }
-          return acc;
-        }, {} as Record<string, { total: number; completed: number }>);
+        const categoriesStats = requests.reduce(
+          (acc, req) => {
+            const category = req.serviceCategory;
+            if (!acc[category]) {
+              acc[category] = { total: 0, completed: 0 };
+            }
+            acc[category].total++;
+            if (req.status === 'COMPLETED') {
+              acc[category].completed++;
+            }
+            return acc;
+          },
+          {} as Record<string, { total: number; completed: number }>,
+        );
 
         return {
           agentId,
@@ -900,7 +779,8 @@ export const agentsRouter = createTRPCRouter({
           totalRequests: requests.length,
           avgProcessingTime: Math.round(avgProcessingTime),
           categoriesStats,
-          completionRate: requests.length > 0 ? (completedRequests / requests.length) * 100 : 0,
+          completionRate:
+            requests.length > 0 ? (completedRequests / requests.length) * 100 : 0,
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
@@ -914,13 +794,17 @@ export const agentsRouter = createTRPCRouter({
 
   // Récupérer les statistiques globales des agents
   getStats: protectedProcedure
-    .input(z.object({
-      organizationId: z.string().optional(),
-      managerId: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        organizationId: z.string().optional(),
+        managerId: z.string().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const user = ctx.session.user;
-      if (!user.roles.some(role => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))) {
+      if (
+        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to view agent statistics',
@@ -971,15 +855,22 @@ export const agentsRouter = createTRPCRouter({
               id: true,
             },
             _avg: {
-              averageProcessingTime: true,
+              processingTime: true,
             },
           }),
         ]);
 
-        const totalActiveRequests = agentRequests.reduce((sum, agent) => sum + agent._count.id, 0);
-        const avgProcessingTime = agentRequests.length > 0
-          ? agentRequests.reduce((sum, agent) => sum + (agent._avg.averageProcessingTime || 0), 0) / agentRequests.length
-          : 0;
+        const totalActiveRequests = agentRequests.reduce(
+          (sum, agent) => sum + (agent._count?.id || 0),
+          0,
+        );
+        const avgProcessingTime =
+          agentRequests.length > 0
+            ? agentRequests.reduce(
+                (sum, agent) => sum + (agent._avg?.processingTime || 0),
+                0,
+              ) / agentRequests.length
+            : 0;
 
         return {
           totalAgents,
@@ -996,4 +887,4 @@ export const agentsRouter = createTRPCRouter({
         });
       }
     }),
-}); 
+});
