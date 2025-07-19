@@ -26,7 +26,6 @@ interface RequestOverviewProps {
 }
 
 export function RequestOverview({ request, user, agents = [] }: RequestOverviewProps) {
-  console.log('request', request);
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
@@ -95,18 +94,26 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
             title={t('requests.view.requester_info')}
             contentClass="space-y-2"
           >
-            <h3 className="font-medium">{request.submittedBy.name}</h3>
-            <p className="text-sm text-muted-foreground">{request.submittedBy.email}</p>
+            <h3 className="font-medium">
+              {request.requestedFor?.firstName} {request.requestedFor?.lastName}
+            </h3>
+            <p className="text-sm text-muted-foreground">{request.requestedFor?.email}</p>
 
-            <div className="flex gap-2 flex-col md:flex-row">
+            <div className="flex gap-4 flex-col md:w-max">
               {request.requestedFor && (
                 <ProfileLookupSheet profileId={request.requestedFor.id} />
               )}
               {request.requestedFor?.category === 'MINOR' && (
-                <ProfileLookupSheet
-                  userId={request.submittedById}
-                  triggerLabel={'Voir le profil du demandeur'}
-                />
+                <div className="flex gap-2 flex-col">
+                  <p>
+                    <span className="font-medium">Demande effectuée par :</span>{' '}
+                    {request.submittedBy.name}
+                  </p>
+                  <ProfileLookupSheet
+                    userId={request.submittedBy.id}
+                    triggerLabel={'Voir le profil du demandeur'}
+                  />
+                </div>
               )}
             </div>
           </CardContainer>

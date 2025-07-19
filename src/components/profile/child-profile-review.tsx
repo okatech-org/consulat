@@ -36,8 +36,8 @@ interface ChildProfileReviewProps {
 
 export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
   const t = useTranslations();
-  const { data: profile } = api.profile.getByQuery.useQuery({
-    profileId: request.requestedForId ?? undefined,
+  const { data: profile } = api.profile.getById.useQuery({
+    id: request.requestedFor?.id ?? '',
   });
 
   const user = request.submittedBy;
