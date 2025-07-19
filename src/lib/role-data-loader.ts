@@ -104,8 +104,7 @@ async function loadUserData(user: SessionUser): Promise<UserData> {
 
 async function loadAgentData(user: SessionUser): Promise<AgentData> {
   try {
-    const [profile, agentStatsData, unreadNotifications] = await Promise.all([
-      api.profile.getCurrent(),
+    const [agentStatsData, unreadNotifications] = await Promise.all([
       api.dashboard.getAgentStats({ agentId: user.id }),
       api.notifications.getUnreadCount(),
     ]);
@@ -113,7 +112,6 @@ async function loadAgentData(user: SessionUser): Promise<AgentData> {
     return {
       role: 'AGENT',
       user: user as AgentSession,
-      profile,
       notifications: [],
       assignedRequests: (agentStatsData.recentRequests ||
         []) as AgentData['assignedRequests'],
@@ -130,7 +128,6 @@ async function loadAgentData(user: SessionUser): Promise<AgentData> {
     return {
       role: 'AGENT',
       user: user as AgentSession,
-      profile: null,
       notifications: [],
       assignedRequests: [],
       agentAppointments: null,
@@ -151,13 +148,11 @@ async function loadAgentData(user: SessionUser): Promise<AgentData> {
 
 async function loadManagerData(user: SessionUser): Promise<ManagerData> {
   try {
-    const [profile, managerStatsData, managedAgents, unreadNotifications] =
-      await Promise.all([
-        api.profile.getCurrent(),
-        api.dashboard.getManagerStats({ managerId: user.id }),
-        api.agents.getList({ managedByUserId: [user.id] }),
-        api.notifications.getUnreadCount(),
-      ]);
+    const [managerStatsData, managedAgents, unreadNotifications] = await Promise.all([
+      api.dashboard.getManagerStats({ managerId: user.id }),
+      api.agents.getList({ managedByUserId: [user.id] }),
+      api.notifications.getUnreadCount(),
+    ]);
 
     // Utiliser les vraies données du router manager
     const statsData = managerStatsData?.stats || {
@@ -171,7 +166,6 @@ async function loadManagerData(user: SessionUser): Promise<ManagerData> {
     return {
       role: 'MANAGER',
       user: user as ManagerSession,
-      profile,
       notifications: [],
       managedAgents: managedAgents.items || [],
       managerStats: {
@@ -194,7 +188,6 @@ async function loadManagerData(user: SessionUser): Promise<ManagerData> {
     return {
       role: 'MANAGER',
       user: user as ManagerSession,
-      profile: null,
       notifications: [],
       managedAgents: [],
       managerStats: {
@@ -216,25 +209,22 @@ async function loadManagerData(user: SessionUser): Promise<ManagerData> {
 
 async function loadAdminData(user: SessionUser): Promise<AdminData> {
   try {
-    const [profile, adminStatsData, organizationData, unreadNotifications] =
-      await Promise.all([
-        api.profile.getCurrent(),
-        api.dashboard.getAdminStats({
-          organizationId: user.assignedOrganizationId || undefined,
-        }),
-        user.assignedOrganizationId
-          ? api.organizations.getByIdWithSelect({
-              id: user.assignedOrganizationId,
-              select: ['id', 'name', 'type', 'status', 'countries', '_count'],
-            })
-          : Promise.resolve(null),
-        api.notifications.getUnreadCount(),
-      ]);
+    const [adminStatsData, organizationData, unreadNotifications] = await Promise.all([
+      api.dashboard.getAdminStats({
+        organizationId: user.assignedOrganizationId || undefined,
+      }),
+      user.assignedOrganizationId
+        ? api.organizations.getByIdWithSelect({
+            id: user.assignedOrganizationId,
+            select: ['id', 'name', 'type', 'status', 'countries', '_count'],
+          })
+        : Promise.resolve(null),
+      api.notifications.getUnreadCount(),
+    ]);
 
     return {
       role: 'ADMIN',
       user: user as AdminSession,
-      profile,
       notifications: [],
       organizationData: organizationData as AdminData['organizationData'],
       adminStats: adminStatsData.stats,
@@ -248,7 +238,6 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
     return {
       role: 'ADMIN',
       user: user as AdminSession,
-      profile: null,
       notifications: [],
       organizationData: null,
       adminStats: {
@@ -272,20 +261,24 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
 
 async function loadSuperAdminData(user: SessionUser): Promise<SuperAdminData> {
   try {
-    const [profile, superAdminStatsData, organizations, countries, unreadNotifications] =
-      await Promise.all([
-        api.profile.getCurrent(),
-        api.dashboard.getSuperAdminStats(),
-        api.organizations.getList({}),
-        api.countries.getList({}),
-        api.notifications.getUnreadCount(),
-      ]);
+    const [
+      superAdminStatsData,
+      organizations,
+      countries,
+      unreadNotifications,
+      notifications,
+    ] = await Promise.all([
+      api.dashboard.getSuperAdminStats(),
+      api.organizations.getList({}),
+      api.countries.getList({}),
+      api.notifications.getUnreadCount(),
+      api.notifications.getList({}),
+    ]);
 
     return {
       role: 'SUPER_ADMIN',
       user: user as SuperAdminSession,
-      profile,
-      notifications: [],
+      notifications: notifications.items || [],
       organizations: organizations.items || [],
       countries: countries.items || [],
       superAdminStats: superAdminStatsData.stats,
@@ -295,6 +288,23 @@ async function loadSuperAdminData(user: SessionUser): Promise<SuperAdminData> {
     };
   } catch (error) {
     console.error('Erreur lors du chargement des données super admin:', error);
-    throw error;
+    return {
+      role: 'SUPER_ADMIN',
+      user: user as SuperAdminSession,
+      notifications: [],
+      organizations: [],
+      countries: [],
+      superAdminStats: {
+        totalCountries: 0,
+        totalOrganizations: 0,
+        totalServices: 0,
+        totalUsers: 0,
+        activeCountries: 0,
+        activeOrganizations: 0,
+      },
+      stats: {
+        unreadNotifications: 0,
+      },
+    };
   }
 }

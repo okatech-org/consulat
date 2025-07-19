@@ -1,16 +1,36 @@
+'use client';
+
 import { PageContainer } from '@/components/layouts/page-container';
 import { StatsCard } from '@/components/ui/stats-card';
+import { useSuperAdminData } from '@/hooks/use-role-data';
 import { Building2, Globe, Settings, Users } from 'lucide-react';
-import React from 'react';
 
-export default async function SuperAdminDashboard() {
+export default function SuperAdminDashboard() {
+  const data = useSuperAdminData();
+
   return (
     <PageContainer title="Tableau de bord">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Pays" value={12} icon={Globe} />
-        <StatsCard title="Organisations" value={45} icon={Building2} />
-        <StatsCard title="Services" value={89} icon={Settings} />
-        <StatsCard title="Utilisateurs" value={234} icon={Users} />
+        <StatsCard
+          title="Pays"
+          value={data.superAdminStats.totalCountries}
+          icon={Globe}
+        />
+        <StatsCard
+          title="Organisations"
+          value={data.superAdminStats.totalOrganizations}
+          icon={Building2}
+        />
+        <StatsCard
+          title="Services"
+          value={data.superAdminStats.totalServices}
+          icon={Settings}
+        />
+        <StatsCard
+          title="Utilisateurs"
+          value={data.superAdminStats.totalUsers}
+          icon={Users}
+        />
       </div>
     </PageContainer>
   );

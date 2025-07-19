@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation';
-import { getServiceRequest } from '@/actions/service-requests';
 import { getCurrentUser } from '@/actions/user';
 import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
 import { getOrganizationAgents } from '@/actions/organizations';
-import { tryCatch } from '@/lib/utils';
+import { api } from '@/trpc/server';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,7 +19,7 @@ export default async function ViewRequest({ params, searchParams }: Props) {
     return notFound();
   }
 
-  const { data: request } = await tryCatch(getServiceRequest(awaitedParams.id));
+  const request = await api.requests.getById({ id: awaitedParams.id });
 
   if (!request) {
     return notFound();

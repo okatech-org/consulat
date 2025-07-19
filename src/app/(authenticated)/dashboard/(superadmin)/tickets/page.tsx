@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { PageContainer } from '@/components/layouts/page-container';
-import { DataTable } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +21,7 @@ import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { FeedbackStatus, FeedbackCategory } from '@prisma/client';
+import { DataTable } from '@/components/data-table/data-table';
 
 type TicketFilters = {
   status?: FeedbackStatus;
@@ -136,7 +136,7 @@ export default function TicketsPage() {
             : status === 'IN_REVIEW'
               ? 'secondary'
               : status === 'RESOLVED'
-                ? 'success'
+                ? 'default'
                 : 'outline';
         return (
           <Badge variant={variant}>{t(`list.status.${status.toLowerCase()}`)}</Badge>
@@ -282,13 +282,11 @@ export default function TicketsPage() {
           columns={columns}
           data={ticketsData?.feedbacks || []}
           isLoading={isLoading}
-          pagination={{
-            pageIndex: page - 1,
-            pageSize: 10,
-            pageCount: ticketsData?.pagination.totalPages || 0,
-            onPageChange: (pageIndex) => setPage(pageIndex + 1),
-          }}
-          emptyMessage={t('list.empty')}
+          pageIndex={page - 1}
+          pageSize={10}
+          onPageChange={(pageIndex) => setPage(pageIndex + 1)}
+          onLimitChange={(limit) => setPage(1)}
+          totalCount={ticketsData?.total || 0}
         />
 
         {/* Dialogs */}

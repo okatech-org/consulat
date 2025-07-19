@@ -8,7 +8,10 @@ import {
   updateOrganization,
   updateOrganizationStatus,
 } from '@/actions/organizations';
-import { CreateOrganizationInput, UpdateOrganizationInput } from '@/schemas/organization';
+import type {
+  CreateOrganizationInput,
+  UpdateOrganizationInput,
+} from '@/schemas/organization';
 
 export function useOrganizationActions() {
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +88,6 @@ export function useOrganizationActions() {
         title: t('error.delete'),
         variant: 'destructive',
       });
-      return false;
     } finally {
       setIsLoading(false);
     }

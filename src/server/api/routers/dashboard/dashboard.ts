@@ -5,25 +5,27 @@ import { RequestStatus, ServicePriority } from '@prisma/client';
 import { startOfDay, endOfDay } from 'date-fns';
 
 // Import existing dashboard actions
-import { 
+import {
   getManagerDashboardData as getManagerDashboardDataAction,
-  getAgentPerformanceMetrics as getAgentPerformanceMetricsAction 
+  getAgentPerformanceMetrics as getAgentPerformanceMetricsAction,
 } from '@/actions/manager-dashboard';
 import { getServiceRequestStats as getServiceRequestStatsAction } from '@/actions/service-requests';
 
 export const dashboardRouter = createTRPCRouter({
   // Statistiques générales du dashboard admin
   getAdminStats: protectedProcedure
-    .input(z.object({
-      organizationId: z.string().optional(),
-      startDate: z.date().optional(),
-      endDate: z.date().optional(),
-    }))
+    .input(
+      z.object({
+        organizationId: z.string().optional(),
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.some(role => 
-        ['ADMIN', 'SUPER_ADMIN'].includes(role)
-      )) {
+      if (
+        !ctx.session.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -37,12 +39,15 @@ export const dashboardRouter = createTRPCRouter({
         whereClause.assignedOrganizationId = input.organizationId;
       }
 
-      const dateFilter = input.startDate && input.endDate ? {
-        createdAt: {
-          gte: input.startDate,
-          lte: input.endDate,
-        }
-      } : {};
+      const dateFilter =
+        input.startDate && input.endDate
+          ? {
+              createdAt: {
+                gte: input.startDate,
+                lte: input.endDate,
+              },
+            }
+          : {};
 
       const [
         completedRequests,
@@ -55,7 +60,7 @@ export const dashboardRouter = createTRPCRouter({
         upcomingAppointments,
       ] = await Promise.all([
         ctx.db.serviceRequest.count({
-          where: { 
+          where: {
             ...(input.organizationId ? { organizationId: input.organizationId } : {}),
             status: RequestStatus.COMPLETED,
             ...dateFilter,
@@ -76,7 +81,7 @@ export const dashboardRouter = createTRPCRouter({
           },
         }),
         ctx.db.profile.count({
-          where: { 
+          where: {
             ...whereClause,
             status: RequestStatus.COMPLETED,
             ...dateFilter,
@@ -92,7 +97,9 @@ export const dashboardRouter = createTRPCRouter({
           },
         }),
         ctx.db.user.count({
-          where: input.organizationId ? { assignedOrganizationId: input.organizationId } : {},
+          where: input.organizationId
+            ? { assignedOrganizationId: input.organizationId }
+            : {},
         }),
         ctx.db.appointment.count({
           where: {
@@ -168,31 +175,38 @@ export const dashboardRouter = createTRPCRouter({
 
   // Statistiques pour les agents
   getAgentStats: protectedProcedure
-    .input(z.object({
-      agentId: z.string().optional(),
-      startDate: z.date().optional(),
-      endDate: z.date().optional(),
-    }))
+    .input(
+      z.object({
+        agentId: z.string().optional(),
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const agentId = input.agentId || ctx.session.user.id;
-      
+
       // Vérifier les permissions
-      if (agentId !== ctx.session.user.id && 
-          !ctx.session.user.roles?.some(role => 
-            ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role)
-          )) {
+      if (
+        agentId !== ctx.session.user.id &&
+        !ctx.session.user.roles?.some((role) =>
+          ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
+        )
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
         });
       }
 
-      const dateFilter = input.startDate && input.endDate ? {
-        createdAt: {
-          gte: input.startDate,
-          lte: input.endDate,
-        }
-      } : {};
+      const dateFilter =
+        input.startDate && input.endDate
+          ? {
+              createdAt: {
+                gte: input.startDate,
+                lte: input.endDate,
+              },
+            }
+          : {};
 
       // Récupérer les demandes assignées à l'agent
       const assignedRequests = await ctx.db.serviceRequest.findMany({
@@ -256,26 +270,26 @@ export const dashboardRouter = createTRPCRouter({
         },
       });
 
-             // Grouper les rendez-vous
-       const now = new Date();
-       const appointments = appointmentsResponse.reduce(
-         (acc, appointment) => {
-           const appointmentDate = new Date(appointment.startTime);
-           if (appointment.status === 'CANCELLED') {
-             acc.cancelled.push(appointment);
-           } else if (appointmentDate < now) {
-             acc.past.push(appointment);
-           } else {
-             acc.upcoming.push(appointment);
-           }
-           return acc;
-         },
-         {
-           upcoming: [] as typeof appointmentsResponse,
-           past: [] as typeof appointmentsResponse,
-           cancelled: [] as typeof appointmentsResponse,
-         },
-       );
+      // Grouper les rendez-vous
+      const now = new Date();
+      const appointments = appointmentsResponse.reduce(
+        (acc, appointment) => {
+          const appointmentDate = new Date(appointment.startTime);
+          if (appointment.status === 'CANCELLED') {
+            acc.cancelled.push(appointment);
+          } else if (appointmentDate < now) {
+            acc.past.push(appointment);
+          } else {
+            acc.upcoming.push(appointment);
+          }
+          return acc;
+        },
+        {
+          upcoming: [] as typeof appointmentsResponse,
+          past: [] as typeof appointmentsResponse,
+          cancelled: [] as typeof appointmentsResponse,
+        },
+      );
 
       return {
         stats: {
@@ -295,22 +309,24 @@ export const dashboardRouter = createTRPCRouter({
 
   // Statistiques pour les managers
   getManagerStats: protectedProcedure
-    .input(z.object({
-      managerId: z.string().optional(),
-      startDate: z.date().optional(),
-      endDate: z.date().optional(),
-    }))
+    .input(
+      z.object({
+        managerId: z.string().optional(),
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const managerId = input.managerId || ctx.session.user.id;
-      
+
       // Vérifier les permissions
-      if (managerId !== ctx.session.user.id && 
-          !ctx.session.user.roles?.some(role => 
-            ['ADMIN', 'SUPER_ADMIN'].includes(role)
-          )) {
+      if (
+        managerId !== ctx.session.user.id &&
+        !ctx.session.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
+      ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Access denied',
+          message: "Vous n'avez pas les permissions pour accéder à cette page.",
         });
       }
 
@@ -320,59 +336,63 @@ export const dashboardRouter = createTRPCRouter({
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to fetch manager dashboard data',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Erreur lors du chargement des données du dashboard manager',
         });
       }
     }),
 
   // Statistiques SuperAdmin
-  getSuperAdminStats: protectedProcedure
-    .query(async ({ ctx }) => {
-      // Vérifier les permissions
-      if (!ctx.session.user.roles?.includes('SUPER_ADMIN')) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Access denied',
-        });
-      }
+  getSuperAdminStats: protectedProcedure.query(async ({ ctx }) => {
+    // Vérifier les permissions
+    if (!ctx.session.user.roles?.includes('SUPER_ADMIN')) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'avez pas les permissions pour accéder à cette page.",
+      });
+    }
 
-      const [
+    const [
+      totalCountries,
+      totalOrganizations,
+      totalServices,
+      totalUsers,
+      activeCountries,
+      activeOrganizations,
+    ] = await Promise.all([
+      ctx.db.country.count(),
+      ctx.db.organization.count(),
+      ctx.db.consularService.count(),
+      ctx.db.user.count(),
+      ctx.db.country.count({
+        where: { status: 'ACTIVE' },
+      }),
+      ctx.db.organization.count({
+        where: { status: 'ACTIVE' },
+      }),
+    ]);
+
+    return {
+      stats: {
         totalCountries,
         totalOrganizations,
         totalServices,
         totalUsers,
         activeCountries,
         activeOrganizations,
-      ] = await Promise.all([
-        ctx.db.country.count(),
-        ctx.db.organization.count(),
-        ctx.db.consularService.count(),
-        ctx.db.user.count(),
-        ctx.db.country.count({
-          where: { status: 'ACTIVE' },
-        }),
-        ctx.db.organization.count({
-          where: { status: 'ACTIVE' },
-        }),
-      ]);
-
-      return {
-        stats: {
-          totalCountries,
-          totalOrganizations,
-          totalServices,
-          totalUsers,
-          activeCountries,
-          activeOrganizations,
-        },
-      };
-    }),
+      },
+    };
+  }),
 
   // Métriques de performance d'un agent (pour les managers)
   getAgentPerformanceMetrics: protectedProcedure
-    .input(z.object({
-      agentId: z.string(),
-    }))
+    .input(
+      z.object({
+        agentId: z.string(),
+      }),
+    )
     .query(async ({ input }) => {
       try {
         const metrics = await getAgentPerformanceMetricsAction(input.agentId);
@@ -380,54 +400,61 @@ export const dashboardRouter = createTRPCRouter({
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to fetch agent performance metrics',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to fetch agent performance metrics',
         });
       }
     }),
 
   // Statistiques globales des demandes de service
-  getServiceRequestStats: protectedProcedure
-    .query(async () => {
-      try {
-        const stats = await getServiceRequestStatsAction();
-        return stats;
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to fetch service request stats',
-        });
-      }
-    }),
+  getServiceRequestStats: protectedProcedure.query(async () => {
+    try {
+      const stats = await getServiceRequestStatsAction();
+      return stats;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Failed to fetch service request stats',
+      });
+    }
+  }),
 
   // Statistiques par période (pour les graphiques)
   getStatsByPeriod: protectedProcedure
-    .input(z.object({
-      period: z.enum(['day', 'week', 'month', 'year']),
-      startDate: z.date(),
-      endDate: z.date(),
-      organizationId: z.string().optional(),
-      agentId: z.string().optional(),
-    }))
-         .query(async ({ ctx, input }) => {
-       const serviceRequestWhere: {
-         organizationId?: string;
-         assignedToId?: string;
-       } = {};
-       
-       const appointmentWhere: {
-         organizationId?: string;
-         agentId?: string;
-       } = {};
-       
-       if (input.organizationId) {
-         serviceRequestWhere.organizationId = input.organizationId;
-         appointmentWhere.organizationId = input.organizationId;
-       }
-       
-       if (input.agentId) {
-         serviceRequestWhere.assignedToId = input.agentId;
-         appointmentWhere.agentId = input.agentId;
-       }
+    .input(
+      z.object({
+        period: z.enum(['day', 'week', 'month', 'year']),
+        startDate: z.date(),
+        endDate: z.date(),
+        organizationId: z.string().optional(),
+        agentId: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const serviceRequestWhere: {
+        organizationId?: string;
+        assignedToId?: string;
+      } = {};
+
+      const appointmentWhere: {
+        organizationId?: string;
+        agentId?: string;
+      } = {};
+
+      if (input.organizationId) {
+        serviceRequestWhere.organizationId = input.organizationId;
+        appointmentWhere.organizationId = input.organizationId;
+      }
+
+      if (input.agentId) {
+        serviceRequestWhere.assignedToId = input.agentId;
+        appointmentWhere.agentId = input.agentId;
+      }
 
       // Récupérer les données groupées par période
       const requests = await ctx.db.serviceRequest.findMany({
@@ -467,30 +494,26 @@ export const dashboardRouter = createTRPCRouter({
       return {
         requests: {
           total: requests.length,
-          completed: requests.filter(r => r.status === 'COMPLETED').length,
-          pending: requests.filter(r => ['SUBMITTED', 'PENDING'].includes(r.status)).length,
+          completed: requests.filter((r) => r.status === 'COMPLETED').length,
+          pending: requests.filter((r) => ['SUBMITTED', 'PENDING'].includes(r.status))
+            .length,
         },
         appointments: {
           total: appointments.length,
-          completed: appointments.filter(a => a.status === 'COMPLETED').length,
-          upcoming: appointments.filter(a => a.status === 'CONFIRMED').length,
+          completed: appointments.filter((a) => a.status === 'COMPLETED').length,
+          upcoming: appointments.filter((a) => a.status === 'CONFIRMED').length,
         },
       };
     }),
 
   // Statistiques en temps réel pour le dashboard
-  getRealTimeStats: protectedProcedure
-    .query(async ({ ctx }) => {
-      const today = new Date();
-      const startOfToday = startOfDay(today);
-      const endOfToday = endOfDay(today);
+  getRealTimeStats: protectedProcedure.query(async ({ ctx }) => {
+    const today = new Date();
+    const startOfToday = startOfDay(today);
+    const endOfToday = endOfDay(today);
 
-      const [
-        requestsToday,
-        appointmentsToday,
-        completedToday,
-        urgentPending,
-      ] = await Promise.all([
+    const [requestsToday, appointmentsToday, completedToday, urgentPending] =
+      await Promise.all([
         ctx.db.serviceRequest.count({
           where: {
             createdAt: {
@@ -530,12 +553,12 @@ export const dashboardRouter = createTRPCRouter({
         }),
       ]);
 
-      return {
-        requestsToday,
-        appointmentsToday,
-        completedToday,
-        urgentPending,
-        lastUpdated: new Date(),
-      };
-    }),
-}); 
+    return {
+      requestsToday,
+      appointmentsToday,
+      completedToday,
+      urgentPending,
+      lastUpdated: new Date(),
+    };
+  }),
+});

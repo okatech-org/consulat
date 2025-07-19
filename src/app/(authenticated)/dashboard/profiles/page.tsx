@@ -34,6 +34,7 @@ import type {
   ProfilesArrayItem,
   ProfilesFilters,
 } from '@/components/profile/types';
+import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getProfiles } from '@/components/profile/actions';
@@ -89,8 +90,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import type { FullProfileUpdateFormData } from '@/schemas/registration';
-import { toast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -191,31 +192,7 @@ export default function ProfilesPage() {
   const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
     () => [
       {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && 'indeterminate')
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-            className="translate-y-[2px]"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-            className="translate-y-[2px]"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
-      {
-        accessorKey: 'id',
+        id: 'id',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -230,21 +207,38 @@ export default function ProfilesPage() {
           />
         ),
         cell: ({ row }) => (
-          <button
-            type="button"
-            className="text-muted-foreground cursor-pointer"
-            onClick={() => {
-              navigator.clipboard.writeText(row.original.id);
-              toast({
-                title: 'ID copié dans le presse-papiers',
-                variant: 'success',
-              });
-            }}
-          >
-            {row.original.id}
-          </button>
+          <label className="flex items-center gap-2 px-2 cursor-pointer">
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+              className="translate-y-[2px]"
+            />
+
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(row.original.id);
+                    toast.success('ID copié dans le presse-papiers');
+                  }}
+                >
+                  <span className="uppercase text-muted-foreground">
+                    {row.original.id.slice(0, 6)}...
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <span className="uppercase">{row.original.id}</span> (cliquez pour copier)
+              </TooltipContent>
+            </Tooltip>
+          </label>
         ),
         enableSorting: false,
+        enableHiding: false,
       },
       {
         accessorKey: 'cardNumber',
@@ -674,7 +668,6 @@ export default function ProfilesPage() {
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         hiddenColumns={[
-          'id',
           'cardPin',
           'email',
           'shareUrl',
@@ -685,6 +678,10 @@ export default function ProfilesPage() {
           'category',
         ]}
         activeSorting={[sorting.field, sorting.order]}
+        sticky={[
+          { id: 'id', position: 'left' },
+          { id: 'actions', position: 'right' },
+        ]}
       />
     </PageContainer>
   );
@@ -724,24 +721,15 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
       const result = await tryCatch(updateProfile(profile.id, editedData as any));
 
       if (result.error) {
-        toast({
-          title: t('errors.common.unknown_error'),
-          variant: 'destructive',
-        });
+        toast.error(t('errors.common.unknown_error'));
         console.error(result.error);
         return;
       }
 
-      toast({
-        title: t('profile.update_success'),
-        variant: 'success',
-      });
+      toast.success(t('profile.update_success'));
       onSuccess();
     } catch (error) {
-      toast({
-        title: t('errors.common.unknown_error'),
-        variant: 'destructive',
-      });
+      toast.error(t('errors.common.unknown_error'));
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -835,17 +823,13 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
         );
       });
       await Promise.all(updatePromises);
-      toast({
-        title: t('common.success.bulk_update_success', { count: selectedRows.length }),
-        variant: 'success',
-      });
+      toast.success(
+        t('common.success.bulk_update_success', { count: selectedRows.length }),
+      );
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast({
-        title: t('common.errors.save_failed'),
-        variant: 'destructive',
-      });
+      toast.error(t('common.errors.save_failed'));
       console.error('Error updating profiles:', error);
     } finally {
       setIsSubmitting(false);
@@ -934,12 +918,9 @@ function ExportWithDirectoryForm({
 
     // Check if File System Access API is supported
     if (!('showDirectoryPicker' in window)) {
-      toast({
-        title: 'Fonctionnalité non supportée',
-        description:
-          'Votre navigateur ne supporte pas la sélection de dossier. Utilisez Chrome, Edge ou un navigateur compatible.',
-        variant: 'destructive',
-      });
+      toast.error(
+        'Votre navigateur ne supporte pas la sélection de dossier. Utilisez Chrome, Edge ou un navigateur compatible.',
+      );
       return;
     }
 
@@ -1030,11 +1011,9 @@ function ExportWithDirectoryForm({
 
       await Promise.all(imagePromises);
 
-      toast({
-        title: 'Export réussi',
-        description: `${selectedRows.length} profils exportés avec succès dans le dossier sélectionné.`,
-        variant: 'success',
-      });
+      toast.success(
+        `${selectedRows.length} profils exportés avec succès dans le dossier sélectionné.`,
+      );
 
       setOpen(false);
       onSuccess();
@@ -1044,11 +1023,7 @@ function ExportWithDirectoryForm({
         return;
       }
 
-      toast({
-        title: "Erreur lors de l'export",
-        description: "Une erreur est survenue lors de l'export. Veuillez réessayer.",
-        variant: 'destructive',
-      });
+      toast.error("Une erreur est survenue lors de l'export. Veuillez réessayer.");
       console.error('Export error:', error);
     } finally {
       setIsExporting(false);

@@ -1,11 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Country } from '@/types/country';
-import { ColumnDef } from '@tanstack/react-table';
+import type { Country } from '@/types/country';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import * as React from 'react';
 import { DataTable } from '@/components/data-table/data-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
@@ -19,13 +18,24 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { tryCatch } from '@/lib/utils';
+import { useSuperAdminData } from '@/hooks/use-role-data';
+import type {
+  CountrieStats,
+  CountryListItem,
+} from '@/server/api/routers/countries/types';
 
-interface CountriesListProps {
-  countries: Country[];
-  isLoading?: boolean;
+function getCountriesStats(countries: CountryListItem[]): CountrieStats {
+  return {
+    totalCountries: countries.length,
+    activeCountries: countries.filter((country) => country.status === 'ACTIVE').length,
+    inactiveCountries: countries.filter((country) => country.status === 'INACTIVE')
+      .length,
+  };
 }
 
-export function CountriesList({ countries }: CountriesListProps) {
+export function CountriesList() {
+  const { countries } = useSuperAdminData();
+  const stats = getCountriesStats(countries);
   const t = useTranslations('sa.countries');
   const t_common = useTranslations('common');
   const { toast } = useToast();
@@ -171,6 +181,12 @@ export function CountriesList({ countries }: CountriesListProps) {
 
   return (
     <>
+      {stats && (
+        <div className="mb-4 text-sm text-muted-foreground">
+          {stats.totalCountries} pays total • {stats.activeCountries} actifs •{' '}
+          {stats.inactiveCountries} inactifs
+        </div>
+      )}
       <DataTable
         columns={columns}
         data={countries}
@@ -179,6 +195,8 @@ export function CountriesList({ countries }: CountriesListProps) {
             type: 'search',
             property: 'name',
             label: t('table.name'),
+            defaultValue: '',
+            onChange: () => {},
           },
           {
             type: 'checkbox',
@@ -188,6 +206,8 @@ export function CountriesList({ countries }: CountriesListProps) {
               { value: 'ACTIVE', label: t('form.status.options.active') },
               { value: 'INACTIVE', label: t('form.status.options.inactive') },
             ],
+            defaultValue: ['ACTIVE'],
+            onChange: () => {},
           },
         ]}
       />

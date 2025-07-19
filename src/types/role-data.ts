@@ -16,6 +16,9 @@ import type {
 } from '@/types/user';
 import type { ServiceListItem } from '@/server/api/routers/services/misc';
 import type { GroupedAppointments } from '@/server/api/routers/appointments/misc';
+import type { CountryListItem } from '@/server/api/routers/countries/types';
+import type { OrganizationListItem } from '@/server/api/routers/organizations/types';
+import type { AdminStats, SuperAdminStats } from '@/server/api/routers/dashboard/types';
 
 // Données communes à tous les utilisateurs
 interface BaseUserData {
@@ -51,7 +54,6 @@ export interface UserData extends BaseUserData {
 export interface AgentData extends BaseUserData {
   role: 'AGENT';
   user: AgentSession;
-  profile?: FullProfile | null;
   assignedRequests: RequestListItem[];
   agentAppointments: GroupedAppointments | null;
   agentStats: {
@@ -68,7 +70,6 @@ export interface AgentData extends BaseUserData {
 export interface ManagerData extends BaseUserData {
   role: 'MANAGER';
   user: ManagerSession;
-  profile?: FullProfile | null;
   managedAgents: Array<{
     id: string;
     name?: string | null;
@@ -92,7 +93,6 @@ export interface ManagerData extends BaseUserData {
 export interface AdminData extends BaseUserData {
   role: 'ADMIN';
   user: AdminSession;
-  profile?: FullProfile | null;
   organizationData: {
     id: string;
     name: string;
@@ -101,14 +101,7 @@ export interface AdminData extends BaseUserData {
     countries: Array<{ id: string; name: string; code: string }>;
     _count: { services: number; agents: number };
   } | null;
-  adminStats: {
-    completedRequests: number;
-    processingRequests: number;
-    validatedProfiles: number;
-    pendingProfiles: number;
-    totalUsers: number;
-    totalAppointments: number;
-  };
+  adminStats: AdminStats;
   recentData: {
     recentRegistrations: Array<{
       id: string;
@@ -130,30 +123,9 @@ export interface AdminData extends BaseUserData {
 export interface SuperAdminData extends BaseUserData {
   role: 'SUPER_ADMIN';
   user: SuperAdminSession;
-  profile?: FullProfile | null;
-  organizations: Array<{
-    id: string;
-    name: string;
-    type: string;
-    status: string;
-    countries: Array<{ id: string; name: string; code: string }>;
-    _count: { services: number; agents: number };
-  }>;
-  countries: Array<{
-    id: string;
-    name: string;
-    code: string;
-    status: string;
-    _count: { organizations: number; users: number };
-  }>;
-  superAdminStats: {
-    totalCountries: number;
-    totalOrganizations: number;
-    totalServices: number;
-    totalUsers: number;
-    activeCountries: number;
-    activeOrganizations: number;
-  };
+  organizations: OrganizationListItem[];
+  countries: CountryListItem[];
+  superAdminStats: SuperAdminStats;
 }
 
 // Type union pour toutes les données possibles

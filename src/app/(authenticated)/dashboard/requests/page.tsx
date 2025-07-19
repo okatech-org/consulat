@@ -7,7 +7,6 @@ import { cn, useDateLocale } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
-import { useSession } from 'next-auth/react';
 
 // Imports pour le DataTable
 import type { ColumnDef } from '@tanstack/react-table';
@@ -50,6 +49,15 @@ import {
   SheetTitle,
   Sheet,
 } from '@/components/ui/sheet';
+import { useCurrentUser } from '@/hooks/use-role-data';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Types pour les agents
+type Agent = {
+  id: string;
+  name: string;
+  email?: string;
+};
 
 // Types pour les données de la table
 type ServiceRequestListItem = {
@@ -59,13 +67,13 @@ type ServiceRequestListItem = {
   serviceCategory: ServiceCategory;
   createdAt: Date;
   updatedAt: Date;
-  submittedBy: { id: string; email: string; name?: string } | null;
+  submittedBy: { id: string; email: string | null; name?: string | null } | null;
   requestedFor: {
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     identityPicture?: { fileUrl: string } | null;
   } | null;
-  assignedTo: { id: string; name?: string; email: string } | null;
+  assignedTo: { id: string; name?: string | null; email: string | null } | null;
   organization: { id: string; name: string } | null;
   country: { code: string; name: string } | null;
 };
@@ -107,8 +115,7 @@ const assignToSchema = z.object({
 type AssignToFormData = z.infer<typeof assignToSchema>;
 
 export default function RequestsPageClient() {
-  const { data: session } = useSession();
-  const user = session?.user;
+  const { user } = useCurrentUser();
 
   const {
     params,
@@ -122,7 +129,6 @@ export default function RequestsPageClient() {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
-  // Utilisation du hook tRPC pour les demandes
   const { requests, isLoading, refetch } = useRequests({
     ...params,
     page: pagination.page,
@@ -131,14 +137,7 @@ export default function RequestsPageClient() {
     sortOrder: sorting.order,
   });
 
-  // Récupération des agents de l'organisation (temporaire - à améliorer avec un router agents)
-  const agents: Array<{ id: string; name: string }> = [];
-
-  // TODO: Remplacer par un hook tRPC dédié aux agents une fois le router agents créé
-  // const { data: agents = [] } = api.agents.getByOrganization.useQuery(
-  //   { organizationId: organizationId || undefined },
-  //   { enabled: !!organizationId }
-  // );
+  const agents: Agent[] = [];
 
   // Refresh data fonction
   const handleRefresh = useCallback(() => {
@@ -159,33 +158,51 @@ export default function RequestsPageClient() {
   const columns = useMemo<ColumnDef<ServiceRequestListItem>[]>(() => {
     const tableColumns: ColumnDef<ServiceRequestListItem>[] = [
       {
-        id: 'select',
+        id: 'id',
         header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && 'indeterminate')
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-            className="translate-y-[2px]"
-          />
+          <label className="px-2 cursor-pointer">
+            <Checkbox
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && 'indeterminate')
+              }
+              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              aria-label="Select all"
+              className="translate-y-[2px]"
+            />
+          </label>
         ),
         cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-            className="translate-y-[2px]"
-          />
+          <label className="flex items-center gap-2 px-2 cursor-pointer">
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+              className="translate-y-[2px]"
+            />
+
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(row.original.id);
+                    toast.success('ID copié dans le presse-papiers');
+                  }}
+                >
+                  <span className="uppercase text-muted-foreground">
+                    {row.original.id.slice(0, 6)}...
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <span className="uppercase">{row.original.id}</span> (cliquez pour copier)
+              </TooltipContent>
+            </Tooltip>
+          </label>
         ),
-        enableSorting: false,
-        enableHiding: false,
-      },
-      {
-        accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-        cell: ({ row }) => <div className="w-[80px] truncate">{row.getValue('id')}</div>,
         enableSorting: false,
         enableHiding: false,
       },
@@ -384,14 +401,14 @@ export default function RequestsPageClient() {
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
     if (isAdmin) {
       tableColumns.push({
-        accessorKey: 'assignedToId',
+        accessorKey: 'assignedTo',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('requests.table.assigned_to')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'assignedToId',
+                field: 'assignedTo' as keyof ServiceRequestListItem,
                 order: direction,
               })
             }
@@ -433,7 +450,7 @@ export default function RequestsPageClient() {
                   selectedRows={table
                     .getFilteredSelectedRowModel()
                     .flatRows.map((row) => row.original)}
-                  agents={agents as any[]}
+                  agents={agents}
                   onSuccess={() => {
                     refetch();
                   }}
@@ -460,10 +477,10 @@ export default function RequestsPageClient() {
   }, [t, user, formatDate, statuses, handleSortingChange, agents, refetch]);
 
   // Définition des filtres
-  const filters = useMemo<FilterOption<any>[]>(() => {
+  const filters = useMemo<FilterOption<ServiceRequestListItem>[]>(() => {
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
 
-    const filterOptions: FilterOption<any>[] = [
+    const filterOptions: FilterOption<ServiceRequestListItem>[] = [
       {
         type: 'search',
         property: 'search',
@@ -490,7 +507,17 @@ export default function RequestsPageClient() {
         type: 'checkbox',
         property: 'status',
         label: t('inputs.status.label'),
-        defaultValue: params.status || [],
+        defaultValue: params.status || [
+          RequestStatus.SUBMITTED,
+          RequestStatus.PENDING,
+          RequestStatus.PENDING_COMPLETION,
+          RequestStatus.VALIDATED,
+          RequestStatus.CARD_IN_PRODUCTION,
+          RequestStatus.DOCUMENT_IN_PRODUCTION,
+          RequestStatus.READY_FOR_PICKUP,
+          RequestStatus.APPOINTMENT_SCHEDULED,
+          RequestStatus.EDITED,
+        ],
         options: statuses,
         onChange: (value) => {
           if (Array.isArray(value)) {
@@ -522,7 +549,7 @@ export default function RequestsPageClient() {
         property: 'assignedToId',
         label: t('requests.filters.assigned_to'),
         defaultValue: params.assignedToId || [],
-        options: agents.map((agent: any) => ({
+        options: agents.map((agent) => ({
           value: agent.id,
           label: agent.name || '-',
         })),
@@ -542,8 +569,8 @@ export default function RequestsPageClient() {
   }
 
   const hiddenColumns = hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN'])
-    ? ['id', 'priority']
-    : ['id', 'priority', 'assignedTo'];
+    ? ['priority']
+    : ['priority', 'assignedTo'];
 
   return (
     <PageContainer title={t('requests.title')}>
@@ -560,6 +587,16 @@ export default function RequestsPageClient() {
         hiddenColumns={hiddenColumns}
         onRefresh={handleRefresh}
         activeSorting={[sorting.field, sorting.order]}
+        sticky={[
+          {
+            id: 'actions',
+            position: 'right',
+          },
+          {
+            id: 'select',
+            position: 'left',
+          },
+        ]}
       />
     </PageContainer>
   );
@@ -667,7 +704,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
 // Composant pour l'assignation en masse
 type AssignToChangeFormProps = {
   selectedRows: ServiceRequestListItem[];
-  agents: any[];
+  agents: Agent[];
   onSuccess: () => void;
 };
 

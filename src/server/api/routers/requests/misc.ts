@@ -23,6 +23,7 @@ export const RequestListItemSelect: Prisma.ServiceRequestSelect = {
       email: true,
       phoneNumber: true,
       category: true,
+      identityPicture: true,
     },
   },
   submittedBy: {
