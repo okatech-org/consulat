@@ -24,6 +24,7 @@ export default {
     'document-templates': 'Modèles de documents',
     agents: 'Agents',
     contact: 'Contacts consulaires',
+    tickets: 'Retours utilisateurs',
   },
   dashboard: {
     title: 'Accueil',

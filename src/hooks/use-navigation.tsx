@@ -19,6 +19,7 @@ import {
   type LucideIcon,
   FolderOpen,
   MailIcon,
+  Ticket,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
@@ -111,12 +112,18 @@ export function useNavigation() {
       icon: FileIcon,
       roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     },
+    {
+      title: t('tickets'),
+      url: ROUTES.dashboard.tickets,
+      icon: Ticket,
+      roles: [UserRole.SUPER_ADMIN],
+    },
   ];
 
-  const userSecondaryNavItems: NavMainItem[] = [
+  const secondaryMenu: NavMainItem[] = [
     {
       title: t('notifications'),
-      url: ROUTES.user.notifications,
+      url: ROUTES.dashboard.notifications,
       icon: Bell,
       badge: <CountBadge count={stats?.unreadNotifications ?? 0} variant="destructive" />,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
@@ -161,10 +168,10 @@ export function useNavigation() {
         UserRole.AGENT,
       ],
     },
-    ...userSecondaryNavItems,
+    ...secondaryMenu,
   ];
 
-  return { menu, mobileMenu };
+  return { menu, mobileMenu, secondaryMenu };
 }
 
 export function useUserNavigation() {

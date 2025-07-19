@@ -91,6 +91,7 @@ export function createOTPAuthProvider(config: CustomOTPProviderConfig): Provider
       if (action === 'send') {
         // Générer un nouveau code OTP
         const otpCode = generateOTPCode();
+        console.log('otpCode', otpCode);
 
         // Envoyer le code via la fonction personnalisée
         const result = await sendOTP(channel, identifier, otpCode);

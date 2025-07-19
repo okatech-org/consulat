@@ -92,6 +92,19 @@ export default {
       placeholder: 'Nom complet du conjoint',
     },
   },
+  feedback: {
+    label: 'Retour utilisateur',
+    placeholder: 'Retour utilisateur',
+    categories: {
+      label: 'Catégorie de retour',
+      options: {
+        BUG: 'Bug',
+        FEATURE: 'Fonctionnalité',
+        IMPROVEMENT: 'Amélioration',
+        OTHER: 'Autre',
+      },
+    },
+  },
   passportIssueAuthority: {
     label: "Autorité d'émission du passeport",
     placeholder: "Autorité d'émission",

@@ -37,7 +37,7 @@ export function TicketStatusDialog({
   onStatusUpdate,
   isLoading,
 }: TicketStatusDialogProps) {
-  const t = useTranslations('feedback.admin.tickets.statusUpdate');
+  const t = useTranslations();
   const [selectedStatus, setSelectedStatus] = useState<FeedbackStatus | ''>('');
 
   // Récupérer les détails du ticket
@@ -73,7 +73,7 @@ export function TicketStatusDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogTitle>{t('feedback.admin.tickets.statusUpdate.title')}</DialogTitle>
           <DialogDescription>
             Modifier le statut du ticket #{ticket?.id.slice(-8)}
           </DialogDescription>
@@ -85,25 +85,25 @@ export function TicketStatusDialog({
               <h4 className="font-medium text-sm mb-2">{ticket.subject}</h4>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">
-                  {t(`../../form.categories.${ticket.category.toLowerCase()}`)}
+                  {t(`inputs.feedback.categories.options.${ticket.category}`)}
                 </Badge>
               </div>
             </div>
 
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                {t('currentStatus')}
+                {t('feedback.admin.tickets.statusUpdate.currentStatus')}
               </label>
               <div className="mt-1">
                 <Badge variant={getStatusVariant(ticket.status)}>
-                  {t(`../list.status.${ticket.status.toLowerCase()}`)}
+                  {t(`feedback.admin.tickets.list.status.${ticket.status.toLowerCase()}`)}
                 </Badge>
               </div>
             </div>
 
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                {t('newStatus')}
+                {t('feedback.admin.tickets.statusUpdate.newStatus')}
               </label>
               <Select
                 value={selectedStatus}
@@ -113,12 +113,18 @@ export function TicketStatusDialog({
                   <SelectValue placeholder="Sélectionner un nouveau statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PENDING">{t('../list.status.pending')}</SelectItem>
-                  <SelectItem value="IN_REVIEW">
-                    {t('../list.status.in_review')}
+                  <SelectItem value="PENDING">
+                    {t('feedback.admin.tickets.list.status.pending')}
                   </SelectItem>
-                  <SelectItem value="RESOLVED">{t('../list.status.resolved')}</SelectItem>
-                  <SelectItem value="CLOSED">{t('../list.status.closed')}</SelectItem>
+                  <SelectItem value="IN_REVIEW">
+                    {t('feedback.admin.tickets.list.status.in_review')}
+                  </SelectItem>
+                  <SelectItem value="RESOLVED">
+                    {t('feedback.admin.tickets.list.status.resolved')}
+                  </SelectItem>
+                  <SelectItem value="CLOSED">
+                    {t('feedback.admin.tickets.list.status.closed')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -132,14 +138,14 @@ export function TicketStatusDialog({
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            {t('cancel')}
+            {t('feedback.admin.tickets.statusUpdate.cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
             loading={isLoading}
             disabled={!selectedStatus || selectedStatus === ticket?.status}
           >
-            {t('confirm')}
+            {t('feedback.admin.tickets.statusUpdate.confirm')}
           </Button>
         </DialogFooter>
       </DialogContent>

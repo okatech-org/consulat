@@ -26,7 +26,7 @@ export function TicketDetailsDialog({
   open,
   onOpenChange,
 }: TicketDetailsDialogProps) {
-  const t = useTranslations('feedback.admin.tickets.details');
+  const t = useTranslations();
 
   // Récupérer les détails du ticket
   const { data: tickets, isLoading } = api.feedback.getAdminList.useQuery(
@@ -63,7 +63,7 @@ export function TicketDetailsDialog({
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return 'destructive';
+        return 'warning';
       case 'IN_REVIEW':
         return 'secondary';
       case 'RESOLVED':
@@ -79,7 +79,7 @@ export function TicketDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogTitle>{t('feedback.admin.tickets.details.title')}</DialogTitle>
           <DialogDescription>
             Ticket #{ticket.id.slice(-8)} - {ticket.subject}
           </DialogDescription>
@@ -90,21 +90,21 @@ export function TicketDetailsDialog({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                {t('info')}
+                {t('feedback.admin.tickets.details.info')}
               </label>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant={getStatusVariant(ticket.status)}>
-                  {t(`../list.status.${ticket.status.toLowerCase()}`)}
+                  {t(`feedback.admin.tickets.list.status.${ticket.status.toLowerCase()}`)}
                 </Badge>
                 <Badge variant="outline">
-                  {t(`../../form.categories.${ticket.category.toLowerCase()}`)}
+                  {t(`inputs.feedback.categories.options.${ticket.category}`)}
                 </Badge>
               </div>
             </div>
 
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                {t('createdAt')}
+                {t('feedback.admin.tickets.details.createdAt')}
               </label>
               <div className="flex items-center gap-2 mt-1 text-sm">
                 <Calendar className="h-4 w-4" />
@@ -137,7 +137,7 @@ export function TicketDetailsDialog({
           {/* Utilisateur */}
           <div>
             <label className="text-sm font-medium text-muted-foreground">
-              {t('createdBy')}
+              {t('feedback.admin.tickets.details.createdBy')}
             </label>
             <div className="mt-2 space-y-2">
               <div className="flex items-center gap-2">
@@ -166,7 +166,7 @@ export function TicketDetailsDialog({
           {/* Message */}
           <div>
             <label className="text-sm font-medium text-muted-foreground">
-              {t('message')}
+              {t('feedback.admin.tickets.details.message')}
             </label>
             <div className="mt-2 p-4 bg-muted rounded-lg">
               <p className="whitespace-pre-wrap text-sm">{ticket.message}</p>
@@ -179,7 +179,7 @@ export function TicketDetailsDialog({
               <Separator />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  {t('relatedService')}
+                  {t('feedback.admin.tickets.details.relatedService')}
                 </label>
                 <div className="mt-1">
                   <Badge variant="outline">{ticket.service.name}</Badge>
@@ -194,7 +194,7 @@ export function TicketDetailsDialog({
               <Separator />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  {t('relatedRequest')}
+                  {t('feedback.admin.tickets.details.relatedRequest')}
                 </label>
                 <div className="mt-1">
                   <Badge variant="outline">
@@ -211,18 +211,19 @@ export function TicketDetailsDialog({
               <Separator />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  {t('response')}
+                  {t('feedback.admin.tickets.details.response')}
                 </label>
                 <div className="mt-2 space-y-2">
                   <div className="text-sm text-muted-foreground">
-                    {t('respondedBy')} {ticket.respondedBy.name}
+                    {t('feedback.admin.tickets.details.respondedBy')}{' '}
+                    {ticket.respondedBy.name}
                     {ticket.respondedAt && (
                       <span className="ml-2">
                         le {format(new Date(ticket.respondedAt), 'PPP', { locale: fr })}
                       </span>
                     )}
                   </div>
-                  <div className="p-4 bg-blue-50 border-l-4 border-blue-200 rounded">
+                  <div className="p-4 bg-muted rounded-lg">
                     <p className="whitespace-pre-wrap text-sm">{ticket.response}</p>
                   </div>
                 </div>

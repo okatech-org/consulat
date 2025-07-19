@@ -46,6 +46,7 @@ export const ROUTES = {
       `/dashboard/document-templates/${id}` as Route<string>,
     agents: '/dashboard/agents' as Route<string>,
     agent_detail: (id: string) => `/dashboard/agents/${id}` as Route<string>,
+    tickets: '/dashboard/tickets' as Route<string>,
   },
 
   // Pages administratives

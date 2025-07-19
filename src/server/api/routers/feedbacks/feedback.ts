@@ -164,7 +164,7 @@ export const feedbackRouter = createTRPCRouter({
       if (ctx.session.user.role !== 'SUPER_ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          message: "Vous n'avez pas les permissions pour accéder à cette page.",
         });
       }
 
@@ -177,6 +177,8 @@ export const feedbackRouter = createTRPCRouter({
           ...(category && { category }),
           ...(organizationId && { organizationId }),
         };
+
+        const allFeedbacks = await ctx.db.feedback.findMany();
 
         const [feedbacks, total] = await Promise.all([
           ctx.db.feedback.findMany({
@@ -223,6 +225,8 @@ export const feedbackRouter = createTRPCRouter({
           }),
           ctx.db.feedback.count({ where }),
         ]);
+
+        console.log({ allFeedbacks });
 
         return {
           feedbacks,

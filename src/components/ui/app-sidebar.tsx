@@ -7,6 +7,8 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -21,12 +23,21 @@ import { FlagIcon } from './flag-icon';
 import { useNavigation } from '@/hooks/use-navigation';
 import Image from 'next/image';
 import { NavMain } from './nav-main';
+import { usePathname } from 'next/navigation';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const appName = env.NEXT_PUBLIC_APP_NAME;
   const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
   const { user } = useCurrentUser();
-  const { menu } = useNavigation();
+  const { menu, secondaryMenu } = useNavigation();
+  const pathname = usePathname();
+
+  const isActive = (url: string) => {
+    if (url === ROUTES.dashboard.base || ROUTES.user.base) {
+      return pathname === url;
+    }
+    return pathname.startsWith(url);
+  };
 
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
@@ -47,6 +58,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={menu} />
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {secondaryMenu?.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="size-icon" />
+                      <span className="min-w-max mr-auto">{item.title}</span>
+                      {item.badge}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
