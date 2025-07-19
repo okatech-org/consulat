@@ -30,7 +30,6 @@ import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
 import { toast } from '@/hooks/use-toast';
 import { checkUserExists } from '@/actions/auth';
-import { RoleGuard } from '@/lib/permissions/utils';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
