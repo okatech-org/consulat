@@ -23,6 +23,7 @@ export const env = createEnv({
     // AI APIs
     OPENAI_API_KEY: z.string(),
     GEMINI_API_KEY: z.string(),
+    REMOVEBG_API_KEY: z.string(),
 
     // SMS Provider Configuration
     SMS_PROVIDER: z.enum(['twilio', 'vonage']).default('twilio'),
@@ -75,6 +76,7 @@ export const env = createEnv({
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    REMOVEBG_API_KEY: process.env.REMOVEBG_API_KEY,
     SMS_PROVIDER: process.env.SMS_PROVIDER,
     TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,

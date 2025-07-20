@@ -9,9 +9,11 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
+import { Download, Eye, ZoomIn, ZoomOut, Scissors, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useBackgroundRemoval } from '@/hooks/use-background-removal';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface DocumentPreviewProps {
   isOpen: boolean;
@@ -20,7 +22,9 @@ interface DocumentPreviewProps {
   title: string;
   type: 'image' | 'pdf';
   onDownload?: () => void;
+  onProcessedImageChange?: (processedUrl: string | null) => void;
   showTrigger?: boolean;
+  enableBackgroundRemoval?: boolean;
 }
 
 export function DocumentPreview({
@@ -30,15 +34,60 @@ export function DocumentPreview({
   isOpen,
   type,
   setIsOpenAction,
+  onProcessedImageChange,
   showTrigger = false,
+  enableBackgroundRemoval = false,
 }: DocumentPreviewProps) {
   const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
+  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
   const isMobile = useMediaQuery('(max-width: 640px)');
+
+  const {
+    isProcessing,
+    processImageFromUrl,
+    error: bgRemovalError,
+    clearError,
+  } = useBackgroundRemoval({
+    onSuccess: (result) => {
+      if (result.imageUrl) {
+        // Nettoyer l'ancienne URL traitée si elle existe
+        if (processedImageUrl) {
+          URL.revokeObjectURL(processedImageUrl);
+        }
+        setProcessedImageUrl(result.imageUrl);
+        // Notifier le parent du changement
+        onProcessedImageChange?.(result.imageUrl);
+      }
+    },
+    onError: (error) => {
+      console.error('Erreur suppression arrière-plan:', error);
+    },
+  });
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.5));
-  const handleRotate = () => setRotation((prev) => (prev + 90) % 360);
+
+  const handleBackgroundRemoval = async () => {
+    if (type !== 'image') return;
+
+    try {
+      clearError();
+      await processImageFromUrl(url);
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'arrière-plan:", error);
+    }
+  };
+
+  const resetToOriginal = () => {
+    if (processedImageUrl) {
+      URL.revokeObjectURL(processedImageUrl);
+    }
+    setProcessedImageUrl(null);
+    onProcessedImageChange?.(null);
+  };
+
+  // URL de l'image à afficher (traitée ou originale)
+  const displayImageUrl = processedImageUrl || url;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpenAction}>
@@ -57,6 +106,12 @@ export function DocumentPreview({
         <div className="flex h-full flex-col gap-4 overflow-hidden">
           <SheetHeader>
             <SheetTitle>{title}</SheetTitle>
+            {bgRemovalError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{bgRemovalError}</AlertDescription>
+              </Alert>
+            )}
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -71,12 +126,28 @@ export function DocumentPreview({
                 onClick={handleZoomIn}
                 leftIcon={<ZoomIn className="size-icon" />}
               />
-              <Button
-                variant="outline"
-                size="icon-sm"
-                onClick={handleRotate}
-                leftIcon={<RotateCw className="size-icon" />}
-              />
+              {enableBackgroundRemoval && type === 'image' && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    onClick={handleBackgroundRemoval}
+                    disabled={isProcessing}
+                    leftIcon={<Scissors className="size-icon" />}
+                    title="Supprimer l'arrière-plan"
+                  />
+                  {processedImageUrl && (
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={resetToOriginal}
+                      title="Revenir à l'image originale"
+                    >
+                      Original
+                    </Button>
+                  )}
+                </>
+              )}
               {onDownload && (
                 <Button
                   variant="outline"
@@ -97,11 +168,10 @@ export function DocumentPreview({
                     'relative transition-transform duration-200',
                     'max-h-full max-w-full',
                   )}
-                  style={{ transform: `scale(${zoom}) rotate(${rotation}deg)` }}
+                  style={{ transform: `scale(${zoom})` }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={url}
+                    src={displayImageUrl}
                     alt={title}
                     className="max-h-full max-w-full object-contain"
                   />
