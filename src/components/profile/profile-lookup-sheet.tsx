@@ -68,7 +68,7 @@ export function ProfileLookupSheet({
       profileId,
     },
     {
-      enabled: !!(userId || email || phoneNumber || profileId) && !providedProfile,
+      enabled: !!(userId || email || phoneNumber || profileId),
       retry: false,
     },
   );
