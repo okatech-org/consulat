@@ -150,14 +150,9 @@ export const profileRouter = createTRPCRouter({
         email: z.string().optional(),
         phoneNumber: z.string().optional(),
         profileId: z.string().optional(),
-        providedProfile: z.any().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      if (input.providedProfile) {
-        return input.providedProfile;
-      }
-
       if (input.profileId) {
         const profile = await ctx.db.profile.findUnique({
           where: { id: input.profileId },

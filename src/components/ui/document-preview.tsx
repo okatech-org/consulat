@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useBackgroundRemoval } from '@/hooks/use-background-removal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface DocumentPreviewProps {
   isOpen: boolean;
@@ -68,7 +69,10 @@ export function DocumentPreview({
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.5));
 
   const handleBackgroundRemoval = async () => {
-    if (type !== 'image') return;
+    if (type !== 'image') {
+      toast.error("Cette fonctionnalité n'est pas disponible pour les fichiers PDF");
+      return;
+    }
 
     try {
       clearError();
@@ -126,7 +130,7 @@ export function DocumentPreview({
                 onClick={handleZoomIn}
                 leftIcon={<ZoomIn className="size-icon" />}
               />
-              {enableBackgroundRemoval && type === 'image' && (
+              {enableBackgroundRemoval && (
                 <>
                   <Button
                     variant="outline"

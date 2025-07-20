@@ -588,7 +588,7 @@ export function UserDocument({
       <Dialog open={showProcessedImageDialog} onOpenChange={setShowProcessedImageDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirmer l'image traitée</DialogTitle>
+            <DialogTitle>Confirmer l&apos;image traitée</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
