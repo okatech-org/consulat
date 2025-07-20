@@ -1,41 +1,48 @@
-import { notFound } from 'next/navigation';
-import { getCurrentUser } from '@/actions/user';
+'use client';
+
+import { useParams, useSearchParams } from 'next/navigation';
 import { RequestOverview } from '../_components/request-overview';
 import RequestReview from '../_components/request-review';
-import { getOrganizationAgents } from '@/actions/organizations';
-import { api } from '@/trpc/server';
+import { api } from '@/trpc/react';
+import { PageContainer } from '@/components/layouts/page-container';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { NotFoundComponent } from '@/components/ui/not-found';
+import type { RequestDetails } from '@/server/api/routers/requests/types';
 
-interface Props {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ review?: string }>;
-}
+export default function ViewRequest() {
+  const searchParams = useSearchParams();
+  const review = searchParams.get('review');
+  const { id } = useParams();
 
-export default async function ViewRequest({ params, searchParams }: Props) {
-  const user = await getCurrentUser();
-  const awaitedParams = await params;
-  const { review } = await searchParams;
+  const { data: request, isLoading } = api.requests.getById.useQuery({
+    id: id as string,
+  });
 
-  if (!user || !awaitedParams.id) {
-    return notFound();
+  if (isLoading) {
+    return <PageLoadingSkeleton />;
   }
 
-  const request = await api.requests.getById({ id: awaitedParams.id });
-
-  if (!request) {
-    return notFound();
+  if (!isLoading && !request) {
+    return (
+      <NotFoundComponent description="La demande que vous cherchez n'existe pas ou vous n'avez pas les permissions pour la voir." />
+    );
   }
-
-  const { data: agents = [] } = request.organizationId
-    ? await getOrganizationAgents(request.organizationId)
-    : { data: [] };
 
   if (review) {
-    return <RequestReview request={request} agents={agents} />;
+    return <RequestReview request={request as NonNullable<RequestDetails>} />;
   }
 
   return (
-    <div className="space-y-6">
-      <RequestOverview request={request} user={user} agents={agents} />
-    </div>
+    <PageContainer>
+      <RequestOverview request={request as NonNullable<RequestDetails>} />
+    </PageContainer>
+  );
+}
+
+function PageLoadingSkeleton() {
+  return (
+    <PageContainer>
+      <LoadingSkeleton variant="grid" columns={2} rows={2} />
+    </PageContainer>
   );
 }

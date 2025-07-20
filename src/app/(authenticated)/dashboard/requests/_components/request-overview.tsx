@@ -11,21 +11,19 @@ import { Timeline } from '@/components/ui/timeline';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import CardContainer from '@/components/layouts/card-container';
 import { RequestQuickEditFormDialog } from './request-quick-edit-form-dialog';
-import type { BaseAgent } from '@/types/organization';
 import { Separator } from '@/components/ui/separator';
 import { CardTitle } from '@/components/ui/card';
-import type { SessionUser } from '@/types';
 import Link from 'next/link';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import { useCurrentUser } from '@/hooks/use-role-data';
 
 interface RequestOverviewProps {
-  request: RequestDetails;
-  user: SessionUser;
-  agents: BaseAgent[];
+  request: NonNullable<RequestDetails>;
 }
 
-export function RequestOverview({ request, user, agents = [] }: RequestOverviewProps) {
+export function RequestOverview({ request }: RequestOverviewProps) {
+  const { user } = useCurrentUser();
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
@@ -163,7 +161,7 @@ export function RequestOverview({ request, user, agents = [] }: RequestOverviewP
               {request.assignedTo && (
                 <p className="text-sm text-muted-foreground">{request.assignedTo.name}</p>
               )}
-              <RequestQuickEditFormDialog request={request} agents={agents} />
+              <RequestQuickEditFormDialog request={request} />
               <Separator className="my-4" />
             </div>
           )}

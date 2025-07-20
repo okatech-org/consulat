@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from './button';
+import { PageContainer } from '../layouts/page-container';
+import { ArrowLeftIcon } from 'lucide-react';
 
 type Props = {
   title?: string;
@@ -12,12 +14,19 @@ export function NotFoundComponent({ title, description }: Props) {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col py-4 items-center justify-center gap-4">
-      <h1 className="text-2xl font-bold">{title ?? 'Ressource non trouvée'}</h1>
-      <p className="text-sm text-gray-500">
+    <PageContainer
+      title={title ?? 'Ressource non trouvée'}
+      className="flex flex-col py-4 items-center justify-center gap-4"
+    >
+      <p className="text-sm text-muted-foreground">
         {description ?? "La ressource que vous cherchez n'existe pas."}
       </p>
-      <Button onClick={() => router.back()}>Retour</Button>
-    </div>
+      <Button
+        leftIcon={<ArrowLeftIcon className="size-4" />}
+        onClick={() => router.back()}
+      >
+        Retour
+      </Button>
+    </PageContainer>
   );
 }

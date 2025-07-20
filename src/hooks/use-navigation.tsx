@@ -77,28 +77,28 @@ export function useNavigation() {
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
-      title: t('services'),
-      url: ROUTES.dashboard.services,
-      icon: FileText,
-      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
-    },
-    {
       title: t('profiles'),
       url: ROUTES.dashboard.profiles,
       icon: Users,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
-      title: t('agents'),
-      url: ROUTES.dashboard.agents,
-      icon: Users,
-      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPER_ADMIN],
-    },
-    {
       title: t('appointments'),
       url: ROUTES.dashboard.appointments,
       icon: Calendar,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+    },
+    {
+      title: t('services'),
+      url: ROUTES.dashboard.services,
+      icon: FileText,
+      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+    },
+    {
+      title: t('agents'),
+      url: ROUTES.dashboard.agents,
+      icon: Users,
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPER_ADMIN],
     },
     {
       title: t('users'),
