@@ -15,6 +15,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { useBackgroundRemoval } from '@/hooks/use-background-removal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { RoleGuard } from '@/lib/permissions/utils';
 
 interface DocumentPreviewProps {
   isOpen: boolean;
@@ -131,7 +132,7 @@ export function DocumentPreview({
                 leftIcon={<ZoomIn className="size-icon" />}
               />
               {enableBackgroundRemoval && (
-                <>
+                <RoleGuard roles={['ADMIN', 'SUPER_ADMIN', 'MANAGER', 'AGENT']}>
                   <Button
                     variant="outline"
                     size="icon-sm"
@@ -150,7 +151,7 @@ export function DocumentPreview({
                       Original
                     </Button>
                   )}
-                </>
+                </RoleGuard>
               )}
               {onDownload && (
                 <Button

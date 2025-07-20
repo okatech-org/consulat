@@ -29,12 +29,12 @@ import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/compo
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
 import type { SessionUser } from '@/types';
-import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import type { RequestDetails } from '@/server/api/routers/requests/types';
 import { LoadingSkeleton } from '../ui/loading-skeleton';
 import { api } from '@/trpc/react';
 
 interface ProfileReviewProps {
-  request: RequestDetails;
+  request: NonNullable<RequestDetails>;
 }
 
 export function ProfileReviewBase({ request }: ProfileReviewProps) {

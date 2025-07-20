@@ -26,12 +26,12 @@ import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { ChildProfileTabs } from '@/app/(authenticated)/my-space/children/_components/profile-tabs';
-import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import type { RequestDetails } from '@/server/api/routers/requests/types';
 import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '../ui/loading-skeleton';
 
 interface ChildProfileReviewProps {
-  request: RequestDetails;
+  request: NonNullable<RequestDetails>;
 }
 
 export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {

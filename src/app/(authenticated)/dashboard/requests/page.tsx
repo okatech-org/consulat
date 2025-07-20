@@ -122,11 +122,6 @@ export default function RequestsPageClient() {
 
   const agents: Agent[] = [];
 
-  // Refresh data fonction
-  const handleRefresh = useCallback(() => {
-    refetch();
-  }, [refetch]);
-
   // Définition des statuses pour les filtres
   const statuses = useMemo(
     () =>
@@ -506,17 +501,7 @@ export default function RequestsPageClient() {
         type: 'checkbox',
         property: 'status',
         label: t('inputs.status.label'),
-        defaultValue: params.status || [
-          RequestStatus.SUBMITTED,
-          RequestStatus.PENDING,
-          RequestStatus.PENDING_COMPLETION,
-          RequestStatus.VALIDATED,
-          RequestStatus.CARD_IN_PRODUCTION,
-          RequestStatus.DOCUMENT_IN_PRODUCTION,
-          RequestStatus.READY_FOR_PICKUP,
-          RequestStatus.APPOINTMENT_SCHEDULED,
-          RequestStatus.EDITED,
-        ],
+        defaultValue: params.status || [],
         options: statuses,
         onChange: (value) => {
           if (Array.isArray(value)) {
@@ -584,7 +569,7 @@ export default function RequestsPageClient() {
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         hiddenColumns={hiddenColumns}
-        onRefresh={handleRefresh}
+        onRefresh={refetch}
         activeSorting={[sorting.field, sorting.order]}
         sticky={[
           {

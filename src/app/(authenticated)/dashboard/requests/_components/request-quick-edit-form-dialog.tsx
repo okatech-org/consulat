@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { updateServiceRequest } from '@/actions/service-requests';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
-import { RequestStatus, ServicePriority, type User } from '@prisma/client';
+import { RequestStatus, ServicePriority } from '@prisma/client';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { filterUneditedKeys } from '@/lib/utils';
 import type { RequestDetails } from '@/server/api/routers/requests/misc';
@@ -45,14 +45,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface RequestQuickEditFormDialogProps {
-  request: RequestDetails;
-  agents: User[];
+  request: NonNullable<RequestDetails>;
 }
 
-export function RequestQuickEditFormDialog({
-  request,
-  agents = [],
-}: RequestQuickEditFormDialogProps) {
+export function RequestQuickEditFormDialog({ request }: RequestQuickEditFormDialogProps) {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -123,7 +119,7 @@ export function RequestQuickEditFormDialog({
                 <FormItem>
                   <FormLabel>{t('inputs.agent.assigned_to')}</FormLabel>
                   <MultiSelect
-                    options={agents.map((agent) => ({
+                    options={request.organization?.agents.map((agent) => ({
                       label: `${agent.name}`,
                       value: agent.id,
                     }))}

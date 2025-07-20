@@ -44,6 +44,12 @@ export const RequestListItemSelect: Prisma.ServiceRequestSelect = {
       id: true,
       name: true,
       metadata: true,
+      agents: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   },
 };
@@ -55,6 +61,19 @@ export type RequestListItem = Prisma.ServiceRequestGetPayload<{
 export const RequestDetailsSelect: Prisma.ServiceRequestSelect = {
   ...RequestListItemSelect,
   formData: true,
+  organization: {
+    select: {
+      id: true,
+      name: true,
+      metadata: true,
+      agents: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
   submittedBy: {
     select: {
       id: true,

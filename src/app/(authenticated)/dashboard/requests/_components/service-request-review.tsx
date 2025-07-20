@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { hasRole, hasAnyRole } from '@/lib/permissions/utils';
-import { UserRole, RequestStatus, ServicePriority, type User } from '@prisma/client';
+import { UserRole, RequestStatus, ServicePriority } from '@prisma/client';
 import { useDateLocale } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -26,19 +26,23 @@ import { StatusTimeline } from '@/components/consular/status-timeline';
 import { ReviewNotes } from '@/components/requests/review-notes';
 import useServiceReview from '@/hooks/use-service-review';
 import { AircallCallButton } from '@/components/requests/aircall-call-button';
-import type { RequestDetails } from '@/server/api/routers/requests/misc';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import { NotFoundComponent } from '@/components/ui/not-found';
 
 interface ServiceRequestReviewProps {
   request: RequestDetails;
-  agents: User[];
 }
 
-export function ServiceRequestReviewBase({
-  request,
-  agents = [],
-}: ServiceRequestReviewProps) {
+export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps) {
   const { user } = useCurrentUser();
+
+  if (!request) {
+    return (
+      <NotFoundComponent description="La demande que vous cherchez n'existe pas ou vous n'avez pas les permissions pour la voir." />
+    );
+  }
+
   const cantUpdateRequest =
     hasRole(user, UserRole.AGENT) && request.assignedToId !== user?.id;
 
@@ -226,7 +230,7 @@ export function ServiceRequestReviewBase({
               <Label>Assigner à</Label>
               <MultiSelect<string>
                 type="single"
-                options={agents.map((agent) => ({
+                options={request.organization?.agents.map((agent) => ({
                   value: agent.id,
                   label: `${agent.name}`,
                 }))}
@@ -318,10 +322,10 @@ export function ServiceRequestReviewBase({
   );
 }
 
-export function ServiceRequestReview({ request, agents }: ServiceRequestReviewProps) {
+export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {
   return (
     <Suspense fallback={<LoadingSkeleton variant="form" className="w-full" />}>
-      <ServiceRequestReviewBase request={request} agents={agents} />
+      <ServiceRequestReviewBase request={request} />
     </Suspense>
   );
 }
