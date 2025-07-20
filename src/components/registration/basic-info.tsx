@@ -73,6 +73,7 @@ export function BasicInfoForm({
                       }}
                       accept="image/*"
                       enableEditor={true}
+                      enableBackgroundRemoval={true}
                     />
                   </FormControl>
                   <TradFormMessage />

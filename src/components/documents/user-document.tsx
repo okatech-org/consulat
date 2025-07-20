@@ -29,7 +29,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/documents/metadata-form';
-import { toast } from '@/hooks/use-toast';
 import { FileInput } from '../ui/file-input';
 import { type FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
 import { ImageCropper } from '../ui/image-cropper';
@@ -39,6 +38,7 @@ import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import type { SessionUser } from '@/types/user';
+import { toast } from 'sonner';
 
 interface UserDocumentProps {
   document?: AppUserDocument | null;
@@ -55,6 +55,7 @@ interface UserDocumentProps {
   onDelete?: () => void;
   noFormLabel?: boolean;
   enableEditor?: boolean;
+  enableBackgroundRemoval?: boolean;
   requestId?: string;
 }
 
@@ -110,6 +111,7 @@ export function UserDocument({
   accept = 'image/*,application/pdf',
   onUpload,
   enableEditor = false,
+  enableBackgroundRemoval = false,
   requestId,
 }: UserDocumentProps) {
   const { user } = useCurrentUser();
@@ -122,9 +124,12 @@ export function UserDocument({
   const [cropperOpen, setCropperOpen] = React.useState(false);
   const [tempImageUrl, setTempImageUrl] = React.useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const router = useRouter();
   const [isReplacing, setIsReplacing] = React.useState(false);
   const [replaceFile, setReplaceFile] = React.useState<File | null>(null);
+  const [processedImageUrl, setProcessedImageUrl] = React.useState<string | null>(null);
+  const [processedFile, setProcessedFile] = React.useState<File | null>(null);
+  const [showProcessedImageDialog, setShowProcessedImageDialog] = React.useState(false);
+  const router = useRouter();
 
   // Check if user has admin role
   const hasAdminRole = React.useMemo(() => {
@@ -141,21 +146,13 @@ export function UserDocument({
     );
 
     if (error) {
-      toast({
-        title: t_messages('success.update_title'),
-        description: t_errors(error.message),
-        variant: 'destructive',
-      });
+      toast.error(t_errors(error.message));
     }
 
     if (updatedDocument) {
       onUpload?.(updatedDocument);
 
-      toast({
-        title: t_messages('success.update_title'),
-        description: t_messages('success.update_description'),
-        variant: 'success',
-      });
+      toast.success(t_messages('success.update_title'));
 
       if (onUpload) {
         onUpload(updatedDocument);
@@ -198,11 +195,7 @@ export function UserDocument({
     const result = await tryCatch(createUserDocument(data));
 
     if (result.error) {
-      toast({
-        title: t_messages('errors.update_failed'),
-        description: t_errors(result.error.message),
-        variant: 'destructive',
-      });
+      toast.error(t_errors(result.error.message));
       setIsLoading(false);
       return;
     }
@@ -211,11 +204,7 @@ export function UserDocument({
       if (onUpload) {
         onUpload(result.data);
       } else {
-        toast({
-          title: t_messages('success.update_title'),
-          description: t_messages('success.update_description'),
-          variant: 'success',
-        });
+        toast.success(t_messages('success.update_title'));
       }
 
       setIsLoading(false);
@@ -243,10 +232,7 @@ export function UserDocument({
     const uploadResult = await tryCatch(uploadFileFromClient(file));
 
     if (uploadResult.error) {
-      toast({
-        title: t_messages('errors.update_failed'),
-        variant: 'destructive',
-      });
+      toast.error(t_errors(uploadResult.error.message));
       console.error(uploadResult.error);
       setIsLoading(false);
       return;
@@ -292,12 +278,9 @@ export function UserDocument({
   };
 
   const getStatusBadge = (status: DocumentStatus) => {
-    const variants: Record<
-      DocumentStatus,
-      'default' | 'success' | 'destructive' | 'warning'
-    > = {
+    const variants: Record<DocumentStatus, 'default' | 'destructive' | 'warning'> = {
       PENDING: 'warning',
-      VALIDATED: 'success',
+      VALIDATED: 'default',
       REJECTED: 'destructive',
       EXPIRED: 'destructive',
       EXPIRING: 'warning',
@@ -315,10 +298,7 @@ export function UserDocument({
       // Upload du fichier (réutilise la logique d'upload existante)
       const uploadResult = await tryCatch(uploadFileFromClient(file));
       if (uploadResult.error) {
-        toast({
-          title: t_messages('errors.update_failed'),
-          variant: 'destructive',
-        });
+        toast.error(t_errors(uploadResult.error.message));
         console.error(uploadResult.error);
         setIsLoading(false);
         return;
@@ -334,17 +314,9 @@ export function UserDocument({
           ),
         );
         if (error) {
-          toast({
-            title: t_messages('errors.update_failed'),
-            description: t_errors(error.message),
-            variant: 'destructive',
-          });
+          toast.error(t_errors(error.message));
         } else if (updatedDoc) {
-          toast({
-            title: t_messages('success.update_title'),
-            description: t_messages('success.update_description'),
-            variant: 'success',
-          });
+          toast.success(t_messages('success.update_title'));
           onUpload?.(updatedDoc);
           router.refresh();
         }
@@ -364,6 +336,44 @@ export function UserDocument({
     setReplaceFile(file);
     setTempImageUrl(URL.createObjectURL(file));
     setCropperOpen(true);
+  };
+
+  // Gérer la validation de l'image traitée
+  const handleValidateProcessedImage = async () => {
+    if (!processedFile) return;
+
+    try {
+      setIsLoading(true);
+      if (document?.id) {
+        // Si le document existe déjà, le remplacer
+        await handleReplaceFile(processedFile);
+        toast.success("L'arrière-plan a été supprimé et le document mis à jour.");
+      } else {
+        // Si pas de document existant, créer un nouveau document
+        await handleFileUpload(processedFile);
+        toast.success("L'image avec arrière-plan supprimé a été sauvegardée.");
+      }
+
+      // Fermer la modale et nettoyer
+      setShowProcessedImageDialog(false);
+      setProcessedImageUrl(null);
+      setProcessedFile(null);
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde de l'image traitée:", error);
+      toast.error("Impossible de sauvegarder l'image traitée.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Annuler la validation de l'image traitée
+  const handleCancelProcessedImage = () => {
+    setShowProcessedImageDialog(false);
+    if (processedImageUrl) {
+      URL.revokeObjectURL(processedImageUrl);
+    }
+    setProcessedImageUrl(null);
+    setProcessedFile(null);
   };
 
   return (
@@ -390,6 +400,27 @@ export function UserDocument({
           fileUrl={document?.fileUrl}
           fileType={document?.fileType}
           showPreview={true}
+          enableBackgroundRemoval={enableBackgroundRemoval}
+          onProcessedImageChange={async (processedUrl) => {
+            if (processedUrl) {
+              try {
+                // Convertir l'URL data en File
+                const response = await fetch(processedUrl);
+                const blob = await response.blob();
+                const file = new File([blob], `${label}-bg-removed.png`, {
+                  type: 'image/png',
+                });
+
+                // Stocker l'image et le fichier pour la modale de confirmation
+                setProcessedImageUrl(processedUrl);
+                setProcessedFile(file);
+                setShowProcessedImageDialog(true);
+              } catch (error) {
+                console.error("Erreur lors du traitement de l'image:", error);
+                toast.error("Impossible de traiter l'image.");
+              }
+            }
+          }}
         />
 
         {document && (
@@ -552,6 +583,54 @@ export function UserDocument({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Modale de confirmation pour l'image traitée */}
+      <Dialog open={showProcessedImageDialog} onOpenChange={setShowProcessedImageDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmer l'image traitée</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Voici le résultat de la suppression d&apos;arrière-plan. Voulez-vous
+              remplacer votre document avec cette image ?
+            </p>
+
+            {processedImageUrl && (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="relative aspect-square w-full max-w-sm mx-auto">
+                  <Image
+                    src={processedImageUrl}
+                    alt="Image avec arrière-plan supprimé"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancelProcessedImage}
+              disabled={isLoading}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              onClick={handleValidateProcessedImage}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Sauvegarde...' : 'Valider et remplacer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

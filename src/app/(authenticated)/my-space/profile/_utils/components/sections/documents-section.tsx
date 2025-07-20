@@ -1,9 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { UserDocument as PrismaUserDocument, DocumentType } from '@prisma/client';
+import { DocumentType } from '@prisma/client';
+import type { UserDocument as PrismaUserDocument } from '@prisma/client';
 import { EditableSection } from '../editable-section';
-import { AppUserDocument } from '@/types';
+import type { AppUserDocument } from '@/types';
 import { UserDocument } from '@/components/documents/user-document';
 
 interface DocumentsSectionProps {
@@ -53,6 +54,7 @@ export function DocumentsSection({
           onDelete={onSave}
           onUpload={onSave}
           noFormLabel={true}
+          enableBackgroundRemoval={true}
           requestId={requestId}
         />
 
@@ -67,6 +69,7 @@ export function DocumentsSection({
           onDelete={onSave}
           onUpload={onSave}
           noFormLabel={true}
+          enableBackgroundRemoval={true}
           requestId={requestId}
         />
 

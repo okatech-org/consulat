@@ -20,6 +20,8 @@ export interface FileInputProps {
   showPreview?: boolean;
   preview?: React.ReactNode;
   aspectRatio?: string;
+  enableBackgroundRemoval?: boolean;
+  onProcessedImageChange?: (processedUrl: string | null) => void;
 }
 
 export function FileInput({
@@ -32,6 +34,8 @@ export function FileInput({
   fileType,
   showPreview = true,
   aspectRatio = '16/9',
+  enableBackgroundRemoval = false,
+  onProcessedImageChange,
 }: FileInputProps) {
   const t = useTranslations('inputs.fileInput');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -130,6 +134,8 @@ export function FileInput({
           onDownload={handleDownload}
           isOpen={previewOpen}
           setIsOpenAction={setPreviewOpen}
+          enableBackgroundRemoval={enableBackgroundRemoval}
+          onProcessedImageChange={onProcessedImageChange}
         />
 
         {onDeleteAction && (
