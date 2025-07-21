@@ -44,6 +44,8 @@ export default {
     errors: {
       user_not_found: 'Aucun utilisateur trouvé avec cet email ou ce numéro de téléphone',
       profile_not_found: 'Aucun profil trouvé pour cet utilisateur',
+      profile_already_submitted:
+        'Votre profil a déjà été soumis pour validation, veuillez attendre la réponse de notre équipe.',
       lookup_failed: 'Erreur lors de la recherche. Veuillez réessayer',
       unknown: "Une erreur inconnue s'est produite",
     },

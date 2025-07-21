@@ -319,6 +319,10 @@ export async function submitProfileForValidation(
     ...FullProfileInclude,
   });
 
+  if (profile?.validationRequestId) {
+    throw new Error('profile_already_submitted');
+  }
+
   if (!profile) {
     throw new Error('profile_not_found');
   }
