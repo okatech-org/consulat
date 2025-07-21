@@ -78,6 +78,8 @@ export default {
       title: 'Soumettre le profil pour validation',
       description:
         'Votre profil sera examiné par notre équipe. Veuillez vérifier que toutes les informations sont correctes avant de soumettre.',
+      disabled:
+        'Votre profil a déjà été soumis pour validation, veuillez attendre la réponse de notre équipe.',
       checklist: {
         title: 'Avant de soumettre, vérifiez que :',
         items: {
