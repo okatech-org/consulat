@@ -7,7 +7,7 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TicketActionSheet } from './_components/ticket-action-sheet';
-import { Eye, Settings, Star } from 'lucide-react';
+import { Settings, Star } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -16,7 +16,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
+
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
