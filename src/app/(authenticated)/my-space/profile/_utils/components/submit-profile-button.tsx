@@ -57,7 +57,7 @@ export function SubmitProfileButton({
   };
 
   return (
-    <>
+    <div className="flex flex-col items-center">
       <Button
         onClick={() => setIsDialogOpen(true)}
         className="w-full md:w-max"
@@ -68,11 +68,6 @@ export function SubmitProfileButton({
       >
         {t('submit_button')}
       </Button>
-      {!canSubmit && (
-        <p className="text-sm py-2 text-center text-muted-foreground">
-          {t('dialog.description')}
-        </p>
-      )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
@@ -109,6 +104,18 @@ export function SubmitProfileButton({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+
+      {canSubmit && (
+        <p className="text-sm py-2 text-center text-muted-foreground">
+          {t('dialog.description')}
+        </p>
+      )}
+
+      {!canSubmit && (
+        <p className="text-sm py-2 text-center text-muted-foreground">
+          {t('dialog.disabled')}
+        </p>
+      )}
+    </div>
   );
 }

@@ -35,6 +35,22 @@ export default function ProfilePage() {
     );
   }
 
+  const canSubmit = () => {
+    if (profile.status !== 'DRAFT') {
+      return false;
+    }
+
+    if (profile.validationRequestId) {
+      return false;
+    }
+
+    if (calculateProfileCompletion(profile) !== 100) {
+      return false;
+    }
+
+    return true;
+  };
+
   return (
     <PageContainer>
       <div className="grid grid-cols-8 gap-4">
@@ -63,20 +79,7 @@ export default function ProfilePage() {
           )}
           <ProfileProgressBar profile={profile} />
 
-          {![
-            'SUBMITTED',
-            'PENDING',
-            'VALIDATED',
-            'READY_FOR_PICKUP',
-            'COMPLETED',
-          ].includes(profile.status) && (
-            <div className="flex flex-col items-center">
-              <SubmitProfileButton
-                canSubmit={calculateProfileCompletion(profile) === 100}
-                profileId={profile.id}
-              />
-            </div>
-          )}
+          <SubmitProfileButton canSubmit={canSubmit()} profileId={profile.id} />
         </div>
       </div>
     </PageContainer>

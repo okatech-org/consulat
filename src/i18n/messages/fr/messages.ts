@@ -55,6 +55,8 @@ export default {
     incomplete_profile: 'Le profil est incomplet',
     missing_documents: 'Des documents requis sont manquants ou non validés',
     profile_not_found: 'Profil non trouvé',
+    profile_already_submitted:
+      'Votre profil a déjà été soumis pour validation, veuillez attendre la réponse de notre équipe.',
     unauthorized: "Vous n'êtes pas autorisé à effectuer cette action",
     birth_date_future: 'La date de naissance ne peut pas être dans le futur',
     unknown: 'Une erreur inattendue est survenue',
@@ -187,6 +189,8 @@ export default {
       invalid_credentials: 'Identifiants invalides',
       no_document: 'Aucun document',
       profile_not_found: 'Profil non trouvé',
+      profile_already_submitted:
+        'Votre profil a déjà été soumis pour validation, veuillez attendre la réponse de notre équipe.',
       invalid_data: 'Données invalides',
       invalid_status: 'Le profil ne peut pas être soumis dans son état actuel',
       missing_documents: 'Des documents requis sont manquants',
