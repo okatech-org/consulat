@@ -178,7 +178,7 @@ export default {
   PT: 'Portugal',
   PR: 'Porto Rico',
   QA: 'Qatar',
-  RE: 'Réunion',
+  RE: 'Île de la Réunion',
   RO: 'Roumanie',
   RU: 'Fédération de Russie',
   RW: 'Rwanda',

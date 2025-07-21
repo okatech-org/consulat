@@ -53,6 +53,7 @@ export const phoneCountries = [
   { value: '+358', countryCode: 'FI' },
   { value: '+33', countryCode: 'FR' },
   { value: '+241', countryCode: 'GA' },
+  { value: '+262', countryCode: 'RE' },
   { value: '+220', countryCode: 'GM' },
   { value: '+995', countryCode: 'GE' },
   { value: '+233', countryCode: 'GH' },
