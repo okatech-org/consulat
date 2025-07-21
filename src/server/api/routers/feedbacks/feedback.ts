@@ -327,7 +327,7 @@ export const feedbackRouter = createTRPCRouter({
               await notify({
                 userId: feedback.user?.id || 'anonymous',
                 type: NotificationType.FEEDBACK,
-                title: `Nouveau message de la plateforme consula.ga \n Réponse à votre retour utilisateur au sujet de :  ${feedback.subject}`,
+                title: `Réponse à votre retour utilisateur au sujet de : ${feedback.subject}`,
                 message: response,
                 channels: notificationChannels,
                 email: feedback.user?.email || feedback.email || undefined,
