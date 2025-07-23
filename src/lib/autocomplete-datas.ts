@@ -53,7 +53,6 @@ export const phoneCountries = [
   { value: '+358', countryCode: 'FI' },
   { value: '+33', countryCode: 'FR' },
   { value: '+241', countryCode: 'GA' },
-  { value: '+262', countryCode: 'RE' },
   { value: '+220', countryCode: 'GM' },
   { value: '+995', countryCode: 'GE' },
   { value: '+233', countryCode: 'GH' },
@@ -143,6 +142,14 @@ export const phoneCountries = [
   { value: '+84', countryCode: 'VN' },
   { value: '+263', countryCode: 'ZW' },
   { value: '+260', countryCode: 'ZM' },
+  { value: '+590', countryCode: 'GP' },
+  { value: '+594', countryCode: 'GF' },
+  { value: '+596', countryCode: 'MQ' },
+  { value: '+262', countryCode: 'RE' },
+  { value: '+508', countryCode: 'BL' },
+  { value: '+681', countryCode: 'WF' },
+  { value: '+687', countryCode: 'NC' },
+  { value: '+689', countryCode: 'PF' },
 ] as const;
 
 export type CountryIndicator = (typeof phoneCountries)[number]['value'];
