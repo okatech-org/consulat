@@ -1,38 +1,40 @@
-import { getOrganizationById } from '@/actions/organizations';
-import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+'use client';
+
 import { SettingsTabs } from '@/components/organization/settings-tabs';
-import { getActiveCountries } from '@/actions/countries';
 import { UserRole } from '@prisma/client';
+import { useParams } from 'next/navigation';
+import { NotFoundComponent } from '@/components/ui/not-found';
+import { PageContainer } from '@/components/layouts/page-container';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useTranslations } from 'next-intl';
 
-export default async function OrganizationSettingsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { id } = await params;
+export default function OrganizationSettingsPage() {
+  const t = useTranslations();
+  const { id } = useParams<{ id: string }>();
+  const { data: organization, isLoading } = api.organizations.getById.useQuery({ id });
 
-  if (!id) {
-    notFound();
+  if (isLoading) {
+    return (
+      <PageContainer title="Paramètre des organismes">
+        <LoadingSkeleton variant="grid" rows={3} columns={3} />
+      </PageContainer>
+    );
   }
 
-  const { data: organization, error: organizationError } = await getOrganizationById(id);
-
-  const t = await getTranslations();
-
-  if (organizationError) {
-    notFound();
+  if (!organization && !isLoading) {
+    return (
+      <PageContainer title="Organisme non trouvé">
+        <NotFoundComponent />
+      </PageContainer>
+    );
   }
-
-  const countries = await getActiveCountries();
 
   return (
-    <div className="container space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">{t('organization.title')}</h1>
-        <p className="text-muted-foreground">{t('organization.settings.description')}</p>
-      </div>
-
+    <PageContainer
+      title={t('organization.title')}
+      description={t('organization.settings.description')}
+    >
       {organization && (
         <SettingsTabs
           organization={{
@@ -42,13 +44,9 @@ export default async function OrganizationSettingsPage({
             services: organization.services ?? [],
             agents:
               organization.agents.filter((agent) => agent.role === UserRole.AGENT) ?? [],
-            managers:
-              organization.agents.filter((agent) => agent.role === UserRole.MANAGER) ??
-              [],
           }}
-          availableCountries={countries ?? []}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

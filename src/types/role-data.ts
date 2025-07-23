@@ -16,7 +16,10 @@ import type {
 } from '@/types/user';
 import type { ServiceListItem } from '@/server/api/routers/services/misc';
 import type { GroupedAppointments } from '@/server/api/routers/appointments/misc';
-import type { CountryListItem } from '@/server/api/routers/countries/types';
+import type {
+  ActiveCountryItem,
+  CountryListItem,
+} from '@/server/api/routers/countries/types';
 import type { OrganizationListItem } from '@/server/api/routers/organizations/types';
 import type {
   AdminStats,
@@ -28,6 +31,7 @@ import type {
 interface BaseUserData {
   user: User;
   notifications: Notification[];
+  activeCountries?: ActiveCountryItem[];
   stats: {
     unreadNotifications: number;
   };

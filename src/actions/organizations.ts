@@ -10,7 +10,6 @@ import type {
   UpdateOrganizationInput,
 } from '@/schemas/organization';
 import {
-  type Country,
   OrganizationStatus,
   ServiceCategory,
   UserRole,
@@ -19,7 +18,7 @@ import {
 } from '@prisma/client';
 
 import type { AgentFormData } from '@/schemas/user';
-import { env } from '@/env';;
+import { env } from '@/env';
 import { sendAdminWelcomeEmail } from '@/lib/services/notifications/providers/emails';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
@@ -38,7 +37,6 @@ import {
   type AgentWithIncludes,
   createAgentInclude,
 } from '@/types/organization';
-import type { CountryCode } from '@/lib/autocomplete-datas';
 
 export async function getOrganizations(
   organizationId?: string,
@@ -90,7 +88,6 @@ export async function createOrganization(data: CreateOrganizationInput) {
           managedOrganization: {
             connect: { id: organization.id },
           },
-          countryCode: data.countryIds[0] as CountryCode,
         },
       });
 
@@ -557,7 +554,7 @@ export async function updateOrganizationSettings(
         ...(metadata && { metadata: JSON.stringify(metadata) }),
         ...(countryIds && {
           countries: {
-            connect: countryIds.map((id) => ({ id })),
+            set: countryIds.map((id) => ({ code: id })),
           },
         }),
       },
@@ -583,7 +580,7 @@ export async function getOrganisationCountryInfos(
 
   const formattedMetadata = JSON.parse(
     typeof metadata === 'string' ? metadata : '{}',
-  ) as Record<Country['code'], OrganizationMetadataSettings>;
+  ) as Record<string, OrganizationMetadataSettings>;
 
   // @ts-expect-error - TODO: fix this (JsonValue is not typed)
   return {

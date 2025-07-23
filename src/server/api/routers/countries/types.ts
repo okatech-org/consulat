@@ -23,3 +23,6 @@ export type DeleteCountryInput = CountriesRouterInputs['delete'];
 export type DeleteCountryResult = CountriesRouterOutputs['delete'];
 
 export type CountrieStats = CountriesRouterOutputs['getStats'];
+
+export type CountryActiveQueryInput = CountriesRouterInputs['getActive'];
+export type ActiveCountryItem = CountriesRouterOutputs['getActive'][number];

@@ -13,7 +13,7 @@ import {
 } from '@/hooks/use-table-search-params';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import type { OrganizationListingItem } from '@/types/organization';
-import { type Country, type User, UserRole } from '@prisma/client';
+import { type User, UserRole } from '@prisma/client';
 import { useEffect, useState, useMemo } from 'react';
 import { getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
@@ -31,7 +31,6 @@ import type { SessionUser } from '@/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type AgentsTablesProps = {
-  countries: Country[];
   services: ConsularServiceListingItem[];
   organizations: OrganizationListingItem[];
   managers: User[];
@@ -45,12 +44,8 @@ interface SearchParams {
   managedByUserId?: string[];
 }
 
-export function AgentsTable({
-  countries,
-  services,
-  organizations,
-  managers,
-}: AgentsTablesProps) {
+export function AgentsTable({ services, organizations, managers }: AgentsTablesProps) {
+  const { activeCountries } = useRoleData<SuperAdminData | AdminData>();
   const [isLoading, setIsLoading] = useState(false);
   const { user: currentUser } = useCurrentUser();
   const organizationId = getOrganizationIdFromUser(currentUser as SessionUser);
@@ -260,7 +255,10 @@ export function AgentsTable({
         type: 'checkbox' as const,
         property: 'linkedCountries',
         label: 'Pays',
-        options: countries.map((c) => ({ value: c.code, label: c.name || c.code })),
+        options: activeCountries?.map((c) => ({
+          value: c.code,
+          label: c.name || c.code,
+        })),
         defaultValue: params.linkedCountries as string[],
         onChange: (value: string[]) => handleParamsChange('linkedCountries', value),
       },
@@ -299,7 +297,7 @@ export function AgentsTable({
         : []),
     ],
     [
-      countries,
+      activeCountries,
       organizations,
       services,
       managers,

@@ -70,6 +70,7 @@ async function loadUserData(user: SessionUser): Promise<UserData> {
     availableServices,
     currentRequest,
     unreadNotifications,
+    activeCountries,
   ] = await Promise.all([
     api.profile.getCurrent(),
     api.requests.getList({}),
@@ -78,6 +79,7 @@ async function loadUserData(user: SessionUser): Promise<UserData> {
     api.services.getAvailable(),
     api.requests.getCurrent(),
     api.notifications.getUnreadCount(),
+    api.countries.getActive(),
   ]);
 
   return {
@@ -91,6 +93,7 @@ async function loadUserData(user: SessionUser): Promise<UserData> {
     children: profile.parentAuthorities,
     documents: documents,
     availableServices: availableServices,
+    activeCountries: activeCountries,
     stats: {
       profileCompletion: calculateProfileCompletion(profile),
       unreadNotifications: unreadNotifications,
@@ -104,13 +107,19 @@ async function loadUserData(user: SessionUser): Promise<UserData> {
 
 async function loadAgentData(user: SessionUser): Promise<AgentData> {
   try {
-    const [agentStatsData, unreadNotifications, notifications, appointments] =
-      await Promise.all([
-        api.dashboard.getAgentStats({ agentId: user.id }),
-        api.notifications.getUnreadCount(),
-        api.notifications.getList({}),
-        api.appointments.getList({ userId: user.id }),
-      ]);
+    const [
+      agentStatsData,
+      unreadNotifications,
+      notifications,
+      appointments,
+      activeCountries,
+    ] = await Promise.all([
+      api.dashboard.getAgentStats({ agentId: user.id }),
+      api.notifications.getUnreadCount(),
+      api.notifications.getList({}),
+      api.appointments.getList({ userId: user.id }),
+      api.countries.getActive(),
+    ]);
 
     return {
       role: 'AGENT',
@@ -121,6 +130,7 @@ async function loadAgentData(user: SessionUser): Promise<AgentData> {
       stats: {
         unreadNotifications,
       },
+      activeCountries: activeCountries,
     };
   } catch (error) {
     console.error('Erreur lors du chargement des données agent:', error);
@@ -147,11 +157,13 @@ async function loadAgentData(user: SessionUser): Promise<AgentData> {
 
 async function loadManagerData(user: SessionUser): Promise<ManagerData> {
   try {
-    const [managerStatsData, managedAgents, unreadNotifications] = await Promise.all([
-      api.dashboard.getManagerStats({ managerId: user.id }),
-      api.agents.getList({ managedByUserId: [user.id] }),
-      api.notifications.getUnreadCount(),
-    ]);
+    const [managerStatsData, managedAgents, unreadNotifications, activeCountries] =
+      await Promise.all([
+        api.dashboard.getManagerStats({ managerId: user.id }),
+        api.agents.getList({ managedByUserId: [user.id] }),
+        api.notifications.getUnreadCount(),
+        api.countries.getActive(),
+      ]);
 
     // Utiliser les vraies données du router manager
     const statsData = managerStatsData?.stats || {
@@ -181,6 +193,7 @@ async function loadManagerData(user: SessionUser): Promise<ManagerData> {
       stats: {
         unreadNotifications,
       },
+      activeCountries: activeCountries,
     };
   } catch (error) {
     console.error('Erreur lors du chargement des données manager:', error);
@@ -213,6 +226,7 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
       organizationData,
       unreadNotifications,
       profilesGeographicData,
+      activeCountries,
     ] = await Promise.all([
       api.dashboard.getAdminStats({
         organizationId: user.assignedOrganizationId || undefined,
@@ -227,6 +241,7 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
       api.dashboard.getProfilesGeographicData({
         organizationId: user.assignedOrganizationId || undefined,
       }),
+      api.countries.getActive(),
     ]);
 
     return {
@@ -240,6 +255,7 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
         unreadNotifications,
       },
       profilesGeographicData: profilesGeographicData,
+      activeCountries: activeCountries,
     };
   } catch (error) {
     console.error('Erreur lors du chargement des données admin:', error);
@@ -251,9 +267,10 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
       adminStats: {
         completedRequests: 0,
         processingRequests: 0,
-        validatedProfiles: 0,
+        pendingRequests: 0,
         pendingProfiles: 0,
-        totalUsers: 0,
+        completedProfiles: 0,
+        totalProfiles: 0,
         totalAppointments: 0,
       },
       recentData: {
@@ -263,6 +280,7 @@ async function loadAdminData(user: SessionUser): Promise<AdminData> {
       stats: {
         unreadNotifications: 0,
       },
+      profilesGeographicData: [],
     };
   }
 }
@@ -275,12 +293,14 @@ async function loadSuperAdminData(user: SessionUser): Promise<SuperAdminData> {
       countries,
       unreadNotifications,
       notifications,
+      activeCountries,
     ] = await Promise.all([
       api.dashboard.getSuperAdminStats(),
       api.organizations.getList({}),
       api.countries.getList({}),
       api.notifications.getUnreadCount(),
       api.notifications.getList({}),
+      api.countries.getActive(),
     ]);
 
     return {
@@ -293,6 +313,7 @@ async function loadSuperAdminData(user: SessionUser): Promise<SuperAdminData> {
       stats: {
         unreadNotifications,
       },
+      activeCountries: activeCountries,
     };
   } catch (error) {
     console.error('Erreur lors du chargement des données super admin:', error);
@@ -313,6 +334,7 @@ async function loadSuperAdminData(user: SessionUser): Promise<SuperAdminData> {
       stats: {
         unreadNotifications: 0,
       },
+      activeCountries: [],
     };
   }
 }

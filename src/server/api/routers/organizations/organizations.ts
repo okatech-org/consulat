@@ -152,6 +152,7 @@ export const organizationsRouter = createTRPCRouter({
               assignedServices: true,
             },
           },
+          adminUser: true,
           _count: {
             select: {
               services: true,
