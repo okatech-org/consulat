@@ -895,7 +895,7 @@ function ExportWithDirectoryForm({
       // Prepare data for Excel export with custom IDPicturePath
       const exportData = selectedRows.map((item) => ({
         ...item,
-        IDPicturePath: `${customPath.endsWith('/') ? customPath : customPath + '/'}${item.IDPictureFileName}.png`,
+        IDPicturePath: `${item.IDPictureFileName}.png`,
       }));
 
       // Create Excel file
@@ -1009,25 +1009,11 @@ function ExportWithDirectoryForm({
           <ul className="text-sm space-y-2 list-disc list-inside text-muted-foreground">
             <li>Un fichier Excel avec les données des profils sélectionnés</li>
             <li>Toutes les images des profils (sans compression)</li>
-            <li>Les chemins des images seront mis à jour dans le fichier Excel</li>
+            <li>
+              Assurez vous d&apos;enregistrer les images dans le dossier configuré pour
+              les images dans l&apos;application d&apos;implémentation
+            </li>
           </ul>
-
-          <div className="space-y-2">
-            <label htmlFor="customPath" className="text-sm font-medium">
-              Chemin pour IDPicturePath dans l&apos;Excel :
-            </label>
-            <Input
-              id="customPath"
-              value={customPath}
-              onChange={(e) => setCustomPath(e.target.value)}
-              placeholder="/images/profiles/"
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground">
-              Ce chemin sera utilisé dans la colonne IDPicturePath du fichier Excel (ex:{' '}
-              {customPath.endsWith('/') ? customPath : customPath + '/'}profile-id.png)
-            </p>
-          </div>
 
           {isExporting && downloadProgress.total > 0 && (
             <div className="space-y-2">
