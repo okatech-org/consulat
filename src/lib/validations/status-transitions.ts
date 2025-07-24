@@ -26,26 +26,16 @@ export function canSwitchTo(
       if (completionRate < 100) {
         return { can: false, reason: 'incomplete_profile' };
       }
-      if (!allDocumentsValidated(profile, profile.category)) {
-        return { can: false, reason: 'incomplete_documents' };
-      }
       return { can: true };
     case RequestStatus.DOCUMENT_IN_PRODUCTION:
       if (completionRate < 100) {
         return { can: false, reason: 'incomplete_profile' };
-      }
-      if (!allDocumentsValidated(profile, profile.category)) {
-        return { can: false, reason: 'incomplete_documents' };
       }
       return { can: true };
     case RequestStatus.COMPLETED:
       if (completionRate < 100) {
         return { can: false, reason: 'incomplete_profile' };
       }
-      if (!allDocumentsValidated(profile, profile.category)) {
-        return { can: false, reason: 'incomplete_documents' };
-      }
-
       return { can: true };
     default:
       return { can: true };
