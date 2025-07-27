@@ -7,8 +7,8 @@ import Image from 'next/image';
 import { DataTable } from '@/components/data-table/data-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { Pencil, Trash } from 'lucide-react';
-import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
+import { Pencil, Trash, Edit } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
 import { deleteCountry } from '@/actions/countries';
@@ -22,6 +22,46 @@ import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import type { CountryListItem } from '@/server/api/routers/countries/types';
 import type { Country, CountryMetadata } from '@/types/country';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Input } from '@/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+import { updateCountry } from '@/actions/countries';
+import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 
 // Fonction pour convertir CountryListItem en Country
 function countryListItemToCountry(item: CountryListItem): Country {
@@ -246,37 +286,89 @@ export function CountriesList() {
       },
       {
         id: 'actions',
-        cell: ({ row }) => (
-          <DataTableRowActions
+        header: ({ table }) => (
+          <DataTableBulkActions
+            table={table}
             actions={[
               {
                 component: (
-                  <Link
-                    onClick={(e) => e.stopPropagation()}
-                    href={ROUTES.sa.edit_country(row.original.id)}
-                  >
-                    <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
-                  </Link>
+                  <StatusChangeForm
+                    selectedRows={table
+                      .getFilteredSelectedRowModel()
+                      .flatRows.map((row) => row.original)}
+                    onSuccess={() => {
+                      refetch();
+                    }}
+                  />
                 ),
-              },
-              {
-                label: (
-                  <>
-                    <Trash className="mr-1 size-4 text-destructive" />
-                    <span className="text-destructive">
-                      {' '}
-                      {t_common('actions.delete')}
-                    </span>
-                  </>
-                ),
-                onClick: (row) => {
-                  setCountry(row);
-                  setShowDeleteDialog(true);
-                },
               },
             ]}
-            row={row}
           />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  className={
+                    buttonVariants({ variant: 'ghost', size: 'icon' }) +
+                    ' aspect-square p-0'
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                  href={ROUTES.sa.edit_country(row.original.id)}
+                >
+                  <Pencil className="size-icon" />
+                  <span className="sr-only">{t_common('actions.edit')}</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <span>{t_common('actions.edit')}</span>
+              </TooltipContent>
+            </Tooltip>
+
+            <Dialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <Button size="icon" variant="ghost" className="aspect-square p-0">
+                      <Edit className="size-icon" />
+                      <span className="sr-only">Modification rapide</span>
+                    </Button>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>Modification rapide</span>
+                </TooltipContent>
+              </Tooltip>
+
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Modification rapide</DialogTitle>
+                </DialogHeader>
+                <QuickEditForm country={row.original} onSuccess={() => refetch()} />
+              </DialogContent>
+            </Dialog>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="aspect-square p-0 text-destructive hover:text-destructive"
+                  onClick={() => {
+                    setCountry(row.original);
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  <Trash className="size-icon" />
+                  <span className="sr-only">{t_common('actions.delete')}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <span>{t_common('actions.delete')}</span>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         ),
       },
     ],
@@ -367,5 +459,247 @@ export function CountriesList() {
         />
       )}
     </>
+  );
+}
+
+// Schema pour la modification rapide de pays
+const quickEditSchema = z.object({
+  name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').optional(),
+  code: z
+    .string()
+    .min(2, 'Le code pays doit contenir exactement 2 caractères')
+    .optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE']),
+});
+
+type QuickEditFormData = z.infer<typeof quickEditSchema>;
+
+type QuickEditFormProps = {
+  country: CountryListItem;
+  onSuccess: () => void;
+};
+
+function QuickEditForm({ country, onSuccess }: QuickEditFormProps) {
+  const t = useTranslations('sa.countries');
+  const t_common = useTranslations('common');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<QuickEditFormData>({
+    resolver: zodResolver(quickEditSchema),
+    defaultValues: {
+      name: country.name || '',
+      code: country.code || '',
+      status: country.status,
+    },
+  });
+
+  const onSubmit = async (data: QuickEditFormData) => {
+    setIsSubmitting(true);
+    try {
+      const result = await tryCatch(
+        updateCountry({
+          id: country.id,
+          name: data.name || country.name,
+          code: data.code || country.code,
+          status: data.status,
+        }),
+      );
+
+      if (result.error) {
+        toast.error(t('messages.error.update'));
+        console.error(result.error);
+        return;
+      }
+
+      toast.success(t('messages.updateSuccess'));
+      onSuccess();
+    } catch (error) {
+      toast.error(t('messages.error.update'));
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('form.name.label')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('form.name.placeholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('form.code.label')}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={t('form.code.placeholder')}
+                  {...field}
+                  style={{ textTransform: 'uppercase' }}
+                  maxLength={2}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('form.status.label')}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('form.status.placeholder')} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">
+                    {t('form.status.options.active')}
+                  </SelectItem>
+                  <SelectItem value="INACTIVE">
+                    {t('form.status.options.inactive')}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <DialogClose asChild>
+            <Button variant="outline" type="button" onClick={() => form.reset()}>
+              {t_common('actions.cancel')}
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? t_common('actions.saving') : t_common('actions.save')}
+            </Button>
+          </DialogClose>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+// Schema pour le changement de statut en masse
+const statusChangeSchema = z.object({
+  status: z.enum(['ACTIVE', 'INACTIVE']),
+});
+
+type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
+
+type StatusChangeFormProps = {
+  selectedRows: CountryListItem[];
+  onSuccess: () => void;
+};
+
+function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
+  const t = useTranslations('sa.countries');
+  const t_common = useTranslations('common');
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<StatusChangeFormData>({
+    resolver: zodResolver(statusChangeSchema),
+  });
+
+  const onSubmit = async (data: StatusChangeFormData) => {
+    setIsSubmitting(true);
+    try {
+      if (!selectedRows.length) return;
+
+      const updatePromises = selectedRows.map(async (row) => {
+        return tryCatch(
+          updateCountry({
+            id: row.id,
+            name: row.name,
+            code: row.code,
+            status: data.status,
+          }),
+        );
+      });
+
+      await Promise.all(updatePromises);
+
+      toast.success(`${selectedRows.length} pays mis à jour avec succès`);
+      onSuccess();
+      setOpen(false);
+    } catch (error) {
+      toast.error(t('messages.error.update'));
+      console.error('Error updating countries:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" aria-label="Changer le statut" className="justify-start">
+          Changer le statut
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="flex flex-col">
+        <SheetHeader className="text-left border-b pb-4 mb-4">
+          <SheetTitle>Changer le statut</SheetTitle>
+        </SheetHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('form.status.label')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('form.status.placeholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ACTIVE">
+                        {t('form.status.options.active')}
+                      </SelectItem>
+                      <SelectItem value="INACTIVE">
+                        {t('form.status.options.inactive')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" type="button" onClick={() => form.reset()}>
+                {t_common('actions.cancel')}
+              </Button>
+              <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>
+                {isSubmitting ? t_common('actions.saving') : t_common('actions.save')}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
   );
 }
