@@ -67,6 +67,7 @@ const DashboardServiceSelect = {
         id: true,
         name: true,
         type: true,
+        countries: true,
       },
     },
   },
@@ -121,8 +122,9 @@ export const servicesRouter = createTRPCRouter({
 
       try {
         const where = {
-          countryCode: ctx.session.user.countryCode,
-          ...(category ? { category } : { category: { notIn: ['REGISTRATION'] } }),
+          ...(category
+            ? { category }
+            : { category: { notIn: ['REGISTRATION' as ServiceCategory] } }),
           ...(typeof isActive === 'boolean' && { isActive }),
           ...(organizationId && { organizationId }),
           ...(search && {
@@ -134,12 +136,23 @@ export const servicesRouter = createTRPCRouter({
         };
 
         const services = await ctx.db.consularService.findMany({
-          where,
+          where: {
+            ...where,
+            organization: {
+              countries: {
+                some: {
+                  code: ctx.session.user.countryCode!,
+                },
+              },
+            },
+          },
           ...DashboardServiceSelect,
           take: limit + 1,
           cursor: cursor ? { id: cursor } : undefined,
           orderBy: { name: 'asc' },
         });
+
+        console.log({ services });
 
         let nextCursor: string | undefined = undefined;
         if (services.length > limit) {

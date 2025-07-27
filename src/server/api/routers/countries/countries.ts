@@ -23,7 +23,9 @@ export const countriesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+        !ctx.session?.user?.roles?.some((role) =>
+          ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
+        )
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -88,7 +90,9 @@ export const countriesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+        !ctx.session?.user?.roles?.some((role) =>
+          ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
+        )
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -306,7 +310,9 @@ export const countriesRouter = createTRPCRouter({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier les permissions
     if (
-      !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+      !ctx.session?.user?.roles?.some((role) =>
+        ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
+      )
     ) {
       throw new TRPCError({
         code: 'FORBIDDEN',

@@ -2,7 +2,7 @@
 
 import { checkAuth } from '@/lib/auth/action';
 import { db } from '@/server/db';
-import { NewServiceSchemaInput } from '@/schemas/consular-service';
+import type { NewServiceSchemaInput } from '@/schemas/consular-service';
 import { ROUTES } from '@/schemas/routes';
 import type {
   ConsularServiceItem,
@@ -32,7 +32,6 @@ const ServiceListItemSelect: Prisma.ConsularServiceSelect = {
   category: true,
   isActive: true,
   organizationId: true,
-  countryCode: true,
 };
 
 export type ServiceListItem = Prisma.ConsularServiceGetPayload<{
@@ -134,7 +133,6 @@ export async function getServices(
       category: true,
       isActive: true,
       organizationId: true,
-      countryCode: true,
     },
   });
 }
@@ -151,7 +149,6 @@ export async function createService(data: NewServiceSchemaInput) {
       name: data.name,
       description: data.description,
       category: data.category,
-      countryCode: data.countryCode,
       organizationId: data.organizationId,
     },
   });
@@ -214,7 +211,7 @@ export async function updateService(data: Partial<ConsularServiceItem>) {
           } else {
             await tx.generateDocumentSettings.create({
               data: {
-                serviceId: data.id,
+                serviceId: data.id!,
                 templateId: setting.templateId,
                 generateOnStatus: setting.generateOnStatus,
                 ...(setting.settings && { settings: JSON.stringify(setting.settings) }),
@@ -405,7 +402,7 @@ export async function getFullService(id: string): Promise<ConsularServiceItem | 
     })),
   };
 
-  return transformedService;
+  return transformedService as ConsularServiceItem;
 }
 
 export async function duplicateService(

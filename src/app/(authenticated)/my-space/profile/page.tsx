@@ -5,7 +5,6 @@ import { NotesList } from '@/components/requests/review-notes';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileProgressBar } from './_utils/components/profile-progress-bar';
-import { ProfileStatusAlert } from './_utils/components/profile-status-alert';
 import { ProfileTabs } from './_utils/components/profile-tabs';
 import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import { ROUTES } from '@/schemas/routes';

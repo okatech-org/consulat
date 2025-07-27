@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import messages from '@/i18n/messages/fr/messages';
 
 import type { Primitive } from 'type-fest';
+import type { OrganizationListingItem } from '@/types/organization';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -1126,3 +1127,11 @@ export function getOrganizationIdFromUser(
 
   return undefined;
 }
+
+export const getOrganizationFromId = (
+  organisations: OrganizationListingItem[],
+  organizationId: string | null,
+) => {
+  if (!organizationId) return undefined;
+  return organisations.find((o) => o.id === organizationId);
+};

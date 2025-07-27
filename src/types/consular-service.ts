@@ -1,16 +1,16 @@
 import {
-  ConsularService,
+  type ConsularService,
   ServiceCategory,
   ServiceStepType,
-  Organization,
-  ServiceRequest,
-  RequestStatus,
-  UserDocument,
-  GenerateDocumentSettings,
+  type Organization,
+  type ServiceRequest,
+  type RequestStatus,
+  type UserDocument,
+  type GenerateDocumentSettings,
   DocumentType,
 } from '@prisma/client';
-import { FullProfile } from '@/types/profile';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { FullProfile } from '@/types/profile';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 
 export type BasicField = {
   name: string;
@@ -167,7 +167,6 @@ export interface ConsularServiceListingItem {
   category: ServiceCategory;
   isActive: boolean;
   organizationId: string | null;
-  countryCode: string | null;
 }
 
 export type RegistrationListingItem = {

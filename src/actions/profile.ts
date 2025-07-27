@@ -451,8 +451,17 @@ export async function getRegistrationServiceForUser(
 
   const service = await db.consularService.findFirst({
     where: {
-      countryCode,
       category: 'REGISTRATION',
+      organization: {
+        countries: {
+          some: {
+            code: countryCode,
+          },
+        },
+      },
+    },
+    include: {
+      organization: true,
     },
   });
 
