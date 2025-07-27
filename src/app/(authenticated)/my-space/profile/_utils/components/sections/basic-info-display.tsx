@@ -26,7 +26,10 @@ interface BasicInfoDisplayProps {
 export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
   const t_profile = useTranslations('profile.fields');
   const t_inputs = useTranslations('inputs');
+  const t_countries = useTranslations('countries');
   const { formatDate } = useDateLocale();
+
+  console.log({ profile });
 
   return (
     <div className="space-y-6">
@@ -100,13 +103,13 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
 
           <InfoField
             label={t_profile('birthCountry')}
-            value={profile.birthCountry}
+            value={t_countries(profile.birthCountry)}
             icon={<Globe className="size-4" />}
             required
           />
           <InfoField
             label={t_profile('nationality')}
-            value={profile.nationality}
+            value={t_countries(profile.nationality)}
             icon={<Flag className="size-4" />}
             required
           />

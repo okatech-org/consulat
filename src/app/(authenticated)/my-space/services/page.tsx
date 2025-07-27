@@ -137,7 +137,6 @@ export default function AvailableServicesPage() {
           <Link href={ROUTES.user.dashboard}>
             <Button
               variant="outline"
-              size="icon"
               aria-label={t('actions.backToServices')}
               leftIcon={<ArrowLeft className="h-4 w-4" />}
             >

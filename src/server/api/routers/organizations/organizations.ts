@@ -49,18 +49,6 @@ export const organizationsRouter = createTRPCRouter({
         .optional(),
     )
     .query(async ({ ctx, input }) => {
-      // Vérifier les permissions
-      if (
-        !ctx.session?.user?.roles?.some((role) =>
-          ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
-        )
-      ) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès refusé. Permissions insuffisantes.',
-        });
-      }
-
       const { search, type, status, countryId, page = 1, limit = 10 } = input || {};
       const skip = (page - 1) * limit;
 
@@ -129,18 +117,6 @@ export const organizationsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      // Vérifier les permissions
-      if (
-        !ctx.session?.user?.roles?.some((role) =>
-          ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
-        )
-      ) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès refusé. Permissions insuffisantes.',
-        });
-      }
-
       const organization = await ctx.db.organization.findUnique({
         where: { id: input.id },
         include: {
@@ -496,7 +472,9 @@ export const organizationsRouter = createTRPCRouter({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier les permissions
     if (
-      !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+      !ctx.session?.user?.roles?.some((role) =>
+        ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
+      )
     ) {
       throw new TRPCError({
         code: 'FORBIDDEN',

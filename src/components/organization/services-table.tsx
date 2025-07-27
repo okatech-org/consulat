@@ -5,35 +5,33 @@ import {
   deleteService,
   duplicateService,
   updateServiceStatus,
-  ServicesListRequestOptions,
-  ServicesListResult,
+  type ServicesListRequestOptions,
+  type ServicesListResult,
 } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { useCurrentUser } from '@/hooks/use-role-data';
-import { OrganizationListingItem } from '@/types/organization';
+import type { OrganizationListingItem } from '@/types/organization';
 import { ServiceCategory, UserRole } from '@prisma/client';
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
+import { getOrganizationFromId, getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { ROUTES } from '@/schemas/routes';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnDef, Column, Row } from '@tanstack/react-table';
+import type { ColumnDef, Column, Row } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { FilterOption } from '@/components/data-table/data-table-toolbar';
+import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTable } from '@/components/data-table/data-table';
-import { ConsularServiceListingItem } from '@/types/consular-service';
-import { SessionUser } from '@/types';
+import type { ConsularServiceListingItem } from '@/types/consular-service';
+import type { SessionUser } from '@/types';
 import { useTranslations } from 'next-intl';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import {
   DataTableRowActions,
-  RowAction,
+  type RowAction,
 } from '@/components/data-table/data-table-row-actions';
 import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react';
-import * as React from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { getOrganizationFromId } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/services';
 
 type ServicesTablesProps = {
   organizations: OrganizationListingItem[];
