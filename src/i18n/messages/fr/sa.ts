@@ -78,6 +78,40 @@ export default {
       },
     },
   },
+  users: {
+    title: 'Gestion des Utilisateurs',
+    table: {
+      name: 'Nom',
+      email: 'Email',
+      role: 'Rôle',
+      country: 'Pays',
+      organization: 'Organisation',
+      profile: 'Profil',
+      createdAt: 'Créé le',
+      requests: 'Demandes',
+      search: 'Rechercher un utilisateur',
+      hasProfile: 'Profil consulaire',
+    },
+    form: {
+      role: {
+        options: {
+          super_admin: 'Super Admin',
+          admin: 'Administrateur',
+          manager: 'Gestionnaire',
+          agent: 'Agent',
+          user: 'Utilisateur',
+        },
+      },
+    },
+    details: {
+      title: "Détails de l'utilisateur",
+      personalInfo: 'Informations personnelles',
+      systemInfo: 'Informations système',
+      profile: 'Profil consulaire',
+      requests: 'Demandes',
+      organization: 'Organisation',
+    },
+  },
   organizations: {
     title: 'Gestion des Organismes',
     types: {
@@ -98,72 +132,68 @@ export default {
       delete: 'Supprimer',
       suspend: 'Suspendre',
       activate: 'Activer',
+      save: 'Enregistrer',
+      cancel: 'Annuler',
+      update: 'Mettre à jour',
+      deleting: 'Suppression en cours...',
     },
     table: {
       name: 'Nom',
       type: 'Type',
-      country: 'Pays',
       status: 'Statut',
-      users: 'Utilisateurs',
+      countries: 'Pays',
       services: 'Services',
+      agents: 'Agents',
       actions: 'Actions',
+      empty: 'Aucun organisme trouvé',
+      loading: 'Chargement des organismes...',
     },
     form: {
-      create_title: 'Ajouter un organisme',
-      basic_info: 'Informations de base',
+      edit_title: "Modifier l'organisme",
       name: {
         label: "Nom de l'organisme",
-        placeholder: 'Ex: Consulat du Gabon à Paris',
+        placeholder: 'Ex: Consulat de France',
+        error: 'Le nom est requis',
       },
       type: {
         label: "Type d'organisme",
         placeholder: 'Sélectionner un type',
+        error: 'Le type est requis',
       },
       status: {
         label: 'Statut',
         placeholder: 'Sélectionner un statut',
+        options: {
+          active: 'Actif',
+          inactive: 'Inactif',
+          suspended: 'Suspendu',
+        },
       },
-      countries: {
-        label: 'Pays de rattachement',
-        placeholder: 'Sélectionner un pays',
-        search: 'Rechercher un pays',
+      logo: {
+        label: 'Logo',
+        placeholder: 'Sélectionner un fichier',
       },
-      admin_email: {
-        label: "Email de l'administrateur",
-        placeholder: 'Ex: admin@example.com',
-      },
-      country: {
-        label: 'Pays de rattachement',
-        placeholder: 'Sélectionner un pays',
-      },
-      contact: {
-        title: 'Coordonnées',
-        email: 'Email',
-        phone: 'Téléphone',
-        phone_placeholder: 'Ex: 01 23 45 67 89',
-        website: 'Site web',
-      },
-      address: {
-        title: 'Adresse',
-        street: 'Rue',
-        city: 'Ville',
-        zipCode: 'Code postal',
-        country: 'Pays',
-      },
+      description: 'Remplissez les informations pour créer un nouvel organisme.',
     },
     messages: {
       createSuccess: 'Organisme créé avec succès',
       updateSuccess: 'Organisme mis à jour avec succès',
       deleteSuccess: 'Organisme supprimé avec succès',
       error: {
-        create: 'Erreur lors de la création',
-        update: 'Erreur lors de la mise à jour',
-        delete: 'Erreur lors de la suppression',
+        create: "Erreur lors de la création de l'organisme",
+        update: "Erreur lors de la mise à jour de l'organisme",
+        delete: "Erreur lors de la suppression de l'organisme",
+        fetch: 'Erreur lors du chargement des organismes',
       },
     },
-    dialog: {
-      create_title: 'Ajouter un organisme',
-      edit_title: "Modifier l'organisme",
+    dialogs: {
+      delete: {
+        title: "Supprimer l'organisme",
+        description:
+          'Êtes-vous sûr de vouloir supprimer cet organisme ? Cette action est irréversible.',
+        confirm: 'Oui, supprimer',
+        cancel: 'Annuler',
+      },
     },
   },
-} as const;
+};
