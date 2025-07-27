@@ -32,7 +32,7 @@ function getIdentifierType(identifier: string): {
   channel: Channels;
 } {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^\+\d{3}-\d{9,}$/;
+  const phoneRegex = /^\+\d{1,4}-\d{9,}$/;
 
   if (emailRegex.test(identifier)) {
     return { type: 'EMAIL', channel: 'email' as Channels };

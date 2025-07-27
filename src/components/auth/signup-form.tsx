@@ -117,7 +117,7 @@ export function SignupForm() {
       return false;
     }
 
-    const phoneRegex = /^\+[1-9]\d{1,14}$/;
+    const phoneRegex = /^\+\d{1,4}-\d{9,}$/;
     if (!phoneRegex.test(phone)) {
       setError('Format de téléphone invalide');
       return false;

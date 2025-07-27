@@ -137,8 +137,12 @@ export function SendMessageDialog({ user }: SendMessageDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+          leftIcon={<MessageSquare className="size-icon" />}
+        >
           Envoyer un message
         </Button>
       </DialogTrigger>
@@ -146,7 +150,7 @@ export function SendMessageDialog({ user }: SendMessageDialogProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
+            <MessageSquare className="size-icon" />
             Envoyer un message à {user.name || 'cet utilisateur'}
           </DialogTitle>
         </DialogHeader>
