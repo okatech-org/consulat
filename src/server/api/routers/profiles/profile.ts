@@ -80,7 +80,11 @@ export const profileRouter = createTRPCRouter({
       {
         settings: OrganizationMetadataSettings;
       }
-    > = JSON.parse((profile?.assignedOrganization?.metadata as string) ?? '{}');
+    > =
+      (profile?.assignedOrganization?.metadata as unknown as Record<
+        CountryCode,
+        { settings: OrganizationMetadataSettings }
+      >) ?? {};
 
     const userCountryCode = profile?.residenceCountyCode;
 
