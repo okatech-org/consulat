@@ -75,6 +75,8 @@ export const profileRouter = createTRPCRouter({
       },
     });
 
+    console.log({ profile });
+
     const metadata: Record<
       CountryCode,
       {

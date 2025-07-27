@@ -152,8 +152,6 @@ export const servicesRouter = createTRPCRouter({
           orderBy: { name: 'asc' },
         });
 
-        console.log({ services });
-
         let nextCursor: string | undefined = undefined;
         if (services.length > limit) {
           const nextItem = services.pop();

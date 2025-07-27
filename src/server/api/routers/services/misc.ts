@@ -11,6 +11,7 @@ export const ServiceListItemSelect: Prisma.ConsularServiceSelect = {
       id: true,
       name: true,
       type: true,
+      countries: true,
     },
   },
 };

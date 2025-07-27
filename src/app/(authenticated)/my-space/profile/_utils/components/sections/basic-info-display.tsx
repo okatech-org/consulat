@@ -29,8 +29,6 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
   const t_countries = useTranslations('countries');
   const { formatDate } = useDateLocale();
 
-  console.log({ profile });
-
   return (
     <div className="space-y-6">
       {/* Photo d'identité */}

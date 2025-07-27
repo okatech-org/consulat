@@ -275,6 +275,40 @@ export function ContactMethods() {
           </div>
         )}
       </CardContainer>
+
+      <CardContainer title={t('support.title')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="p-6 text-center hover:border-primary transition-all hover:shadow-lg hover:-translate-y-1">
+            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="h-6 w-6 text-white" />
+            </div>
+            <h3 className="font-semibold mb-2">{t('support.chat.title')}</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('support.chat.description')}
+            </p>
+            <div className="flex justify-center">
+              <ChatToggle
+                customIcon={
+                  <Button className="w-full">{t('support.chat.action')}</Button>
+                }
+              />
+            </div>
+          </Card>
+
+          <Card className="p-6 text-center hover:border-primary transition-all hover:shadow-lg hover:-translate-y-1">
+            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="h-6 w-6 text-white" />
+            </div>
+            <h3 className="font-semibold mb-2">{t('support.feedback.title')}</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('support.feedback.description')}
+            </p>
+            <Button className="w-full" asChild>
+              <Link href={ROUTES.user.feedback}>{t('support.feedback.action')}</Link>
+            </Button>
+          </Card>
+        </div>
+      </CardContainer>
     </>
   );
 }
