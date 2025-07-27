@@ -147,9 +147,7 @@ export const organizationsRouter = createTRPCRouter({
 
       return {
         ...organization,
-        metadata: organization.metadata
-          ? JSON.parse(organization.metadata as string)
-          : null,
+        metadata: organization.metadata,
       };
     }),
 
@@ -407,9 +405,7 @@ export const organizationsRouter = createTRPCRouter({
 
       return {
         ...organization,
-        metadata: organization.metadata
-          ? JSON.parse(organization.metadata as string)
-          : null,
+        metadata: organization.metadata,
       };
     }),
 
@@ -567,9 +563,8 @@ export const organizationsRouter = createTRPCRouter({
 
       const { metadata, ...rest } = data;
 
-      const formattedMetadata = JSON.parse(
-        typeof metadata === 'string' ? metadata : '{}',
-      ) as Record<string, Record<string, unknown>>;
+      const formattedMetadata =
+        (metadata as Record<string, Record<string, unknown>>) ?? {};
 
       const countrySettings = formattedMetadata[input.countryCode] || {};
 

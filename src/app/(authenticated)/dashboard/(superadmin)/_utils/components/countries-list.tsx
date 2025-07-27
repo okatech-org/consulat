@@ -128,7 +128,7 @@ export function CountriesList() {
         }
 
         return (
-          <Badge variant={status === 'ACTIVE' ? 'success' : 'rejected'}>
+          <Badge variant={status === 'ACTIVE' ? 'default' : 'warning'}>
             {t(`form.status.options.${status.toLowerCase() as 'active' | 'inactive'}`)}
           </Badge>
         );

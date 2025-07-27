@@ -74,7 +74,7 @@ export const countriesRouter = createTRPCRouter({
       return {
         items: items.map((item) => ({
           ...item,
-          metadata: item.metadata ? JSON.parse(item.metadata as string) : null,
+          metadata: item.metadata,
         })),
         total,
         pages: Math.ceil(total / limit),
@@ -121,7 +121,7 @@ export const countriesRouter = createTRPCRouter({
 
       return {
         ...country,
-        metadata: country.metadata ? JSON.parse(country.metadata as string) : null,
+        metadata: country.metadata,
       };
     }),
 
@@ -193,7 +193,7 @@ export const countriesRouter = createTRPCRouter({
 
       return {
         ...country,
-        metadata: country.metadata ? JSON.parse(country.metadata as string) : null,
+        metadata: country.metadata,
       };
     }),
 
@@ -247,7 +247,7 @@ export const countriesRouter = createTRPCRouter({
 
       return {
         ...country,
-        metadata: country.metadata ? JSON.parse(country.metadata as string) : null,
+        metadata: country.metadata,
       };
     }),
 
