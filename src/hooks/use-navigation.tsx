@@ -71,6 +71,12 @@ export function useNavigation() {
       roles: [UserRole.SUPER_ADMIN],
     },
     {
+      title: t('users'),
+      url: ROUTES.sa.users,
+      icon: Users,
+      roles: [UserRole.SUPER_ADMIN],
+    },
+    {
       title: t('requests'),
       url: ROUTES.dashboard.requests,
       icon: FolderIcon,

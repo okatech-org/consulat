@@ -117,7 +117,7 @@ export function SignupForm() {
       return false;
     }
 
-    const phoneRegex = /^\+[1-9]\d{1,14}$/;
+    const phoneRegex = /^\+\d{1,4}-\d{9,}$/;
     if (!phoneRegex.test(phone)) {
       setError('Format de téléphone invalide');
       return false;
@@ -252,12 +252,6 @@ export function SignupForm() {
       <h2 className="mb-6 text-center text-2xl font-bold">
         {step === 'form' ? 'Créer un compte' : 'Vérification'}
       </h2>
-
-      {error && (
-        <div className="mb-4 rounded border border-red-400 bg-red-100 p-3 text-red-700">
-          {error}
-        </div>
-      )}
 
       {step === 'form' ? (
         <form onSubmit={handleSubmit}>

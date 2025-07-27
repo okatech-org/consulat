@@ -53,8 +53,10 @@ export const ROUTES = {
   sa: {
     countries: '/dashboard/countries' as Route<string>,
     organizations: '/dashboard/organizations' as Route<string>,
+    users: '/dashboard/users' as Route<string>,
     edit_organization: (id: string) => `/dashboard/organizations/${id}` as Route<string>,
     edit_country: (id: string) => `/dashboard/countries/${id}/edit` as Route<string>,
+    user_details: (id: string) => `/dashboard/users/${id}` as Route<string>,
   },
 
   user: {

@@ -78,7 +78,7 @@ export const signupProvider: Provider = CredentialsProvider({
       throw createAuthError('invalid_email', "Format d'email invalide");
     }
 
-    const phoneRegex = /^\+\d{3}-\d{9,}$/;
+    const phoneRegex = /^\+\d{1,4}-\d{9,}$/;
     if (!phoneRegex.test(phone as string)) {
       throw createAuthError('invalid_phone', 'Format de téléphone invalide');
     }

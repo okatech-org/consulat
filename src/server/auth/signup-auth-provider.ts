@@ -37,7 +37,7 @@ function getIdentifierType(identifier: string): {
   channel: 'email' | 'sms';
 } {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^\+\d{3}-\d{9,}$/;
+  const phoneRegex = /^\+\d{1,4}-\d{9,}$/;
 
   if (emailRegex.test(identifier)) {
     return { type: 'EMAIL', channel: 'email' };
@@ -116,7 +116,7 @@ export function createSignupOTPProvider(config: CustomSignupOTPProviderConfig): 
         throw createAuthError('invalid_email', "Format d'email invalide");
       }
 
-      const phoneRegex = /^\+\d{3}-\d{9,}$/;
+      const phoneRegex = /^\+\d{1,4}-\d{9,}$/;
       if (!phoneRegex.test(phone as string)) {
         throw createAuthError('invalid_phone', 'Format de téléphone invalide');
       }
@@ -163,7 +163,7 @@ export function createSignupOTPProvider(config: CustomSignupOTPProviderConfig): 
         if (!result.success) {
           throw createAuthError(
             'send_failed',
-            result.error || "Erreur lors de l'envoi du code",
+            result.error || "Nous n'avons pas pu envoyer le code de vérification",
           );
         }
 
