@@ -36,14 +36,17 @@ function getIdentifierType(identifier: string): {
   channel: 'email' | 'sms';
 } {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^\+\d{2}-\d{9,}$/;
+  const phoneRegex = /^\+\d{3}-\d{9,}$/;
 
   if (emailRegex.test(identifier)) {
     return { type: 'EMAIL', channel: 'email' };
   } else if (phoneRegex.test(identifier)) {
     return { type: 'SMS', channel: 'sms' };
   } else {
-    throw createAuthError('invalid_identifier', "Format d'identifiant invalide");
+    throw createAuthError(
+      'invalid_identifier',
+      "Format de numéro de téléphone ou d'email invalide",
+    );
   }
 }
 
