@@ -54,7 +54,7 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
           <div className="space-y-4">
             <h4 className="font-medium text-lg">Contact d&apos;urgence résident</h4>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-2">
               <InfoField
                 label="Prénom"
                 value={profile.residentContact.firstName}
@@ -67,7 +67,12 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-2">
+              <InfoField
+                label="Email"
+                value={profile.residentContact.email}
+                icon={<Mail className="size-4" />}
+              />
               <InfoField
                 label="Téléphone"
                 value={profile.residentContact.phoneNumber}
@@ -84,15 +89,16 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
                 }
                 icon={<Users className="size-4" />}
               />
+              {profile.residentContact.address && (
+                <div className="col-span-2">
+                  <InfoField
+                    label="Adresse"
+                    value={<DisplayAddress address={profile.residentContact.address} />}
+                    icon={<MapPin className="size-4" />}
+                  />
+                </div>
+              )}
             </div>
-
-            {profile.residentContact.address && (
-              <InfoField
-                label="Adresse"
-                value={<DisplayAddress address={profile.residentContact.address} />}
-                icon={<MapPin className="size-4" />}
-              />
-            )}
           </div>
         </>
       )}
@@ -104,7 +110,7 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
           <div className="space-y-4">
             <h4 className="font-medium text-lg">Contact au pays d&apos;origine</h4>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-2">
               <InfoField
                 label="Prénom"
                 value={profile.homeLandContact.firstName}
@@ -117,11 +123,16 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-2">
               <InfoField
                 label="Téléphone"
                 value={profile.homeLandContact.phoneNumber}
                 icon={<Phone className="size-4" />}
+              />
+              <InfoField
+                label="Email"
+                value={profile.homeLandContact.email}
+                icon={<Mail className="size-4" />}
               />
               <InfoField
                 label="Relation"
@@ -137,11 +148,13 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
             </div>
 
             {profile.homeLandContact.address && (
-              <InfoField
-                label="Adresse"
-                value={<DisplayAddress address={profile.homeLandContact.address} />}
-                icon={<MapPin className="size-4" />}
-              />
+              <div className="col-span-2">
+                <InfoField
+                  label="Adresse"
+                  value={<DisplayAddress address={profile.homeLandContact.address} />}
+                  icon={<MapPin className="size-4" />}
+                />
+              </div>
             )}
           </div>
         </>
