@@ -532,7 +532,6 @@ export function NewProfileForm({
         </div>
 
         <div className="subactions flex justify-center">
-          {error && <ErrorCard description={tErrors(error)} />}
           <p className="text-sm text-muted-foreground">
             <span>Vous avez déjà une demande en cours ?</span>
             <Link

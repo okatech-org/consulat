@@ -253,12 +253,6 @@ export function SignupForm() {
         {step === 'form' ? 'Créer un compte' : 'Vérification'}
       </h2>
 
-      {error && (
-        <div className="mb-4 rounded border border-red-400 bg-red-100 p-3 text-red-700">
-          {error}
-        </div>
-      )}
-
       {step === 'form' ? (
         <form onSubmit={handleSubmit}>
           {/* Nom et Prénom */}

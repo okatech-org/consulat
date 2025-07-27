@@ -29,6 +29,7 @@ import { ROUTES } from '@/schemas/routes';
 import { useDateLocale } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
+import { SendMessageDialog } from './_components/send-message-dialog';
 
 export default function UserDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -105,11 +106,24 @@ export default function UserDetailsPage() {
               </Avatar>
 
               <div className="flex-1 space-y-2">
-                <div className="flex items-center space-x-3">
-                  <h2 className="text-2xl font-bold">{user.name || 'Nom non défini'}</h2>
-                  <Badge variant={getRoleVariant(user.role)}>
-                    {t(`form.role.options.${user.role.toLowerCase()}`)}
-                  </Badge>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <h2 className="text-2xl font-bold">
+                      {user.name || 'Nom non défini'}
+                    </h2>
+                    <Badge variant={getRoleVariant(user.role)}>
+                      {t(`form.role.options.${user.role.toLowerCase()}`)}
+                    </Badge>
+                  </div>
+
+                  <SendMessageDialog
+                    user={{
+                      id: user.id,
+                      name: user.name,
+                      email: user.email,
+                      phoneNumber: user.phoneNumber,
+                    }}
+                  />
                 </div>
 
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
