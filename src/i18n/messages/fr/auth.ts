@@ -74,7 +74,7 @@ export default {
       invalid_code: 'Code invalide',
       user_not_found: 'Aucun compte associé à cet email',
       invalid_action: 'Action invalide',
-      invalid_identifier: "Format d'identifiant invalide",
+      invalid_identifier: "Format de numéro de téléphone ou d'email invalide",
       otp_invalid: 'Code de vérification invalide. Veuillez vérifier et réessayer.',
       otp_expired: 'Code de vérification expiré. Veuillez demander un nouveau code.',
       otp_failed:
@@ -155,7 +155,7 @@ export default {
       too_many_attempts: "Trop de tentatives. Recommencez l'inscription.",
       invalid_code: 'Code invalide',
       invalid_action: 'Action invalide',
-      invalid_identifier: "Format d'identifiant invalide",
+      invalid_identifier: "Format de numéro de téléphone ou d'email invalide",
     },
   },
   actions: {
