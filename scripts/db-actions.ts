@@ -4,9 +4,30 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    const profiles = await prisma.profile.findMany({
-      where: {
-        nationality: 'gabon',
+    const organization = await prisma.organization.findFirst({
+      where: { id: 'cm8hw04070000l403rdas9v2j' },
+      include: {
+        countries: true,
+      },
+    });
+
+    const metadata = JSON.parse(organization?.metadata as string);
+
+    const frMetadata = metadata['FR'];
+
+    const finalMetadata = {
+      ...metadata,
+      FR: frMetadata,
+    };
+
+    organization?.countries.forEach((country) => {
+      finalMetadata[country.code] = frMetadata;
+    });
+
+    await prisma.organization.update({
+      where: { id: 'cm8hw04070000l403rdas9v2j' },
+      data: {
+        metadata: JSON.stringify(finalMetadata),
       },
     });
 

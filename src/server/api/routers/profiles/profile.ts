@@ -74,8 +74,9 @@ export const profileRouter = createTRPCRouter({
         residenceCountyCode: true,
       },
     });
-
-    console.log({ profile });
+    if (!profile || !profile.assignedOrganization) {
+      return null;
+    }
 
     const metadata: Record<
       CountryCode,
@@ -83,16 +84,20 @@ export const profileRouter = createTRPCRouter({
         settings: OrganizationMetadataSettings;
       }
     > =
-      (profile?.assignedOrganization?.metadata as unknown as Record<
+      (profile.assignedOrganization.metadata as unknown as Record<
         CountryCode,
         { settings: OrganizationMetadataSettings }
       >) ?? {};
 
-    const userCountryCode = profile?.residenceCountyCode;
+    const userCountryCode = profile.residenceCountyCode;
+
+    if (!userCountryCode) {
+      return null;
+    }
 
     const userMetadata = metadata[userCountryCode as CountryCode];
 
-    return userMetadata?.settings;
+    return userMetadata?.settings ?? {};
   }),
 
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
