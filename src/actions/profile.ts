@@ -157,6 +157,7 @@ export async function updateProfile(
       lastName: residentContact.lastName || existingProfile.lastName || '',
       relationship: residentContact.relationship || 'OTHER', // Valeur par défaut pour éviter null
       phoneNumber: residentContact.phoneNumber,
+      email: residentContact.email,
     };
 
     updateData.residentContact = {
@@ -177,6 +178,9 @@ export async function updateProfile(
           }),
           ...(residentContact.phoneNumber && {
             phoneNumber: residentContact.phoneNumber,
+          }),
+          ...(residentContact.email && {
+            email: residentContact.email,
           }),
           ...(residentContact.address && {
             address: {

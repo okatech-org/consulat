@@ -525,7 +525,9 @@ export function RegistrationForm({
                   }
                 >
                   {currentStepIndex === totalSteps - 1
-                    ? t('navigation.submit')
+                    ? profile.validationRequestId
+                      ? 'Valider mes modifications'
+                      : t('navigation.submit')
                     : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
                 </Button>
               </div>

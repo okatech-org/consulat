@@ -53,21 +53,6 @@ export function ContactInfoSection({
 
     filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
 
-    if (data.residentContact) {
-      filterUneditedKeys<ContactInfoFormData['residentContact']>(
-        data.residentContact,
-        form.formState.dirtyFields,
-      );
-    }
-
-    if (data.homeLandContact) {
-      // @ts-expect-error -- not sure why this is not working
-      filterUneditedKeys<ContactInfoFormData['homeLandContact']>(
-        data.homeLandContact,
-        form.formState.dirtyFields,
-      );
-    }
-
     const result = await tryCatch(updateProfile(profile.id, data, requestId));
 
     if (result.error) {

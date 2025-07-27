@@ -53,18 +53,8 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
 
       {/* Informations personnelles de base */}
       <div className="space-y-4">
-        {/* Genre */}
-        <InfoField
-          label={t_profile('gender')}
-          value={
-            profile.gender ? t_inputs(`gender.options.${profile.gender}`) : undefined
-          }
-          icon={<User className="size-4" />}
-          required
-        />
-
         {/* Nom et prénom */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-2">
           <InfoField
             label={t_profile('firstName')}
             value={profile.firstName}
@@ -80,7 +70,17 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
         </div>
 
         {/* Date et lieu de naissance */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-2">
+          {/* Genre */}
+          <InfoField
+            label={t_profile('gender')}
+            value={
+              profile.gender ? t_inputs(`gender.options.${profile.gender}`) : undefined
+            }
+            icon={<User className="size-4" />}
+            required
+          />
+
           <InfoField
             label={t_profile('birthDate')}
             value={
@@ -97,10 +97,7 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
             icon={<MapPin className="size-4" />}
             required
           />
-        </div>
 
-        {/* Pays de naissance et nationalité */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InfoField
             label={t_profile('birthCountry')}
             value={profile.birthCountry}
@@ -113,18 +110,17 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
             icon={<Flag className="size-4" />}
             required
           />
+          <InfoField
+            label={t_profile('acquisitionMode')}
+            value={
+              profile.acquisitionMode
+                ? t_inputs(`nationality_acquisition.options.${profile.acquisitionMode}`)
+                : undefined
+            }
+            icon={<Flag className="size-4" />}
+            className="col-span-2"
+          />
         </div>
-
-        {/* Mode d'acquisition de la nationalité */}
-        <InfoField
-          label={t_profile('acquisitionMode')}
-          value={
-            profile.acquisitionMode
-              ? t_inputs(`nationality_acquisition.options.${profile.acquisitionMode}`)
-              : undefined
-          }
-          icon={<Flag className="size-4" />}
-        />
       </div>
 
       <Separator />

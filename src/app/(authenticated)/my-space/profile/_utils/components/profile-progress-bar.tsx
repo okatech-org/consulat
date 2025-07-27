@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,11 +27,14 @@ import {
   Phone,
   Users,
   Briefcase,
+  Pencil,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useProfileCompletion } from '../hooks/use-profile-completion';
 import type { FullProfile } from '@/types';
+import { ROUTES } from '@/schemas/routes';
+import Link from 'next/link';
 
 interface ProfileProgressBarProps {
   profile: FullProfile | null;
@@ -252,26 +255,15 @@ export function ProfileProgressBar({ profile, className }: ProfileProgressBarPro
         </Collapsible>
 
         {/* Call to Action */}
-        {completion.overall < 100 && (
-          <div className="pt-2">
-            <Button
-              variant="default"
-              size="sm"
-              className="w-full"
-              onClick={() => {
-                // Trouver la première section incomplète
-                const incompleteSection = completion.sections.find(
-                  (s) => s.percentage < 100,
-                );
-                if (incompleteSection) {
-                  window.location.hash = incompleteSection.name;
-                }
-              }}
-            >
-              {t('profile.progress.complete_profile')}
-            </Button>
-          </div>
-        )}
+        <Link
+          href={ROUTES.user.profile_form}
+          className={cn(buttonVariants({ variant: 'default' }), 'w-full')}
+        >
+          <Pencil className="size-icon" />
+          {completion.overall < 100
+            ? t('profile.progress.complete_profile')
+            : t('profile.progress.edit_profile')}
+        </Link>
       </CardContent>
     </Card>
   );

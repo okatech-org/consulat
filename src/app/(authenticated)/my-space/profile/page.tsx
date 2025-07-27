@@ -54,17 +54,8 @@ export default function ProfilePage() {
   return (
     <PageContainer>
       <div className="grid grid-cols-8 gap-4">
-        <div className="col-span-full lg:col-span-5">
+        <div className="col-span-full">
           <ProfileHeader profile={profile} inMySpace={true} />
-        </div>
-        <div className="col-span-full lg:col-span-3">
-          <ProfileStatusAlert
-            status={profile.status}
-            notes={
-              registrationRequest?.notes?.find((n) => n.type === 'FEEDBACK')?.content
-            }
-            requestId={registrationRequest?.id}
-          />
         </div>
       </div>
       <div className="grid grid-cols-8 gap-4">

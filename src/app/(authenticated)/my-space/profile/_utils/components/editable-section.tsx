@@ -1,6 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { RoleGuard } from '@/lib/permissions/utils';
+import { UserRole } from '@prisma/client';
 import { Edit, Save, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -74,16 +76,25 @@ export function EditableSection({
         <>
           {previewContent || children}
           {allowEdit && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={handleEdit}
-                className="h-10 px-4"
-                leftIcon={<Edit className="size-4" />}
-              >
-                {t('edit')}
-              </Button>
-            </div>
+            <RoleGuard
+              roles={[
+                UserRole.ADMIN,
+                UserRole.SUPER_ADMIN,
+                UserRole.MANAGER,
+                UserRole.AGENT,
+              ]}
+            >
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={handleEdit}
+                  className="h-10 px-4"
+                  leftIcon={<Edit className="size-4" />}
+                >
+                  {t('edit')}
+                </Button>
+              </div>
+            </RoleGuard>
           )}
         </>
       )}
