@@ -24,7 +24,13 @@ export async function getAvailableConsularServices(
   try {
     const services = await db.consularService.findMany({
       where: {
-        countryCode,
+        organization: {
+          countries: {
+            some: {
+              code: countryCode,
+            },
+          },
+        },
       },
       select: ServiceListItemSelect,
       orderBy: {
