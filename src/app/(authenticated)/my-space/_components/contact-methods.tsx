@@ -145,7 +145,7 @@ export function ContactMethods() {
             ? t(`days.${firstDay}`)
             : `${t(`days.${firstDay}`)} - ${t(`days.${lastDay}`)}`;
 
-        const timeSlots = daySchedule.slots
+        const timeSlots = (daySchedule.slots || [])
           .map((slot: { start: string; end: string }) => `${slot.start} - ${slot.end}`)
           .join(', ');
 
