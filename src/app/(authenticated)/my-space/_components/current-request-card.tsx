@@ -72,8 +72,6 @@ export function CurrentRequestCard() {
                 addSuffix: true,
                 locale: fr,
               })}
-              {currentRequest.assignedTo &&
-                ` • ${t('assigned_to')} ${currentRequest.assignedTo.name}`}
             </p>
           </div>
           <Badge variant="outlineReverse">
