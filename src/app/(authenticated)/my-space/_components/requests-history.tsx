@@ -137,9 +137,6 @@ export function RequestsHistory() {
                       <h3 className="font-semibold">{request.service.name}</h3>
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-1">
                         <span>Soumise le {formatDate(request.createdAt)}</span>
-                        {request.assignedTo && (
-                          <span>Assignée à: {request.assignedTo.name}</span>
-                        )}
                         <span>ID: #{request.id.slice(-8).toUpperCase()}</span>
                       </div>
                     </div>

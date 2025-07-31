@@ -224,12 +224,6 @@ export function NewAppointmentForm({
             {t_inputs(`serviceCategory.options.${selectedRequest.service.category}`)}
           </Badge>
         </div>
-        {selectedRequest.assignedTo && (
-          <div className="mt-4 flex items-center gap-2">
-            <span className="font-medium">Agent assigné :</span>
-            <span>{selectedRequest.assignedTo.name}</span>
-          </div>
-        )}
       </div>
     );
   };
