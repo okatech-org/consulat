@@ -115,13 +115,6 @@ class UnifiedVerifyService {
         // Stocker le code en base de données AVANT l'envoi
         const requestId = `email-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-        console.log('email data', {
-          identifier: identifier,
-          code: otpCode,
-          type: 'EMAIL',
-          expires: new Date(Date.now() + this.config.expiryMinutes! * 60 * 1000),
-        });
-
         await db.oTPCode.upsert({
           where: {
             identifier_type: {

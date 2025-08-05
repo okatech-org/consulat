@@ -288,33 +288,63 @@ async function handleSendAction(
     );
   }
 
-  // Stocker le requestId avec les données d'inscription
-  await db.oTPCode.upsert({
-    where: {
-      identifier_type: {
-        identifier: `${action}:${identifier}`, // Préfixe pour différencier de la connexion
-        type: type,
+  // Stocker les données d'inscription
+  if (type === 'SMS') {
+    // Pour SMS, stocker avec le requestId Twilio
+    await db.oTPCode.upsert({
+      where: {
+        identifier_type: {
+          identifier: `${action}:${identifier}`,
+          type: type,
+        },
       },
-    },
-    create: {
-      identifier: `${action}:${identifier}`,
-      code: JSON.stringify({
-        requestId: result.requestId,
-        signupData: { firstName, lastName, email, phone, countryCode },
-      }),
-      type: type,
-      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes pour l'inscription
-    },
-    update: {
-      code: JSON.stringify({
-        requestId: result.requestId,
-        signupData: { firstName, lastName, email, phone, countryCode },
-      }),
-      attempts: 0,
-      verified: false,
-      expires: new Date(Date.now() + 15 * 60 * 1000),
-    },
-  });
+      create: {
+        identifier: `${action}:${identifier}`,
+        code: JSON.stringify({
+          requestId: result.requestId,
+          signupData: { firstName, lastName, email, phone, countryCode },
+        }),
+        type: type,
+        expires: new Date(Date.now() + 15 * 60 * 1000),
+      },
+      update: {
+        code: JSON.stringify({
+          requestId: result.requestId,
+          signupData: { firstName, lastName, email, phone, countryCode },
+        }),
+        attempts: 0,
+        verified: false,
+        expires: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
+  } else {
+    // Pour EMAIL, stocker seulement les données d'inscription
+    // Le code OTP est géré par le service unifié
+    await db.oTPCode.upsert({
+      where: {
+        identifier_type: {
+          identifier: `${action}:${identifier}`,
+          type: type,
+        },
+      },
+      create: {
+        identifier: `${action}:${identifier}`,
+        code: JSON.stringify({
+          signupData: { firstName, lastName, email, phone, countryCode },
+        }),
+        type: type,
+        expires: new Date(Date.now() + 15 * 60 * 1000),
+      },
+      update: {
+        code: JSON.stringify({
+          signupData: { firstName, lastName, email, phone, countryCode },
+        }),
+        attempts: 0,
+        verified: false,
+        expires: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
+  }
 
   // Lancer une erreur spéciale pour indiquer que le code a été envoyé
   throw createCodeSentError('Code envoyé avec succès');
@@ -368,11 +398,21 @@ async function handleVerifyAction(
   const storedData = JSON.parse(otpCode.code);
   const signupData = storedData.signupData;
 
-  // Vérifier le code avec le service unifié
-  const verificationResult = await unifiedVerifyService.verifyCode(
-    identifier as string,
-    code,
-  );
+  // Pour les emails, vérifier directement avec le service unifié sur l'identifier sans préfixe
+  let verificationResult;
+  if (type === 'EMAIL') {
+    // Vérifier le code avec l'identifier original (sans préfixe signup:)
+    verificationResult = await unifiedVerifyService.verifyCode(
+      identifier.replace('signup:', ''),
+      code,
+    );
+  } else {
+    // Pour SMS, utiliser le service unifié normalement
+    verificationResult = await unifiedVerifyService.verifyCode(
+      identifier as string,
+      code,
+    );
+  }
 
   if (!verificationResult.success) {
     await db.oTPCode.update({
@@ -383,11 +423,15 @@ async function handleVerifyAction(
     throw createAuthError('invalid_code', 'Code invalide');
   }
 
-  // Marquer comme vérifié
-  await db.oTPCode.update({
-    where: { id: otpCode.id },
-    data: { verified: true },
-  });
+  // Nettoyer les entrées d'inscription après succès
+  await db.oTPCode
+    .delete({
+      where: { id: otpCode.id },
+    })
+    .catch(() => {}); // Ignorer si déjà supprimé
+
+  // Pour les emails, le service unifié a déjà supprimé l'entrée principale
+  // Rien d'autre à faire
 
   // Créer l'utilisateur et son profil
   return createUserWithProfile(signupData, verificationMethod);
