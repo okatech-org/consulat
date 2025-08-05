@@ -122,7 +122,7 @@ export function NewProfileForm({
     setError(null);
 
     try {
-      const result = (await signIn('unified-signup', {
+      const result = (await signIn('signup', {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -183,7 +183,7 @@ export function NewProfileForm({
     setError(null);
 
     try {
-      const result = (await signIn('unified-signup', {
+      const result = (await signIn('signup', {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -252,7 +252,7 @@ export function NewProfileForm({
     const data = form.getValues();
 
     try {
-      const result = (await signIn('unified-signup', {
+      const result = (await signIn('signup', {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,

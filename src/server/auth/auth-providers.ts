@@ -52,9 +52,9 @@ function getIdentifierType(identifier: string): {
  * Provider unifié pour connexion OTP
  * Utilise Twilio Verify pour SMS/call et Resend pour emails
  */
-export const unifiedLoginProvider: Provider = CredentialsProvider({
-  id: 'unified-login',
-  name: 'Unified Login',
+export const LoginProvider: Provider = CredentialsProvider({
+  id: 'login',
+  name: 'Login',
   credentials: {
     identifier: { label: 'Identifier', type: 'text' }, // email ou phone
     code: { label: 'Code', type: 'text' },
@@ -97,9 +97,9 @@ export const unifiedLoginProvider: Provider = CredentialsProvider({
 /**
  * Provider unifié pour inscription
  */
-export const unifiedSignupProvider: Provider = CredentialsProvider({
-  id: 'unified-signup',
-  name: 'Unified Signup',
+export const SignupProvider: Provider = CredentialsProvider({
+  id: 'signup',
+  name: 'Signup',
   credentials: {
     // Données d'inscription
     firstName: { label: 'Prénom', type: 'text' },

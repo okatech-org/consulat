@@ -7,7 +7,7 @@ import { UserRole } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { JWT } from 'next-auth/jwt';
 import { ROUTES } from '@/schemas/routes';
-import { unifiedLoginProvider, unifiedSignupProvider } from './unified-verify-provider';
+import { LoginProvider, SignupProvider } from './auth-providers';
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
@@ -40,7 +40,7 @@ declare module 'next-auth/jwt' {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-  providers: [unifiedLoginProvider, unifiedSignupProvider],
+  providers: [LoginProvider, SignupProvider],
   adapter: PrismaAdapter(db),
   pages: {
     signIn: ROUTES.auth.login,
