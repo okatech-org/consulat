@@ -26,6 +26,7 @@ export default {
     missing_fields: 'Champs manquants',
     and_more: '... et {count} autres',
     complete_profile: 'Compléter mon profil',
+    edit_profile: 'Modifier mon profil',
   },
   lookup: {
     view_profile: 'Voir le profil',
