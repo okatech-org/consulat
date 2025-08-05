@@ -32,7 +32,6 @@ import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { isUserExists } from '@/actions/auth';
 import { type ErrorMessageKey } from '@/lib/utils';
-import { ErrorCard } from '../ui/error-card';
 import { toast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 import { useRouter } from 'next/navigation';
@@ -55,7 +54,6 @@ export function NewProfileForm({
   const router = useRouter();
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
-  const tErrors = useTranslations('messages.errors');
   const [resendCooldown, setResendCooldown] = React.useState(0);
   const [canResend, setCanResend] = React.useState(true);
 
@@ -124,7 +122,7 @@ export function NewProfileForm({
     setError(null);
 
     try {
-      const result = (await signIn('signup-auth', {
+      const result = (await signIn('unified-signup', {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -185,7 +183,7 @@ export function NewProfileForm({
     setError(null);
 
     try {
-      const result = (await signIn('signup-auth', {
+      const result = (await signIn('unified-signup', {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -254,7 +252,7 @@ export function NewProfileForm({
     const data = form.getValues();
 
     try {
-      const result = (await signIn('signup-auth', {
+      const result = (await signIn('unified-signup', {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,

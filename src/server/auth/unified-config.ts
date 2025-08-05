@@ -1,13 +1,14 @@
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { type DefaultSession, type NextAuthConfig } from 'next-auth';
 import { db } from '@/server/db';
+import { unifiedLoginProvider, unifiedSignupProvider } from './unified-verify-provider';
 import type { SessionUser } from '@/lib/user';
 import { getUserSession } from '@/lib/getters';
 import { UserRole } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { JWT } from 'next-auth/jwt';
 import { ROUTES } from '@/schemas/routes';
-import { unifiedLoginProvider, unifiedSignupProvider } from './unified-verify-provider';
+
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
@@ -35,11 +36,12 @@ declare module 'next-auth/jwt' {
 }
 
 /**
- * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
+ * Configuration NextAuth.js avec les providers unifiés Twilio Verify
+ * Utilise Twilio Verify pour SMS/call et Resend pour les emails
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authConfig = {
+export const unifiedAuthConfig = {
   providers: [unifiedLoginProvider, unifiedSignupProvider],
   adapter: PrismaAdapter(db),
   pages: {
@@ -48,7 +50,7 @@ export const authConfig = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 jours
   },
   callbacks: {
     jwt: async ({ token, user }) => {
@@ -75,4 +77,19 @@ export const authConfig = {
       return true;
     },
   },
+  events: {
+    signIn: async ({ user, account, profile }) => {
+      console.log('User signed in:', {
+        userId: user.id,
+        provider: account?.provider,
+        email: user.email,
+      });
+    },
+    signOut: async ({ session, token }) => {
+      console.log('User signed out:', {
+        userId: session?.user?.id || token?.id,
+      });
+    },
+  },
+  debug: process.env.NODE_ENV === 'development',
 } satisfies NextAuthConfig;
