@@ -2,6 +2,7 @@ import { twilioVerifyService, type VerifyChannel } from './twilio-verify';
 import { sendOTPEmail } from '@/lib/services/notifications/providers/emails';
 import { tryCatch } from '@/lib/utils';
 import { db } from '@/server/db';
+import { createHash } from 'crypto';
 
 /**
  * Configuration pour le service de vérification unifié
@@ -90,6 +91,13 @@ class UnifiedVerifyService {
   }
 
   /**
+   * Hasher un code OTP pour le stockage sécurisé
+   */
+  private hashCode(code: string): string {
+    return createHash('sha256').update(code).digest('hex');
+  }
+
+  /**
    * Envoyer un code de vérification
    */
   async sendVerificationCode(
@@ -123,12 +131,12 @@ class UnifiedVerifyService {
           },
           create: {
             identifier: identifier,
-            code: otpCode,
+            code: this.hashCode(otpCode), // Stocker le hash, pas le code en clair
             type: 'EMAIL',
             expires: new Date(Date.now() + this.config.expiryMinutes! * 60 * 1000),
           },
           update: {
-            code: otpCode,
+            code: this.hashCode(otpCode), // Stocker le hash, pas le code en clair
             attempts: 0,
             verified: false,
             expires: new Date(Date.now() + this.config.expiryMinutes! * 60 * 1000),
@@ -251,12 +259,11 @@ class UnifiedVerifyService {
           };
         }
 
-        // Vérifier le code
-        if (otpRecord.code === code) {
-          // Marquer comme vérifié
-          await db.oTPCode.update({
+        // Vérifier le code en comparant les hash
+        if (otpRecord.code === this.hashCode(code)) {
+          // Supprimer le code après vérification réussie (plus sécurisé)
+          await db.oTPCode.delete({
             where: { id: otpRecord.id },
-            data: { verified: true },
           });
 
           return {

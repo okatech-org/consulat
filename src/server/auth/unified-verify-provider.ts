@@ -366,7 +366,6 @@ async function handleVerifyAction(
 
   // Extraire les données stockées
   const storedData = JSON.parse(otpCode.code);
-  const requestId = storedData.requestId;
   const signupData = storedData.signupData;
 
   // Vérifier le code avec le service unifié
@@ -513,11 +512,15 @@ async function handleLoginVerifyAction(
     throw createAuthError('invalid_code', 'Code invalide');
   }
 
-  // Marquer comme vérifié
-  await db.oTPCode.update({
-    where: { id: otpCode.id },
-    data: { verified: true },
-  });
+  // Pour les emails, le service unifié a déjà supprimé le code
+  // Pour les SMS, on doit supprimer l'entrée de login
+  if (type === 'SMS') {
+    await db.oTPCode
+      .delete({
+        where: { id: otpCode.id },
+      })
+      .catch(() => {}); // Ignorer si déjà supprimé
+  }
 
   // Récupérer l'utilisateur
   let user;
