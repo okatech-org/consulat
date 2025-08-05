@@ -9,7 +9,6 @@ interface UnifiedVerifyConfig {
   codeLength?: number;
   expiryMinutes?: number;
   maxAttempts?: number;
-  brand?: string;
 }
 
 /**
@@ -44,17 +43,14 @@ interface UnifiedVerifyResponse {
  */
 class UnifiedVerifyService {
   private config: UnifiedVerifyConfig;
-  private brand: string;
 
   constructor(config: UnifiedVerifyConfig = {}) {
     this.config = {
       codeLength: 6,
       expiryMinutes: 10,
       maxAttempts: 3,
-      brand: 'Consulat.ga',
       ...config,
     };
-    this.brand = this.config.brand!;
   }
 
   /**
@@ -98,10 +94,6 @@ class UnifiedVerifyService {
   async sendVerificationCode(
     identifier: string,
     channel?: UnifiedVerifyChannel,
-    options?: {
-      locale?: string;
-      customMessage?: string;
-    },
   ): Promise<UnifiedSendResponse> {
     try {
       const identifierInfo = this.getIdentifierInfo(identifier);
@@ -136,11 +128,6 @@ class UnifiedVerifyService {
       const result = await twilioVerifyService.sendVerificationCode(
         identifierInfo.formattedIdentifier,
         twilioChannel,
-        {
-          locale: options?.locale || 'fr-fr',
-          customFriendlyName: this.brand,
-          customMessage: options?.customMessage,
-        },
       );
 
       if (!result.success) {
@@ -279,7 +266,6 @@ let unifiedVerifyServiceInstance: UnifiedVerifyService | null = null;
 export function getUnifiedVerifyService(): UnifiedVerifyService {
   if (!unifiedVerifyServiceInstance) {
     unifiedVerifyServiceInstance = new UnifiedVerifyService({
-      brand: 'Consulat.ga',
       codeLength: 6,
       expiryMinutes: 10,
       maxAttempts: 3,

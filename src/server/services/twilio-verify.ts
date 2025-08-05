@@ -106,9 +106,10 @@ class TwilioVerifyService {
       };
 
       // Ajouter les options si présentes
-      if (options?.locale) {
-        verificationData.locale = options.locale;
-      }
+      // Note: locale n'est pas supporté sur ce service Twilio
+      // if (options?.locale) {
+      //   verificationData.locale = options.locale;
+      // }
 
       if (options?.customFriendlyName) {
         verificationData.customFriendlyName = options.customFriendlyName;

@@ -77,19 +77,5 @@ export const unifiedAuthConfig = {
       return true;
     },
   },
-  events: {
-    signIn: async ({ user, account, profile }) => {
-      console.log('User signed in:', {
-        userId: user.id,
-        provider: account?.provider,
-        email: user.email,
-      });
-    },
-    signOut: async ({ session, token }) => {
-      console.log('User signed out:', {
-        userId: session?.user?.id || token?.id,
-      });
-    },
-  },
   debug: process.env.NODE_ENV === 'development',
 } satisfies NextAuthConfig;
