@@ -373,7 +373,6 @@ async function handleVerifyAction(
   const verificationResult = await unifiedVerifyService.verifyCode(
     identifier as string,
     code,
-    requestId,
   );
 
   if (!verificationResult.success) {
@@ -430,27 +429,31 @@ async function handleLoginSendAction(
     );
   }
 
-  // Stocker les informations de vérification en base
-  await db.oTPCode.upsert({
-    where: {
-      identifier_type: {
-        identifier: identifier,
-        type: type,
+  // Pour SMS, stocker les informations de vérification Twilio en base
+  // Pour EMAIL, le service unifié a déjà stocké le code, ne pas l'écraser !
+  if (type === 'SMS') {
+    await db.oTPCode.upsert({
+      where: {
+        identifier_type: {
+          identifier: identifier,
+          type: type,
+        },
       },
-    },
-    create: {
-      identifier: identifier,
-      code: result.requestId || 'unified-verify',
-      type: type,
-      expires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
-    },
-    update: {
-      code: result.requestId || 'unified-verify',
-      attempts: 0,
-      verified: false,
-      expires: new Date(Date.now() + 10 * 60 * 1000),
-    },
-  });
+      create: {
+        identifier: identifier,
+        code: result.requestId || 'unified-verify',
+        type: type,
+        expires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      },
+      update: {
+        code: result.requestId || 'unified-verify',
+        attempts: 0,
+        verified: false,
+        expires: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+  }
+  // Pour EMAIL : ne rien faire, le service unifié a déjà tout géré !
 
   // Lancer une erreur spéciale pour indiquer que le code a été envoyé
   throw createCodeSentError('Code envoyé avec succès');
@@ -499,11 +502,7 @@ async function handleLoginVerifyAction(
   }
 
   // Vérifier le code avec le service unifié
-  const verificationResult = await unifiedVerifyService.verifyCode(
-    identifier,
-    code,
-    otpCode.code,
-  );
+  const verificationResult = await unifiedVerifyService.verifyCode(identifier, code);
 
   if (!verificationResult.success) {
     await db.oTPCode.update({

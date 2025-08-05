@@ -1,6 +1,7 @@
 import { twilioVerifyService, type VerifyChannel } from './twilio-verify';
 import { sendOTPEmail } from '@/lib/services/notifications/providers/emails';
 import { tryCatch } from '@/lib/utils';
+import { db } from '@/server/db';
 
 /**
  * Configuration pour le service de vérification unifié
@@ -103,10 +104,54 @@ class UnifiedVerifyService {
       if (targetChannel === 'email') {
         const otpCode = this.generateOTPCode();
 
+        // Stocker le code en base de données AVANT l'envoi
+        const requestId = `email-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        console.log('email data', {
+          identifier: identifier,
+          code: otpCode,
+          type: 'EMAIL',
+          expires: new Date(Date.now() + this.config.expiryMinutes! * 60 * 1000),
+        });
+
+        await db.oTPCode.upsert({
+          where: {
+            identifier_type: {
+              identifier: identifier,
+              type: 'EMAIL',
+            },
+          },
+          create: {
+            identifier: identifier,
+            code: otpCode,
+            type: 'EMAIL',
+            expires: new Date(Date.now() + this.config.expiryMinutes! * 60 * 1000),
+          },
+          update: {
+            code: otpCode,
+            attempts: 0,
+            verified: false,
+            expires: new Date(Date.now() + this.config.expiryMinutes! * 60 * 1000),
+          },
+        });
+
+        // Envoyer l'email avec le code
         const { error } = await tryCatch(sendOTPEmail(identifier, otpCode));
 
         if (error) {
           console.error('Erreur envoi email OTP:', error);
+          // Supprimer le code de la base si l'envoi échoue
+          await db.oTPCode
+            .delete({
+              where: {
+                identifier_type: {
+                  identifier: identifier,
+                  type: 'EMAIL',
+                },
+              },
+            })
+            .catch(() => {});
+
           return {
             success: false,
             error: error.message || "Erreur lors de l'envoi de l'email",
@@ -114,11 +159,9 @@ class UnifiedVerifyService {
           };
         }
 
-        // Ici on peut stocker le code en base de données avec un identifiant unique
-        // pour la vérification ultérieure, mais pour l'exemple on retourne directement
         return {
           success: true,
-          requestId: `email-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          requestId: requestId,
           channel: targetChannel,
         };
       }
@@ -143,11 +186,11 @@ class UnifiedVerifyService {
         requestId: result.verificationSid,
         channel: targetChannel,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur envoi code de vérification:', error);
       return {
         success: false,
-        error: error.message || "Erreur lors de l'envoi du code",
+        error: error instanceof Error ? error.message : "Erreur lors de l'envoi du code",
         channel: channel || 'sms',
       };
     }
@@ -156,27 +199,78 @@ class UnifiedVerifyService {
   /**
    * Vérifier un code de vérification
    */
-  async verifyCode(
-    identifier: string,
-    code: string,
-    requestId?: string,
-  ): Promise<UnifiedVerifyResponse> {
+  async verifyCode(identifier: string, code: string): Promise<UnifiedVerifyResponse> {
     try {
       const identifierInfo = this.getIdentifierInfo(identifier);
 
-      // Pour les emails, on utiliserait normalement une vérification en base
-      // Pour l'exemple, on suppose que tous les codes email sont valides si ils ont 6 chiffres
+      // Pour les emails, vérifier avec la base de données
       if (identifierInfo.type === 'EMAIL') {
-        // Ici vous devriez implémenter la vérification avec votre base de données
-        // en utilisant le requestId pour retrouver le code stocké
+        // Récupérer le code depuis la base de données
+        const otpRecord = await db.oTPCode.findUnique({
+          where: {
+            identifier_type: {
+              identifier: identifier,
+              type: 'EMAIL',
+            },
+          },
+        });
 
-        if (code.length === 6 && /^\d+$/.test(code)) {
+        if (!otpRecord) {
+          return {
+            success: false,
+            status: 'pending',
+            error: 'Aucun code en attente pour cet email',
+            valid: false,
+          };
+        }
+
+        if (otpRecord.verified) {
+          return {
+            success: false,
+            status: 'pending',
+            error: 'Code déjà utilisé',
+            valid: false,
+          };
+        }
+
+        if (new Date() > otpRecord.expires) {
+          return {
+            success: false,
+            status: 'pending',
+            error: 'Code expiré',
+            valid: false,
+          };
+        }
+
+        if (otpRecord.attempts >= this.config.maxAttempts!) {
+          return {
+            success: false,
+            status: 'pending',
+            error: 'Trop de tentatives',
+            valid: false,
+          };
+        }
+
+        // Vérifier le code
+        if (otpRecord.code === code) {
+          // Marquer comme vérifié
+          await db.oTPCode.update({
+            where: { id: otpRecord.id },
+            data: { verified: true },
+          });
+
           return {
             success: true,
             status: 'approved',
             valid: true,
           };
         } else {
+          // Incrémenter les tentatives
+          await db.oTPCode.update({
+            where: { id: otpRecord.id },
+            data: { attempts: { increment: 1 } },
+          });
+
           return {
             success: false,
             status: 'pending',
@@ -198,11 +292,11 @@ class UnifiedVerifyService {
         error: result.error,
         valid: result.valid,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur vérification code:', error);
       return {
         success: false,
-        error: error.message || 'Erreur lors de la vérification',
+        error: error instanceof Error ? error.message : 'Erreur lors de la vérification',
         status: 'pending',
         valid: false,
       };
@@ -248,10 +342,10 @@ class UnifiedVerifyService {
         valid: true,
         type: info.type,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         valid: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Erreur de validation',
       };
     }
   }

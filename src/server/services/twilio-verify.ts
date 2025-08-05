@@ -70,7 +70,6 @@ class TwilioVerifyService {
         doNotShareWarningEnabled: true,
       });
 
-      console.log(`Verify Service created with SID: ${service.sid}`);
       return service.sid;
     } catch (error) {
       console.error('Error creating Verify Service:', error);
