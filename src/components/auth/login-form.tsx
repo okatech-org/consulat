@@ -127,7 +127,7 @@ function useLoginActions() {
 
   const sendOTPCode = React.useCallback(
     async (identifier: string) => {
-      const result = (await signIn('otp-auth', {
+      const result = (await signIn('login', {
         identifier,
         action: 'send',
         redirect: false,
@@ -150,7 +150,7 @@ function useLoginActions() {
 
   const validateOTP = React.useCallback(
     async (otp: string, identifier: string) => {
-      const result = (await signIn('otp-auth', {
+      const result = (await signIn('login', {
         identifier,
         code: otp,
         action: 'verify',
