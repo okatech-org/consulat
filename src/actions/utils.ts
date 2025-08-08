@@ -1,14 +1,15 @@
 'use server';
 
-import { AuthRedirectManager } from '@/lib/auth/redirect-utils';
 import { tryCatch } from '@/lib/utils';
-import { auth } from '@/server/auth';
 import { UTApi } from 'uploadthing/server';
-import { headers } from 'next/headers';
 
-const utapi = new UTApi({
-  token: process.env.UPLOADTHING_TOKEN,
-});
+let utapiSingleton: UTApi | null = null;
+function getUtapi(): UTApi {
+  if (!utapiSingleton) {
+    utapiSingleton = new UTApi({ token: process.env.UPLOADTHING_TOKEN });
+  }
+  return utapiSingleton;
+}
 
 export async function processFileData(
   formData: FormData | undefined,
@@ -21,7 +22,7 @@ export async function processFileData(
     if (!files || files.length === 0) return null;
 
     if (existingKey) {
-      const result = await tryCatch(utapi.deleteFiles(existingKey));
+      const result = await tryCatch(getUtapi().deleteFiles(existingKey));
 
       if (result.error) {
         console.error('Error deleting existing file:', result.error);
@@ -30,7 +31,7 @@ export async function processFileData(
 
     // Upload du nouveau fichier
     const file = files[0] as File;
-    const response = await utapi.uploadFiles(file);
+    const response = await getUtapi().uploadFiles(file);
 
     if (!response?.data) {
       throw new Error('Upload failed');
@@ -56,7 +57,7 @@ export async function uploadFiles(fd: FormData) {
 
     const uploadedFiles = await Promise.all(
       files.map(async (file) => {
-        const response = await utapi.uploadFiles(file);
+        const response = await getUtapi().uploadFiles(file);
         return response?.data;
       }),
     );
@@ -71,7 +72,7 @@ export async function uploadFiles(fd: FormData) {
 // Fonction pour supprimer des fichiers
 export async function deleteFiles(keys: string[]) {
   try {
-    await Promise.all(keys.map((key) => utapi.deleteFiles(key)));
+    await Promise.all(keys.map((key) => getUtapi().deleteFiles(key)));
   } catch (error) {
     console.error('Error deleting files:', error);
     throw new Error('Error deleting files');
@@ -81,6 +82,6 @@ export async function deleteFiles(keys: string[]) {
 export async function deleteFile(fileUrl: string) {
   const fileKey = fileUrl.split('/').pop();
   if (fileKey) {
-    await utapi.deleteFiles(fileKey);
+    await getUtapi().deleteFiles(fileKey);
   }
 }

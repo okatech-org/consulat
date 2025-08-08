@@ -3,9 +3,13 @@
 import { checkAuth } from '@/lib/auth/action';
 import { UTApi } from 'uploadthing/server';
 
-const utapi = new UTApi({
-  token: process.env.UPLOADTHING_SECRET,
-});
+let utapiSingleton: UTApi | null = null;
+function getUtapi(): UTApi {
+  if (!utapiSingleton) {
+    utapiSingleton = new UTApi({ token: process.env.UPLOADTHING_SECRET });
+  }
+  return utapiSingleton;
+}
 
 export async function uploadFiles(fd: FormData) {
   try {
@@ -16,7 +20,7 @@ export async function uploadFiles(fd: FormData) {
 
     const uploadedFiles = await Promise.all(
       files.map(async (file) => {
-        const response = await utapi.uploadFiles(file);
+        const response = await getUtapi().uploadFiles(file);
         return response?.data;
       }),
     );
@@ -42,7 +46,7 @@ export const uploadFileFromServer = async (fd: FormData) => {
 
   const uploadedFiles = await Promise.all(
     files.map(async (file) => {
-      const response = await utapi.uploadFiles(file);
+      const response = await getUtapi().uploadFiles(file);
       return response?.data;
     }),
   );
@@ -55,7 +59,7 @@ export const uploadFileFromServer = async (fd: FormData) => {
 
 export async function deleteFiles(keys: string[]) {
   try {
-    await utapi.deleteFiles(keys);
+    await getUtapi().deleteFiles(keys);
   } catch (error) {
     console.error('Delete error:', { ...error });
     return {
