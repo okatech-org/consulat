@@ -1,4 +1,4 @@
-import { twilioVerifyService, type VerifyChannel } from './twilio-verify';
+import { getTwilioVerifyService, type VerifyChannel } from './twilio-verify';
 import { sendOTPEmail } from '@/lib/services/notifications/providers/emails';
 import { tryCatch } from '@/lib/utils';
 import { db } from '@/server/db';
@@ -169,7 +169,7 @@ class UnifiedVerifyService {
 
       // Pour SMS et appels, utiliser Twilio Verify
       const twilioChannel: VerifyChannel = targetChannel as VerifyChannel;
-      const result = await twilioVerifyService.sendVerificationCode(
+      const result = await getTwilioVerifyService().sendVerificationCode(
         identifierInfo.formattedIdentifier,
         twilioChannel,
       );
@@ -281,7 +281,7 @@ class UnifiedVerifyService {
       }
 
       // Pour SMS et appels, utiliser Twilio Verify
-      const result = await twilioVerifyService.verifyCode(
+      const result = await getTwilioVerifyService().verifyCode(
         identifierInfo.formattedIdentifier,
         code,
       );
@@ -314,7 +314,7 @@ class UnifiedVerifyService {
       }
 
       // Pour Twilio Verify
-      return await twilioVerifyService.cancelVerification(requestId);
+      return await getTwilioVerifyService().cancelVerification(requestId);
     } catch (error) {
       console.error('Erreur annulation vérification:', error);
       return false;

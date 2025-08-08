@@ -287,5 +287,4 @@ export function getTwilioVerifyService(): TwilioVerifyService {
   return twilioVerifyServiceInstance;
 }
 
-// Export pour utilisation directe
-export const twilioVerifyService = getTwilioVerifyService();
+// Note: ne pas instancier ici pour éviter d'imposer les variables d'env au build
