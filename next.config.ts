@@ -87,6 +87,7 @@ const nextConfig: NextConfig = {
       // Alias personnalisés si nécessaire
     },
   },
+  output: 'standalone',
 };
 
 export default withNextIntl(withSerwist(nextConfig));
