@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-export const UserSessionInclude: Prisma.UserSelect = {
+export const UserSessionSelect: Prisma.UserSelect = {
   id: true,
   profileId: true,
   name: true,
@@ -13,7 +13,7 @@ export const UserSessionInclude: Prisma.UserSelect = {
 } as const;
 
 export const AgentSessionInclude: Prisma.UserSelect = {
-  ...UserSessionInclude,
+  ...UserSessionSelect,
   specializations: true,
   linkedCountries: true,
   assignedOrganizationId: true,
@@ -23,18 +23,18 @@ export const AgentSessionInclude: Prisma.UserSelect = {
 } as const;
 
 export const AdminSessionInclude: Prisma.UserSelect = {
-  ...UserSessionInclude,
+  ...UserSessionSelect,
   organizationId: true,
 } as const;
 
 export const ManagerSessionSelect: Prisma.UserSelect = {
-  ...UserSessionInclude,
+  ...UserSessionSelect,
   assignedOrganizationId: true,
   managedAgents: true,
 };
 
 export const AllSessionInclude: Prisma.UserSelect = {
-  ...UserSessionInclude,
+  ...UserSessionSelect,
   ...AgentSessionInclude,
   ...AdminSessionInclude,
   ...ManagerSessionSelect,
@@ -50,11 +50,9 @@ export type ManagerSession = Prisma.UserGetPayload<{
   select: typeof ManagerSessionSelect;
 }>;
 export type SuperAdminSession = Prisma.UserGetPayload<{
-  select: typeof UserSessionInclude;
+  select: typeof UserSessionSelect;
 }>;
 
-export type SessionUser =
-  | AgentSession
-  | AdminSession
-  | ManagerSession
-  | SuperAdminSession;
+export type SessionUser = Prisma.UserGetPayload<{
+  select: typeof UserSessionSelect;
+}>;
