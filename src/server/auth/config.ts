@@ -1,31 +1,13 @@
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { type DefaultSession, type NextAuthConfig } from 'next-auth';
 import { db } from '@/server/db';
-import { otpProvider } from './otp-provider';
-import { signupProvider } from './signup-provider';
-import { createOTPAuthProvider } from './otp-auth-provider';
-import { createSignupOTPProvider } from './signup-auth-provider';
-import { sendOTPViaNotifications } from '@/lib/services/notifications/otp-integration';
 import type { SessionUser } from '@/lib/user';
 import { UserRole } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { JWT } from 'next-auth/jwt';
 import { ROUTES } from '@/schemas/routes';
 import { getUserById } from '@/lib/getters';
-const authOtpProvider = createOTPAuthProvider({
-  sendOTP: sendOTPViaNotifications,
-  codeLength: 6,
-  expiryMinutes: 5,
-  maxAttempts: 3,
-});
-
-const signupOtpProvider = createSignupOTPProvider({
-  sendOTP: sendOTPViaNotifications,
-  codeLength: 6,
-  expiryMinutes: 10,
-  maxAttempts: 3,
-});
-
+import { LoginProvider, SignupProvider } from './auth-providers';
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
@@ -58,7 +40,7 @@ declare module 'next-auth/jwt' {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-  providers: [otpProvider, signupProvider, authOtpProvider, signupOtpProvider],
+  providers: [LoginProvider, SignupProvider],
   adapter: PrismaAdapter(db),
   pages: {
     signIn: ROUTES.auth.login,
