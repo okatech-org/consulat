@@ -1,12 +1,22 @@
 import { Resend } from 'resend';
 import { env } from '@/env';
 
-const resend = new Resend(env.RESEND_API_KEY);
+let resendSingleton: Resend | null = null;
+
+export function getResend(): Resend {
+  if (!resendSingleton) {
+    if (!env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is required at runtime');
+    }
+    resendSingleton = new Resend(env.RESEND_API_KEY);
+  }
+  return resendSingleton;
+}
 
 export const resendService = {
   async sendOTPEmail(email: string, code: string) {
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await getResend().emails.send({
         from: env.RESEND_SENDER,
         to: email,
         subject: 'Code de vérification - Consulat',
@@ -45,7 +55,7 @@ export const resendService = {
 
   async sendWelcomeEmail(email: string, name: string) {
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await getResend().emails.send({
         from: env.RESEND_SENDER,
         to: email,
         subject: 'Bienvenue sur Consulat',
