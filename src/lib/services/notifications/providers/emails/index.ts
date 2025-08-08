@@ -1,14 +1,14 @@
 'use server';
 
-import { Resend } from 'resend';
 import { getTranslations } from 'next-intl/server';
 import { env } from '@/env';
+import { getResend } from '@/server/services/resend';
 import { OTPEmailToHtml } from './components/OTPEmail';
 import { AdminWelcomeEmailToHtml } from './components/AdminWelcomeEmail';
 import { NotificationEmailToHtml } from './components/NotificationEmail';
 import { FeedbackEmailToHtml } from './components/FeedbackEmail';
 
-const resend = new Resend(env.RESEND_API_KEY);
+const resend = getResend();
 const resend_sender = env.RESEND_SENDER;
 const appName = env.NEXT_PUBLIC_APP_NAME;
 
