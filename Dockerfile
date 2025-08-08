@@ -12,7 +12,7 @@ ENV NODE_ENV=development \
 # Installe les deps (pas de lock -> npm install)
 COPY package*.json ./
 COPY prisma ./prisma
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copie du code et build
 COPY . .
