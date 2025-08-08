@@ -18,19 +18,38 @@ import { env } from '@/env';
 import type { ChatMessage } from './types';
 import { calculateProfileCompletion } from '@/lib/utils';
 
-const openai = new OpenAI();
-const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY!);
+let openAIClient: OpenAI | null = null;
+function getOpenAIClient(): OpenAI {
+  if (!openAIClient) {
+    openAIClient = new OpenAI();
+  }
+  return openAIClient;
+}
 
-// Initialize Gemini model with safety settings
-const geminiModel = genAI.getGenerativeModel({
-  model: 'gemini-1.5-pro',
-  generationConfig: {
-    temperature: 0.7,
-    topP: 0.9,
-    topK: 40,
-    maxOutputTokens: 4096,
-  },
-});
+let geminiClient: GoogleGenerativeAI | null = null;
+let geminiModelSingleton: ReturnType<GoogleGenerativeAI['getGenerativeModel']> | null =
+  null;
+function getGeminiModel() {
+  if (!geminiClient) {
+    // Instanciation paresseuse pour éviter l'exigence de clé au build
+    if (!env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is required at runtime');
+    }
+    geminiClient = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+  }
+  if (!geminiModelSingleton) {
+    geminiModelSingleton = geminiClient.getGenerativeModel({
+      model: 'gemini-1.5-pro',
+      generationConfig: {
+        temperature: 0.7,
+        topP: 0.9,
+        topK: 40,
+        maxOutputTokens: 4096,
+      },
+    });
+  }
+  return geminiModelSingleton;
+}
 
 /**
  * Server Action to generate chat completion with context and chat history.
@@ -62,7 +81,7 @@ export async function getChatCompletion(
     };
 
     const completion: OpenAI.Chat.ChatCompletion =
-      await openai.chat.completions.create(params);
+      await getOpenAIClient().chat.completions.create(params);
     const responseContent = completion.choices[0]?.message?.content;
 
     return responseContent || null;
@@ -209,7 +228,13 @@ async function getUserContextDataForUser(
       db.consularService.findMany({
         where: {
           isActive: true,
-          countryCode: user.countryCode || '',
+          organization: {
+            countries: {
+              some: {
+                code: user.countryCode || '',
+              },
+            },
+          },
         },
         include: {
           organization: {
@@ -825,7 +850,7 @@ export async function getGeminiChatCompletion(
     }));
 
     // Create a chat session
-    const chat = geminiModel.startChat({
+    const chat = getGeminiModel().startChat({
       history: formattedMessages.slice(0, -1), // All messages except the last one
       generationConfig: {
         temperature: 0.7,

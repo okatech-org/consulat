@@ -251,14 +251,6 @@ export default function ServiceRequestDetailsPage() {
                   })}
                 </span>
               </div>
-              {requestDetails.assignedTo && (
-                <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
-                  <span className="font-medium">{t('info.assigned_to')}</span>
-                  <span className="text-muted-foreground">
-                    {requestDetails.assignedTo.name}
-                  </span>
-                </div>
-              )}
               <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
                 <span className="font-medium">{t('info.estimated_deadline')}</span>
                 <span className="text-muted-foreground">{'N/A'}</span>
