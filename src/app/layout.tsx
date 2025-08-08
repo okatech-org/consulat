@@ -128,6 +128,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
+
   const roleData = session ? await loadRoleBasedData() : null;
   const locale = await getLocale();
 

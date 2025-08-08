@@ -16,11 +16,16 @@ import {
   createUserProfile,
   updateProfile as updateProfileAction,
   submitProfileForValidation as submitProfileAction,
+  getRegistrationServiceForUser,
 } from '@/actions/profile';
-import { getProfileRegistrationRequest } from '@/lib/user/getters';
 import type { RouterOutputs } from '@/trpc/react';
-import { getUserSession } from '@/lib/getters';
-import { NotificationType, ParentalRole, Prisma, RequestStatus } from '@prisma/client';
+import {
+  NotificationType,
+  ParentalRole,
+  Prisma,
+  RequestStatus,
+  ServiceCategory,
+} from '@prisma/client';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { revalidatePath } from 'next/cache';
@@ -36,6 +41,10 @@ import { db } from '@/server/db';
 import { GetProfileListInput, ProfileListItemSelect } from './misc';
 import { adaptProfilesListing } from '@/components/profile/adapters';
 import { hasRole } from '@/lib/permissions/utils';
+import {
+  FullServiceRequestInclude,
+  type FullServiceRequest,
+} from '@/types/service-request';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil optimisé pour le dashboard
@@ -217,8 +226,13 @@ export const profileRouter = createTRPCRouter({
   getRegistrationRequest: protectedProcedure
     .input(z.object({ profileId: z.string() }))
     .query(async ({ input }) => {
-      const request = await getProfileRegistrationRequest(input.profileId);
-      return request;
+      return db.serviceRequest.findFirst({
+        where: {
+          requestedForId: input.profileId,
+          serviceCategory: ServiceCategory.REGISTRATION,
+        },
+        ...FullServiceRequestInclude,
+      }) as unknown as FullServiceRequest | null;
     }),
 
   // Créer un profil utilisateur
@@ -344,68 +358,6 @@ export const profileRouter = createTRPCRouter({
               : 'Erreur lors de la soumission du profil',
         });
       }
-    }),
-
-  // Récupérer le service d'enregistrement pour l'utilisateur
-  getRegistrationService: protectedProcedure.query(async ({ ctx }) => {
-    if (!ctx.session.user.countryCode) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Code pays manquant',
-      });
-    }
-
-    try {
-      const service = await db.consularService.findFirst({
-        where: {
-          countryCode: ctx.session.user.countryCode,
-          category: 'REGISTRATION',
-        },
-      });
-
-      return service;
-    } catch (error) {
-      console.error('Error fetching registration service:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: "Erreur lors de la récupération du service d'enregistrement",
-      });
-    }
-  }),
-
-  getCurrentUser: protectedProcedure.query(async ({ ctx }) => {
-    // Récupérer d'abord l'utilisateur de base pour obtenir son rôle
-    const baseUser = await ctx.db.user.findUnique({
-      where: { id: ctx.session.user.id },
-      select: { id: true, role: true },
-    });
-
-    if (!baseUser) {
-      throw new Error('Utilisateur non trouvé');
-    }
-
-    // Récupérer les données complètes selon le rôle
-    const user = await getUserSession(ctx.session.user.id, baseUser.role);
-
-    if (!user) {
-      throw new Error('Utilisateur non trouvé');
-    }
-
-    return user;
-  }),
-
-  updateProfile: protectedProcedure
-    .input(
-      z.object({
-        name: z.string().optional(),
-        email: z.string().email().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      return ctx.db.user.update({
-        where: { id: ctx.session.user.id },
-        data: input,
-      });
     }),
 
   /**
@@ -870,13 +822,9 @@ export const profileRouter = createTRPCRouter({
           });
         }
 
-        // Trouver le service d'enregistrement
-        const registrationService = await ctx.db.consularService.findFirst({
-          where: {
-            countryCode: ctx.session.user.countryCode,
-            category: 'REGISTRATION',
-          },
-        });
+        const registrationService = await getRegistrationServiceForUser(
+          ctx.session.user.countryCode!,
+        );
 
         if (!registrationService) {
           throw new TRPCError({

@@ -2,11 +2,11 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { type DefaultSession, type NextAuthConfig } from 'next-auth';
 import { db } from '@/server/db';
 import type { SessionUser } from '@/lib/user';
-import { getUserSession } from '@/lib/getters';
 import { UserRole } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { JWT } from 'next-auth/jwt';
 import { ROUTES } from '@/schemas/routes';
+import { getUserById } from '@/lib/getters';
 import { LoginProvider, SignupProvider } from './auth-providers';
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -62,17 +62,13 @@ export const authConfig = {
     session: async ({ session, token }) => {
       // Récupérer les données complètes de l'utilisateur depuis la base de données
       if (token?.id && token?.role && typeof token.id === 'string') {
-        const user = await getUserSession(token.id, token.role as UserRole);
+        const user = await getUserById(token.id);
         if (user) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           session.user = user as any;
         }
       }
       return session;
-    },
-    signIn: async () => {
-      // Pour tous les cas, créer une session normale
-      return true;
     },
   },
 } satisfies NextAuthConfig;

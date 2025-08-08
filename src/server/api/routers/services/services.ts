@@ -24,7 +24,6 @@ export type DashboardService = {
     name: string;
     type: string;
   } | null;
-  countryCode: string | null;
   isFree: boolean;
   price: number | null;
   currency: string | null;
@@ -50,28 +49,25 @@ export type DashboardServiceRequest = {
 };
 
 // Sélections optimisées
-const DashboardServiceSelect = {
-  select: {
-    id: true,
-    name: true,
-    description: true,
-    category: true,
-    isActive: true,
-    countryCode: true,
-    isFree: true,
-    price: true,
-    currency: true,
-    requiresAppointment: true,
-    organization: {
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        countries: true,
-      },
+const DashboardServiceSelect: Prisma.ConsularServiceSelect = {
+  id: true,
+  name: true,
+  description: true,
+  category: true,
+  isActive: true,
+  isFree: true,
+  price: true,
+  currency: true,
+  requiresAppointment: true,
+  organization: {
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      countries: true,
     },
   },
-} as const;
+};
 
 const DashboardServiceRequestSelect = {
   select: {
@@ -146,7 +142,7 @@ export const servicesRouter = createTRPCRouter({
               },
             },
           },
-          ...DashboardServiceSelect,
+          select: DashboardServiceSelect,
           take: limit + 1,
           cursor: cursor ? { id: cursor } : undefined,
           orderBy: { name: 'asc' },
@@ -161,7 +157,7 @@ export const servicesRouter = createTRPCRouter({
         const totalCount = await ctx.db.consularService.count({ where });
 
         return {
-          services: services as DashboardService[],
+          services,
           nextCursor,
           totalCount,
           hasMore: services.length === limit + 1,

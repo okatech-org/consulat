@@ -7,21 +7,21 @@ import {
   FullServiceRequestInclude,
   type FullServiceRequest,
 } from '@/lib/service-request';
-import { ManagerSessionSelect, type SessionUser } from '@/lib/user';
-import { AdminSessionInclude, AgentSessionInclude, UserSessionInclude } from '@/lib/user';
 import {
-  type FullUser,
-  FullUserInclude,
-  type FullProfile,
-  FullProfileInclude,
-} from '@/lib/profile';
+  ManagerSessionSelect,
+  UserSessionSelect,
+  type SessionUser,
+  AgentSessionInclude,
+  AdminSessionInclude,
+} from '@/lib/user';
+import { type FullProfile, FullProfileInclude } from '@/lib/profile';
 
 function getSelectForRoles(role: UserRole): Prisma.UserSelect {
   const includesByRole = {
-    [UserRole.SUPER_ADMIN]: { ...UserSessionInclude },
+    [UserRole.SUPER_ADMIN]: { ...UserSessionSelect },
     [UserRole.ADMIN]: { ...AdminSessionInclude },
     [UserRole.AGENT]: { ...AgentSessionInclude },
-    [UserRole.USER]: { ...UserSessionInclude },
+    [UserRole.USER]: { ...UserSessionSelect },
     [UserRole.MANAGER]: { ...ManagerSessionSelect },
   };
 
@@ -42,7 +42,7 @@ export async function getUserSession(
 
 export async function getUserById(
   id: string | undefined | null,
-): Promise<FullUser | null> {
+): Promise<SessionUser | null> {
   if (!id) {
     return null;
   }
@@ -52,7 +52,7 @@ export async function getUserById(
       where: {
         id: id,
       },
-      ...FullUserInclude,
+      select: UserSessionSelect,
     });
   } catch {
     return null;
