@@ -4,7 +4,7 @@ import {
   getOrganizations,
   getOrganizationWithSpecificIncludes,
 } from '@/actions/organizations';
-import NotFound from 'next/dist/client/components/not-found-error';
+import { NotFoundComponent } from '@/components/ui/not-found';
 import { ConsularServiceForm } from '@/components/organization/service-edit-form';
 import { PageContainer } from '@/components/layouts/page-container';
 import { redirect } from 'next/navigation';
@@ -35,7 +35,7 @@ export default async function EditServicePage({ params }: { params: { id: string
   const service = await getFullService(awaitedParams.id);
 
   if (!service) {
-    return <NotFound />;
+    return <NotFoundComponent />;
   }
 
   return (
