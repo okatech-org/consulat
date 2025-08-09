@@ -11,12 +11,17 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import type { RequestStatus } from '@prisma/client';
-import { useUserData } from '@/hooks/use-role-data';
 import { EmptyState } from './empty-state';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export function CurrentRequestCard() {
-  const { currentRequest } = useUserData();
+  const { data: currentRequest, isLoading } = api.requests.getCurrent.useQuery();
   const t = useTranslations('dashboard.unified.current_request');
+
+  if (isLoading) {
+    return <LoadingSkeleton variant="card" className="h-48 !w-full" />;
+  }
 
   if (!currentRequest) return <EmptyState />;
 

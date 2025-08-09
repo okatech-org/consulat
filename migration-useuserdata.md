@@ -37,7 +37,7 @@ const { data: requests, isLoading } = api.requests.getList.useQuery({});
 
 ---
 
-### 2. `/src/app/(authenticated)/my-space/_components/current-request-card.tsx`
+### 2. `/src/app/(authenticated)/my-space/_components/current-request-card.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `currentRequest` (demande en cours)
 
@@ -52,6 +52,12 @@ const { data: currentRequest, isLoading } = api.requests.getCurrent.useQuery();
 ```
 
 **tRPC endpoint :** `api.requests.getCurrent` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.requests.getCurrent.useQuery()`
+- ✅ Ajout du loading state avec `LoadingSkeleton`
+- ✅ Import des dépendances nécessaires
 
 ---
 
