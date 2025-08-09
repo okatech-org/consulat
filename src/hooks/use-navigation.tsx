@@ -24,9 +24,9 @@ import {
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { CountBadge } from '@/components/layouts/count-badge';
-import { ProfileCompletionBadge } from '@/components/layouts/profile-completion-badge';
-import { useRoleData, useUserData } from './use-role-data';
+import { useRoleData } from './use-role-data';
 import type { AgentData, AdminData, ManagerData } from '@/types/role-data';
+import { api } from '@/trpc/react';
 
 export type NavMainItem = {
   title: string;
@@ -182,7 +182,7 @@ export function useNavigation() {
 
 export function useUserNavigation() {
   const t = useTranslations('navigation.menu');
-  const { stats } = useUserData();
+  const { data: unreadNotifications } = api.notifications.getUnreadCount.useQuery();
 
   const userNavigationItems: UserNavigationItem[] = [
     {
@@ -194,13 +194,11 @@ export function useUserNavigation() {
       title: t('profile'),
       url: ROUTES.user.profile,
       icon: User,
-      badge: <ProfileCompletionBadge percentage={stats.profileCompletion} />,
     },
     {
       title: t('my_requests'),
       url: ROUTES.user.requests,
       icon: FileText,
-      badge: <CountBadge count={stats.pendingRequests} />,
     },
     {
       title: t('services'),
@@ -211,7 +209,6 @@ export function useUserNavigation() {
       title: t('appointments'),
       url: ROUTES.user.appointments,
       icon: Calendar,
-      badge: <CountBadge count={stats.upcomingAppointments} />,
     },
     {
       title: t('documents'),
@@ -222,7 +219,6 @@ export function useUserNavigation() {
       title: t('children'),
       url: ROUTES.user.children,
       icon: Users,
-      badge: <CountBadge count={stats.childrenCount} />,
     },
     {
       title: t('contact'),
@@ -236,7 +232,9 @@ export function useUserNavigation() {
       title: t('notifications'),
       url: ROUTES.user.notifications,
       icon: Bell,
-      badge: <CountBadge count={stats.unreadNotifications} variant="destructive" />,
+      badge: unreadNotifications ? (
+        <CountBadge count={unreadNotifications} variant="destructive" />
+      ) : undefined,
     },
     {
       title: t('settings'),

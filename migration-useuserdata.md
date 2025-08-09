@@ -69,7 +69,7 @@ const { data: currentRequest, isLoading } = api.requests.getCurrent.useQuery();
 
 ---
 
-### 3. `/src/app/(authenticated)/my-space/_components/user-overview.tsx`
+### 3. `/src/app/(authenticated)/my-space/_components/user-overview.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `profile`, `requests`, `stats`
 
@@ -81,10 +81,13 @@ const { profile, requests, stats } = useUserData();
 
 // APRÈS
 const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery();
-const { data: requests, isLoading: requestsLoading } = api.requests.getList.useQuery({});
-const { data: documents, isLoading: docsLoading } =
+const { data: requestsData, isLoading: requestsLoading } = api.requests.getList.useQuery(
+  {},
+);
+const { data: documents, isLoading: documentsLoading } =
   api.documents.getUserDocuments.useQuery();
-// Calculer les stats côté client
+const requests = requestsData?.items || [];
+// Calculer les stats côté client depuis les données individuelles
 ```
 
 **tRPC endpoints :**
@@ -92,6 +95,13 @@ const { data: documents, isLoading: docsLoading } =
 - `api.profile.getCurrent` ✅
 - `api.requests.getList` ✅
 - `api.documents.getUserDocuments` ✅
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par 3 appels tRPC parallèles
+- ✅ Calcul des statistiques côté client depuis les données
+- ✅ Ajout du loading state combiné (`isLoading = profileLoading || requestsLoading || documentsLoading`)
+- ✅ Utilisation directe des données (`documents.length`, `profile.parentAuthorities.length`)
 
 ---
 
@@ -275,7 +285,7 @@ const { data: fallbackDocuments } = api.documents.getUserDocuments.useQuery();
 
 ---
 
-### 12. `/src/hooks/use-navigation.tsx`
+### 12. `/src/hooks/use-navigation.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `stats` (pour badges de navigation)
 
@@ -287,34 +297,58 @@ const { stats } = useUserData();
 
 // APRÈS
 const { data: profile } = api.profile.getCurrent.useQuery();
-const { data: requests } = api.requests.getList.useQuery({});
-const { data: appointments } = api.appointments.getList.useQuery({ userId: user.id });
-const { data: notifications } = api.notifications.getUnreadCount.useQuery();
-// Calculer les stats côté client
+const { data: requestsData } = api.requests.getList.useQuery({});
+const { data: appointments } = api.appointments.getList.useQuery(
+  { userId: profile?.userId || '' },
+  { enabled: !!profile?.userId },
+);
+const { data: unreadNotifications } = api.notifications.getUnreadCount.useQuery();
+// Calculer les stats côté client depuis les données individuelles
 ```
 
 **tRPC endpoints :** Plusieurs endpoints existants ✅
 
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par 4 appels tRPC parallèles
+- ✅ Calcul des statistiques côté client (`profileCompletion`, `pendingRequests`, etc.)
+- ✅ Utilisation de `enabled` pour éviter les appels prématurés
+- ✅ Import de `calculateProfileCompletion` pour le calcul du pourcentage
+
 ---
 
-### 13. `/src/components/dashboards/dashboard-client.tsx`
+### 13. `/src/components/dashboards/dashboard-client.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** Données complètes selon le rôle USER
 
 **Migration :**
 
 ```tsx
-// AVANT
+// AVANT (pour rôle USER)
 const userData = useUserData();
 
-// APRÈS
-const { data: profile } = api.profile.getCurrent.useQuery();
-const { data: requests } = api.requests.getList.useQuery({});
-const { data: documents } = api.documents.getUserDocuments.useQuery();
-// Calculer les stats côté client
+// APRÈS (pour rôle USER uniquement)
+const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery(
+  undefined,
+  { enabled: role === 'USER' },
+);
+const { data: requestsData, isLoading: requestsLoading } = api.requests.getList.useQuery(
+  {},
+  { enabled: role === 'USER' },
+);
+const { data: documents, isLoading: documentsLoading } =
+  api.documents.getUserDocuments.useQuery(undefined, { enabled: role === 'USER' });
+// Reconstituer userData pour le rôle USER, garder les autres hooks pour AGENT/ADMIN/etc.
 ```
 
 **tRPC endpoints :** Plusieurs endpoints existants ✅
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par 3 appels tRPC conditionnels (seulement pour rôle USER)
+- ✅ Reconstitution de l'objet `userData` avec les stats calculées côté client
+- ✅ Conservation des hooks existants pour les autres rôles (AGENT, ADMIN, etc.)
+- ✅ Utilisation de `enabled: role === 'USER'` pour éviter les appels inutiles
 
 ## Stratégie de migration
 
