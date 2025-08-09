@@ -23,9 +23,7 @@ export default function ProfilePage() {
     );
   }
 
-  const registrationRequest = profile?.requestsFor?.find(
-    (r) => r.status === profile.status,
-  );
+  const registrationRequest = profile?.registrationRequest;
 
   if (!profile) {
     return (

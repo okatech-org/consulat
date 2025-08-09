@@ -9,12 +9,21 @@ import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
 import { ROUTES } from '@/schemas/routes';
-import { useUserData } from '@/hooks/use-role-data';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
-export default async function ChildrenPage() {
+export default function ChildrenPage() {
   const t = useTranslations('user.children');
+  const { data: profile, isLoading } = api.profile.getCurrent.useQuery();
+  const children = profile?.parentAuthorities || [];
 
-  const { children } = useUserData();
+  if (isLoading) {
+    return (
+      <PageContainer title={t('title')} description={t('subtitle')}>
+        <LoadingSkeleton variant="card" className="!w-full h-48" />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer

@@ -171,7 +171,7 @@ const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQ
 
 ---
 
-### 8. `/src/app/(authenticated)/my-space/children/page.tsx`
+### 8. `/src/app/(authenticated)/my-space/children/page.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `children` (depuis profile.parentAuthorities)
 
@@ -187,6 +187,13 @@ const children = profile?.parentAuthorities || [];
 ```
 
 **tRPC endpoint :** `api.profile.getCurrent` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.profile.getCurrent.useQuery()`
+- ✅ Extraction `children` depuis `profile.parentAuthorities`
+- ✅ Ajout du loading state avec `LoadingSkeleton`
+- ✅ Suppression de `async` et conversion en composant client
 
 ---
 

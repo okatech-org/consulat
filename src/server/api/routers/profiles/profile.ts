@@ -115,6 +115,14 @@ export const profileRouter = createTRPCRouter({
         where: { userId: ctx.session.user.id },
         ...FullProfileInclude,
       });
+      const registrationRequest = await ctx.db.serviceRequest.findFirst({
+        where: {
+          id: profile?.validationRequestId ?? '',
+        },
+        include: {
+          notes: true,
+        },
+      });
 
       if (!profile) {
         throw new TRPCError({
@@ -123,7 +131,10 @@ export const profileRouter = createTRPCRouter({
         });
       }
 
-      return profile;
+      return {
+        ...profile,
+        registrationRequest,
+      };
     } catch (error) {
       console.error('Error fetching current profile:', error);
       throw new TRPCError({
