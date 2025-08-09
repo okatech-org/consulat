@@ -105,7 +105,7 @@ const { data: requests, isLoading } = api.requests.getList.useQuery({ limit: 5 }
 
 ---
 
-### 5. `/src/app/(authenticated)/my-space/profile/page.tsx`
+### 5. `/src/app/(authenticated)/my-space/profile/page.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `profile` avec `profile.requestsFor`
 
@@ -120,6 +120,12 @@ const { data: profile, isLoading } = api.profile.getCurrent.useQuery();
 ```
 
 **tRPC endpoint :** `api.profile.getCurrent` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.profile.getCurrent.useQuery()`
+- ✅ Ajout du loading state avec `LoadingSkeleton variant="form"`
+- ✅ Suppression de l'import inutile `use-role-data`
 
 ---
 

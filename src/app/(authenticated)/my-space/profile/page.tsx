@@ -10,10 +10,19 @@ import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
-import { useUserData } from '@/hooks/use-role-data';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function ProfilePage() {
-  const { profile } = useUserData();
+  const { data: profile, isLoading } = api.profile.getCurrent.useQuery();
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <LoadingSkeleton variant="form" className="!w-full" />
+      </PageContainer>
+    );
+  }
+
   const registrationRequest = profile?.requestsFor?.find(
     (r) => r.status === profile.status,
   );
