@@ -19,7 +19,7 @@ Cette migration vise à remplacer l'utilisation du hook `useUserData()` qui char
 
 ## Fichiers concernés
 
-### 1. `/src/app/(authenticated)/my-space/_components/requests-history.tsx`
+### 1. `/src/app/(authenticated)/my-space/_components/requests-history.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `requests` (tableau complet des demandes)
 
@@ -30,10 +30,18 @@ Cette migration vise à remplacer l'utilisation du hook `useUserData()` qui char
 const { requests } = useUserData();
 
 // APRÈS
-const { data: requests, isLoading } = api.requests.getList.useQuery({});
+const { data: requestsData, isLoading } = api.requests.getList.useQuery({});
+const requests = requestsData?.items || [];
 ```
 
 **tRPC endpoint :** `api.requests.getList` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.requests.getList.useQuery({})`
+- ✅ Extraction `requests` depuis `requestsData.items`
+- ✅ Ajout du loading state avec `LoadingSkeleton variant="grid"`
+- ✅ Suppression de l'import inutile
 
 ---
 
@@ -233,7 +241,7 @@ const { data: appointments, isLoading } = api.appointments.getList.useQuery({
 
 ---
 
-### 11. `/src/components/documents/documents-list-client.tsx`
+### 11. `/src/components/documents/documents-list-client.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `documents` (documents initiaux)
 
@@ -244,10 +252,18 @@ const { data: appointments, isLoading } = api.appointments.getList.useQuery({
 const { documents: initialData } = useUserData();
 
 // APRÈS
-const { data: documents, isLoading } = api.documents.getUserDocuments.useQuery();
+const { data: fallbackDocuments } = api.documents.getUserDocuments.useQuery();
+// Utilise fallbackDocuments comme données de base si pas de pagination
 ```
 
 **tRPC endpoint :** `api.documents.getUserDocuments` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.documents.getUserDocuments.useQuery()`
+- ✅ Utilisation comme fallback pour les données initiales
+- ✅ Garde la logique de pagination existante avec `useDocumentsDashboard`
+- ✅ Suppression de l'import inutile
 
 ---
 
