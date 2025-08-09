@@ -18,10 +18,12 @@ import { ROUTES } from '@/schemas/routes';
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
-import { useUserData } from '@/hooks/use-role-data';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export function RequestsHistory() {
-  const { requests } = useUserData();
+  const { data: requestsData, isLoading } = api.requests.getList.useQuery({});
+  const requests = requestsData?.items || [];
   const { formatDate } = useDateLocale();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -84,6 +86,10 @@ export function RequestsHistory() {
     };
     return progressMap[status as keyof typeof progressMap] || 0;
   };
+
+  if (isLoading) {
+    return <LoadingSkeleton variant="grid" rows={3} className="!w-full" />;
+  }
 
   return (
     <div>

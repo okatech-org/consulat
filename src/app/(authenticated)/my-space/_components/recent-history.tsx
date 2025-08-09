@@ -10,10 +10,14 @@ import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
 import type { RequestStatus } from '@prisma/client';
-import { useUserData } from '@/hooks/use-role-data';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export function RecentHistory() {
-  const { requests } = useUserData();
+  const { data: requestsData, isLoading } = api.requests.getList.useQuery({
+    limit: 5,
+  });
+  const requests = requestsData?.items || [];
   const t = useTranslations('dashboard.unified.recent_history');
   const tStatus = useTranslations('dashboard.unified.current_request.status');
 
@@ -92,6 +96,14 @@ export function RecentHistory() {
       }
     );
   };
+
+  if (isLoading) {
+    return (
+      <CardContainer title={t('title')} subtitle={t('subtitle')}>
+        <LoadingSkeleton variant="list" rows={3} className="!w-full" />
+      </CardContainer>
+    );
+  }
 
   return (
     <CardContainer

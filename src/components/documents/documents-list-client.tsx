@@ -15,7 +15,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { Eye, Download, FileText, Image, File, Loader2 } from 'lucide-react';
-import { useUserData } from '@/hooks/use-role-data';
+import { api } from '@/trpc/react';
 
 const DocumentTypeLabels: Record<DocumentType, string> = {
   PASSPORT: 'Passeport',
@@ -57,7 +57,6 @@ const getStatusColor = (status: 'PENDING' | 'VALIDATED' | 'REJECTED') => {
 };
 
 export function DocumentsListClient() {
-  const { documents: initialData } = useUserData();
   const [selectedType, setSelectedType] = useState<DocumentType | 'all'>('all');
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -66,15 +65,18 @@ export function DocumentsListClient() {
       type: selectedType !== 'all' ? selectedType : undefined,
     });
 
-  // Utiliser les données initiales ou les données de la query
+  // Fallback pour les données initiales si pas de pagination
+  const { data: fallbackDocuments } = api.documents.getUserDocuments.useQuery();
+
+  // Utiliser les données paginées ou les données de fallback
   const documents = useMemo(() => {
     if (data?.pages) {
       return data.pages.flatMap((page) => page.documents);
     }
-    return initialData;
-  }, [data?.pages, initialData]);
+    return fallbackDocuments || [];
+  }, [data?.pages, fallbackDocuments]);
 
-  const totalCount = data?.pages?.[0]?.totalCount ?? initialData?.length ?? 0;
+  const totalCount = data?.pages?.[0]?.totalCount ?? fallbackDocuments?.length ?? 0;
 
   const handleDownload = async (url: string, filename: string) => {
     try {

@@ -1,12 +1,5 @@
-import type {
-  User,
-  Organization,
-  UserRole,
-  Notification,
-  UserDocument,
-} from '@prisma/client';
-import type { FullProfile } from '@/types/profile';
-import type { RequestDetails, RequestListItem } from '@/server/api/routers/requests/misc';
+import type { User, UserRole, Notification } from '@prisma/client';
+import type { RequestListItem } from '@/server/api/routers/requests/misc';
 import type {
   UserSession,
   AgentSession,
@@ -14,7 +7,6 @@ import type {
   AdminSession,
   SuperAdminSession,
 } from '@/types/user';
-import type { ServiceListItem } from '@/server/api/routers/services/misc';
 import type { GroupedAppointments } from '@/server/api/routers/appointments/misc';
 import type {
   ActiveCountryItem,
@@ -41,21 +33,6 @@ interface BaseUserData {
 export interface UserData extends BaseUserData {
   role: 'USER';
   user: UserSession;
-  profile: FullProfile | null;
-  requests: RequestListItem[];
-  currentRequest: RequestDetails | null;
-  appointments: GroupedAppointments | null | undefined;
-  children: FullProfile['parentAuthorities'];
-  documents: UserDocument[];
-  availableServices: ServiceListItem[];
-  organizationData?: Pick<Organization, 'id' | 'name' | 'metadata'>;
-  stats: BaseUserData['stats'] & {
-    pendingRequests: number;
-    upcomingAppointments: number;
-    documentsCount: number;
-    childrenCount: number;
-    profileCompletion: number;
-  };
 }
 
 // Données pour un agent
