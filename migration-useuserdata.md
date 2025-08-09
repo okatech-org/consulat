@@ -95,7 +95,7 @@ const { data: documents, isLoading: docsLoading } =
 
 ---
 
-### 4. `/src/app/(authenticated)/my-space/_components/recent-history.tsx`
+### 4. `/src/app/(authenticated)/my-space/_components/recent-history.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `requests` (pour afficher l'historique récent)
 
@@ -106,10 +106,18 @@ const { data: documents, isLoading: docsLoading } =
 const { requests } = useUserData();
 
 // APRÈS
-const { data: requests, isLoading } = api.requests.getList.useQuery({ limit: 5 });
+const { data: requestsData, isLoading } = api.requests.getList.useQuery({ limit: 5 });
+const requests = requestsData?.items || [];
 ```
 
 **tRPC endpoint :** `api.requests.getList` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.requests.getList.useQuery({ limit: 5 })`
+- ✅ Extraction `requests` depuis `requestsData.items`
+- ✅ Ajout du loading state avec `LoadingSkeleton variant="list" rows={3}`
+- ✅ Suppression de l'import inutile
 
 ---
 
