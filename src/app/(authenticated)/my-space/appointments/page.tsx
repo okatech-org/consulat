@@ -1,6 +1,5 @@
 'use client';
 
-import { useUserData } from '@/hooks/use-role-data';
 import { useTranslations } from 'next-intl';
 import { PageContainer } from '@/components/layouts/page-container';
 import { Calendar } from 'lucide-react';
@@ -11,9 +10,15 @@ import { AppointmentCard } from '@/components/appointments/appointment-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CardContainer from '@/components/layouts/card-container';
 import type { AppointmentListItem } from '@/server/api/routers/appointments/misc';
+import { api } from '@/trpc/react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useCurrentUser } from '@/hooks/use-role-data';
 
 export default function UserAppointmentsPage() {
-  const { appointments } = useUserData();
+  const { user } = useCurrentUser();
+  const { data: appointments, isLoading } = api.appointments.getList.useQuery({
+    userId: user.id,
+  });
   const t = useTranslations('appointments');
 
   const renderAppointments = (
@@ -36,6 +41,14 @@ export default function UserAppointmentsPage() {
       </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <PageContainer title={t('title')} description={t('description')}>
+        <LoadingSkeleton variant="grid" className="!w-full" />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer

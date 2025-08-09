@@ -197,7 +197,7 @@ const children = profile?.parentAuthorities || [];
 
 ---
 
-### 9. `/src/app/(authenticated)/my-space/appointments/page.tsx`
+### 9. `/src/app/(authenticated)/my-space/appointments/page.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `appointments` (appointments groupés)
 
@@ -208,12 +208,20 @@ const children = profile?.parentAuthorities || [];
 const { appointments } = useUserData();
 
 // APRÈS
+const { user } = useCurrentUser();
 const { data: appointments, isLoading } = api.appointments.getList.useQuery({
   userId: user.id,
 });
 ```
 
 **tRPC endpoint :** `api.appointments.getList` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.appointments.getList.useQuery()`
+- ✅ Utilisation de `useCurrentUser()` pour récupérer l'ID utilisateur
+- ✅ Ajout du loading state avec `LoadingSkeleton variant="grid"`
+- ✅ Suppression de l'import inutile
 
 ---
 
