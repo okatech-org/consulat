@@ -17,7 +17,6 @@ import type {
   UserSession,
 } from '@/types/user';
 import { UserRole } from '@prisma/client';
-import { calculateProfileCompletion } from './utils';
 
 /**
  * Charge les données appropriées selon le rôle de l'utilisateur connecté
@@ -62,46 +61,14 @@ async function loadDataForRole(user: SessionUser): Promise<RoleData | null> {
 }
 
 async function loadUserData(user: SessionUser): Promise<UserData> {
-  const [
-    profile,
-    requests,
-    appointments,
-    documents,
-    availableServices,
-    currentRequest,
-    unreadNotifications,
-    activeCountries,
-  ] = await Promise.all([
-    api.profile.getCurrent(),
-    api.requests.getList({}),
-    api.appointments.getList({ userId: user.id }),
-    api.documents.getUserDocuments(),
-    api.services.getAvailable(),
-    api.requests.getCurrent(),
-    api.notifications.getUnreadCount(),
-    api.countries.getActive(),
-  ]);
-
   return {
     role: UserRole.USER,
     user: user as UserSession,
-    profile: profile,
     notifications: [],
-    requests: requests.items,
-    currentRequest: currentRequest || null,
-    appointments: appointments,
-    children: profile.parentAuthorities,
-    documents: documents,
-    availableServices: availableServices,
-    activeCountries: activeCountries,
     stats: {
-      profileCompletion: calculateProfileCompletion(profile),
-      unreadNotifications: unreadNotifications,
-      pendingRequests: requests.items.length,
-      upcomingAppointments: appointments?.upcoming.length || 0,
-      documentsCount: documents.length,
-      childrenCount: profile.parentAuthorities.length,
+      unreadNotifications: 0,
     },
+    activeCountries: [],
   };
 }
 
