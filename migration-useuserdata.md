@@ -141,7 +141,7 @@ const { user } = useUserData();
 
 ---
 
-### 7. `/src/app/(authenticated)/my-space/profile/form/page.tsx`
+### 7. `/src/app/(authenticated)/my-space/profile/form/page.tsx` ✅ **TERMINÉ**
 
 **Données utilisées :** `profile` (profil pour pré-remplir le formulaire)
 
@@ -152,10 +152,16 @@ const { user } = useUserData();
 const { profile } = useUserData();
 
 // APRÈS
-const { data: profile, isLoading } = api.profile.getCurrent.useQuery();
+const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery();
 ```
 
 **tRPC endpoint :** `api.profile.getCurrent` ✅ (existe déjà)
+
+**Changements appliqués :**
+
+- ✅ Remplacement `useUserData()` par `api.profile.getCurrent.useQuery()`
+- ✅ Ajout du loading state avec `LoadingSkeleton variant="form"`
+- ✅ Suppression de l'import inutile `use-role-data`
 
 ---
 
