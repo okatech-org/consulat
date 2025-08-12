@@ -129,17 +129,12 @@ export default function ProfilesPage() {
     isLoading,
     data: result,
     refetch,
-  } = api.profile.getList.useQuery(
-    {
-      page: pagination.page,
-      limit: pagination.limit,
-      sort: sorting,
-      ...params,
-    },
-    {
-      staleTime: 5 * 60 * 1000,
-    },
-  );
+  } = api.profile.getList.useQuery({
+    page: pagination.page,
+    limit: pagination.limit,
+    sort: sorting,
+    ...params,
+  });
 
   const statuses = useMemo(
     () =>

@@ -10,10 +10,7 @@ import { ROUTES } from '@/schemas/routes';
  * Utilise des requêtes optimisées sans over-fetching
  */
 export function useChildrenDashboard(options?: { parentId?: string }) {
-  const query = api.profile.getChildrenForDashboard.useQuery(options, {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
+  const query = api.profile.getChildrenForDashboard.useQuery(options);
 
   return {
     children: query.data?.parentalAuthorities || [],
@@ -35,10 +32,7 @@ export function useChildProfiles(options?: {
 }) {
   const utils = api.useUtils();
 
-  const query = api.profile.getByParent.useQuery(options, {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
+  const query = api.profile.getByParent.useQuery(options);
 
   const createMutation = api.profile.createChildProfile.useMutation({
     onMutate: async () => {
@@ -137,8 +131,6 @@ export function useChildProfile(id: string) {
     { id },
     {
       enabled: !!id,
-      staleTime: 3 * 60 * 1000, // 3 minutes
-      refetchOnWindowFocus: false,
     },
   );
 
@@ -229,10 +221,6 @@ export function useChildProfile(id: string) {
 export function useChildProfilesStats(parentId?: string) {
   const query = api.profile.getChildProfileStats.useQuery(
     parentId ? { parentId } : undefined,
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
   );
 
   return {

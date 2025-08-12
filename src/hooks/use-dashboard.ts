@@ -16,7 +16,7 @@ export function useDashboard(options?: {
   const { data: session } = useSession();
   const userRoles = session?.user?.roles || [];
   const organizationId = getOrganizationIdFromUser(session?.user || null);
-  
+
   // Déterminer quel type de dashboard utiliser
   const dashboardType = useMemo(() => {
     if (userRoles.includes('SUPER_ADMIN')) return 'superadmin';
@@ -35,10 +35,10 @@ export function useDashboard(options?: {
       startDate: options?.startDate,
       endDate: options?.endDate,
     },
-    { 
+    {
       enabled: enabled && ['admin', 'superadmin'].includes(dashboardType),
       refetchInterval: 30000, // Actualiser toutes les 30 secondes
-    }
+    },
   );
 
   const agentStats = api.dashboard.getAgentStats.useQuery(
@@ -47,10 +47,10 @@ export function useDashboard(options?: {
       startDate: options?.startDate,
       endDate: options?.endDate,
     },
-    { 
+    {
       enabled: enabled && dashboardType === 'agent',
       refetchInterval: 30000,
-    }
+    },
   );
 
   const managerStats = api.dashboard.getManagerStats.useQuery(
@@ -59,19 +59,16 @@ export function useDashboard(options?: {
       startDate: options?.startDate,
       endDate: options?.endDate,
     },
-    { 
+    {
       enabled: enabled && dashboardType === 'manager',
       refetchInterval: 30000,
-    }
+    },
   );
 
-  const superAdminStats = api.dashboard.getSuperAdminStats.useQuery(
-    undefined,
-    { 
-      enabled: enabled && dashboardType === 'superadmin',
-      refetchInterval: 30000,
-    }
-  );
+  const superAdminStats = api.dashboard.getSuperAdminStats.useQuery(undefined, {
+    enabled: enabled && dashboardType === 'superadmin',
+    refetchInterval: 30000,
+  });
 
   // Retourner les données appropriées selon le rôle
   const getCurrentStats = () => {
@@ -136,13 +133,10 @@ export function useDashboard(options?: {
 
 // Hook pour les statistiques en temps réel
 export function useRealTimeStats() {
-  const realTimeStats = api.dashboard.getRealTimeStats.useQuery(
-    undefined,
-    {
-      refetchInterval: 10000, // Actualiser toutes les 10 secondes
-      refetchIntervalInBackground: true,
-    }
-  );
+  const realTimeStats = api.dashboard.getRealTimeStats.useQuery(undefined, {
+    refetchInterval: 10000, // Actualiser toutes les 10 secondes
+    refetchIntervalInBackground: true,
+  });
 
   return {
     stats: realTimeStats.data,
@@ -169,10 +163,7 @@ export function useStatsByPeriod(params: {
       organizationId: params.organizationId,
       agentId: params.agentId,
     },
-    {
-      enabled: params.enabled !== false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    }
+    { enabled: params.enabled !== false },
   );
 
   return {
@@ -187,10 +178,7 @@ export function useStatsByPeriod(params: {
 export function useAgentPerformanceMetrics(agentId: string, enabled = true) {
   const performanceMetrics = api.dashboard.getAgentPerformanceMetrics.useQuery(
     { agentId },
-    { 
-      enabled: enabled && !!agentId,
-      staleTime: 2 * 60 * 1000, // 2 minutes
-    }
+    { enabled: enabled && !!agentId },
   );
 
   return {
@@ -203,13 +191,7 @@ export function useAgentPerformanceMetrics(agentId: string, enabled = true) {
 
 // Hook pour les statistiques globales des demandes de service
 export function useServiceRequestStats() {
-  const serviceRequestStats = api.dashboard.getServiceRequestStats.useQuery(
-    undefined,
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchInterval: 60000, // 1 minute
-    }
-  );
+  const serviceRequestStats = api.dashboard.getServiceRequestStats.useQuery(undefined);
 
   return {
     stats: serviceRequestStats.data,
@@ -223,24 +205,29 @@ export function useServiceRequestStats() {
 export function useStatsCardColors() {
   return {
     completed: {
-      className: "bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm",
-      iconClassName: "bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400"
+      className:
+        'bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm',
+      iconClassName: 'bg-white dark:bg-neutral-900 text-green-500 dark:text-green-400',
     },
     processing: {
-      className: "bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30 shadow-sm",
-      iconClassName: "bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400"
+      className:
+        'bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30 shadow-sm',
+      iconClassName: 'bg-white dark:bg-neutral-900 text-amber-500 dark:text-amber-400',
     },
     pending: {
-      className: "bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm",
-      iconClassName: "bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400"
+      className:
+        'bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm',
+      iconClassName: 'bg-white dark:bg-neutral-900 text-blue-500 dark:text-blue-400',
     },
     users: {
-      className: "bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm",
-      iconClassName: "bg-white dark:bg-neutral-900 text-indigo-500 dark:text-indigo-400"
+      className:
+        'bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm',
+      iconClassName: 'bg-white dark:bg-neutral-900 text-indigo-500 dark:text-indigo-400',
     },
     urgent: {
-      className: "bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800/30 shadow-sm",
-      iconClassName: "bg-white dark:bg-neutral-900 text-red-500 dark:text-red-400"
+      className:
+        'bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800/30 shadow-sm',
+      iconClassName: 'bg-white dark:bg-neutral-900 text-red-500 dark:text-red-400',
     },
   };
 }
@@ -255,4 +242,4 @@ export interface DashboardOptions {
   startDate?: Date;
   endDate?: Date;
   enabled?: boolean;
-} 
+}

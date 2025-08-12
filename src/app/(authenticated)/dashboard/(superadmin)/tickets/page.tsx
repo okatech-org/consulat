@@ -130,18 +130,13 @@ export default function TicketsPage() {
     data: ticketsData,
     isLoading,
     refetch,
-  } = api.feedback.getAdminList.useQuery(
-    {
-      page: pagination.page,
-      limit: pagination.limit,
-      status: params.status?.[0],
-      category: params.category?.[0],
-      organizationId: params.organizationId?.[0],
-    },
-    {
-      staleTime: 5 * 60 * 1000,
-    },
-  );
+  } = api.feedback.getAdminList.useQuery({
+    page: pagination.page,
+    limit: pagination.limit,
+    status: params.status?.[0],
+    category: params.category?.[0],
+    organizationId: params.organizationId?.[0],
+  });
 
   // Options pour les filtres
   const statuses = useMemo(

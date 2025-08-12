@@ -58,22 +58,16 @@ export function useAgents(filters: AgentFilters = {}) {
     isLoading,
     error,
     refetch,
-  } = api.agents.getList.useQuery(
-    {
-      search: filters.search,
-      linkedCountries: filters.linkedCountries,
-      assignedServices: filters.assignedServices,
-      assignedOrganizationId: filters.assignedOrganizationId,
-      managedByUserId: filters.managedByUserId,
-      page: filters.page || 1,
-      limit: filters.limit || 10,
-      sortBy: filters.sortBy,
-    },
-    {
-      staleTime: 30 * 1000, // 30 secondes
-      refetchOnWindowFocus: false,
-    },
-  );
+  } = api.agents.getList.useQuery({
+    search: filters.search,
+    linkedCountries: filters.linkedCountries,
+    assignedServices: filters.assignedServices,
+    assignedOrganizationId: filters.assignedOrganizationId,
+    managedByUserId: filters.managedByUserId,
+    page: filters.page || 1,
+    limit: filters.limit || 10,
+    sortBy: filters.sortBy,
+  });
 
   // Mutation pour créer un agent
   const createAgentMutation = api.agents.create.useMutation({
@@ -226,8 +220,6 @@ export function useAgent(id: string) {
     { id },
     {
       enabled: !!id,
-      staleTime: 60 * 1000, // 1 minute
-      refetchOnWindowFocus: false,
     },
   );
 
@@ -292,8 +284,6 @@ export function useAvailableAgents(
     },
     {
       enabled: enabled && !!organizationId && !!countryCode && !!serviceId,
-      staleTime: 2 * 60 * 1000, // 2 minutes
-      refetchOnWindowFocus: false,
     },
   );
 
@@ -317,8 +307,6 @@ export function useAgentPerformance(agentId: string, enabled = true) {
     { agentId },
     {
       enabled: enabled && !!agentId,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
     },
   );
 
@@ -339,16 +327,10 @@ export function useAgentsStats(organizationId?: string, managerId?: string) {
     isLoading,
     error,
     refetch,
-  } = api.agents.getStats.useQuery(
-    {
-      organizationId,
-      managerId,
-    },
-    {
-      staleTime: 2 * 60 * 1000, // 2 minutes
-      refetchOnWindowFocus: false,
-    },
-  );
+  } = api.agents.getStats.useQuery({
+    organizationId,
+    managerId,
+  });
 
   return {
     agentsStats,

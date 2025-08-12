@@ -18,20 +18,17 @@ export function useCountries(options?: {
   const utils = api.useUtils();
 
   // Query pour récupérer la liste des pays
-  const countriesQuery = api.countries.getList.useQuery(options, {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
+  const countriesQuery = api.countries.getList.useQuery(options);
 
   // Mutation pour créer un pays
   const createCountryMutation = api.countries.create.useMutation({
     onMutate: async (newCountry) => {
       // Annuler les requêtes en cours
       await utils.countries.getList.cancel();
-      
+
       // Snapshot des données précédentes
       const previousData = utils.countries.getList.getData(options);
-      
+
       // Optimistically update
       if (previousData) {
         const optimisticCountry = {
@@ -55,7 +52,7 @@ export function useCountries(options?: {
           total: previousData.total + 1,
         });
       }
-      
+
       return { previousData };
     },
     onError: (error, newCountry, context) => {
@@ -63,10 +60,11 @@ export function useCountries(options?: {
       if (context?.previousData) {
         utils.countries.getList.setData(options, context.previousData);
       }
-      
+
       toast({
         title: 'Erreur lors de la création',
-        description: error.message || 'Une erreur est survenue lors de la création du pays.',
+        description:
+          error.message || 'Une erreur est survenue lors de la création du pays.',
         variant: 'destructive',
       });
     },
@@ -88,30 +86,33 @@ export function useCountries(options?: {
     onMutate: async ({ id, ...updateData }) => {
       await utils.countries.getList.cancel();
       await utils.countries.getById.cancel({ id });
-      
+
       const previousListData = utils.countries.getList.getData(options);
       const previousCountryData = utils.countries.getById.getData({ id });
-      
+
       // Update dans la liste
       if (previousListData) {
-        const updatedItems = previousListData.items.map(item =>
-          item.id === id ? { ...item, ...updateData } : item
+        const updatedItems = previousListData.items.map((item) =>
+          item.id === id ? { ...item, ...updateData } : item,
         );
-        
+
         utils.countries.getList.setData(options, {
           ...previousListData,
           items: updatedItems,
         });
       }
-      
+
       // Update dans le détail
       if (previousCountryData) {
-        utils.countries.getById.setData({ id }, {
-          ...previousCountryData,
-          ...updateData,
-        });
+        utils.countries.getById.setData(
+          { id },
+          {
+            ...previousCountryData,
+            ...updateData,
+          },
+        );
       }
-      
+
       return { previousListData, previousCountryData };
     },
     onError: (error, { id }, context) => {
@@ -122,10 +123,11 @@ export function useCountries(options?: {
       if (context?.previousCountryData) {
         utils.countries.getById.setData({ id }, context.previousCountryData);
       }
-      
+
       toast({
         title: 'Erreur lors de la mise à jour',
-        description: error.message || 'Une erreur est survenue lors de la mise à jour du pays.',
+        description:
+          error.message || 'Une erreur est survenue lors de la mise à jour du pays.',
         variant: 'destructive',
       });
     },
@@ -145,19 +147,19 @@ export function useCountries(options?: {
   const deleteCountryMutation = api.countries.delete.useMutation({
     onMutate: async ({ id }) => {
       await utils.countries.getList.cancel();
-      
+
       const previousData = utils.countries.getList.getData(options);
-      
+
       // Retirer optimistiquement de la liste
       if (previousData) {
-        const filteredItems = previousData.items.filter(item => item.id !== id);
+        const filteredItems = previousData.items.filter((item) => item.id !== id);
         utils.countries.getList.setData(options, {
           ...previousData,
           items: filteredItems,
           total: previousData.total - 1,
         });
       }
-      
+
       return { previousData };
     },
     onError: (error, { id }, context) => {
@@ -165,10 +167,11 @@ export function useCountries(options?: {
       if (context?.previousData) {
         utils.countries.getList.setData(options, context.previousData);
       }
-      
+
       toast({
         title: 'Erreur lors de la suppression',
-        description: error.message || 'Une erreur est survenue lors de la suppression du pays.',
+        description:
+          error.message || 'Une erreur est survenue lors de la suppression du pays.',
         variant: 'destructive',
       });
     },
@@ -190,22 +193,22 @@ export function useCountries(options?: {
     total: countriesQuery.data?.total ?? 0,
     pages: countriesQuery.data?.pages ?? 0,
     currentPage: countriesQuery.data?.currentPage ?? 1,
-    
+
     // Loading states
     isLoading: countriesQuery.isLoading,
     isError: countriesQuery.isError,
     error: countriesQuery.error,
-    
+
     // Mutations
     createCountry: createCountryMutation.mutate,
     updateCountry: updateCountryMutation.mutate,
     deleteCountry: deleteCountryMutation.mutate,
-    
+
     // Mutation states
     isCreating: createCountryMutation.isPending,
     isUpdating: updateCountryMutation.isPending,
     isDeleting: deleteCountryMutation.isPending,
-    
+
     // Utils
     refetch: countriesQuery.refetch,
     invalidate: () => utils.countries.getList.invalidate(),
@@ -216,19 +219,7 @@ export function useCountries(options?: {
  * Hook pour récupérer un pays spécifique
  */
 export function useCountry(id: string) {
-  const { toast } = useToast();
-  
-  const countryQuery = api.countries.getById.useQuery(
-    { id },
-    {
-      enabled: !!id,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: (failureCount, error) => {
-        if (error.data?.code === 'NOT_FOUND') return false;
-        return failureCount < 3;
-      },
-    }
-  );
+  const countryQuery = api.countries.getById.useQuery({ id }, { enabled: !!id });
 
   return {
     country: countryQuery.data,
@@ -245,10 +236,6 @@ export function useCountry(id: string) {
 export function useActiveCountries(organizationId?: string) {
   const activeCountriesQuery = api.countries.getActive.useQuery(
     organizationId ? { organizationId } : undefined,
-    {
-      staleTime: 10 * 60 * 1000, // 10 minutes (données stables)
-      refetchOnWindowFocus: false,
-    }
   );
 
   return {
@@ -264,10 +251,7 @@ export function useActiveCountries(organizationId?: string) {
  * Hook pour les statistiques des pays
  */
 export function useCountriesStats() {
-  const statsQuery = api.countries.getStats.useQuery(undefined, {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnWindowFocus: false,
-  });
+  const statsQuery = api.countries.getStats.useQuery(undefined);
 
   return {
     stats: statsQuery.data,
@@ -292,18 +276,19 @@ export function useCountryCreation() {
         title: 'Pays créé avec succès',
         description: `Le pays ${data.name} a été créé.`,
       });
-      
+
       // Invalider les caches
       utils.countries.getList.invalidate();
       utils.countries.getStats.invalidate();
-      
+
       // Naviguer vers la page d'édition ou la liste
       router.push(ROUTES.sa.countries);
     },
     onError: (error) => {
       toast({
         title: 'Erreur lors de la création',
-        description: error.message || 'Une erreur est survenue lors de la création du pays.',
+        description:
+          error.message || 'Une erreur est survenue lors de la création du pays.',
         variant: 'destructive',
       });
     },
@@ -331,7 +316,7 @@ export function useCountryUpdate(id: string) {
         title: 'Pays mis à jour',
         description: `Le pays ${data.name} a été mis à jour avec succès.`,
       });
-      
+
       // Invalider les caches
       utils.countries.getList.invalidate();
       utils.countries.getById.invalidate({ id });
@@ -340,7 +325,8 @@ export function useCountryUpdate(id: string) {
     onError: (error) => {
       toast({
         title: 'Erreur lors de la mise à jour',
-        description: error.message || 'Une erreur est survenue lors de la mise à jour du pays.',
+        description:
+          error.message || 'Une erreur est survenue lors de la mise à jour du pays.',
         variant: 'destructive',
       });
     },
@@ -352,4 +338,4 @@ export function useCountryUpdate(id: string) {
     isUpdating: updateMutation.isPending,
     error: updateMutation.error,
   };
-} 
+}

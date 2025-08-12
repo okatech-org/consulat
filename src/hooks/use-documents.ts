@@ -19,8 +19,6 @@ export function useDocumentsDashboard(options?: {
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       enabled,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
     },
   );
 }

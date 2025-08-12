@@ -21,10 +21,7 @@ export function useOrganizations(options?: {
   const utils = api.useUtils();
 
   // Query pour récupérer la liste des organisations
-  const organizationsQuery = api.organizations.getList.useQuery(options, {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
+  const organizationsQuery = api.organizations.getList.useQuery(options);
 
   // Mutation pour créer une organisation
   const createOrganizationMutation = api.organizations.create.useMutation({
@@ -293,17 +290,7 @@ export function useOrganizations(options?: {
  * Hook pour récupérer une organisation spécifique
  */
 export function useOrganization(id: string) {
-  const organizationQuery = api.organizations.getById.useQuery(
-    { id },
-    {
-      enabled: !!id,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: (failureCount, error) => {
-        if (error.data?.code === 'NOT_FOUND') return false;
-        return failureCount < 3;
-      },
-    },
-  );
+  const organizationQuery = api.organizations.getById.useQuery({ id }, { enabled: !!id });
 
   return {
     organization: organizationQuery.data,
@@ -318,10 +305,7 @@ export function useOrganization(id: string) {
  * Hook pour les statistiques des organisations
  */
 export function useOrganizationsStats() {
-  const statsQuery = api.organizations.getStats.useQuery(undefined, {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnWindowFocus: false,
-  });
+  const statsQuery = api.organizations.getStats.useQuery(undefined);
 
   return {
     stats: statsQuery.data,
@@ -439,11 +423,7 @@ export function useOrganizationCreation() {
 export function useOrganizationByCountry(countryCode: string) {
   const organizationQuery = api.organizations.getByCountry.useQuery(
     { countryCode },
-    {
-      enabled: !!countryCode,
-      staleTime: 10 * 60 * 1000, // 10 minutes
-      refetchOnWindowFocus: false,
-    },
+    { enabled: !!countryCode },
   );
 
   return {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, MessageCircle, Lock } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { useDateLocale } from '@/lib/utils';
-import { FullServiceRequest } from '@/types/service-request';
+import type { FullServiceRequest } from '@/types/service-request';
 import {
   addServiceRequestNote,
   updateServiceRequestStatus,
 } from '@/actions/service-requests';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useRouter } from 'next/navigation';
 
 interface NoteItemProps {
   note: FullServiceRequest['notes'][number];
@@ -51,10 +52,11 @@ interface NoteEditorProps {
     pendingCompletionStatus: boolean,
   ) => Promise<void>;
   isLoading: boolean;
-  canUpdate: boolean;
+  canUpdate?: boolean;
 }
 
 const NoteEditor = ({ type, onSubmit, isLoading, canUpdate = true }: NoteEditorProps) => {
+  const router = useRouter();
   const [content, setContent] = useState('');
   const [pendingCompletionStatus, setPendingCompletionStatus] = useState(false);
   const t = useTranslations('admin.registrations.review.notes');
@@ -64,6 +66,7 @@ const NoteEditor = ({ type, onSubmit, isLoading, canUpdate = true }: NoteEditorP
     if (!content.trim()) return;
     await onSubmit(content, type, pendingCompletionStatus);
     setContent('');
+    router.refresh();
   };
 
   return (
@@ -120,6 +123,7 @@ export function ReviewNotes({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const t = useTranslations('admin.registrations.review.notes');
+  const router = useRouter();
 
   const handleAddNote = async (
     content: string,
@@ -161,6 +165,7 @@ export function ReviewNotes({
       });
     } finally {
       setIsLoading(false);
+      router.refresh();
     }
   };
 

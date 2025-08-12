@@ -24,24 +24,18 @@ export function useRequests(filters?: RequestFilters) {
   const utils = api.useUtils();
 
   // Récupérer la liste des demandes
-  const requestsQuery = api.requests.getList.useQuery(
-    {
-      search: filters?.search,
-      status: filters?.status,
-      priority: filters?.priority,
-      serviceCategory: filters?.serviceCategory,
-      assignedToId: filters?.assignedToId,
-      organizationId: filters?.organizationId,
-      page: filters?.page ?? 1,
-      limit: filters?.limit ?? 10,
-      sortBy: filters?.sortBy ?? 'createdAt',
-      sortOrder: filters?.sortOrder ?? 'desc',
-    },
-    {
-      staleTime: 1000 * 60 * 2, // 2 minutes
-      refetchOnWindowFocus: false,
-    }
-  );
+  const requestsQuery = api.requests.getList.useQuery({
+    search: filters?.search,
+    status: filters?.status,
+    priority: filters?.priority,
+    serviceCategory: filters?.serviceCategory,
+    assignedToId: filters?.assignedToId,
+    organizationId: filters?.organizationId,
+    page: filters?.page ?? 1,
+    limit: filters?.limit ?? 10,
+    sortBy: filters?.sortBy ?? 'createdAt',
+    sortOrder: filters?.sortOrder ?? 'desc',
+  });
 
   // Assigner une demande
   const assignMutation = api.requests.assign.useMutation({
@@ -73,7 +67,7 @@ export function useRequests(filters?: RequestFilters) {
       // Optimistic update
       await utils.requests.getList.cancel();
       const previousData = utils.requests.getList.getData();
-      
+
       utils.requests.getList.setData(
         {
           page: filters?.page ?? 1,
@@ -94,10 +88,10 @@ export function useRequests(filters?: RequestFilters) {
             items: old.items.map((item) =>
               item.id === variables.requestId
                 ? { ...item, status: variables.status }
-                : item
+                : item,
             ),
           };
-        }
+        },
       );
 
       return { previousData };
@@ -124,7 +118,7 @@ export function useRequests(filters?: RequestFilters) {
             sortBy: filters?.sortBy ?? 'createdAt',
             sortOrder: filters?.sortOrder ?? 'desc',
           },
-          context.previousData
+          context.previousData,
         );
       }
       toast.error(`Erreur lors de la mise à jour: ${error.message}`);
@@ -173,7 +167,7 @@ export function useRequests(filters?: RequestFilters) {
     requests: requestsQuery.data,
     isLoading: requestsQuery.isLoading,
     error: requestsQuery.error,
-    
+
     // Mutations
     assign: assignMutation.mutate,
     reassign: reassignMutation.mutate,
@@ -181,7 +175,7 @@ export function useRequests(filters?: RequestFilters) {
     update: updateMutation.mutate,
     validateConsular: validateConsularMutation.mutate,
     startCardProduction: startCardProductionMutation.mutate,
-    
+
     // States
     isAssigning: assignMutation.isPending,
     isReassigning: reassignMutation.isPending,
@@ -189,7 +183,7 @@ export function useRequests(filters?: RequestFilters) {
     isUpdating: updateMutation.isPending,
     isValidating: validateConsularMutation.isPending,
     isStartingProduction: startCardProductionMutation.isPending,
-    
+
     // Helpers
     refetch: requestsQuery.refetch,
     invalidate: () => utils.requests.getList.invalidate(),
@@ -200,28 +194,18 @@ export function useRequests(filters?: RequestFilters) {
 export function useRequest(id: string) {
   const utils = api.useUtils();
 
-  const requestQuery = api.requests.getById.useQuery(
-    { id },
-    {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      enabled: !!id,
-    }
-  );
+  const requestQuery = api.requests.getById.useQuery({ id }, { enabled: !!id });
 
   const actionHistoryQuery = api.requests.getActionHistory.useQuery(
     { requestId: id },
-    {
-      staleTime: 1000 * 60 * 2, // 2 minutes
-      enabled: !!id,
-    }
+    { enabled: !!id },
   );
 
   const notesQuery = api.requests.getNotes.useQuery(
     { requestId: id },
     {
-      staleTime: 1000 * 60 * 1, // 1 minute
       enabled: !!id,
-    }
+    },
   );
 
   // Ajouter une note
@@ -240,19 +224,19 @@ export function useRequest(id: string) {
     request: requestQuery.data,
     actionHistory: actionHistoryQuery.data,
     notes: notesQuery.data,
-    
+
     // Loading states
     isLoading: requestQuery.isLoading,
     isLoadingHistory: actionHistoryQuery.isLoading,
     isLoadingNotes: notesQuery.isLoading,
-    
+
     // Errors
     error: requestQuery.error,
-    
+
     // Mutations
     addNote: addNoteMutation.mutate,
     isAddingNote: addNoteMutation.isPending,
-    
+
     // Helpers
     refetch: requestQuery.refetch,
   };
@@ -263,9 +247,8 @@ export function useUserRequests(userId: string) {
   const userRequestsQuery = api.requests.getByUser.useQuery(
     { userId },
     {
-      staleTime: 1000 * 60 * 2, // 2 minutes
       enabled: !!userId,
-    }
+    },
   );
 
   return {
@@ -283,18 +266,12 @@ export function useRequestStats(options?: {
   startDate?: Date;
   endDate?: Date;
 }) {
-  const statsQuery = api.requests.getStatusStats.useQuery(
-    {
-      organizationId: options?.organizationId,
-      agentId: options?.agentId,
-      startDate: options?.startDate,
-      endDate: options?.endDate,
-    },
-    {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchInterval: 1000 * 60 * 10, // Actualiser toutes les 10 minutes
-    }
-  );
+  const statsQuery = api.requests.getStatusStats.useQuery({
+    organizationId: options?.organizationId,
+    agentId: options?.agentId,
+    startDate: options?.startDate,
+    endDate: options?.endDate,
+  });
 
   return {
     stats: statsQuery.data,
@@ -349,9 +326,9 @@ export function useRequestValidation() {
     validateConsular: validateConsularMutation.mutate,
     updateConsularStatus: updateConsularStatusMutation.mutate,
     validateRegistration: validateRegistrationMutation.mutate,
-    
+
     isValidatingConsular: validateConsularMutation.isPending,
     isUpdatingConsularStatus: updateConsularStatusMutation.isPending,
     isValidatingRegistration: validateRegistrationMutation.isPending,
   };
-} 
+}
