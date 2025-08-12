@@ -4,6 +4,9 @@ import SuperJSON from 'superjson';
 export const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
+      queries: {
+        staleTime: 10 * 1000,
+      },
       dehydrate: {
         serializeData: SuperJSON.serialize,
         shouldDehydrateQuery: (query) =>

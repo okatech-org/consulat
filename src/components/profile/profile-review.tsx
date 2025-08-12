@@ -32,6 +32,7 @@ import type { SessionUser } from '@/types';
 import type { RequestDetails } from '@/server/api/routers/requests/types';
 import { LoadingSkeleton } from '../ui/loading-skeleton';
 import { api } from '@/trpc/react';
+import { useRouter } from 'next/navigation';
 
 interface ProfileReviewProps {
   request: NonNullable<RequestDetails>;
@@ -51,6 +52,7 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
   const { formatDate } = useDateLocale();
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
   const [validationNotes, setValidationNotes] = useState('');
+  const router = useRouter();
 
   if (!profile || !user) {
     return null;
@@ -208,6 +210,7 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
                           request.organizationId,
                         ),
                       );
+                      router.refresh();
                       setIsLoading(false);
                     }}
                   >
@@ -228,6 +231,7 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
                     selectedStatus,
                   );
                   setIsLoading(false);
+                  router.refresh();
                 }}
               >
                 {t('admin.registrations.review.validation.validate')}
