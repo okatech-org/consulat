@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRequests, type RequestFilters } from '@/hooks/use-requests';
 import { cn, useDateLocale } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';

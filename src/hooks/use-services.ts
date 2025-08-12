@@ -26,8 +26,6 @@ export function useServicesDashboard(options?: {
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       enabled,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
     },
   );
 }
@@ -53,8 +51,6 @@ export function useUserServiceRequestsDashboard(options?: {
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       enabled,
-      staleTime: 3 * 60 * 1000, // 3 minutes (plus fréquent pour les demandes)
-      refetchOnWindowFocus: false,
     },
   );
 }
@@ -76,7 +72,12 @@ export function useServices() {
  * Hook pour les demandes de service utilisateur (ancienne version)
  */
 export function useUserServiceRequests() {
-  const { data: requests, isLoading, error, refetch } = api.services.getUserRequests.useQuery();
+  const {
+    data: requests,
+    isLoading,
+    error,
+    refetch,
+  } = api.services.getUserRequests.useQuery();
 
   return {
     requests: requests ?? [],

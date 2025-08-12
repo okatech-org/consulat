@@ -77,10 +77,7 @@ export default function AvailableServicesPage() {
       isActive: filters.isActive,
       organizationId: filters.organizationId,
     },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
+    { getNextPageParam: (lastPage) => lastPage.nextCursor },
   );
 
   // Query pour récupérer les organisations pour le filtre

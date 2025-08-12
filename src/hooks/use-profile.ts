@@ -4,11 +4,7 @@ import { api } from '@/trpc/react';
 import { toast } from '@/hooks/use-toast';
 
 export function useCurrentProfileOrganizationContactData() {
-  return api.profile.getCurrentOrganizationContactData.useQuery(undefined, {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 2,
-  });
+  return api.profile.getCurrentOrganizationContactData.useQuery(undefined);
 }
 
 /**

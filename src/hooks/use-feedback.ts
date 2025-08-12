@@ -27,9 +27,7 @@ export function useCreateFeedback() {
 }
 
 export function useMyFeedbacks() {
-  const query = api.feedback.getMyFeedbacks.useQuery(undefined, {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const query = api.feedback.getMyFeedbacks.useQuery(undefined);
 
   return {
     feedbacks: query.data ?? [],
@@ -40,9 +38,7 @@ export function useMyFeedbacks() {
 }
 
 export function useFeedbackStats() {
-  const query = api.feedback.getStats.useQuery(undefined, {
-    staleTime: 60 * 1000, // 1 minute
-  });
+  const query = api.feedback.getStats.useQuery(undefined);
 
   return {
     stats: query.data,
@@ -60,9 +56,7 @@ export function useAdminFeedbackList(params: {
   category?: FeedbackCategory;
   organizationId?: string;
 }) {
-  const query = api.feedback.getAdminList.useQuery(params, {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
+  const query = api.feedback.getAdminList.useQuery(params);
 
   return {
     data: query.data,

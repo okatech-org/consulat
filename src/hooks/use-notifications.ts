@@ -5,7 +5,6 @@ import { api } from '@/trpc/react';
 import { toast } from 'sonner';
 import { NotificationType } from '@prisma/client';
 
-
 interface UseNotificationsOptions {
   unreadOnly?: boolean;
   types?: NotificationType[];
@@ -16,7 +15,7 @@ interface UseNotificationsOptions {
 
 export function useNotifications(options?: UseNotificationsOptions) {
   const utils = api.useUtils();
-  
+
   const query = api.notifications.getList.useInfiniteQuery(
     {
       limit: options?.limit ?? 20,
@@ -27,7 +26,7 @@ export function useNotifications(options?: UseNotificationsOptions) {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       staleTime: 30 * 1000, // 30 secondes
       refetchInterval: options?.autoRefresh ? (options.refreshInterval ?? 30000) : false,
-    }
+    },
   );
 
   const markAsReadMutation = api.notifications.markAsRead.useMutation({
@@ -35,13 +34,13 @@ export function useNotifications(options?: UseNotificationsOptions) {
       // Optimistic update
       await utils.notifications.getList.cancel();
       await utils.notifications.getUnreadCount.cancel();
-      
+
       const previousData = utils.notifications.getList.getInfiniteData({
         limit: options?.limit ?? 20,
         unreadOnly: options?.unreadOnly ?? false,
         types: options?.types,
       });
-      
+
       if (previousData) {
         utils.notifications.getList.setInfiniteData(
           {
@@ -54,13 +53,13 @@ export function useNotifications(options?: UseNotificationsOptions) {
             pages: previousData.pages.map((page) => ({
               ...page,
               items: page.items.map((notification) =>
-                notification.id === id ? { ...notification, read: true } : notification
+                notification.id === id ? { ...notification, read: true } : notification,
               ),
             })),
-          }
+          },
         );
       }
-      
+
       // Mettre à jour le compteur
       const previousCount = utils.notifications.getUnreadCount.getData();
       if (previousCount && previousCount.count > 0) {
@@ -68,7 +67,7 @@ export function useNotifications(options?: UseNotificationsOptions) {
           count: previousCount.count - 1,
         });
       }
-      
+
       return { previousData };
     },
     onError: (error, variables, context) => {
@@ -80,7 +79,7 @@ export function useNotifications(options?: UseNotificationsOptions) {
             unreadOnly: options?.unreadOnly ?? false,
             types: options?.types,
           },
-          context.previousData
+          context.previousData,
         );
       }
       toast.error('Erreur lors du marquage de la notification');
@@ -149,7 +148,7 @@ export function useUnreadCount() {
   });
 
   return {
-    count: query.data?.count ?? 0,
+    count: query.data ?? 0,
     isLoading: query.isLoading,
     error: query.error,
   };
@@ -157,7 +156,7 @@ export function useUnreadCount() {
 
 export function useNotificationPreferences() {
   const utils = api.useUtils();
-  
+
   const query = api.notifications.getPreferences.useQuery(undefined, {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -166,19 +165,19 @@ export function useNotificationPreferences() {
     onMutate: async ({ type, channel, enabled }) => {
       // Optimistic update
       await utils.notifications.getPreferences.cancel();
-      
+
       const previousData = utils.notifications.getPreferences.getData();
-      
+
       if (previousData) {
         const newData = { ...previousData };
         if (!newData[type]) {
           newData[type] = {};
         }
         newData[type][channel] = enabled;
-        
+
         utils.notifications.getPreferences.setData(undefined, newData);
       }
-      
+
       return { previousData };
     },
     onError: (error, variables, context) => {
@@ -216,7 +215,7 @@ export function useNotificationStats() {
 
 export function useCreateNotification() {
   const utils = api.useUtils();
-  
+
   const mutation = api.notifications.create.useMutation({
     onSuccess: () => {
       utils.notifications.getList.invalidate();
@@ -237,20 +236,29 @@ export function useCreateNotification() {
 }
 
 // Hook pour le polling temps réel des notifications
-export function useRealtimeNotifications(onNewNotification?: (notification: { id: string; type: NotificationType; title: string; message: string; read: boolean; createdAt: Date }) => void) {
+export function useRealtimeNotifications(
+  onNewNotification?: (notification: {
+    id: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    read: boolean;
+    createdAt: Date;
+  }) => void,
+) {
   const utils = api.useUtils();
   const { count: previousCount } = useUnreadCount();
 
   const checkForNewNotifications = useCallback(async () => {
     const currentData = await utils.notifications.getUnreadCount.fetch();
-    
+
     if (currentData.count > previousCount) {
       // Nouvelle notification détectée
       const latestNotifications = await utils.notifications.getList.fetch({
         limit: 1,
         unreadOnly: true,
       });
-      
+
       if (latestNotifications.items.length > 0 && onNewNotification) {
         const notification = latestNotifications.items[0];
         if (notification) {
@@ -264,7 +272,7 @@ export function useRealtimeNotifications(onNewNotification?: (notification: { id
           });
         }
       }
-      
+
       // Rafraîchir les listes
       utils.notifications.getList.invalidate();
       utils.notifications.getStats.invalidate();
@@ -273,7 +281,7 @@ export function useRealtimeNotifications(onNewNotification?: (notification: { id
 
   useEffect(() => {
     const interval = setInterval(checkForNewNotifications, 10000); // Vérifier toutes les 10 secondes
-    
+
     return () => clearInterval(interval);
   }, [checkForNewNotifications]);
 }
