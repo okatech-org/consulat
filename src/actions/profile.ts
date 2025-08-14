@@ -13,6 +13,7 @@ import { FullProfileInclude } from '@/types';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
+import { checkExistingRegistrationRequest } from '@/lib/registration-guards';
 
 import type {
   CreateProfileInput,
@@ -323,9 +324,8 @@ export async function submitProfileForValidation(
     ...FullProfileInclude,
   });
 
-  if (profile?.validationRequestId) {
-    throw new Error('profile_already_submitted');
-  }
+  // Vérifier qu'aucune demande d'inscription n'existe déjà
+  await checkExistingRegistrationRequest(profileId);
 
   if (!profile) {
     throw new Error('profile_not_found');

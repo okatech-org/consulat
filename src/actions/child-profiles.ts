@@ -18,6 +18,10 @@ export async function createChildProfile(data: LinkFormData): Promise<{ id: stri
   try {
     const currentUser = await checkAuth();
 
+    // Vérifier s'il existe déjà un profil enfant avec les mêmes informations de base
+    // Cette vérification sera faite plus tard quand les infos de base seront ajoutées
+    // Pour l'instant, on crée le profil vide comme avant
+
     // Create a basic profile first
     const profile = await db.profile.create({
       data: {
@@ -95,6 +99,30 @@ export async function updateChildProfile(
 
   if (!existingProfile) {
     throw new Error(t('profile_not_found'));
+  }
+
+  // Vérifier les doublons si on ajoute des informations de base
+  if (data.firstName && data.lastName && data.birthDate && data.gender) {
+    const duplicateProfile = await db.profile.findFirst({
+      where: {
+        id: { not: profileId }, // Exclure le profil actuel
+        category: 'MINOR',
+        firstName: data.firstName,
+        lastName: data.lastName,
+        birthDate: new Date(data.birthDate),
+        gender: data.gender,
+        // Vérifier que le profil appartient au même parent
+        parentAuthorities: {
+          some: {
+            parentUserId: user.id,
+          },
+        },
+      },
+    });
+
+    if (duplicateProfile) {
+      throw new Error('Un profil enfant avec ces informations existe déjà');
+    }
   }
 
   // Extract date fields for proper formatting
