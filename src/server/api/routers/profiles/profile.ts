@@ -45,6 +45,7 @@ import {
   FullServiceRequestInclude,
   type FullServiceRequest,
 } from '@/types/service-request';
+import { checkExistingRegistrationRequest } from '@/lib/registration-guards';
 
 export const profileRouter = createTRPCRouter({
   // Récupérer le profil optimisé pour le dashboard
@@ -832,6 +833,8 @@ export const profileRouter = createTRPCRouter({
             message: "L'acte de naissance est requis",
           });
         }
+
+        await checkExistingRegistrationRequest(input.id);
 
         const registrationService = await getRegistrationServiceForUser(
           ctx.session.user.countryCode!,

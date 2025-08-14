@@ -4,32 +4,44 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    const organization = await prisma.organization.findFirst({
-      where: { id: 'cm8hw04070000l403rdas9v2j' },
+    const profiles = await prisma.profile.findMany({
+      where: {
+        requestsFor: {
+          some: {
+            serviceCategory: 'REGISTRATION',
+          },
+        },
+      },
       include: {
-        countries: true,
+        requestsFor: {
+          where: {
+            serviceCategory: 'REGISTRATION',
+          },
+        },
       },
     });
 
-    const metadata = JSON.parse(organization?.metadata as string);
-
-    const frMetadata = metadata['FR'];
-
-    const finalMetadata = {
-      ...metadata,
-      FR: frMetadata,
-    };
-
-    organization?.countries.forEach((country) => {
-      finalMetadata[country.code] = frMetadata;
+    const filteredProfiles = profiles.filter((profile) => {
+      return profile.requestsFor.length > 1;
     });
 
-    await prisma.organization.update({
-      where: { id: 'cm8hw04070000l403rdas9v2j' },
-      data: {
-        metadata: JSON.stringify(finalMetadata),
-      },
+    filteredProfiles.forEach((profile) => {
+      console.log({
+        id: profile.id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        requestsFor: profile.requestsFor.map((request) => {
+          return {
+            id: request.id,
+            serviceCategory: request.serviceCategory,
+            status: request.status,
+          };
+        }),
+        validationRequestId: profile.validationRequestId,
+      });
     });
+
+    console.log(filteredProfiles.length);
 
     console.log('✅ Seed completed successfully!');
   } catch (error) {

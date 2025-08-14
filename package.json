@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "db:server": "docker-compose up -d",
     "db:actions": "NODE_ENV=development tsx scripts/db-actions.ts",
+    "db:cleanup-registrations": "NODE_ENV=development tsx scripts/cleanup-duplicate-registrations.ts",
     "db:backup": "bash scripts/db-backup.sh",
     "db:restore": "bash scripts/db-restore.sh",
     "db:auto-backup": "bash scripts/setup-auto-backup.sh",
