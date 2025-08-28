@@ -8,10 +8,7 @@ export default async function OrganizationsPage() {
   const t = await getTranslations('sa.organizations');
 
   return (
-    <PageContainer
-      title={t('title')}
-      action={<CreateOrganizationButton countries={[]} />}
-    >
+    <PageContainer title={t('title')} action={<CreateOrganizationButton />}>
       <CardContainer>
         <OrganizationsTable />
       </CardContainer>

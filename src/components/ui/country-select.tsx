@@ -79,7 +79,7 @@ export function CountrySelect(props: CountrySelectProps) {
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between"
-            disabled={disabled}
+            disabled={disabled || options.length < 2}
             rightIcon={<ChevronsUpDown className="size-4 shrink-0 opacity-50" />}
           >
             <div className="flex items-center gap-2">

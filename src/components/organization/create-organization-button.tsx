@@ -11,14 +11,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import type { Country } from '@prisma/client';
 import { OrganizationForm } from './organization-form';
+import { api } from '@/trpc/react';
 
-interface CreateOrganizationButtonProps {
-  countries: Country[];
-}
-
-export function CreateOrganizationButton({ countries }: CreateOrganizationButtonProps) {
+export function CreateOrganizationButton() {
+  const { data } = api.countries.getActive.useQuery();
   const t = useTranslations('sa.organizations');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -34,7 +31,7 @@ export function CreateOrganizationButton({ countries }: CreateOrganizationButton
           <DialogTitle>{t('form.create_title')}</DialogTitle>
         </DialogHeader>
         <OrganizationForm
-          countries={countries ?? []}
+          countries={data ?? []}
           onSuccess={() => setIsOpen(false)}
           onCancel={() => setIsOpen(false)}
         />

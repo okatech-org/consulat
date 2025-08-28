@@ -11,13 +11,13 @@ import { ROUTES } from '@/schemas/routes';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/actions/user';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { getCountries } from '@/actions/countries';
 
 import {
   getOrganizations,
   getOrganizationWithSpecificIncludes,
 } from '@/actions/organizations';
 import CardContainer from '@/components/layouts/card-container';
+import { api } from '@/trpc/server';
 
 interface ServiceCreationPageProps {
   searchParams: Promise<{ category: ServiceCategory }>;
@@ -32,8 +32,8 @@ export default async function ServiceCreationPage({
     redirect(ROUTES.auth.login);
   }
   const isSuperAdmin = hasAnyRole(user, [UserRole.SUPER_ADMIN]);
-  const countries = isSuperAdmin ? await getCountries() : null;
-  const organizations = isSuperAdmin ? await getOrganizations() : null;
+  const countries = await api.countries.getActive();
+  const organizations = await getOrganizations();
   const organization = !isSuperAdmin
     ? await getOrganizationWithSpecificIncludes(user.organizationId ?? '', ['countries'])
     : null;
@@ -70,8 +70,10 @@ export default async function ServiceCreationPage({
               category: selectedCategory,
               ...(organization ? { organizationId: organization.id } : {}),
             }}
-            organizations={organizations ?? [organization]}
-            countries={countries ?? organization?.countries ?? []}
+            organizations={
+              isSuperAdmin ? organizations : organization ? [organization] : []
+            }
+            countries={isSuperAdmin ? countries : (organization?.countries ?? [])}
           />
         </CardContainer>
       ) : (

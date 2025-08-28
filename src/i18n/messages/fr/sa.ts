@@ -149,6 +149,7 @@ export default {
       loading: 'Chargement des organismes...',
     },
     form: {
+      create_title: 'Créer un organisme',
       edit_title: "Modifier l'organisme",
       name: {
         label: "Nom de l'organisme",

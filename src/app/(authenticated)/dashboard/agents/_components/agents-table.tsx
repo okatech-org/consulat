@@ -29,6 +29,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import type { ConsularServiceListingItem } from '@/types/consular-service';
 import type { SessionUser } from '@/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { api } from '@/trpc/react';
 
 type AgentsTablesProps = {
   services: ConsularServiceListingItem[];
@@ -45,7 +46,7 @@ interface SearchParams {
 }
 
 export function AgentsTable({ services, organizations, managers }: AgentsTablesProps) {
-  const { activeCountries } = useRoleData<SuperAdminData | AdminData>();
+  const { data: activeCountries } = api.countries.getActive.useQuery();
   const [isLoading, setIsLoading] = useState(false);
   const { user: currentUser } = useCurrentUser();
   const organizationId = getOrganizationIdFromUser(currentUser as SessionUser);

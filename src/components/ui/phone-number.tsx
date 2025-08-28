@@ -49,7 +49,7 @@ export function PhoneNumberInput({
         onChange={(value) => {
           onChangeAction(`${value}-${number}`);
         }}
-        disabled={disabled}
+        disabled={disabled || availableCountries.length < 2}
         autoComplete="tel-country-code"
       />
       <Input
