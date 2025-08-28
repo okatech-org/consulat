@@ -15,7 +15,7 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { CountrySelect } from '@/components/ui/country-select';
-import { type CountryCode } from '@/lib/autocomplete-datas';
+import { getCountryIndicator, type CountryCode } from '@/lib/autocomplete-datas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   CountryCodeSchema,
@@ -34,7 +34,7 @@ import { isUserExists } from '@/actions/auth';
 import { type ErrorMessageKey } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PhoneNumberInput } from '../ui/phone-number';
 
 // Étendre le type de retour de signIn pour inclure code
@@ -51,6 +51,8 @@ export function NewProfileForm({
 }: {
   availableCountries: Country[];
 }) {
+  const params = useSearchParams();
+  const countryCode = params.get('countryCode') as CountryCode;
   const router = useRouter();
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
@@ -93,9 +95,9 @@ export function NewProfileForm({
       lastName: '',
       type: 'PHONE',
       email: '',
-      phoneNumber: '+33-',
+      phoneNumber: countryCode ? `${getCountryIndicator(countryCode)}-` : '+33-',
       otp: '',
-      residenceCountyCode: (availableCountries?.[0]?.code ?? '') as CountryCode,
+      residenceCountyCode: countryCode ?? availableCountries?.[0]?.code ?? '',
     },
     mode: 'onChange',
   });
@@ -377,9 +379,11 @@ export function NewProfileForm({
                         type="single"
                         selected={field.value as CountryCode}
                         onChange={(value) => field.onChange(value)}
-                        options={availableCountries?.map(
-                          (item) => item.code as CountryCode,
-                        )}
+                        options={
+                          countryCode
+                            ? [countryCode]
+                            : availableCountries?.map((item) => item.code as CountryCode)
+                        }
                       />
                     </FormControl>
                     <TradFormMessage />
@@ -416,9 +420,11 @@ export function NewProfileForm({
                         value={field.value}
                         onChangeAction={field.onChange}
                         disabled={isLoading}
-                        options={availableCountries?.map(
-                          (item) => item.code as CountryCode,
-                        )}
+                        options={
+                          countryCode
+                            ? [countryCode]
+                            : availableCountries?.map((item) => item.code as CountryCode)
+                        }
                       />
                     </FormControl>
                     <TradFormMessage />

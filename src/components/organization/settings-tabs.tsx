@@ -12,6 +12,11 @@ import { useOrganizationSettings } from '@/hooks/use-organizations';
 import type { OrganizationDetails } from '@/server/api/routers/organizations/types';
 import { AgentsTable } from '@/app/(authenticated)/dashboard/agents/_components/agents-table';
 import { UserRole } from '@prisma/client';
+import { ServicesTable } from './services-table';
+import { Button } from '../ui/button';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
+import { ROUTES } from '@/schemas/routes';
 
 interface SettingsTabsProps {
   organization: OrganizationDetails;
@@ -58,11 +63,22 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
       <TabsList>
         <TabsTrigger value="organization">{t('tabs.organization')}</TabsTrigger>
         <TabsTrigger value="agents">{t('tabs.agents')}</TabsTrigger>
+        <TabsTrigger value="services">{t('tabs.services')}</TabsTrigger>
         <TabsTrigger value="aircall">Aircall</TabsTrigger>
       </TabsList>
 
       <TabsContent value="organization" className="space-y-4">
         <OrganizationSettings organization={organization} />
+      </TabsContent>
+
+      <TabsContent value="services" className="space-y-4">
+        <Button asChild>
+          <Link href={ROUTES.dashboard.services_new}>
+            <Plus className="size-icon" />
+            <span className={'hidden sm:inline'}>Ajouter un service</span>
+          </Link>
+        </Button>
+        <ServicesTable organizations={[organization]} />
       </TabsContent>
 
       <TabsContent value="agents" className="space-y-4">

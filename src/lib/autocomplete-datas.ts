@@ -163,3 +163,10 @@ export const getCountryCode = (
   const country = phoneCountries.find((c) => c.countryCode === countryCode);
   return country?.value;
 };
+
+export const getCountryIndicator = (
+  countryCode: CountryCode,
+): CountryIndicator | undefined => {
+  const country = phoneCountries.find((c) => c.countryCode === countryCode);
+  return country?.value;
+};

@@ -32,6 +32,7 @@ interface MultiSelectMultipleProps<T> {
   disabled?: boolean;
   autoComplete?: string;
   className?: string;
+  showSelected?: boolean;
 }
 
 interface MultiSelectSingleProps<T> {
@@ -48,6 +49,8 @@ interface MultiSelectSingleProps<T> {
   showSelected?: boolean;
 }
 
+type MultiSelectProps<T> = MultiSelectMultipleProps<T> | MultiSelectSingleProps<T>;
+
 export function MultiSelect<T>({
   options,
   selected,
@@ -60,7 +63,7 @@ export function MultiSelect<T>({
   autoComplete = 'off',
   className = '',
   showSelected = true,
-}: MultiSelectMultipleProps<T> | MultiSelectSingleProps<T>) {
+}: MultiSelectProps<T>) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
   const containerRef = React.useRef<HTMLDivElement>(null);
