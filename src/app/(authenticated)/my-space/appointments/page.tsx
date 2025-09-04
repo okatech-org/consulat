@@ -14,6 +14,8 @@ import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useCurrentUser } from '@/hooks/use-role-data';
 
+export const dynamic = 'force-dynamic';
+
 export default function UserAppointmentsPage() {
   const { user } = useCurrentUser();
   const { data: appointments, isLoading } = api.appointments.getList.useQuery({

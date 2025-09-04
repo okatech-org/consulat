@@ -217,7 +217,11 @@ export function ContactMethods() {
                 {method.isChat ? (
                   <div className="flex justify-center">
                     <ChatToggle
-                      customIcon={<Button className="w-full">{method.action}</Button>}
+                      customIcon={
+                        <div className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                          {method.action}
+                        </div>
+                      }
                     />
                   </div>
                 ) : (
@@ -289,7 +293,9 @@ export function ContactMethods() {
             <div className="flex justify-center">
               <ChatToggle
                 customIcon={
-                  <Button className="w-full">{t('support.chat.action')}</Button>
+                  <div className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                    {t('support.chat.action')}
+                  </div>
                 }
               />
             </div>
