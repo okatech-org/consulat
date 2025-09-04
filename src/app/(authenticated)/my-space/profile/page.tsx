@@ -14,8 +14,9 @@ import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function ProfilePage() {
-  const { data: profile, isLoading } = api.profile.getCurrent.useQuery();
-  if (isLoading) {
+  const { data: profile, isPending } = api.profile.getCurrent.useQuery();
+
+  if (isPending) {
     return (
       <PageContainer>
         <LoadingSkeleton variant="form" className="!w-full" />
