@@ -11,6 +11,7 @@ import { organizationsRouter } from '@/server/api/routers/organizations/organiza
 import { notificationsRouter } from '@/server/api/routers/notifications/notifications';
 import { feedbackRouter } from '@/server/api/routers/feedbacks/feedback';
 import { userRouter } from '@/server/api/routers/users/user';
+import { intelligenceRouter } from '@/server/api/routers/intelligence';
 import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc';
 
 /**
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   feedback: feedbackRouter,
   user: userRouter,
+  intelligence: intelligenceRouter,
 });
 
 // export type definition of API

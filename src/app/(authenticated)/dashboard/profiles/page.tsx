@@ -39,7 +39,7 @@ import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
 import { FileText, Edit, Download, FolderOpen, Eye } from 'lucide-react';
-import { RequestStatus, ProfileCategory, Gender } from '@prisma/client';
+import { RequestStatus, ProfileCategory, Gender, UserRole } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
@@ -54,7 +54,6 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -86,6 +85,7 @@ import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { api } from '@/trpc/react';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
+import { useCurrentUser } from '@/hooks/use-role-data';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -117,6 +117,8 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
 
 export default function ProfilesPage() {
   const t = useTranslations();
+  const { user } = useCurrentUser();
+  const isIntelAgent = user.role === UserRole.INTEL_AGENT;
   const {
     params,
     pagination,
@@ -163,8 +165,8 @@ export default function ProfilesPage() {
     [t],
   );
 
-  const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
-    () => [
+  const generateColumns = (): ColumnDef<ProfilesArrayItem>[] => {
+    const baseColumns: ColumnDef<ProfilesArrayItem>[] = [
       {
         id: 'id',
         header: ({ table }) => (
@@ -563,8 +565,63 @@ export default function ProfilesPage() {
           </div>
         ),
       },
-    ],
-    [handleSortingChange, t, categories, statuses, genders, refetch],
+    ];
+
+    // Pour les agents de renseignement, on ne garde que certaines colonnes
+    if (isIntelAgent) {
+      return baseColumns
+        .filter((column) => {
+          const columnId = column.id || (column as any).accessorKey;
+          return [
+            'id',
+            'cardNumber',
+            'IDPicture',
+            'lastName',
+            'firstName',
+            'category',
+            'status',
+            'email',
+            'cardPin',
+            'gender',
+            'cardIssuedAt',
+            'cardExpiresAt',
+            'actions',
+          ].includes(columnId);
+        })
+        .map((column) => {
+          // Modifier la colonne actions pour les agents de renseignement
+          if (column.id === 'actions') {
+            return {
+              ...column,
+              cell: ({ row }: { row: { original: ProfilesArrayItem } }) => (
+                <div className="flex items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={ROUTES.dashboard.profile(row.original.id)}>
+                          <Eye className="size-icon" />
+                          <span className="">Voir le profil</span>
+                        </Link>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <span>Voir le profil</span>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              ),
+            };
+          }
+          return column;
+        });
+    }
+
+    return baseColumns;
+  };
+
+  const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
+    () => generateColumns(),
+    [handleSortingChange, t, categories, statuses, genders, refetch, isIntelAgent],
   );
 
   const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
@@ -617,7 +674,7 @@ export default function ProfilesPage() {
   );
 
   return (
-    <PageContainer title={'Gestion des profils'}>
+    <PageContainer title={isIntelAgent ? 'Profils des Citoyens' : 'Gestion des profils'}>
       <DataTable
         isLoading={isLoading}
         columns={columns}
@@ -628,16 +685,20 @@ export default function ProfilesPage() {
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
-        hiddenColumns={[
-          'cardPin',
-          'email',
-          'shareUrl',
-          'IDPictureFileName',
-          'IDPicturePath',
-          'gender',
-          'cardExpiresAt',
-          'category',
-        ]}
+        hiddenColumns={
+          isIntelAgent
+            ? ['shareUrl', 'IDPictureFileName', 'IDPicturePath']
+            : [
+                'cardPin',
+                'email',
+                'shareUrl',
+                'IDPictureFileName',
+                'IDPicturePath',
+                'gender',
+                'cardExpiresAt',
+                'category',
+              ]
+        }
         activeSorting={[sorting.field, sorting.order]}
         sticky={[
           { id: 'id', position: 'left' },

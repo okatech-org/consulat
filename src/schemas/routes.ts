@@ -41,6 +41,7 @@ export const ROUTES = {
     countries: '/dashboard/countries' as Route<string>,
     account_settings: '/dashboard/account' as Route<string>,
     profiles: '/dashboard/profiles' as Route<string>,
+    profile: (id: string) => `/dashboard/profiles/${id}` as Route<string>,
     doc_templates: '/dashboard/document-templates' as Route<string>,
     doc_template_edit: (id: string) =>
       `/dashboard/document-templates/${id}` as Route<string>,

@@ -18,14 +18,27 @@ import { MobileProfileNavigation } from './mobile-profile-navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useState } from 'react';
 
+type AdditionalTab = {
+  id: string;
+  title: string;
+  content: React.ReactElement;
+};
+
 type ProfileTabsProps = {
   profile: FullProfile;
   requestId?: string;
   requests?: ServiceRequest[];
   noTabs?: boolean;
+  additionalTabs?: AdditionalTab[];
 };
 
-export function ProfileTabs({ profile, requestId, requests, noTabs }: ProfileTabsProps) {
+export function ProfileTabs({
+  profile,
+  requestId,
+  requests,
+  noTabs,
+  additionalTabs,
+}: ProfileTabsProps) {
   const t = useTranslations('profile');
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -100,6 +113,11 @@ export function ProfileTabs({ profile, requestId, requests, noTabs }: ProfileTab
       title: t('sections.requests'),
       content: <RequestsSection requests={requests} />,
     });
+  }
+
+  // Ajouter les onglets supplémentaires
+  if (additionalTabs) {
+    profileTabs.push(...additionalTabs);
   }
 
   type Tab = (typeof profileTabs)[number]['id'];
