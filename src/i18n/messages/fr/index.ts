@@ -17,6 +17,7 @@ import errors from './errors';
 import feedback from './feedback';
 import home from './home';
 import inputs from './inputs';
+import intelligence from './intelligence';
 import manager from './manager';
 import messages from './messages';
 import navigation from './navigation';
@@ -51,6 +52,7 @@ export default {
   feedback,
   home,
   inputs,
+  intelligence,
   manager,
   messages,
   navigation,

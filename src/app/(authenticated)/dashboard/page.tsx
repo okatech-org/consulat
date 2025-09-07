@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/actions/user';
 import AgentDashboard from '../../../components/dashboards/agent-dashboard';
 import AdminDashboard from '../../../components/dashboards/admin-dashboard';
 import { ManagerDashboard } from '../../../components/dashboards/manager-dashboard';
+import IntelAgentDashboard from '../../../components/dashboards/intel-agent-dashboard';
 import type { SessionUser } from '@/types/user';
 
 export default async function DashboardPage() {
@@ -22,6 +23,9 @@ export default async function DashboardPage() {
       </ServerRoleGuard>
       <ServerRoleGuard roles={['AGENT']} user={user as SessionUser}>
         <AgentDashboard />
+      </ServerRoleGuard>
+      <ServerRoleGuard roles={['INTEL_AGENT']} user={user as SessionUser}>
+        <IntelAgentDashboard />
       </ServerRoleGuard>
     </>
   );
