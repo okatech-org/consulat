@@ -257,4 +257,78 @@ export const ROLES: RolesConfig = {
       view: true,
     },
   },
+  INTEL_AGENT: {
+    profiles: {
+      view: true, // Lecture seule de tous les profils
+      create: false,
+      update: false,
+      delete: false,
+      validate: false,
+      viewChild: true,
+      createChild: false,
+      updateChild: false,
+      deleteChild: false,
+    },
+    intelligenceNotes: {
+      view: true,
+      create: true,
+      update: (user, note) => note.authorId === user.id,
+      delete: (user, note) => note.authorId === user.id,
+      viewHistory: true,
+    },
+    // Toutes les autres permissions à false
+    appointments: {
+      view: false,
+      create: false,
+      update: false,
+      delete: false,
+      reschedule: false,
+      cancel: false,
+    },
+    serviceRequests: {
+      view: false,
+      create: false,
+      update: false,
+      delete: false,
+      process: false,
+      validate: false,
+      list: false,
+      complete: false,
+    },
+    organizations: {
+      view: false,
+      create: false,
+      update: false,
+      delete: false,
+      manage: false,
+    },
+    consularServices: {
+      view: false,
+      create: false,
+      update: false,
+      delete: false,
+      configure: false,
+    },
+    documents: {
+      view: true, // Peut voir les documents des profils
+      create: false,
+      update: false,
+      delete: false,
+      validate: false,
+    },
+    users: {
+      view: false,
+      create: false,
+      update: false,
+      delete: false,
+      manage: false,
+    },
+    parentalAuthorities: {
+      view: true, // Peut voir les autorités parentales
+      create: false,
+      update: false,
+      delete: false,
+      manage: false,
+    },
+  },
 };

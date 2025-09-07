@@ -74,6 +74,10 @@ model User {
     feedbacks         Feedback[]
     feedbackResponses Feedback[]          @relation("FeedbackResponses")
 
+    // Relations pour les notes de renseignement
+    authoredIntelligenceNotes IntelligenceNote[]
+    intelligenceNoteHistory   IntelligenceNoteHistory[]
+
     @@index([role])
     @@index([assignedOrganizationId])
     @@index([createdAt])
@@ -144,6 +148,7 @@ enum UserRole {
     MANAGER
     AGENT
     USER
+    INTEL_AGENT
 }
 
 enum ServiceCategory {
@@ -277,6 +282,23 @@ enum ParentalRole {
     LEGAL_GUARDIAN
 }
 
+enum IntelligenceNoteType {
+    POLITICAL_OPINION    // Opinion politique
+    ORIENTATION          // Orientation
+    ASSOCIATIONS         // Associations
+    TRAVEL_PATTERNS      // Habitudes de voyage
+    CONTACTS             // Contacts
+    ACTIVITIES           // Activités
+    OTHER                // Autre
+}
+
+enum IntelligenceNotePriority {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+}
+
 model Profile {
     id     String  @id @default(cuid())
     userId String? @unique
@@ -361,6 +383,9 @@ model Profile {
     @@index([userId])
     @@index([createdAt])
     @@index([updatedAt])
+
+    // Relations pour les notes de renseignement
+    intelligenceNotes IntelligenceNote[]
 }
 
 model EmergencyContact {
@@ -1060,4 +1085,50 @@ enum FeedbackStatus {
     IN_REVIEW
     RESOLVED
     CLOSED
+}
+
+// Modèles pour les notes de renseignement
+model IntelligenceNote {
+    id          String                @id @default(cuid())
+    profileId   String
+    profile     Profile               @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    
+    type        IntelligenceNoteType
+    priority    IntelligenceNotePriority @default(MEDIUM)
+    title       String
+    content     String                @db.Text
+    tags        String[]              // Tags pour catégoriser
+    
+    author      User                  @relation(fields: [authorId], references: [id])
+    authorId    String
+    
+    // Métadonnées
+    createdAt   DateTime              @default(now())
+    updatedAt   DateTime              @updatedAt
+    expiresAt   DateTime?             // Date d'expiration optionnelle
+    
+    // Historique des modifications
+    history     IntelligenceNoteHistory[]
+    
+    @@index([profileId])
+    @@index([authorId])
+    @@index([type])
+    @@index([priority])
+    @@index([createdAt])
+}
+
+model IntelligenceNoteHistory {
+    id                String           @id @default(cuid())
+    intelligenceNote  IntelligenceNote @relation(fields: [intelligenceNoteId], references: [id], onDelete: Cascade)
+    intelligenceNoteId String
+    
+    action            String           // 'created', 'updated', 'deleted'
+    previousContent   String?          @db.Text
+    newContent        String?          @db.Text
+    changedBy         User             @relation(fields: [changedById], references: [id])
+    changedById       String
+    changedAt         DateTime         @default(now())
+    
+    @@index([intelligenceNoteId])
+    @@index([changedAt])
 }

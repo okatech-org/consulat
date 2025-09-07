@@ -1,13 +1,14 @@
 import {
-  User,
-  Profile,
-  Appointment,
-  ServiceRequest,
-  Organization,
-  ConsularService,
-  UserDocument,
+  type User,
+  type Profile,
+  type Appointment,
+  type ServiceRequest,
+  type Organization,
+  type ConsularService,
+  type UserDocument,
   UserRole,
-  ParentalAuthority,
+  type ParentalAuthority,
+  type IntelligenceNote,
 } from '@prisma/client';
 
 export type ResourceType = {
@@ -62,6 +63,10 @@ export type ResourceType = {
       parentUsers?: User[];
     };
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
+  };
+  intelligenceNotes: {
+    dataType: IntelligenceNote;
+    action: 'view' | 'create' | 'update' | 'delete' | 'viewHistory';
   };
 };
 
