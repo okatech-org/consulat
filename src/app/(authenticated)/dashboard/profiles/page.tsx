@@ -597,10 +597,10 @@ export default function ProfilesPage() {
                 <div className="flex items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" asChild>
+                      <Button variant="outline" size="sm" asChild>
                         <Link href={ROUTES.dashboard.profile(row.original.id)}>
                           <Eye className="size-icon" />
-                          <span className="sr-only">Voir le profil</span>
+                          <span className="">Voir le profil</span>
                         </Link>
                       </Button>
                     </TooltipTrigger>

@@ -133,41 +133,6 @@ export function DashboardIntelligenceStats({
           </Card>
         ))}
       </div>
-
-      {stats.notesByType && Object.keys(stats.notesByType).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('notesByType')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {Object.entries(stats.notesByType).map(([type, count]) => (
-                <div
-                  key={type}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">
-                      {typeIcons[type as IntelligenceNoteType]}
-                    </span>
-                    <span className="text-sm font-medium">
-                      {type === 'POLITICAL_OPINION' && 'Opinion politique'}
-                      {type === 'ORIENTATION' && 'Orientation'}
-                      {type === 'ASSOCIATIONS' && 'Associations'}
-                      {type === 'TRAVEL_PATTERNS' && 'Habitudes de voyage'}
-                      {type === 'CONTACTS' && 'Contacts'}
-                      {type === 'ACTIVITIES' && 'Activités'}
-                      {type === 'OTHER' && 'Autre'}
-                    </span>
-                  </div>
-                  <Badge variant="secondary">{count}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {stats.recentNotes && stats.recentNotes.length > 0 && (
         <Card>
           <CardHeader>

@@ -60,7 +60,6 @@ export async function sendAdminWelcomeEmail({
 
 export async function sendOTPEmail(email: string, otp: string) {
   const t = await getTranslations('emails.otp');
-  console.log({ otp });
 
   const emailHtml = await OTPEmailToHtml({
     otp,

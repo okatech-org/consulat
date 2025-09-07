@@ -2,22 +2,28 @@
 
 import { useTranslations } from 'next-intl';
 import { DashboardIntelligenceStats } from '@/components/intelligence/dashboard-intelligence-stats';
-import { IntelligenceMap } from '@/components/intelligence/intelligence-map';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LeafletDashboardWrapper } from '@/components/dashboards/leaflet-dashboard-wrapper';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, MapPin, FileText, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { api } from '@/trpc/react';
+import CardContainer from '@/components/layouts/card-container';
 
 export default function IntelAgentDashboard() {
   const t = useTranslations('intelligence.dashboard');
   const router = useRouter();
+
+  // Récupérer les données géographiques des profils pour la carte
+  const { data: geographicData, isLoading: isLoadingProfiles } =
+    api.dashboard.getProfilesGeographicData.useQuery({});
 
   const quickActions = [
     {
       title: 'Voir tous les profils',
       description: 'Consulter la liste complète des profils gabonais',
       icon: Users,
-      action: () => router.push('/profiles'),
+      action: () => router.push('/dashboard/profiles'),
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
@@ -94,29 +100,29 @@ export default function IntelAgentDashboard() {
 
       {/* Carte des profils */}
       <div id="intelligence-map">
-        <IntelligenceMap
-          onProfileClick={(profileId) => router.push(`/profiles/${profileId}`)}
-        />
+        <CardContainer
+          title={
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Carte des profils
+            </div>
+          }
+        >
+          {isLoadingProfiles ? (
+            <div className="h-[400px] flex items-center justify-center">
+              <div className="text-muted-foreground">Chargement de la carte...</div>
+            </div>
+          ) : geographicData && geographicData.length > 0 ? (
+            <LeafletDashboardWrapper data={geographicData} height="400px" />
+          ) : (
+            <div className="h-[400px] flex items-center justify-center">
+              <div className="text-muted-foreground">
+                Aucun profil avec adresse trouvé
+              </div>
+            </div>
+          )}
+        </CardContainer>
       </div>
-
-      {/* Informations de sécurité */}
-      <Card className="border-amber-200 bg-amber-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-amber-800">
-            <Shield className="h-5 w-5" />
-            Informations de sécurité
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-amber-700">
-          <div className="space-y-2 text-sm">
-            <p>• Toutes vos actions sont enregistrées et auditées</p>
-            <p>• Les notes de renseignement sont confidentielles et chiffrées</p>
-            <p>• Vous ne pouvez modifier que vos propres notes</p>
-            <p>• L'accès aux profils est en lecture seule</p>
-            <p>• Toute activité suspecte sera signalée automatiquement</p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

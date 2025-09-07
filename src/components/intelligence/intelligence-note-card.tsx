@@ -10,7 +10,7 @@ import {
   IntelligenceNoteType,
   IntelligenceNotePriority,
 } from '@prisma/client';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,6 +53,7 @@ interface IntelligenceNoteCardProps {
   onDelete?: (note: IntelligenceNote) => void;
   showHistory?: boolean;
   currentUserId: string;
+  allowDelete?: boolean;
 }
 
 const priorityColors = {
@@ -78,6 +79,7 @@ export function IntelligenceNoteCard({
   onDelete,
   showHistory = false,
   currentUserId,
+  allowDelete = false,
 }: IntelligenceNoteCardProps) {
   const t = useTranslations('intelligence.notes');
   const [isEditing, setIsEditing] = useState(false);
@@ -92,7 +94,7 @@ export function IntelligenceNoteCard({
   });
 
   const canEdit = note.authorId === currentUserId;
-  const canDelete = note.authorId === currentUserId;
+  const canDelete = allowDelete && note.authorId === currentUserId;
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -121,90 +123,94 @@ export function IntelligenceNoteCard({
   return (
     <>
       <Card className="w-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{typeIcons[note.type]}</span>
-              <div>
-                <h4 className="font-semibold text-sm">{note.title}</h4>
-                <p className="text-xs text-muted-foreground">
-                  {t('created')}{' '}
-                  {format(new Date(note.createdAt), 'dd MMM yyyy à HH:mm', {
-                    locale: fr,
-                  })}{' '}
-                  {t('by')} {note.author.name}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge className={priorityColors[note.priority]}>
-                {t(`priorities.${note.priority.toLowerCase()}`)}
-              </Badge>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {canEdit && (
-                    <DropdownMenuItem onClick={handleEdit}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      {t('edit')}
-                    </DropdownMenuItem>
-                  )}
-                  {showHistory && (
-                    <DropdownMenuItem onClick={() => setShowHistoryDialog(true)}>
-                      <History className="h-4 w-4 mr-2" />
-                      {t('historyLabel')} ({note._count.history})
-                    </DropdownMenuItem>
-                  )}
-                  {canDelete && (
-                    <DropdownMenuItem
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {t('deleteLabel')}
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">
-                {t(`types.${note.type.toLowerCase()}`)}
-              </p>
-              <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-            </div>
-
-            {note.tags && note.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {note.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {tag}
+        <CardContent className="p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2 flex-1 min-w-0">
+              <span className="text-sm flex-shrink-0 mt-0.5">{typeIcons[note.type]}</span>
+              <div className="flex-1 min-w-0">
+                {/* Ligne 1: Titre + Priorité */}
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-sm truncate">{note.title}</h4>
+                  <Badge
+                    className={`${priorityColors[note.priority]} text-xs px-1.5 py-0.5`}
+                  >
+                    {t(`priorities.${note.priority.toLowerCase()}`)}
                   </Badge>
-                ))}
-              </div>
-            )}
+                </div>
 
-            {note.expiresAt && (
-              <div className="text-xs text-muted-foreground">
-                Expire le{' '}
-                {format(new Date(note.expiresAt), 'dd MMM yyyy', { locale: fr })}
-              </div>
-            )}
+                {/* Ligne 2: Type + Contenu */}
+                <div className="mb-1">
+                  <span className="text-xs text-muted-foreground">
+                    {t(`types.${note.type.toLowerCase()}`)}
+                  </span>
+                  <p className="text-sm whitespace-pre-wrap line-clamp-2 mt-0.5">
+                    {note.content}
+                  </p>
+                </div>
 
-            {note.updatedAt !== note.createdAt && (
-              <div className="text-xs text-muted-foreground">
-                {t('updated')}{' '}
-                {format(new Date(note.updatedAt), 'dd MMM yyyy à HH:mm', { locale: fr })}
+                {/* Ligne 3: Tags + Dates */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {note.tags && note.tags.length > 0 && (
+                      <div className="flex gap-1">
+                        {note.tags.slice(0, 2).map((tag, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs px-1.5 py-0.5"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                        {note.tags.length > 2 && (
+                          <span className="text-xs text-muted-foreground">
+                            +{note.tags.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-muted-foreground flex-shrink-0">
+                    {format(new Date(note.createdAt), 'dd/MM HH:mm', { locale: fr })}
+                    {note.updatedAt !== note.createdAt && (
+                      <span className="ml-1">• Modifiée</span>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex-shrink-0 h-6 w-6 p-0">
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canEdit && (
+                  <DropdownMenuItem onClick={handleEdit}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    {t('edit')}
+                  </DropdownMenuItem>
+                )}
+                {showHistory && (
+                  <DropdownMenuItem onClick={() => setShowHistoryDialog(true)}>
+                    <History className="h-4 w-4 mr-2" />
+                    {t('historyLabel')} ({note._count.history})
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t('deleteLabel')}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardContent>
       </Card>

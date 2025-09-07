@@ -10,11 +10,12 @@ interface ProfilePageProps {
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
+  const { id } = await params;
   const user = await getCurrentUser();
 
   return (
     <ServerRoleGuard roles={['INTEL_AGENT']} user={user as SessionUser}>
-      <ProfileIntelligenceDetailsPage profileId={params.id} />
+      <ProfileIntelligenceDetailsPage profileId={id} />
     </ServerRoleGuard>
   );
 }
