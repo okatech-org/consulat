@@ -27,7 +27,6 @@ import { signOut } from 'next-auth/react';
 
 export function NavUser() {
   const { user } = useCurrentUser();
-  console.log({ user });
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
