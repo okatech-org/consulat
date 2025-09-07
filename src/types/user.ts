@@ -33,6 +33,10 @@ export const ManagerSessionSelect: Prisma.UserSelect = {
   managedAgents: true,
 };
 
+export const IntelAgentSessionInclude: Prisma.UserSelect = {
+  ...UserSessionInclude,
+} as const;
+
 export const AllSessionInclude: Prisma.UserSelect = {
   ...UserSessionInclude,
   ...AgentSessionInclude,
@@ -52,6 +56,9 @@ export type ManagerSession = Prisma.UserGetPayload<{
 export type SuperAdminSession = Prisma.UserGetPayload<{
   select: typeof UserSessionInclude;
 }>;
+export type IntelAgentSession = Prisma.UserGetPayload<{
+  select: typeof IntelAgentSessionInclude;
+}>;
 export type UserSession = Prisma.UserGetPayload<{
   select: typeof UserSessionInclude;
 }>;
@@ -61,4 +68,5 @@ export type SessionUser =
   | AdminSession
   | ManagerSession
   | SuperAdminSession
+  | IntelAgentSession
   | UserSession;

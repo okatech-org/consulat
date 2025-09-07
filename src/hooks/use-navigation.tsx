@@ -25,7 +25,12 @@ import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { CountBadge } from '@/components/layouts/count-badge';
 import { useRoleData } from './use-role-data';
-import type { AgentData, AdminData, ManagerData } from '@/types/role-data';
+import type {
+  AgentData,
+  AdminData,
+  ManagerData,
+  IntelAgentData,
+} from '@/types/role-data';
 import { api } from '@/trpc/react';
 
 export type NavMainItem = {
@@ -46,7 +51,7 @@ export type UserNavigationItem = {
 
 export function useNavigation() {
   const t = useTranslations('navigation.menu');
-  const roleData = useRoleData<AdminData | ManagerData | AgentData>();
+  const roleData = useRoleData<AdminData | ManagerData | AgentData | IntelAgentData>();
   if (!roleData) return { menu: [], mobileMenu: [] };
   const user = roleData?.user;
   const stats = roleData?.stats;
@@ -56,7 +61,13 @@ export function useNavigation() {
       title: t('dashboard'),
       url: ROUTES.dashboard.base,
       icon: LayoutDashboard,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+      roles: [
+        UserRole.SUPER_ADMIN,
+        UserRole.ADMIN,
+        UserRole.AGENT,
+        UserRole.MANAGER,
+        UserRole.INTEL_AGENT,
+      ],
     },
     {
       title: t('countries'),
@@ -86,7 +97,13 @@ export function useNavigation() {
       title: t('profiles'),
       url: ROUTES.dashboard.profiles,
       icon: Users,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
+      roles: [
+        UserRole.ADMIN,
+        UserRole.AGENT,
+        UserRole.SUPER_ADMIN,
+        UserRole.MANAGER,
+        UserRole.INTEL_AGENT,
+      ],
     },
     {
       title: t('appointments'),
@@ -132,13 +149,13 @@ export function useNavigation() {
       url: ROUTES.dashboard.notifications,
       icon: Bell,
       badge: <CountBadge count={stats?.unreadNotifications ?? 0} variant="destructive" />,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER, UserRole.INTEL_AGENT],
     },
     {
       title: t('settings'),
       url: ROUTES.user.settings,
       icon: Settings,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER, UserRole.INTEL_AGENT],
     },
   ] as const;
 
@@ -160,6 +177,7 @@ export function useNavigation() {
         UserRole.SUPER_ADMIN,
         UserRole.MANAGER,
         UserRole.AGENT,
+        UserRole.INTEL_AGENT,
       ],
     },
     {
@@ -172,6 +190,7 @@ export function useNavigation() {
         UserRole.SUPER_ADMIN,
         UserRole.MANAGER,
         UserRole.AGENT,
+        UserRole.INTEL_AGENT,
       ],
     },
     ...secondaryMenu,

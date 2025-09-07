@@ -7,6 +7,7 @@ import type {
   ManagerData,
   AdminData,
   SuperAdminData,
+  IntelAgentData,
 } from '@/types/role-data';
 import type {
   AdminSession,
@@ -15,6 +16,7 @@ import type {
   SessionUser,
   SuperAdminSession,
   UserSession,
+  IntelAgentSession,
 } from '@/types/user';
 import { UserRole } from '@prisma/client';
 
@@ -54,6 +56,9 @@ async function loadDataForRole(user: SessionUser): Promise<RoleData | null> {
 
     case 'SUPER_ADMIN':
       return loadSuperAdminData(user);
+
+    case 'INTEL_AGENT':
+      return loadIntelAgentData(user);
 
     default:
       return null;
@@ -298,6 +303,64 @@ async function loadSuperAdminData(user: SessionUser): Promise<SuperAdminData> {
         activeCountries: 0,
         activeOrganizations: 0,
       },
+      stats: {
+        unreadNotifications: 0,
+      },
+      activeCountries: [],
+    };
+  }
+}
+
+async function loadIntelAgentData(user: SessionUser): Promise<IntelAgentData> {
+  try {
+    const [intelligenceStatsData, unreadNotifications, activeCountries] =
+      await Promise.all([
+        api.intelligence.getDashboardStats({ period: 'month' }),
+        api.notifications.getUnreadCount(),
+        api.countries.getActive(),
+      ]);
+
+    return {
+      role: 'INTEL_AGENT',
+      user: user as IntelAgentSession,
+      notifications: [],
+      intelligenceStats: {
+        totalProfiles: intelligenceStatsData.totalProfiles,
+        profilesWithNotes: intelligenceStatsData.profilesWithNotes,
+        notesThisMonth: intelligenceStatsData.notesThisPeriod,
+        notesByType: intelligenceStatsData.notesByType,
+      },
+      recentNotes: intelligenceStatsData.recentNotes.map((note) => ({
+        id: note.id,
+        title: note.title,
+        type: note.type,
+        createdAt: note.createdAt.toISOString(),
+        profile: {
+          firstName: note.profile.firstName || '',
+          lastName: note.profile.lastName || '',
+        },
+        author: {
+          name: note.author.name || '',
+        },
+      })),
+      stats: {
+        unreadNotifications,
+      },
+      activeCountries: activeCountries,
+    };
+  } catch (error) {
+    console.error('Erreur lors du chargement des données agent de renseignement:', error);
+    return {
+      role: 'INTEL_AGENT',
+      user: user as IntelAgentSession,
+      notifications: [],
+      intelligenceStats: {
+        totalProfiles: 0,
+        profilesWithNotes: 0,
+        notesThisMonth: 0,
+        notesByType: {},
+      },
+      recentNotes: [],
       stats: {
         unreadNotifications: 0,
       },

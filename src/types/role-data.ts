@@ -6,6 +6,7 @@ import type {
   ManagerSession,
   AdminSession,
   SuperAdminSession,
+  IntelAgentSession,
 } from '@/types/user';
 import type { GroupedAppointments } from '@/server/api/routers/appointments/misc';
 import type {
@@ -113,8 +114,39 @@ export interface SuperAdminData extends BaseUserData {
   superAdminStats: SuperAdminStats;
 }
 
+// Données pour un agent de renseignement
+export interface IntelAgentData extends BaseUserData {
+  role: 'INTEL_AGENT';
+  user: IntelAgentSession;
+  intelligenceStats: {
+    totalProfiles: number;
+    profilesWithNotes: number;
+    notesThisMonth: number;
+    notesByType: Record<string, number>;
+  };
+  recentNotes: Array<{
+    id: string;
+    title: string;
+    type: string;
+    createdAt: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+    author: {
+      name: string;
+    };
+  }>;
+}
+
 // Type union pour toutes les données possibles
-export type RoleData = UserData | AgentData | ManagerData | AdminData | SuperAdminData;
+export type RoleData =
+  | UserData
+  | AgentData
+  | ManagerData
+  | AdminData
+  | SuperAdminData
+  | IntelAgentData;
 
 // Type helper pour extraire le rôle d'un RoleData
 export type ExtractRole<T extends RoleData> = T['role'];
@@ -126,6 +158,7 @@ export type RoleHierarchy = {
   MANAGER: ManagerData;
   ADMIN: AdminData;
   SUPER_ADMIN: SuperAdminData;
+  INTEL_AGENT: IntelAgentData;
 };
 
 // Type helper pour obtenir les données minimales requises pour un rôle

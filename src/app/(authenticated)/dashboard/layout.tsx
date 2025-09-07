@@ -12,7 +12,7 @@ export default async function DashboardLayout({
 }>) {
   return (
     <RouteAuthGuard
-      roles={['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']}
+      roles={['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN', 'INTEL_AGENT']}
       fallbackUrl={ROUTES.user.base}
     >
       <SidebarProvider>
