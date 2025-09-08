@@ -14,8 +14,10 @@ import type { RequestStatus } from '@prisma/client';
 import { EmptyState } from './empty-state';
 import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useDateLocale } from '@/lib/utils';
 
 export function CurrentRequestCard() {
+  const { formatDate } = useDateLocale();
   const { data: currentRequest, isLoading } = api.requests.getCurrent.useQuery();
   const t = useTranslations('dashboard.unified.current_request');
 
@@ -45,7 +47,11 @@ export function CurrentRequestCard() {
   };
 
   const getSteps = () => [
-    { label: t('steps.request_submitted'), completed: true, date: '06/07/2025 - 14h30' },
+    {
+      label: t('steps.request_submitted'),
+      completed: true,
+      date: formatDate(currentRequest.createdAt, 'dd/MM/yyyy - HH:mm'),
+    },
     {
       label: t('steps.documents_verified'),
       completed: getProgress(currentRequest.status as RequestStatus) >= 40,
@@ -54,7 +60,7 @@ export function CurrentRequestCard() {
     {
       label: t('steps.processing'),
       current: currentRequest.status === 'PENDING',
-      agent: currentRequest.assignedTo?.name,
+      agent: currentRequest.organization.name,
     },
     { label: t('steps.final_validation'), completed: false, status: t('steps.waiting') },
     {
