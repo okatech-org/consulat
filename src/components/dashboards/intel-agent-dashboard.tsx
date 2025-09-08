@@ -56,22 +56,26 @@ export default function IntelAgentDashboard() {
   return (
     <div className="space-y-6">
       {/* En-tête */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Tableau de bord des services de renseignement - Accès aux profils et notes
             confidentielles
           </p>
         </div>
-        <Badge variant="outline" className="flex items-center gap-2">
+        <Badge
+          variant="outline"
+          className="flex items-center gap-2 self-start sm:self-center"
+        >
           <Shield className="h-4 w-4" />
-          Agent Renseignements
+          <span className="hidden sm:inline">Agent Renseignements</span>
+          <span className="sm:hidden">Agent</span>
         </Badge>
       </div>
 
       {/* Actions rapides */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {quickActions.map((action, index) => (
           <Card
             key={index}
@@ -79,11 +83,13 @@ export default function IntelAgentDashboard() {
             onClick={action.action}
           >
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${action.bgColor}`}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div
+                  className={`p-2 rounded-lg ${action.bgColor} self-center sm:self-start`}
+                >
                   <action.icon className={`h-5 w-5 ${action.color}`} />
                 </div>
-                <div>
+                <div className="text-center sm:text-left">
                   <CardTitle className="text-base">{action.title}</CardTitle>
                   <p className="text-sm text-muted-foreground">{action.description}</p>
                 </div>

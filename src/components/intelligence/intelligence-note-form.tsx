@@ -179,164 +179,184 @@ export function IntelligenceNoteForm({
   const isLoading = createNoteMutation.isPending || updateNoteMutation.isPending;
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Type et Priorité */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type de note</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-lg">{isEditing ? t('edit') : t('add')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type de note</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {typeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <span className="flex items-center gap-2">
+                              <span>{option.icon}</span>
+                              <span>{option.label}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priorité</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une priorité" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {priorityOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <Badge className={option.color}>{option.label}</Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Titre */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('form.noteTitle')}</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un type" />
-                    </SelectTrigger>
+                    <Input placeholder="Titre de la note" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    {typeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <span className="flex items-center gap-2">
-                          <span>{option.icon}</span>
-                          <span>{option.label}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priorité</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une priorité" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {priorityOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <Badge className={option.color}>{option.label}</Badge>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Titre */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.noteTitle')}</FormLabel>
-              <FormControl>
-                <Input placeholder="Titre de la note" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Contenu */}
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contenu</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Contenu de la note de renseignement..."
-                  className="min-h-[100px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Tags */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">Tags</label>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => removeTag(tag)}
-                  className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Ajouter un tag"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyPress={handleKeyPress}
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Button type="button" variant="outline" size="sm" onClick={addTag}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
 
-        {/* Date d&apos;expiration */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">
-            Date d&apos;expiration (optionnelle)
-          </label>
-          <DatePicker
-            date={expiresAt}
-            onSelect={setExpiresAt}
-            placeholder="Sélectionner une date"
-            dateStr="dd MMMM yyyy"
-          />
-          {expiresAt && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setExpiresAt(undefined)}
-              className="text-muted-foreground"
-            >
-              Supprimer la date d&apos;expiration
-            </Button>
-          )}
-        </div>
+            {/* Contenu */}
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contenu</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Contenu de la note de renseignement..."
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Annuler
-            </Button>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Enregistrement...' : isEditing ? 'Modifier' : 'Créer'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <span className="truncate max-w-[120px]">{tag}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5 flex-shrink-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  placeholder="Ajouter un tag"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addTag}
+                  className="sm:w-auto w-full"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Date d&apos;expiration */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">
+                Date d&apos;expiration (optionnelle)
+              </label>
+              <DatePicker
+                date={expiresAt}
+                onSelect={setExpiresAt}
+                placeholder="Sélectionner une date"
+                dateStr="dd MMMM yyyy"
+              />
+              {expiresAt && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExpiresAt(undefined)}
+                  className="text-muted-foreground"
+                >
+                  Supprimer la date d&apos;expiration
+                </Button>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  className="w-full sm:w-auto"
+                >
+                  Annuler
+                </Button>
+              )}
+              <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+                {isLoading ? 'Enregistrement...' : isEditing ? 'Modifier' : 'Créer'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
