@@ -65,7 +65,7 @@ class UnifiedVerifyService {
     formattedIdentifier: string;
   } {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+\d{1,4}-?\d{9,}$/;
+    const phoneRegex = /^\+\d{1,4}-?\d{8,}$/;
 
     if (emailRegex.test(identifier)) {
       return {

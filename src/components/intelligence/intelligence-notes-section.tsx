@@ -79,8 +79,8 @@ export function IntelligenceNotesSection({
   return (
     <CardContainer contentClass="space-y-4">
       {/* Filtres */}
-      <div className="flex flex-wrap gap-2">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="space-y-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher dans les notes..."
@@ -90,57 +90,65 @@ export function IntelligenceNotesSection({
           />
         </div>
 
-        <Select
-          value={filters.type || 'all'}
-          onValueChange={(value) =>
-            setFilters((prev) => ({
-              ...prev,
-              type: value === 'all' ? undefined : (value as IntelligenceNoteType),
-            }))
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous types</SelectItem>
-            <SelectItem value="POLITICAL_OPINION">Opinion politique</SelectItem>
-            <SelectItem value="ORIENTATION">Orientation</SelectItem>
-            <SelectItem value="ASSOCIATIONS">Associations</SelectItem>
-            <SelectItem value="TRAVEL_PATTERNS">Habitudes de voyage</SelectItem>
-            <SelectItem value="CONTACTS">Contacts</SelectItem>
-            <SelectItem value="ACTIVITIES">Activités</SelectItem>
-            <SelectItem value="OTHER">Autre</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select
+            value={filters.type || 'all'}
+            onValueChange={(value) =>
+              setFilters((prev) => ({
+                ...prev,
+                type: value === 'all' ? undefined : (value as IntelligenceNoteType),
+              }))
+            }
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous types</SelectItem>
+              <SelectItem value="POLITICAL_OPINION">Opinion politique</SelectItem>
+              <SelectItem value="ORIENTATION">Orientation</SelectItem>
+              <SelectItem value="ASSOCIATIONS">Associations</SelectItem>
+              <SelectItem value="TRAVEL_PATTERNS">Habitudes de voyage</SelectItem>
+              <SelectItem value="CONTACTS">Contacts</SelectItem>
+              <SelectItem value="ACTIVITIES">Activités</SelectItem>
+              <SelectItem value="OTHER">Autre</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select
-          value={filters.priority || 'all'}
-          onValueChange={(value) =>
-            setFilters((prev) => ({
-              ...prev,
-              priority: value === 'all' ? undefined : (value as IntelligenceNotePriority),
-            }))
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Priorité" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes priorités</SelectItem>
-            <SelectItem value="LOW">Faible</SelectItem>
-            <SelectItem value="MEDIUM">Moyenne</SelectItem>
-            <SelectItem value="HIGH">Élevée</SelectItem>
-            <SelectItem value="CRITICAL">Critique</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select
+            value={filters.priority || 'all'}
+            onValueChange={(value) =>
+              setFilters((prev) => ({
+                ...prev,
+                priority:
+                  value === 'all' ? undefined : (value as IntelligenceNotePriority),
+              }))
+            }
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Priorité" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes priorités</SelectItem>
+              <SelectItem value="LOW">Faible</SelectItem>
+              <SelectItem value="MEDIUM">Moyenne</SelectItem>
+              <SelectItem value="HIGH">Élevée</SelectItem>
+              <SelectItem value="CRITICAL">Critique</SelectItem>
+            </SelectContent>
+          </Select>
 
-        {hasActiveFilters && (
-          <Button variant="outline" size="sm" onClick={clearFilters}>
-            <Filter className="h-4 w-4 mr-1" />
-            Effacer
-          </Button>
-        )}
+          {hasActiveFilters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              className="w-full sm:w-auto"
+            >
+              <Filter className="h-4 w-4 mr-1" />
+              Effacer
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Formulaire d'ajout */}
