@@ -10,6 +10,15 @@ import type { SessionUser } from '@/types/user';
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
+  // Pour INTEL_AGENT, retourner le dashboard full-screen sans layout
+  if (user?.role === 'INTEL_AGENT') {
+    return (
+      <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+        <IntelAgentDashboard />
+      </div>
+    );
+  }
+
   return (
     <>
       <ServerRoleGuard roles={['SUPER_ADMIN']} user={user as SessionUser}>
@@ -23,9 +32,6 @@ export default async function DashboardPage() {
       </ServerRoleGuard>
       <ServerRoleGuard roles={['AGENT']} user={user as SessionUser}>
         <AgentDashboard />
-      </ServerRoleGuard>
-      <ServerRoleGuard roles={['INTEL_AGENT']} user={user as SessionUser}>
-        <IntelAgentDashboard />
       </ServerRoleGuard>
     </>
   );

@@ -19,7 +19,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Edit, Trash2, History } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  History,
+  Building,
+  Navigation,
+  Users,
+  Plane,
+  Phone,
+  Target,
+  FileText,
+} from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,13 +76,13 @@ const priorityColors = {
 };
 
 const typeIcons = {
-  [IntelligenceNoteType.POLITICAL_OPINION]: '🏛️',
-  [IntelligenceNoteType.ORIENTATION]: '🧭',
-  [IntelligenceNoteType.ASSOCIATIONS]: '👥',
-  [IntelligenceNoteType.TRAVEL_PATTERNS]: '✈️',
-  [IntelligenceNoteType.CONTACTS]: '📞',
-  [IntelligenceNoteType.ACTIVITIES]: '🎯',
-  [IntelligenceNoteType.OTHER]: '📝',
+  [IntelligenceNoteType.POLITICAL_OPINION]: <Building className="h-4 w-4" />,
+  [IntelligenceNoteType.ORIENTATION]: <Navigation className="h-4 w-4" />,
+  [IntelligenceNoteType.ASSOCIATIONS]: <Users className="h-4 w-4" />,
+  [IntelligenceNoteType.TRAVEL_PATTERNS]: <Plane className="h-4 w-4" />,
+  [IntelligenceNoteType.CONTACTS]: <Phone className="h-4 w-4" />,
+  [IntelligenceNoteType.ACTIVITIES]: <Target className="h-4 w-4" />,
+  [IntelligenceNoteType.OTHER]: <FileText className="h-4 w-4" />,
 };
 
 export function IntelligenceNoteCard({

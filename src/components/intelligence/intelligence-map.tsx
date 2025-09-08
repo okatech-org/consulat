@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Filter, Eye } from 'lucide-react';
+import { MapPin, Users, Filter, Eye, Building, Navigation, Plane, Phone, Target, FileText } from 'lucide-react';
 import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Icon } from 'leaflet';
@@ -31,13 +31,13 @@ const priorityColors = {
 };
 
 const typeIcons = {
-  [IntelligenceNoteType.POLITICAL_OPINION]: '🏛️',
-  [IntelligenceNoteType.ORIENTATION]: '🧭',
-  [IntelligenceNoteType.ASSOCIATIONS]: '👥',
-  [IntelligenceNoteType.TRAVEL_PATTERNS]: '✈️',
-  [IntelligenceNoteType.CONTACTS]: '📞',
-  [IntelligenceNoteType.ACTIVITIES]: '🎯',
-  [IntelligenceNoteType.OTHER]: '📝',
+  [IntelligenceNoteType.POLITICAL_OPINION]: <Building className="h-3 w-3" />,
+  [IntelligenceNoteType.ORIENTATION]: <Navigation className="h-3 w-3" />,
+  [IntelligenceNoteType.ASSOCIATIONS]: <Users className="h-3 w-3" />,
+  [IntelligenceNoteType.TRAVEL_PATTERNS]: <Plane className="h-3 w-3" />,
+  [IntelligenceNoteType.CONTACTS]: <Phone className="h-3 w-3" />,
+  [IntelligenceNoteType.ACTIVITIES]: <Target className="h-3 w-3" />,
+  [IntelligenceNoteType.OTHER]: <FileText className="h-3 w-3" />,
 };
 
 // Configuration des icônes Leaflet

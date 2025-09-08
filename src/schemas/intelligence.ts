@@ -28,12 +28,13 @@ export const updateIntelligenceNoteSchema = createIntelligenceNoteSchema
   });
 
 export const getIntelligenceNotesSchema = z.object({
-  profileId: z.string().min(1, "L'ID du profil est requis"),
+  profileId: z.string().min(1, "L'ID du profil est requis").optional(),
   filters: z
     .object({
       type: z.nativeEnum(IntelligenceNoteType).optional(),
       priority: z.nativeEnum(IntelligenceNotePriority).optional(),
       authorId: z.string().optional(),
+      search: z.string().optional(),
     })
     .optional(),
 });

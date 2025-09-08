@@ -12,6 +12,7 @@ import { getLocale } from 'next-intl/server';
 import { RoleBasedDataProvider } from '@/contexts/role-data-context';
 import { loadRoleBasedData } from '@/lib/role-data-loader';
 import ErrorBoundary from '@/components/error-boundary';
+import { getServerTheme } from '@/lib/theme-server';
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -131,10 +132,15 @@ export default async function RootLayout({
 
   const roleData = session ? await loadRoleBasedData() : null;
   const locale = await getLocale();
+  const serverTheme = await getServerTheme();
 
   return (
-    <html lang={locale} className={`${geist.variable}`}>
-      <body>
+    <html 
+      lang={locale} 
+      className={`${geist.variable} ${serverTheme !== 'system' ? serverTheme : ''}`}
+      style={{ colorScheme: serverTheme === 'dark' ? 'dark' : 'light' }}
+    >
+      <body className={serverTheme === 'dark' ? 'dark' : ''}>
         <ErrorBoundary>
           <TRPCReactProvider>
             <SessionProvider session={session}>

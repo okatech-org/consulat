@@ -25,6 +25,10 @@ export default {
     agents: 'Agents',
     contact: 'Contacts consulaires',
     tickets: 'Retours utilisateurs',
+    carte: 'Carte',
+    notes: 'Notes',
+    securite: 'Sécurité', 
+    rapports: 'Rapports',
   },
   dashboard: {
     title: 'Accueil',
