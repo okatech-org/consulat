@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -15,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import {
   BarChart3,
@@ -41,6 +43,7 @@ import {
   Calendar,
   Clock,
   TrendingDown,
+  AlertCircle,
 } from 'lucide-react';
 
 // Données d'analyse basées sur les documents DGSS
@@ -143,20 +146,25 @@ const analyticsData = {
 };
 
 export default function AnalyticsPage() {
+  const t = useTranslations('intelligence.analytics');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedAnalysisType, setSelectedAnalysisType] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
-  const { data: dashboardStats } = useIntelligenceDashboardStats(selectedPeriod as any);
+  const {
+    data: dashboardStats,
+    isLoading,
+    error,
+  } = useIntelligenceDashboardStats(selectedPeriod as any);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success('Analyses actualisées avec succès');
+      toast.success(t('actions.refresh_success'));
     } catch (error) {
-      toast.error("Erreur lors de l'actualisation");
+      toast.error(t('errors.refresh_failed'));
     } finally {
       setIsRefreshing(false);
     }
@@ -166,9 +174,9 @@ export default function AnalyticsPage() {
     setIsGeneratingReport(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      toast.success("Rapport d'analyse généré avec succès");
+      toast.success(t('actions.report_generated'));
     } catch (error) {
-      toast.error('Erreur lors de la génération du rapport');
+      toast.error(t('errors.report_failed'));
     } finally {
       setIsGeneratingReport(false);
     }
@@ -176,16 +184,34 @@ export default function AnalyticsPage() {
 
   const handleClusterAnalysis = (clusterId: string) => {
     toast.info(
-      'Analyse de cluster',
-      `Analyse détaillée du cluster ${clusterId} en développement`,
+      t('actions.cluster_analysis'),
+      t('actions.cluster_analysis_description', { clusterId }),
     );
   };
 
+  if (error) {
+    return (
+      <PageContainer title={t('title')} description={t('description')}>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {t('errors.load_failed')}
+            <Button
+              variant="link"
+              size="sm"
+              onClick={handleRefresh}
+              className="ml-2 p-0 h-auto"
+            >
+              {t('actions.retry')}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </PageContainer>
+    );
+  }
+
   return (
-    <PageContainer
-      title="Analyses Avancées"
-      description="Intelligence artificielle et détection de patterns - DGSS"
-    >
+    <PageContainer title={t('title')} description={t('description')}>
       <div className="space-y-6">
         {/* Stats analytiques */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -226,36 +252,19 @@ export default function AnalyticsPage() {
           ].map((stat, index) => (
             <Card
               key={index}
-              className="relative overflow-hidden group hover:-translate-y-1 transition-all duration-300"
-              style={{
-                background: 'var(--bg-glass-primary)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid var(--border-glass-primary)',
-                boxShadow: 'var(--shadow-glass)',
-              }}
+              className="relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-card border shadow-sm"
             >
               <CardHeader className="p-2 md:p-3 flex flex-row items-center justify-between space-y-0 pb-1">
                 <div
-                  className="p-1.5 rounded-lg"
-                  style={{
-                    background:
-                      stat.color === 'blue'
-                        ? 'rgba(59, 130, 246, 0.2)'
-                        : stat.color === 'green'
-                          ? 'rgba(16, 185, 129, 0.2)'
-                          : stat.color === 'orange'
-                            ? 'rgba(245, 158, 11, 0.2)'
-                            : 'rgba(239, 68, 68, 0.2)',
-                    color:
-                      stat.color === 'blue'
-                        ? '#3b82f6'
-                        : stat.color === 'green'
-                          ? '#10b981'
-                          : stat.color === 'orange'
-                            ? '#f59e0b'
-                            : '#ef4444',
-                  }}
+                  className={`p-1.5 rounded-lg ${
+                    stat.color === 'blue'
+                      ? 'bg-blue-100 text-blue-600'
+                      : stat.color === 'green'
+                        ? 'bg-green-100 text-green-600'
+                        : stat.color === 'orange'
+                          ? 'bg-orange-100 text-orange-600'
+                          : 'bg-red-100 text-red-600'
+                  }`}
                 >
                   <stat.icon className="h-4 w-4" />
                 </div>
@@ -267,36 +276,20 @@ export default function AnalyticsPage() {
                 </Badge>
               </CardHeader>
               <CardContent className="p-3 md:p-4 pt-0">
-                <div
-                  className="text-xl font-bold font-mono"
-                  style={{ color: 'var(--text-primary)' }}
-                >
+                <div className="text-xl font-bold font-mono text-foreground">
                   {stat.value}
                 </div>
-                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  {stat.title}
-                </p>
+                <p className="text-xs text-muted-foreground">{stat.title}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Contrôles d'analyse */}
-        <Card
-          style={{
-            background: 'var(--bg-glass-primary)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid var(--border-glass-primary)',
-            boxShadow: 'var(--shadow-glass)',
-          }}
-        >
+        <Card className="bg-card border shadow-sm">
           <CardHeader className="py-3 px-4">
             <div className="flex items-center justify-between">
-              <CardTitle
-                className="flex items-center gap-2"
-                style={{ color: 'var(--text-primary)' }}
-              >
+              <CardTitle className="flex items-center gap-2 text-foreground">
                 <BarChart3 className="h-5 w-5" />
                 Paramètres d'Analyse
               </CardTitle>
@@ -333,10 +326,7 @@ export default function AnalyticsPage() {
           <CardContent className="py-3 px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label
-                  className="text-sm font-medium"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
+                <label className="text-sm font-medium text-muted-foreground">
                   Période d'analyse
                 </label>
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -353,10 +343,7 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="space-y-2">
-                <label
-                  className="text-sm font-medium"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
+                <label className="text-sm font-medium text-muted-foreground">
                   Type d'analyse
                 </label>
                 <Select
@@ -378,10 +365,7 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="space-y-2">
-                <label
-                  className="text-sm font-medium"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
+                <label className="text-sm font-medium text-muted-foreground">
                   Niveau de détail
                 </label>
                 <Select defaultValue="detailed">

@@ -19,12 +19,12 @@ interface ErrorProps {
   reset: () => void;
 }
 
-export default function DashboardError({ error, reset }: ErrorProps) {
-  const t = useTranslations('errors');
+export default function IntelError({ error, reset }: ErrorProps) {
+  const t = useTranslations('intelligence.errors');
   const router = useRouter();
 
   useEffect(() => {
-    console.error('Dashboard error:', error);
+    console.error('Intel error:', error);
   }, [error]);
 
   const handleReset = () => {
@@ -53,17 +53,17 @@ export default function DashboardError({ error, reset }: ErrorProps) {
           </div>
           <CardTitle className="text-xl">
             {isPermissionError
-              ? 'Accès refusé'
+              ? t('permissions.unauthorized')
               : isDataError
-                ? 'Erreur de chargement'
-                : 'Erreur du tableau de bord'}
+                ? t('load_failed')
+                : t('general_error')}
           </CardTitle>
           <CardDescription>
             {isPermissionError
-              ? "Vous n'avez pas les permissions pour accéder à cette section."
+              ? t('permissions.insufficient')
               : isDataError
-                ? 'Impossible de charger les données du tableau de bord.'
-                : 'Une erreur est survenue dans le tableau de bord.'}
+                ? t('load_failed_description')
+                : t('general_error_description')}
           </CardDescription>
         </CardHeader>
 
@@ -75,18 +75,18 @@ export default function DashboardError({ error, reset }: ErrorProps) {
             </Button>
             <Button onClick={handleGoBack} variant="outline" className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour à la page précédente
+              {t('actions.go_back')}
             </Button>
             <Button onClick={handleGoHome} variant="ghost" className="w-full">
               <Home className="mr-2 h-4 w-4" />
-              {t('common.go_home')}
+              {t('actions.go_home')}
             </Button>
           </div>
 
           {process.env.NODE_ENV === 'development' && (
             <details className="mt-4">
               <summary className="cursor-pointer text-sm font-medium mb-2">
-                Détails techniques
+                {t('technical_details')}
               </summary>
               <div className="bg-muted p-3 rounded-md text-xs font-mono overflow-auto max-h-40">
                 <p>

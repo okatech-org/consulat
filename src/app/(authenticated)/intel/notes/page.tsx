@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '@/trpc/react';
@@ -76,6 +77,7 @@ type NoteWithRelations = {
 };
 
 export default function NotesPage() {
+  const t = useTranslations('intelligence.notes');
   const [filters, setFilters] = useState({
     type: undefined as IntelligenceNoteType | undefined,
     priority: undefined as IntelligenceNotePriority | undefined,

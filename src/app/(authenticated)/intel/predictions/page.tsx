@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -171,6 +172,7 @@ const aiPredictions = [
 ];
 
 export default function PredictionsAIPage() {
+  const t = useTranslations('intelligence.predictions');
   const router = useRouter();
   const [selectedModel, setSelectedModel] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import { useToast } from '@/hooks/use-toast';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -33,6 +34,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function RapportsPage() {
+  const t = useTranslations('intelligence.reports');
   const [period, setPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const [reportType, setReportType] = useState<
     'summary' | 'detailed' | 'geographic' | 'security'

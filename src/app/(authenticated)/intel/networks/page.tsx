@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { PageContainer } from '@/components/layouts/page-container';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -84,6 +85,7 @@ const clusters = [
 ];
 
 export default function ReseauxInfluencePage() {
+  const t = useTranslations('intelligence.networks');
   const router = useRouter();
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,10 +128,7 @@ export default function ReseauxInfluencePage() {
   const averageInfluence = totalInfluence / filteredNodes.length || 0;
 
   return (
-    <PageContainer
-      title="Réseaux d'Influence"
-      description="Analyse des connexions et réseaux d'influence gabonais"
-    >
+    <PageContainer title={t('title')} description={t('description')}>
       <div className="space-y-6">
         {/* Stats du réseau */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

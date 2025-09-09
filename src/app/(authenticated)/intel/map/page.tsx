@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   useIntelligenceDashboardStats,
   useIntelligenceProfilesMap,
@@ -41,6 +42,7 @@ import { IntelligenceNotePriority } from '@prisma/client';
 import { getLocationCoordinates } from '@/lib/services/geocoding-service';
 
 export default function CartePage() {
+  const t = useTranslations('intelligence.map');
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [showLayers] = useState(false);
@@ -219,8 +221,8 @@ export default function CartePage() {
 
   return (
     <PageContainer
-      title="Carte Intelligente • Résidence"
-      description={`${stats.totalProfiles.toLocaleString()} profils géolocalisés par adresse de résidence • La majorité des Gabonais résident en France`}
+      title={t('title')}
+      description={t('description', { count: stats.totalProfiles.toLocaleString() })}
     >
       <div className="space-y-6">
         {/* Gestion d'erreurs */}
@@ -242,24 +244,12 @@ export default function CartePage() {
         )}
 
         {/* Contrôles rapides optimisés */}
-        <Card
-          className="border-0 shadow-sm"
-          style={{
-            background: 'var(--bg-glass-primary)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid var(--border-glass-primary)',
-            boxShadow: 'var(--shadow-glass)',
-          }}
-        >
+        <Card className="shadow-sm bg-card border">
           <CardContent className="p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-blue-500" />
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: 'var(--text-primary)' }}
-                >
+                <span className="text-sm font-medium text-foreground">
                   Filtres Rapides
                 </span>
                 {autoRefresh && (
@@ -319,19 +309,10 @@ export default function CartePage() {
         </Card>
 
         {/* Carte principale avec informations contextuelles */}
-        <Card
-          className="relative overflow-hidden"
-          style={{
-            background: 'var(--bg-glass-primary)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid var(--border-glass-primary)',
-            boxShadow: 'var(--shadow-glass)',
-          }}
-        >
+        <Card className="relative overflow-hidden bg-card border shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle style={{ color: 'var(--text-primary)' }}>
+              <CardTitle className="text-foreground">
                 Répartition par Résidence • {stats.totalProfiles.toLocaleString()} Profils
               </CardTitle>
               <div className="flex items-center gap-2">
@@ -451,16 +432,10 @@ export default function CartePage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div
-                      className="text-2xl font-bold font-mono mb-1"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
+                    <div className="text-2xl font-bold font-mono mb-1 text-foreground">
                       {stat.value.toLocaleString()}
                     </div>
-                    <div
-                      className="text-sm font-medium"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
+                    <div className="text-sm font-medium text-muted-foreground">
                       {stat.title}
                     </div>
                   </div>
@@ -565,18 +540,12 @@ export default function CartePage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <span
-                                  className="font-medium truncate group-hover:text-blue-400 transition-colors"
-                                  style={{ color: 'var(--text-primary)' }}
-                                >
+                                <span className="font-medium truncate group-hover:text-blue-400 transition-colors text-foreground">
                                   {activity.name}
                                 </span>
                                 <Eye className="h-4 w-4 text-blue-500 flex-shrink-0" />
                               </div>
-                              <div
-                                className="flex items-center gap-2 text-sm"
-                                style={{ color: 'var(--text-muted)' }}
-                              >
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <span className="truncate">📍 {activity.location}</span>
                                 <span>•</span>
                                 <Clock className="h-3 w-3" />
@@ -622,10 +591,7 @@ export default function CartePage() {
                 <div className="space-y-4">
                   {/* Zones Stratégiques */}
                   <div>
-                    <h4
-                      className="text-sm font-semibold mb-3 flex items-center gap-2"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-foreground">
                       <Target className="h-4 w-4 text-orange-500" />
                       Zones Surveillées
                     </h4>
@@ -648,16 +614,10 @@ export default function CartePage() {
                             style={{ background: 'var(--bg-glass-light)' }}
                           >
                             <div className="flex-1 min-w-0">
-                              <div
-                                className="text-sm font-medium group-hover:text-blue-400 transition-colors"
-                                style={{ color: 'var(--text-primary)' }}
-                              >
+                              <div className="text-sm font-medium group-hover:text-blue-400 transition-colors text-foreground">
                                 {zone.zone}
                               </div>
-                              <div
-                                className="text-xs"
-                                style={{ color: 'var(--text-muted)' }}
-                              >
+                              <div className="text-xs text-muted-foreground">
                                 {zone.count.toLocaleString()} profils
                               </div>
                             </div>
@@ -710,7 +670,7 @@ export default function CartePage() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <span className="text-sm text-muted-foreground">
                     Afficher les profils sans notes
                   </span>
                   <Button variant="outline" size="sm">
@@ -718,15 +678,13 @@ export default function CartePage() {
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    Grouper par pays
-                  </span>
+                  <span className="text-sm text-muted-foreground">Grouper par pays</span>
                   <Button variant="outline" size="sm">
                     Désactivé
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <span className="text-sm text-muted-foreground">
                     Afficher les zones de chaleur
                   </span>
                   <Button variant="outline" size="sm">

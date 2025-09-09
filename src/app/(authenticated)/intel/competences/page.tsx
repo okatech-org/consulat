@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
+import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { PageContainer } from '@/components/layouts/page-container';
 import {
   Card,
@@ -54,6 +56,7 @@ import {
   Eye,
   AlertTriangle,
   FileUser,
+  FileText,
   Mail,
   Phone,
   MapPin,
@@ -71,57 +74,69 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { WorkStatus } from '@prisma/client';
+import { SkillCategory, ExpertiseLevel } from '@/lib/skills-extractor';
 
-// Types pour les catégories de compétences
-type SkillCategory =
-  | 'technique'
-  | 'management'
-  | 'communication'
-  | 'creative'
-  | 'analytical'
-  | 'language'
-  | 'other';
-type ExpertiseLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+// Types pour les catégories de compétences (utiliser les types du système)
+type LocalSkillCategory = SkillCategory;
+type LocalExpertiseLevel = ExpertiseLevel;
 
 // Mapping des icônes par catégorie
 const categoryIcons: Record<SkillCategory, LucideIcon> = {
-  technique: Wrench,
-  management: Briefcase,
-  communication: MessageCircle,
-  creative: Palette,
-  analytical: BarChart3,
-  language: Globe,
-  other: HelpCircle,
+  [SkillCategory.TECHNIQUE]: Wrench,
+  [SkillCategory.MANAGEMENT]: Briefcase,
+  [SkillCategory.COMMERCIAL]: MessageCircle,
+  [SkillCategory.ADMINISTRATIF]: FileText,
+  [SkillCategory.ARTISANAL]: Wrench,
+  [SkillCategory.MEDICAL]: Target,
+  [SkillCategory.JURIDIQUE]: FileText,
+  [SkillCategory.EDUCATION]: BookOpen,
+  [SkillCategory.TRANSPORT]: Globe,
+  [SkillCategory.SECURITE]: Target,
+  [SkillCategory.AGRICULTURE]: Globe,
+  [SkillCategory.RESTAURATION]: Users,
+  [SkillCategory.FINANCE]: BarChart3,
 };
 
 // Couleurs par catégorie
 const categoryColors: Record<SkillCategory, string> = {
-  technique: 'bg-blue-500',
-  management: 'bg-purple-500',
-  communication: 'bg-green-500',
-  creative: 'bg-orange-500',
-  analytical: 'bg-yellow-500',
-  language: 'bg-red-500',
-  other: 'bg-gray-500',
+  [SkillCategory.TECHNIQUE]: 'bg-blue-500',
+  [SkillCategory.MANAGEMENT]: 'bg-purple-500',
+  [SkillCategory.COMMERCIAL]: 'bg-green-500',
+  [SkillCategory.ADMINISTRATIF]: 'bg-orange-500',
+  [SkillCategory.ARTISANAL]: 'bg-yellow-500',
+  [SkillCategory.MEDICAL]: 'bg-red-500',
+  [SkillCategory.JURIDIQUE]: 'bg-indigo-500',
+  [SkillCategory.EDUCATION]: 'bg-pink-500',
+  [SkillCategory.TRANSPORT]: 'bg-cyan-500',
+  [SkillCategory.SECURITE]: 'bg-gray-500',
+  [SkillCategory.AGRICULTURE]: 'bg-lime-500',
+  [SkillCategory.RESTAURATION]: 'bg-amber-500',
+  [SkillCategory.FINANCE]: 'bg-emerald-500',
 };
 
 // Labels français pour les catégories
 const categoryLabels: Record<SkillCategory, string> = {
-  technique: 'Technique',
-  management: 'Management',
-  communication: 'Communication',
-  creative: 'Créatif',
-  analytical: 'Analytique',
-  language: 'Langues',
-  other: 'Autre',
+  [SkillCategory.TECHNIQUE]: 'Technique',
+  [SkillCategory.MANAGEMENT]: 'Management',
+  [SkillCategory.COMMERCIAL]: 'Commercial',
+  [SkillCategory.ADMINISTRATIF]: 'Administratif',
+  [SkillCategory.ARTISANAL]: 'Artisanal',
+  [SkillCategory.MEDICAL]: 'Médical',
+  [SkillCategory.JURIDIQUE]: 'Juridique',
+  [SkillCategory.EDUCATION]: 'Éducation',
+  [SkillCategory.TRANSPORT]: 'Transport',
+  [SkillCategory.SECURITE]: 'Sécurité',
+  [SkillCategory.AGRICULTURE]: 'Agriculture',
+  [SkillCategory.RESTAURATION]: 'Restauration',
+  [SkillCategory.FINANCE]: 'Finance',
 };
 
 // Labels français pour les niveaux
 const levelLabels: Record<ExpertiseLevel, string> = {
-  beginner: 'Débutant',
-  intermediate: 'Intermédiaire',
-  advanced: 'Avancé',
-  expert: 'Expert',
+  [ExpertiseLevel.JUNIOR]: 'Junior',
+  [ExpertiseLevel.INTERMEDIAIRE]: 'Intermédiaire',
+  [ExpertiseLevel.SENIOR]: 'Senior',
+  [ExpertiseLevel.EXPERT]: 'Expert',
 };
 
 // Labels français pour les statuts
@@ -135,10 +150,11 @@ const workStatusLabels: Record<WorkStatus, string> = {
 };
 
 export default function CompetencesDirectoryPage() {
+  const t = useTranslations('intelligence.competences');
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<SkillCategory | ''>('');
-  const [selectedLevel, setSelectedLevel] = useState<ExpertiseLevel | ''>('');
+  const [selectedCategory, setSelectedCategory] = useState<LocalSkillCategory | ''>('');
+  const [selectedLevel, setSelectedLevel] = useState<LocalExpertiseLevel | ''>('');
   const [selectedDemand, setSelectedDemand] = useState<'high' | 'medium' | 'low' | ''>(
     '',
   );
@@ -296,7 +312,7 @@ export default function CompetencesDirectoryPage() {
     if (selectedProfiles.size === filteredProfiles.length) {
       setSelectedProfiles(new Set());
     } else {
-      setSelectedProfiles(new Set(filteredProfiles.map((p) => p.id)));
+      setSelectedProfiles(new Set(filteredProfiles.filter((p) => p).map((p) => p!.id)));
     }
   };
 
@@ -306,7 +322,7 @@ export default function CompetencesDirectoryPage() {
     try {
       const selectedData =
         selectedProfiles.size > 0
-          ? filteredProfiles.filter((p) => selectedProfiles.has(p.id))
+          ? filteredProfiles.filter((p) => p && selectedProfiles.has(p.id))
           : filteredProfiles;
 
       if (selectedData.length === 0) {
@@ -335,8 +351,10 @@ export default function CompetencesDirectoryPage() {
           p?.profession || '',
           p?.employer || '',
           p?.workStatus ? workStatusLabels[p.workStatus] : '',
-          p?.skills?.category ? categoryLabels[p.skills.category] : '',
-          p?.skills?.experienceLevel ? levelLabels[p.skills.experienceLevel] : '',
+          p?.skills?.category ? categoryLabels[p.skills.category as SkillCategory] : '',
+          p?.skills?.experienceLevel
+            ? levelLabels[p.skills.experienceLevel as ExpertiseLevel]
+            : '',
           p?.skills?.primarySkills?.map((s) => s.name).join('; ') || '',
           p?.email || '',
           p?.phoneNumber || '',
@@ -373,19 +391,19 @@ export default function CompetencesDirectoryPage() {
 
   if (error) {
     return (
-      <PageContainer title="Erreur" description="Erreur de chargement">
+      <PageContainer title={t('title')} description={t('description')}>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Card className="max-w-md w-full">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center gap-4">
                 <AlertTriangle className="h-12 w-12 text-red-500" />
-                <h3 className="text-lg font-semibold">Erreur de chargement</h3>
+                <h3 className="text-lg font-semibold">{t('errors.load_failed')}</h3>
                 <p className="text-sm text-muted-foreground text-center">
-                  Impossible de charger l'annuaire des compétences
+                  {t('errors.load_failed')}
                 </p>
                 <Button onClick={() => refetch()} variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Réessayer
+                  {t('actions.retry')}
                 </Button>
               </div>
             </CardContent>
@@ -397,8 +415,8 @@ export default function CompetencesDirectoryPage() {
 
   return (
     <PageContainer
-      title="Annuaire des Compétences DGSS"
-      description="Exploitation des compétences gabonaises pour le développement national"
+      title={t('title')}
+      description={t('description')}
       action={
         <div className="flex gap-2">
           <Button
@@ -407,7 +425,7 @@ export default function CompetencesDirectoryPage() {
             disabled={isLoading || isFetching}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-            Actualiser
+            {t('actions.refresh')}
           </Button>
           <Button
             onClick={handleExportCSV}
@@ -419,7 +437,9 @@ export default function CompetencesDirectoryPage() {
             ) : (
               <Download className="h-4 w-4 mr-2" />
             )}
-            Exporter {selectedProfiles.size > 0 ? `(${selectedProfiles.size})` : 'tout'}
+            {selectedProfiles.size > 0
+              ? t('actions.export_selected', { count: selectedProfiles.size })
+              : t('actions.export_all')}
           </Button>
         </div>
       }
@@ -532,7 +552,7 @@ export default function CompetencesDirectoryPage() {
                   <Select
                     value={selectedCategory}
                     onValueChange={(v) =>
-                      setSelectedCategory(v === 'all' ? '' : (v as SkillCategory))
+                      setSelectedCategory(v === 'all' ? '' : (v as LocalSkillCategory))
                     }
                   >
                     <SelectTrigger>
@@ -558,7 +578,7 @@ export default function CompetencesDirectoryPage() {
                   <Select
                     value={selectedLevel}
                     onValueChange={(v) =>
-                      setSelectedLevel(v === 'all' ? '' : (v as ExpertiseLevel))
+                      setSelectedLevel(v === 'all' ? '' : (v as LocalExpertiseLevel))
                     }
                   >
                     <SelectTrigger>
@@ -690,7 +710,8 @@ export default function CompetencesDirectoryPage() {
                   <CardContent>
                     <div className="space-y-3">
                       {directoryData.statistics.topSkills.map((skill, index) => {
-                        const Icon = categoryIcons[skill.category] || Target;
+                        const Icon =
+                          categoryIcons[skill.category as SkillCategory] || Target;
                         const percentage = (skill.count / directoryData.total) * 100;
 
                         return (
@@ -703,7 +724,7 @@ export default function CompetencesDirectoryPage() {
                                 <Icon className="h-4 w-4" />
                                 <span className="font-medium">{skill.name}</span>
                                 <Badge variant="outline" className="text-xs">
-                                  {categoryLabels[skill.category]}
+                                  {categoryLabels[skill.category as SkillCategory]}
                                 </Badge>
                               </div>
                               <div className="flex items-center gap-2">
@@ -805,7 +826,8 @@ export default function CompetencesDirectoryPage() {
                 ) : (
                   filteredProfiles.map((profile) => {
                     if (!profile) return null;
-                    const Icon = categoryIcons[profile.skills.category] || Target;
+                    const Icon =
+                      categoryIcons[profile.skills.category as SkillCategory] || Target;
                     const isSelected = selectedProfiles.has(profile.id);
 
                     return (
@@ -836,9 +858,13 @@ export default function CompetencesDirectoryPage() {
                                 </p>
                               </div>
                             </div>
-                            <Badge className={categoryColors[profile.skills.category]}>
+                            <Badge
+                              className={
+                                categoryColors[profile.skills.category as SkillCategory]
+                              }
+                            >
                               <Icon className="h-3 w-3 mr-1" />
-                              {categoryLabels[profile.skills.category]}
+                              {categoryLabels[profile.skills.category as SkillCategory]}
                             </Badge>
                           </div>
                         </CardHeader>
@@ -906,7 +932,11 @@ export default function CompetencesDirectoryPage() {
                           <div className="flex items-center justify-between pt-2 border-t">
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
-                                {levelLabels[profile.skills.experienceLevel]}
+                                {
+                                  levelLabels[
+                                    profile.skills.experienceLevel as ExpertiseLevel
+                                  ]
+                                }
                               </Badge>
                               {profile.skills.marketDemand === 'high' && (
                                 <Badge variant="default" className="text-xs">
@@ -1144,7 +1174,11 @@ export default function CompetencesDirectoryPage() {
                         <p>
                           <span className="text-muted-foreground">Niveau:</span>{' '}
                           <Badge variant="outline">
-                            {levelLabels[profileCV.professional.experienceLevel]}
+                            {
+                              levelLabels[
+                                profileCV.professional.experienceLevel as ExpertiseLevel
+                              ]
+                            }
                           </Badge>
                         </p>
                       </div>
@@ -1198,9 +1232,9 @@ export default function CompetencesDirectoryPage() {
                             Compétences suggérées
                           </p>
                           <div className="flex flex-wrap gap-1">
-                            {profileCV.skills.suggested.map((skill) => (
-                              <Badge key={skill} variant="outline" className="text-xs">
-                                {skill}
+                            {profileCV.skills.suggested.map((skill, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {typeof skill === 'string' ? skill : skill.name}
                               </Badge>
                             ))}
                           </div>
