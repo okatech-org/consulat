@@ -722,20 +722,20 @@ export const projets: Projet[] = [
     dateDebut: new Date('2025-06-01'),
     dateEcheance: new Date('2025-11-30'),
     responsable: {
-      nom: 'Marie LEBLANC',
+      nom: 'PELLEN-LAKOUMBA Gueylord Asted',
       poste: 'Responsable Formation DGSS',
-      email: 'm.leblanc@consulat.ga',
-      telephone: '+33 1 42 99 56 61',
-      organisation: 'Consulat Général du Gabon',
+      email: 'contact@oka-tech.com',
+      telephone: '+33 6 60 00 26 16',
+      organisation: 'OKA Tech',
       adresse: '26bis Av. Raphaël, 75016 Paris'
     },
     equipe: [
       { 
-        initiales: 'ML', 
-        nom: 'Marie LEBLANC', 
+        initiales: 'PL', 
+        nom: 'PELLEN-LAKOUMBA Gueylord Asted', 
         role: 'Responsable Formation', 
-        email: 'm.leblanc@consulat.ga',
-        organisation: 'Consulat Général du Gabon'
+        email: 'contact@oka-tech.com',
+        organisation: 'OKA Tech'
       },
       { 
         initiales: 'GA', 
@@ -765,7 +765,7 @@ export const projets: Projet[] = [
         probabilite: 25,
         impact: 'moyen',
         mitigation: 'Formation progressive et support continu OKA Tech',
-        responsable: 'Marie LEBLANC',
+        responsable: 'PELLEN-LAKOUMBA Gueylord Asted',
         statut: 'surveille'
       }
     ],
@@ -790,7 +790,7 @@ export const projets: Projet[] = [
         statut: 'en_cours', 
         echeance: '2025-11-30',
         description: 'Formation aux outils consulat.ga et DGSS',
-        responsable: 'Marie LEBLANC',
+        responsable: 'PELLEN-LAKOUMBA Gueylord Asted',
         progression: 68
       }
     ],
@@ -824,7 +824,7 @@ export const projets: Projet[] = [
         id: 1,
         titre: 'Formation finale 144 agents restants', 
         echeance: '2025-11-30', 
-        responsable: 'Marie LEBLANC',
+        responsable: 'PELLEN-LAKOUMBA Gueylord Asted',
         priorite: 'haute',
         statut: 'planifie'
       }

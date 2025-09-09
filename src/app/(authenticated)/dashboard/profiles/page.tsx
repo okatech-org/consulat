@@ -153,9 +153,10 @@ export default function ProfilesPage() {
     }
     
     // Gérer les filtres de nationalité
-    if (filters.dualNationality) {
-      apiFilters.hasDualNationality = true;
-    }
+    // Note: dualNationality n'est pas supporté dans le schéma actuel
+    // if (filters.dualNationality) {
+    //   apiFilters.hasDualNationality = true;
+    // }
     if (filters.nationality) {
       apiFilters.nationality = filters.nationality;
     }
@@ -211,7 +212,11 @@ export default function ProfilesPage() {
       field: sorting[0]?.id as any,
       order: sorting[0]?.desc ? 'desc' : 'asc',
     } : { field: 'createdAt', order: 'desc' },
-    filters: combinedFilters || {},
+    search: combinedFilters?.search || undefined,
+    status: combinedFilters?.status || undefined,
+    category: combinedFilters?.category || undefined,
+    gender: combinedFilters?.gender || undefined,
+    organizationId: combinedFilters?.organizationId || undefined,
   });
   
   // Mutation pour créer une note d'intelligence
@@ -867,10 +872,8 @@ export default function ProfilesPage() {
                               className="mt-1"
                             />
                             <Avatar className="w-12 h-12">
-                              {profile.identityPicture?.fileUrl ? (
-                                <AvatarImage src={profile.identityPicture.fileUrl} alt={`${profile.firstName} ${profile.lastName}`} />
-                              ) : profile.user?.image ? (
-                                <AvatarImage src={profile.user.image} alt={`${profile.firstName} ${profile.lastName}`} />
+                              {profile.IDPictureUrl ? (
+                                <AvatarImage src={profile.IDPictureUrl} alt={`${profile.firstName} ${profile.lastName}`} />
                               ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-amber-500 text-white font-semibold">
                                   {profile.firstName?.[0]}{profile.lastName?.[0]}

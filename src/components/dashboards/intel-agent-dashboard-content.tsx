@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastContainer } from '@/components/ui/toast-notification';
 import DashboardCompactMap from '@/components/intelligence/dashboard-compact-map';
 import MiniMapWidget from '@/components/intelligence/mini-map-widget';
+import { RealTimeStatusWidget } from '@/components/intelligence/realtime-status-widget';
+import { RealTimeAlerts } from '@/components/intelligence/realtime-alerts';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
 import { 
@@ -112,6 +114,8 @@ export default function IntelAgentDashboardContent() {
 
   return (
     <div className="space-y-6">
+      {/* Composant d'alertes en temps réel */}
+      <RealTimeAlerts />
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
@@ -245,6 +249,11 @@ export default function IntelAgentDashboardContent() {
 
       {/* Widgets sous la carte */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Statut temps réel - 1 colonne */}
+        <div className="lg:col-span-1">
+          <RealTimeStatusWidget />
+        </div>
         
         {/* Recent Activity - 2 colonnes */}
         <div className="lg:col-span-2">

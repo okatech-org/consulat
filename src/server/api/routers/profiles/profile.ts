@@ -446,57 +446,28 @@ export const profileRouter = createTRPCRouter({
         organizationId,
         gender,
         sort,
-        // Nouveaux filtres d'intelligence
-        hasIntelligenceNotes,
-        hasChildren,
-        ageMin,
-        ageMax,
-        nationality,
-        hasDualNationality,
-        riskLevel,
-        surveillanceStatus,
-        flagged,
-        vip,
-        sensitive,
-        city,
-        region,
-        hasCoordinates,
-        childrenCountMin,
-        childrenCountMax,
       } = input;
 
       const where: Prisma.ProfileWhereInput = {};
 
-      // Apply basic filters
-      if (search && search.trim()) {
+      // Apply filters - améliorer la recherche
+      if (search && search.trim().length > 0) {
+        const searchTerm = search.trim();
         where.OR = [
-          { firstName: { contains: search.trim(), mode: 'insensitive' } },
-          { lastName: { contains: search.trim(), mode: 'insensitive' } },
-          { email: { contains: search.trim(), mode: 'insensitive' } },
-          { phoneNumber: { contains: search.trim(), mode: 'insensitive' } },
-          { cardNumber: { contains: search.trim(), mode: 'insensitive' } },
-          { cardPin: { contains: search.trim(), mode: 'insensitive' } },
-          { id: { contains: search.trim(), mode: 'insensitive' } },
-          // Recherche dans l'adresse
-          { 
-            address: {
-              OR: [
-                { city: { contains: search.trim(), mode: 'insensitive' } },
-                { firstLine: { contains: search.trim(), mode: 'insensitive' } },
-                { secondLine: { contains: search.trim(), mode: 'insensitive' } },
-                { country: { contains: search.trim(), mode: 'insensitive' } },
-              ]
-            }
-          },
-          // Recherche dans les informations utilisateur
+          { firstName: { contains: searchTerm, mode: 'insensitive' } },
+          { lastName: { contains: searchTerm, mode: 'insensitive' } },
+          { email: { contains: searchTerm, mode: 'insensitive' } },
+          { phoneNumber: { contains: searchTerm, mode: 'insensitive' } },
+          { cardNumber: { contains: searchTerm, mode: 'insensitive' } },
+          { cardPin: { contains: searchTerm, mode: 'insensitive' } },
+          { id: { contains: searchTerm, mode: 'insensitive' } },
+          // Recherche combinée prénom + nom
           {
-            user: {
-              OR: [
-                { name: { contains: search.trim(), mode: 'insensitive' } },
-                { email: { contains: search.trim(), mode: 'insensitive' } },
-              ]
-            }
-          }
+            AND: [
+              { firstName: { contains: searchTerm.split(' ')[0] || '', mode: 'insensitive' } },
+              { lastName: { contains: searchTerm.split(' ')[1] || '', mode: 'insensitive' } },
+            ],
+          },
         ];
       }
 
@@ -519,92 +490,26 @@ export const profileRouter = createTRPCRouter({
         where.assignedOrganizationId = { in: organizationId };
       }
 
-      // Filtres d'intelligence avancés
-      if (hasIntelligenceNotes !== undefined) {
-        if (hasIntelligenceNotes) {
-          where.intelligenceNotes = { some: {} };
-        } else {
-          where.intelligenceNotes = { none: {} };
-        }
-      }
-
-      if (hasChildren !== undefined) {
-        // Pour l'instant, on ne peut pas filtrer par enfants car la relation n'existe pas encore
-        // Cette fonctionnalité sera implémentée quand la relation parent-enfant sera ajoutée au schéma
-        console.warn('Filtre hasChildren non supporté - relation childProfiles non définie dans le schéma');
-      }
-
-      // Filtres d'âge
-      if (ageMin !== undefined || ageMax !== undefined) {
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth();
-        const currentDay = today.getDate();
-
-        if (ageMin !== undefined) {
-          // Pour âge minimum, la date de naissance doit être avant cette date
-          const maxBirthYear = currentYear - ageMin;
-          const maxBirthDate = new Date(maxBirthYear, currentMonth, currentDay);
-          where.birthDate = { ...where.birthDate, lte: maxBirthDate };
-        }
-
-        if (ageMax !== undefined) {
-          // Pour âge maximum, la date de naissance doit être après cette date
-          const minBirthYear = currentYear - ageMax - 1;
-          const minBirthDate = new Date(minBirthYear, currentMonth, currentDay + 1);
-          where.birthDate = { ...where.birthDate, gte: minBirthDate };
-        }
-      }
-
-      if (nationality) {
-        where.nationality = { contains: nationality, mode: 'insensitive' };
-      }
-
-      if (hasDualNationality !== undefined) {
-        // Le champ secondNationality n'existe pas encore dans le schéma
-        // Cette fonctionnalité sera implémentée quand le champ sera ajouté au modèle Profile
-        console.warn('Filtre hasDualNationality non supporté - champ secondNationality non défini dans le schéma Profile');
-      }
-
-      // Filtres de localisation
-      if (city) {
-        where.address = {
-          ...where.address,
-          city: { contains: city, mode: 'insensitive' }
-        };
-      }
-
-      if (region) {
-        // Le modèle Address n'a pas de champ region/state, on utilise city à la place
-        where.address = {
-          ...where.address,
-          city: { contains: region, mode: 'insensitive' }
-        };
-      }
-
-      if (hasCoordinates !== undefined) {
-        // Le modèle Address n'a pas de coordonnées GPS pour l'instant
-        // Cette fonctionnalité sera implémentée quand les coordonnées seront ajoutées au schéma
-        console.warn('Filtre hasCoordinates non supporté - coordonnées GPS non définies dans le schéma Address');
-      }
-
-      // Filtres de nombre d'enfants
-      if (childrenCountMin !== undefined || childrenCountMax !== undefined) {
-        // Pour l'instant, on ne peut pas filtrer par nombre d'enfants car la relation n'existe pas encore
-        // Cette fonctionnalité sera implémentée quand la relation parent-enfant sera ajoutée au schéma
-        console.warn('Filtre childrenCount non supporté - relation childProfiles non définie dans le schéma');
-      }
+      // Vérifier que le champ de tri est valide
+      const validSortFields = [
+        'id', 'firstName', 'lastName', 'email', 'phoneNumber',
+        'createdAt', 'updatedAt', 'cardNumber', 'cardPin',
+        'status', 'category', 'gender', 'birthDate'
+      ];
+      
+      const sortField = sort?.field && validSortFields.includes(sort.field) 
+        ? sort.field 
+        : 'createdAt';
+      const sortOrder = sort?.order || 'desc';
 
       const result = await ctx.db.$transaction([
         ctx.db.profile.count({ where }),
         ctx.db.profile.findMany({
           where,
           select: ProfileListItemSelect,
-          ...(sort && {
-            orderBy: {
-              [sort.field as keyof typeof BaseProfileInclude.include]: sort.order,
-            },
-          }),
+          orderBy: {
+            [sortField]: sortOrder,
+          },
           skip: (page - 1) * limit,
           take: limit,
         }),

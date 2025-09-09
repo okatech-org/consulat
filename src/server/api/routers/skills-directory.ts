@@ -52,7 +52,7 @@ export const skillsDirectoryRouter = createTRPCRouter({
       // Construire les conditions de recherche
       const where = {
         // Filtrer uniquement les profils gabonais avec informations
-        nationality: 'Gabonaise',
+        nationality: { in: ['GA', 'gabon', 'Gabonaise'] },
         OR: [
           { profession: { not: null } },
           { workStatus: { not: null } },
@@ -142,7 +142,7 @@ export const skillsDirectoryRouter = createTRPCRouter({
       // Calculer les statistiques globales
       const allProfiles = await ctx.db.profile.findMany({
         where: {
-          nationality: 'Gabonaise',
+          nationality: { in: ['GA', 'gabon', 'Gabonaise'] },
           OR: [
             { profession: { not: null } },
             { workStatus: { not: null } },

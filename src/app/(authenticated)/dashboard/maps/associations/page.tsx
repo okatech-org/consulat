@@ -31,32 +31,40 @@ import {
   Globe
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import DashboardCompactMap from '@/components/intelligence/dashboard-compact-map';
+import dynamic from 'next/dynamic';
 import { associations as dgssAssociations, associationStats, type Association } from '@/data/dgss-associations';
+import { getLocationCoordinates } from '@/lib/services/geocoding-service';
+
+// Import dynamique du composant de carte pour éviter les erreurs SSR
+const AssociationsMapSimple = dynamic(
+  () => import('@/components/intelligence/associations-map-simple'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-600">Chargement de la carte...</p>
+        </div>
+      </div>
+    ),
+  }
+);
 
 // Transformation des données pour le format attendu par le composant carte
 const transformAssociationsForMap = (associations: Association[]) => {
-  return associations
-    .filter(asso => asso.coordinates)
-    .map(asso => ({
-      id: asso.id,
-      firstName: asso.name.split(' ')[0],
-      lastName: asso.name.split(' ').slice(1).join(' '),
-      address: asso.city,
-      city: asso.city,
-      country: 'France',
-      coordinates: asso.coordinates ? {
-        lat: asso.coordinates[0],
-        lng: asso.coordinates[1]
-      } : undefined,
-      riskLevel: asso.riskLevel === 'critique' ? 5 : 
-                 asso.riskLevel === 'eleve' ? 4 : 
-                 asso.riskLevel === 'moyen' ? 3 : 2,
-      category: asso.category,
-      memberCount: asso.memberCount,
-      zone: asso.zone,
-      status: asso.monitoringStatus
-    }));
+  return associations.map(asso => ({
+    id: asso.id,
+    name: asso.name,
+    category: asso.category,
+    city: asso.city,
+    riskLevel: asso.riskLevel,
+    memberCount: asso.memberCount,
+    zone: asso.zone,
+    status: asso.monitoringStatus,
+    activities: asso.activities,
+    influence: asso.influence
+  }));
 };
 
 export default function AssociationsMapPage() {
@@ -485,14 +493,22 @@ export default function AssociationsMapPage() {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <DashboardCompactMap
-                profiles={mapData}
-                isLoading={isLoading}
-                className="h-[600px]"
-                showHeatmap={showHeatmap}
-                showClusters={showClusters}
-              />
+            <CardContent className="p-0">
+              <div className="h-[600px]">
+                <AssociationsMapSimple
+                  associations={mapData}
+                  onAssociationClick={(id) => {
+                    const asso = filteredAssociations.find(a => a.id === id);
+                    if (asso) {
+                      toast.info(`Association: ${asso.name}`, {
+                        description: `${asso.category} - ${asso.city}`
+                      });
+                    }
+                  }}
+                  className="h-full"
+                  showClusters={showClusters}
+                />
+              </div>
             </CardContent>
           </Card>
         ) : viewMode === 'list' ? (

@@ -9,6 +9,7 @@ import { useOptimizedNavigation, usePrefetchCommonData } from '@/hooks/use-optim
 import { useAggressivePrefetch, useBackgroundRefresh } from '@/hooks/use-aggressive-cache';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
+import { useDGSSRealTimeData, useDGSSNotifications, useDGSSSystemStatus } from '@/hooks/use-dgss-realtime-data';
 import { 
   Users, 
   MapPin, 
@@ -196,28 +197,82 @@ function CustomSidebar({
   const { resolvedTheme } = useTheme();
   const { data: stats } = useIntelligenceDashboardStats('month');
   
+  // Données en temps réel
+  const { data: realTimeData, isLoading: realTimeLoading } = useDGSSRealTimeData();
+  const { unreadCount, hasUnread } = useDGSSNotifications();
+  const { status: systemStatus, uptime, isHealthy } = useDGSSSystemStatus();
+  
   const isDark = resolvedTheme === 'dark';
   const themeText = isDark ? 'Mode sombre' : 'Mode clair';
 
   const navigationItems = [
-    { key: 'dashboard', label: 'Tableau de bord', icon: Home, path: '/dashboard' },
-    { key: 'profiles', label: 'Profils', icon: Users, path: '/dashboard/profiles', badge: stats?.totalProfiles || '2,226' },
+    { 
+      key: 'dashboard', 
+      label: 'Tableau de bord', 
+      icon: Home, 
+      path: '/dashboard',
+      badge: realTimeData?.newProfilesToday ? `+${realTimeData.newProfilesToday}` : undefined,
+      trend: realTimeData?.profilesTrend
+    },
+    { 
+      key: 'profiles', 
+      label: 'Profils', 
+      icon: Users, 
+      path: '/dashboard/profiles', 
+      badge: realTimeLoading ? '...' : (realTimeData?.totalProfiles?.toLocaleString() || stats?.totalProfiles || '2,226'),
+      trend: realTimeData?.profilesTrend
+    },
     { key: 'carte', label: 'Carte', icon: MapPin, path: '/dashboard/carte' },
     { key: 'projets', label: 'Projets', icon: Building2, path: '/dashboard/projets', badge: '5' },
   ];
 
   const cartographieItems = [
-    { key: 'associations-map', label: 'Carte des Associations', icon: MapPin, path: '/dashboard/maps/associations', badge: '129' },
+    { 
+      key: 'associations-map', 
+      label: 'Carte des Associations', 
+      icon: MapPin, 
+      path: '/dashboard/maps/associations', 
+      badge: realTimeData?.totalEntities?.toString() || '129' 
+    },
   ];
 
   const entitiesSurveilleesItems = [
-    { key: 'entities', label: 'Vue d\'ensemble', icon: Building2, path: '/dashboard/entities', badge: '129' },
-    { key: 'entities-critical', label: 'Surveillance critique', icon: AlertTriangle, path: '/dashboard/entities?tab=critical', badge: '6', critical: true },
+    { 
+      key: 'entities', 
+      label: 'Vue d\'ensemble', 
+      icon: Building2, 
+      path: '/dashboard/entities', 
+      badge: realTimeData?.totalEntities?.toString() || '129',
+      trend: realTimeData?.entitiesTrend
+    },
+    { 
+      key: 'entities-critical', 
+      label: 'Surveillance critique', 
+      icon: AlertTriangle, 
+      path: '/dashboard/entities?tab=critical', 
+      badge: realTimeData?.criticalEntities?.toString() || '6', 
+      critical: true,
+      pulse: realTimeData?.criticalEntities && realTimeData.criticalEntities > 6
+    },
   ];
 
   const renseignementItems = [
-    { key: 'notes', label: 'Notes', icon: FileText, path: '/dashboard/notes', badge: stats?.notesThisPeriod || '12' },
-    { key: 'competences', label: 'Annuaire Compétences', icon: BookOpen, path: '/dashboard/competences', badge: '487' },
+    { 
+      key: 'notes', 
+      label: 'Notes', 
+      icon: FileText, 
+      path: '/dashboard/notes', 
+      badge: realTimeData?.totalNotes?.toString() || stats?.notesThisPeriod || '12',
+      trend: realTimeData?.notesTrend
+    },
+    { 
+      key: 'competences', 
+      label: 'Annuaire Compétences', 
+      icon: BookOpen, 
+      path: '/dashboard/competences', 
+      badge: realTimeData?.totalSkills?.toString() || '487',
+      subBadge: realTimeData?.jobSeekers ? `${realTimeData.jobSeekers} en recherche` : undefined
+    },
     { key: 'reseaux', label: 'Réseaux d\'Influence', icon: Network, path: '/dashboard/reseaux' },
   ];
 
@@ -226,6 +281,41 @@ function CustomSidebar({
     { key: 'clusters', label: 'Détection Clusters', icon: Target, path: '/dashboard/clusters' },
     { key: 'predictions', label: 'Prédictions IA', icon: Brain, path: '/dashboard/predictions' },
   ];
+
+  // Fonction helper pour rendre les badges avec indicateurs
+  const renderBadge = (item: any) => {
+    if (!item.badge && !item.subBadge) return null;
+    
+    return (
+      <div className="flex flex-col items-end gap-1">
+        {item.badge && (
+          <div className="flex items-center gap-1">
+            <span 
+              className={`px-2 py-1 text-xs rounded-full font-medium ${
+                item.critical 
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+              } ${item.pulse ? 'animate-pulse' : ''}`}
+            >
+              {item.badge}
+            </span>
+            {item.trend && (
+              <div className={`w-2 h-2 rounded-full ${
+                item.trend === 'up' ? 'bg-green-400 animate-pulse' : 
+                item.trend === 'down' ? 'bg-red-400 animate-pulse' : 
+                'bg-gray-400'
+              }`} />
+            )}
+          </div>
+        )}
+        {item.subBadge && (
+          <span className="text-xs text-muted-foreground">
+            {item.subBadge}
+          </span>
+        )}
+      </div>
+    );
+  };
   
   return (
     <aside 
@@ -248,26 +338,50 @@ function CustomSidebar({
       >
         {/* Logo */}
         <div 
-          className="flex items-center gap-3 mb-8 pb-6"
+          className="flex items-center gap-3 mb-8 pb-6 relative"
           style={{
             borderBottom: '1px solid var(--border-glass-secondary)'
           }}
         >
-          <div 
-            className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg text-white"
-            style={{
-              background: 'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
-              animation: 'pulse-glow 3s infinite'
-            }}
-          >
-            DG
+          <div className="relative">
+            <div 
+              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg text-white"
+              style={{
+                background: 'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
+                animation: 'pulse-glow 3s infinite'
+              }}
+            >
+              DG
+            </div>
+            {/* Badge de notifications */}
+            {hasUnread && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-xs text-white font-bold">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              </div>
+            )}
+            {/* Indicateur d'alertes critiques */}
+            {realTimeData?.securityAlerts && realTimeData.securityAlerts > 0 && (
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
+            )}
           </div>
           <div>
             <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
               DGSS
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              Consulat.ga
+            <div className="text-xs flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+              <span>Consulat.ga</span>
+              {/* Statut de surveillance */}
+              {realTimeData?.surveillanceStatus && realTimeData.surveillanceStatus !== 'normal' && (
+                <span className={`px-1 py-0.5 rounded text-xs font-medium ${
+                  realTimeData.surveillanceStatus === 'critical' ? 'bg-red-500/20 text-red-400' :
+                  realTimeData.surveillanceStatus === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                  'bg-yellow-500/20 text-yellow-400'
+                }`}>
+                  {realTimeData.surveillanceStatus.toUpperCase()}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -306,14 +420,9 @@ function CustomSidebar({
                 )}
                 <item.icon className="w-4 h-4 opacity-70" />
                 <span className="text-sm">{item.label}</span>
-                {item.badge && (
-                  <span 
-                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
-                    style={{ background: 'var(--accent-intel)' }}
-                  >
-                    {item.badge}
-                  </span>
-                )}
+                <div className="ml-auto">
+                  {renderBadge(item)}
+                </div>
               </div>
             ))}
           </div>
@@ -350,14 +459,9 @@ function CustomSidebar({
                 )}
                 <item.icon className="w-4 h-4 opacity-70" />
                 <span className="text-sm">{item.label}</span>
-                {item.badge && (
-                  <span 
-                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
-                    style={{ background: 'var(--accent-intel)' }}
-                  >
-                    {item.badge}
-                  </span>
-                )}
+                <div className="ml-auto">
+                  {renderBadge(item)}
+                </div>
               </div>
             ))}
           </div>
@@ -504,9 +608,69 @@ function CustomSidebar({
           </div>
         </nav>
 
+        {/* Section Données Temps Réel */}
+        <div 
+          className="pt-4 pb-4"
+          style={{ 
+            borderTop: '1px solid var(--border-glass-secondary)'
+          }}
+        >
+          <div 
+            className="text-xs uppercase tracking-wide mb-3"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Statut Système
+          </div>
+          
+          <div className="space-y-2">
+            {/* Statut système */}
+            <div className="flex items-center justify-between text-xs">
+              <span style={{ color: 'var(--text-secondary)' }}>Disponibilité</span>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  isHealthy ? 'bg-green-400' : 'bg-orange-400'
+                } ${isHealthy ? '' : 'animate-pulse'}`} />
+                <span style={{ color: 'var(--text-primary)' }}>{uptime}%</span>
+              </div>
+            </div>
+            
+            {/* Agents actifs */}
+            <div className="flex items-center justify-between text-xs">
+              <span style={{ color: 'var(--text-secondary)' }}>Agents actifs</span>
+              <span style={{ color: 'var(--text-primary)' }}>
+                {realTimeData?.activeAgents || 3}
+              </span>
+            </div>
+            
+            {/* Alertes de sécurité */}
+            {realTimeData?.securityAlerts && realTimeData.securityAlerts > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span style={{ color: 'var(--text-secondary)' }}>Alertes sécurité</span>
+                <span className="text-red-400 font-medium animate-pulse">
+                  {realTimeData.securityAlerts}
+                </span>
+              </div>
+            )}
+            
+            {/* Dernière mise à jour */}
+            <div className="flex items-center justify-between text-xs">
+              <span style={{ color: 'var(--text-secondary)' }}>Dernière MAJ</span>
+              <span style={{ color: 'var(--text-primary)' }}>
+                {realTimeData?.lastUpdate ? 
+                  realTimeData.lastUpdate.toLocaleTimeString('fr-FR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  }) : 
+                  '--:--'
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Theme Section */}
         <div 
-          className="pt-6"
+          className="pt-4"
           style={{ 
             borderTop: '1px solid var(--border-glass-secondary)'
           }}
@@ -556,6 +720,10 @@ export default function IntelAgentLayout({
   
   // Récupérer l'utilisateur actuel
   const { user: currentUserData } = useCurrentUser();
+  
+  // Données en temps réel pour le layout principal
+  const { unreadCount, hasUnread } = useDGSSNotifications();
+  const { status: systemStatus, uptime, isHealthy } = useDGSSSystemStatus();
 
   // Mettre à jour les styles CSS immédiatement quand le thème change
   useEffect(() => {
@@ -729,6 +897,26 @@ export default function IntelAgentLayout({
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* Notifications */}
+              {hasUnread && (
+                <div className="relative">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="absolute -top-1 -right-1 text-xs bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                </div>
+              )}
+              
+              {/* Statut système */}
+              <div className="flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full ${
+                  isHealthy ? 'bg-green-400' : 'bg-orange-400'
+                } ${isHealthy ? '' : 'animate-pulse'}`} />
+                <span className="text-xs text-muted-foreground">
+                  {uptime}%
+                </span>
+              </div>
+              
               <LiveIndicator />
               <ThemeToggleIntel />
             </div>
