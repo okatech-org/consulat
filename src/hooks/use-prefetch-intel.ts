@@ -38,7 +38,7 @@ export function usePrefetchIntelData() {
  * Hook pour précharger les données d'une page spécifique
  * À utiliser dans les liens de navigation pour précharger avant le clic
  */
-export function usePrefetchPage(page: 'profiles' | 'notes' | 'carte' | 'securite' | 'rapports') {
+export function usePrefetchPage(page: 'profiles' | 'notes' | 'carte' | 'associations' | 'competences' | 'analytics') {
   const utils = api.useUtils();
 
   const prefetch = () => {
@@ -52,12 +52,18 @@ export function usePrefetchPage(page: 'profiles' | 'notes' | 'carte' | 'securite
       case 'carte':
         utils.intelligence.getProfilesMap.prefetch({ filters: undefined });
         break;
-      case 'securite':
-        // Précharger les données de sécurité si nécessaire
-        utils.intelligence.getDashboardStats.prefetch({ period: 'day' });
+      case 'associations':
+        // Précharger les données des associations
+        utils.intelligence.getProfilesMap.prefetch({ filters: undefined });
         break;
-      case 'rapports':
+      case 'competences':
+        // Précharger les données de compétences
+        utils.intelligence.getProfiles.prefetch({ page: 1, limit: 50, filters: {} });
+        break;
+      case 'analytics':
+        // Précharger les données d'analyse
         utils.intelligence.getDashboardStats.prefetch({ period: 'month' });
+        utils.intelligence.getDashboardStats.prefetch({ period: 'week' });
         break;
     }
   };

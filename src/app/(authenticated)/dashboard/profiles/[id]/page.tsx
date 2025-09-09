@@ -4,9 +4,9 @@ import type { SessionUser } from '@/types/user';
 import { ProfileIntelligenceDetailsPage } from './_components/profile-intelligence-details-page';
 
 interface ProfilePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {

@@ -18,7 +18,17 @@ import {
   BarChart3,
   Lock,
   Eye,
-  ChevronLeft
+  ChevronLeft,
+  Heart,
+  Briefcase,
+  Trophy,
+  Scale,
+  MessageCircle,
+  BookOpen,
+  Network,
+  Target,
+  Brain,
+  Building2
 } from 'lucide-react';
 
 // Variables CSS dynamiques pour le glass morphism selon le thème
@@ -220,14 +230,29 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
 
   const navigationItems = [
     { key: 'dashboard', label: 'Tableau de bord', icon: Home, path: '/dashboard' },
-    { key: 'profiles', label: 'Profils', icon: Users, path: '/dashboard/profiles', badge: stats?.totalProfiles || '2,847' },
+    { key: 'profiles', label: 'Profils', icon: Users, path: '/dashboard/profiles', badge: stats?.totalProfiles || '2,226' },
     { key: 'carte', label: 'Carte', icon: MapPin, path: '/dashboard/carte' },
+  ];
+
+  const cartographieItems = [
+    { key: 'associations-map', label: 'Carte des Associations', icon: MapPin, path: '/dashboard/maps/associations', badge: '129' },
+  ];
+
+  const entitiesSurveilleesItems = [
+    { key: 'entities', label: 'Vue d\'ensemble', icon: Building2, path: '/dashboard/entities', badge: '129' },
+    { key: 'entities-critical', label: 'Surveillance critique', icon: AlertTriangle, path: '/dashboard/entities?tab=critical', badge: '6', critical: true },
   ];
 
   const renseignementItems = [
     { key: 'notes', label: 'Notes', icon: FileText, path: '/dashboard/notes', badge: stats?.notesThisPeriod || '12' },
-    { key: 'securite', label: 'Sécurité', icon: Lock, path: '/dashboard/securite' },
-    { key: 'rapports', label: 'Rapports', icon: BarChart3, path: '/dashboard/rapports' },
+    { key: 'competences', label: 'Annuaire Compétences', icon: BookOpen, path: '/dashboard/competences', badge: '487' },
+    { key: 'reseaux', label: 'Réseaux d\'Influence', icon: Network, path: '/dashboard/reseaux' },
+  ];
+
+  const analysesItems = [
+    { key: 'dashboard-analytics', label: 'Analyses Avancées', icon: BarChart3, path: '/dashboard/analytics' },
+    { key: 'clusters', label: 'Détection Clusters', icon: Target, path: '/dashboard/clusters' },
+    { key: 'predictions', label: 'Prédictions IA', icon: Brain, path: '/dashboard/predictions' },
   ];
   
   return (
@@ -276,8 +301,9 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1">
-          <div className="mb-8">
+        <nav className="flex-1 overflow-y-auto">
+          {/* Section Principal */}
+          <div className="mb-6">
             <div 
               className="text-xs uppercase tracking-wide mb-3"
               style={{ color: 'var(--text-muted)' }}
@@ -288,7 +314,7 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
             {navigationItems.map((item) => (
               <div 
                 key={item.key}
-                className={`flex items-center gap-3 p-3 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
                   currentPage === item.key ? 'active' : ''
                 }`}
                 style={{
@@ -305,11 +331,11 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
                     }}
                   />
                 )}
-                <item.icon className="w-5 h-5 opacity-70" />
+                <item.icon className="w-4 h-4 opacity-70" />
                 <span className="text-sm">{item.label}</span>
                 {item.badge && (
                   <span 
-                    className="ml-auto px-2 py-0.5 text-white text-xs font-semibold rounded-full"
+                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
                     style={{ background: 'var(--accent-intel)' }}
                   >
                     {item.badge}
@@ -319,7 +345,8 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
             ))}
           </div>
 
-          <div className="mb-8">
+          {/* Section Renseignements - 2e position */}
+          <div className="mb-6">
             <div 
               className="text-xs uppercase tracking-wide mb-3"
               style={{ color: 'var(--text-muted)' }}
@@ -330,7 +357,7 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
             {renseignementItems.map((item) => (
               <div 
                 key={item.key}
-                className={`flex items-center gap-3 p-3 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
                   currentPage === item.key ? 'active' : ''
                 }`}
                 style={{
@@ -347,12 +374,150 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
                     }}
                   />
                 )}
-                <item.icon className="w-5 h-5 opacity-70" />
+                <item.icon className="w-4 h-4 opacity-70" />
                 <span className="text-sm">{item.label}</span>
                 {item.badge && (
                   <span 
-                    className="ml-auto px-2 py-0.5 text-white text-xs font-semibold rounded-full"
+                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
                     style={{ background: 'var(--accent-intel)' }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Section Cartographie */}
+          <div className="mb-6">
+            <div 
+              className="text-xs uppercase tracking-wide mb-3"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Cartographie
+            </div>
+
+            {cartographieItems.map((item) => (
+              <div 
+                key={item.key}
+                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                  currentPage === item.key ? 'active' : ''
+                }`}
+                style={{
+                  background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 'transparent'
+                }}
+                onClick={() => router.push(item.path)}
+              >
+                {currentPage === item.key && (
+                  <div 
+                    className="absolute left-0 top-0 h-full w-1"
+                    style={{
+                      background: 'var(--accent-intel)',
+                      borderRadius: '0 2px 2px 0'
+                    }}
+                  />
+                )}
+                <item.icon className="w-4 h-4 opacity-70" />
+                <span className="text-sm">{item.label}</span>
+                {item.badge && (
+                  <span 
+                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
+                    style={{ background: 'var(--accent-warning)' }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Section Entités Surveillées */}
+          <div className="mb-6">
+            <div 
+              className="text-xs uppercase tracking-wide mb-3"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Entités Surveillées
+            </div>
+
+            {entitiesSurveilleesItems.map((item) => (
+              <div 
+                key={item.key}
+                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                  currentPage === item.key ? 'active' : ''
+                } ${item.critical ? 'border border-red-500/30' : ''}`}
+                style={{
+                  background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 
+                             item.critical ? 'rgba(239, 68, 68, 0.05)' : 'transparent'
+                }}
+                onClick={() => router.push(item.path)}
+              >
+                {currentPage === item.key && (
+                  <div 
+                    className="absolute left-0 top-0 h-full w-1"
+                    style={{
+                      background: item.critical ? 'var(--accent-danger)' : 'var(--accent-intel)',
+                      borderRadius: '0 2px 2px 0'
+                    }}
+                  />
+                )}
+                <item.icon className={`w-4 h-4 opacity-70 ${item.critical ? 'text-red-500' : ''}`} />
+                <span className={`text-sm ${item.critical ? 'text-red-500 font-medium' : ''}`}>
+                  {item.label}
+                </span>
+                {item.badge && (
+                  <span 
+                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
+                    style={{ 
+                      background: item.critical ? 'var(--accent-danger)' : 'var(--accent-success)',
+                      animation: item.critical ? 'pulse 2s infinite' : 'none'
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+                {item.critical && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Section Analyses */}
+          <div className="mb-6">
+            <div 
+              className="text-xs uppercase tracking-wide mb-3"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Analyses
+            </div>
+
+            {analysesItems.map((item) => (
+              <div 
+                key={item.key}
+                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                  currentPage === item.key ? 'active' : ''
+                }`}
+                style={{
+                  background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 'transparent'
+                }}
+                onClick={() => router.push(item.path)}
+              >
+                {currentPage === item.key && (
+                  <div 
+                    className="absolute left-0 top-0 h-full w-1"
+                    style={{
+                      background: 'var(--accent-intel)',
+                      borderRadius: '0 2px 2px 0'
+                    }}
+                  />
+                )}
+                <item.icon className="w-4 h-4 opacity-70" />
+                <span className="text-sm">{item.label}</span>
+                {item.badge && (
+                  <span 
+                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
+                    style={{ background: 'var(--accent-danger)' }}
                   >
                     {item.badge}
                   </span>
@@ -409,22 +574,33 @@ export default function IntelAgentLayout({
   // Récupérer l'utilisateur actuel
   const { user: currentUserData } = useCurrentUser();
 
-  // Mettre à jour les styles CSS quand le thème change
+  // Mettre à jour les styles CSS immédiatement quand le thème change
   useEffect(() => {
     setMounted(true);
+    
+    // Appliquer immédiatement les styles par défaut
+    if (resolvedTheme) {
+      applyThemeStyles(resolvedTheme);
+    }
   }, []);
 
   useEffect(() => {
-    if (!mounted || !resolvedTheme) return;
+    if (!resolvedTheme) return;
     
-    // Supprimer les anciens styles s'ils existent
-    const existingStyles = document.querySelectorAll('[data-intel-theme]');
-    existingStyles.forEach(el => el.remove());
+    // Appliquer les styles immédiatement lors du changement de thème
+    applyThemeStyles(resolvedTheme);
+  }, [resolvedTheme]);
+
+  // Fonction pour appliquer les styles de thème
+  const applyThemeStyles = (theme: string) => {
+    // Supprimer seulement les anciennes variables, pas les keyframes
+    const existingVariables = document.querySelectorAll('[data-intel-theme="variables"]');
+    existingVariables.forEach(el => el.remove());
     
-    // Injecter les styles CSS dynamiques
+    // Injecter les nouvelles variables CSS immédiatement
     const style = document.createElement('style');
     style.setAttribute('data-intel-theme', 'variables');
-    style.textContent = getDynamicCSSVariables(resolvedTheme);
+    style.textContent = getDynamicCSSVariables(theme);
     document.head.appendChild(style);
     
     // Injecter les animations keyframes une seule fois
@@ -453,16 +629,15 @@ export default function IntelAgentLayout({
           50% { transform: scale(1.5); opacity: 0.5; }
           100% { transform: scale(1); opacity: 1; }
         }
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          33% { transform: translate(30px, -30px) rotate(120deg); }
+          66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
       `;
       document.head.appendChild(keyframes);
     }
-    
-    return () => {
-      // Nettoyer uniquement les styles variables, garder les keyframes
-      const stylesToRemove = document.querySelectorAll('[data-intel-theme="variables"]');
-      stylesToRemove.forEach(el => el.remove());
-    };
-  }, [resolvedTheme, mounted]);
+  };
 
   if (!mounted) {
     return (
