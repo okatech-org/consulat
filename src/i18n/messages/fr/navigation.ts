@@ -40,6 +40,7 @@ export default {
     'intel-competences': 'Compétences',
     'intel-networks': 'Réseaux',
     'intel-projects': 'Projets',
+    intel: 'Intelligence',
   },
   dashboard: {
     title: 'Accueil',

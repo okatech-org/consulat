@@ -9,7 +9,6 @@ export const ROUTES = {
     map: '/intel/map' as Route<string>,
     notes: '/intel/notes' as Route<string>,
     reports: '/intel/reports' as Route<string>,
-    security: '/intel/security' as Route<string>,
     analytics: '/intel/analytics' as Route<string>,
     clusters: '/intel/clusters' as Route<string>,
     predictions: '/intel/predictions' as Route<string>,

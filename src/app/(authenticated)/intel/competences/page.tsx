@@ -2,8 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { api } from '@/trpc/react';
-import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import IntelAgentLayout from '@/components/layouts/intel-agent-layout';
+import { PageContainer } from '@/components/layouts/page-container';
 import {
   Card,
   CardContent,
@@ -50,9 +49,6 @@ import {
   Building,
   Wrench,
   Briefcase,
-  Stethoscope,
-  Scale,
-  GraduationCap,
   Target,
   BarChart3,
   Eye,
@@ -67,6 +63,11 @@ import {
   UserSearch,
   BriefcaseIcon,
   TrendingDown,
+  MessageCircle,
+  Globe,
+  HelpCircle,
+  Palette,
+  type LucideIcon,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { WorkStatus } from '@prisma/client';
@@ -83,7 +84,7 @@ type SkillCategory =
 type ExpertiseLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
 // Mapping des icônes par catégorie
-const categoryIcons: Record<SkillCategory, any> = {
+const categoryIcons: Record<SkillCategory, LucideIcon> = {
   technique: Wrench,
   management: Briefcase,
   communication: MessageCircle,
@@ -372,7 +373,7 @@ export default function CompetencesDirectoryPage() {
 
   if (error) {
     return (
-      <IntelAgentLayout>
+      <PageContainer title="Erreur" description="Erreur de chargement">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Card className="max-w-md w-full">
             <CardContent className="pt-6">
@@ -390,54 +391,40 @@ export default function CompetencesDirectoryPage() {
             </CardContent>
           </Card>
         </div>
-      </IntelAgentLayout>
+      </PageContainer>
     );
   }
 
   return (
-    <IntelAgentLayout
+    <PageContainer
       title="Annuaire des Compétences DGSS"
       description="Exploitation des compétences gabonaises pour le développement national"
-      currentPage="competences"
-      backButton={true}
+      action={
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isLoading || isFetching}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+          <Button
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            variant={selectedProfiles.size > 0 ? 'default' : 'outline'}
+          >
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Exporter {selectedProfiles.size > 0 ? `(${selectedProfiles.size})` : 'tout'}
+          </Button>
+        </div>
+      }
     >
       <div className="space-y-6">
-        {/* Header avec statistiques globales */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-              <BookOpen className="h-8 w-8 text-primary" />
-              Annuaire des Compétences
-            </h1>
-            <p className="text-muted-foreground">
-              {directoryData?.total || 0} profils professionnels gabonais •{' '}
-              {gabonStats?.totalJobSeekers || 0} en recherche d'emploi
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => refetch()}
-              disabled={isLoading || isFetching}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-              Actualiser
-            </Button>
-            <Button
-              onClick={handleExportCSV}
-              disabled={isExporting}
-              variant={selectedProfiles.size > 0 ? 'default' : 'outline'}
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              Exporter {selectedProfiles.size > 0 ? `(${selectedProfiles.size})` : 'tout'}
-            </Button>
-          </div>
-        </div>
-
         {/* Statistiques */}
         {directoryData?.statistics && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -817,6 +804,7 @@ export default function CompetencesDirectoryPage() {
                   </div>
                 ) : (
                   filteredProfiles.map((profile) => {
+                    if (!profile) return null;
                     const Icon = categoryIcons[profile.skills.category] || Target;
                     const isSelected = selectedProfiles.has(profile.id);
 
@@ -1259,6 +1247,6 @@ export default function CompetencesDirectoryPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </IntelAgentLayout>
+    </PageContainer>
   );
 }

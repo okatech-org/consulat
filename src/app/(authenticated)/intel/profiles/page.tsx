@@ -1,23 +1,15 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { api } from '@/trpc/react';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import IntelAgentLayout from '@/components/layouts/intel-agent-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useTranslations } from 'next-intl';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { createIntelligenceNote } from '@/actions/intelligence';
@@ -25,21 +17,17 @@ import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
 import { Loader2 } from 'lucide-react';
 import {
   Users,
-  Search,
   Filter,
   Eye,
   MapPin,
   Calendar,
   FileText,
   AlertTriangle,
-  User,
   Phone,
   Mail,
-  Flag,
   Download,
   RefreshCw,
   Edit,
-  MoreHorizontal,
 } from 'lucide-react';
 import {
   Select,
@@ -48,19 +36,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { ProfileCategory, Gender, RequestStatus } from '@prisma/client';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { ProfilesArrayItem, ProfilesFilters } from '@/components/profile/types';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
-import { useCurrentUser } from '@/hooks/use-role-data';
 import {
   AdvancedPagination,
   PaginationInfo,
@@ -101,9 +82,7 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
 }
 
 export default function ProfilesPage() {
-  const t = useTranslations();
   const router = useRouter();
-  const { user } = useCurrentUser();
 
   // États pour les interactions utilisateur
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
@@ -117,8 +96,8 @@ export default function ProfilesPage() {
   const [newNote, setNewNote] = useState({
     title: '',
     content: '',
-    type: 'GENERAL' as IntelligenceNoteType,
-    priority: 'MEDIUM' as IntelligenceNotePriority,
+    type: 'GENERAL' as any,
+    priority: 'MEDIUM' as any,
   });
 
   // État pour les filtres avancés
@@ -130,29 +109,18 @@ export default function ProfilesPage() {
     pageSize: 15,
   });
 
-  const {
-    params,
-    pagination,
-    sorting,
-    handleParamsChange,
-    handlePaginationChange,
-    handleSortingChange,
-  } = useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
+  const { params, sorting, handleParamsChange, handlePaginationChange } =
+    useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
 
   // Utiliser la pagination locale si celle du hook est invalide
   const safePagination = {
-    pageIndex: !isNaN(pagination?.pageIndex || 0)
-      ? pagination?.pageIndex || 0
-      : localPagination.pageIndex,
-    pageSize:
-      !isNaN(pagination?.pageSize || 0) && (pagination?.pageSize || 0) > 0
-        ? pagination?.pageSize || 15
-        : localPagination.pageSize,
+    pageIndex: localPagination.pageIndex,
+    pageSize: localPagination.pageSize,
   };
 
   // Adapter les filtres intelligence aux filtres API
   const adaptIntelligenceFilters = (filters: IntelligenceFilters): ProfilesFilters => {
-    const apiFilters: any = {
+    const apiFilters: Record<string, any> = {
       search: filters.search,
       category: filters.category,
       status: filters.status,
@@ -239,13 +207,7 @@ export default function ProfilesPage() {
   } = api.profile.getList.useQuery({
     page: Math.max(1, safePagination.pageIndex + 1),
     limit: safePagination.pageSize,
-    sort:
-      sorting && sorting.length > 0
-        ? {
-            field: sorting[0]?.id as any,
-            order: sorting[0]?.desc ? 'desc' : 'asc',
-          }
-        : { field: 'createdAt', order: 'desc' },
+    sort: { field: 'createdAt', order: 'desc' },
     search: combinedFilters?.search || undefined,
     status: combinedFilters?.status || undefined,
     category: combinedFilters?.category || undefined,
@@ -259,7 +221,12 @@ export default function ProfilesPage() {
       onSuccess: () => {
         toast.success("Note d'intelligence ajoutée avec succès");
         setNoteDialogOpen(false);
-        setNewNote({ title: '', content: '', type: 'GENERAL', priority: 'MEDIUM' });
+        setNewNote({
+          title: '',
+          content: '',
+          type: 'GENERAL' as any,
+          priority: 'MEDIUM' as any,
+        });
         setSelectedProfileForNote(null);
         refetch(); // Rafraîchir les données
       },
@@ -335,7 +302,7 @@ export default function ProfilesPage() {
     profiles.length,
   );
 
-  const hasIntelligenceNotes = (profile: any) => {
+  const hasIntelligenceNotes = (profile: Record<string, any>) => {
     return profile.intelligenceNotes && profile.intelligenceNotes.length > 0;
   };
 
@@ -362,7 +329,7 @@ export default function ProfilesPage() {
     try {
       await refetch();
       toast.success('Données actualisées avec succès');
-    } catch (error) {
+    } catch {
       toast.error("Erreur lors de l'actualisation");
     } finally {
       setIsRefreshing(false);
@@ -388,7 +355,7 @@ export default function ProfilesPage() {
 
       toast.success(`${selectedProfiles.length} profils exportés avec succès`);
       setSelectedProfiles([]);
-    } catch (error) {
+    } catch {
       toast.error("Erreur lors de l'export");
     } finally {
       setIsExporting(false);
@@ -429,13 +396,18 @@ export default function ProfilesPage() {
         });
         toast.success("Note d'intelligence ajoutée avec succès");
         setNoteDialogOpen(false);
-        setNewNote({ title: '', content: '', type: 'GENERAL', priority: 'MEDIUM' });
+        setNewNote({
+          title: '',
+          content: '',
+          type: 'GENERAL' as any,
+          priority: 'MEDIUM' as any,
+        });
         setSelectedProfileForNote(null);
         refetch();
       }
     } catch (error: any) {
       toast.error(
-        "Erreur lors de l'ajout de la note: " + (error.message || 'Erreur inconnue'),
+        "Erreur lors de l'ajout de la note: " + (error?.message || 'Erreur inconnue'),
       );
     } finally {
       setIsAddingNote(false);
@@ -443,7 +415,7 @@ export default function ProfilesPage() {
   };
 
   // Fonctions utilitaires pour l'export CSV
-  const exportToCSV = (data: any[]) => {
+  const exportToCSV = (data: Record<string, any>[]) => {
     const headers = [
       'ID',
       'Prénom',
@@ -504,19 +476,19 @@ export default function ProfilesPage() {
     );
   });
 
-  const getCategoryBadge = (category: ProfileCategory) => {
+  const getCategoryBadge = (category: string) => {
     switch (category) {
-      case ProfileCategory.CITIZEN:
+      case 'CITIZEN':
         return {
           text: 'Citoyen',
           color: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
         };
-      case ProfileCategory.RESIDENT:
+      case 'RESIDENT':
         return {
           text: 'Résident',
           color: 'bg-green-500/20 text-green-500 border-green-500/30',
         };
-      case ProfileCategory.VISITOR:
+      case 'VISITOR':
         return {
           text: 'Visiteur',
           color: 'bg-orange-500/20 text-orange-500 border-orange-500/30',
@@ -529,17 +501,17 @@ export default function ProfilesPage() {
     }
   };
 
-  const getStatusBadge = (status: RequestStatus) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case RequestStatus.SUBMITTED:
+      case 'SUBMITTED':
         return { text: 'Soumis', color: 'bg-blue-500/20 text-blue-500' };
-      case RequestStatus.PENDING:
+      case 'PENDING':
         return { text: 'En attente', color: 'bg-orange-500/20 text-orange-500' };
-      case RequestStatus.VALIDATED:
+      case 'VALIDATED':
         return { text: 'Validé', color: 'bg-green-500/20 text-green-500' };
-      case RequestStatus.REJECTED:
+      case 'REJECTED':
         return { text: 'Rejeté', color: 'bg-red-500/20 text-red-500' };
-      case RequestStatus.COMPLETED:
+      case 'COMPLETED':
         return { text: 'Terminé', color: 'bg-green-500/20 text-green-500' };
       default:
         return { text: 'Inconnu', color: 'bg-gray-500/20 text-gray-500' };
@@ -868,7 +840,7 @@ export default function ProfilesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {profiles.map((profile, index) => {
+                {profiles.map((profile) => {
                   const categoryStyle = getCategoryBadge(profile.category);
                   const statusStyle = getStatusBadge(profile.status);
                   const hasNotes = hasIntelligenceNotes(profile);
@@ -1131,7 +1103,7 @@ export default function ProfilesPage() {
                   variant="outline"
                   size="sm"
                   className="mt-4"
-                  onClick={() => handleParamsChange({})}
+                  onClick={() => handleParamsChange && handleParamsChange({})}
                 >
                   Réinitialiser les filtres
                 </Button>
@@ -1143,7 +1115,7 @@ export default function ProfilesPage() {
               <div className="text-center py-12">
                 <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
                 <p className="text-red-500 mb-4">Erreur lors du chargement des profils</p>
-                <Button variant="outline" size="sm" onClick={() => refetch()}>
+                <Button variant="outline" size="sm" onClick={() => refetch && refetch()}>
                   Réessayer
                 </Button>
               </div>

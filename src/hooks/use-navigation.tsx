@@ -21,9 +21,7 @@ import {
   MailIcon,
   Ticket,
   MapPin,
-  Shield,
   BarChart3,
-  Target,
   Brain,
   BookOpen,
   Network,
@@ -167,21 +165,9 @@ export function useNavigation() {
       roles: [UserRole.INTEL_AGENT],
     },
     {
-      title: t('intel-security'),
-      url: ROUTES.intel.security,
-      icon: Shield,
-      roles: [UserRole.INTEL_AGENT],
-    },
-    {
       title: t('intel-analytics'),
       url: ROUTES.intel.analytics,
       icon: BarChart3,
-      roles: [UserRole.INTEL_AGENT],
-    },
-    {
-      title: t('intel-clusters'),
-      url: ROUTES.intel.clusters,
-      icon: Target,
       roles: [UserRole.INTEL_AGENT],
     },
     {
@@ -194,18 +180,6 @@ export function useNavigation() {
       title: t('intel-competences'),
       url: ROUTES.intel.competences,
       icon: BookOpen,
-      roles: [UserRole.INTEL_AGENT],
-    },
-    {
-      title: t('intel-networks'),
-      url: ROUTES.intel.networks,
-      icon: Network,
-      roles: [UserRole.INTEL_AGENT],
-    },
-    {
-      title: t('intel-projects'),
-      url: ROUTES.intel.projects,
-      icon: Building2,
       roles: [UserRole.INTEL_AGENT],
     },
   ];
