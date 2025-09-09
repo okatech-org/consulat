@@ -149,11 +149,15 @@ export default function DashboardCompactMap({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <Target className="h-5 w-5 text-blue-600" />
+            <Target className="h-5 w-5" style={{ color: 'var(--accent-intel)' }} />
             Carte Intelligence
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge className="bg-green-500/20 text-green-500 border-green-500/30 text-xs">
+            <Badge className="text-xs" style={{ 
+              background: 'rgba(16, 185, 129, 0.2)', 
+              color: 'var(--accent-success)', 
+              border: '1px solid rgba(16, 185, 129, 0.3)' 
+            }}>
               {mapData.stats.withAddress} géolocalisés
             </Badge>
             <Button 

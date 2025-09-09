@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
 import { api } from '@/trpc/react';
+import { ThemeToggleIntel } from '@/components/ui/theme-toggle-intel';
+import { useOptimizedNavigation, usePrefetchCommonData } from '@/hooks/use-optimized-navigation';
+import { useAggressivePrefetch, useBackgroundRefresh } from '@/hooks/use-aggressive-cache';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import { 
@@ -143,48 +146,6 @@ function BackgroundEffects() {
   );
 }
 
-// Composant pour le toggle de thème
-function ThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="w-15 h-7 rounded-full bg-gray-200 dark:bg-gray-700" />
-    );
-  }
-
-  const isDark = resolvedTheme === 'dark';
-
-  return (
-    <div 
-      className="relative cursor-pointer overflow-hidden transition-all duration-300 rounded-full hover:shadow-lg"
-      style={{
-        width: '60px',
-        height: '30px',
-        background: 'var(--bg-glass-secondary)',
-        border: '1px solid var(--border-glass-primary)',
-        boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
-      }}
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-    >
-      <div 
-        className="absolute top-0.5 w-6 h-6 rounded-full transition-all duration-300 flex items-center justify-center"
-        style={{
-          left: isDark ? '3px' : '30px',
-          background: 'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
-          fontSize: '14px'
-        }}
-      >
-        {isDark ? '🌙' : '☀️'}
-      </div>
-    </div>
-  );
-}
 
 // Composant pour l'indicateur LIVE
 function LiveIndicator() {
@@ -220,7 +181,17 @@ function LiveIndicator() {
 }
 
 // Composant pour la sidebar
-function CustomSidebar({ currentUser, currentPage }: { currentUser: any, currentPage: string }) {
+function CustomSidebar({ 
+  currentUser, 
+  currentPage,
+  navigateTo,
+  handleMouseEnter 
+}: { 
+  currentUser: any, 
+  currentPage: string,
+  navigateTo: (path: string) => void,
+  handleMouseEnter: (path: string) => () => void
+}) {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
   const { data: stats } = useIntelligenceDashboardStats('month');
@@ -232,6 +203,7 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
     { key: 'dashboard', label: 'Tableau de bord', icon: Home, path: '/dashboard' },
     { key: 'profiles', label: 'Profils', icon: Users, path: '/dashboard/profiles', badge: stats?.totalProfiles || '2,226' },
     { key: 'carte', label: 'Carte', icon: MapPin, path: '/dashboard/carte' },
+    { key: 'projets', label: 'Projets', icon: Building2, path: '/dashboard/projets', badge: '5' },
   ];
 
   const cartographieItems = [
@@ -320,7 +292,8 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
                 style={{
                   background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 'transparent'
                 }}
-                onClick={() => router.push(item.path)}
+                onClick={() => navigateTo(item.path)}
+                onMouseEnter={() => handleMouseEnter(item.path)}
               >
                 {currentPage === item.key && (
                   <div 
@@ -363,7 +336,8 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
                 style={{
                   background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 'transparent'
                 }}
-                onClick={() => router.push(item.path)}
+                onClick={() => navigateTo(item.path)}
+                onMouseEnter={() => handleMouseEnter(item.path)}
               >
                 {currentPage === item.key && (
                   <div 
@@ -406,7 +380,8 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
                 style={{
                   background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 'transparent'
                 }}
-                onClick={() => router.push(item.path)}
+                onClick={() => navigateTo(item.path)}
+                onMouseEnter={() => handleMouseEnter(item.path)}
               >
                 {currentPage === item.key && (
                   <div 
@@ -450,7 +425,8 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
                   background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 
                              item.critical ? 'rgba(239, 68, 68, 0.05)' : 'transparent'
                 }}
-                onClick={() => router.push(item.path)}
+                onClick={() => navigateTo(item.path)}
+                onMouseEnter={() => handleMouseEnter(item.path)}
               >
                 {currentPage === item.key && (
                   <div 
@@ -501,7 +477,8 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
                 style={{
                   background: currentPage === item.key ? 'var(--interactive-hover-strong)' : 'transparent'
                 }}
-                onClick={() => router.push(item.path)}
+                onClick={() => navigateTo(item.path)}
+                onMouseEnter={() => handleMouseEnter(item.path)}
               >
                 {currentPage === item.key && (
                   <div 
@@ -542,9 +519,9 @@ function CustomSidebar({ currentUser, currentPage }: { currentUser: any, current
               className="flex items-center gap-2 text-sm"
               style={{ color: 'var(--text-secondary)' }}
             >
-              <span>{themeText}</span>
-            </div>
-            <ThemeToggle />
+                    <span>{themeText}</span>
+                  </div>
+                  <ThemeToggleIntel />
           </div>
         </div>
       </div>
@@ -570,6 +547,12 @@ export default function IntelAgentLayout({
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
+  const { navigateTo, handleMouseEnter, isPending } = useOptimizedNavigation();
+  const { prefetchCommon } = usePrefetchCommonData();
+  
+  // Activer le préchargement agressif et le rafraîchissement en arrière-plan
+  useAggressivePrefetch();
+  useBackgroundRefresh();
   
   // Récupérer l'utilisateur actuel
   const { user: currentUserData } = useCurrentUser();
@@ -582,7 +565,10 @@ export default function IntelAgentLayout({
     if (resolvedTheme) {
       applyThemeStyles(resolvedTheme);
     }
-  }, []);
+    
+    // Précharger les données communes au montage
+    prefetchCommon();
+  }, [prefetchCommon]);
 
   useEffect(() => {
     if (!resolvedTheme) return;
@@ -590,9 +576,26 @@ export default function IntelAgentLayout({
     // Appliquer les styles immédiatement lors du changement de thème
     applyThemeStyles(resolvedTheme);
   }, [resolvedTheme]);
+  
+  // Écouter les changements de thème via un event listener personnalisé
+  useEffect(() => {
+    const handleThemeChange = (event: CustomEvent) => {
+      const newTheme = event.detail;
+      if (newTheme) {
+        applyThemeStyles(newTheme);
+      }
+    };
+
+    window.addEventListener('theme-changed' as any, handleThemeChange);
+    return () => window.removeEventListener('theme-changed' as any, handleThemeChange);
+  }, []);
 
   // Fonction pour appliquer les styles de thème
   const applyThemeStyles = (theme: string) => {
+    // Forcer l'application immédiate de la classe du thème
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+    
     // Supprimer seulement les anciennes variables, pas les keyframes
     const existingVariables = document.querySelectorAll('[data-intel-theme="variables"]');
     existingVariables.forEach(el => el.remove());
@@ -602,6 +605,11 @@ export default function IntelAgentLayout({
     style.setAttribute('data-intel-theme', 'variables');
     style.textContent = getDynamicCSSVariables(theme);
     document.head.appendChild(style);
+    
+    // Forcer le reflow pour appliquer immédiatement les changements
+    document.body.style.display = 'none';
+    document.body.offsetHeight; // Trigger reflow
+    document.body.style.display = '';
     
     // Injecter les animations keyframes une seule fois
     if (!document.querySelector('[data-intel-theme="keyframes"]')) {
@@ -624,11 +632,15 @@ export default function IntelAgentLayout({
           0%, 100% { opacity: 1; }
           50% { opacity: 0.7; }
         }
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.5); opacity: 0.5; }
-          100% { transform: scale(1); opacity: 1; }
-        }
+      @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.5); opacity: 0.5; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes loading-slide {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(400%); }
+      }
         @keyframes float {
           0%, 100% { transform: translate(0, 0) rotate(0deg); }
           33% { transform: translate(30px, -30px) rotate(120deg); }
@@ -667,12 +679,30 @@ export default function IntelAgentLayout({
         transition: 'background 0.3s ease, color 0.3s ease'
       }}
     >
+      {/* Indicateur de chargement global */}
+      {isPending && (
+        <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent">
+          <div 
+            className="h-full bg-gradient-to-r from-blue-400 to-blue-600" 
+            style={{ 
+              animation: 'loading-slide 1s ease-in-out infinite',
+              width: '30%'
+            }} 
+          />
+        </div>
+      )}
+      
       <BackgroundEffects />
       
       {/* Container avec sidebar */}
       <div className="flex min-h-screen relative z-10">
         {/* Sidebar */}
-        <CustomSidebar currentUser={currentUser} currentPage={currentPage} />
+        <CustomSidebar 
+          currentUser={currentUser} 
+          currentPage={currentPage}
+          navigateTo={navigateTo}
+          handleMouseEnter={handleMouseEnter}
+        />
 
         {/* Top bar mobile */}
         <div className="fixed top-0 left-0 right-0 z-30 md:hidden backdrop-blur-sm bg-card/60 border-b border-border/50 p-4">
@@ -700,7 +730,7 @@ export default function IntelAgentLayout({
             </div>
             <div className="flex items-center gap-3">
               <LiveIndicator />
-              <ThemeToggle />
+              <ThemeToggleIntel />
             </div>
           </div>
         </div>

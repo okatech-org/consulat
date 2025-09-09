@@ -137,10 +137,10 @@ export default async function RootLayout({
   return (
     <html 
       lang={locale} 
-      className={`${geist.variable} ${serverTheme !== 'system' ? serverTheme : ''}`}
-      style={{ colorScheme: serverTheme === 'dark' ? 'dark' : 'light' }}
+      className={geist.variable}
+      suppressHydrationWarning
     >
-      <body className={serverTheme === 'dark' ? 'dark' : ''}>
+      <body suppressHydrationWarning>
         <ErrorBoundary>
           <TRPCReactProvider>
             <SessionProvider session={session}>

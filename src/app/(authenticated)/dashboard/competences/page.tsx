@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { api } from '@/trpc/react';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import IntelAgentLayout from '@/components/layouts/intel-agent-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,19 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { 
   BookOpen, 
   Search, 
@@ -38,7 +51,15 @@ import {
   Phone,
   MapPin,
   Zap,
-  User
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Grid3x3,
+  List,
+  UserSearch,
+  BriefcaseIcon,
+  Globe,
+  TrendingDown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { SkillCategory, ExpertiseLevel, WorkStatus } from '@prisma/client';
@@ -108,7 +129,7 @@ const workStatusLabels: Record<WorkStatus, string> = {
   SELF_EMPLOYED: 'Indépendant',
   STUDENT: 'Étudiant',
   RETIRED: 'Retraité',
-  UNEMPLOYED: 'Sans emploi',
+  UNEMPLOYED: 'Ressortissant gabonais à la recherche d\'emploi',
   OTHER: 'Autre',
 };
 
@@ -118,22 +139,68 @@ export default function CompetencesDirectoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<SkillCategory | ''>('');
   const [selectedLevel, setSelectedLevel] = useState<ExpertiseLevel | ''>('');
   const [selectedDemand, setSelectedDemand] = useState<'high' | 'medium' | 'low' | ''>('');
+  const [selectedWorkStatus, setSelectedWorkStatus] = useState<WorkStatus | ''>('');
   const [selectedProfiles, setSelectedProfiles] = useState<Set<string>>(new Set());
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showOnlyComplete, setShowOnlyComplete] = useState(false);
   const [selectedProfileForCV, setSelectedProfileForCV] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [sortBy, setSortBy] = useState<'name' | 'profession' | 'updatedAt' | 'marketDemand'>('updatedAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [activeTab, setActiveTab] = useState('all');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
-  // Récupérer les données réelles via tRPC
-  const { data: directoryData, isLoading, error, refetch } = api.skillsDirectory.getDirectory.useQuery({
-    search: searchTerm || undefined,
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, selectedCategory, selectedLevel, selectedDemand, selectedWorkStatus, showOnlyComplete, activeTab]);
+
+  // Appliquer les filtres selon l'onglet actif
+  useEffect(() => {
+    switch (activeTab) {
+      case 'jobSeekers':
+        setSelectedWorkStatus('UNEMPLOYED');
+        break;
+      case 'employed':
+        // Réinitialiser pour montrer tous sauf UNEMPLOYED
+        setSelectedWorkStatus('');
+        break;
+      case 'highDemand':
+        setSelectedDemand('high');
+        break;
+      case 'all':
+      default:
+        // Ne pas réinitialiser automatiquement les filtres
+        break;
+    }
+  }, [activeTab]);
+
+  // Récupérer les données réelles via tRPC avec pagination
+  const { data: directoryData, isLoading, error, refetch, isFetching } = api.skillsDirectory.getDirectory.useQuery({
+    search: debouncedSearchTerm || undefined,
     category: selectedCategory || undefined,
     level: selectedLevel || undefined,
     marketDemand: selectedDemand || undefined,
+    workStatus: selectedWorkStatus || undefined,
     hasCompleteProfile: showOnlyComplete || undefined,
+    page: currentPage,
+    limit: pageSize,
+    sortBy,
+    sortOrder,
   }, {
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
+    keepPreviousData: true,
   });
 
   // Récupérer le CV d'un profil sélectionné
@@ -148,21 +215,41 @@ export default function CompetencesDirectoryPage() {
   // Recherche de profils par compétence
   const searchBySkillMutation = api.skillsDirectory.searchBySkill.useMutation({
     onSuccess: (data) => {
-      toast.success(`${data.total} profils trouvés avec cette compétence`);
-      // Rediriger vers la page des profils avec les résultats
-      router.push(`/dashboard/profiles?skill=${encodeURIComponent(data.profiles[0]?.matchingSkill?.name || '')}`);
+      if (data.total > 0) {
+        toast.success(`${data.total} profils trouvés avec cette compétence`);
+        // Rediriger vers la page des profils avec les résultats
+        router.push(`/dashboard/profiles?skill=${encodeURIComponent(data.profiles[0]?.matchingSkill?.name || '')}`);
+      } else {
+        toast.info('Aucun profil trouvé avec cette compétence');
+      }
     },
-    onError: () => {
-      toast.error('Erreur lors de la recherche');
+    onError: (error) => {
+      toast.error(`Erreur lors de la recherche: ${error.message}`);
     },
   });
 
   // Statistiques du dashboard
   const { data: dashboardStats } = useIntelligenceDashboardStats('month');
 
+  // Récupérer les statistiques pour le Gabon
+  const { data: gabonStats } = api.skillsDirectory.getSkillsStatisticsForGabon.useQuery(undefined, {
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
   // Filtrer les profils selon la sélection
   const filteredProfiles = useMemo(() => {
     return directoryData?.profiles || [];
+  }, [directoryData]);
+
+  // Calculer les statistiques par onglet
+  const tabStats = useMemo(() => {
+    if (!directoryData?.statistics) return { all: 0, jobSeekers: 0, employed: 0, highDemand: 0 };
+    return {
+      all: directoryData.total,
+      jobSeekers: directoryData.statistics.jobSeekers,
+      employed: directoryData.total - directoryData.statistics.jobSeekers,
+      highDemand: directoryData.statistics.marketDemandDistribution.high || 0,
+    };
   }, [directoryData]);
 
   // Gérer la sélection des profils
@@ -186,14 +273,21 @@ export default function CompetencesDirectoryPage() {
     }
   };
 
-  // Export CSV
-  const handleExportCSV = async () => {
+  // Export CSV amélioré
+  const handleExportCSV = useCallback(async () => {
     setIsExporting(true);
     try {
-      const selectedData = filteredProfiles.filter(p => selectedProfiles.has(p.id));
+      const selectedData = selectedProfiles.size > 0 
+        ? filteredProfiles.filter(p => selectedProfiles.has(p.id))
+        : filteredProfiles;
+      
+      if (selectedData.length === 0) {
+        toast.warning('Aucun profil à exporter');
+        return;
+      }
       
       const csv = [
-        ['Nom', 'Prénom', 'Profession', 'Employeur', 'Statut', 'Catégorie', 'Niveau', 'Compétences principales', 'Email', 'Téléphone', 'Ville'],
+        ['Nom', 'Prénom', 'Profession', 'Employeur', 'Statut', 'Catégorie', 'Niveau', 'Compétences principales', 'Email', 'Téléphone', 'Ville', 'Demande du marché'],
         ...selectedData.map(p => [
           p.lastName || '',
           p.firstName || '',
@@ -206,23 +300,25 @@ export default function CompetencesDirectoryPage() {
           p.email || '',
           p.phoneNumber || '',
           p.address?.city || '',
+          p.skills.marketDemand === 'high' ? 'Élevée' : p.skills.marketDemand === 'medium' ? 'Moyenne' : 'Faible',
         ])
       ];
 
-      const csvContent = csv.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+      const csvContent = '\ufeff' + csv.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `annuaire-competences-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `competences-gabon-${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       
-      toast.success(`${selectedData.length} profils exportés`);
+      toast.success(`${selectedData.length} profils exportés avec succès`);
     } catch (error) {
-      toast.error('Erreur lors de l\'export');
+      console.error('Export error:', error);
+      toast.error('Erreur lors de l\'export des données');
     } finally {
       setIsExporting(false);
     }
-  };
+  }, [selectedProfiles, filteredProfiles]);
 
   // Afficher le CV modal
   const handleShowCV = (profileId: string) => {
@@ -254,35 +350,44 @@ export default function CompetencesDirectoryPage() {
   }
 
   return (
-    <IntelAgentLayout>
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-start">
+    <IntelAgentLayout
+      title="Annuaire des Compétences DGSS"
+      description="Exploitation des compétences gabonaises pour le développement national"
+      currentPage="competences"
+      backButton={true}
+    >
+      <div className="space-y-6">
+        {/* Header avec statistiques globales */}
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Annuaire des Compétences</h1>
+            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+              <BookOpen className="h-8 w-8 text-primary" />
+              Annuaire des Compétences
+            </h1>
             <p className="text-muted-foreground">
-              Analyse intelligente de {directoryData?.total || 0} profils professionnels
+              {directoryData?.total || 0} profils professionnels gabonais • {gabonStats?.totalJobSeekers || 0} en recherche d'emploi
             </p>
           </div>
           <div className="flex gap-2">
             <Button 
               variant="outline"
               onClick={() => refetch()}
-              disabled={isLoading}
+              disabled={isLoading || isFetching}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
               Actualiser
             </Button>
             <Button
               onClick={handleExportCSV}
-              disabled={selectedProfiles.size === 0 || isExporting}
+              disabled={isExporting}
+              variant={selectedProfiles.size > 0 ? "default" : "outline"}
             >
               {isExporting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Download className="h-4 w-4 mr-2" />
               )}
-              Exporter ({selectedProfiles.size})
+              Exporter {selectedProfiles.size > 0 ? `(${selectedProfiles.size})` : 'tout'}
             </Button>
           </div>
         </div>
@@ -345,97 +450,174 @@ export default function CompetencesDirectoryPage() {
           </div>
         )}
 
-        {/* Filtres */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Filtres de recherche</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              
-              <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v === 'all' ? '' : v as SkillCategory)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Catégorie" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
-                  {Object.entries(categoryLabels).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={selectedLevel} onValueChange={(v) => setSelectedLevel(v === 'all' ? '' : v as ExpertiseLevel)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Niveau" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  {Object.entries(levelLabels).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={selectedDemand} onValueChange={(v) => setSelectedDemand(v === 'all' ? '' : v as 'high' | 'medium' | 'low')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Demande" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
-                  <SelectItem value="high">Élevée</SelectItem>
-                  <SelectItem value="medium">Moyenne</SelectItem>
-                  <SelectItem value="low">Faible</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="complete"
-                  checked={showOnlyComplete}
-                  onCheckedChange={(checked) => setShowOnlyComplete(checked as boolean)}
-                />
-                <label htmlFor="complete" className="text-sm">
-                  Profils complets uniquement
-                </label>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                >
-                  {viewMode === 'grid' ? 'Vue liste' : 'Vue grille'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                >
-                  {selectedProfiles.size === filteredProfiles.length ? 'Désélectionner tout' : 'Sélectionner tout'}
-                </Button>
-              </div>
-              
-              {selectedProfiles.size > 0 && (
-                <Badge variant="secondary">
-                  {selectedProfiles.size} sélectionné(s)
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Onglets de navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Tous ({tabStats.all})
+            </TabsTrigger>
+            <TabsTrigger value="jobSeekers" className="flex items-center gap-2">
+              <UserSearch className="h-4 w-4" />
+              Recherche d'emploi ({tabStats.jobSeekers})
+            </TabsTrigger>
+            <TabsTrigger value="employed" className="flex items-center gap-2">
+              <BriefcaseIcon className="h-4 w-4" />
+              En poste ({tabStats.employed})
+            </TabsTrigger>
+            <TabsTrigger value="highDemand" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Forte demande ({tabStats.highDemand})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={activeTab} className="mt-6 space-y-6">
+            {/* Filtres avancés */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Filtres de recherche
+                </CardTitle>
+                <CardDescription>
+                  Affinez votre recherche pour identifier les talents gabonais
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                  <div className="relative lg:col-span-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Nom, profession, employeur..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  
+                  <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v === 'all' ? '' : v as SkillCategory)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes catégories</SelectItem>
+                      <Separator className="my-1" />
+                      {Object.entries(categoryLabels).map(([key, label]) => {
+                        const Icon = categoryIcons[key as SkillCategory];
+                        return (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="h-4 w-4" />
+                              {label}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={selectedLevel} onValueChange={(v) => setSelectedLevel(v === 'all' ? '' : v as ExpertiseLevel)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Niveau d'expertise" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous niveaux</SelectItem>
+                      <Separator className="my-1" />
+                      {Object.entries(levelLabels).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedWorkStatus} onValueChange={(v) => setSelectedWorkStatus(v === 'all' ? '' : v as WorkStatus)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Statut professionnel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous statuts</SelectItem>
+                      <Separator className="my-1" />
+                      {Object.entries(workStatusLabels).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={selectedDemand} onValueChange={(v) => setSelectedDemand(v === 'all' ? '' : v as 'high' | 'medium' | 'low')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Demande marché" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toute demande</SelectItem>
+                      <Separator className="my-1" />
+                      <SelectItem value="high">
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-4 w-4 text-orange-500" />
+                          Forte demande
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="medium">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-blue-500" />
+                          Demande moyenne
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="low">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-gray-500" />
+                          Faible demande
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4 pt-4 border-t">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                    >
+                      {viewMode === 'grid' ? (
+                        <>
+                          <List className="h-4 w-4 mr-2" />
+                          Vue liste
+                        </>
+                      ) : (
+                        <>
+                          <Grid3x3 className="h-4 w-4 mr-2" />
+                          Vue grille
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectAll}
+                    >
+                      {selectedProfiles.size === filteredProfiles.length ? 'Désélectionner' : 'Tout sélectionner'}
+                    </Button>
+                    <div className="flex items-center gap-2 ml-2">
+                      <Checkbox
+                        id="complete"
+                        checked={showOnlyComplete}
+                        onCheckedChange={(checked) => setShowOnlyComplete(checked as boolean)}
+                      />
+                      <label htmlFor="complete" className="text-sm cursor-pointer">
+                        Profils complets uniquement
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {selectedProfiles.size > 0 && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Award className="h-3 w-3" />
+                      {selectedProfiles.size} profil{selectedProfiles.size > 1 ? 's' : ''} sélectionné{selectedProfiles.size > 1 ? 's' : ''}
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
         {/* Top compétences */}
         {directoryData?.statistics.topSkills && directoryData.statistics.topSkills.length > 0 && (
@@ -484,24 +666,67 @@ export default function CompetencesDirectoryPage() {
           </Card>
         )}
 
-        {/* Liste des profils */}
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
-          {isLoading ? (
-            <div className="col-span-full flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredProfiles.length === 0 ? (
-            <div className="col-span-full">
-              <Card>
-                <CardContent className="py-12">
-                  <div className="text-center text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Aucun profil trouvé avec ces critères</p>
+            {/* Liste des profils avec pagination */}
+            <div className="space-y-6">
+              {/* Indicateur de chargement overlay */}
+              {isFetching && !isLoading && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              )}
+
+              <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
+                {isLoading ? (
+                  // Skeleton loading
+                  Array.from({ length: pageSize }).map((_, i) => (
+                    <Card key={i}>
+                      <CardHeader>
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-3 w-3/4" />
+                          <div className="flex gap-1">
+                            <Skeleton className="h-6 w-16" />
+                            <Skeleton className="h-6 w-16" />
+                            <Skeleton className="h-6 w-16" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : filteredProfiles.length === 0 ? (
+                  <div className="col-span-full">
+                    <Card>
+                      <CardContent className="py-12">
+                        <div className="text-center text-muted-foreground">
+                          <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <h3 className="text-lg font-semibold mb-2">Aucun profil trouvé</h3>
+                          <p className="text-sm">Modifiez vos critères de recherche pour voir plus de résultats</p>
+                          <Button
+                            variant="outline"
+                            className="mt-4"
+                            onClick={() => {
+                              setSearchTerm('');
+                              setSelectedCategory('');
+                              setSelectedLevel('');
+                              setSelectedDemand('');
+                              setSelectedWorkStatus('');
+                              setShowOnlyComplete(false);
+                            }}
+                          >
+                            Réinitialiser les filtres
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
+                ) : (
             filteredProfiles.map((profile) => {
               const Icon = categoryIcons[profile.skills.category] || Target;
               const isSelected = selectedProfiles.has(profile.id);
@@ -548,12 +773,17 @@ export default function CompetencesDirectoryPage() {
                     
                     {/* Informations */}
                     <div className="space-y-1 text-sm">
-                      {profile.employer && (
+                      {profile.workStatus === 'UNEMPLOYED' ? (
+                        <div className="flex items-center gap-2 text-orange-600 font-medium">
+                          <UserSearch className="h-3 w-3" />
+                          <span>Ressortissant gabonais à la recherche d'emploi</span>
+                        </div>
+                      ) : profile.employer ? (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Building className="h-3 w-3" />
                           <span>{profile.employer}</span>
                         </div>
-                      )}
+                      ) : null}
                       {profile.email && (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Mail className="h-3 w-3" />
@@ -624,7 +854,105 @@ export default function CompetencesDirectoryPage() {
               );
             })
           )}
-        </div>
+              </div>
+
+              {/* Pagination */}
+              {directoryData && directoryData.totalPages > 1 && (
+                <Card>
+                  <CardContent className="py-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="text-sm text-muted-foreground">
+                        Affichage de {((currentPage - 1) * pageSize) + 1} à {Math.min(currentPage * pageSize, directoryData.total)} sur {directoryData.total} profils
+                      </div>
+                      
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                          
+                          {/* Première page */}
+                          {currentPage > 2 && (
+                            <>
+                              <PaginationItem>
+                                <PaginationLink onClick={() => setCurrentPage(1)} className="cursor-pointer">
+                                  1
+                                </PaginationLink>
+                              </PaginationItem>
+                              {currentPage > 3 && (
+                                <PaginationItem>
+                                  <PaginationEllipsis />
+                                </PaginationItem>
+                              )}
+                            </>
+                          )}
+                          
+                          {/* Pages autour de la page courante */}
+                          {Array.from({ length: Math.min(5, directoryData.totalPages) }, (_, i) => {
+                            const pageNum = Math.max(1, Math.min(currentPage - 2 + i, directoryData.totalPages - 4)) + i;
+                            if (pageNum > 0 && pageNum <= directoryData.totalPages) {
+                              return (
+                                <PaginationItem key={pageNum}>
+                                  <PaginationLink
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    isActive={pageNum === currentPage}
+                                    className="cursor-pointer"
+                                  >
+                                    {pageNum}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            }
+                            return null;
+                          }).filter(Boolean)}
+                          
+                          {/* Dernière page */}
+                          {currentPage < directoryData.totalPages - 1 && (
+                            <>
+                              {currentPage < directoryData.totalPages - 2 && (
+                                <PaginationItem>
+                                  <PaginationEllipsis />
+                                </PaginationItem>
+                              )}
+                              <PaginationItem>
+                                <PaginationLink 
+                                  onClick={() => setCurrentPage(directoryData.totalPages)}
+                                  className="cursor-pointer"
+                                >
+                                  {directoryData.totalPages}
+                                </PaginationLink>
+                              </PaginationItem>
+                            </>
+                          )}
+                          
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setCurrentPage(Math.min(directoryData.totalPages, currentPage + 1))}
+                              className={currentPage === directoryData.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+
+                      <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}>
+                        <SelectTrigger className="w-[100px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="12">12 / page</SelectItem>
+                          <SelectItem value="24">24 / page</SelectItem>
+                          <SelectItem value="48">48 / page</SelectItem>
+                          <SelectItem value="96">96 / page</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
         {/* Modal CV */}
         {selectedProfileForCV && profileCV && (
@@ -762,6 +1090,8 @@ export default function CompetencesDirectoryPage() {
             </Card>
           </div>
         )}
+          </TabsContent>
+        </Tabs>
       </div>
     </IntelAgentLayout>
   );

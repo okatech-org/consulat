@@ -55,6 +55,8 @@ import { fr } from 'date-fns/locale';
 import type { ProfilesArrayItem, ProfilesFilters } from '@/components/profile/types';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { useCurrentUser } from '@/hooks/use-role-data';
+import { AdvancedPagination, PaginationInfo, usePaginationInfo } from '@/components/ui/advanced-pagination';
+import { AdvancedFilters, type IntelligenceFilters } from '@/components/intelligence/advanced-filters';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -98,6 +100,9 @@ export default function ProfilesPage() {
   const [selectedProfileForNote, setSelectedProfileForNote] = useState<string | null>(null);
   const [newNote, setNewNote] = useState({ title: '', content: '', type: 'GENERAL' as IntelligenceNoteType, priority: 'MEDIUM' as IntelligenceNotePriority });
   
+  // État pour les filtres avancés
+  const [intelligenceFilters, setIntelligenceFilters] = useState<IntelligenceFilters>({});
+  
   // État local pour pagination sécurisée
   const [localPagination, setLocalPagination] = useState({
     pageIndex: 0,
@@ -118,6 +123,85 @@ export default function ProfilesPage() {
     pageIndex: !isNaN(pagination?.pageIndex || 0) ? (pagination?.pageIndex || 0) : localPagination.pageIndex,
     pageSize: !isNaN(pagination?.pageSize || 0) && (pagination?.pageSize || 0) > 0 ? (pagination?.pageSize || 15) : localPagination.pageSize
   };
+  
+  // Adapter les filtres intelligence aux filtres API
+  const adaptIntelligenceFilters = (filters: IntelligenceFilters): ProfilesFilters => {
+    const apiFilters: any = {
+      search: filters.search,
+      category: filters.category,
+      status: filters.status,
+      gender: filters.gender,
+      // Ajouter d'autres mappings selon les capacités de l'API
+      ...(filters.hasNotes && { hasIntelligenceNotes: true }),
+      ...(filters.hasChildren && { hasChildren: true }),
+    };
+    
+    // Gérer les filtres d'âge
+    if (filters.minorOnly) {
+      apiFilters.ageMax = 17; // Moins de 18 ans
+    }
+    if (filters.adultOnly) {
+      apiFilters.ageMin = 18; // 18 ans et plus
+      apiFilters.ageMax = 59; // Moins de 60 ans
+    }
+    if (filters.ageGroups?.includes('senior')) {
+      apiFilters.ageMin = 60; // 60 ans et plus
+    }
+    if (filters.ageRange) {
+      apiFilters.ageMin = filters.ageRange[0];
+      apiFilters.ageMax = filters.ageRange[1];
+    }
+    
+    // Gérer les filtres de nationalité
+    if (filters.dualNationality) {
+      apiFilters.hasDualNationality = true;
+    }
+    if (filters.nationality) {
+      apiFilters.nationality = filters.nationality;
+    }
+    
+    // Gérer les filtres de surveillance
+    if (filters.riskLevel) {
+      apiFilters.riskLevel = filters.riskLevel;
+    }
+    if (filters.surveillanceStatus) {
+      apiFilters.surveillanceStatus = filters.surveillanceStatus;
+    }
+    if (filters.flagged) {
+      apiFilters.flagged = true;
+    }
+    if (filters.vip) {
+      apiFilters.vip = true;
+    }
+    if (filters.sensitive) {
+      apiFilters.sensitive = true;
+    }
+    
+    // Gérer les filtres de localisation
+    if (filters.city) {
+      apiFilters.city = filters.city;
+    }
+    if (filters.region) {
+      apiFilters.region = filters.region;
+    }
+    if (filters.hasCoordinates) {
+      apiFilters.hasCoordinates = true;
+    }
+    
+    // Gérer le nombre d'enfants
+    if (filters.childrenCount) {
+      apiFilters.childrenCountMin = filters.childrenCount.min;
+      apiFilters.childrenCountMax = filters.childrenCount.max;
+    }
+    
+    return apiFilters;
+  };
+  
+  // Combiner les filtres des params URL et les filtres intelligence
+  const combinedFilters = {
+    ...params,
+    ...adaptIntelligenceFilters(intelligenceFilters)
+  };
 
   // Récupérer les données avec les paramètres de recherche
   const { data: profilesResponse, isLoading, error, refetch } = api.profile.getList.useQuery({
@@ -127,7 +211,7 @@ export default function ProfilesPage() {
       field: sorting[0]?.id as any,
       order: sorting[0]?.desc ? 'desc' : 'asc',
     } : { field: 'createdAt', order: 'desc' },
-    filters: params || {},
+    filters: combinedFilters || {},
   });
   
   // Mutation pour créer une note d'intelligence
@@ -146,8 +230,65 @@ export default function ProfilesPage() {
 
   const { data: dashboardStats } = useIntelligenceDashboardStats('month');
 
-  const profiles = profilesResponse?.items || [];
+  // Fonction pour calculer l'âge à partir de la date de naissance
+  const calculateAge = (birthDate: Date | string | null | undefined): number | null => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    if (isNaN(birth.getTime())) return null;
+    
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+  
+  // Filtrer les profils côté client pour s'assurer de la cohérence des âges
+  const filteredProfiles = useMemo(() => {
+    let items = profilesResponse?.items || [];
+    
+    // Appliquer le filtre d'âge côté client si nécessaire
+    if (intelligenceFilters.minorOnly) {
+      items = items.filter(profile => {
+        const age = calculateAge(profile.birthDate);
+        return age !== null && age < 18;
+      });
+    }
+    
+    if (intelligenceFilters.adultOnly) {
+      items = items.filter(profile => {
+        const age = calculateAge(profile.birthDate);
+        return age !== null && age >= 18 && age < 60;
+      });
+    }
+    
+    if (intelligenceFilters.ageGroups?.includes('senior')) {
+      items = items.filter(profile => {
+        const age = calculateAge(profile.birthDate);
+        return age !== null && age >= 60;
+      });
+    }
+    
+    if (intelligenceFilters.ageRange) {
+      const [minAge, maxAge] = intelligenceFilters.ageRange;
+      items = items.filter(profile => {
+        const age = calculateAge(profile.birthDate);
+        return age !== null && age >= minAge && age <= maxAge;
+      });
+    }
+    
+    return items;
+  }, [profilesResponse?.items, intelligenceFilters]);
+  
+  const profiles = filteredProfiles;
   const total = profilesResponse?.total || 0;
+  
+  // Calculer les informations de pagination
+  const currentPage = safePagination.pageIndex + 1;
+  const itemsPerPage = safePagination.pageSize;
+  const paginationInfo = usePaginationInfo(currentPage, itemsPerPage, total, profiles.length);
 
   const hasIntelligenceNotes = (profile: any) => {
     return profile.intelligenceNotes && profile.intelligenceNotes.length > 0;
@@ -283,6 +424,16 @@ export default function ProfilesPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  
+  // Fonction pour gérer le changement de page
+  const handlePageChange = (page: number) => {
+    const newPageIndex = page - 1; // Convertir en index 0-based
+    setLocalPagination(prev => ({ ...prev, pageIndex: newPageIndex }));
+    handlePaginationChange && handlePaginationChange({ pageIndex: newPageIndex });
+    
+    // Défiler vers le haut pour une meilleure UX
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const profilesWithNotes = profiles.filter(p => hasIntelligenceNotes(p));
@@ -554,88 +705,30 @@ export default function ProfilesPage() {
               </div>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  Recherche
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input 
-                    placeholder="Nom, email, téléphone..."
-                    className="pl-10 h-8 text-sm"
-                    value={params.search || ''}
-                    onChange={(e) => handleParamsChange({ search: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  Catégorie
-                </label>
-                <Select 
-                  value={params.category?.[0] || 'all'} 
-                  onValueChange={(value) => handleParamsChange({ 
-                    category: value === 'all' ? undefined : [value as ProfileCategory]
-                  })}
-                >
-                  <SelectTrigger className="h-8">
-                    <SelectValue placeholder="Toutes" />
-                  </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">Toutes</SelectItem>
-                    <SelectItem value={ProfileCategory.CITIZEN}>🇬🇦 Citoyens</SelectItem>
-                    <SelectItem value={ProfileCategory.RESIDENT}>🏠 Résidents</SelectItem>
-                    <SelectItem value={ProfileCategory.VISITOR}>✈️ Visiteurs</SelectItem>
-                </SelectContent>
-              </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  Statut
-                </label>
-                <Select 
-                  value={params.status?.[0] || 'all'} 
-                  onValueChange={(value) => handleParamsChange({ 
-                    status: value === 'all' ? undefined : [value as RequestStatus]
-                  })}
-                >
-                  <SelectTrigger className="h-8">
-                    <SelectValue placeholder="Tous" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value={RequestStatus.SUBMITTED}>📤 Soumis</SelectItem>
-                    <SelectItem value={RequestStatus.PENDING}>⏳ En attente</SelectItem>
-                    <SelectItem value={RequestStatus.VALIDATED}>✅ Validé</SelectItem>
-                    <SelectItem value={RequestStatus.COMPLETED}>🎯 Terminé</SelectItem>
-                  </SelectContent>
-                </Select>
-        </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  Genre
-                </label>
-                <Select 
-                  value={params.gender?.[0] || 'all'} 
-                  onValueChange={(value) => handleParamsChange({ 
-                    gender: value === 'all' ? undefined : [value as Gender]
-                  })}
-                >
-                      <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Tous" />
-                      </SelectTrigger>
-                    <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value={Gender.MALE}>👨 Hommes</SelectItem>
-                    <SelectItem value={Gender.FEMALE}>👩 Femmes</SelectItem>
-                    </SelectContent>
-                  </Select>
-            </div>
-            </div>
+            {/* Filtres avancés de renseignement */}
+            <AdvancedFilters
+              filters={intelligenceFilters}
+              onFiltersChange={(newFilters) => {
+                setIntelligenceFilters(newFilters);
+                // Synchroniser avec les params URL pour certains filtres
+                if (newFilters.search !== intelligenceFilters.search) {
+                  handleParamsChange({ search: newFilters.search });
+                }
+                if (newFilters.category !== intelligenceFilters.category) {
+                  handleParamsChange({ category: newFilters.category });
+                }
+                if (newFilters.gender !== intelligenceFilters.gender) {
+                  handleParamsChange({ gender: newFilters.gender });
+                }
+                if (newFilters.status !== intelligenceFilters.status) {
+                  handleParamsChange({ status: newFilters.status });
+                }
+                // Réinitialiser la pagination lors du changement de filtres
+                setLocalPagination(prev => ({ ...prev, pageIndex: 0 }));
+              }}
+              totalProfiles={total}
+              className="mb-4"
+            />
           </CardContent>
         </Card>
 
@@ -687,26 +780,53 @@ export default function ProfilesPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              // Skeleton loading avec glass effect
-              <div className="space-y-4">
-                {[...Array(8)].map((_, i) => (
-                  <div 
+              // Skeleton loading avec glass effect - Format cartes
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(9)].map((_, i) => (
+                  <Card
                     key={i} 
-                    className="flex items-center gap-4 p-4 rounded-lg animate-pulse"
-                    style={{ background: 'var(--bg-glass-light)' }}
+                    className="animate-pulse border-l-4"
+                    style={{ 
+                      background: 'var(--bg-glass-primary)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
+                      border: '1px solid var(--border-glass-primary)',
+                      borderLeftColor: 'var(--border-glass-secondary)'
+                    }}
                   >
-                    <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/3"></div>
-                      <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
-                      <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-2/3"></div>
-                    </div>
-                    <div className="w-20 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                  </div>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-4 h-4 bg-gray-300 dark:bg-gray-600 rounded mt-1"></div>
+                        <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <div className="h-5 w-16 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                        <div className="h-5 w-14 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-full"></div>
+                        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-2/3"></div>
+                        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                      </div>
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                          <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                          <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {profiles.map((profile, index) => {
                   const categoryStyle = getCategoryBadge(profile.category);
                   const statusStyle = getStatusBadge(profile.status);
@@ -714,204 +834,193 @@ export default function ProfilesPage() {
                   const isNewThisMonth = newProfilesThisMonth.some(p => p.id === profile.id);
                   
                   return (
-                    <div 
+                    <Card 
                       key={profile.id}
-                      className="flex items-start gap-3 md:gap-4 p-4 md:p-6 rounded-lg transition-all duration-200 cursor-pointer border-l-4 group"
+                      className="group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-l-4"
                       style={{ 
-                        background: 'var(--bg-glass-light)',
+                        background: 'var(--bg-glass-primary)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        border: '1px solid var(--border-glass-primary)',
+                        boxShadow: 'var(--shadow-glass)',
                         borderLeftColor: hasNotes ? '#3b82f6' : 
                                         isNewThisMonth ? '#10b981' :
-                                        'transparent'
+                                        'var(--border-glass-primary)'
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--interactive-hover)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-glass-light)';
-                      }}
-                      onClick={() => router.push(`/dashboard/profiles/${profile.id}`)}
                     >
-                      <div className="flex items-start gap-3">
-                        <Checkbox 
-                          className="transition-opacity mt-1" 
-                          checked={selectedProfiles.includes(profile.id)}
-                          onCheckedChange={(checked) => handleSelectProfile(profile.id, checked as boolean)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <Avatar className="w-12 h-12 md:w-16 md:h-16">
-                          {profile.IDPictureUrl ? (
-                            <AvatarImage src={profile.IDPictureUrl} alt={`${profile.firstName} ${profile.lastName}`} />
-                          ) : (
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-amber-500 text-white font-semibold text-sm md:text-lg">
-                              {profile.firstName?.[0]}{profile.lastName?.[0]}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                      </div>
+                      {/* Barre de scan animée */}
+                      <div 
+                        className="absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent, var(--accent-intel), transparent)',
+                          animation: 'scan 3s infinite'
+                        }}
+                      />
                       
-                      <div className="flex-1">
-                        {/* Header avec nom et badges */}
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
-                                  {profile.lastName}
-                                </p>
-                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                                  {profile.firstName}
-                                </p>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <Checkbox 
+                              checked={selectedProfiles.includes(profile.id)}
+                              onCheckedChange={(checked) => handleSelectProfile(profile.id, checked as boolean)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1"
+                            />
+                            <Avatar className="w-12 h-12">
+                              {profile.identityPicture?.fileUrl ? (
+                                <AvatarImage src={profile.identityPicture.fileUrl} alt={`${profile.firstName} ${profile.lastName}`} />
+                              ) : profile.user?.image ? (
+                                <AvatarImage src={profile.user.image} alt={`${profile.firstName} ${profile.lastName}`} />
+                              ) : (
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-amber-500 text-white font-semibold">
+                                  {profile.firstName?.[0]}{profile.lastName?.[0]}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                  {profile.firstName} {profile.lastName}
+                                </h3>
                                 {isNewThisMonth && (
                                   <Badge className="text-xs bg-green-500/20 text-green-500 border-green-500/30">
                                     NOUVEAU
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-xs font-mono mt-1" style={{ color: 'var(--text-muted)' }}>
+                              <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
                                 ID: {profile.cardNumber || profile.id.substring(0, 8).toUpperCase()}
+                                {profile.birthDate && (
+                                  <span className="ml-2 font-sans">
+                                    • {calculateAge(profile.birthDate)} ans
+                                  </span>
+                                )}
                               </p>
                             </div>
                           </div>
                           
-                          {/* Badges statut et catégorie */}
-                          <div className="flex items-center gap-2">
-                            <Badge className={`text-xs ${categoryStyle.color}`}>
-                              {categoryStyle.text}
+                          {hasNotes && (
+                            <Badge className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30">
+                              <AlertTriangle className="h-3 w-3" />
                             </Badge>
-                            <Badge className={`text-xs ${statusStyle.color}`}>
-                              {statusStyle.text}
-                            </Badge>
-                          </div>
+                          )}
                         </div>
+                        
+                        {/* Badges statut et catégorie */}
+                        <div className="flex items-center gap-2 mt-3">
+                          <Badge className={`text-xs ${categoryStyle.color}`}>
+                            {categoryStyle.text}
+                          </Badge>
+                          <Badge className={`text-xs ${statusStyle.color}`}>
+                            {statusStyle.text}
+                          </Badge>
+                        </div>
+                      </CardHeader>
 
-                        {/* Informations détaillées en grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                          {/* Contact */}
-                          <div className="space-y-1">
-                            <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                              📞 Contact
-                            </p>
-                            {profile.user?.email && (
-                              <div className="flex items-center gap-1">
-                                <Mail className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                                <p className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>
-                                  {profile.user.email}
-                                </p>
-                              </div>
-                            )}
-                            {profile.phoneNumber && (
-                              <div className="flex items-center gap-1">
-                                <Phone className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                  {profile.phoneNumber}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Localisation */}
-                          <div className="space-y-1">
-                            <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                              🌍 Localisation
-                            </p>
-                            {profile.address ? (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                                <p className="text-xs" style={{ color: 'var(--text-primary)' }}>
-                                  {profile.address.city}, {profile.address.country}
-                                </p>
-                              </div>
-                            ) : (
-                              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                                Non renseignée
-                              </p>
-                            )}
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                Inscrit le {format(new Date(profile.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                      <CardContent className="space-y-4">
+                        {/* Informations de contact */}
+                        <div className="space-y-2">
+                          {profile.user?.email && (
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
+                              <p className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>
+                                {profile.user.email}
                               </p>
                             </div>
-                          </div>
+                          )}
+                          {profile.phoneNumber && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
+                              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                {profile.phoneNumber}
+                              </p>
+                            </div>
+                          )}
+                          {profile.address && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
+                              <p className="text-xs" style={{ color: 'var(--text-primary)' }}>
+                                {profile.address.city}, {profile.address.country}
+                              </p>
+                            </div>
+                          )}
+                        </div>
 
-                          {/* Renseignements */}
-                          <div className="space-y-1">
-                            <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                              🕵️ Intelligence
+                        {/* Informations de surveillance */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
+                            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                              Inscrit le {format(new Date(profile.createdAt), 'dd/MM/yyyy', { locale: fr })}
                             </p>
-                            {hasNotes ? (
-                              <div className="space-y-1">
-                                <Badge className="text-xs bg-blue-500/20 text-blue-500 border-blue-500/30">
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  {profile.intelligenceNotes?.length || 0} note(s)
-                                </Badge>
-                                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                  Surveillance active
-                                </p>
-                              </div>
-                            ) : (
+                          </div>
+                          
+                          {hasNotes ? (
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
+                              <Badge className="text-xs bg-blue-500/20 text-blue-500 border-blue-500/30">
+                                {profile.intelligenceNotes?.length || 0} note(s) de surveillance
+                              </Badge>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
                               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                                 Aucune note de surveillance
                               </p>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {hasNotes && (
-                          <Badge className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30">
-                            <AlertTriangle className="h-3 w-3" />
-                          </Badge>
-                        )}
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
+
+                        {/* Actions principales - Bien visibles */}
+                        <div className="pt-3 border-t" style={{ borderColor: 'var(--border-glass-secondary)' }}>
+                          <div className="grid grid-cols-3 gap-2">
+                            <Button
                               size="sm"
-                              onClick={(e) => e.stopPropagation()}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-                              <MoreHorizontal className="h-4 w-4" />
-        </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem 
+                              variant="outline"
+                              className="text-xs h-8 bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-blue-600"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(`/dashboard/profiles/${profile.id}`);
                               }}
                             >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Voir détails
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
+                              <Eye className="h-3 w-3 mr-1" />
+                              Voir
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-8 bg-green-500/10 border-green-500/30 hover:bg-green-500/20 text-green-600"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAddNote(profile.id);
                               }}
                             >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Ajouter note
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
+                              <Edit className="h-3 w-3 mr-1" />
+                              Note
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-8 bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20 text-orange-600"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedProfiles([profile.id]);
                                 handleExport();
                               }}
                             >
-                              <Download className="h-4 w-4 mr-2" />
-                              Exporter ce profil
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-              </div>
-                    </div>
+                              <Download className="h-3 w-3 mr-1" />
+                              Export
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   );
                 })}
-            </div>
+              </div>
           )}
 
             {!isLoading && profiles.length === 0 && (
@@ -957,55 +1066,76 @@ export default function ProfilesPage() {
             </div>
           )}
 
-            {/* Information de pagination */}
-            {total > 0 && (
-              <div className="flex items-center justify-between mt-6 pt-4" style={{ borderTop: '1px solid var(--border-glass-secondary)' }}>
-                <div className="flex items-center gap-4">
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    Affichage de {profiles.length} profils sur {total.toLocaleString()} au total
-                  </p>
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      Surveillance: {profilesWithNotes.length}
-                    </span>
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      Nouveaux: {newProfilesThisMonth.length}
-                    </span>
+            {/* Pagination avancée */}
+            {total > 0 && paginationInfo.totalPages > 1 && (
+              <div className="mt-6 pt-6 space-y-4" style={{ borderTop: '1px solid var(--border-glass-secondary)' }}>
+                {/* Informations de pagination */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <PaginationInfo
+                      currentPage={currentPage}
+                      totalPages={paginationInfo.totalPages}
+                      totalItems={total}
+                      itemsPerPage={itemsPerPage}
+                      currentItemsCount={profiles.length}
+                      className="text-sm text-muted-foreground"
+                    />
+                    
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          Surveillance: {profilesWithNotes.length}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full" />
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          Nouveaux: {newProfilesThisMonth.length}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-          </div>
+                </div>
 
-                <div className="flex gap-2">
-            <Button
-              variant="outline"
-                    size="sm"
-                    disabled={safePagination.pageIndex === 0}
-                    onClick={() => {
-                      const newPageIndex = Math.max(0, safePagination.pageIndex - 1);
-                      setLocalPagination(prev => ({ ...prev, pageIndex: newPageIndex }));
-                      handlePaginationChange && handlePaginationChange({ pageIndex: newPageIndex });
-                    }}
-                  >
-                    ← Précédent
-            </Button>
-                  <div className="flex items-center px-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    Page {safePagination.pageIndex + 1}
+                {/* Contrôles de pagination */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <span>Affichage:</span>
+                    <select 
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        const newPageSize = parseInt(e.target.value);
+                        setLocalPagination(prev => ({ ...prev, pageSize: newPageSize, pageIndex: 0 }));
+                        handlePaginationChange && handlePaginationChange({ pageSize: newPageSize, pageIndex: 0 });
+                      }}
+                      className="px-2 py-1 rounded border text-sm"
+                      style={{
+                        background: 'var(--bg-glass-light)',
+                        border: '1px solid var(--border-glass-secondary)',
+                        color: 'var(--text-primary)'
+                      }}
+                    >
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                    <span>par page</span>
                   </div>
-            <Button
-                    variant="outline" 
+
+                  <AdvancedPagination
+                    currentPage={currentPage}
+                    totalPages={paginationInfo.totalPages}
+                    onPageChange={handlePageChange}
+                    maxVisiblePages={7}
                     size="sm"
-                    disabled={profiles.length < safePagination.pageSize}
-                    onClick={() => {
-                      const newPageIndex = safePagination.pageIndex + 1;
-                      setLocalPagination(prev => ({ ...prev, pageIndex: newPageIndex }));
-                      handlePaginationChange && handlePaginationChange({ pageIndex: newPageIndex });
-                    }}
-                  >
-                    Suivant →
-            </Button>
-          </div>
-        </div>
+                    disabled={isLoading}
+                    className="flex-shrink-0"
+                  />
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

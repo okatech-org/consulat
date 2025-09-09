@@ -10,6 +10,7 @@ import { ViewportDetector } from './viewport-detector';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { getServerTheme } from '@/lib/theme-server';
 import { ThemeSync } from './theme-sync';
+import { ThemeWrapper } from './theme-wrapper';
 
 export async function Providers({ children }: { children: React.ReactNode }) {
   const promises = [getMessages(), getServerTheme()];
@@ -40,12 +41,14 @@ export async function Providers({ children }: { children: React.ReactNode }) {
           disableTransitionOnChange
           storageKey="theme"
         >
-          <ChatProvider>
-            <ThemeSync />
-            <ViewportDetector />
-            {children}
-            <Toaster />
-          </ChatProvider>
+          <ThemeWrapper>
+            <ChatProvider>
+              <ThemeSync />
+              <ViewportDetector />
+              {children}
+              <Toaster />
+            </ChatProvider>
+          </ThemeWrapper>
         </ThemeProvider>
       </NextIntlClientProvider>
     </SidebarProvider>

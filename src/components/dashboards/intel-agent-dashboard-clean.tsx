@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
+import { ThemeToggleIntel } from '@/components/ui/theme-toggle-intel';
 import { api } from '@/trpc/react';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { useIntelligenceDashboardStats, useActiveCountries, useNotificationCount } from '@/hooks/use-optimized-queries';
@@ -47,6 +48,9 @@ const glassMorphismStyles = {
     '--text-muted': '#999999',
     '--interactive-hover': 'rgba(0, 0, 0, 0.05)',
     '--interactive-hover-strong': 'rgba(0, 0, 0, 0.1)',
+    '--progress-bg': 'rgba(0, 0, 0, 0.1)',
+    '--pattern-color': '#000',
+    '--orb-opacity': '0.2',
     '--accent-intel': '#3b82f6',
     '--accent-warning': '#f59e0b',
     '--accent-success': '#10b981',
@@ -66,6 +70,8 @@ const glassMorphismStyles = {
     '--interactive-hover': 'rgba(255, 255, 255, 0.05)',
     '--interactive-hover-strong': 'rgba(255, 255, 255, 0.1)',
     '--progress-bg': 'rgba(255, 255, 255, 0.1)',
+    '--pattern-color': '#fff',
+    '--orb-opacity': '0.4',
     '--accent-intel': '#3b82f6',
     '--accent-warning': '#f59e0b',
     '--accent-success': '#10b981',
@@ -82,8 +88,8 @@ function BackgroundEffects() {
         style={{
           opacity: 0.03,
           backgroundImage: `
-            radial-gradient(circle at 25% 25%, #000 1px, transparent 1px),
-            radial-gradient(circle at 75% 75%, #000 1px, transparent 1px)
+            radial-gradient(circle at 25% 25%, var(--pattern-color, #000) 1px, transparent 1px),
+            radial-gradient(circle at 75% 75%, var(--pattern-color, #000) 1px, transparent 1px)
           `,
           backgroundSize: '50px 50px'
         }}
@@ -95,7 +101,7 @@ function BackgroundEffects() {
           className="absolute w-96 h-96 rounded-full blur-[100px]"
           style={{
             background: 'radial-gradient(circle, var(--accent-intel), transparent)',
-            opacity: '0.4',
+            opacity: 'var(--orb-opacity)',
             top: '-200px',
             left: '-200px',
             animation: 'float 25s ease-in-out infinite'
@@ -105,7 +111,7 @@ function BackgroundEffects() {
           className="absolute w-72 h-72 rounded-full blur-[100px]"
           style={{
             background: 'radial-gradient(circle, var(--accent-warning), transparent)',
-            opacity: '0.4',
+            opacity: 'var(--orb-opacity)',
             bottom: '-150px',
             right: '-150px',
             animation: 'float 30s ease-in-out infinite reverse',
@@ -117,50 +123,34 @@ function BackgroundEffects() {
   );
 }
 
-function ThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) return null;
-
-  return (
-    <button
-      onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200"
-      style={{ 
-        color: 'var(--text-secondary)',
-        background: 'var(--bg-glass-light)' 
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--interactive-hover)'}
-      onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-glass-light)'}
-    >
-      {resolvedTheme === 'dark' ? (
-        <>
-          <Sun className="h-4 w-4" />
-          <span className="text-xs">Mode clair</span>
-        </>
-      ) : (
-        <>
-          <Moon className="h-4 w-4" />
-          <span className="text-xs">Mode sombre</span>
-        </>
-      )}
-    </button>
-  );
-}
 
 function LiveIndicator() {
+  const [isActive, setIsActive] = useState(true);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsActive(prev => !prev);
+    }, 1500);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+    <div 
+      className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
       style={{
-        background: 'rgba(16, 185, 129, 0.15)',
-        color: '#10b981',
-        border: '1px solid rgba(16, 185, 129, 0.3)'
+        background: 'rgba(239, 68, 68, 0.2)',
+        color: 'var(--accent-danger)'
       }}
     >
-      <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
+      <div 
+        className="w-2 h-2 rounded-full"
+        style={{
+          background: 'var(--accent-danger)',
+          opacity: isActive ? 1 : 0.3,
+          animation: 'live-pulse 1.5s infinite'
+        }}
+      />
       LIVE
     </div>
   );
@@ -252,7 +242,7 @@ function CustomSidebar({ currentUser }: { currentUser: any }) {
           </div>
 
           <div className="mt-8 pt-6" style={{ borderTop: '1px solid var(--border-glass-secondary)' }}>
-            <ThemeToggle />
+            <ThemeToggleIntel />
           </div>
         </nav>
       </div>
@@ -302,13 +292,24 @@ export default function IntelAgentDashboard() {
   // Mettre à jour les styles CSS et animations
   useEffect(() => {
     setMounted(true);
-    const theme = resolvedTheme || 'dark';
-    const styles = glassMorphismStyles[theme as keyof typeof glassMorphismStyles];
     
-    // Appliquer les variables CSS
-    Object.entries(styles).forEach(([property, value]) => {
-      document.documentElement.style.setProperty(property, value);
-    });
+    if (!resolvedTheme) return;
+    
+    const theme = resolvedTheme as keyof typeof glassMorphismStyles;
+    const styles = glassMorphismStyles[theme];
+    
+    if (!styles) {
+      console.warn(`Thème ${theme} non trouvé, utilisation du thème dark par défaut`);
+      const fallbackStyles = glassMorphismStyles.dark;
+      Object.entries(fallbackStyles).forEach(([property, value]) => {
+        document.documentElement.style.setProperty(property, value);
+      });
+    } else {
+      // Appliquer les variables CSS
+      Object.entries(styles).forEach(([property, value]) => {
+        document.documentElement.style.setProperty(property, value);
+      });
+    }
 
     // Injecter les animations keyframes
     const existingStyle = document.querySelector('[data-intel-keyframes]');
@@ -325,6 +326,10 @@ export default function IntelAgentDashboard() {
       @keyframes pulse-glow {
         0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
         50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+      }
+      @keyframes live-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
       }
     `;
     document.head.appendChild(keyframes);
@@ -372,7 +377,39 @@ export default function IntelAgentDashboard() {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted || statsLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background text-foreground">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p>Chargement du centre de commandement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Gestion des erreurs
+  if (profilesError || mapError) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background text-foreground">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-semibold">Erreur de connexion</h2>
+          <p className="text-muted-foreground">
+            Impossible de charger les données du dashboard. Vérifiez votre connexion internet.
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const currentUser = currentUserData || { name: 'Agent Intelligence', id: 'default' };
 

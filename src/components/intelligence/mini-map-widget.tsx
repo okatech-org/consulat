@@ -143,7 +143,7 @@ export default function MiniMapWidget({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <Globe className="h-4 w-4 text-blue-600" />
+            <Globe className="h-4 w-4" style={{ color: 'var(--accent-intel)' }} />
             Distribution Mondiale
           </CardTitle>
           <Button 
@@ -161,24 +161,24 @@ export default function MiniMapWidget({
         {/* Statistiques globales */}
         <div className="grid grid-cols-3 gap-2 mb-4 text-center">
           <div className="space-y-1">
-            <div className="text-lg font-bold text-blue-600">
+            <div className="text-lg font-bold" style={{ color: 'var(--accent-intel)' }}>
               {countryStats.withAddress}
             </div>
-            <div className="text-xs text-muted-foreground">Géolocalisés</div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Géolocalisés</div>
           </div>
           
           <div className="space-y-1">
-            <div className="text-lg font-bold text-red-600">
+            <div className="text-lg font-bold" style={{ color: 'var(--accent-danger)' }}>
               {countryStats.withNotes}
             </div>
-            <div className="text-xs text-muted-foreground">Surveillés</div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Surveillés</div>
           </div>
           
           <div className="space-y-1">
-            <div className="text-lg font-bold text-green-600">
+            <div className="text-lg font-bold" style={{ color: 'var(--accent-success)' }}>
               {countryStats.countries.length}
             </div>
-            <div className="text-xs text-muted-foreground">Pays</div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Pays</div>
           </div>
         </div>
 
@@ -192,19 +192,29 @@ export default function MiniMapWidget({
           {countryStats.countries.map((country, index) => (
             <div 
               key={country.country}
-              className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+              className="flex items-center justify-between p-2 rounded-lg transition-all cursor-pointer"
+              style={{ background: 'var(--bg-glass-light)' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--interactive-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-glass-light)'}
               onClick={handleViewFullMap}
             >
               <div className="flex items-center gap-2">
                 <div 
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: index === 0 ? '#3b82f6' : index === 1 ? '#10b981' : '#f59e0b' }}
+                  style={{ 
+                    backgroundColor: index === 0 ? 'var(--accent-intel)' : 
+                                     index === 1 ? 'var(--accent-success)' : 
+                                     'var(--accent-warning)' 
+                  }}
                 />
                 <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                   {country.country}
                 </span>
                 {country.withNotes > 0 && (
-                  <Badge className="bg-red-500/20 text-red-400 text-xs px-1.5 py-0">
+                  <Badge className="text-xs px-1.5 py-0" style={{
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    color: 'var(--accent-danger)'
+                  }}>
                     <Eye className="h-2 w-2 mr-1" />
                     {country.withNotes}
                   </Badge>
@@ -227,7 +237,14 @@ export default function MiniMapWidget({
           variant="outline" 
           size="sm" 
           onClick={handleViewFullMap}
-          className="w-full mt-3 text-xs bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
+          className="w-full mt-3 text-xs"
+          style={{
+            background: 'rgba(59, 130, 246, 0.2)',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
+            color: 'var(--accent-intel)'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)'}
         >
           <MapPin className="h-3 w-3 mr-1" />
           Carte Complète ({countryStats.withAddress} profils)

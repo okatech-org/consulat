@@ -311,6 +311,23 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
+  /* Optimisations de performance pour navigation fluide */
+  html {
+    scroll-behavior: auto; /* Désactiver smooth scroll natif pour contrôle JS */
+  }
+  
+  /* Optimiser les transformations et animations */
+  a, button, [role="button"], .hover-card {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  
+  /* Réduire les repaints */
+  .navigation-item {
+    contain: layout style paint;
+  }
   body {
     @apply bg-background text-foreground;
   }
