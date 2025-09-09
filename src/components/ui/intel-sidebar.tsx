@@ -41,22 +41,32 @@ export function IntelSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <Link href={ROUTES.intel.base}>
-                {appLogo && <Image src={appLogo} alt={appName} width={32} height={32} />}
-                <span className="text-sm font-semibold">{appName}</span>
-                {user?.countryCode && (
-                  <FlagIcon countryCode={user?.countryCode as CountryCode} />
-                )}
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="p-4 pb-0">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg text-white"
+            style={{
+              background:
+                'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
+              animation: 'pulse-glow 3s infinite',
+            }}
+          >
+            DG
+          </div>
+          <div>
+            <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+              DGSS
+            </div>
+            <div
+              className="text-xs flex items-center gap-2"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <span>Consulat.ga</span>
+            </div>
+          </div>
+        </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-2">
         <NavMain items={menu} />
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>

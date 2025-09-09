@@ -11,16 +11,22 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslations } from 'next-intl';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { createIntelligenceNote } from '@/actions/intelligence';
 import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
 import { Loader2 } from 'lucide-react';
 import {
-  Users, 
-  Search, 
-  Filter, 
+  Users,
+  Search,
+  Filter,
   Eye,
   MapPin,
   Calendar,
@@ -33,7 +39,7 @@ import {
   Download,
   RefreshCw,
   Edit,
-  MoreHorizontal
+  MoreHorizontal,
 } from 'lucide-react';
 import {
   Select,
@@ -55,8 +61,16 @@ import { fr } from 'date-fns/locale';
 import type { ProfilesArrayItem, ProfilesFilters } from '@/components/profile/types';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { useCurrentUser } from '@/hooks/use-role-data';
-import { AdvancedPagination, PaginationInfo, usePaginationInfo } from '@/components/ui/advanced-pagination';
-import { AdvancedFilters, type IntelligenceFilters } from '@/components/intelligence/advanced-filters';
+import {
+  AdvancedPagination,
+  PaginationInfo,
+  usePaginationInfo,
+} from '@/components/ui/advanced-pagination';
+import {
+  AdvancedFilters,
+  type IntelligenceFilters,
+} from '@/components/intelligence/advanced-filters';
+import { PageContainer } from '@/components/layouts/page-container';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -90,25 +104,32 @@ export default function ProfilesPage() {
   const t = useTranslations();
   const router = useRouter();
   const { user } = useCurrentUser();
-  
+
   // États pour les interactions utilisateur
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [selectedProfileForNote, setSelectedProfileForNote] = useState<string | null>(null);
-  const [newNote, setNewNote] = useState({ title: '', content: '', type: 'GENERAL' as IntelligenceNoteType, priority: 'MEDIUM' as IntelligenceNotePriority });
-  
+  const [selectedProfileForNote, setSelectedProfileForNote] = useState<string | null>(
+    null,
+  );
+  const [newNote, setNewNote] = useState({
+    title: '',
+    content: '',
+    type: 'GENERAL' as IntelligenceNoteType,
+    priority: 'MEDIUM' as IntelligenceNotePriority,
+  });
+
   // État pour les filtres avancés
   const [intelligenceFilters, setIntelligenceFilters] = useState<IntelligenceFilters>({});
-  
+
   // État local pour pagination sécurisée
   const [localPagination, setLocalPagination] = useState({
     pageIndex: 0,
-    pageSize: 15
+    pageSize: 15,
   });
-  
+
   const {
     params,
     pagination,
@@ -120,10 +141,15 @@ export default function ProfilesPage() {
 
   // Utiliser la pagination locale si celle du hook est invalide
   const safePagination = {
-    pageIndex: !isNaN(pagination?.pageIndex || 0) ? (pagination?.pageIndex || 0) : localPagination.pageIndex,
-    pageSize: !isNaN(pagination?.pageSize || 0) && (pagination?.pageSize || 0) > 0 ? (pagination?.pageSize || 15) : localPagination.pageSize
+    pageIndex: !isNaN(pagination?.pageIndex || 0)
+      ? pagination?.pageIndex || 0
+      : localPagination.pageIndex,
+    pageSize:
+      !isNaN(pagination?.pageSize || 0) && (pagination?.pageSize || 0) > 0
+        ? pagination?.pageSize || 15
+        : localPagination.pageSize,
   };
-  
+
   // Adapter les filtres intelligence aux filtres API
   const adaptIntelligenceFilters = (filters: IntelligenceFilters): ProfilesFilters => {
     const apiFilters: any = {
@@ -135,7 +161,7 @@ export default function ProfilesPage() {
       ...(filters.hasNotes && { hasIntelligenceNotes: true }),
       ...(filters.hasChildren && { hasChildren: true }),
     };
-    
+
     // Gérer les filtres d'âge
     if (filters.minorOnly) {
       apiFilters.ageMax = 17; // Moins de 18 ans
@@ -151,7 +177,7 @@ export default function ProfilesPage() {
       apiFilters.ageMin = filters.ageRange[0];
       apiFilters.ageMax = filters.ageRange[1];
     }
-    
+
     // Gérer les filtres de nationalité
     // Note: dualNationality n'est pas supporté dans le schéma actuel
     // if (filters.dualNationality) {
@@ -160,7 +186,7 @@ export default function ProfilesPage() {
     if (filters.nationality) {
       apiFilters.nationality = filters.nationality;
     }
-    
+
     // Gérer les filtres de surveillance
     if (filters.riskLevel) {
       apiFilters.riskLevel = filters.riskLevel;
@@ -177,7 +203,7 @@ export default function ProfilesPage() {
     if (filters.sensitive) {
       apiFilters.sensitive = true;
     }
-    
+
     // Gérer les filtres de localisation
     if (filters.city) {
       apiFilters.city = filters.city;
@@ -188,50 +214,59 @@ export default function ProfilesPage() {
     if (filters.hasCoordinates) {
       apiFilters.hasCoordinates = true;
     }
-    
+
     // Gérer le nombre d'enfants
     if (filters.childrenCount) {
       apiFilters.childrenCountMin = filters.childrenCount.min;
       apiFilters.childrenCountMax = filters.childrenCount.max;
     }
-    
+
     return apiFilters;
   };
-  
+
   // Combiner les filtres des params URL et les filtres intelligence
   const combinedFilters = {
     ...params,
-    ...adaptIntelligenceFilters(intelligenceFilters)
+    ...adaptIntelligenceFilters(intelligenceFilters),
   };
 
   // Récupérer les données avec les paramètres de recherche
-  const { data: profilesResponse, isLoading, error, refetch } = api.profile.getList.useQuery({
+  const {
+    data: profilesResponse,
+    isLoading,
+    error,
+    refetch,
+  } = api.profile.getList.useQuery({
     page: Math.max(1, safePagination.pageIndex + 1),
     limit: safePagination.pageSize,
-    sort: sorting && sorting.length > 0 ? {
-      field: sorting[0]?.id as any,
-      order: sorting[0]?.desc ? 'desc' : 'asc',
-    } : { field: 'createdAt', order: 'desc' },
+    sort:
+      sorting && sorting.length > 0
+        ? {
+            field: sorting[0]?.id as any,
+            order: sorting[0]?.desc ? 'desc' : 'asc',
+          }
+        : { field: 'createdAt', order: 'desc' },
     search: combinedFilters?.search || undefined,
     status: combinedFilters?.status || undefined,
     category: combinedFilters?.category || undefined,
     gender: combinedFilters?.gender || undefined,
     organizationId: combinedFilters?.organizationId || undefined,
   });
-  
+
   // Mutation pour créer une note d'intelligence
-  const createNoteMutation = api.intelligence.createNote?.useMutation?.({
-    onSuccess: () => {
-      toast.success('Note d\'intelligence ajoutée avec succès');
-      setNoteDialogOpen(false);
-      setNewNote({ title: '', content: '', type: 'GENERAL', priority: 'MEDIUM' });
-      setSelectedProfileForNote(null);
-      refetch(); // Rafraîchir les données
-    },
-    onError: (error) => {
-      toast.error('Erreur lors de l\'ajout de la note: ' + error.message);
-    },
-  }) || null;
+  const createNoteMutation =
+    api.intelligence.createNote?.useMutation?.({
+      onSuccess: () => {
+        toast.success("Note d'intelligence ajoutée avec succès");
+        setNoteDialogOpen(false);
+        setNewNote({ title: '', content: '', type: 'GENERAL', priority: 'MEDIUM' });
+        setSelectedProfileForNote(null);
+        refetch(); // Rafraîchir les données
+      },
+      onError: (error) => {
+        toast.error("Erreur lors de l'ajout de la note: " + error.message);
+      },
+    }) || null;
 
   const { data: dashboardStats } = useIntelligenceDashboardStats('month');
 
@@ -241,7 +276,7 @@ export default function ProfilesPage() {
     const today = new Date();
     const birth = new Date(birthDate);
     if (isNaN(birth.getTime())) return null;
-    
+
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
@@ -249,73 +284,78 @@ export default function ProfilesPage() {
     }
     return age;
   };
-  
+
   // Filtrer les profils côté client pour s'assurer de la cohérence des âges
   const filteredProfiles = useMemo(() => {
     let items = profilesResponse?.items || [];
-    
+
     // Appliquer le filtre d'âge côté client si nécessaire
     if (intelligenceFilters.minorOnly) {
-      items = items.filter(profile => {
+      items = items.filter((profile) => {
         const age = calculateAge(profile.birthDate);
         return age !== null && age < 18;
       });
     }
-    
+
     if (intelligenceFilters.adultOnly) {
-      items = items.filter(profile => {
+      items = items.filter((profile) => {
         const age = calculateAge(profile.birthDate);
         return age !== null && age >= 18 && age < 60;
       });
     }
-    
+
     if (intelligenceFilters.ageGroups?.includes('senior')) {
-      items = items.filter(profile => {
+      items = items.filter((profile) => {
         const age = calculateAge(profile.birthDate);
         return age !== null && age >= 60;
       });
     }
-    
+
     if (intelligenceFilters.ageRange) {
       const [minAge, maxAge] = intelligenceFilters.ageRange;
-      items = items.filter(profile => {
+      items = items.filter((profile) => {
         const age = calculateAge(profile.birthDate);
         return age !== null && age >= minAge && age <= maxAge;
       });
     }
-    
+
     return items;
   }, [profilesResponse?.items, intelligenceFilters]);
-  
+
   const profiles = filteredProfiles;
   const total = profilesResponse?.total || 0;
-  
+
   // Calculer les informations de pagination
   const currentPage = safePagination.pageIndex + 1;
   const itemsPerPage = safePagination.pageSize;
-  const paginationInfo = usePaginationInfo(currentPage, itemsPerPage, total, profiles.length);
+  const paginationInfo = usePaginationInfo(
+    currentPage,
+    itemsPerPage,
+    total,
+    profiles.length,
+  );
 
   const hasIntelligenceNotes = (profile: any) => {
     return profile.intelligenceNotes && profile.intelligenceNotes.length > 0;
   };
-  
+
   // Fonctions utilitaires
   const handleSelectProfile = (profileId: string, checked: boolean) => {
     if (checked) {
-      setSelectedProfiles(prev => [...prev, profileId]);
+      setSelectedProfiles((prev) => [...prev, profileId]);
     } else {
-      setSelectedProfiles(prev => prev.filter(id => id !== profileId));
+      setSelectedProfiles((prev) => prev.filter((id) => id !== profileId));
     }
   };
-  
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedProfiles(profiles.map(p => p.id));
+      setSelectedProfiles(profiles.map((p) => p.id));
     } else {
       setSelectedProfiles([]);
     }
   };
-  
+
   // Fonction de rafraîchissement
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -323,51 +363,51 @@ export default function ProfilesPage() {
       await refetch();
       toast.success('Données actualisées avec succès');
     } catch (error) {
-      toast.error('Erreur lors de l\'actualisation');
+      toast.error("Erreur lors de l'actualisation");
     } finally {
       setIsRefreshing(false);
     }
   };
-  
+
   // Fonction d'export
   const handleExport = async () => {
     if (selectedProfiles.length === 0) {
       toast.error('Veuillez sélectionner au moins un profil à exporter');
       return;
     }
-    
+
     setIsExporting(true);
     try {
       // Simuler l'export - à remplacer par la vraie logique
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Créer le CSV
-      const selectedData = profiles.filter(p => selectedProfiles.includes(p.id));
+      const selectedData = profiles.filter((p) => selectedProfiles.includes(p.id));
       const csvContent = exportToCSV(selectedData);
       downloadCSV(csvContent, 'profils_intelligence.csv');
-      
+
       toast.success(`${selectedProfiles.length} profils exportés avec succès`);
       setSelectedProfiles([]);
     } catch (error) {
-      toast.error('Erreur lors de l\'export');
+      toast.error("Erreur lors de l'export");
     } finally {
       setIsExporting(false);
     }
   };
-  
+
   // Fonction pour ouvrir le dialog d'ajout de note
   const handleAddNote = (profileId: string) => {
     setSelectedProfileForNote(profileId);
     setNoteDialogOpen(true);
   };
-  
+
   // Fonction pour soumettre la note
   const handleSubmitNote = async () => {
     if (!selectedProfileForNote || !newNote.title.trim() || !newNote.content.trim()) {
       toast.error('Veuillez remplir tous les champs requis');
       return;
     }
-    
+
     setIsAddingNote(true);
     try {
       if (createNoteMutation) {
@@ -387,23 +427,36 @@ export default function ProfilesPage() {
           type: newNote.type,
           priority: newNote.priority,
         });
-        toast.success('Note d\'intelligence ajoutée avec succès');
+        toast.success("Note d'intelligence ajoutée avec succès");
         setNoteDialogOpen(false);
         setNewNote({ title: '', content: '', type: 'GENERAL', priority: 'MEDIUM' });
         setSelectedProfileForNote(null);
         refetch();
       }
     } catch (error: any) {
-      toast.error('Erreur lors de l\'ajout de la note: ' + (error.message || 'Erreur inconnue'));
+      toast.error(
+        "Erreur lors de l'ajout de la note: " + (error.message || 'Erreur inconnue'),
+      );
     } finally {
       setIsAddingNote(false);
     }
   };
-  
+
   // Fonctions utilitaires pour l'export CSV
   const exportToCSV = (data: any[]) => {
-    const headers = ['ID', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Catégorie', 'Statut', 'Pays', 'Ville', 'Notes Intelligence'];
-    const rows = data.map(profile => [
+    const headers = [
+      'ID',
+      'Prénom',
+      'Nom',
+      'Email',
+      'Téléphone',
+      'Catégorie',
+      'Statut',
+      'Pays',
+      'Ville',
+      'Notes Intelligence',
+    ];
+    const rows = data.map((profile) => [
       profile.cardNumber || profile.id.substring(0, 8),
       profile.firstName || '',
       profile.lastName || '',
@@ -413,12 +466,12 @@ export default function ProfilesPage() {
       profile.status || '',
       profile.address?.country || '',
       profile.address?.city || '',
-      profile.intelligenceNotes?.length || 0
+      profile.intelligenceNotes?.length || 0,
     ]);
-    
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+
+    return [headers, ...rows].map((row) => row.join(',')).join('\n');
   };
-  
+
   const downloadCSV = (content: string, filename: string) => {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -430,34 +483,49 @@ export default function ProfilesPage() {
     link.click();
     document.body.removeChild(link);
   };
-  
+
   // Fonction pour gérer le changement de page
   const handlePageChange = (page: number) => {
     const newPageIndex = page - 1; // Convertir en index 0-based
-    setLocalPagination(prev => ({ ...prev, pageIndex: newPageIndex }));
+    setLocalPagination((prev) => ({ ...prev, pageIndex: newPageIndex }));
     handlePaginationChange && handlePaginationChange({ pageIndex: newPageIndex });
-    
+
     // Défiler vers le haut pour une meilleure UX
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const profilesWithNotes = profiles.filter(p => hasIntelligenceNotes(p));
-  const newProfilesThisMonth = profiles.filter(p => {
+  const profilesWithNotes = profiles.filter((p) => hasIntelligenceNotes(p));
+  const newProfilesThisMonth = profiles.filter((p) => {
     const createdAt = new Date(p.createdAt);
     const now = new Date();
-    return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
+    return (
+      createdAt.getMonth() === now.getMonth() &&
+      createdAt.getFullYear() === now.getFullYear()
+    );
   });
 
   const getCategoryBadge = (category: ProfileCategory) => {
     switch (category) {
       case ProfileCategory.CITIZEN:
-        return { text: 'Citoyen', color: 'bg-blue-500/20 text-blue-500 border-blue-500/30' };
+        return {
+          text: 'Citoyen',
+          color: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
+        };
       case ProfileCategory.RESIDENT:
-        return { text: 'Résident', color: 'bg-green-500/20 text-green-500 border-green-500/30' };
+        return {
+          text: 'Résident',
+          color: 'bg-green-500/20 text-green-500 border-green-500/30',
+        };
       case ProfileCategory.VISITOR:
-        return { text: 'Visiteur', color: 'bg-orange-500/20 text-orange-500 border-orange-500/30' };
+        return {
+          text: 'Visiteur',
+          color: 'bg-orange-500/20 text-orange-500 border-orange-500/30',
+        };
       default:
-        return { text: 'Non défini', color: 'bg-gray-500/20 text-gray-500 border-gray-500/30' };
+        return {
+          text: 'Non défini',
+          color: 'bg-gray-500/20 text-gray-500 border-gray-500/30',
+        };
     }
   };
 
@@ -478,48 +546,45 @@ export default function ProfilesPage() {
     }
   };
 
-          return (
-    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
-      <IntelAgentLayout
-        title="Profils Intelligence"
-        description="Base de données complète des profils sous surveillance"
-        currentPage="profiles"
-        backButton={false}
-      >
-        <div className="space-y-6">
+  return (
+    <PageContainer
+      title="Profils Intelligence"
+      description="Base de données complète des profils sous surveillance"
+    >
+      <div className="space-y-6">
         {/* Stats rapides */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {[
-            { 
-              title: 'Total profils', 
-              value: total, 
-              icon: Users, 
+            {
+              title: 'Total profils',
+              value: total,
+              icon: Users,
               color: 'blue',
-              change: '+5.2%'
+              change: '+5.2%',
             },
-            { 
-              title: 'Avec renseignements', 
-              value: profilesWithNotes.length, 
-              icon: FileText, 
+            {
+              title: 'Avec renseignements',
+              value: profilesWithNotes.length,
+              icon: FileText,
               color: 'green',
-              change: '+12.8%'
+              change: '+12.8%',
             },
-            { 
-              title: 'Nouveaux ce mois', 
-              value: newProfilesThisMonth.length, 
-              icon: Calendar, 
+            {
+              title: 'Nouveaux ce mois',
+              value: newProfilesThisMonth.length,
+              icon: Calendar,
               color: 'orange',
-              change: '+8.4%'
+              change: '+8.4%',
             },
-            { 
-              title: 'Surveillance active', 
-              value: dashboardStats?.profilesWithNotes || profilesWithNotes.length, 
-              icon: Eye, 
+            {
+              title: 'Surveillance active',
+              value: dashboardStats?.profilesWithNotes || profilesWithNotes.length,
+              icon: Eye,
               color: 'red',
-              change: '+15.1%'
-            }
+              change: '+15.1%',
+            },
           ].map((stat, index) => (
-            <Card 
+            <Card
               key={index}
               className="relative overflow-hidden group hover:-translate-y-1 transition-all duration-300"
               style={{
@@ -530,38 +595,50 @@ export default function ProfilesPage() {
                 boxShadow: 'var(--shadow-glass)',
               }}
             >
-              <div 
+              <div
                 className="absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100"
                 style={{
-                  background: 'linear-gradient(90deg, transparent, var(--accent-intel), transparent)',
-                  animation: 'scan 3s infinite'
+                  background:
+                    'linear-gradient(90deg, transparent, var(--accent-intel), transparent)',
+                  animation: 'scan 3s infinite',
                 }}
               />
               <CardHeader className="p-2 md:p-3 flex flex-row items-center justify-between space-y-0 pb-1">
-                <div 
+                <div
                   className="p-1.5 rounded-lg"
                   style={{
-                    background: stat.color === 'blue' ? 'rgba(59, 130, 246, 0.2)' : 
-                               stat.color === 'green' ? 'rgba(16, 185, 129, 0.2)' : 
-                               stat.color === 'orange' ? 'rgba(245, 158, 11, 0.2)' : 
-                               'rgba(239, 68, 68, 0.2)',
-                    color: stat.color === 'blue' ? '#3b82f6' : 
-                           stat.color === 'green' ? '#10b981' : 
-                           stat.color === 'orange' ? '#f59e0b' : 
-                           '#ef4444'
+                    background:
+                      stat.color === 'blue'
+                        ? 'rgba(59, 130, 246, 0.2)'
+                        : stat.color === 'green'
+                          ? 'rgba(16, 185, 129, 0.2)'
+                          : stat.color === 'orange'
+                            ? 'rgba(245, 158, 11, 0.2)'
+                            : 'rgba(239, 68, 68, 0.2)',
+                    color:
+                      stat.color === 'blue'
+                        ? '#3b82f6'
+                        : stat.color === 'green'
+                          ? '#10b981'
+                          : stat.color === 'orange'
+                            ? '#f59e0b'
+                            : '#ef4444',
                   }}
                 >
                   <stat.icon className="h-4 w-4" />
                 </div>
-                <Badge 
-                  variant={stat.change.includes('-') ? 'destructive' : 'default'} 
+                <Badge
+                  variant={stat.change.includes('-') ? 'destructive' : 'default'}
                   className="text-xs"
                 >
                   {stat.change}
                 </Badge>
               </CardHeader>
               <CardContent className="p-3 md:p-4 pt-0">
-                <div className="text-xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>
+                <div
+                  className="text-xl font-bold font-mono"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {stat.value.toLocaleString()}
                 </div>
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -570,10 +647,10 @@ export default function ProfilesPage() {
               </CardContent>
             </Card>
           ))}
-            </div>
+        </div>
 
         {/* Filtres et contrôles */}
-        <Card 
+        <Card
           style={{
             background: 'var(--bg-glass-primary)',
             backdropFilter: 'blur(10px)',
@@ -584,13 +661,16 @@ export default function ProfilesPage() {
         >
           <CardHeader className="py-3 px-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <CardTitle
+                className="flex items-center gap-2"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 <Filter className="h-5 w-5" />
                 Recherche et Filtres
               </CardTitle>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
@@ -602,8 +682,8 @@ export default function ProfilesPage() {
                   )}
                   {isRefreshing ? 'Actualisation...' : 'Actualiser'}
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={handleExport}
                   disabled={isExporting || selectedProfiles.length === 0}
@@ -613,25 +693,40 @@ export default function ProfilesPage() {
                   ) : (
                     <Download className="h-4 w-4 mr-2" />
                   )}
-                  {isExporting ? 'Export...' : `Export ${selectedProfiles.length > 0 ? `(${selectedProfiles.length})` : ''}`}
+                  {isExporting
+                    ? 'Export...'
+                    : `Export ${selectedProfiles.length > 0 ? `(${selectedProfiles.length})` : ''}`}
                 </Button>
-                </div>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="py-3 px-4">
             {/* Barre de sélection si des profils sont sélectionnés */}
             {selectedProfiles.length > 0 && (
-              <div className="mb-4 p-3 rounded-lg" style={{ background: 'var(--bg-glass-light)', border: '1px solid var(--border-glass-secondary)' }}>
+              <div
+                className="mb-4 p-3 rounded-lg"
+                style={{
+                  background: 'var(--bg-glass-light)',
+                  border: '1px solid var(--border-glass-secondary)',
+                }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
                     {selectedProfiles.length} profil(s) sélectionné(s)
                   </span>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setSelectedProfiles([])}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedProfiles([])}
+                    >
                       Désélectionner tout
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       disabled={selectedProfiles.length !== 1}
                       onClick={() => {
                         if (selectedProfiles.length === 1) {
@@ -645,7 +740,7 @@ export default function ProfilesPage() {
                 </div>
               </div>
             )}
-            
+
             {/* Filtres avancés de renseignement */}
             <AdvancedFilters
               filters={intelligenceFilters}
@@ -665,7 +760,7 @@ export default function ProfilesPage() {
                   handleParamsChange({ status: newFilters.status });
                 }
                 // Réinitialiser la pagination lors du changement de filtres
-                setLocalPagination(prev => ({ ...prev, pageIndex: 0 }));
+                setLocalPagination((prev) => ({ ...prev, pageIndex: 0 }));
               }}
               totalProfiles={total}
               className="mb-4"
@@ -674,7 +769,7 @@ export default function ProfilesPage() {
         </Card>
 
         {/* Liste des profils avec design glass */}
-        <Card 
+        <Card
           style={{
             background: 'var(--bg-glass-primary)',
             backdropFilter: 'blur(10px)',
@@ -697,7 +792,9 @@ export default function ProfilesPage() {
                 {profiles.length > 0 && (
                   <div className="flex items-center gap-2">
                     <Checkbox
-                      checked={selectedProfiles.length === profiles.length && profiles.length > 0}
+                      checked={
+                        selectedProfiles.length === profiles.length && profiles.length > 0
+                      }
                       onCheckedChange={handleSelectAll}
                       className="opacity-60"
                     />
@@ -707,7 +804,10 @@ export default function ProfilesPage() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-muted)' }}>
+              <div
+                className="flex items-center gap-4 text-xs"
+                style={{ color: 'var(--text-muted)' }}
+              >
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-blue-500 rounded-full" />
                   Avec notes: {profilesWithNotes.length}
@@ -725,14 +825,14 @@ export default function ProfilesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(9)].map((_, i) => (
                   <Card
-                    key={i} 
+                    key={i}
                     className="animate-pulse border-l-4"
-                    style={{ 
+                    style={{
                       background: 'var(--bg-glass-primary)',
                       backdropFilter: 'blur(10px)',
                       WebkitBackdropFilter: 'blur(10px)',
                       border: '1px solid var(--border-glass-primary)',
-                      borderLeftColor: 'var(--border-glass-secondary)'
+                      borderLeftColor: 'var(--border-glass-secondary)',
                     }}
                   >
                     <CardHeader className="pb-3">
@@ -772,53 +872,67 @@ export default function ProfilesPage() {
                   const categoryStyle = getCategoryBadge(profile.category);
                   const statusStyle = getStatusBadge(profile.status);
                   const hasNotes = hasIntelligenceNotes(profile);
-                  const isNewThisMonth = newProfilesThisMonth.some(p => p.id === profile.id);
-                  
+                  const isNewThisMonth = newProfilesThisMonth.some(
+                    (p) => p.id === profile.id,
+                  );
+
                   return (
-                    <Card 
+                    <Card
                       key={profile.id}
                       className="group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-l-4"
-                      style={{ 
+                      style={{
                         background: 'var(--bg-glass-primary)',
                         backdropFilter: 'blur(10px)',
                         WebkitBackdropFilter: 'blur(10px)',
                         border: '1px solid var(--border-glass-primary)',
                         boxShadow: 'var(--shadow-glass)',
-                        borderLeftColor: hasNotes ? '#3b82f6' : 
-                                        isNewThisMonth ? '#10b981' :
-                                        'var(--border-glass-primary)'
+                        borderLeftColor: hasNotes
+                          ? '#3b82f6'
+                          : isNewThisMonth
+                            ? '#10b981'
+                            : 'var(--border-glass-primary)',
                       }}
                     >
                       {/* Barre de scan animée */}
-                      <div 
+                      <div
                         className="absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100"
                         style={{
-                          background: 'linear-gradient(90deg, transparent, var(--accent-intel), transparent)',
-                          animation: 'scan 3s infinite'
+                          background:
+                            'linear-gradient(90deg, transparent, var(--accent-intel), transparent)',
+                          animation: 'scan 3s infinite',
                         }}
                       />
-                      
+
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3">
-                            <Checkbox 
+                            <Checkbox
                               checked={selectedProfiles.includes(profile.id)}
-                              onCheckedChange={(checked) => handleSelectProfile(profile.id, checked as boolean)}
+                              onCheckedChange={(checked) =>
+                                handleSelectProfile(profile.id, checked as boolean)
+                              }
                               onClick={(e) => e.stopPropagation()}
                               className="mt-1"
                             />
                             <Avatar className="w-12 h-12">
                               {profile.IDPictureUrl ? (
-                                <AvatarImage src={profile.IDPictureUrl} alt={`${profile.firstName} ${profile.lastName}`} />
+                                <AvatarImage
+                                  src={profile.IDPictureUrl}
+                                  alt={`${profile.firstName} ${profile.lastName}`}
+                                />
                               ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-amber-500 text-white font-semibold">
-                                  {profile.firstName?.[0]}{profile.lastName?.[0]}
+                                  {profile.firstName?.[0]}
+                                  {profile.lastName?.[0]}
                                 </AvatarFallback>
                               )}
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                <h3
+                                  className="font-semibold text-sm"
+                                  style={{ color: 'var(--text-primary)' }}
+                                >
                                   {profile.firstName} {profile.lastName}
                                 </h3>
                                 {isNewThisMonth && (
@@ -827,8 +941,13 @@ export default function ProfilesPage() {
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                                ID: {profile.cardNumber || profile.id.substring(0, 8).toUpperCase()}
+                              <p
+                                className="text-xs font-mono"
+                                style={{ color: 'var(--text-muted)' }}
+                              >
+                                ID:{' '}
+                                {profile.cardNumber ||
+                                  profile.id.substring(0, 8).toUpperCase()}
                                 {profile.birthDate && (
                                   <span className="ml-2 font-sans">
                                     • {calculateAge(profile.birthDate)} ans
@@ -837,14 +956,14 @@ export default function ProfilesPage() {
                               </p>
                             </div>
                           </div>
-                          
+
                           {hasNotes && (
                             <Badge className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30">
                               <AlertTriangle className="h-3 w-3" />
                             </Badge>
                           )}
                         </div>
-                        
+
                         {/* Badges statut et catégorie */}
                         <div className="flex items-center gap-2 mt-3">
                           <Badge className={`text-xs ${categoryStyle.color}`}>
@@ -861,24 +980,42 @@ export default function ProfilesPage() {
                         <div className="space-y-2">
                           {profile.user?.email && (
                             <div className="flex items-center gap-2">
-                              <Mail className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                              <p className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>
+                              <Mail
+                                className="h-3 w-3"
+                                style={{ color: 'var(--text-muted)' }}
+                              />
+                              <p
+                                className="text-xs truncate"
+                                style={{ color: 'var(--text-primary)' }}
+                              >
                                 {profile.user.email}
                               </p>
                             </div>
                           )}
                           {profile.phoneNumber && (
                             <div className="flex items-center gap-2">
-                              <Phone className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                              <Phone
+                                className="h-3 w-3"
+                                style={{ color: 'var(--text-muted)' }}
+                              />
+                              <p
+                                className="text-xs"
+                                style={{ color: 'var(--text-secondary)' }}
+                              >
                                 {profile.phoneNumber}
                               </p>
                             </div>
                           )}
                           {profile.address && (
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                              <p className="text-xs" style={{ color: 'var(--text-primary)' }}>
+                              <MapPin
+                                className="h-3 w-3"
+                                style={{ color: 'var(--text-muted)' }}
+                              />
+                              <p
+                                className="text-xs"
+                                style={{ color: 'var(--text-primary)' }}
+                              >
                                 {profile.address.city}, {profile.address.country}
                               </p>
                             </div>
@@ -888,23 +1025,42 @@ export default function ProfilesPage() {
                         {/* Informations de surveillance */}
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Calendar className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                              Inscrit le {format(new Date(profile.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                            <Calendar
+                              className="h-3 w-3"
+                              style={{ color: 'var(--text-muted)' }}
+                            />
+                            <p
+                              className="text-xs"
+                              style={{ color: 'var(--text-secondary)' }}
+                            >
+                              Inscrit le{' '}
+                              {format(new Date(profile.createdAt), 'dd/MM/yyyy', {
+                                locale: fr,
+                              })}
                             </p>
                           </div>
-                          
+
                           {hasNotes ? (
                             <div className="flex items-center gap-2">
-                              <Eye className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
+                              <Eye
+                                className="h-3 w-3"
+                                style={{ color: 'var(--text-muted)' }}
+                              />
                               <Badge className="text-xs bg-blue-500/20 text-blue-500 border-blue-500/30">
-                                {profile.intelligenceNotes?.length || 0} note(s) de surveillance
+                                {profile.intelligenceNotes?.length || 0} note(s) de
+                                surveillance
                               </Badge>
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
-                              <Eye className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-                              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                              <Eye
+                                className="h-3 w-3"
+                                style={{ color: 'var(--text-muted)' }}
+                              />
+                              <p
+                                className="text-xs"
+                                style={{ color: 'var(--text-muted)' }}
+                              >
                                 Aucune note de surveillance
                               </p>
                             </div>
@@ -912,7 +1068,10 @@ export default function ProfilesPage() {
                         </div>
 
                         {/* Actions principales - Bien visibles */}
-                        <div className="pt-3 border-t" style={{ borderColor: 'var(--border-glass-secondary)' }}>
+                        <div
+                          className="pt-3 border-t"
+                          style={{ borderColor: 'var(--border-glass-secondary)' }}
+                        >
                           <div className="grid grid-cols-3 gap-2">
                             <Button
                               size="sm"
@@ -926,7 +1085,7 @@ export default function ProfilesPage() {
                               <Eye className="h-3 w-3 mr-1" />
                               Voir
                             </Button>
-                            
+
                             <Button
                               size="sm"
                               variant="outline"
@@ -939,7 +1098,7 @@ export default function ProfilesPage() {
                               <Edit className="h-3 w-3 mr-1" />
                               Note
                             </Button>
-                            
+
                             <Button
                               size="sm"
                               variant="outline"
@@ -960,7 +1119,7 @@ export default function ProfilesPage() {
                   );
                 })}
               </div>
-          )}
+            )}
 
             {!isLoading && profiles.length === 0 && (
               <div className="text-center py-12">
@@ -968,19 +1127,22 @@ export default function ProfilesPage() {
                 <p style={{ color: 'var(--text-muted)' }}>
                   Aucun profil trouvé avec ces critères
                 </p>
-                <Button variant="outline" size="sm" className="mt-4" onClick={() => handleParamsChange({})}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => handleParamsChange({})}
+                >
                   Réinitialiser les filtres
                 </Button>
               </div>
             )}
-            
+
             {/* Gestion des erreurs */}
             {error && (
               <div className="text-center py-12">
                 <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-                <p className="text-red-500 mb-4">
-                  Erreur lors du chargement des profils
-                </p>
+                <p className="text-red-500 mb-4">Erreur lors du chargement des profils</p>
                 <Button variant="outline" size="sm" onClick={() => refetch()}>
                   Réessayer
                 </Button>
@@ -990,24 +1152,31 @@ export default function ProfilesPage() {
             {/* Indicateurs de chargement supplémentaire */}
             {!isLoading && profiles.length > 0 && total > profiles.length && (
               <div className="text-center py-6">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     const newPageIndex = safePagination.pageIndex + 1;
-                    setLocalPagination({ pageIndex: newPageIndex, pageSize: safePagination.pageSize });
-                    handlePaginationChange && handlePaginationChange({ pageIndex: newPageIndex });
+                    setLocalPagination({
+                      pageIndex: newPageIndex,
+                      pageSize: safePagination.pageSize,
+                    });
+                    handlePaginationChange &&
+                      handlePaginationChange({ pageIndex: newPageIndex });
                   }}
                   className="bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Charger plus de profils ({total - profiles.length} restants)
                 </Button>
-            </div>
-          )}
+              </div>
+            )}
 
             {/* Pagination avancée */}
             {total > 0 && paginationInfo.totalPages > 1 && (
-              <div className="mt-6 pt-6 space-y-4" style={{ borderTop: '1px solid var(--border-glass-secondary)' }}>
+              <div
+                className="mt-6 pt-6 space-y-4"
+                style={{ borderTop: '1px solid var(--border-glass-secondary)' }}
+              >
                 {/* Informations de pagination */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -1019,7 +1188,7 @@ export default function ProfilesPage() {
                       currentItemsCount={profiles.length}
                       className="text-sm text-muted-foreground"
                     />
-                    
+
                     <div className="flex items-center gap-4 text-xs">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full" />
@@ -1039,20 +1208,28 @@ export default function ProfilesPage() {
 
                 {/* Contrôles de pagination */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                  <div
+                    className="flex items-center gap-2 text-sm"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
                     <span>Affichage:</span>
-                    <select 
+                    <select
                       value={itemsPerPage}
                       onChange={(e) => {
                         const newPageSize = parseInt(e.target.value);
-                        setLocalPagination(prev => ({ ...prev, pageSize: newPageSize, pageIndex: 0 }));
-                        handlePaginationChange && handlePaginationChange({ pageSize: newPageSize, pageIndex: 0 });
+                        setLocalPagination((prev) => ({
+                          ...prev,
+                          pageSize: newPageSize,
+                          pageIndex: 0,
+                        }));
+                        handlePaginationChange &&
+                          handlePaginationChange({ pageSize: newPageSize, pageIndex: 0 });
                       }}
                       className="px-2 py-1 rounded border text-sm"
                       style={{
                         background: 'var(--bg-glass-light)',
                         border: '1px solid var(--border-glass-secondary)',
-                        color: 'var(--text-primary)'
+                        color: 'var(--text-primary)',
                       }}
                     >
                       <option value={10}>10</option>
@@ -1078,103 +1255,118 @@ export default function ProfilesPage() {
             )}
           </CardContent>
         </Card>
-        </div>
-        
-        {/* Dialog pour ajouter une note d'intelligence */}
-        <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Ajouter une note d'intelligence</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
+      </div>
+
+      {/* Dialog pour ajouter une note d'intelligence */}
+      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ajouter une note d'intelligence</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Titre de la note</label>
+              <Input
+                placeholder="Titre de la note..."
+                value={newNote.title}
+                onChange={(e) =>
+                  setNewNote((prev) => ({ ...prev, title: e.target.value }))
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Titre de la note</label>
-                <Input
-                  placeholder="Titre de la note..."
-                  value={newNote.title}
-                  onChange={(e) => setNewNote(prev => ({ ...prev, title: e.target.value }))}
-                />
+                <label className="text-sm font-medium">Type</label>
+                <Select
+                  value={newNote.type}
+                  onValueChange={(value) =>
+                    setNewNote((prev) => ({
+                      ...prev,
+                      type: value as IntelligenceNoteType,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GENERAL">Général</SelectItem>
+                    <SelectItem value="SECURITY">Sécurité</SelectItem>
+                    <SelectItem value="FINANCIAL">Financier</SelectItem>
+                    <SelectItem value="TRAVEL">Voyage</SelectItem>
+                    <SelectItem value="CONTACT">Contact</SelectItem>
+                    <SelectItem value="FAMILY">Famille</SelectItem>
+                    <SelectItem value="PROFESSIONAL">Professionnel</SelectItem>
+                    <SelectItem value="BEHAVIORAL">Comportemental</SelectItem>
+                    <SelectItem value="OTHER">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Type</label>
-                  <Select 
-                    value={newNote.type} 
-                    onValueChange={(value) => setNewNote(prev => ({ ...prev, type: value as IntelligenceNoteType }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GENERAL">Général</SelectItem>
-                      <SelectItem value="SECURITY">Sécurité</SelectItem>
-                      <SelectItem value="FINANCIAL">Financier</SelectItem>
-                      <SelectItem value="TRAVEL">Voyage</SelectItem>
-                      <SelectItem value="CONTACT">Contact</SelectItem>
-                      <SelectItem value="FAMILY">Famille</SelectItem>
-                      <SelectItem value="PROFESSIONAL">Professionnel</SelectItem>
-                      <SelectItem value="BEHAVIORAL">Comportemental</SelectItem>
-                      <SelectItem value="OTHER">Autre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Priorité</label>
-                  <Select 
-                    value={newNote.priority} 
-                    onValueChange={(value) => setNewNote(prev => ({ ...prev, priority: value as IntelligenceNotePriority }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LOW">🟢 Faible</SelectItem>
-                      <SelectItem value="MEDIUM">🟡 Moyenne</SelectItem>
-                      <SelectItem value="HIGH">🟠 Élevée</SelectItem>
-                      <SelectItem value="CRITICAL">🔴 Critique</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">Contenu de la note</label>
-                <Textarea
-                  placeholder="Détails de la note d'intelligence..."
-                  value={newNote.content}
-                  onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
-                  rows={6}
-                />
-              </div>
-              
-              <div className="flex justify-end gap-3">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setNoteDialogOpen(false)}
-                  disabled={isAddingNote}
+                <label className="text-sm font-medium">Priorité</label>
+                <Select
+                  value={newNote.priority}
+                  onValueChange={(value) =>
+                    setNewNote((prev) => ({
+                      ...prev,
+                      priority: value as IntelligenceNotePriority,
+                    }))
+                  }
                 >
-                  Annuler
-                </Button>
-                <Button 
-                  onClick={handleSubmitNote}
-                  disabled={isAddingNote || !newNote.title.trim() || !newNote.content.trim()}
-                >
-                  {isAddingNote ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Ajout en cours...
-                    </>
-                  ) : (
-                    'Ajouter la note'
-                  )}
-                </Button>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LOW">🟢 Faible</SelectItem>
+                    <SelectItem value="MEDIUM">🟡 Moyenne</SelectItem>
+                    <SelectItem value="HIGH">🟠 Élevée</SelectItem>
+                    <SelectItem value="CRITICAL">🔴 Critique</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </IntelAgentLayout>
-    </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Contenu de la note</label>
+              <Textarea
+                placeholder="Détails de la note d'intelligence..."
+                value={newNote.content}
+                onChange={(e) =>
+                  setNewNote((prev) => ({ ...prev, content: e.target.value }))
+                }
+                rows={6}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setNoteDialogOpen(false)}
+                disabled={isAddingNote}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleSubmitNote}
+                disabled={
+                  isAddingNote || !newNote.title.trim() || !newNote.content.trim()
+                }
+              >
+                {isAddingNote ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Ajout en cours...
+                  </>
+                ) : (
+                  'Ajouter la note'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </PageContainer>
   );
 }

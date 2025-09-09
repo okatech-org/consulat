@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
 import { ThemeToggleIntel } from '@/components/ui/theme-toggle-intel';
 import {
@@ -33,55 +32,6 @@ import {
   Brain,
   Building2,
 } from 'lucide-react';
-
-// Variables CSS dynamiques pour le glass morphism selon le thème
-const getDynamicCSSVariables = (theme: string) => `
-  :root {
-    --bg-primary: ${
-      theme === 'dark'
-        ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%)'
-        : 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 50%, #f0f0f0 100%)'
-    };
-    --bg-glass-primary: ${
-      theme === 'dark' ? 'rgba(30, 30, 30, 0.6)' : 'rgba(255, 255, 255, 0.7)'
-    };
-    --bg-glass-secondary: ${
-      theme === 'dark' ? 'rgba(40, 40, 40, 0.4)' : 'rgba(255, 255, 255, 0.5)'
-    };
-    --bg-glass-light: ${
-      theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'
-    };
-    --border-glass-primary: ${
-      theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-    };
-    --border-glass-secondary: ${
-      theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'
-    };
-    --text-primary: ${theme === 'dark' ? '#ffffff' : '#1a1a1a'};
-    --text-secondary: ${theme === 'dark' ? '#b3b3b3' : '#6b6b6b'};
-    --text-muted: ${theme === 'dark' ? '#666666' : '#999999'};
-    --interactive-hover: ${
-      theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
-    };
-    --interactive-hover-strong: ${
-      theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-    };
-    --shadow-glass: ${
-      theme === 'dark'
-        ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-        : '0 8px 32px rgba(0, 0, 0, 0.08)'
-    };
-    --progress-bg: ${
-      theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-    };
-    --pattern-color: ${theme === 'dark' ? '#fff' : '#000'};
-    --orb-opacity: ${theme === 'dark' ? '0.4' : '0.2'};
-    --accent-intel: #3b82f6;
-    --accent-warning: #f59e0b;
-    --accent-success: #10b981;
-    --accent-danger: #ef4444;
-  }
-`;
 
 // Composant pour les effets de fond
 function BackgroundEffects() {
@@ -407,21 +357,6 @@ function CustomSidebar({
               style={{ color: 'var(--text-muted)' }}
             >
               <span>Consulat.ga</span>
-              {/* Statut de surveillance */}
-              {realTimeData?.surveillanceStatus &&
-                realTimeData.surveillanceStatus !== 'normal' && (
-                  <span
-                    className={`px-1 py-0.5 rounded text-xs font-medium ${
-                      realTimeData.surveillanceStatus === 'critical'
-                        ? 'bg-red-500/20 text-red-400'
-                        : realTimeData.surveillanceStatus === 'high'
-                          ? 'bg-orange-500/20 text-orange-400'
-                          : 'bg-yellow-500/20 text-yellow-400'
-                    }`}
-                  >
-                    {realTimeData.surveillanceStatus.toUpperCase()}
-                  </span>
-                )}
             </div>
           </div>
         </div>
@@ -771,7 +706,6 @@ export default function IntelAgentLayout({
 }: IntelAgentLayoutProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const { resolvedTheme } = useTheme();
   const { navigateTo, handleMouseEnter, isPending } = useOptimizedNavigation();
   const { prefetchCommon } = usePrefetchCommonData();
 
@@ -786,99 +720,13 @@ export default function IntelAgentLayout({
   const { unreadCount, hasUnread } = useDGSSNotifications();
   const { uptime, isHealthy } = useDGSSSystemStatus();
 
-  // Mettre à jour les styles CSS immédiatement quand le thème change
+  // Initialiser le composant
   useEffect(() => {
     setMounted(true);
-
-    // Appliquer immédiatement les styles par défaut
-    if (resolvedTheme) {
-      applyThemeStyles(resolvedTheme);
-    }
 
     // Précharger les données communes au montage
     prefetchCommon();
   }, [prefetchCommon]);
-
-  useEffect(() => {
-    if (!resolvedTheme) return;
-
-    // Appliquer les styles immédiatement lors du changement de thème
-    applyThemeStyles(resolvedTheme);
-  }, [resolvedTheme]);
-
-  // Écouter les changements de thème via un event listener personnalisé
-  useEffect(() => {
-    const handleThemeChange = (event: CustomEvent) => {
-      const newTheme = event.detail;
-      if (newTheme) {
-        applyThemeStyles(newTheme);
-      }
-    };
-
-    window.addEventListener('theme-changed' as never, handleThemeChange);
-    return () => window.removeEventListener('theme-changed' as never, handleThemeChange);
-  }, []);
-
-  // Fonction pour appliquer les styles de thème
-  const applyThemeStyles = (theme: string) => {
-    // Forcer l'application immédiate de la classe du thème
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
-
-    // Supprimer seulement les anciennes variables, pas les keyframes
-    const existingVariables = document.querySelectorAll('[data-intel-theme="variables"]');
-    existingVariables.forEach((el) => el.remove());
-
-    // Injecter les nouvelles variables CSS immédiatement
-    const style = document.createElement('style');
-    style.setAttribute('data-intel-theme', 'variables');
-    style.textContent = getDynamicCSSVariables(theme);
-    document.head.appendChild(style);
-
-    // Forcer le reflow pour appliquer immédiatement les changements
-    document.body.style.display = 'none';
-    void document.body.offsetHeight; // Trigger reflow
-    document.body.style.display = '';
-
-    // Injecter les animations keyframes une seule fois
-    if (!document.querySelector('[data-intel-theme="keyframes"]')) {
-      const keyframes = document.createElement('style');
-      keyframes.setAttribute('data-intel-theme', 'keyframes');
-      keyframes.textContent = `
-        @keyframes live-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
-          50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
-        }
-        @keyframes scan {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes progress-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-      @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.5); opacity: 0.5; }
-        100% { transform: scale(1); opacity: 1; }
-      }
-      @keyframes loading-slide {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(400%); }
-      }
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0) rotate(0deg); }
-          33% { transform: translate(30px, -30px) rotate(120deg); }
-          66% { transform: translate(-20px, 20px) rotate(240deg); }
-        }
-      `;
-      document.head.appendChild(keyframes);
-    }
-  };
 
   if (!mounted) {
     return (

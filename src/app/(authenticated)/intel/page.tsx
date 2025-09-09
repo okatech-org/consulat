@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '@/trpc/react';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';

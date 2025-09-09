@@ -14,9 +14,9 @@ export default async function DashboardLayout({
     <RouteAuthGuard roles={['INTEL_AGENT']} fallbackUrl={ROUTES.user.base}>
       <SidebarProvider>
         <IntelSidebar />
-        <SidebarInset className="bg-background">
+        <SidebarInset>
           <SiteHeader />
-          <div className="pt-14 pb-safe md:pb-6 container">{children}</div>
+          <div className="pb-safe md:pb-6 container">{children}</div>
           <BottomNavigation />
         </SidebarInset>
       </SidebarProvider>
