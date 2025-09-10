@@ -25,7 +25,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Building, Navigation, Users, Plane, Phone, Target, FileText } from 'lucide-react';
+import {
+  Building,
+  Navigation,
+  Users,
+  Plane,
+  Phone,
+  Target,
+  FileText,
+} from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -36,6 +44,7 @@ import {
 } from '@/components/ui/form';
 import { DatePicker } from '@/components/ui/date-picker';
 import { X, Plus } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 
 interface IntelligenceNoteFormProps {
   profileId: string;
@@ -50,16 +59,36 @@ const typeOptions = [
     label: 'Opinion politique',
     icon: <Building className="h-4 w-4" />,
   },
-  { value: IntelligenceNoteType.ORIENTATION, label: 'Orientation', icon: <Navigation className="h-4 w-4" /> },
-  { value: IntelligenceNoteType.ASSOCIATIONS, label: 'Associations', icon: <Users className="h-4 w-4" /> },
+  {
+    value: IntelligenceNoteType.ORIENTATION,
+    label: 'Orientation',
+    icon: <Navigation className="h-4 w-4" />,
+  },
+  {
+    value: IntelligenceNoteType.ASSOCIATIONS,
+    label: 'Associations',
+    icon: <Users className="h-4 w-4" />,
+  },
   {
     value: IntelligenceNoteType.TRAVEL_PATTERNS,
     label: 'Habitudes de voyage',
     icon: <Plane className="h-4 w-4" />,
   },
-  { value: IntelligenceNoteType.CONTACTS, label: 'Contacts', icon: <Phone className="h-4 w-4" /> },
-  { value: IntelligenceNoteType.ACTIVITIES, label: 'Activités', icon: <Target className="h-4 w-4" /> },
-  { value: IntelligenceNoteType.OTHER, label: 'Autre', icon: <FileText className="h-4 w-4" /> },
+  {
+    value: IntelligenceNoteType.CONTACTS,
+    label: 'Contacts',
+    icon: <Phone className="h-4 w-4" />,
+  },
+  {
+    value: IntelligenceNoteType.ACTIVITIES,
+    label: 'Activités',
+    icon: <Target className="h-4 w-4" />,
+  },
+  {
+    value: IntelligenceNoteType.OTHER,
+    label: 'Autre',
+    icon: <FileText className="h-4 w-4" />,
+  },
 ];
 
 const priorityOptions = [
@@ -314,30 +343,6 @@ export function IntelligenceNoteForm({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-
-            {/* Date d&apos;expiration */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium">
-                Date d&apos;expiration (optionnelle)
-              </label>
-              <DatePicker
-                date={expiresAt}
-                onSelect={setExpiresAt}
-                placeholder="Sélectionner une date"
-                dateStr="dd MMMM yyyy"
-              />
-              {expiresAt && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setExpiresAt(undefined)}
-                  className="text-muted-foreground"
-                >
-                  Supprimer la date d&apos;expiration
-                </Button>
-              )}
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">

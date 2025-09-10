@@ -4,23 +4,15 @@ import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { AppSidebar } from '@/components/ui/app-sidebar';
 import { RouteAuthGuard } from '@/components/layouts/route-auth-guard';
 import { ROUTES } from '@/schemas/routes';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { redirect } from 'next/navigation';
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
-
-  if (user?.role === 'INTEL_AGENT') {
-    redirect(ROUTES.intel.base);
-  }
-
   return (
     <RouteAuthGuard
-      roles={['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN']}
+      roles={['ADMIN', 'AGENT', 'MANAGER', 'SUPER_ADMIN', 'INTEL_AGENT']}
       fallbackUrl={ROUTES.user.base}
     >
       <SidebarProvider>

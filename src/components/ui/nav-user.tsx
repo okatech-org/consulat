@@ -24,19 +24,28 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useCurrentUser } from '@/hooks/use-role-data';
 import { signOut } from 'next-auth/react';
+import { UserRole } from '@prisma/client';
 
 export function NavUser() {
   const { user } = useCurrentUser();
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
-  const isAdmin = user.role !== 'USER';
   const initials = user.name
     ?.split(' ')
     .slice(0, 1)
     .map((name) => name[0])
     .join('. ');
   const name = user.name?.split(' ').slice(1).join(' ').trim();
+
+  const dashboardUrl: Record<UserRole, string> = {
+    [UserRole.ADMIN]: ROUTES.dashboard.base,
+    [UserRole.AGENT]: ROUTES.dashboard.base,
+    [UserRole.MANAGER]: ROUTES.dashboard.base,
+    [UserRole.SUPER_ADMIN]: ROUTES.dashboard.base,
+    [UserRole.INTEL_AGENT]: ROUTES.intel.base,
+    [UserRole.USER]: ROUTES.user.base,
+  };
 
   return (
     <SidebarMenu>
@@ -96,7 +105,7 @@ export function NavUser() {
                   className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   asChild
                 >
-                  <Link href={isAdmin ? ROUTES.dashboard.base : ROUTES.user.base}>
+                  <Link href={dashboardUrl[user.role]}>
                     <HomeIcon className="size-icon" />
                     {t('navigation.my_space')}
                   </Link>

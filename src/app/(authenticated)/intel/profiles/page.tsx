@@ -52,6 +52,8 @@ import {
   type IntelligenceFilters,
 } from '@/components/intelligence/advanced-filters';
 import { PageContainer } from '@/components/layouts/page-container';
+import Link from 'next/link';
+import { ROUTES } from '@/schemas/routes';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -1049,13 +1051,12 @@ export default function ProfilesPage() {
                               size="sm"
                               variant="outline"
                               className="text-xs h-8 bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-blue-600"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/dashboard/profiles/${profile.id}`);
-                              }}
+                              asChild
                             >
-                              <Eye className="h-3 w-3 mr-1" />
-                              Voir
+                              <Link href={ROUTES.intel.profile(profile.id)}>
+                                <Eye className="h-3 w-3 mr-1" />
+                                Voir
+                              </Link>
                             </Button>
 
                             <Button

@@ -5,9 +5,19 @@ import AgentDashboard from '../../../components/dashboards/agent-dashboard';
 import AdminDashboard from '../../../components/dashboards/admin-dashboard';
 import { ManagerDashboard } from '../../../components/dashboards/manager-dashboard';
 import type { SessionUser } from '@/types/user';
+import { ROUTES } from '@/schemas/routes';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
+
+  if (user?.role === 'INTEL_AGENT') {
+    redirect(ROUTES.intel.base);
+  }
+
+  if (user?.role === 'USER') {
+    redirect(ROUTES.user.base);
+  }
 
   return (
     <>

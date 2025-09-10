@@ -24,7 +24,6 @@ import {
   BarChart3,
   Brain,
   BookOpen,
-  Network,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
@@ -147,15 +146,27 @@ export function useNavigation() {
       roles: [UserRole.INTEL_AGENT],
     },
     {
+      title: t('intel-notes'),
+      url: ROUTES.intel.notes,
+      icon: FileText,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
       title: t('intel-map'),
       url: ROUTES.intel.map,
       icon: MapPin,
       roles: [UserRole.INTEL_AGENT],
     },
     {
-      title: t('intel-notes'),
-      url: ROUTES.intel.notes,
-      icon: FileText,
+      title: t('intel-competences'),
+      url: ROUTES.intel.competences,
+      icon: BookOpen,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-associations'),
+      url: ROUTES.intel.associations,
+      icon: Building2,
       roles: [UserRole.INTEL_AGENT],
     },
     {
@@ -174,12 +185,6 @@ export function useNavigation() {
       title: t('intel-predictions'),
       url: ROUTES.intel.predictions,
       icon: Brain,
-      roles: [UserRole.INTEL_AGENT],
-    },
-    {
-      title: t('intel-competences'),
-      url: ROUTES.intel.competences,
-      icon: BookOpen,
       roles: [UserRole.INTEL_AGENT],
     },
   ];
