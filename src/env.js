@@ -46,6 +46,7 @@ export const env = createEnv({
     // Organization
     NEXT_ORG_LOGO: z.string().url(),
 
+    // Pass
     PASS_SECRET: z.string(),
   },
 
@@ -99,6 +100,7 @@ export const env = createEnv({
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: process.env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH,
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
     DIRECT_URL: process.env.DIRECT_URL,
+    PASS_SECRET: process.env.PASS_SECRET,
     PASS_SECRET: process.env.PASS_SECRET,
   },
   /**

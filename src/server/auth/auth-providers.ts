@@ -37,7 +37,7 @@ function getIdentifierType(identifier: string): {
   isValid: boolean;
 } {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^\+\d{1,4}-?\d{8,}$/;
+  const phoneRegex = /^\+\d{1,6}-?\d{8,}$/;
 
   if (emailRegex.test(identifier)) {
     return { type: 'EMAIL', isValid: true };
@@ -146,7 +146,7 @@ export const SignupProvider: Provider = CredentialsProvider({
       throw createAuthError('invalid_email', "Format d'email invalide");
     }
 
-    const phoneRegex = /^\+\d{1,4}-?\d{9,}$/;
+    const phoneRegex = /^\+\d{1,6}-?\d{8,}$/;
     if (!phoneRegex.test(phone as string)) {
       throw createAuthError('invalid_phone', 'Format de téléphone invalide');
     }
