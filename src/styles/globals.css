@@ -132,7 +132,7 @@
   --gold-foreground: 0 0% 0%;
 
   /* Border radius */
-  --radius: 0.5rem;
+  --radius: 0.8rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
   --radius-2xl: 2rem;
@@ -190,6 +190,27 @@
   --chart-4: 199 89% 48%;
   --chart-5: 31 100% 60%;
   --sidebar: hsl(0 0% 98%);
+
+  /* Intelligence Dashboard - Default Light Theme */
+  --bg-primary: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 50%, #f0f0f0 100%);
+  --bg-glass-primary: rgba(255, 255, 255, 0.7);
+  --bg-glass-secondary: rgba(255, 255, 255, 0.5);
+  --bg-glass-light: rgba(0, 0, 0, 0.03);
+  --border-glass-primary: rgba(0, 0, 0, 0.1);
+  --border-glass-secondary: rgba(0, 0, 0, 0.08);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-muted: #999999;
+  --interactive-hover: rgba(0, 0, 0, 0.05);
+  --interactive-hover-strong: rgba(0, 0, 0, 0.1);
+  --progress-bg: rgba(0, 0, 0, 0.1);
+  --accent-intel: #3b82f6;
+  --accent-warning: #f59e0b;
+  --accent-success: #10b981;
+  --accent-danger: #ef4444;
+  --pattern-color: #000;
+  --orb-opacity: 0.2;
 }
 
 .dark {
@@ -263,11 +284,52 @@
   --chart-4: 199 60% 35%;
   --chart-5: 31 70% 45%;
   --sidebar: hsl(240 5.9% 10%);
+
+  /* Intelligence Dashboard - Dark Theme */
+  --bg-primary: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+  --bg-glass-primary: rgba(30, 30, 30, 0.6);
+  --bg-glass-secondary: rgba(40, 40, 40, 0.4);
+  --bg-glass-light: rgba(255, 255, 255, 0.05);
+  --border-glass-primary: rgba(255, 255, 255, 0.1);
+  --border-glass-secondary: rgba(255, 255, 255, 0.08);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-muted: #666666;
+  --interactive-hover: rgba(255, 255, 255, 0.05);
+  --interactive-hover-strong: rgba(255, 255, 255, 0.1);
+  --progress-bg: rgba(255, 255, 255, 0.1);
+  --accent-intel: #3b82f6;
+  --accent-warning: #f59e0b;
+  --accent-success: #10b981;
+  --accent-danger: #ef4444;
+  --pattern-color: #fff;
+  --orb-opacity: 0.4;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+
+  /* Optimisations de performance pour navigation fluide */
+  html {
+    scroll-behavior: auto; /* Désactiver smooth scroll natif pour contrôle JS */
+  }
+
+  /* Optimiser les transformations et animations */
+  a,
+  button,
+  [role='button'],
+  .hover-card {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  /* Réduire les repaints */
+  .navigation-item {
+    contain: layout style paint;
   }
   body {
     @apply bg-background text-foreground;
@@ -615,6 +677,46 @@
   }
 }
 
+/* Intelligence Dashboard Animations */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes progress-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 .animate-shake {
   animation: shake 0.5s ease-in-out;
 }
@@ -653,6 +755,22 @@
 
 .animate-shine {
   animation: shine 1.5s forwards;
+}
+
+.animate-live-pulse {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-scan {
+  animation: scan 3s ease-in-out infinite;
+}
+
+.animate-progress-pulse {
+  animation: progress-pulse 1.5s ease-in-out infinite;
 }
 
 /* Styles pour les formulaires */

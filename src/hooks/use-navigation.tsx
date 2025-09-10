@@ -20,6 +20,10 @@ import {
   FolderOpen,
   MailIcon,
   Ticket,
+  MapPin,
+  BarChart3,
+  Brain,
+  BookOpen,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
@@ -61,13 +65,7 @@ export function useNavigation() {
       title: t('dashboard'),
       url: ROUTES.dashboard.base,
       icon: LayoutDashboard,
-      roles: [
-        UserRole.SUPER_ADMIN,
-        UserRole.ADMIN,
-        UserRole.AGENT,
-        UserRole.MANAGER,
-        UserRole.INTEL_AGENT,
-      ],
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
     },
     {
       title: t('countries'),
@@ -97,13 +95,7 @@ export function useNavigation() {
       title: t('profiles'),
       url: ROUTES.dashboard.profiles,
       icon: Users,
-      roles: [
-        UserRole.ADMIN,
-        UserRole.AGENT,
-        UserRole.SUPER_ADMIN,
-        UserRole.MANAGER,
-        UserRole.INTEL_AGENT,
-      ],
+      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
     },
     {
       title: t('appointments'),
@@ -140,6 +132,60 @@ export function useNavigation() {
       url: ROUTES.dashboard.tickets,
       icon: Ticket,
       roles: [UserRole.SUPER_ADMIN],
+    },
+    {
+      title: t('dashboard'),
+      url: ROUTES.intel.base,
+      icon: LayoutDashboard,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-profiles'),
+      url: ROUTES.intel.profiles,
+      icon: Users,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-notes'),
+      url: ROUTES.intel.notes,
+      icon: FileText,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-map'),
+      url: ROUTES.intel.map,
+      icon: MapPin,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-competences'),
+      url: ROUTES.intel.competences,
+      icon: BookOpen,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-associations'),
+      url: ROUTES.intel.associations,
+      icon: Building2,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-reports'),
+      url: ROUTES.intel.reports,
+      icon: FileText,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-analytics'),
+      url: ROUTES.intel.analytics,
+      icon: BarChart3,
+      roles: [UserRole.INTEL_AGENT],
+    },
+    {
+      title: t('intel-predictions'),
+      url: ROUTES.intel.predictions,
+      icon: Brain,
+      roles: [UserRole.INTEL_AGENT],
     },
   ];
 

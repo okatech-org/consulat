@@ -8,11 +8,14 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { ViewportDetector } from './viewport-detector';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { getServerTheme } from '@/lib/theme-server';
+import { ThemeSync } from './theme-sync';
+import { ThemeWrapper } from './theme-wrapper';
 
 export async function Providers({ children }: { children: React.ReactNode }) {
-  const promises = [getMessages()];
+  const promises = [getMessages(), getServerTheme()];
 
-  const [messages] = await Promise.all(promises);
+  const [messages, serverTheme] = await Promise.all(promises);
   const cookieStore = await cookies();
 
   const sidebarState = cookieStore?.get('sidebar_state');
@@ -32,15 +35,20 @@ export async function Providers({ children }: { children: React.ReactNode }) {
       <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme={serverTheme}
           enableSystem
+          enableColorScheme={false}
           disableTransitionOnChange
+          storageKey="theme"
         >
-          <ChatProvider>
-            <ViewportDetector />
-            {children}
-            <Toaster />
-          </ChatProvider>
+          <ThemeWrapper>
+            <ChatProvider>
+              <ThemeSync />
+              <ViewportDetector />
+              {children}
+              <Toaster />
+            </ChatProvider>
+          </ThemeWrapper>
         </ThemeProvider>
       </NextIntlClientProvider>
     </SidebarProvider>

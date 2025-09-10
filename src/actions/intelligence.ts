@@ -217,19 +217,27 @@ export async function getIntelligenceNotes(data: GetIntelligenceNotesInput) {
     // Valider les données
     const validatedData = getIntelligenceNotesSchema.parse(data);
 
-    const notes = await db.intelligenceNote.findMany({
-      where: {
-        profileId: validatedData.profileId,
-        ...(validatedData.filters && {
-          ...(validatedData.filters.type && { type: validatedData.filters.type }),
-          ...(validatedData.filters.priority && {
-            priority: validatedData.filters.priority,
-          }),
-          ...(validatedData.filters.authorId && {
-            authorId: validatedData.filters.authorId,
-          }),
+    const where = {
+      ...(validatedData.profileId ? { profileId: validatedData.profileId } : {}),
+      ...(validatedData.filters && {
+        ...(validatedData.filters.type && { type: validatedData.filters.type }),
+        ...(validatedData.filters.priority && {
+          priority: validatedData.filters.priority,
         }),
-      },
+        ...(validatedData.filters.authorId && {
+          authorId: validatedData.filters.authorId,
+        }),
+        ...(validatedData.filters.search && {
+          OR: [
+            { title: { contains: validatedData.filters.search, mode: 'insensitive' as const } },
+            { content: { contains: validatedData.filters.search, mode: 'insensitive' as const } },
+          ],
+        }),
+      }),
+    } as const;
+
+    const notes = await db.intelligenceNote.findMany({
+      where,
       include: {
         author: {
           select: {
@@ -531,25 +539,8 @@ export async function getIntelligenceMapData(data: GetIntelligenceMapDataInput) 
     // Valider les données
     const validatedData = getIntelligenceMapDataSchema.parse(data);
 
-    const where = {
-      ...(validatedData.filters?.hasNotes !== undefined && {
-        intelligenceNotes: validatedData.filters.hasNotes ? { some: {} } : { none: {} },
-      }),
-      ...(validatedData.filters?.priority && {
-        intelligenceNotes: {
-          some: {
-            priority: validatedData.filters.priority,
-          },
-        },
-      }),
-      ...(validatedData.filters?.type && {
-        intelligenceNotes: {
-          some: {
-            type: validatedData.filters.type,
-          },
-        },
-      }),
-    };
+    // Debug: récupérer TOUS les profils sans filtre pour voir ce qu'on a
+    const where = {}; // Pas de filtre pour l'instant
 
     const profiles = await db.profile.findMany({
       where,
@@ -558,12 +549,15 @@ export async function getIntelligenceMapData(data: GetIntelligenceMapDataInput) 
         firstName: true,
         lastName: true,
         birthCountry: true,
+        nationality: true,
         address: {
           select: {
-            country: true,
+            id: true,
+            firstLine: true,
+            secondLine: true,
             city: true,
-            latitude: true,
-            longitude: true,
+            zipCode: true,
+            country: true,
           },
         },
         intelligenceNotes: {
@@ -579,6 +573,16 @@ export async function getIntelligenceMapData(data: GetIntelligenceMapDataInput) 
         },
       },
     });
+
+    // Debug simplifié
+    const profilesWithRealAddress = profiles.filter(p => 
+      p.address && 
+      p.address.city && 
+      p.address.city.trim() !== '' &&
+      p.address.country && 
+      p.address.country.trim() !== ''
+    );
+    console.log(`📊 Action Intelligence: ${profiles.length} profils total → ${profilesWithRealAddress.length} avec adresses valides`);
 
     return profiles;
   });

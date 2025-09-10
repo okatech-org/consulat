@@ -32,6 +32,9 @@ export const ProfileListItemSelect: Prisma.ProfileSelect = {
   category: true,
   gender: true,
   validationRequestId: true,
+  birthDate: true,
+  nationality: true,
+  // Note: secondNationality n'existe pas dans le schéma
 };
 
 export type ProfileListItemSelectResult = Prisma.ProfileGetPayload<{

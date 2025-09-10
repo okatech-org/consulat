@@ -13,6 +13,19 @@ export async function middleware(request: NextRequest) {
     pathname + (searchParams ? `?${searchParams}` : ''),
   );
 
+  // Gestion du thème pour éviter l'hydratation mismatch
+  const theme = request.cookies.get('theme')?.value;
+  if (theme && ['light', 'dark', 'system'].includes(theme)) {
+    response.headers.set('X-Theme', theme);
+    // Assurer que le cookie est bien configuré
+    response.cookies.set('theme', theme, {
+      path: '/',
+      maxAge: 31536000, // 1 an
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+  }
+
   return response;
 }
 

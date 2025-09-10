@@ -1,9 +1,9 @@
+import { env } from '@/env';
 import { getTwilioVerifyService, type VerifyChannel } from './twilio-verify';
 import { sendOTPEmail } from '@/lib/services/notifications/providers/emails';
 import { tryCatch } from '@/lib/utils';
 import { db } from '@/server/db';
 import { createHash } from 'crypto';
-import { env } from '@/env';
 
 /**
  * Configuration pour le service de vérification unifié
@@ -65,7 +65,7 @@ class UnifiedVerifyService {
     formattedIdentifier: string;
   } {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+\d{1,4}-?\d{8,}$/;
+    const phoneRegex = /^\+\d{1,6}-?\d{8,}$/;
 
     if (emailRegex.test(identifier)) {
       return {
@@ -209,6 +209,7 @@ class UnifiedVerifyService {
         valid: true,
       };
     }
+
     try {
       const identifierInfo = this.getIdentifierInfo(identifier);
 

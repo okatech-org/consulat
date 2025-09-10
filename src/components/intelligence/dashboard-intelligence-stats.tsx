@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, FileText, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Users, FileText, TrendingUp, AlertTriangle, Building, Navigation, Plane, Phone, Target } from 'lucide-react';
 import { IntelligenceNoteType } from '@prisma/client';
 import { useState } from 'react';
 
@@ -20,13 +20,13 @@ interface DashboardIntelligenceStatsProps {
 }
 
 const typeIcons = {
-  [IntelligenceNoteType.POLITICAL_OPINION]: '🏛️',
-  [IntelligenceNoteType.ORIENTATION]: '🧭',
-  [IntelligenceNoteType.ASSOCIATIONS]: '👥',
-  [IntelligenceNoteType.TRAVEL_PATTERNS]: '✈️',
-  [IntelligenceNoteType.CONTACTS]: '📞',
-  [IntelligenceNoteType.ACTIVITIES]: '🎯',
-  [IntelligenceNoteType.OTHER]: '📝',
+  [IntelligenceNoteType.POLITICAL_OPINION]: <Building className="h-3 w-3" />,
+  [IntelligenceNoteType.ORIENTATION]: <Navigation className="h-3 w-3" />,
+  [IntelligenceNoteType.ASSOCIATIONS]: <Users className="h-3 w-3" />,
+  [IntelligenceNoteType.TRAVEL_PATTERNS]: <Plane className="h-3 w-3" />,
+  [IntelligenceNoteType.CONTACTS]: <Phone className="h-3 w-3" />,
+  [IntelligenceNoteType.ACTIVITIES]: <Target className="h-3 w-3" />,
+  [IntelligenceNoteType.OTHER]: <FileText className="h-3 w-3" />,
 };
 
 export function DashboardIntelligenceStats({

@@ -4,11 +4,20 @@ import { getCurrentUser } from '@/actions/user';
 import AgentDashboard from '../../../components/dashboards/agent-dashboard';
 import AdminDashboard from '../../../components/dashboards/admin-dashboard';
 import { ManagerDashboard } from '../../../components/dashboards/manager-dashboard';
-import IntelAgentDashboard from '../../../components/dashboards/intel-agent-dashboard';
 import type { SessionUser } from '@/types/user';
+import { ROUTES } from '@/schemas/routes';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
+
+  if (user?.role === 'INTEL_AGENT') {
+    redirect(ROUTES.intel.base);
+  }
+
+  if (user?.role === 'USER') {
+    redirect(ROUTES.user.base);
+  }
 
   return (
     <>
@@ -23,9 +32,6 @@ export default async function DashboardPage() {
       </ServerRoleGuard>
       <ServerRoleGuard roles={['AGENT']} user={user as SessionUser}>
         <AgentDashboard />
-      </ServerRoleGuard>
-      <ServerRoleGuard roles={['INTEL_AGENT']} user={user as SessionUser}>
-        <IntelAgentDashboard />
       </ServerRoleGuard>
     </>
   );

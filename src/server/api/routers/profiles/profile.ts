@@ -450,16 +450,24 @@ export const profileRouter = createTRPCRouter({
 
       const where: Prisma.ProfileWhereInput = {};
 
-      // Apply filters
-      if (search) {
+      // Apply filters - améliorer la recherche
+      if (search && search.trim().length > 0) {
+        const searchTerm = search.trim();
         where.OR = [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { phoneNumber: { contains: search, mode: 'insensitive' } },
-          { cardNumber: { contains: search, mode: 'insensitive' } },
-          { cardPin: { contains: search, mode: 'insensitive' } },
-          { id: { contains: search, mode: 'insensitive' } },
+          { firstName: { contains: searchTerm, mode: 'insensitive' } },
+          { lastName: { contains: searchTerm, mode: 'insensitive' } },
+          { email: { contains: searchTerm, mode: 'insensitive' } },
+          { phoneNumber: { contains: searchTerm, mode: 'insensitive' } },
+          { cardNumber: { contains: searchTerm, mode: 'insensitive' } },
+          { cardPin: { contains: searchTerm, mode: 'insensitive' } },
+          { id: { contains: searchTerm, mode: 'insensitive' } },
+          // Recherche combinée prénom + nom
+          {
+            AND: [
+              { firstName: { contains: searchTerm.split(' ')[0] || '', mode: 'insensitive' } },
+              { lastName: { contains: searchTerm.split(' ')[1] || '', mode: 'insensitive' } },
+            ],
+          },
         ];
       }
 
@@ -482,16 +490,26 @@ export const profileRouter = createTRPCRouter({
         where.assignedOrganizationId = { in: organizationId };
       }
 
+      // Vérifier que le champ de tri est valide
+      const validSortFields = [
+        'id', 'firstName', 'lastName', 'email', 'phoneNumber',
+        'createdAt', 'updatedAt', 'cardNumber', 'cardPin',
+        'status', 'category', 'gender', 'birthDate'
+      ];
+      
+      const sortField = sort?.field && validSortFields.includes(sort.field) 
+        ? sort.field 
+        : 'createdAt';
+      const sortOrder = sort?.order || 'desc';
+
       const result = await ctx.db.$transaction([
         ctx.db.profile.count({ where }),
         ctx.db.profile.findMany({
           where,
           select: ProfileListItemSelect,
-          ...(sort && {
-            orderBy: {
-              [sort.field as keyof typeof BaseProfileInclude.include]: sort.order,
-            },
-          }),
+          orderBy: {
+            [sortField]: sortOrder,
+          },
           skip: (page - 1) * limit,
           take: limit,
         }),

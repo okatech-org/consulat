@@ -19,6 +19,7 @@ export async function RouteAuthGuard({
   fallbackComponent,
 }: BaseLayoutProps) {
   const user = await getCurrentUser();
+
   if (!user) {
     const headersList = await headers();
     const currentPath = headersList.get('x-current-path');

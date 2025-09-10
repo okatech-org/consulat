@@ -114,25 +114,8 @@ export const intelligenceRouter = createTRPCRouter({
         throw new Error('Permissions insuffisantes');
       }
 
-      const where = {
-        ...(input.filters?.hasNotes !== undefined && {
-          intelligenceNotes: input.filters.hasNotes ? { some: {} } : { none: {} },
-        }),
-        ...(input.filters?.priority && {
-          intelligenceNotes: {
-            some: {
-              priority: input.filters.priority,
-            },
-          },
-        }),
-        ...(input.filters?.type && {
-          intelligenceNotes: {
-            some: {
-              type: input.filters.type,
-            },
-          },
-        }),
-      };
+      // Debug: récupérer TOUS les profils sans filtre pour voir ce qu'on a
+      const where = {}; // Pas de filtre pour l'instant
 
       const profiles = await ctx.db.profile.findMany({
         where,
@@ -141,7 +124,17 @@ export const intelligenceRouter = createTRPCRouter({
           firstName: true,
           lastName: true,
           birthCountry: true,
-          address: true,
+          nationality: true,
+          address: {
+            select: {
+              id: true,
+              firstLine: true,
+              secondLine: true,
+              city: true,
+              zipCode: true,
+              country: true,
+            },
+          },
           intelligenceNotes: {
             select: {
               type: true,
@@ -155,6 +148,16 @@ export const intelligenceRouter = createTRPCRouter({
           },
         },
       });
+
+      // Debug simplifié
+      const profilesWithRealAddress = profiles.filter(p => 
+        p.address && 
+        p.address.city && 
+        p.address.city.trim() !== '' &&
+        p.address.country && 
+        p.address.country.trim() !== ''
+      );
+      console.log(`📊 Carte Intelligence: ${profiles.length} profils total → ${profilesWithRealAddress.length} avec adresses valides`);
 
       return profiles;
     }),
@@ -305,15 +308,23 @@ export const intelligenceRouter = createTRPCRouter({
         throw new Error('Permissions insuffisantes');
       }
 
-      const notes = await ctx.db.intelligenceNote.findMany({
-        where: {
-          profileId: input.profileId,
-          ...(input.filters && {
-            ...(input.filters.type && { type: input.filters.type }),
-            ...(input.filters.priority && { priority: input.filters.priority }),
-            ...(input.filters.authorId && { authorId: input.filters.authorId }),
+      const where = {
+        ...(input.profileId ? { profileId: input.profileId } : {}),
+        ...(input.filters && {
+          ...(input.filters.type && { type: input.filters.type }),
+          ...(input.filters.priority && { priority: input.filters.priority }),
+          ...(input.filters.authorId && { authorId: input.filters.authorId }),
+          ...(input.filters.search && {
+            OR: [
+              { title: { contains: input.filters.search, mode: 'insensitive' as const } },
+              { content: { contains: input.filters.search, mode: 'insensitive' as const } },
+            ],
           }),
-        },
+        }),
+      } as const;
+
+      const notes = await ctx.db.intelligenceNote.findMany({
+        where,
         include: {
           author: {
             select: {

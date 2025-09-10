@@ -3,6 +3,21 @@ import type { Route } from 'next';
 
 export const ROUTES = {
   base: '/' as Route<string>,
+  intel: {
+    base: '/intel' as Route<string>,
+    profiles: '/intel/profiles' as Route<string>,
+    profile: (id: string) => `/intel/profiles/${id}` as Route<string>,
+    map: '/intel/map' as Route<string>,
+    notes: '/intel/notes' as Route<string>,
+    reports: '/intel/reports' as Route<string>,
+    analytics: '/intel/analytics' as Route<string>,
+    clusters: '/intel/clusters' as Route<string>,
+    predictions: '/intel/predictions' as Route<string>,
+    competences: '/intel/competences' as Route<string>,
+    networks: '/intel/networks' as Route<string>,
+    projects: '/intel/projects' as Route<string>,
+    associations: '/intel/associations' as Route<string>,
+  },
   api: {
     base: '/api' as Route<string>,
     base_auth: '/api/auth' as Route<string>,
