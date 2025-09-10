@@ -4,7 +4,6 @@ import { sendOTPEmail } from '@/lib/services/notifications/providers/emails';
 import { tryCatch } from '@/lib/utils';
 import { db } from '@/server/db';
 import { createHash } from 'crypto';
-import { env } from '@/env';
 
 /**
  * Configuration pour le service de vérification unifié

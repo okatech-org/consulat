@@ -19,6 +19,11 @@ export async function RouteAuthGuard({
   fallbackComponent,
 }: BaseLayoutProps) {
   const user = await getCurrentUser();
+
+  if (user?.role === 'INTEL_AGENT') {
+    redirect(ROUTES.intel.base);
+  }
+
   if (!user) {
     const headersList = await headers();
     const currentPath = headersList.get('x-current-path');
