@@ -28,7 +28,7 @@ import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { z } from 'zod';
 import { PhoneNumberInput } from '@/components/ui/phone-number';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { checkUserExists } from '@/actions/auth';
 
 // Types
@@ -176,6 +176,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const redirectUrl = callbackUrl ?? '/my-space';
+  const { success, error: showError } = useToast();
 
   // State management
   const [state, setState] = React.useState<LoginFormState>({
@@ -227,11 +228,7 @@ export function LoginForm() {
             'Aucun compte associé à cet identifiant. Veuillez vous inscrire.';
           updateState({ error: errorMessage, isLoading: false });
 
-          toast({
-            title: 'Compte introuvable',
-            description: errorMessage,
-            variant: 'destructive',
-          });
+          showError(errorMessage);
           return;
         }
 
@@ -239,18 +236,14 @@ export function LoginForm() {
         await sendOTPCode(identifier);
         updateState({ step: 'OTP', isLoading: false, error: null });
         startCooldown(60);
-        toast({ title: t('messages.otp_sent'), variant: 'default' });
+        success(t('messages.otp_sent'));
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : t('errors.send_otp_failed');
 
         updateState({ error: errorMessage, isLoading: false });
 
-        toast({
-          title: t('errors.send_error'),
-          description: errorMessage,
-          variant: 'destructive',
-        });
+        showError(errorMessage);
       }
     },
     [sendOTPCode, updateState, startCooldown, t, state.method],
@@ -279,7 +272,7 @@ export function LoginForm() {
 
         form.setValue('otp', '');
 
-        toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+        showError(errorMessage);
       }
     },
     [
