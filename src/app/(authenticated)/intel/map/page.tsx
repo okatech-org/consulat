@@ -7,7 +7,7 @@ import {
   useIntelligenceProfilesMap,
   useIntelligenceNotes,
 } from '@/hooks/use-optimized-queries';
-import { PageContainer } from '@/components/layouts/page-container';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,11 @@ import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
 import { IntelligenceNotePriority } from '@prisma/client';
 import { getLocationCoordinates } from '@/lib/services/geocoding-service';
+
+// Fonction utilitaire pour formater les nombres de manière cohérente
+const formatNumber = (num: number): string => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
 
 export default function CartePage() {
   const t = useTranslations('intelligence.map');
@@ -220,10 +225,8 @@ export default function CartePage() {
   const isLoading = isLoadingProfiles || isLoadingNotes || isLoadingStats;
 
   return (
-    <PageContainer
-      title={t('title')}
-      description={t('description', { count: stats.totalProfiles.toLocaleString() })}
-    >
+    <>
+      <IntelNavigationBar currentPage="Carte des profils" />
       <div className="space-y-6">
         {/* Gestion d'erreurs */}
         {hasErrors && (
@@ -313,7 +316,7 @@ export default function CartePage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-foreground">
-                Répartition par Résidence • {stats.totalProfiles.toLocaleString()} Profils
+                Répartition par Résidence • {formatNumber(stats.totalProfiles)} Profils
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-xs">
@@ -433,7 +436,7 @@ export default function CartePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-2xl font-bold font-mono mb-1 text-foreground">
-                      {stat.value.toLocaleString()}
+                      {formatNumber(stat.value)}
                     </div>
                     <div className="text-sm font-medium text-muted-foreground">
                       {stat.title}
@@ -618,7 +621,7 @@ export default function CartePage() {
                                 {zone.zone}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {zone.count.toLocaleString()} profils
+                                {formatNumber(zone.count)} profils
                               </div>
                             </div>
                             <Badge
@@ -696,6 +699,6 @@ export default function CartePage() {
           </Card>
         )}
       </div>
-    </PageContainer>
+    </>
   );
 }

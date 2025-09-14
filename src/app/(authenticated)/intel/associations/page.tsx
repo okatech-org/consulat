@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { PageContainer } from '@/components/layouts/page-container';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +38,7 @@ import {
   associationStats,
   type Association,
 } from '@/data/dgss-associations';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 
 // Import dynamique du composant de carte pour éviter les erreurs SSR
 const AssociationsMapSimple = dynamic(
@@ -210,10 +210,8 @@ export default function AssociationsMapPage() {
   );
 
   return (
-    <PageContainer
-      title="Cartographie des Associations DGSS"
-      description="Surveillance et analyse des 129 associations gabonaises en France"
-    >
+    <>
+      <IntelNavigationBar currentPage="Carte des Associations" />
       <div className="space-y-6">
         {/* Statistiques en temps réel */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -540,7 +538,7 @@ export default function AssociationsMapPage() {
                   Carte Interactive - {filteredAssociations.length} associations
                 </span>
                 <Badge variant="outline">
-                  Mise à jour : {new Date().toLocaleTimeString()}
+                  Carte en temps réel
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -748,6 +746,6 @@ export default function AssociationsMapPage() {
           </CardContent>
         </Card>
       </div>
-    </PageContainer>
+    </>
   );
 }

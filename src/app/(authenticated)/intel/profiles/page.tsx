@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { createIntelligenceNote } from '@/actions/intelligence';
 import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Loader2 } from 'lucide-react';
 import {
   Users,
@@ -51,7 +52,6 @@ import {
   AdvancedFilters,
   type IntelligenceFilters,
 } from '@/components/intelligence/advanced-filters';
-import { PageContainer } from '@/components/layouts/page-container';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 
@@ -82,6 +82,11 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
 
   return params;
 }
+
+// Fonction utilitaire pour formater les nombres de manière cohérente
+const formatNumber = (num: number): string => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
 
 export default function ProfilesPage() {
   const router = useRouter();
@@ -521,10 +526,8 @@ export default function ProfilesPage() {
   };
 
   return (
-    <PageContainer
-      title="Profils Intelligence"
-      description="Base de données complète des profils sous surveillance"
-    >
+    <>
+      <IntelNavigationBar currentPage="Profils consulaires" />
       <div className="space-y-6">
         {/* Stats rapides */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -613,7 +616,7 @@ export default function ProfilesPage() {
                   className="text-xl font-bold font-mono"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  {stat.value.toLocaleString()}
+                  {formatNumber(stat.value)}
                 </div>
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   {stat.title}
@@ -760,7 +763,7 @@ export default function ProfilesPage() {
                     Profils Surveillés
                   </CardTitle>
                   <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    {total.toLocaleString()} profils au total
+                    {formatNumber(total)} profils au total
                   </p>
                 </div>
                 {profiles.length > 0 && (
@@ -1340,6 +1343,6 @@ export default function ProfilesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </PageContainer>
+    </>
   );
 }

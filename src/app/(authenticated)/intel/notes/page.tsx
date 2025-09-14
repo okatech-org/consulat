@@ -14,7 +14,7 @@ import {
   type CreateIntelligenceNoteInput,
 } from '@/schemas/intelligence';
 import { tryCatch } from '@/lib/utils';
-import { PageContainer } from '@/components/layouts/page-container';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -74,6 +74,11 @@ type NoteWithRelations = {
   createdAt: string;
   author?: { id: string; name?: string | null; email?: string | null };
   profile?: { id: string; firstName?: string | null; lastName?: string | null };
+};
+
+// Fonction utilitaire pour formater les nombres de manière cohérente
+const formatNumber = (num: number): string => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
 
 export default function NotesPage() {
@@ -225,10 +230,8 @@ export default function NotesPage() {
   };
 
   return (
-    <PageContainer
-      title="Notes de Renseignement"
-      description="Gestion centralisée des informations de surveillance et d'intelligence"
-    >
+    <>
+      <IntelNavigationBar currentPage="Notes" />
       <div className="space-y-6">
         {/* Stats des notes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -317,7 +320,7 @@ export default function NotesPage() {
                   className="text-xl font-bold font-mono"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  {stat.value.toLocaleString()}
+                  {formatNumber(stat.value)}
                 </div>
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   {stat.title}
@@ -894,6 +897,6 @@ export default function NotesPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </PageContainer>
+    </>
   );
 }

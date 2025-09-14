@@ -384,7 +384,7 @@ async function handleVerifyAction(
   }
 
   if (new Date() > otpCode.expires) {
-    throw createAuthError('code_expired', 'Code expiré');
+    throw createAuthError('code_expired', 'Le code de vérification reçu est expiré.');
   }
 
   if (otpCode.attempts >= 3) {
@@ -420,7 +420,7 @@ async function handleVerifyAction(
       data: { attempts: { increment: 1 } },
     });
 
-    throw createAuthError('invalid_code', 'Code invalide');
+    throw createAuthError('invalid_code', 'Le code de vérification reçu est invalide ou expiré.');
   }
 
   // Nettoyer les entrées d'inscription après succès
@@ -534,7 +534,7 @@ async function handleLoginVerifyAction(
   }
 
   if (new Date() > otpCode.expires) {
-    throw createAuthError('code_expired', 'Code expiré');
+    throw createAuthError('code_expired', 'Le code de vérification reçu est expiré.');
   }
 
   if (otpCode.attempts >= 3) {
@@ -553,7 +553,7 @@ async function handleLoginVerifyAction(
       data: { attempts: { increment: 1 } },
     });
 
-    throw createAuthError('invalid_code', 'Code invalide');
+    throw createAuthError('invalid_code', 'Le code de vérification reçu est invalide ou expiré.');
   }
 
   // Pour les emails, le service unifié a déjà supprimé le code

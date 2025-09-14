@@ -176,7 +176,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const redirectUrl = callbackUrl ?? '/my-space';
-  const { success, error: showError } = useToast();
+  const { toast } = useToast();
 
   // State management
   const [state, setState] = React.useState<LoginFormState>({
@@ -228,7 +228,11 @@ export function LoginForm() {
             'Aucun compte associé à cet identifiant. Veuillez vous inscrire.';
           updateState({ error: errorMessage, isLoading: false });
 
-          showError(errorMessage);
+          toast({
+            title: 'Erreur',
+            description: errorMessage,
+            variant: 'destructive',
+          });
           return;
         }
 
@@ -236,14 +240,21 @@ export function LoginForm() {
         await sendOTPCode(identifier);
         updateState({ step: 'OTP', isLoading: false, error: null });
         startCooldown(60);
-        success(t('messages.otp_sent'));
+        toast({
+          title: 'Code envoyé',
+          description: t('messages.otp_sent'),
+        });
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : t('errors.send_otp_failed');
 
         updateState({ error: errorMessage, isLoading: false });
 
-        showError(errorMessage);
+        toast({
+          title: 'Erreur',
+          description: errorMessage,
+          variant: 'destructive',
+        });
       }
     },
     [sendOTPCode, updateState, startCooldown, t, state.method],
@@ -272,7 +283,11 @@ export function LoginForm() {
 
         form.setValue('otp', '');
 
-        showError(errorMessage);
+        toast({
+          title: 'Erreur de validation',
+          description: errorMessage,
+          variant: 'destructive',
+        });
       }
     },
     [

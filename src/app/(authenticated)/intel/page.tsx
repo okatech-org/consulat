@@ -11,6 +11,7 @@ import DashboardCompactMap from '@/components/intelligence/dashboard-compact-map
 import MiniMapWidget from '@/components/intelligence/mini-map-widget';
 import { RealTimeStatusWidget } from '@/components/intelligence/realtime-status-widget';
 import { RealTimeAlerts } from '@/components/intelligence/realtime-alerts';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
 import {
@@ -23,6 +24,11 @@ import {
   Clipboard,
   Lock,
 } from 'lucide-react';
+
+// Fonction utilitaire pour formater les nombres de manière cohérente
+const formatNumber = (num: number): string => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
 
 export default function IntelAgentDashboardContent() {
   const router = useRouter();
@@ -120,9 +126,11 @@ export default function IntelAgentDashboardContent() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Composant d'alertes en temps réel */}
-      <RealTimeAlerts />
+    <>
+      <IntelNavigationBar currentPage="Accueil" />
+      <div className="space-y-6">
+        {/* Composant d'alertes en temps réel */}
+        <RealTimeAlerts />
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
@@ -174,7 +182,7 @@ export default function IntelAgentDashboardContent() {
                   className="text-2xl font-bold mb-2 font-mono"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  {stat.value.toLocaleString()}
+                  {formatNumber(stat.value)}
                 </div>
                 <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                   {stat.title}
@@ -427,6 +435,7 @@ export default function IntelAgentDashboardContent() {
 
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-    </div>
+      </div>
+    </>
   );
 }

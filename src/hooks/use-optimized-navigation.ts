@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useTransition, startTransition, useRef } from 'react';
+import { useRouter, prefetch } from 'next/navigation';
+import { useCallback, useTransition, useRef } from 'react';
 import { api } from '@/trpc/react';
 import { aggressiveCacheConfig } from './use-aggressive-cache';
 
@@ -34,7 +34,7 @@ export function useOptimizedNavigation() {
       }, 5 * 60 * 1000);
 
       // Précharger selon la route avec configuration de cache agressive
-      const promises = [];
+      const promises: Promise<unknown>[] = [];
       
       if (path.includes('/profiles')) {
         promises.push(
@@ -81,8 +81,14 @@ export function useOptimizedNavigation() {
         );
       }
 
-      // Exécuter toutes les requêtes en parallèle
-      await Promise.allSettled(promises);
+      // Précharger la route Next (link prefetch)
+      try {
+        // @ts-expect-error experimental prefetch (Next 14+/15)
+        prefetch?.(path);
+      } catch {}
+
+      // Exécuter toutes les requêtes en parallèle (sans bloquer la UI)
+      Promise.allSettled(promises);
     } catch (error) {
       console.error('Erreur lors du préchargement:', error);
     }
@@ -118,8 +124,8 @@ export function useOptimizedNavigation() {
       if (prefetch) {
         // Timeout pour ne pas bloquer trop longtemps
         const prefetchPromise = prefetchPageData(path);
-        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 300));
-        await Promise.race([prefetchPromise, timeoutPromise]);
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 120));
+        await Promise.race([prefetchPromise, timeoutPromise]).catch(() => {});
       }
 
       // Naviguer immédiatement

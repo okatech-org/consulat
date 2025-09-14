@@ -1,5 +1,61 @@
 export default {
   title: 'Services de Renseignements',
+  profileDetails: {
+    loading: 'Chargement des détails...',
+    error: 'Profil introuvable',
+    badges: {
+      verified: 'Profil Vérifié',
+    },
+    labels: {
+      id: 'ID',
+      consular_profile: 'Profil consulaire',
+      available: 'Disponible',
+      missing: 'Manquante',
+      not_set: 'Non renseigné',
+      not_defined: 'Non défini',
+      never: 'Jamais',
+    },
+    fields: {
+      birth_date: 'Date de naissance',
+      birth_place: 'Lieu de naissance',
+      email: 'Email',
+      phone: 'Téléphone',
+      nationality: 'Nationalité',
+      address: 'Adresse',
+      document_type: 'Type de pièce',
+      number: 'Numéro',
+      identity_photo: "Photo d'identité",
+      last_update: 'Dernière MAJ',
+    },
+    sections: {
+      personal_info: 'Informations Personnelles',
+      personal_info_desc: "Données d'identification et contact",
+      documents_status: 'Documents & Statut',
+      documents_status_desc: "Pièces d'identité et vérifications",
+    },
+    documents: {
+      title: 'Documents liés au profil',
+      subtitle: 'Visualisation en lecture seule — types et métadonnées',
+      none: 'Aucun document disponible.',
+      document: 'Document',
+      types: {
+        IDENTITY_PHOTO: "Photo d'identité",
+        PASSPORT: 'Passeport',
+        BIRTH_CERTIFICATE: 'Acte de naissance',
+        RESIDENCE_PERMIT: 'Titre de séjour',
+        PROOF_OF_ADDRESS: 'Justificatif de domicile',
+        OTHER: 'Autre document',
+      },
+      status: {
+        VALIDATED: 'Validé',
+        PENDING: 'En attente',
+        REJECTED: 'Rejeté',
+      },
+    },
+    actions: {
+      view: 'Voir',
+    },
+  },
   dashboard: {
     title: 'Dashboard Renseignements',
     stats: {
@@ -35,6 +91,13 @@ export default {
     updated: 'Modifiée le',
     by: 'par',
     historyLabel: 'Historique des modifications',
+    emptyTitle: 'Aucune note de renseignement',
+    emptyDescription: 'Aucune note de renseignement n\'a été ajoutée à ce profil.',
+    emptyFiltered: 'Aucune note ne correspond aux filtres sélectionnés.',
+    sectionTitle: 'Notes de renseignement',
+    centerTitle: 'Renseignements',
+    centerDescription: 'Centre de surveillance et d\'analyse',
+    count: '{count, plural, =0 {Aucune note} =1 {1 note} other {# notes}}',
     types: {
       political_opinion: 'Opinion politique',
       orientation: 'Orientation',
@@ -461,6 +524,9 @@ export default {
     general_error_description:
       'Une erreur est survenue dans les services de renseignements.',
     technical_details: 'Détails techniques',
+    common: {
+      try_again: 'Réessayer',
+    },
     actions: {
       go_back: 'Retour à la page précédente',
       go_home: "Retour à l'accueil",

@@ -40,8 +40,9 @@ export default {
     'intel-competences': 'Compétences',
     'intel-networks': 'Réseaux',
     'intel-projects': 'Projets',
-    intel: 'Intelligence',
+    intel: '',
     'intel-associations': 'Carte des Associations',
+    associations: 'Associations',
     map: 'Carte des profils',
   },
   dashboard: {
