@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import { PageContainer } from '@/components/layouts/page-container';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -399,10 +399,8 @@ export default function PredictionsAIPage() {
   const alertPredictions = filteredPredictions.filter((p) => p.status === 'alert').length;
 
   return (
-    <PageContainer
-      title="Prédictions Intelligence Artificielle"
-      description="Modèles prédictifs avancés pour l'analyse comportementale et la surveillance préventive"
-    >
+    <>
+      <IntelNavigationBar currentPage="Prédictions" />
       <div className="space-y-6">
         {/* Stats des prédictions IA */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -713,7 +711,7 @@ export default function PredictionsAIPage() {
                         className="text-lg font-bold"
                         style={{ color: 'var(--accent-warning)' }}
                       >
-                        {model.dataPoints.toLocaleString()}
+                        {model.dataPoints.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
                       </div>
                       <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
                         Points de données
@@ -1043,6 +1041,6 @@ export default function PredictionsAIPage() {
           </CardContent>
         </Card>
       </div>
-    </PageContainer>
+    </>
   );
 }

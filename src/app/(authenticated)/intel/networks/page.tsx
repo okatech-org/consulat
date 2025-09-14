@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { PageContainer } from '@/components/layouts/page-container';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -128,7 +128,8 @@ export default function ReseauxInfluencePage() {
   const averageInfluence = totalInfluence / filteredNodes.length || 0;
 
   return (
-    <PageContainer title={t('title')} description={t('description')}>
+    <>
+      <IntelNavigationBar currentPage="Réseaux" />
       <div className="space-y-6">
         {/* Stats du réseau */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -471,6 +472,6 @@ export default function ReseauxInfluencePage() {
           </CardContent>
         </Card>
       </div>
-    </PageContainer>
+    </>
   );
 }

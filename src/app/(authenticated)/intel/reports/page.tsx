@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import { useToast } from '@/hooks/use-toast';
-import { PageContainer } from '@/components/layouts/page-container';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -245,10 +245,7 @@ export default function RapportsPage() {
   // Gestion des erreurs
   if (statsError) {
     return (
-      <PageContainer
-        title="Rapports Intelligence"
-        description="Génération et analyse de rapports de renseignement stratégique"
-      >
+      <div className="space-y-6">
         <div className="flex items-center justify-center h-[60vh]">
           <div className="flex flex-col items-center gap-4 text-center max-w-md">
             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
@@ -261,15 +258,13 @@ export default function RapportsPage() {
             <Button onClick={() => window.location.reload()}>Réessayer</Button>
           </div>
         </div>
-      </PageContainer>
+      </div>
     );
   }
 
   return (
-    <PageContainer
-      title="Rapports Intelligence"
-      description="Génération et analyse de rapports de renseignement stratégique"
-    >
+    <>
+      <IntelNavigationBar currentPage="Rapports" />
       <div className="space-y-6">
         {/* Métriques principales */}
         {statsLoading ? (
@@ -809,6 +804,6 @@ export default function RapportsPage() {
           </CardContent>
         </Card>
       </div>
-    </PageContainer>
+    </>
   );
 }

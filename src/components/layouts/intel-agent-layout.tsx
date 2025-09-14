@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { ThemeToggleIntel } from '@/components/ui/theme-toggle-intel';
 import {
   useOptimizedNavigation,
@@ -255,7 +256,7 @@ function CustomSidebar({
     },
   ];
 
-  // Fonction helper pour rendre les badges avec indicateurs
+  // Fonction helper pour rendre les badges avec indicateurs - Design 2.1
   const renderBadge = (item: {
     badge?: string;
     subBadge?: string;
@@ -270,11 +271,24 @@ function CustomSidebar({
         {item.badge && (
           <div className="flex items-center gap-1">
             <span
-              className={`px-2 py-1 text-xs rounded-full font-medium ${
+              className={`px-2.5 py-1 text-xs rounded-full font-semibold transition-all duration-300 ${
                 item.critical
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  ? 'text-red-400 shadow-lg'
+                  : 'text-blue-400 shadow-md'
               } ${item.pulse ? 'animate-pulse' : ''}`}
+              style={{
+                background: item.critical 
+                  ? 'rgba(239, 68, 68, 0.15)' 
+                  : 'rgba(59, 130, 246, 0.15)',
+                border: item.critical 
+                  ? '1px solid rgba(239, 68, 68, 0.3)' 
+                  : '1px solid rgba(59, 130, 246, 0.3)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                boxShadow: item.critical 
+                  ? '0 4px 12px rgba(239, 68, 68, 0.2)' 
+                  : '0 4px 12px rgba(59, 130, 246, 0.2)',
+              }}
             >
               {item.badge}
             </span>
@@ -287,25 +301,53 @@ function CustomSidebar({
                       ? 'bg-red-400 animate-pulse'
                       : 'bg-gray-400'
                 }`}
+                style={{
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                }}
               />
             )}
           </div>
         )}
         {item.subBadge && (
-          <span className="text-xs text-muted-foreground">{item.subBadge}</span>
+          <span 
+            className="text-xs font-medium"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {item.subBadge}
+          </span>
         )}
       </div>
     );
   };
 
   return (
-    <aside
-      className="fixed h-screen z-20 md:block hidden"
-      style={{
-        width: '260px',
-        padding: '1rem',
-      }}
-    >
+    <>
+      <style>{`
+        @keyframes scan {
+          0% { 
+            left: -100px;
+            opacity: 0;
+          }
+          5% {
+            opacity: 1;
+          }
+          95% {
+            opacity: 1;
+          }
+          100% { 
+            left: 100%;
+            opacity: 0;
+          }
+        }
+      `}</style>
+      
+      <aside
+        className="fixed h-screen z-20 md:block hidden"
+        style={{
+          width: '260px',
+          padding: '1rem',
+        }}
+      >
       <div
         className="h-full p-6 flex flex-col"
         style={{
@@ -375,29 +417,79 @@ function CustomSidebar({
             {navigationItems.map((item) => (
               <div
                 key={item.key}
-                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl mb-2 cursor-pointer relative transition-all duration-300 group overflow-hidden ${
                   currentPage === item.key ? 'active' : ''
                 }`}
                 style={{
                   background:
                     currentPage === item.key
-                      ? 'var(--interactive-hover-strong)'
+                      ? 'var(--bg-glass-light)'
                       : 'transparent',
+                  border: currentPage === item.key 
+                    ? '1px solid var(--border-glass-primary)' 
+                    : '1px solid transparent',
+                  boxShadow: currentPage === item.key 
+                    ? 'var(--shadow-glass)' 
+                    : 'none',
                 }}
                 onClick={() => navigateTo(item.path)}
-                onMouseEnter={() => handleMouseEnter(item.path)}
+                onMouseEnter={(e) => {
+                  handleMouseEnter(item.path)();
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'var(--bg-glass-light)';
+                    e.currentTarget.style.border = '1px solid var(--border-glass-secondary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.border = '1px solid transparent';
+                  }
+                }}
               >
+                {/* Barre de scan animée pour l'élément actif */}
+                {currentPage === item.key && (
+                  <div
+                    className="absolute top-0 left-0 h-1 opacity-80"
+                    style={{
+                      width: '100px',
+                      background: 'linear-gradient(90deg, transparent, var(--accent-intel) 50%, transparent)',
+                      animation: 'scan 2s infinite linear',
+                    }}
+                  />
+                )}
+                
+                {/* Indicateur actif */}
                 {currentPage === item.key && (
                   <div
                     className="absolute left-0 top-0 h-full w-1"
                     style={{
                       background: 'var(--accent-intel)',
-                      borderRadius: '0 2px 2px 0',
+                      borderRadius: '0 4px 4px 0',
                     }}
                   />
                 )}
-                <item.icon className="w-4 h-4 opacity-70" />
-                <span className="text-sm">{item.label}</span>
+                
+                <item.icon 
+                  className="w-5 h-5 flex-shrink-0" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--accent-intel)' 
+                      : 'var(--text-muted)',
+                    opacity: currentPage === item.key ? 1 : 0.7 
+                  }} 
+                />
+                <span 
+                  className="text-sm font-medium" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--text-primary)' 
+                      : 'var(--text-secondary)',
+                    fontWeight: currentPage === item.key ? '600' : '500'
+                  }}
+                >
+                  {item.label}
+                </span>
                 <div className="ml-auto">{renderBadge(item)}</div>
               </div>
             ))}
@@ -415,29 +507,79 @@ function CustomSidebar({
             {renseignementItems.map((item) => (
               <div
                 key={item.key}
-                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl mb-2 cursor-pointer relative transition-all duration-300 group overflow-hidden ${
                   currentPage === item.key ? 'active' : ''
                 }`}
                 style={{
                   background:
                     currentPage === item.key
-                      ? 'var(--interactive-hover-strong)'
+                      ? 'var(--bg-glass-light)'
                       : 'transparent',
+                  border: currentPage === item.key 
+                    ? '1px solid var(--border-glass-primary)' 
+                    : '1px solid transparent',
+                  boxShadow: currentPage === item.key 
+                    ? 'var(--shadow-glass)' 
+                    : 'none',
                 }}
                 onClick={() => navigateTo(item.path)}
-                onMouseEnter={() => handleMouseEnter(item.path)}
+                onMouseEnter={(e) => {
+                  handleMouseEnter(item.path)();
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'var(--bg-glass-light)';
+                    e.currentTarget.style.border = '1px solid var(--border-glass-secondary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.border = '1px solid transparent';
+                  }
+                }}
               >
+                {/* Barre de scan animée pour l'élément actif */}
+                {currentPage === item.key && (
+                  <div
+                    className="absolute top-0 left-0 h-1 opacity-80"
+                    style={{
+                      width: '100px',
+                      background: 'linear-gradient(90deg, transparent, var(--accent-intel) 50%, transparent)',
+                      animation: 'scan 2s infinite linear',
+                    }}
+                  />
+                )}
+                
+                {/* Indicateur actif */}
                 {currentPage === item.key && (
                   <div
                     className="absolute left-0 top-0 h-full w-1"
                     style={{
                       background: 'var(--accent-intel)',
-                      borderRadius: '0 2px 2px 0',
+                      borderRadius: '0 4px 4px 0',
                     }}
                   />
                 )}
-                <item.icon className="w-4 h-4 opacity-70" />
-                <span className="text-sm">{item.label}</span>
+                
+                <item.icon 
+                  className="w-5 h-5 flex-shrink-0" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--accent-intel)' 
+                      : 'var(--text-muted)',
+                    opacity: currentPage === item.key ? 1 : 0.7 
+                  }} 
+                />
+                <span 
+                  className="text-sm font-medium" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--text-primary)' 
+                      : 'var(--text-secondary)',
+                    fontWeight: currentPage === item.key ? '600' : '500'
+                  }}
+                >
+                  {item.label}
+                </span>
                 <div className="ml-auto">{renderBadge(item)}</div>
               </div>
             ))}
@@ -455,33 +597,90 @@ function CustomSidebar({
             {cartographieItems.map((item) => (
               <div
                 key={item.key}
-                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl mb-2 cursor-pointer relative transition-all duration-300 group overflow-hidden ${
                   currentPage === item.key ? 'active' : ''
                 }`}
                 style={{
                   background:
                     currentPage === item.key
-                      ? 'var(--interactive-hover-strong)'
+                      ? 'var(--bg-glass-light)'
                       : 'transparent',
+                  border: currentPage === item.key 
+                    ? '1px solid var(--border-glass-primary)' 
+                    : '1px solid transparent',
+                  boxShadow: currentPage === item.key 
+                    ? 'var(--shadow-glass)' 
+                    : 'none',
                 }}
                 onClick={() => navigateTo(item.path)}
-                onMouseEnter={() => handleMouseEnter(item.path)}
+                onMouseEnter={(e) => {
+                  handleMouseEnter(item.path)();
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'var(--bg-glass-light)';
+                    e.currentTarget.style.border = '1px solid var(--border-glass-secondary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.border = '1px solid transparent';
+                  }
+                }}
               >
+                {/* Barre de scan animée pour l'élément actif */}
+                {currentPage === item.key && (
+                  <div
+                    className="absolute top-0 left-0 h-1 opacity-80"
+                    style={{
+                      width: '100px',
+                      background: 'linear-gradient(90deg, transparent, var(--accent-intel) 50%, transparent)',
+                      animation: 'scan 2s infinite linear',
+                    }}
+                  />
+                )}
+                
+                {/* Indicateur actif */}
                 {currentPage === item.key && (
                   <div
                     className="absolute left-0 top-0 h-full w-1"
                     style={{
                       background: 'var(--accent-intel)',
-                      borderRadius: '0 2px 2px 0',
+                      borderRadius: '0 4px 4px 0',
                     }}
                   />
                 )}
-                <item.icon className="w-4 h-4 opacity-70" />
-                <span className="text-sm">{item.label}</span>
+                
+                <item.icon 
+                  className="w-5 h-5 flex-shrink-0" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--accent-intel)' 
+                      : 'var(--text-muted)',
+                    opacity: currentPage === item.key ? 1 : 0.7 
+                  }} 
+                />
+                <span 
+                  className="text-sm font-medium" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--text-primary)' 
+                      : 'var(--text-secondary)',
+                    fontWeight: currentPage === item.key ? '600' : '500'
+                  }}
+                >
+                  {item.label}
+                </span>
                 {item.badge && (
                   <span
-                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
-                    style={{ background: 'var(--accent-warning)' }}
+                    className="ml-auto px-2.5 py-1 text-xs font-semibold rounded-full transition-all duration-300"
+                    style={{
+                      background: 'rgba(245, 158, 11, 0.15)',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                      color: '#f59e0b',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)',
+                    }}
                   >
                     {item.badge}
                   </span>
@@ -502,54 +701,122 @@ function CustomSidebar({
             {entitiesSurveilleesItems.map((item) => (
               <div
                 key={item.key}
-                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl mb-2 cursor-pointer relative transition-all duration-300 group overflow-hidden ${
                   currentPage === item.key ? 'active' : ''
-                } ${item.critical ? 'border border-red-500/30' : ''}`}
+                }`}
                 style={{
                   background:
                     currentPage === item.key
-                      ? 'var(--interactive-hover-strong)'
+                      ? 'var(--bg-glass-light)'
                       : item.critical
-                        ? 'rgba(239, 68, 68, 0.05)'
+                        ? 'rgba(239, 68, 68, 0.08)'
                         : 'transparent',
+                  border: currentPage === item.key 
+                    ? '1px solid var(--border-glass-primary)' 
+                    : item.critical 
+                      ? '1px solid rgba(239, 68, 68, 0.3)'
+                      : '1px solid transparent',
+                  boxShadow: currentPage === item.key 
+                    ? 'var(--shadow-glass)' 
+                    : item.critical
+                      ? '0 4px 12px rgba(239, 68, 68, 0.15)'
+                      : 'none',
                 }}
                 onClick={() => navigateTo(item.path)}
-                onMouseEnter={() => handleMouseEnter(item.path)}
+                onMouseEnter={(e) => {
+                  handleMouseEnter(item.path)();
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = item.critical 
+                      ? 'rgba(239, 68, 68, 0.12)' 
+                      : 'var(--bg-glass-light)';
+                    e.currentTarget.style.border = item.critical 
+                      ? '1px solid rgba(239, 68, 68, 0.4)'
+                      : '1px solid var(--border-glass-secondary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = item.critical 
+                      ? 'rgba(239, 68, 68, 0.08)' 
+                      : 'transparent';
+                    e.currentTarget.style.border = item.critical 
+                      ? '1px solid rgba(239, 68, 68, 0.3)'
+                      : '1px solid transparent';
+                  }
+                }}
               >
+                {/* Barre de scan animée pour l'élément actif */}
+                {currentPage === item.key && (
+                  <div
+                    className="absolute top-0 left-0 h-1 opacity-80"
+                    style={{
+                      width: '100px',
+                      background: item.critical 
+                        ? 'linear-gradient(90deg, transparent, #ef4444 50%, transparent)'
+                        : 'linear-gradient(90deg, transparent, var(--accent-intel) 50%, transparent)',
+                      animation: 'scan 2s infinite linear',
+                    }}
+                  />
+                )}
+                
+                {/* Indicateur actif */}
                 {currentPage === item.key && (
                   <div
                     className="absolute left-0 top-0 h-full w-1"
                     style={{
                       background: item.critical
-                        ? 'var(--accent-danger)'
+                        ? '#ef4444'
                         : 'var(--accent-intel)',
-                      borderRadius: '0 2px 2px 0',
+                      borderRadius: '0 4px 4px 0',
                     }}
                   />
                 )}
-                <item.icon
-                  className={`w-4 h-4 opacity-70 ${item.critical ? 'text-red-500' : ''}`}
+                
+                <item.icon 
+                  className="w-5 h-5 flex-shrink-0" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? (item.critical ? '#ef4444' : 'var(--accent-intel)')
+                      : (item.critical ? '#ef4444' : 'var(--text-muted)'),
+                    opacity: currentPage === item.key ? 1 : 0.8 
+                  }} 
                 />
-                <span
-                  className={`text-sm ${item.critical ? 'text-red-500 font-medium' : ''}`}
+                <span 
+                  className="text-sm font-medium" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--text-primary)' 
+                      : (item.critical ? '#ef4444' : 'var(--text-secondary)'),
+                    fontWeight: currentPage === item.key ? '600' : (item.critical ? '600' : '500')
+                  }}
                 >
                   {item.label}
                 </span>
                 {item.badge && (
                   <span
-                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
+                    className={`ml-auto px-2.5 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${
+                      item.pulse ? 'animate-pulse' : ''
+                    }`}
                     style={{
                       background: item.critical
-                        ? 'var(--accent-danger)'
-                        : 'var(--accent-success)',
-                      animation: item.critical ? 'pulse 2s infinite' : 'none',
+                        ? 'rgba(239, 68, 68, 0.15)'
+                        : 'rgba(16, 185, 129, 0.15)',
+                      border: item.critical 
+                        ? '1px solid rgba(239, 68, 68, 0.3)'
+                        : '1px solid rgba(16, 185, 129, 0.3)',
+                      color: item.critical ? '#ef4444' : '#10b981',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      boxShadow: item.critical 
+                        ? '0 4px 12px rgba(239, 68, 68, 0.2)'
+                        : '0 4px 12px rgba(16, 185, 129, 0.2)',
                     }}
                   >
                     {item.badge}
                   </span>
                 )}
                 {item.critical && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg" />
                 )}
               </div>
             ))}
@@ -567,33 +834,90 @@ function CustomSidebar({
             {analysesItems.map((item) => (
               <div
                 key={item.key}
-                className={`flex items-center gap-3 p-2 rounded-lg mb-1 cursor-pointer relative transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl mb-2 cursor-pointer relative transition-all duration-300 group overflow-hidden ${
                   currentPage === item.key ? 'active' : ''
                 }`}
                 style={{
                   background:
                     currentPage === item.key
-                      ? 'var(--interactive-hover-strong)'
+                      ? 'var(--bg-glass-light)'
                       : 'transparent',
+                  border: currentPage === item.key 
+                    ? '1px solid var(--border-glass-primary)' 
+                    : '1px solid transparent',
+                  boxShadow: currentPage === item.key 
+                    ? 'var(--shadow-glass)' 
+                    : 'none',
                 }}
                 onClick={() => navigateTo(item.path)}
-                onMouseEnter={() => handleMouseEnter(item.path)}
+                onMouseEnter={(e) => {
+                  handleMouseEnter(item.path)();
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'var(--bg-glass-light)';
+                    e.currentTarget.style.border = '1px solid var(--border-glass-secondary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== item.key) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.border = '1px solid transparent';
+                  }
+                }}
               >
+                {/* Barre de scan animée pour l'élément actif */}
+                {currentPage === item.key && (
+                  <div
+                    className="absolute top-0 left-0 h-1 opacity-80"
+                    style={{
+                      width: '100px',
+                      background: 'linear-gradient(90deg, transparent, var(--accent-intel) 50%, transparent)',
+                      animation: 'scan 2s infinite linear',
+                    }}
+                  />
+                )}
+                
+                {/* Indicateur actif */}
                 {currentPage === item.key && (
                   <div
                     className="absolute left-0 top-0 h-full w-1"
                     style={{
                       background: 'var(--accent-intel)',
-                      borderRadius: '0 2px 2px 0',
+                      borderRadius: '0 4px 4px 0',
                     }}
                   />
                 )}
-                <item.icon className="w-4 h-4 opacity-70" />
-                <span className="text-sm">{item.label}</span>
+                
+                <item.icon 
+                  className="w-5 h-5 flex-shrink-0" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--accent-intel)' 
+                      : 'var(--text-muted)',
+                    opacity: currentPage === item.key ? 1 : 0.7 
+                  }} 
+                />
+                <span 
+                  className="text-sm font-medium" 
+                  style={{ 
+                    color: currentPage === item.key 
+                      ? 'var(--text-primary)' 
+                      : 'var(--text-secondary)',
+                    fontWeight: currentPage === item.key ? '600' : '500'
+                  }}
+                >
+                  {item.label}
+                </span>
                 {item.badge && (
                   <span
-                    className="ml-auto px-1.5 py-0.5 text-white text-xs font-semibold rounded-full"
-                    style={{ background: 'var(--accent-danger)' }}
+                    className="ml-auto px-2.5 py-1 text-xs font-semibold rounded-full transition-all duration-300"
+                    style={{
+                      background: 'rgba(168, 85, 247, 0.15)',
+                      border: '1px solid rgba(168, 85, 247, 0.3)',
+                      color: '#a855f7',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      boxShadow: '0 4px 12px rgba(168, 85, 247, 0.2)',
+                    }}
                   >
                     {item.badge}
                   </span>
@@ -686,6 +1010,7 @@ function CustomSidebar({
         </div>
       </div>
     </aside>
+    </>
   );
 }
 

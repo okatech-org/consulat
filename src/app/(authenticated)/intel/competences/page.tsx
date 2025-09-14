@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
-import { PageContainer } from '@/components/layouts/page-container';
+import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import {
   Card,
   CardContent,
@@ -391,7 +391,7 @@ export default function CompetencesDirectoryPage() {
 
   if (error) {
     return (
-      <PageContainer title={t('title')} description={t('description')}>
+      <div className="space-y-6">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Card className="max-w-md w-full">
             <CardContent className="pt-6">
@@ -409,41 +409,13 @@ export default function CompetencesDirectoryPage() {
             </CardContent>
           </Card>
         </div>
-      </PageContainer>
+      </div>
     );
   }
 
   return (
-    <PageContainer
-      title={t('title')}
-      description={t('description')}
-      action={
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => refetch()}
-            disabled={isLoading || isFetching}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-            {t('actions.refresh')}
-          </Button>
-          <Button
-            onClick={handleExportCSV}
-            disabled={isExporting}
-            variant={selectedProfiles.size > 0 ? 'default' : 'outline'}
-          >
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            {selectedProfiles.size > 0
-              ? t('actions.export_selected', { count: selectedProfiles.size })
-              : t('actions.export_all')}
-          </Button>
-        </div>
-      }
-    >
+    <>
+      <IntelNavigationBar currentPage="Compétences" />
       <div className="space-y-6">
         {/* Statistiques */}
         {directoryData?.statistics && (
@@ -1281,6 +1253,6 @@ export default function CompetencesDirectoryPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </PageContainer>
+    </>
   );
 }
