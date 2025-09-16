@@ -20,12 +20,13 @@ import { cn } from '@/lib/utils';
 type PhoneInputProps = Omit<React.ComponentProps<'input'>, 'onChange' | 'value' | 'ref'> &
   Omit<RPNInput.Props<typeof RPNInput.default>, 'onChange'> & {
     onChange?: (value: RPNInput.Value) => void;
+    countries?: RPNInput.Country[]; // Prop pour limiter les pays
   };
 
 const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> = React.forwardRef<
   React.ElementRef<typeof RPNInput.default>,
   PhoneInputProps
->(({ className, onChange, value, ...props }, ref) => {
+>(({ className, onChange, value, countries, ...props }, ref) => {
   return (
     <RPNInput.default
       ref={ref}
@@ -35,6 +36,7 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> = React.forwa
       inputComponent={InputComponent}
       smartCaret={false}
       value={value || undefined}
+      countries={countries} // Passer les pays limités
       /**
        * Handles the onChange event.
        *

@@ -3,11 +3,14 @@ import { env } from '@/env';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { BetaBanner } from '@/components/ui/beta-banner';
+import { getActiveCountries } from '@/actions/countries';
+import type { Country } from '@/types/country';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function LoginPage() {
   const t = await getTranslations('auth.login');
+  const countries = await getActiveCountries();
 
   return (
     <div className="w-dvw bg-background h-dvh pt-8 p-6 md:pt-6 min-h-max overflow-x-hidden md:overflow-hidden flex items-center justify-center md:grid md:grid-cols-2">
@@ -29,7 +32,7 @@ export default async function LoginPage() {
             </p>
           </header>
           <div className="w-full">
-            <LoginForm />
+            <LoginForm countries={countries as Country[]} />
           </div>
           <BetaBanner className="mt-4" />
         </div>

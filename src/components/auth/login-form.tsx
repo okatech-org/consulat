@@ -30,6 +30,7 @@ import { z } from 'zod';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { useToast } from '@/hooks/use-toast';
 import { checkUserExists } from '@/actions/auth';
+import type { Country } from '@/types/country';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
@@ -170,7 +171,7 @@ function useLoginActions() {
   return { sendOTPCode, validateOTP };
 }
 
-export function LoginForm() {
+export function LoginForm({ countries }: { countries: Country[] }) {
   const router = useRouter();
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
@@ -196,7 +197,7 @@ export function LoginForm() {
   // Form setup
   const form = useForm<LoginInput>({
     resolver: zodResolver(getLoginSchema(state.method, state.step === 'OTP')),
-    defaultValues: { type: state.method, email: '', otp: '', phoneNumber: '+33-' },
+    defaultValues: { type: state.method, email: '', otp: '', phoneNumber: '' },
     mode: 'onChange',
   });
 
@@ -446,6 +447,8 @@ export function LoginForm() {
                           onChange={field.onChange}
                           disabled={state.isLoading}
                           placeholder={t('inputs.phone.placeholder')}
+                          countries={countries?.map((country) => country.code as any)}
+                          defaultCountry={countries?.[0]?.code as any}
                         />
                       </FormControl>
 

@@ -15,7 +15,7 @@ import {
   TradFormMessage,
 } from '@/components/ui/form';
 import { CountrySelect } from '@/components/ui/country-select';
-import { getCountryIndicator, type CountryCode } from '@/lib/autocomplete-datas';
+import { type CountryCode } from '@/lib/autocomplete-datas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   CountryCodeSchema,
@@ -95,7 +95,7 @@ export function NewProfileForm({
       lastName: '',
       type: 'PHONE',
       email: '',
-      phoneNumber: countryCode ? `${getCountryIndicator(countryCode)}-` : '+33-',
+      phoneNumber: '',
       otp: '',
       residenceCountyCode: countryCode ?? availableCountries?.[0]?.code ?? '',
     },
@@ -422,6 +422,9 @@ export function NewProfileForm({
                         disabled={isLoading}
                         placeholder={t('phone.placeholder')}
                         defaultCountry={countryCode as any}
+                        countries={availableCountries?.map(
+                          (country) => country.code as any,
+                        )}
                       />
                     </FormControl>
                     <TradFormMessage />
