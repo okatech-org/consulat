@@ -35,7 +35,7 @@ import { type ErrorMessageKey } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PhoneNumberInput } from '../ui/phone-number';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 // Étendre le type de retour de signIn pour inclure code
 interface SignInResult {
@@ -416,15 +416,12 @@ export function NewProfileForm({
                   <FormItem className="w-full">
                     <FormLabel>{t('phone.label')}</FormLabel>
                     <FormControl>
-                      <PhoneNumberInput
+                      <PhoneInput
                         value={field.value}
-                        onChangeAction={field.onChange}
+                        onChange={field.onChange}
                         disabled={isLoading}
-                        options={
-                          countryCode
-                            ? [countryCode]
-                            : availableCountries?.map((item) => item.code as CountryCode)
-                        }
+                        placeholder={t('phone.placeholder')}
+                        defaultCountry={countryCode as any}
                       />
                     </FormControl>
                     <TradFormMessage />

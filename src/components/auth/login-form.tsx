@@ -27,7 +27,7 @@ import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { z } from 'zod';
-import { PhoneNumberInput } from '@/components/ui/phone-number';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { useToast } from '@/hooks/use-toast';
 import { checkUserExists } from '@/actions/auth';
 
@@ -441,10 +441,11 @@ export function LoginForm() {
                     <FormItem>
                       <FormLabel>{t('inputs.phone.label')}</FormLabel>
                       <FormControl>
-                        <PhoneNumberInput
+                        <PhoneInput
                           value={field.value}
-                          onChangeAction={field.onChange}
+                          onChange={field.onChange}
                           disabled={state.isLoading}
+                          placeholder={t('inputs.phone.placeholder')}
                         />
                       </FormControl>
 

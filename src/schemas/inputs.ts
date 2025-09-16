@@ -154,13 +154,27 @@ export const BasicAddressSchema = z.object({
   country: z.string().optional(),
 });
 
+// Schéma pour le format legacy avec tiret (+33-612250393)
 export const PhoneNumberSchema = z
   .string({ required_error: 'messages.errors.field_required' })
   .regex(/^\+[1-9]\d{1,3}-[1-9]\d{7,14}$/, 'messages.errors.invalid_phone_number');
 
+// Schéma pour le format Clerk sans tiret (+33612250393)
 export const PhoneSchema = z
   .string({ required_error: 'messages.errors.field_required' })
   .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone');
+
+// Schéma pour react-phone-number-input (format E.164)
+export const E164PhoneSchema = z
+  .string({ required_error: 'messages.errors.field_required' })
+  .refine(
+    (value) => {
+      // Format E.164: +33612250393
+      const e164Format = /^\+[1-9]\d{1,14}$/;
+      return e164Format.test(value);
+    },
+    { message: 'messages.errors.invalid_phone_number' },
+  );
 
 export const PhoneValueSchema = z.object({
   number: z

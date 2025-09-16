@@ -12,16 +12,11 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     DIRECT_URL: z.string().url(),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    VONAGE_API_KEY: z.string(),
-    VONAGE_API_SECRET: z.string(),
-    VONAGE_APPLICATION_ID: z.string(),
-    VONAGE_PRIVATE_KEY: z.string(),
 
     // UploadThing
     UPLOADTHING_TOKEN: z.string(),
 
     // AI APIs
-    OPENAI_API_KEY: z.string(),
     GEMINI_API_KEY: z.string(),
     REMOVEBG_API_KEY: z.string(),
 
@@ -73,12 +68,7 @@ export const env = createEnv({
     AUTH_SECRET: process.env.AUTH_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    VONAGE_API_KEY: process.env.VONAGE_API_KEY,
-    VONAGE_API_SECRET: process.env.VONAGE_API_SECRET,
-    VONAGE_APPLICATION_ID: process.env.VONAGE_APPLICATION_ID,
-    VONAGE_PRIVATE_KEY: process.env.VONAGE_PRIVATE_KEY,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     REMOVEBG_API_KEY: process.env.REMOVEBG_API_KEY,
     SMS_PROVIDER: process.env.SMS_PROVIDER,
@@ -100,7 +90,6 @@ export const env = createEnv({
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: process.env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH,
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
     DIRECT_URL: process.env.DIRECT_URL,
-    PASS_SECRET: process.env.PASS_SECRET,
     PASS_SECRET: process.env.PASS_SECRET,
   },
   /**
