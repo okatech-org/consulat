@@ -10,6 +10,7 @@ generator client {
 
 model User {
     id                  String     @id @default(cuid())
+    userId              String?    @unique // ID utilisateur Clerk
     name                String?
     roles               UserRole[] @default([USER])
     role                UserRole   @default(USER)
