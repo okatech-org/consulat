@@ -150,6 +150,7 @@ enum UserRole {
     AGENT
     USER
     INTEL_AGENT
+    EDUCATION_AGENT
 }
 
 enum ServiceCategory {
