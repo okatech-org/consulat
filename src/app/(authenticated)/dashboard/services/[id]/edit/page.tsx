@@ -7,7 +7,7 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { UserRole } from '@prisma/client';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { getDocumentTemplates } from '@/actions/document-generation';
 import { api } from '@/trpc/server';

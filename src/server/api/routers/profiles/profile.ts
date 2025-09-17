@@ -106,44 +106,42 @@ export const profileRouter = createTRPCRouter({
     return userMetadata?.settings ?? {};
   }),
 
-  getCurrent: protectedProcedure
-    .input(z.object({ profileId: z.string().optional() }))
-    .query(async ({ ctx, input }) => {
-      try {
-        const profile = await ctx.db.profile.findFirst({
-          where: {
-            OR: [{ userId: ctx.auth.userId }, { id: input.profileId ?? '' }],
-          },
-          ...FullProfileInclude,
-        });
-        const registrationRequest = await ctx.db.serviceRequest.findFirst({
-          where: {
-            id: profile?.validationRequestId ?? '',
-          },
-          include: {
-            notes: true,
-          },
-        });
+  getCurrent: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const profile = await ctx.db.profile.findFirst({
+        where: {
+          OR: [{ userId: ctx.auth.userId }, { id: ctx.user?.profileId ?? '' }],
+        },
+        ...FullProfileInclude,
+      });
+      const registrationRequest = await ctx.db.serviceRequest.findFirst({
+        where: {
+          id: profile?.validationRequestId ?? '',
+        },
+        include: {
+          notes: true,
+        },
+      });
 
-        if (!profile) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profile non trouvé',
-          });
-        }
-
-        return {
-          ...profile,
-          registrationRequest,
-        };
-      } catch (error) {
-        console.error('Error fetching current profile:', error);
+      if (!profile) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération du profil',
+          code: 'NOT_FOUND',
+          message: 'Profile non trouvé',
         });
       }
-    }),
+
+      return {
+        ...profile,
+        registrationRequest,
+      };
+    } catch (error) {
+      console.error('Error fetching current profile:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération du profil',
+      });
+    }
+  }),
 
   // Récupérer un profil par ID
   getById: publicProcedure

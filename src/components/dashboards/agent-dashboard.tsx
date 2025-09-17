@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { StatsCard } from '@/components/ui/stats-card';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { format } from 'date-fns';
 import { ArrowRight, Calendar, CheckCircle, Clock, FileText } from 'lucide-react';

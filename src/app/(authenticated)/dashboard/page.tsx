@@ -1,6 +1,6 @@
 import { ServerRoleGuard } from '@/lib/permissions/utils';
 import SuperAdminDashboard from '../../../components/dashboards/superadmin-dashboard';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import AgentDashboard from '../../../components/dashboards/agent-dashboard';
 import AdminDashboard from '../../../components/dashboards/admin-dashboard';
 import { ManagerDashboard } from '../../../components/dashboards/manager-dashboard';

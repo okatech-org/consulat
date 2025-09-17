@@ -35,20 +35,9 @@ import type { Country } from '@/types/country';
 type LoginMethod = 'EMAIL' | 'PHONE';
 type LoginStep = 'IDENTIFIER' | 'OTP' | 'SUCCESS';
 
-interface LoginFormState {
-  method: LoginMethod;
-  step: LoginStep;
-  isLoading: boolean;
-  error: string | null;
-  resendCooldown: number;
-  canResend: boolean;
-  hasRedirected: boolean;
-}
-
 // Schema factory
 function getLoginSchema(type: LoginMethod, showOTP: boolean) {
   const baseSchema = type === 'EMAIL' ? LoginWithEmailSchema : LoginWithPhoneSchema;
-
   return baseSchema.extend({
     otp: showOTP
       ? z.string().min(6, { message: 'messages.errors.opt_min_length' })
@@ -56,11 +45,31 @@ function getLoginSchema(type: LoginMethod, showOTP: boolean) {
   });
 }
 
-// Custom hooks
-function useResendCooldown() {
+export function LoginForm({ countries }: { countries: Country[] }) {
+  const router = useRouter();
+  const t = useTranslations('auth.login');
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('redirect_url');
+  const redirectUrl = callbackUrl ?? '/my-space';
+  const { toast } = useToast();
+  const { signIn, setActive } = useSignIn();
+
+  // State
+  const [method, setMethod] = React.useState<LoginMethod>('PHONE');
+  const [step, setStep] = React.useState<LoginStep>('IDENTIFIER');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = React.useState(0);
   const [canResend, setCanResend] = React.useState(true);
 
+  // Form
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(getLoginSchema(method, step === 'OTP')),
+    defaultValues: { type: method, email: '', otp: '', phoneNumber: '' },
+    mode: 'onChange',
+  });
+
+  // Cooldown effect
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
     if (resendCooldown > 0) {
@@ -77,273 +86,139 @@ function useResendCooldown() {
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  const startCooldown = React.useCallback((seconds: number = 60) => {
-    setCanResend(false);
-    setResendCooldown(seconds);
-  }, []);
-
-  return { resendCooldown, canResend, startCooldown };
-}
-
-function useLoginActions() {
-  const tAuth = useTranslations('auth');
-  const { signIn, setActive } = useSignIn();
-
-  const getErrorMessage = React.useCallback(
-    (error: unknown) => {
-      if (!error) return tAuth('login.errors.validation_error');
-
-      // Gestion des erreurs Clerk
-      if (typeof error === 'object' && error !== null && 'errors' in error) {
-        const clerkError = error as {
-          errors: Array<{ code: string; longMessage?: string; message?: string }>;
-        };
-        if (clerkError.errors && clerkError.errors.length > 0) {
-          const firstError = clerkError.errors[0];
-          if (firstError) {
-            const errorKey = `login.errors.${firstError.code}`;
-            const errorMessage = tAuth(errorKey);
-
-            if (errorMessage === errorKey) {
-              return (
-                firstError.longMessage ||
-                firstError.message ||
-                tAuth('login.errors.validation_error')
-              );
-            }
-            return errorMessage;
-          }
-        }
-      }
-
-      if (typeof error === 'object' && error !== null && 'message' in error) {
-        return (error as { message: string }).message;
-      }
-
-      return tAuth('login.errors.validation_error');
-    },
-    [tAuth],
-  );
-
-  const sendOTPCode = React.useCallback(
-    async (identifier: string, method: LoginMethod) => {
-      if (!signIn) {
-        throw new Error('SignIn not available');
-      }
-
-      try {
-        if (method === 'EMAIL') {
-          await signIn.create({
-            identifier: identifier,
-            strategy: 'email_code',
-          });
-        } else {
-          await signIn.create({
-            identifier: identifier,
-            strategy: 'phone_code',
-          });
-        }
-      } catch (error) {
-        const errorMessage = getErrorMessage(error);
-        throw new Error(errorMessage);
-      }
-    },
-    [signIn, getErrorMessage],
-  );
-
-  const validateOTP = React.useCallback(
-    async (otp: string, identifier: string, method: LoginMethod) => {
-      if (!signIn || !setActive) {
-        throw new Error('SignIn or setActive not available');
-      }
-
-      try {
-        const result = await signIn.attemptFirstFactor({
-          strategy: method === 'EMAIL' ? 'email_code' : 'phone_code',
-          code: otp,
-        });
-
-        if (result.status === 'complete') {
-          await setActive({ session: result.createdSessionId });
-          return result;
-        }
-
-        throw new Error('Validation incomplète');
-      } catch (error) {
-        const errorMessage = getErrorMessage(error);
-        throw new Error(errorMessage);
-      }
-    },
-    [signIn, setActive, getErrorMessage],
-  );
-
-  return { sendOTPCode, validateOTP };
-}
-
-export function LoginForm({ countries }: { countries: Country[] }) {
-  const router = useRouter();
-  const t = useTranslations('auth.login');
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('redirect_url');
-  const redirectUrl = callbackUrl ?? '/my-space';
-  const { toast } = useToast();
-
-  // State management
-  const [state, setState] = React.useState<LoginFormState>({
-    method: 'PHONE',
-    step: 'IDENTIFIER',
-    isLoading: false,
-    error: null,
-    resendCooldown: 0,
-    canResend: true,
-    hasRedirected: false,
-  });
-
-  // Custom hooks
-  const { resendCooldown, canResend, startCooldown } = useResendCooldown();
-  const { sendOTPCode, validateOTP } = useLoginActions();
-
-  // Form setup
-  const form = useForm<LoginInput>({
-    resolver: zodResolver(getLoginSchema(state.method, state.step === 'OTP')),
-    defaultValues: { type: state.method, email: '', otp: '', phoneNumber: '' },
-    mode: 'onChange',
-  });
-
-  // Update state helper
-  const updateState = React.useCallback((updates: Partial<LoginFormState>) => {
-    setState((prev) => ({ ...prev, ...updates }));
-  }, []);
-
-  // Manual redirect for success state
-  const handleManualRedirect = () => {
-    router.push(redirectUrl);
-    router.refresh();
-  };
-
-  // Handlers
-  const handleSendOTP = React.useCallback(
-    async (identifier: string) => {
-      updateState({ isLoading: true, error: null });
-
-      try {
-        // Envoyer l'OTP avec Clerk
-        await sendOTPCode(identifier, state.method);
-        updateState({ step: 'OTP', isLoading: false, error: null });
-        startCooldown(60);
-        toast({
-          title: 'Code envoyé',
-          description: t('messages.otp_sent'),
-        });
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : t('errors.send_otp_failed');
-
-        updateState({ error: errorMessage, isLoading: false });
-
-        toast({
-          title: 'Erreur',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      }
-    },
-    [sendOTPCode, updateState, startCooldown, t, state.method],
-  );
-
-  const handleValidateOTP = React.useCallback(
-    async (otp: string) => {
-      updateState({ isLoading: true, error: null });
-
-      try {
-        const identifier =
-          state.method === 'EMAIL'
-            ? form.getValues('email')
-            : form.getValues('phoneNumber');
-
-        await validateOTP(otp, identifier, state.method);
-
-        updateState({ step: 'SUCCESS', isLoading: false, error: null });
-
-        handleManualRedirect();
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Erreur de validation';
-
-        updateState({ error: errorMessage, isLoading: false, step: 'OTP' });
-
-        form.setValue('otp', '');
-
-        toast({
-          title: 'Erreur de validation',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      }
-    },
-    [validateOTP, state.method, form, updateState, handleManualRedirect],
-  );
-
-  const handleResendOTP = React.useCallback(async () => {
-    if (!canResend) return;
-
-    const identifier =
-      state.method === 'EMAIL' ? form.getValues('email') : form.getValues('phoneNumber');
-
-    await handleSendOTP(identifier);
-  }, [canResend, state.method, form, handleSendOTP]);
-
-  const handleGoBack = React.useCallback(() => {
-    updateState({ step: 'IDENTIFIER', error: null });
-    form.clearErrors();
-  }, [form, updateState]);
-
-  const handleMethodChange = React.useCallback(
-    (value: string) => {
-      const newMethod = value as LoginMethod;
-      updateState({ method: newMethod, step: 'IDENTIFIER', error: null });
-
-      form.reset();
-      if (newMethod === 'EMAIL') {
-        form.setValue('type', 'EMAIL');
-        form.setValue('email', '');
-      } else {
-        form.setValue('type', 'PHONE');
-        form.setValue('phoneNumber', '+33-');
-      }
-    },
-    [form, updateState],
-  );
-
-  const onSubmit = React.useCallback(
-    async (data: LoginInput) => {
-      if (state.step === 'IDENTIFIER') {
-        const identifierValue = data.type === 'EMAIL' ? data.email : data.phoneNumber;
-        await handleSendOTP(identifierValue);
-      } else if (data.otp) {
-        await handleValidateOTP(data.otp);
-      }
-    },
-    [state.step, handleSendOTP, handleValidateOTP],
-  );
-
   // Error handling effect
   React.useEffect(() => {
-    if (state.error) {
-      if (state.step === 'IDENTIFIER') {
-        const fieldName = state.method === 'EMAIL' ? 'email' : 'phoneNumber';
-        form.setError(fieldName, { message: state.error });
+    if (error) {
+      if (step === 'IDENTIFIER') {
+        const fieldName = method === 'EMAIL' ? 'email' : 'phoneNumber';
+        form.setError(fieldName, { message: error });
       } else {
-        form.setError('otp', { message: state.error });
+        form.setError('otp', { message: error });
       }
     }
-  }, [state.error, state.step, state.method, form]);
+  }, [error, step, method, form]);
+
+  // Handlers
+  const handleSendOTP = async (identifier: string) => {
+    if (!signIn) {
+      setError('SignIn not available');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await signIn.create({
+        identifier: identifier,
+        strategy: method === 'EMAIL' ? 'email_code' : 'phone_code',
+      });
+
+      setStep('OTP');
+      setResendCooldown(60);
+      setCanResend(false);
+      toast({
+        title: 'Code envoyé',
+        description: t('messages.otp_sent'),
+      });
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as any)?.errors?.[0]?.longMessage ||
+        (error as any)?.message ||
+        t('errors.send_otp_failed');
+      setError(errorMessage);
+      toast({
+        title: 'Erreur',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleValidateOTP = async (otp: string) => {
+    if (!signIn || !setActive) {
+      setError('SignIn or setActive not available');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await signIn.attemptFirstFactor({
+        strategy: method === 'EMAIL' ? 'email_code' : 'phone_code',
+        code: otp,
+      });
+
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        setStep('SUCCESS');
+        router.push(redirectUrl);
+        router.refresh();
+      } else {
+        throw new Error('Validation incomplète');
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as any)?.errors?.[0]?.longMessage ||
+        (error as any)?.message ||
+        'Erreur de validation';
+      setError(errorMessage);
+      form.setValue('otp', '');
+      toast({
+        title: 'Erreur de validation',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (!canResend) return;
+    const identifier =
+      method === 'EMAIL' ? form.getValues('email') : form.getValues('phoneNumber');
+    await handleSendOTP(identifier);
+  };
+
+  const handleGoBack = () => {
+    setStep('IDENTIFIER');
+    setError(null);
+    form.clearErrors();
+  };
+
+  const handleMethodChange = (value: string) => {
+    const newMethod = value as LoginMethod;
+    setMethod(newMethod);
+    setStep('IDENTIFIER');
+    setError(null);
+    form.reset();
+    if (newMethod === 'EMAIL') {
+      form.setValue('type', 'EMAIL');
+      form.setValue('email', '');
+    } else {
+      form.setValue('type', 'PHONE');
+      form.setValue('phoneNumber', '+33-');
+    }
+  };
+
+  const onSubmit = async (data: LoginInput) => {
+    if (step === 'IDENTIFIER') {
+      const identifierValue = data.type === 'EMAIL' ? data.email : data.phoneNumber;
+      await handleSendOTP(identifierValue);
+    } else if (data.otp) {
+      await handleValidateOTP(data.otp);
+    }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
         <div className="flex flex-col gap-6">
-          {state.step === 'SUCCESS' && (
+          {step === 'SUCCESS' && (
             <div className="success-state space-y-6 text-center">
               <div className="space-y-4">
                 <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
@@ -377,9 +252,9 @@ export function LoginForm({ countries }: { countries: Country[] }) {
             </div>
           )}
 
-          {state.step === 'IDENTIFIER' && (
+          {step === 'IDENTIFIER' && (
             <Tabs
-              value={state.method}
+              value={method}
               onValueChange={handleMethodChange}
               className="inputs w-full"
             >
@@ -403,12 +278,12 @@ export function LoginForm({ countries }: { countries: Country[] }) {
                       <FormLabel>{t('inputs.email.label')}</FormLabel>
                       <FormControl>
                         <Input
-                          autoFocus={state.method === 'EMAIL'}
+                          autoFocus={method === 'EMAIL'}
                           {...field}
                           type="email"
                           autoComplete="email"
                           placeholder={t('inputs.email.placeholder')}
-                          disabled={state.isLoading}
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <TradFormMessage />
@@ -428,13 +303,12 @@ export function LoginForm({ countries }: { countries: Country[] }) {
                         <PhoneInput
                           value={field.value}
                           onChange={field.onChange}
-                          disabled={state.isLoading}
+                          disabled={isLoading}
                           placeholder={t('inputs.phone.placeholder')}
                           countries={countries?.map((country) => country.code as any)}
                           defaultCountry={countries?.[0]?.code as any}
                         />
                       </FormControl>
-
                       <TradFormMessage />
                     </FormItem>
                   )}
@@ -443,12 +317,12 @@ export function LoginForm({ countries }: { countries: Country[] }) {
             </Tabs>
           )}
 
-          {state.step === 'OTP' && (
+          {step === 'OTP' && (
             <div className="otp space-y-6">
               <div className="text-center">
                 <h3 className="text-lg font-semibold">{t('access_code')}</h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {state.method === 'PHONE'
+                  {method === 'PHONE'
                     ? t('access_code_phone_description')
                     : t('access_code_email_description')}
                 </p>
@@ -466,7 +340,7 @@ export function LoginForm({ countries }: { countries: Country[] }) {
                           maxLength={6}
                           {...field}
                           autoComplete="one-time-code"
-                          disabled={state.isLoading}
+                          disabled={isLoading}
                         >
                           <InputOTPGroup>
                             <InputOTPSlot className="w-12 h-12" index={0} />
@@ -486,30 +360,28 @@ export function LoginForm({ countries }: { countries: Country[] }) {
             </div>
           )}
 
-          {(state.step === 'IDENTIFIER' || state.step === 'OTP') && (
+          {(step === 'IDENTIFIER' || step === 'OTP') && (
             <div className="actions flex flex-col gap-4">
               <Button
                 variant="default"
                 type="submit"
-                disabled={state.isLoading || !form.formState.isValid}
+                disabled={isLoading || !form.formState.isValid}
                 size="mobile"
                 weight="medium"
                 fullWidthOnMobile={true}
-                loading={state.isLoading}
-                rightIcon={
-                  !state.isLoading ? <ArrowRight className="size-4" /> : undefined
-                }
+                loading={isLoading}
+                rightIcon={!isLoading ? <ArrowRight className="size-4" /> : undefined}
               >
-                {state.step === 'OTP' ? t('access_space') : t('login_button')}
+                {step === 'OTP' ? t('access_space') : t('login_button')}
               </Button>
 
-              {state.step === 'OTP' && (
+              {step === 'OTP' && (
                 <div className="flex justify-between items-center gap-4">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    disabled={state.isLoading}
+                    disabled={isLoading}
                     onClick={handleGoBack}
                     leftIcon={<ArrowLeft className="size-4" />}
                     className="flex-shrink-0"
@@ -521,7 +393,7 @@ export function LoginForm({ countries }: { countries: Country[] }) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={!canResend || state.isLoading}
+                    disabled={!canResend || isLoading}
                     onClick={handleResendOTP}
                     className="flex-shrink-0"
                   >
@@ -535,18 +407,18 @@ export function LoginForm({ countries }: { countries: Country[] }) {
                 </div>
               )}
 
-              {state.step === 'IDENTIFIER' && (
+              {step === 'IDENTIFIER' && (
                 <Button
                   type="button"
                   variant="link"
                   size="sm"
-                  disabled={state.isLoading}
+                  disabled={isLoading}
                   className="mx-auto"
                   onClick={() =>
-                    handleMethodChange(state.method === 'EMAIL' ? 'PHONE' : 'EMAIL')
+                    handleMethodChange(method === 'EMAIL' ? 'PHONE' : 'EMAIL')
                   }
                 >
-                  {state.method === 'EMAIL'
+                  {method === 'EMAIL'
                     ? t('login_with_phone_prompt')
                     : t('login_with_email_prompt')}
                 </Button>
@@ -554,7 +426,7 @@ export function LoginForm({ countries }: { countries: Country[] }) {
             </div>
           )}
 
-          {state.step !== 'SUCCESS' && (
+          {step !== 'SUCCESS' && (
             <div className="subactions flex justify-center">
               <p className="text-sm text-muted-foreground">
                 <span>{t('no_account')}</span>

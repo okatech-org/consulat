@@ -1,6 +1,6 @@
 import { AgentAppointmentsTabs } from '@/components/appointments/agent-appointments-tabs';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { getUserAppointments } from '@/actions/appointments';
 import { ErrorCard } from '@/components/ui/error-card';
 import { PageContainer } from '@/components/layouts/page-container';

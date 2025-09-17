@@ -1,12 +1,12 @@
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/server/db';
-import type { User } from '@prisma/client';
+import type { SessionUser } from '@/types';
 
 /**
  * Récupère les données utilisateur complètes depuis la base de données
  * en utilisant l'ID utilisateur de Clerk
  */
-export async function getCurrentUserFromClerk(): Promise<User | null> {
+export async function getCurrentUserFromClerk(): Promise<SessionUser | null> {
   const { userId } = await auth();
 
   if (!userId) {
@@ -16,13 +16,19 @@ export async function getCurrentUserFromClerk(): Promise<User | null> {
   try {
     const user = await db.user.findUnique({
       where: { clerkId: userId },
-      include: {
-        profile: true,
-        country: true,
-        managedOrganization: true,
-        assignedOrganization: true,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        image: true,
+        roles: true,
+        profileId: true,
+        assignedOrganizationId: true,
+        organizationId: true,
       },
     });
+
+    console.log({ user });
 
     return user;
   } catch (error) {

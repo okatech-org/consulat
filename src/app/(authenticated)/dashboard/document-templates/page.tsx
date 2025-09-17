@@ -1,6 +1,6 @@
 import { PageContainer } from '@/components/layouts/page-container';
 import { getDocumentTemplates } from '@/actions/document-generation';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { CreateDocumentTemplateFormSheet } from '@/components/document-generation/forms';
 import { DocumentTemplateGrid } from '@/components/document-generation/document-template-grid';
 

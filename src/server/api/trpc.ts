@@ -13,7 +13,7 @@ import { ZodError } from 'zod';
 
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/server/db';
-import { getCurrentUserFromClerk } from '@/lib/auth/clerk-utils';
+import { getCurrentUser } from '@/lib/auth/utils';
 
 /**
  * 1. CONTEXT
@@ -28,13 +28,13 @@ import { getCurrentUserFromClerk } from '@/lib/auth/clerk-utils';
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const { userId, sessionId, getToken } = await auth();
-  const user = await getCurrentUserFromClerk();
+  const { sessionId, getToken } = await auth();
+  const user = await getCurrentUser();
 
   return {
     db,
     auth: {
-      userId,
+      ...user,
       sessionId,
       getToken,
     },
@@ -127,13 +127,13 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (!ctx.auth?.userId || !ctx.user) {
+    if (!ctx.auth?.id || !ctx.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
     return next({
       ctx: {
         // infers the `auth` and `user` as non-nullable
-        auth: { ...ctx.auth, userId: ctx.auth.userId },
+        auth: { ...ctx.auth, userId: ctx.auth.id },
         user: ctx.user,
       },
     });

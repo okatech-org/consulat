@@ -28,10 +28,7 @@ function calculateRequestStats(requests: RequestListItem[]): Stats {
 }
 
 export function UserOverview() {
-  const { user } = useCurrentUser();
-  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery({
-    profileId: user.profileId,
-  });
+  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery();
   const { data: requestsData, isLoading: requestsLoading } =
     api.requests.getList.useQuery({});
   const { data: documents, isLoading: documentsLoading } =

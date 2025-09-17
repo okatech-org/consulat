@@ -1,6 +1,6 @@
 import React from 'react';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';

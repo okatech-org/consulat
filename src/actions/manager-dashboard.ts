@@ -1,6 +1,6 @@
 'use server';
 
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { db } from '@/server/db';
 import { tryCatch } from '@/lib/utils';
 import { UserRole } from '@prisma/client';

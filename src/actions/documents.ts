@@ -1,7 +1,7 @@
 'use server';
 
 import sharp from 'sharp';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { db } from '@/server/db';
 import { DocumentStatus, type UserDocument, DocumentType } from '@prisma/client';
 import type { AppUserDocument } from '@/types';

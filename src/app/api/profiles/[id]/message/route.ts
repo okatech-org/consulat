@@ -2,7 +2,7 @@ import { NotificationType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { db } from '@/server/db';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {

@@ -28,7 +28,6 @@ import { UserRole } from '@prisma/client';
 
 export function NavUser() {
   const { user } = useCurrentUser();
-  console.log({ user });
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
@@ -48,6 +47,17 @@ export function NavUser() {
     [UserRole.USER]: ROUTES.user.base,
     [UserRole.EDUCATION_AGENT]: ROUTES.dashboard.base,
   };
+
+  function getDashboardUrl() {
+    if (!user) {
+      return ROUTES.user.base;
+    }
+    if (!user?.roles) {
+      return ROUTES.user.base;
+    }
+
+    return dashboardUrl[user?.roles[0] as UserRole];
+  }
 
   return (
     <SidebarMenu>
@@ -107,7 +117,7 @@ export function NavUser() {
                   className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   asChild
                 >
-                  <Link href={dashboardUrl[user?.roles[0] as UserRole]}>
+                  <Link href={getDashboardUrl()}>
                     <HomeIcon className="size-icon" />
                     {t('navigation.my_space')}
                   </Link>
