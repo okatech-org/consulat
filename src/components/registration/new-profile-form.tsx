@@ -111,7 +111,7 @@ export function NewProfileForm({
       const data = form.getValues();
       createUserInDatabase(data)
         .then(() => {
-          setActive({ session: signUp.createdSessionId }).then(() => {
+          setActive?.({ session: signUp.createdSessionId }).then(() => {
             router.push(ROUTES.user.profile_form);
             router.refresh();
           });
@@ -125,7 +125,7 @@ export function NewProfileForm({
 
   const sendOTPCode = async (data: CreateProfileInput) => {
     if (!signUp) {
-      setError('SignUp not available');
+      setError('Inscription non disponible');
       return;
     }
 
@@ -136,19 +136,23 @@ export function NewProfileForm({
       const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
       if (!identifier) {
-        setError('Identifier requis');
+        setError('Identifiant requis');
         return;
       }
 
-      // Créer le sign-up avec un seul identifiant
+      // Créer le sign-up avec toutes les informations requises
       if (data.type === 'EMAIL') {
         await signUp.create({
           emailAddress: identifier,
+          firstName: data.firstName,
+          lastName: data.lastName,
         });
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       } else {
         await signUp.create({
           phoneNumber: identifier,
+          firstName: data.firstName,
+          lastName: data.lastName,
         });
         await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
       }
@@ -223,19 +227,64 @@ export function NewProfileForm({
         router.push(ROUTES.user.profile_form);
         router.refresh();
       } else {
-        throw new Error('Validation incomplète');
+        // Gérer les autres statuts possibles
+        if (result.status === 'missing_requirements') {
+          // Essayer de compléter les informations manquantes
+          try {
+            await signUp.update({
+              firstName: data.firstName,
+              lastName: data.lastName,
+            });
+            // Réessayer la vérification
+            if (data.type === 'EMAIL') {
+              await signUp.attemptEmailAddressVerification({ code: data.otp! });
+            } else {
+              await signUp.attemptPhoneNumberVerification({ code: data.otp! });
+            }
+          } catch (updateError) {
+            console.error('Erreur mise à jour signup:', updateError);
+            setError('messages.errors.missing_requirements');
+          }
+        } else if (result.status === 'abandoned') {
+          setError('messages.errors.signup_abandoned');
+        } else {
+          setError('messages.errors.verification_in_progress');
+        }
+        return;
       }
     } catch (error: unknown) {
       console.error('Erreur validation OTP:', error);
-      const errorMessage =
-        (error as any)?.errors?.[0]?.longMessage ||
-        (error as any)?.message ||
-        'Erreur de validation';
-      setError(errorMessage);
+
+      // Gérer les erreurs spécifiques de Clerk
+      if ((error as any)?.errors?.[0]) {
+        const clerkError = (error as any).errors[0];
+
+        // Mapper les codes d'erreur Clerk vers nos messages
+        switch (clerkError.code) {
+          case 'form_code_incorrect':
+            setError('messages.errors.invalid_code');
+            break;
+          case 'form_code_expired':
+            setError('messages.errors.code_expired');
+            break;
+          case 'form_code_max_attempts_reached':
+            setError('messages.errors.too_many_attempts');
+            break;
+          default:
+            setError(
+              clerkError.longMessage ||
+                clerkError.message ||
+                'messages.errors.validation_error',
+            );
+        }
+      } else {
+        setError((error as any)?.message || 'messages.errors.validation_error');
+      }
+
       form.setValue('otp', '');
       toast({
         title: 'Erreur de validation',
-        description: errorMessage,
+        description: 'Veuillez vérifier votre code et réessayer',
         variant: 'destructive',
       });
     } finally {
@@ -282,7 +331,6 @@ export function NewProfileForm({
       setResendCooldown(60);
       toast({ title: tAuth('messages.otp_sent'), variant: 'default' });
     } catch (error: unknown) {
-      console.error('Erreur renvoi OTP:', error);
       const errorMessage =
         (error as any)?.errors?.[0]?.longMessage ||
         (error as any)?.message ||
