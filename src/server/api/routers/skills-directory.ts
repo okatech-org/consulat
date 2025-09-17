@@ -251,8 +251,8 @@ export const skillsDirectoryRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        ctx.user.roles !== 'INTEL_AGENT' &&
-        !hasPermission(ctx.auth.userId, 'profiles', 'view')
+        !ctx.user.roles?.includes('INTEL_AGENT') &&
+        !hasPermission(ctx.user, 'profiles', 'view')
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -335,8 +335,8 @@ export const skillsDirectoryRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        ctx.user.roles !== 'INTEL_AGENT' &&
-        !hasPermission(ctx.auth.userId, 'profiles', 'view')
+        !ctx.user.roles?.includes('INTEL_AGENT') &&
+        !hasPermission(ctx.user, 'profiles', 'view')
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -471,8 +471,8 @@ export const skillsDirectoryRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        ctx.user.roles !== 'INTEL_AGENT' &&
-        !hasPermission(ctx.auth.userId, 'profiles', 'view')
+        !ctx.user.roles?.includes('INTEL_AGENT') &&
+        !hasPermission(ctx.user, 'profiles', 'view')
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -558,7 +558,10 @@ export const skillsDirectoryRouter = createTRPCRouter({
   // Obtenir les statistiques des compétences pour le Gabon
   getSkillsStatisticsForGabon: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier les permissions
-    if (ctx.user.roles !== 'INTEL_AGENT' && ctx.user.roles !== 'SUPER_ADMIN') {
+    if (
+      !ctx.user.roles?.includes('INTEL_AGENT') &&
+      !ctx.user.roles?.includes('SUPER_ADMIN')
+    ) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Permissions insuffisantes',

@@ -263,7 +263,7 @@ async function createUserWithProfile(
     name: user.name,
     email: user.email,
     image: user.image,
-    role: user.role,
+    roles: user.roles,
     phoneNumber: user.phoneNumber,
   };
 }
@@ -420,7 +420,10 @@ async function handleVerifyAction(
       data: { attempts: { increment: 1 } },
     });
 
-    throw createAuthError('invalid_code', 'Le code de vérification reçu est invalide ou expiré.');
+    throw createAuthError(
+      'invalid_code',
+      'Le code de vérification reçu est invalide ou expiré.',
+    );
   }
 
   // Nettoyer les entrées d'inscription après succès
@@ -553,7 +556,10 @@ async function handleLoginVerifyAction(
       data: { attempts: { increment: 1 } },
     });
 
-    throw createAuthError('invalid_code', 'Le code de vérification reçu est invalide ou expiré.');
+    throw createAuthError(
+      'invalid_code',
+      'Le code de vérification reçu est invalide ou expiré.',
+    );
   }
 
   // Pour les emails, le service unifié a déjà supprimé le code
@@ -601,7 +607,7 @@ async function handleLoginVerifyAction(
     name: user.name,
     email: user.email,
     image: user.image,
-    role: user.role,
+    roles: user.roles,
     phoneNumber: user.phoneNumber,
   };
 }

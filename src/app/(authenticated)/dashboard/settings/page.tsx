@@ -45,10 +45,13 @@ export default async function OrganizationSettingsPage() {
             countries: organization.countries ?? [],
             services: organization.services ?? [],
             agents:
-              organization.agents.filter((agent) => agent.role === UserRole.AGENT) ?? [],
+              organization.agents.filter((agent) =>
+                agent.roles?.includes(UserRole.AGENT),
+              ) ?? [],
             managers:
-              organization.agents.filter((agent) => agent.role === UserRole.MANAGER) ??
-              [],
+              organization.agents.filter((agent) =>
+                agent.roles?.includes(UserRole.MANAGER),
+              ) ?? [],
           }}
           availableCountries={countries}
         />

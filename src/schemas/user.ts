@@ -29,7 +29,7 @@ export const AgentSchema = z.object({
   lastName: NameSchema,
   email: EmailSchema.optional(),
   phoneNumber: PhoneNumberSchema.optional(),
-  role: z.nativeEnum(UserRole).default(UserRole.AGENT),
+  roles: z.array(z.nativeEnum(UserRole)).default([UserRole.AGENT]),
   managedByUserId: z.string().optional(),
   countryIds: z.array(z.string()).min(1, {
     message: 'Vous devez sélectionner au moins un pays.',

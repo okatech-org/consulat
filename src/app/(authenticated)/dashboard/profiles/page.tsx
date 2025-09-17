@@ -118,7 +118,7 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
 export default function ProfilesPage() {
   const t = useTranslations();
   const { user } = useCurrentUser();
-  const isIntelAgent = user.role === UserRole.INTEL_AGENT;
+  const isIntelAgent = user.roles?.includes(UserRole.INTEL_AGENT);
   const {
     params,
     pagination,

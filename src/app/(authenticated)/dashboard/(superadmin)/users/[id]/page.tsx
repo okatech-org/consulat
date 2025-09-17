@@ -88,8 +88,10 @@ export default function UserDetailsPage() {
       .slice(0, 2);
   };
 
-  const isStaffMember = ['ADMIN', 'MANAGER', 'AGENT'].includes(user.role);
-  const isUser = user.role === 'USER';
+  const isStaffMember = user.roles?.some((role) =>
+    ['ADMIN', 'MANAGER', 'AGENT'].includes(role),
+  );
+  const isUser = user.roles?.includes('USER');
 
   return (
     <PageContainer title={user.name || 'Utilisateur sans nom'}>
@@ -111,8 +113,10 @@ export default function UserDetailsPage() {
                     <h2 className="text-2xl font-bold">
                       {user.name || 'Nom non défini'}
                     </h2>
-                    <Badge variant={getRoleVariant(user.role)}>
-                      {t(`form.role.options.${user.role.toLowerCase()}`)}
+                    <Badge variant={getRoleVariant(user.roles?.[0] || 'USER')}>
+                      {t(
+                        `form.role.options.${(user.roles?.[0] || 'USER').toLowerCase()}`,
+                      )}
                     </Badge>
                   </div>
 
@@ -254,8 +258,10 @@ export default function UserDetailsPage() {
                       Rôle principal
                     </label>
                     <p className="mt-1">
-                      <Badge variant={getRoleVariant(user.role)}>
-                        {t(`form.role.options.${user.role.toLowerCase()}`)}
+                      <Badge variant={getRoleVariant(user.roles?.[0] || 'USER')}>
+                        {t(
+                          `form.role.options.${(user.roles?.[0] || 'USER').toLowerCase()}`,
+                        )}
                       </Badge>
                     </p>
                   </div>
@@ -416,7 +422,7 @@ export default function UserDetailsPage() {
                     </Card>
                   )}
 
-                  {user.role === 'MANAGER' && (
+                  {user.roles?.includes('MANAGER') && (
                     <Card>
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-2">

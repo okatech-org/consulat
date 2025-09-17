@@ -140,7 +140,7 @@ export const createAgentSchema = z.object({
   countryIds: z.array(z.string()),
   serviceIds: z.array(z.string()),
   assignedOrganizationId: z.string(),
-  role: z.enum([UserRole.AGENT, UserRole.MANAGER]).default(UserRole.AGENT),
+  roles: z.array(z.enum([UserRole.AGENT, UserRole.MANAGER])).default([UserRole.AGENT]),
   managedByUserId: z.string().optional(),
   managedAgentIds: z.array(z.string()).optional(),
 });
@@ -152,7 +152,7 @@ export const updateAgentSchema = z.object({
   countryIds: z.array(z.string()).optional(),
   serviceIds: z.array(z.string()).optional(),
   managedByUserId: z.string().nullable().optional(),
-  role: z.enum([UserRole.AGENT, UserRole.MANAGER]).optional(),
+  roles: z.array(z.enum([UserRole.AGENT, UserRole.MANAGER])).optional(),
   managedAgentIds: z.array(z.string()).optional(),
 });
 

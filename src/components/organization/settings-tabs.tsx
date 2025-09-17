@@ -97,7 +97,9 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
             services={organization.services ?? []}
             organizations={[organization]}
             managers={
-              organization.agents.filter((agent) => agent.role === UserRole.MANAGER) ?? []
+              organization.agents.filter((agent) =>
+                agent.roles?.includes(UserRole.MANAGER),
+              ) ?? []
             }
           />
         </CardContainer>

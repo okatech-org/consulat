@@ -411,7 +411,7 @@ export async function createChildProfileWithFiles(formData: FormData): Promise<s
           data: parentUsers.map((user) => ({
             profileId: profile.id,
             parentUserId: user.id,
-            role: user.role,
+            role: user.roles?.[0] || 'USER',
           })),
         });
       }

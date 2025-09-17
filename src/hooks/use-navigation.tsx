@@ -28,13 +28,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { CountBadge } from '@/components/layouts/count-badge';
-import { useRoleData } from './use-role-data';
-import type {
-  AgentData,
-  AdminData,
-  ManagerData,
-  IntelAgentData,
-} from '@/types/role-data';
+import { useCurrentUser } from './use-role-data';
 import { api } from '@/trpc/react';
 
 export type NavMainItem = {
@@ -55,10 +49,9 @@ export type UserNavigationItem = {
 
 export function useNavigation() {
   const t = useTranslations('navigation.menu');
-  const roleData = useRoleData<AdminData | ManagerData | AgentData | IntelAgentData>();
-  if (!roleData) return { menu: [], mobileMenu: [] };
-  const user = roleData?.user;
-  const stats = roleData?.stats;
+  const { user } = useCurrentUser();
+  const { data: unreadNotifications } = api.notifications.getUnreadCount.useQuery();
+  if (!user) return { menu: [], mobileMenu: [] };
 
   const AdminNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {
@@ -194,7 +187,7 @@ export function useNavigation() {
       title: t('notifications'),
       url: ROUTES.dashboard.notifications,
       icon: Bell,
-      badge: <CountBadge count={stats?.unreadNotifications ?? 0} variant="destructive" />,
+      badge: <CountBadge count={unreadNotifications ?? 0} variant="destructive" />,
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER, UserRole.INTEL_AGENT],
     },
     {
@@ -246,8 +239,10 @@ export function useNavigation() {
 }
 
 export function useUserNavigation() {
+  const { user } = useCurrentUser();
   const t = useTranslations('navigation.menu');
   const { data: unreadNotifications } = api.notifications.getUnreadCount.useQuery();
+  if (!user) return { menu: [], mobileMenu: [] };
 
   const userNavigationItems: UserNavigationItem[] = [
     {

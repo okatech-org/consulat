@@ -105,7 +105,7 @@ export const userRouter = createTRPCRouter({
             { phoneNumber: { contains: search, mode: 'insensitive' as const } },
           ],
         }),
-        ...(roles && roles.length > 0 && { role: { in: roles } }),
+        ...(roles && roles.length > 0 && { roles: { hasSome: roles } }),
         ...(countryCode &&
           countryCode.length > 0 && { countryCode: { in: countryCode } }),
         ...(organizationId &&
@@ -167,7 +167,10 @@ export const userRouter = createTRPCRouter({
       ]);
 
       return {
-        items: items as UserListItem[],
+        items: items.map((item) => ({
+          ...item,
+          role: item.roles[0] || 'USER',
+        })) as UserListItem[],
         total,
         pages: Math.ceil(total / limit),
         currentPage: page,
@@ -292,6 +295,9 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      return user as UserDetails;
+      return {
+        ...user,
+        role: user.roles[0] || 'USER',
+      } as UserDetails;
     }),
 });

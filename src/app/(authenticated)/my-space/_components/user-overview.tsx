@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import type { RequestListItem } from '@/server/api/routers/requests/misc';
-import { useCurrentUser } from '@/hooks/use-role-data';
 
 interface Stats {
   inProgress: number;

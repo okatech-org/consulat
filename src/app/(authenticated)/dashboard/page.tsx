@@ -11,11 +11,11 @@ import { redirect } from 'next/navigation';
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
-  if (user?.role === 'INTEL_AGENT') {
+  if (user?.roles?.includes('INTEL_AGENT')) {
     redirect(ROUTES.intel.base);
   }
 
-  if (user?.role === 'USER') {
+  if (user?.roles?.includes('USER')) {
     redirect(ROUTES.user.base);
   }
 

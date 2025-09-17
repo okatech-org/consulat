@@ -28,8 +28,6 @@ export async function getCurrentUserFromClerk(): Promise<SessionUser | null> {
       },
     });
 
-    console.log({ user });
-
     return user;
   } catch (error) {
     console.error('Error fetching user from Clerk ID:', error);
