@@ -5,7 +5,6 @@ import { Prisma, RequestStatus, ServicePriority, UserRole } from '@prisma/client
 
 // Import existing request actions
 import {
-  getServiceRequest,
   assignServiceRequest,
   updateServiceRequestStatus,
   updateServiceRequest,
@@ -47,19 +46,19 @@ export const requestsRouter = createTRPCRouter({
 
         const where: Prisma.ServiceRequestWhereInput = {};
 
-        if (ctx.session.user.roles.includes(UserRole.AGENT)) {
-          where.assignedToId = { in: [ctx.session.user.id] };
+        if (ctx.user.roles.includes(UserRole.AGENT)) {
+          where.assignedToId = { in: [ctx.auth.userId] };
         }
 
-        if (ctx.session.user.roles.includes(UserRole.USER)) {
-          where.submittedById = ctx.session.user.id;
+        if (ctx.user.roles.includes(UserRole.USER)) {
+          where.submittedById = ctx.auth.userId;
         }
 
         if (userId) where.submittedById = userId;
         if (status) where.status = { in: status };
         if (priority) where.priority = { in: priority };
         if (serviceCategory) where.serviceCategory = { in: serviceCategory };
-        if (assignedToId && !ctx.session.user.roles.includes(UserRole.MANAGER)) {
+        if (assignedToId && !ctx.user.roles.includes(UserRole.MANAGER)) {
           where.assignedToId = { in: assignedToId };
         }
         if (organizationId) where.organizationId = { in: organizationId };
@@ -143,8 +142,8 @@ export const requestsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       // Vérifier les permissions
       if (
-        input.userId !== ctx.session.user.id &&
-        !ctx.session.user.roles?.some((role) =>
+        input.userId !== ctx.auth.userId &&
+        !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -178,9 +177,7 @@ export const requestsRouter = createTRPCRouter({
   assign: protectedProcedure.input(assignmentSchema).mutation(async ({ input, ctx }) => {
     // Vérifier les permissions
     if (
-      !ctx.session.user.roles?.some((role) =>
-        ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
-      )
+      !ctx.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
     ) {
       throw new TRPCError({
         code: 'FORBIDDEN',
@@ -207,7 +204,7 @@ export const requestsRouter = createTRPCRouter({
     .input(assignmentSchema)
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (!ctx.session.user.roles?.includes('MANAGER')) {
+      if (!ctx.user.roles?.includes('MANAGER')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les managers peuvent réassigner des demandes',
@@ -234,7 +231,7 @@ export const requestsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
       if (
-        !ctx.session.user.roles?.some((role) =>
+        !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
         )
       ) {
@@ -277,7 +274,7 @@ export const requestsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
       if (
-        !ctx.session.user.roles?.some((role) =>
+        !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -315,7 +312,7 @@ export const requestsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
       if (
-        !ctx.session.user.roles?.some((role) =>
+        !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
         )
       ) {
@@ -361,7 +358,7 @@ export const requestsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
       if (
-        !ctx.session.user.roles?.some((role) =>
+        !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
         )
       ) {
@@ -401,7 +398,7 @@ export const requestsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
       if (
-        !ctx.session.user.roles?.some((role) =>
+        !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'AGENT', 'MANAGER'].includes(role),
         )
       ) {
@@ -437,9 +434,7 @@ export const requestsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Vérifier les permissions
-      if (
-        !ctx.session.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
-      ) {
+      if (!ctx.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message:
@@ -561,7 +556,7 @@ export const requestsRouter = createTRPCRouter({
             content: input.content,
             type: input.type,
             serviceRequestId: input.requestId,
-            authorId: ctx.session.user.id,
+            authorId: ctx.auth.userId,
           },
           include: {
             author: {
@@ -659,7 +654,7 @@ export const requestsRouter = createTRPCRouter({
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
     const request = await ctx.db.serviceRequest.findFirst({
       where: {
-        submittedById: ctx.session.user.id,
+        submittedById: ctx.auth.userId,
       },
       orderBy: {
         createdAt: 'desc',

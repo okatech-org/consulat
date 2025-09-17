@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { signIn } from 'next-auth/react';
+import { useSignIn } from '@clerk/nextjs';
 import {
   Form,
   FormControl,
@@ -29,21 +29,11 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { z } from 'zod';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { useToast } from '@/hooks/use-toast';
-import { checkUserExists } from '@/actions/auth';
 import type { Country } from '@/types/country';
 
 // Types
 type LoginMethod = 'EMAIL' | 'PHONE';
 type LoginStep = 'IDENTIFIER' | 'OTP' | 'SUCCESS';
-
-// Étendre le type de retour de signIn pour inclure code
-interface SignInResult {
-  error?: string;
-  code?: string;
-  ok?: boolean;
-  status?: number;
-  url?: string | null;
-}
 
 interface LoginFormState {
   method: LoginMethod;
@@ -61,13 +51,8 @@ function getLoginSchema(type: LoginMethod, showOTP: boolean) {
 
   return baseSchema.extend({
     otp: showOTP
-      ? z
-          .string({
-            invalid_type_error: 'messages.errors.opt_min_length',
-            required_error: 'messages.errors.opt_min_length',
-          })
-          .min(6, { message: 'messages.errors.opt_min_length' })
-      : z.string({ invalid_type_error: 'messages.errors.opt_min_length' }).optional(),
+      ? z.string().min(6, { message: 'messages.errors.opt_min_length' })
+      : z.string().optional(),
   });
 }
 
@@ -102,70 +87,94 @@ function useResendCooldown() {
 
 function useLoginActions() {
   const tAuth = useTranslations('auth');
+  const { signIn, setActive } = useSignIn();
 
   const getErrorMessage = React.useCallback(
-    (code: string | undefined) => {
-      if (!code) return tAuth('login.errors.validation_error');
+    (error: unknown) => {
+      if (!error) return tAuth('login.errors.validation_error');
 
-      // Essayer de trouver dans errors, puis messages
-      const errorKey = `login.errors.${code}`;
-      let errorMessage = tAuth(errorKey);
+      // Gestion des erreurs Clerk
+      if (typeof error === 'object' && error !== null && 'errors' in error) {
+        const clerkError = error as {
+          errors: Array<{ code: string; longMessage?: string; message?: string }>;
+        };
+        if (clerkError.errors && clerkError.errors.length > 0) {
+          const firstError = clerkError.errors[0];
+          if (firstError) {
+            const errorKey = `login.errors.${firstError.code}`;
+            const errorMessage = tAuth(errorKey);
 
-      if (errorMessage === errorKey) {
-        const messageKey = `login.messages.${code}`;
-        errorMessage = tAuth(messageKey);
-
-        // Si toujours pas trouvé, retourner un message générique
-        if (errorMessage === messageKey) {
-          return tAuth('login.errors.validation_error');
+            if (errorMessage === errorKey) {
+              return (
+                firstError.longMessage ||
+                firstError.message ||
+                tAuth('login.errors.validation_error')
+              );
+            }
+            return errorMessage;
+          }
         }
       }
 
-      return errorMessage;
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        return (error as { message: string }).message;
+      }
+
+      return tAuth('login.errors.validation_error');
     },
     [tAuth],
   );
 
   const sendOTPCode = React.useCallback(
-    async (identifier: string) => {
-      const result = (await signIn('login', {
-        identifier,
-        action: 'send',
-        redirect: false,
-      })) as SignInResult;
+    async (identifier: string, method: LoginMethod) => {
+      if (!signIn) {
+        throw new Error('SignIn not available');
+      }
 
-      if (result?.error) {
-        // Vérifier si c'est le code spécial CODE_SENT
-        if (result.code === 'CODE_SENT') {
-          // C'est un succès, pas une erreur
-          return;
+      try {
+        if (method === 'EMAIL') {
+          await signIn.create({
+            identifier: identifier,
+            strategy: 'email_code',
+          });
+        } else {
+          await signIn.create({
+            identifier: identifier,
+            strategy: 'phone_code',
+          });
         }
-
-        // Sinon, c'est une vraie erreur
-        const errorMessage = getErrorMessage(result.code);
+      } catch (error) {
+        const errorMessage = getErrorMessage(error);
         throw new Error(errorMessage);
       }
     },
-    [getErrorMessage],
+    [signIn, getErrorMessage],
   );
 
   const validateOTP = React.useCallback(
-    async (otp: string, identifier: string) => {
-      const result = (await signIn('login', {
-        identifier,
-        code: otp,
-        action: 'verify',
-        redirect: false,
-      })) as SignInResult;
-
-      if (result?.error) {
-        const errorMessage = getErrorMessage(result.code);
-        throw new Error(errorMessage);
+    async (otp: string, identifier: string, method: LoginMethod) => {
+      if (!signIn || !setActive) {
+        throw new Error('SignIn or setActive not available');
       }
 
-      return result;
+      try {
+        const result = await signIn.attemptFirstFactor({
+          strategy: method === 'EMAIL' ? 'email_code' : 'phone_code',
+          code: otp,
+        });
+
+        if (result.status === 'complete') {
+          await setActive({ session: result.createdSessionId });
+          return result;
+        }
+
+        throw new Error('Validation incomplète');
+      } catch (error) {
+        const errorMessage = getErrorMessage(error);
+        throw new Error(errorMessage);
+      }
     },
-    [getErrorMessage],
+    [signIn, setActive, getErrorMessage],
   );
 
   return { sendOTPCode, validateOTP };
@@ -175,7 +184,7 @@ export function LoginForm({ countries }: { countries: Country[] }) {
   const router = useRouter();
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
+  const callbackUrl = searchParams.get('redirect_url');
   const redirectUrl = callbackUrl ?? '/my-space';
   const { toast } = useToast();
 
@@ -218,27 +227,8 @@ export function LoginForm({ countries }: { countries: Country[] }) {
       updateState({ isLoading: true, error: null });
 
       try {
-        // Vérifier d'abord si l'utilisateur existe
-        const userCheck = await checkUserExists(
-          identifier,
-          state.method === 'EMAIL' ? 'email' : 'phone',
-        );
-
-        if (!userCheck.exists) {
-          const errorMessage =
-            'Aucun compte associé à cet identifiant. Veuillez vous inscrire.';
-          updateState({ error: errorMessage, isLoading: false });
-
-          toast({
-            title: 'Erreur',
-            description: errorMessage,
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        // Si l'utilisateur existe, envoyer l'OTP
-        await sendOTPCode(identifier);
+        // Envoyer l'OTP avec Clerk
+        await sendOTPCode(identifier, state.method);
         updateState({ step: 'OTP', isLoading: false, error: null });
         startCooldown(60);
         toast({
@@ -271,7 +261,7 @@ export function LoginForm({ countries }: { countries: Country[] }) {
             ? form.getValues('email')
             : form.getValues('phoneNumber');
 
-        await validateOTP(otp, identifier);
+        await validateOTP(otp, identifier, state.method);
 
         updateState({ step: 'SUCCESS', isLoading: false, error: null });
 
@@ -291,14 +281,7 @@ export function LoginForm({ countries }: { countries: Country[] }) {
         });
       }
     },
-    [
-      validateOTP,
-      state.method,
-      form,
-      updateState,
-      handleManualRedirect,
-      state.hasRedirected,
-    ],
+    [validateOTP, state.method, form, updateState, handleManualRedirect],
   );
 
   const handleResendOTP = React.useCallback(async () => {

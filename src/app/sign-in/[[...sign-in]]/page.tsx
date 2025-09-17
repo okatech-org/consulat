@@ -5,7 +5,6 @@ import { getTranslations } from 'next-intl/server';
 import { BetaBanner } from '@/components/ui/beta-banner';
 import { getActiveCountries } from '@/actions/countries';
 import type { Country } from '@/types/country';
-import { SignIn } from '@clerk/nextjs';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -33,8 +32,7 @@ export default async function LoginPage() {
             </p>
           </header>
           <div className="w-full">
-            {/* <LoginForm countries={countries as Country[]} /> */}
-            <SignIn />
+            <LoginForm countries={countries as Country[]} />
           </div>
           <BetaBanner className="mt-4" />
         </div>

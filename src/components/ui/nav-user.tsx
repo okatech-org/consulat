@@ -107,7 +107,7 @@ export function NavUser() {
                   className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   asChild
                 >
-                  <Link href={dashboardUrl[user.role]}>
+                  <Link href={dashboardUrl[user?.roles[0] as UserRole]}>
                     <HomeIcon className="size-icon" />
                     {t('navigation.my_space')}
                   </Link>

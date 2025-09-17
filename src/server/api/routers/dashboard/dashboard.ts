@@ -25,7 +25,7 @@ export const dashboardRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
+        !ctx.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -181,12 +181,12 @@ export const dashboardRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const agentId = input.agentId || ctx.session.user.id;
+      const agentId = input.agentId || ctx.auth.userId;
 
       // Vérifier les permissions
       if (
-        agentId !== ctx.session.user.id &&
-        !ctx.session.user.roles?.some((role) =>
+        agentId !== ctx.auth.userId &&
+        !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -315,12 +315,12 @@ export const dashboardRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const managerId = input.managerId || ctx.session.user.id;
+      const managerId = input.managerId || ctx.auth.userId;
 
       // Vérifier les permissions
       if (
-        managerId !== ctx.session.user.id &&
-        !ctx.session.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
+        managerId !== ctx.auth.userId &&
+        !ctx.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -345,7 +345,7 @@ export const dashboardRouter = createTRPCRouter({
   // Statistiques SuperAdmin
   getSuperAdminStats: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier les permissions
-    if (!ctx.session.user.roles?.includes('SUPER_ADMIN')) {
+    if (!ctx.user.roles?.includes('SUPER_ADMIN')) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: "Vous n'avez pas les permissions pour accéder à cette page.",

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 
 export const UserSessionInclude: Prisma.UserSelect = {
   id: true,
@@ -62,10 +62,15 @@ export type UserSession = Prisma.UserGetPayload<{
   select: typeof UserSessionInclude;
 }>;
 
-export type SessionUser =
-  | AgentSession
-  | AdminSession
-  | ManagerSession
-  | SuperAdminSession
-  | IntelAgentSession
-  | UserSession;
+export type SessionUser = {
+  id: string;
+  profileId?: string | null;
+  name?: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
+  roles: UserRole[];
+  image?: string | null;
+  countryCode?: string | null;
+  assignedOrganizationId?: string | null;
+  organizationId?: string | null;
+};

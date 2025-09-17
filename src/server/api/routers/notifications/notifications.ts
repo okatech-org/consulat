@@ -18,7 +18,7 @@ export const notificationsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const where: Prisma.NotificationWhereInput = {
-        userId: ctx.session.user.id,
+        userId: ctx.auth.userId,
         ...(input.unreadOnly && { read: false }),
         ...(input.types && { type: { in: input.types } }),
       };
@@ -56,7 +56,7 @@ export const notificationsRouter = createTRPCRouter({
   getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.notification.count({
       where: {
-        userId: ctx.session.user.id,
+        userId: ctx.auth.userId,
         read: false,
       },
     });
@@ -71,7 +71,7 @@ export const notificationsRouter = createTRPCRouter({
       const notification = await ctx.db.notification.findFirst({
         where: {
           id: input.id,
-          userId: ctx.session.user.id,
+          userId: ctx.auth.userId,
         },
       });
 
@@ -94,7 +94,7 @@ export const notificationsRouter = createTRPCRouter({
   markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
     const result = await ctx.db.notification.updateMany({
       where: {
-        userId: ctx.session.user.id,
+        userId: ctx.auth.userId,
         read: false,
       },
       data: { read: true },
@@ -110,7 +110,7 @@ export const notificationsRouter = createTRPCRouter({
       const notification = await ctx.db.notification.findFirst({
         where: {
           id: input.id,
-          userId: ctx.session.user.id,
+          userId: ctx.auth.userId,
         },
       });
 
@@ -132,7 +132,7 @@ export const notificationsRouter = createTRPCRouter({
   deleteAllRead: protectedProcedure.mutation(async ({ ctx }) => {
     const result = await ctx.db.notification.deleteMany({
       where: {
-        userId: ctx.session.user.id,
+        userId: ctx.auth.userId,
         read: true,
       },
     });
@@ -143,7 +143,7 @@ export const notificationsRouter = createTRPCRouter({
   // Récupérer les préférences de notification
   getPreferences: protectedProcedure.query(async ({ ctx }) => {
     const preferences = await ctx.db.notificationPreference.findMany({
-      where: { userId: ctx.session.user.id },
+      where: { userId: ctx.auth.userId },
     });
 
     // Créer une map des préférences par type et canal
@@ -172,14 +172,14 @@ export const notificationsRouter = createTRPCRouter({
       const preference = await ctx.db.notificationPreference.upsert({
         where: {
           userId_type_channel: {
-            userId: ctx.session.user.id,
+            userId: ctx.auth.userId,
             type: input.type,
             channel: input.channel,
           },
         },
         update: { enabled: input.enabled },
         create: {
-          userId: ctx.session.user.id,
+          userId: ctx.auth.userId,
           type: input.type,
           channel: input.channel,
           enabled: input.enabled,
@@ -205,7 +205,7 @@ export const notificationsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const result = await notify({
-        userId: ctx.session.user.id,
+        userId: ctx.auth.userId,
         type: input.type,
         title: input.title,
         message: input.message,
@@ -228,14 +228,14 @@ export const notificationsRouter = createTRPCRouter({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     const [total, unread, byType] = await Promise.all([
       ctx.db.notification.count({
-        where: { userId: ctx.session.user.id },
+        where: { userId: ctx.auth.userId },
       }),
       ctx.db.notification.count({
-        where: { userId: ctx.session.user.id, read: false },
+        where: { userId: ctx.auth.userId, read: false },
       }),
       ctx.db.notification.groupBy({
         by: ['type'],
-        where: { userId: ctx.session.user.id },
+        where: { userId: ctx.auth.userId },
         _count: { id: true },
       }),
     ]);

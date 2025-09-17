@@ -8,7 +8,7 @@ export const userRouter = createTRPCRouter({
   getDocumentsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.userDocument.count({
       where: {
-        userId: ctx.session.user.id,
+        userId: ctx.auth.userId,
       },
     });
     return count;
@@ -17,7 +17,7 @@ export const userRouter = createTRPCRouter({
   getChildrenCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.parentalAuthority.count({
       where: {
-        parentUserId: ctx.session.user.id,
+        parentUserId: ctx.auth.userId,
       },
     });
     return count;
@@ -26,7 +26,7 @@ export const userRouter = createTRPCRouter({
   getUpcomingAppointmentsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.appointment.count({
       where: {
-        attendeeId: ctx.session.user.id,
+        attendeeId: ctx.auth.userId,
         status: 'CONFIRMED',
         startTime: {
           gte: new Date(),
@@ -39,7 +39,7 @@ export const userRouter = createTRPCRouter({
   getActiveRequestsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.serviceRequest.count({
       where: {
-        submittedById: ctx.session.user.id,
+        submittedById: ctx.auth.userId,
         status: {
           in: [
             'DRAFT',
@@ -74,7 +74,7 @@ export const userRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) =>
+        !ctx.user?.roles?.some((role) =>
           ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -131,7 +131,6 @@ export const userRouter = createTRPCRouter({
             email: true,
             phoneNumber: true,
             roles: true,
-            role: true,
             createdAt: true,
             country: {
               select: {
@@ -180,7 +179,7 @@ export const userRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) =>
+        !ctx.user?.roles?.some((role) =>
           ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -200,7 +199,6 @@ export const userRouter = createTRPCRouter({
           phoneNumberVerified: true,
           emailVerified: true,
           roles: true,
-          role: true,
           createdAt: true,
           updatedAt: true,
           country: {

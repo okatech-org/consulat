@@ -27,10 +27,10 @@ export const ROUTES = {
 
   auth: {
     base: '/auth' as Route<string>,
-    login: '/auth/login' as Route<string>,
+    login: '/sign-in' as Route<string>,
     register: '/registration' as Route<string>,
-    auth_error: '/auth/error' as Route<string>,
-    unauthorized: '/auth/unauthorized' as Route<string>,
+    auth_error: '/sign-in' as Route<string>,
+    unauthorized: '/unauthorized' as Route<string>,
   },
 
   dashboard: {

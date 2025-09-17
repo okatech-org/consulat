@@ -53,7 +53,7 @@ export const organizationsRouter = createTRPCRouter({
       const skip = (page - 1) * limit;
 
       // Filtrer par organisation pour les non-super-admins
-      const currentUser = ctx.session.user;
+      const currentUser = ctx.auth.userId;
       let organizationFilter = {};
 
       if (!currentUser.roles?.includes('SUPER_ADMIN')) {
@@ -158,7 +158,7 @@ export const organizationsRouter = createTRPCRouter({
     .input(organizationSchema)
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.includes('SUPER_ADMIN')) {
+      if (!ctx.user?.roles?.includes('SUPER_ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les super administrateurs peuvent créer des organisations.',
@@ -227,7 +227,7 @@ export const organizationsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+        !ctx.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -235,7 +235,7 @@ export const organizationsRouter = createTRPCRouter({
         });
       }
 
-      const currentUser = ctx.session.user;
+      const currentUser = ctx.auth.userId;
 
       // Vérifier l'accès à cette organisation pour les admins
       if (
@@ -290,7 +290,7 @@ export const organizationsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
+        !ctx.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -298,7 +298,7 @@ export const organizationsRouter = createTRPCRouter({
         });
       }
 
-      const currentUser = ctx.session.user;
+      const currentUser = ctx.auth.userId;
 
       // Vérifier l'accès pour les admins
       if (
@@ -351,7 +351,7 @@ export const organizationsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) =>
+        !ctx.user?.roles?.some((role) =>
           ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -361,7 +361,7 @@ export const organizationsRouter = createTRPCRouter({
         });
       }
 
-      const currentUser = ctx.session.user;
+      const currentUser = ctx.auth.userId;
 
       // Vérifier l'accès pour les non-super-admins
       if (
@@ -416,7 +416,7 @@ export const organizationsRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.includes('SUPER_ADMIN')) {
+      if (!ctx.user?.roles?.includes('SUPER_ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les super administrateurs peuvent supprimer des organisations.',
@@ -468,7 +468,7 @@ export const organizationsRouter = createTRPCRouter({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier les permissions
     if (
-      !ctx.session?.user?.roles?.some((role) =>
+      !ctx.user?.roles?.some((role) =>
         ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
       )
     ) {
@@ -478,7 +478,7 @@ export const organizationsRouter = createTRPCRouter({
       });
     }
 
-    const currentUser = ctx.session.user;
+    const currentUser = ctx.auth.userId;
     let where = {};
 
     // Filtrer par organisation pour les non-super-admins

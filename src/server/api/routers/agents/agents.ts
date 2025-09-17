@@ -20,14 +20,7 @@ export const agentsRouter = createTRPCRouter({
   // Récupérer la liste des agents avec filtres et pagination
   getList: protectedProcedure.input(agentFiltersSchema).query(async ({ ctx, input }) => {
     // Vérifier les permissions
-    const user = ctx.session.user;
-    const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
-    if (!user.roles.some((role) => allowedRoles.includes(role))) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Insufficient permissions to view agents',
-      });
-    }
+    const user = ctx.auth.userId;
 
     const {
       search,
@@ -106,7 +99,7 @@ export const agentsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const user = ctx.auth.userId;
       const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
 
       if (!user.roles.some((role) => allowedRoles.includes(role))) {
@@ -152,7 +145,7 @@ export const agentsRouter = createTRPCRouter({
 
   // Créer un nouvel agent
   create: protectedProcedure.input(createAgentSchema).mutation(async ({ ctx, input }) => {
-    const user = ctx.session.user;
+    const user = ctx.auth.userId;
     if (!user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))) {
       throw new TRPCError({
         code: 'FORBIDDEN',
@@ -248,7 +241,7 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const user = ctx.auth.userId;
       if (
         !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
@@ -366,7 +359,7 @@ export const agentsRouter = createTRPCRouter({
   assignRequest: protectedProcedure
     .input(assignRequestSchema)
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const user = ctx.auth.userId;
       if (
         !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
@@ -504,7 +497,7 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const user = ctx.auth.userId;
       if (
         !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
@@ -599,7 +592,7 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const user = ctx.auth.userId;
       if (
         !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
@@ -666,7 +659,7 @@ export const agentsRouter = createTRPCRouter({
   getPerformanceMetrics: protectedProcedure
     .input(z.object({ agentId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const user = ctx.auth.userId;
       if (
         !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
@@ -801,7 +794,7 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const user = ctx.auth.userId;
       if (
         !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {

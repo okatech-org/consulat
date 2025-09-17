@@ -1,7 +1,7 @@
 'use client';
 
 import { useRoleDataContext } from '@/contexts/role-data-context';
-import type { SessionUser, UserSession } from '@/types';
+import type { SessionUser } from '@/types';
 import type {
   RoleData,
   UserData,
@@ -87,15 +87,8 @@ export function useIsAuthenticated(): boolean {
 
 export function useCurrentUser() {
   const user = useUser();
-  const userData: {
-    id: string;
-    profileId?: string;
-    email?: string | null;
-    name?: string | null;
-    image?: string | null;
-    roles?: UserRole[];
-  } = {
-    id: user.user?.id || '',
+  const userData: SessionUser = {
+    id: (user.user?.publicMetadata?.userId as string) || user.user?.id || '',
     email: user.user?.primaryEmailAddress?.emailAddress || null,
     name: user.user?.fullName,
     image: user.user?.imageUrl || null,

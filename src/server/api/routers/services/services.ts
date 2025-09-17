@@ -137,7 +137,7 @@ export const servicesRouter = createTRPCRouter({
             organization: {
               countries: {
                 some: {
-                  code: ctx.session.user.countryCode!,
+                  code: ctx.user.countryCode!,
                 },
               },
             },
@@ -191,7 +191,7 @@ export const servicesRouter = createTRPCRouter({
 
       try {
         const where = {
-          submittedById: ctx.session.user.id,
+          submittedById: ctx.auth.userId,
           ...(status && status.length > 0 && { status: { in: status } }),
           ...(search && {
             OR: [
@@ -221,7 +221,7 @@ export const servicesRouter = createTRPCRouter({
         const stats = await Promise.all([
           ctx.db.serviceRequest.count({
             where: {
-              submittedById: ctx.session.user.id,
+              submittedById: ctx.auth.userId,
               status: {
                 in: [
                   'DRAFT',
@@ -237,13 +237,13 @@ export const servicesRouter = createTRPCRouter({
           }),
           ctx.db.serviceRequest.count({
             where: {
-              submittedById: ctx.session.user.id,
+              submittedById: ctx.auth.userId,
               status: { in: ['COMPLETED', 'READY_FOR_PICKUP'] },
             },
           }),
           ctx.db.serviceRequest.count({
             where: {
-              submittedById: ctx.session.user.id,
+              submittedById: ctx.auth.userId,
               status: { in: ['PENDING_COMPLETION', 'READY_FOR_PICKUP'] },
             },
           }),
@@ -273,14 +273,14 @@ export const servicesRouter = createTRPCRouter({
   // Récupérer les services consulaires disponibles (ancienne version)
   getAvailable: protectedProcedure.query(async ({ ctx }) => {
     try {
-      if (!ctx.session.user.countryCode) {
+      if (!ctx.user.countryCode) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
             "Vous n'avez pas de pays associé à votre compte, veuillez compléter votre profil consulaire",
         });
       }
-      const countryCode = ctx.session.user.countryCode as CountryCode;
+      const countryCode = ctx.user.countryCode as CountryCode;
       const services = await getAvailableConsularServices(countryCode);
       return services;
     } catch (error) {
@@ -381,7 +381,7 @@ export const servicesRouter = createTRPCRouter({
       try {
         const request = await submitServiceRequest({
           ...input,
-          submittedById: ctx.session.user.id,
+          submittedById: ctx.auth.userId,
           status: 'SUBMITTED',
           formData: input.formData as Prisma.JsonObject,
           requiredDocuments: input.requiredDocuments?.map((doc) => ({ id: doc.id })),

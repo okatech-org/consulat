@@ -23,7 +23,7 @@ export const countriesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) =>
+        !ctx.user?.roles?.some((role) =>
           ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -90,7 +90,7 @@ export const countriesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) =>
+        !ctx.user?.roles?.some((role) =>
           ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -151,7 +151,7 @@ export const countriesRouter = createTRPCRouter({
     .input(countrySchema.omit({ id: true }))
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.includes('SUPER_ADMIN')) {
+      if (!ctx.user?.roles?.includes('SUPER_ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les super administrateurs peuvent créer des pays.',
@@ -204,7 +204,7 @@ export const countriesRouter = createTRPCRouter({
     .input(countrySchema.required({ id: true }))
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.includes('SUPER_ADMIN')) {
+      if (!ctx.user?.roles?.includes('SUPER_ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les super administrateurs peuvent modifier des pays.',
@@ -258,7 +258,7 @@ export const countriesRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!ctx.session?.user?.roles?.includes('SUPER_ADMIN')) {
+      if (!ctx.user?.roles?.includes('SUPER_ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les super administrateurs peuvent supprimer des pays.',
@@ -310,7 +310,7 @@ export const countriesRouter = createTRPCRouter({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier les permissions
     if (
-      !ctx.session?.user?.roles?.some((role) =>
+      !ctx.user?.roles?.some((role) =>
         ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
       )
     ) {
