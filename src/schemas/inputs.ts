@@ -1,8 +1,8 @@
 import * as z from 'zod';
 import { DocumentStatus, FamilyLink, Gender, DocumentType } from '@prisma/client';
 import {
-  CountryCode,
-  CountryIndicator,
+  type CountryCode,
+  type CountryIndicator,
   countryIndicators,
   countryKeys,
 } from '@/lib/autocomplete-datas';
@@ -157,7 +157,7 @@ export const BasicAddressSchema = z.object({
 // Schéma pour le format legacy avec tiret (+33-612250393)
 export const PhoneNumberSchema = z
   .string({ required_error: 'messages.errors.field_required' })
-  .regex(/^\+[1-9]\d{1,3}-[1-9]\d{7,14}$/, 'messages.errors.invalid_phone_number');
+  .regex(/^\+?[1-9][0-9]{7,14}$/, 'messages.errors.invalid_phone_number');
 
 // Schéma pour le format Clerk sans tiret (+33612250393)
 export const PhoneSchema = z

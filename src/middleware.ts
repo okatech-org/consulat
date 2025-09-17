@@ -1,6 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { UserRole } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { ROUTES } from './schemas/routes';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
@@ -11,6 +13,32 @@ const isPublicRoute = createRouteMatcher([
   'listing(.*)',
   '/',
 ]);
+
+function getBaseUrlByRole(roles: UserRole[]) {
+  if (roles.includes(UserRole.USER)) {
+    return ROUTES.user.base;
+  }
+
+  if (
+    roles.some((role) =>
+      [
+        UserRole.SUPER_ADMIN,
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+        UserRole.AGENT,
+        UserRole.EDUCATION_AGENT,
+      ].includes(role),
+    )
+  ) {
+    return ROUTES.dashboard.base;
+  }
+
+  if (roles.includes(UserRole.INTEL_AGENT)) {
+    return ROUTES.intel.base;
+  }
+
+  return ROUTES.base;
+}
 
 // Fonction pour gérer les fonctionnalités personnalisées existantes
 function handleCustomFeatures(request: NextRequest, response: NextResponse) {
@@ -40,7 +68,9 @@ function handleCustomFeatures(request: NextRequest, response: NextResponse) {
 }
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
+  const isPublic = isPublicRoute(req);
+
+  if (!isPublic) {
     await auth.protect();
   }
 

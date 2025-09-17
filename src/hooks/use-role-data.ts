@@ -41,6 +41,7 @@ export function useCurrentUser() {
       | string
       | undefined,
     organizationId: user.user?.publicMetadata?.organizationId as string | undefined,
+    countryCode: user.user?.publicMetadata?.countryCode as string | undefined,
   };
   return {
     user: userData,

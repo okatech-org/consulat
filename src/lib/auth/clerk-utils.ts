@@ -25,6 +25,7 @@ export async function getCurrentUserFromClerk(): Promise<SessionUser | null> {
         profileId: true,
         assignedOrganizationId: true,
         organizationId: true,
+        countryCode: true,
       },
     });
 

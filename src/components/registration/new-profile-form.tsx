@@ -3,7 +3,8 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
-import { signIn } from 'next-auth/react';
+import { useSignUp } from '@clerk/nextjs';
+import { api } from '@/trpc/react';
 import { Input } from '@/components/ui/input';
 import {
   Form,
@@ -19,10 +20,9 @@ import { type CountryCode } from '@/lib/autocomplete-datas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   CountryCodeSchema,
-  DateSchema,
   EmailSchema,
   NameSchema,
-  PhoneNumberSchema,
+  E164PhoneSchema,
 } from '@/schemas/inputs';
 import { z } from 'zod';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -30,21 +30,10 @@ import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import type { Country } from '@prisma/client';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
-import { isUserExists } from '@/actions/auth';
-import { type ErrorMessageKey } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PhoneInput } from '@/components/ui/phone-input';
-
-// Étendre le type de retour de signIn pour inclure code
-interface SignInResult {
-  error?: string;
-  code?: string;
-  ok?: boolean;
-  status?: number;
-  url?: string | null;
-}
 
 export function NewProfileForm({
   availableCountries,
@@ -56,21 +45,22 @@ export function NewProfileForm({
   const router = useRouter();
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
+  const { signUp, setActive } = useSignUp();
+  const createUserMutation = api.auth.createUser.useMutation();
+
+  // State
   const [resendCooldown, setResendCooldown] = React.useState(0);
   const [canResend, setCanResend] = React.useState(true);
-
   const [showOTP, setShowOTP] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<ErrorMessageKey | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   const CreateProfileSchema = z.object({
     firstName: NameSchema,
     lastName: NameSchema,
     residenceCountyCode: CountryCodeSchema,
     email: EmailSchema.optional(),
-    phoneNumber: PhoneNumberSchema,
-    emailVerified: DateSchema.optional(),
-    phoneVerified: DateSchema.optional(),
+    phoneNumber: E164PhoneSchema,
     type: z.enum(['EMAIL', 'PHONE']),
     otp: z.string().optional(),
   });
@@ -81,12 +71,7 @@ export function NewProfileForm({
     resolver: zodResolver(
       showOTP
         ? CreateProfileSchema.extend({
-            otp: z
-              .string({
-                required_error: 'messages.errors.otp_length',
-                invalid_type_error: 'messages.errors.otp_length',
-              })
-              .length(6, { message: 'messages.errors.otp_length' }),
+            otp: z.string().length(6, { message: 'messages.errors.otp_length' }),
           })
         : CreateProfileSchema,
     ),
@@ -119,182 +104,198 @@ export function NewProfileForm({
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
+  // Surveiller le statut du signUp
+  React.useEffect(() => {
+    if (signUp?.status === 'complete' && showOTP) {
+      // Si la vérification est complète, procéder automatiquement
+      const data = form.getValues();
+      createUserInDatabase(data)
+        .then(() => {
+          setActive({ session: signUp.createdSessionId }).then(() => {
+            router.push(ROUTES.user.profile_form);
+            router.refresh();
+          });
+        })
+        .catch((error) => {
+          console.error('Erreur automatique:', error);
+          setError('Erreur lors de la finalisation automatique');
+        });
+    }
+  }, [signUp?.status, showOTP, setActive, router, form]);
+
   const sendOTPCode = async (data: CreateProfileInput) => {
+    if (!signUp) {
+      setError('SignUp not available');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = (await signIn('signup', {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phoneNumber,
-        countryCode: data.residenceCountyCode,
-        verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
-        action: 'send',
-        redirect: false,
-      })) as SignInResult;
+      const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
 
-      if (result?.error) {
-        // Mapper les codes d'erreur
-        let errorMessage = result.error;
-        const specificCode = result.code;
+      if (!identifier) {
+        setError('Identifier requis');
+        return;
+      }
 
-        switch (specificCode) {
-          case 'invalid_identifier':
-            errorMessage = 'messages.errors.invalid_identifier';
-            break;
-          case 'send_failed':
-            errorMessage = 'messages.errors.code_not_sent_otp';
-            break;
-          case 'CODE_SENT':
-            // Ce n'est pas vraiment une erreur, mais NextAuth traite ça comme tel
-            setShowOTP(true);
-            setCanResend(false);
-            setResendCooldown(60);
-            toast({ title: tAuth('messages.otp_sent'), variant: 'success' });
-            setIsLoading(false);
-            return true;
-          default:
-            errorMessage = 'messages.errors.generic_error';
-            break;
-        }
-
-        setError(errorMessage as ErrorMessageKey);
-        setIsLoading(false);
-        return false;
+      // Créer le sign-up avec un seul identifiant
+      if (data.type === 'EMAIL') {
+        await signUp.create({
+          emailAddress: identifier,
+        });
+        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      } else {
+        await signUp.create({
+          phoneNumber: identifier,
+        });
+        await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
       }
 
       setShowOTP(true);
       setCanResend(false);
       setResendCooldown(60);
-      toast({ title: tAuth('messages.otp_sent'), variant: 'success' });
-
+      toast({ title: tAuth('messages.otp_sent'), variant: 'default' });
+    } catch (error: unknown) {
+      console.error('Erreur envoi OTP:', error);
+      const errorMessage =
+        (error as any)?.errors?.[0]?.longMessage ||
+        (error as any)?.message ||
+        "Erreur lors de l'envoi du code";
+      setError(errorMessage);
+      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+    } finally {
       setIsLoading(false);
-      return true;
-    } catch (err) {
-      console.error('Erreur envoi OTP:', err);
-      setError('messages.errors.generic_error' as ErrorMessageKey);
-      setIsLoading(false);
-      return false;
     }
   };
 
   const validateOTPAndCreateProfile = async (data: CreateProfileInput) => {
+    if (!signUp || !setActive) {
+      setError('SignUp or setActive not available');
+      return;
+    }
+
+    // Vérifier si la vérification est déjà complète
+    if (signUp.status === 'complete') {
+      try {
+        // Créer l'utilisateur en base de données
+        await createUserInDatabase(data);
+
+        // Activer la session
+        await setActive({ session: signUp.createdSessionId });
+
+        // Rediriger vers le formulaire de profil
+        router.push(ROUTES.user.profile_form);
+        router.refresh();
+        return;
+      } catch (error) {
+        console.error('Erreur après vérification complète:', error);
+        setError("Erreur lors de la finalisation de l'inscription");
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = (await signIn('signup', {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phoneNumber,
-        countryCode: data.residenceCountyCode,
-        verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
-        code: data.otp,
-        action: 'verify',
-        redirect: false,
-      })) as SignInResult;
+      let result;
 
-      if (result?.error) {
-        let errorMessage = result.error;
-        const specificCode = result.code;
-
-        switch (specificCode) {
-          case 'no_code_pending':
-            errorMessage = 'messages.errors.no_code_pending';
-            setShowOTP(false);
-            break;
-          case 'code_expired':
-            errorMessage = 'messages.errors.code_expired';
-            setShowOTP(false);
-            break;
-          case 'code_already_used':
-            errorMessage = 'messages.errors.code_already_used';
-            setShowOTP(false);
-            break;
-          case 'invalid_code':
-            errorMessage = 'messages.errors.invalid_code';
-            form.setValue('otp', '');
-            break;
-          case 'too_many_attempts':
-            errorMessage = 'messages.errors.too_many_attempts';
-            setShowOTP(false);
-            break;
-          default:
-            errorMessage = 'messages.errors.generic_error';
-            break;
-        }
-
-        setError(errorMessage as ErrorMessageKey);
-        setIsLoading(false);
-        return;
+      if (data.type === 'EMAIL') {
+        result = await signUp.attemptEmailAddressVerification({
+          code: data.otp!,
+        });
+      } else {
+        result = await signUp.attemptPhoneNumberVerification({
+          code: data.otp!,
+        });
       }
 
-      if (result?.ok) {
-        // Inscription réussie, rediriger vers le tableau de bord
-        setIsLoading(false);
+      if (result.status === 'complete') {
+        // Créer l'utilisateur en base de données
+        await createUserInDatabase(data);
+
+        // Activer la session
+        await setActive({ session: result.createdSessionId });
+
+        // Rediriger vers le formulaire de profil
         router.push(ROUTES.user.profile_form);
         router.refresh();
       } else {
-        setError('messages.errors.generic_error' as ErrorMessageKey);
-        setIsLoading(false);
+        throw new Error('Validation incomplète');
       }
-    } catch (err) {
-      console.error('Erreur vérification OTP:', err);
-      setError('messages.errors.generic_error' as ErrorMessageKey);
+    } catch (error: unknown) {
+      console.error('Erreur validation OTP:', error);
+      const errorMessage =
+        (error as any)?.errors?.[0]?.longMessage ||
+        (error as any)?.message ||
+        'Erreur de validation';
+      setError(errorMessage);
+      form.setValue('otp', '');
+      toast({
+        title: 'Erreur de validation',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResendOTP = async () => {
-    if (!canResend) return;
-
-    const data = form.getValues();
-
+  const createUserInDatabase = async (data: CreateProfileInput) => {
     try {
-      const result = (await signIn('signup', {
+      await createUserMutation.mutateAsync({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        phone: data.phoneNumber,
+        phoneNumber: data.phoneNumber,
         countryCode: data.residenceCountyCode,
-        verificationMethod: data.type === 'EMAIL' ? 'email' : 'sms',
-        action: 'send',
-        redirect: false,
-      })) as SignInResult;
+      });
+    } catch (error) {
+      console.error('Erreur création utilisateur:', error);
+      throw error;
+    }
+  };
 
-      if (result?.error && result.code !== 'CODE_SENT') {
-        setError('messages.errors.code_not_sent_otp' as ErrorMessageKey);
-      } else {
-        setCanResend(false);
-        setResendCooldown(60);
-        toast({ title: tAuth('messages.otp_sent'), variant: 'success' });
+  const handleResendOTP = async () => {
+    if (!canResend || !signUp) return;
+
+    const data = form.getValues();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Vérifier le statut avant de renvoyer
+      if (signUp.status === 'complete') {
+        setError('La vérification est déjà complète');
+        return;
       }
-    } catch (err) {
-      console.error('Erreur renvoi OTP:', err);
-      setError('messages.errors.generic_error' as ErrorMessageKey);
+
+      if (data.type === 'EMAIL') {
+        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      } else {
+        await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
+      }
+
+      setCanResend(false);
+      setResendCooldown(60);
+      toast({ title: tAuth('messages.otp_sent'), variant: 'default' });
+    } catch (error: unknown) {
+      console.error('Erreur renvoi OTP:', error);
+      const errorMessage =
+        (error as any)?.errors?.[0]?.longMessage ||
+        (error as any)?.message ||
+        'Erreur lors du renvoi';
+      setError(errorMessage);
+      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const onFinalSubmit = async (data: CreateProfileInput) => {
     if (!showOTP) {
-      // Check if user already exists
-      const isEmailExist = data.email ? await isUserExists(undefined, data.email) : false;
-      if (isEmailExist) {
-        form.setError('email', { message: 'messages.errors.user_email_already_exists' });
-        return;
-      }
-
-      const isPhoneExist = await isUserExists(undefined, undefined, data.phoneNumber);
-      if (isPhoneExist) {
-        form.setError('phoneNumber', {
-          message: 'messages.errors.user_phone_already_exists',
-        });
-        return;
-      }
-
       // Send OTP
       await sendOTPCode(data);
     } else {
