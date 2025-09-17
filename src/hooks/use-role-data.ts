@@ -1,7 +1,7 @@
 'use client';
 
 import { useRoleDataContext } from '@/contexts/role-data-context';
-import type { SessionUser } from '@/types';
+import type { SessionUser, UserSession } from '@/types';
 import type {
   RoleData,
   UserData,
@@ -10,6 +10,8 @@ import type {
   AdminData,
   SuperAdminData,
 } from '@/types/role-data';
+import { useUser } from '@clerk/nextjs';
+import type { UserRole } from '@prisma/client';
 
 // Hook générique
 export function useRoleData<T extends RoleData = RoleData>(): T | null {
@@ -83,9 +85,24 @@ export function useIsAuthenticated(): boolean {
   return data !== null;
 }
 
-export function useCurrentUser(): { user: SessionUser } {
-  const data = useRoleData();
+export function useCurrentUser() {
+  const user = useUser();
+  const userData: {
+    id: string;
+    profileId?: string;
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
+    roles?: UserRole[];
+  } = {
+    id: user.user?.id || '',
+    email: user.user?.primaryEmailAddress?.emailAddress || null,
+    name: user.user?.fullName,
+    image: user.user?.imageUrl || null,
+    roles: user.user?.publicMetadata?.roles as UserRole[],
+    profileId: user.user?.publicMetadata?.profileId as string | undefined,
+  };
   return {
-    user: data?.user as SessionUser,
+    user: userData,
   };
 }

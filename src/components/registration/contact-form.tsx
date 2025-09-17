@@ -22,7 +22,7 @@ import { CountrySelect } from '../ui/country-select';
 import { Button } from '../ui/button';
 import { MinusIcon, PlusIcon } from 'lucide-react';
 import { FullProfile } from '@/types';
-import { PhoneNumberInput } from '../ui/phone-number';
+import { PhoneInput } from '../ui/phone-input';
 
 interface ContactInfoFormProps {
   form: UseFormReturn<ContactInfoFormData>;
@@ -328,11 +328,16 @@ export function ContactInfoForm({
                 <FormItem className="sm:col-span-1">
                   <FormLabel>{t_inputs('phone.label')}</FormLabel>
                   <FormControl>
-                    <PhoneNumberInput
-                      value={field.value ?? defaultNumber}
-                      onChangeAction={field.onChange}
+                    <PhoneInput
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
                       disabled={isLoading}
-                      options={residenceCountryCode ? [residenceCountryCode] : undefined}
+                      countries={
+                        residenceCountryCode ? [residenceCountryCode as any] : undefined
+                      }
+                      defaultCountry={
+                        residenceCountryCode ? (residenceCountryCode as any) : undefined
+                      }
                     />
                   </FormControl>
                   <TradFormMessage />

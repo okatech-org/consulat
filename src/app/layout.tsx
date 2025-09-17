@@ -4,15 +4,17 @@ import { type Metadata, type Viewport } from 'next';
 import { Geist } from 'next/font/google';
 
 import { TRPCReactProvider } from '@/trpc/react';
-import { SessionProvider } from 'next-auth/react';
 import { env } from '@/env';
 import { Providers } from '@/components/layouts/providers';
-import { auth } from '@/server/auth';
 import { getLocale } from 'next-intl/server';
-import { RoleBasedDataProvider } from '@/contexts/role-data-context';
-import { loadRoleBasedData } from '@/lib/role-data-loader';
 import ErrorBoundary from '@/components/error-boundary';
-import { getServerTheme } from '@/lib/theme-server';
+import { ClerkProvider } from '@clerk/nextjs';
+import { frFR, enUS } from '@clerk/localizations';
+
+const localizations = {
+  fr: frFR,
+  en: enUS,
+};
 
 const APP_DEFAULT_TITLE = 'Consulat.ga';
 const APP_TITLE_TEMPLATE = '%s - Consulat.ga';
@@ -128,29 +130,19 @@ const geist = Geist({
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await auth();
-
-  const roleData = session ? await loadRoleBasedData() : null;
   const locale = await getLocale();
-  const serverTheme = await getServerTheme();
 
   return (
-    <html 
-      lang={locale} 
-      className={geist.variable}
-      suppressHydrationWarning
-    >
-      <body suppressHydrationWarning>
-        <ErrorBoundary>
-          <TRPCReactProvider>
-            <SessionProvider session={session}>
-              <RoleBasedDataProvider initialData={roleData}>
-                <Providers>{children}</Providers>
-              </RoleBasedDataProvider>
-            </SessionProvider>
-          </TRPCReactProvider>
-        </ErrorBoundary>
-      </body>
-    </html>
+    <ClerkProvider localization={localizations[locale as keyof typeof localizations]}>
+      <html lang={locale} className={geist.variable} suppressHydrationWarning>
+        <body suppressHydrationWarning>
+          <ErrorBoundary>
+            <TRPCReactProvider>
+              <Providers>{children}</Providers>
+            </TRPCReactProvider>
+          </ErrorBoundary>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

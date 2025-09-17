@@ -13,9 +13,7 @@ import { ThemeSync } from './theme-sync';
 import { ThemeWrapper } from './theme-wrapper';
 
 export async function Providers({ children }: { children: React.ReactNode }) {
-  const promises = [getMessages(), getServerTheme()];
-
-  const [messages, serverTheme] = await Promise.all(promises);
+  const [messages, serverTheme] = await Promise.all([getMessages(), getServerTheme()]);
   const cookieStore = await cookies();
 
   const sidebarState = cookieStore?.get('sidebar_state');

@@ -7,7 +7,6 @@ export const UserSessionInclude: Prisma.UserSelect = {
   email: true,
   phoneNumber: true,
   roles: true,
-  role: true,
   image: true,
   countryCode: true,
 } as const;

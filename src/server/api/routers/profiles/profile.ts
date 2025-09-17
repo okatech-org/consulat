@@ -110,40 +110,44 @@ export const profileRouter = createTRPCRouter({
     return userMetadata?.settings ?? {};
   }),
 
-  getCurrent: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
-        ...FullProfileInclude,
-      });
-      const registrationRequest = await ctx.db.serviceRequest.findFirst({
-        where: {
-          id: profile?.validationRequestId ?? '',
-        },
-        include: {
-          notes: true,
-        },
-      });
+  getCurrent: protectedProcedure
+    .input(z.object({ profileId: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const profile = await ctx.db.profile.findFirst({
+          where: {
+            OR: [{ userId: ctx.session.user.id }, { id: input.profileId ?? '' }],
+          },
+          ...FullProfileInclude,
+        });
+        const registrationRequest = await ctx.db.serviceRequest.findFirst({
+          where: {
+            id: profile?.validationRequestId ?? '',
+          },
+          include: {
+            notes: true,
+          },
+        });
 
-      if (!profile) {
+        if (!profile) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Profile non trouvé',
+          });
+        }
+
+        return {
+          ...profile,
+          registrationRequest,
+        };
+      } catch (error) {
+        console.error('Error fetching current profile:', error);
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile non trouvé',
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la récupération du profil',
         });
       }
-
-      return {
-        ...profile,
-        registrationRequest,
-      };
-    } catch (error) {
-      console.error('Error fetching current profile:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération du profil',
-      });
-    }
-  }),
+    }),
 
   // Récupérer un profil par ID
   getById: publicProcedure
@@ -464,8 +468,18 @@ export const profileRouter = createTRPCRouter({
           // Recherche combinée prénom + nom
           {
             AND: [
-              { firstName: { contains: searchTerm.split(' ')[0] || '', mode: 'insensitive' } },
-              { lastName: { contains: searchTerm.split(' ')[1] || '', mode: 'insensitive' } },
+              {
+                firstName: {
+                  contains: searchTerm.split(' ')[0] || '',
+                  mode: 'insensitive',
+                },
+              },
+              {
+                lastName: {
+                  contains: searchTerm.split(' ')[1] || '',
+                  mode: 'insensitive',
+                },
+              },
             ],
           },
         ];
@@ -492,14 +506,23 @@ export const profileRouter = createTRPCRouter({
 
       // Vérifier que le champ de tri est valide
       const validSortFields = [
-        'id', 'firstName', 'lastName', 'email', 'phoneNumber',
-        'createdAt', 'updatedAt', 'cardNumber', 'cardPin',
-        'status', 'category', 'gender', 'birthDate'
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'phoneNumber',
+        'createdAt',
+        'updatedAt',
+        'cardNumber',
+        'cardPin',
+        'status',
+        'category',
+        'gender',
+        'birthDate',
       ];
-      
-      const sortField = sort?.field && validSortFields.includes(sort.field) 
-        ? sort.field 
-        : 'createdAt';
+
+      const sortField =
+        sort?.field && validSortFields.includes(sort.field) ? sort.field : 'createdAt';
       const sortOrder = sort?.order || 'desc';
 
       const result = await ctx.db.$transaction([

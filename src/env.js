@@ -13,6 +13,10 @@ export const env = createEnv({
     DIRECT_URL: z.string().url(),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
+    // Clerk Authentication
+    CLERK_SECRET_KEY: z.string(),
+    CLERK_WEBHOOK_SECRET: z.string().optional(),
+
     // UploadThing
     UPLOADTHING_TOKEN: z.string(),
 
@@ -58,6 +62,9 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_NAME: z.string(),
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: z.string().optional(),
     NEXT_PUBLIC_GEMINI_API_KEY: z.string(),
+
+    // Clerk Authentication
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
   },
 
   /**
@@ -91,6 +98,11 @@ export const env = createEnv({
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
     DIRECT_URL: process.env.DIRECT_URL,
     PASS_SECRET: process.env.PASS_SECRET,
+
+    // Clerk Authentication
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

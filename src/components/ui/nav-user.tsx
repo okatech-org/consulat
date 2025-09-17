@@ -28,6 +28,7 @@ import { UserRole } from '@prisma/client';
 
 export function NavUser() {
   const { user } = useCurrentUser();
+  console.log({ user });
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
@@ -45,6 +46,7 @@ export function NavUser() {
     [UserRole.SUPER_ADMIN]: ROUTES.dashboard.base,
     [UserRole.INTEL_AGENT]: ROUTES.intel.base,
     [UserRole.USER]: ROUTES.user.base,
+    [UserRole.EDUCATION_AGENT]: ROUTES.dashboard.base,
   };
 
   return (

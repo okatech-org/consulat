@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
 import { type NavMainItem } from '@/hooks/use-navigation';
-import { useUserData } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-role-data';
 import { useUserNavigation } from '@/hooks/use-navigation';
 
 import { UserMobileDrawer } from '../layouts/user-mobile-drawer';
@@ -19,7 +19,7 @@ export interface UserBottomNavigationProps extends React.HTMLAttributes<HTMLElem
 
 const UserBottomNavigation = React.forwardRef<HTMLElement, UserBottomNavigationProps>(
   ({ className, showLabels = true, ...props }, ref) => {
-    const { user } = useUserData();
+    const { user } = useCurrentUser();
     const pathname = usePathname();
     const { mobileMenu } = useUserNavigation();
 
