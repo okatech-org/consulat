@@ -1,6 +1,6 @@
 'use client';
 
-import { HomeIcon, LogOut, MoonIcon, MoreVerticalIcon, SunIcon } from 'lucide-react';
+import { HomeIcon, MoonIcon, MoreVerticalIcon, SunIcon } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -23,8 +23,8 @@ import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useCurrentUser } from '@/hooks/use-role-data';
-import { signOut } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
+import { LogoutButton } from './logout-button';
 
 export function NavUser() {
   const { user } = useCurrentUser();
@@ -150,13 +150,8 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={async () => {
-                await signOut({ redirectTo: '/' });
-              }}
-            >
-              <LogOut className="size-icon" />
-              {t('auth.actions.logout')}
+            <DropdownMenuItem asChild>
+              <LogoutButton customClass="w-full" />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
