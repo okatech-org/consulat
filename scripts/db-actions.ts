@@ -4,56 +4,20 @@ import { createClerkClient } from '@clerk/nextjs/server';
 const prisma = new PrismaClient();
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
-async function testClerkConnection() {
-  console.log('🧪 Test de connexion à Clerk...');
-
-  try {
-    // Test de connexion à Clerk
-    const users = await clerkClient.users.getUserList({ limit: 1 });
-    console.log('✅ Connexion à Clerk réussie');
-
-    // Test de connexion à la base de données
-    const userCount = await prisma.user.count();
-    console.log(`✅ Connexion à la base de données réussie (${userCount} utilisateurs)`);
-
-    // Vérifier les utilisateurs avec Clerk ID
-    const usersWithClerkId = await prisma.user.count({
-      where: { clerkId: { not: null } },
-    });
-    console.log(`✅ ${usersWithClerkId} utilisateurs ont un Clerk ID`);
-
-    // Vérifier les utilisateurs sans Clerk ID
-    const usersWithoutClerkId = await prisma.user.count({
-      where: { clerkId: null },
-    });
-    console.log(`⚠️  ${usersWithoutClerkId} utilisateurs n'ont pas de Clerk ID`);
-  } catch (error) {
-    console.error('❌ Erreur lors des tests:', error);
-    throw error;
-  }
-}
-
 async function main() {
-  console.log('🚀 Début de la migration Clerk...');
-
-  // Test de connexion
-  await testClerkConnection();
+  console.log('🚀 Starting database actions...');
 
   // Migration des données utilisateur
   const users = await prisma.user.findMany();
-  await updateUsersWithClerkId(users);
 
-  // Synchronisation des métadonnées
-  await updateClerkUsersWithDatabaseUsers(users);
-
-  console.log('🎉 Migration terminée!');
+  console.log('🎉 Database actions completed!');
 }
 
 async function updateUsersWithClerkId(users: User[]) {
   try {
     users.forEach(async (user, index) => {
       if (!user.email) {
-        console.log(`❌ User ${user.id} has no email`);
+        console.log(`❌ User ${user.id} has no email ${index + 1} of ${users.length}`);
         return;
       }
 
@@ -62,7 +26,9 @@ async function updateUsersWithClerkId(users: User[]) {
       });
 
       if (user.clerkId && user.clerkId !== '' && user.clerkId !== 'undefined') {
-        console.log(`✅ User ${user.id} already has a Clerk user: ${user.clerkId}`);
+        console.log(
+          `✅ User ${user.id} already has a Clerk user: ${user.clerkId} ${index + 1} of ${users.length}`,
+        );
         return;
       }
 
@@ -70,7 +36,9 @@ async function updateUsersWithClerkId(users: User[]) {
         const userData = clerkUser.data[0];
 
         if (!userData) {
-          console.log(`❌ Clerk user not found for user ${user.id}`);
+          console.log(
+            `❌ Clerk user not found for user ${user.id} ${index + 1} of ${users.length}`,
+          );
           return;
         }
 
@@ -80,7 +48,10 @@ async function updateUsersWithClerkId(users: User[]) {
             data: { clerkId: userData.id },
           });
         } catch (error) {
-          console.error(`❌ Error updating user ${user.id}:`, error);
+          console.error(
+            `❌ Error updating user ${user.id} ${index + 1} of ${users.length}:`,
+            error,
+          );
         }
 
         console.log(
@@ -111,7 +82,6 @@ async function updateClerkUsersWithDatabaseUsers(users: User[]) {
         publicMetadata: {
           profileId: user.profileId,
           roles: user.roles,
-          role: user.role,
           countryCode: user.countryCode,
           assignedOrganizationId: user.assignedOrganizationId,
           organizationId: user.organizationId,
@@ -128,40 +98,64 @@ async function updateClerkUsersWithDatabaseUsers(users: User[]) {
   }
 }
 
-async function rollbackClerkMigration() {
-  console.log('🔄 Début du rollback de la migration Clerk...');
+async function normalizeUserData(users: User[]) {
+  const promises = users.map(async (user, index) => {
+    console.log(
+      `🔄 Normalizing user ${user.id} ${user.phoneNumber} ${user.email} ${index + 1} of ${users.length}`,
+    );
 
-  try {
-    // Option 1: Supprimer tous les utilisateurs Clerk
-    console.log('1. Suppression des utilisateurs Clerk...');
-    const users = await clerkClient.users.getUserList();
+    try {
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ...(user.phoneNumber && {
+            phoneNumber: normalizePhoneNumber(user.phoneNumber),
+          }),
+          ...(user.email && { email: normalizeEmail(user.email) }),
+        },
+      });
 
-    for (const user of users) {
-      try {
-        await clerkClient.users.deleteUser(user.id);
-        console.log(`✅ Utilisateur Clerk supprimé: ${user.id}`);
-      } catch (error) {
-        console.error(`❌ Erreur lors de la suppression de ${user.id}:`, error);
-      }
+      console.log(
+        `✅ User ${user.id} normalized: ${updatedUser.phoneNumber} ${updatedUser.email} ${index + 1} of ${users.length}`,
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error normalizing user ${user.id} ${user.phoneNumber} ${user.email} ${index + 1} of ${users.length}:`,
+        error,
+      );
     }
+  });
 
-    // Option 2: Nettoyer les Clerk ID de la base de données
-    console.log('2. Nettoyage des Clerk ID de la base de données...');
-    const result = await prisma.user.updateMany({
-      where: { clerkId: { not: null } },
-      data: { clerkId: null },
-    });
-
-    console.log(`✅ ${result.count} utilisateurs nettoyés de la base de données`);
-
-    console.log('🎉 Rollback terminé!');
-  } catch (error) {
-    console.error('❌ Erreur lors du rollback:', error);
-    throw error;
-  }
+  return Promise.all(promises);
 }
 
 main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
+
+/**
+ * Convertit un numéro de téléphone du format +33-612250393 vers +33612250393
+ */
+function normalizePhoneNumber(phoneNumber: string): string {
+  if (!phoneNumber) return phoneNumber;
+
+  // Supprimer tous les espaces et tirets
+  const cleaned = phoneNumber.replace(/[\s-]/g, '');
+
+  // Vérifier que le numéro commence par +
+  if (!cleaned.startsWith('+')) {
+    console.warn(`Numéro invalide (ne commence pas par +): ${phoneNumber}`);
+    return phoneNumber;
+  }
+
+  return cleaned;
+}
+
+// Fonction pour normaliser les emails
+function normalizeEmail(email: string): string {
+  if (!email) return '';
+
+  // Convertir en minuscules et supprimer les espaces
+  return email.toLowerCase().trim();
+}
