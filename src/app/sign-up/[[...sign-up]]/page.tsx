@@ -93,8 +93,8 @@ export function SignUpForm({ availableCountries }: SignUpPageProps) {
         } catch (error) {
           console.error("Erreur lors de la création de l'utilisateur:", error);
           toast({
-            title: 'Erreur',
-            description: 'Erreur lors de la création de votre profil',
+            title: tAuth('errors.error_title'),
+            description: tAuth('errors.user_creation_failed'),
             variant: 'destructive',
           });
         }
@@ -103,6 +103,32 @@ export function SignUpForm({ availableCountries }: SignUpPageProps) {
       createUser();
     }
   }, [signUp?.status, signUp?.createdSessionId, setActive, router, createUserMutation]);
+
+  // Fonction pour mapper les erreurs Clerk vers les clés de traduction
+  const mapClerkErrorToTranslation = (error: any): string => {
+    const clerkError = error?.errors?.[0];
+    if (!clerkError) return tAuth('errors.validation_error');
+
+    // Mapper les codes d'erreur Clerk vers nos clés de traduction
+    switch (clerkError.code) {
+      case 'form_phone_number_exists':
+        return tAuth('errors.phone_taken');
+      case 'form_email_address_exists':
+        return tAuth('errors.email_taken');
+      case 'form_phone_number_invalid':
+        return tAuth('errors.invalid_phone');
+      case 'form_email_address_invalid':
+        return tAuth('errors.invalid_email');
+      case 'form_password_pwned':
+        return tAuth('errors.password_compromised');
+      case 'form_username_exists':
+        return tAuth('errors.username_taken');
+      default:
+        return (
+          clerkError.longMessage || clerkError.message || tAuth('errors.validation_error')
+        );
+    }
+  };
 
   // Fonction pour soumettre le formulaire initial
   const handleSubmitForm = async (e: React.FormEvent) => {
@@ -121,25 +147,21 @@ export function SignUpForm({ availableCountries }: SignUpPageProps) {
         phoneNumber: formData.phoneNumber,
       });
 
-      // Préparer la vérification par email ou téléphone
-      if (formData.email) {
-        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      } else if (formData.phoneNumber) {
-        await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
-      }
+      // Préparer la vérification par téléphone uniquement
+      await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
 
       setCurrentStep('verification');
       setCanResend(false);
       setResendCooldown(60);
       toast({ title: tAuth('messages.otp_sent'), variant: 'default' });
     } catch (error: unknown) {
-      const errorMessage =
-        (error as { errors?: Array<{ longMessage?: string }>; message?: string })
-          ?.errors?.[0]?.longMessage ||
-        (error as { message?: string })?.message ||
-        'Erreur lors de la création du compte';
+      const errorMessage = mapClerkErrorToTranslation(error);
       setError(errorMessage);
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+      toast({
+        title: tAuth('errors.error_title'),
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -154,25 +176,44 @@ export function SignUpForm({ availableCountries }: SignUpPageProps) {
     setError(null);
 
     try {
-      let result;
-
-      if (formData.email) {
-        result = await signUp.attemptEmailAddressVerification({ code: verificationCode });
-      } else if (formData.phoneNumber) {
-        result = await signUp.attemptPhoneNumberVerification({ code: verificationCode });
-      }
+      // Vérifier le code OTP par téléphone uniquement
+      const result = await signUp.attemptPhoneNumberVerification({
+        code: verificationCode,
+      });
 
       if (result?.status === 'complete') {
-        toast({ title: 'Vérification réussie !', variant: 'default' });
+        toast({ title: tAuth('messages.login_success'), variant: 'default' });
       }
     } catch (error: unknown) {
-      const errorMessage =
-        (error as { errors?: Array<{ longMessage?: string }>; message?: string })
-          ?.errors?.[0]?.longMessage ||
-        (error as { message?: string })?.message ||
-        'Erreur lors de la vérification';
+      const clerkError = (error as any)?.errors?.[0];
+      let errorMessage = tAuth('errors.validation_error');
+
+      // Mapper les erreurs de vérification OTP
+      if (clerkError) {
+        switch (clerkError.code) {
+          case 'form_code_incorrect':
+            errorMessage = tAuth('errors.invalid_code');
+            break;
+          case 'form_code_expired':
+            errorMessage = tAuth('errors.code_expired');
+            break;
+          case 'form_code_max_attempts_reached':
+            errorMessage = tAuth('errors.too_many_attempts');
+            break;
+          default:
+            errorMessage =
+              clerkError.longMessage ||
+              clerkError.message ||
+              tAuth('errors.validation_error');
+        }
+      }
+
       setError(errorMessage);
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+      toast({
+        title: tAuth('errors.error_title'),
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -186,23 +227,20 @@ export function SignUpForm({ availableCountries }: SignUpPageProps) {
     setError(null);
 
     try {
-      if (formData.email) {
-        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      } else if (formData.phoneNumber) {
-        await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
-      }
+      // Renvoyer le code OTP par téléphone uniquement
+      await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
 
       setCanResend(false);
       setResendCooldown(60);
       toast({ title: tAuth('messages.otp_sent'), variant: 'default' });
     } catch (error: unknown) {
-      const errorMessage =
-        (error as { errors?: Array<{ longMessage?: string }>; message?: string })
-          ?.errors?.[0]?.longMessage ||
-        (error as { message?: string })?.message ||
-        'Erreur lors du renvoi';
+      const errorMessage = mapClerkErrorToTranslation(error);
       setError(errorMessage);
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+      toast({
+        title: tAuth('errors.error_title'),
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -288,7 +326,7 @@ export function SignUpForm({ availableCountries }: SignUpPageProps) {
           <Button
             type="submit"
             className="w-full"
-            disabled={isLoading || (!formData.email && !formData.phoneNumber)}
+            disabled={isLoading || !formData.phoneNumber}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Créer mon compte
@@ -303,13 +341,9 @@ export function SignUpForm({ availableCountries }: SignUpPageProps) {
   return (
     <div className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">
-          {formData.email ? 'Vérifiez votre email' : 'Vérifiez votre téléphone'}
-        </h1>
+        <h1 className="text-2xl font-bold">Vérifiez votre téléphone</h1>
         <p className="text-muted-foreground">
-          {formData.email
-            ? 'Nous avons envoyé un code de vérification à votre adresse email'
-            : 'Nous avons envoyé un code de vérification par SMS'}
+          Nous avons envoyé un code de vérification par SMS à votre numéro de téléphone
         </p>
       </div>
 

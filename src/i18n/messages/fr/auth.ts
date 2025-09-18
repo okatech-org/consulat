@@ -84,6 +84,7 @@ export default {
       sms_service_unavailable:
         "Service SMS temporairement indisponible. Veuillez utiliser l'email ou réessayer plus tard.",
       send_error: "Erreur d'envoi",
+      user_creation_failed: 'Erreur lors de la création de votre profil',
       // Erreurs d'inscription depuis signup-auth-provider
       missing_data: "Toutes les données d'inscription sont requises",
       invalid_phone: 'Format de téléphone invalide',
