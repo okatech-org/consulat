@@ -1,5 +1,3 @@
-import { getActiveCountries } from '@/actions/countries';
-import { NewProfileForm } from '@/components/registration/new-profile-form';
 import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import { env } from '@/env';
@@ -8,6 +6,8 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { getCurrentUser } from '@/lib/auth/utils';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
+import { getActiveCountries } from '@/actions/countries';
+import { SignUpForm } from '@/app/sign-up/[[...sign-up]]/page';
 
 const appLogo = env.NEXT_ORG_LOGO;
 
@@ -15,8 +15,7 @@ export default async function RegistrationPage() {
   const currentUser = await getCurrentUser();
   const t = await getTranslations('auth.login');
   const tInputs = await getTranslations('inputs');
-
-  const countries = await getActiveCountries();
+  const availableCountries = await getActiveCountries();
 
   if (currentUser) {
     redirect(ROUTES.user.profile_form);
@@ -41,7 +40,7 @@ export default async function RegistrationPage() {
           </p>
         </header>
         <div className="w-full flex flex-col">
-          <NewProfileForm availableCountries={countries} />
+          <SignUpForm availableCountries={availableCountries} />
         </div>
         <BetaBanner className="mt-4" />
       </div>

@@ -6,6 +6,7 @@ import { ROUTES } from './schemas/routes';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
+  '/sign-up(.*)',
   '/registration',
   'feedback',
   'legal(.*)',

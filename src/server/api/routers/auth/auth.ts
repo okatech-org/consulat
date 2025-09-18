@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure, protectedProcedure } from '@/server/api/trpc';
+import { createTRPCRouter, publicProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { UserRole } from '@prisma/client';
@@ -44,91 +44,89 @@ export const authRouter = createTRPCRouter({
   }),
 
   // Créer un utilisateur après inscription Clerk
-  createUser: protectedProcedure
-    .input(CreateUserSchema)
-    .mutation(async ({ ctx, input }) => {
-      try {
-        // Vérifier que le pays existe
-        const country = await ctx.db.country.findFirst({
-          where: {
-            code: input.countryCode,
-            status: 'ACTIVE',
+  createUser: publicProcedure.input(CreateUserSchema).mutation(async ({ ctx, input }) => {
+    try {
+      // Vérifier que le pays existe
+      const country = await ctx.db.country.findFirst({
+        where: {
+          code: input.countryCode,
+          status: 'ACTIVE',
+        },
+      });
+
+      if (!country) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Pays non supporté',
+        });
+      }
+
+      // Créer l'utilisateur et son profil en transaction
+      const result = await ctx.db.$transaction(async (tx) => {
+        // Créer l'utilisateur
+        const newUser = await tx.user.create({
+          data: {
+            clerkId: ctx.auth.id,
+            email: input.email || null,
+            phoneNumber: input.phoneNumber || null,
+            name: `${input.firstName} ${input.lastName}`,
+            roles: [UserRole.USER],
+            countryCode: input.countryCode,
+            emailVerified: input.email ? new Date() : null,
+            phoneNumberVerified: input.phoneNumber ? true : false,
           },
         });
 
-        if (!country) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Pays non supporté',
-          });
+        // Créer le profil associé
+        const profile = await tx.profile.create({
+          data: {
+            userId: newUser.id,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            email: input.email || null,
+            phoneNumber: input.phoneNumber || null,
+            residenceCountyCode: input.countryCode,
+            category: 'ADULT',
+          },
+        });
+
+        // Mettre à jour l'utilisateur avec l'ID du profil
+        const updatedUser = await tx.user.update({
+          where: { id: newUser.id },
+          data: { profileId: profile.id },
+        });
+
+        // Mettre à jour les métadonnées publiques dans Clerk
+        if (updatedUser.clerkId) {
+          try {
+            await clerkClient.users.updateUserMetadata(updatedUser.clerkId, {
+              publicMetadata: {
+                profileId: profile.id,
+                roles: [UserRole.USER],
+                countryCode: input.countryCode,
+              },
+            });
+          } catch (error) {
+            console.error(
+              'Erreur mise à jour des métadonnées publiques dans Clerk:',
+              error,
+            );
+          }
         }
 
-        // Créer l'utilisateur et son profil en transaction
-        const result = await ctx.db.$transaction(async (tx) => {
-          // Créer l'utilisateur
-          const newUser = await tx.user.create({
-            data: {
-              clerkId: ctx.auth.userId,
-              email: input.email || null,
-              phoneNumber: input.phoneNumber || null,
-              name: `${input.firstName} ${input.lastName}`,
-              roles: [UserRole.USER],
-              countryCode: input.countryCode,
-              emailVerified: input.email ? new Date() : null,
-              phoneNumberVerified: input.phoneNumber ? true : false,
-            },
-          });
+        return {
+          userId: updatedUser.id,
+          profileId: profile.id,
+        };
+      });
 
-          // Créer le profil associé
-          const profile = await tx.profile.create({
-            data: {
-              userId: newUser.id,
-              firstName: input.firstName,
-              lastName: input.lastName,
-              email: input.email || null,
-              phoneNumber: input.phoneNumber || null,
-              residenceCountyCode: input.countryCode,
-              category: 'ADULT',
-            },
-          });
-
-          // Mettre à jour l'utilisateur avec l'ID du profil
-          const updatedUser = await tx.user.update({
-            where: { id: newUser.id },
-            data: { profileId: profile.id },
-          });
-
-          // Mettre à jour les métadonnées publiques dans Clerk
-          if (updatedUser.clerkId) {
-            try {
-              await clerkClient.users.updateUserMetadata(updatedUser.clerkId, {
-                publicMetadata: {
-                  profileId: profile.id,
-                  roles: [UserRole.USER],
-                  countryCode: input.countryCode,
-                },
-              });
-            } catch (error) {
-              console.error(
-                'Erreur mise à jour des métadonnées publiques dans Clerk:',
-                error,
-              );
-            }
-          }
-
-          return {
-            userId: updatedUser.id,
-            profileId: profile.id,
-          };
-        });
-
-        return result;
-      } catch (error) {
-        console.error('Erreur création utilisateur:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: "Erreur lors de la création de l'utilisateur",
-        });
-      }
-    }),
+      return result;
+    } catch (error) {
+      console.error('Erreur création utilisateur:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: "Erreur lors de la création de l'utilisateur",
+      });
+    }
+  }),
 });
