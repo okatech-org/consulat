@@ -1,16 +1,8 @@
 'use server';
 
-import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { type User, UserRole } from '@prisma/client';
-import type { SessionUser } from '@/types';
 import { createClerkClient } from '@clerk/nextjs/server';
-
-export const getCurrentUser = async (): Promise<SessionUser | null> => {
-  const session = await auth();
-
-  return session?.user as unknown as SessionUser | null;
-};
 
 export const checkUserExist = async (userId?: string) => {
   if (!userId) return false;

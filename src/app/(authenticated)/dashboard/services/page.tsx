@@ -1,17 +1,16 @@
 import { getTranslations } from 'next-intl/server';
-import { getOrganizations } from '@/actions/organizations';
 import { ServicesTable } from '@/components/organization/services-table';
 import { PageContainer } from '@/components/layouts/page-container';
-import { tryCatch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
+import { api } from '@/trpc/server';
 
 export default async function ServicesPage() {
-  const [{ data: organizations, error: organizationsError }] = await Promise.all([
-    tryCatch(getOrganizations()),
-  ]);
+  const organizations = await api.organizations.getList();
+
+  console.log('organizations', organizations);
 
   const t = await getTranslations('services');
 
@@ -27,11 +26,7 @@ export default async function ServicesPage() {
         </Button>
       }
     >
-      {organizationsError ? (
-        <div className="text-destructive">{t('messages.error.fetch')}</div>
-      ) : (
-        <ServicesTable organizations={organizations ?? []} />
-      )}
+      <ServicesTable organizations={organizations?.items ?? []} />
     </PageContainer>
   );
 }
