@@ -12,7 +12,7 @@ import {
   useAggressivePrefetch,
   useBackgroundRefresh,
 } from '@/hooks/use-aggressive-cache';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import {
   useDGSSRealTimeData,

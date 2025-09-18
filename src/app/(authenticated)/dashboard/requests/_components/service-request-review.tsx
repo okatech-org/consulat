@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { hasRole, hasAnyRole } from '@/lib/permissions/utils';
 import { UserRole, RequestStatus, ServicePriority } from '@prisma/client';
 import { useDateLocale } from '@/lib/utils';

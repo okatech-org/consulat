@@ -37,7 +37,7 @@ import {
   Eye,
   Users,
 } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';

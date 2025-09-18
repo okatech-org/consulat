@@ -10,7 +10,7 @@ import { MobileDrawer } from './mobile-drawer';
 import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
 import { type NavMainItem } from '@/hooks/use-navigation';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
   showLabels?: boolean;

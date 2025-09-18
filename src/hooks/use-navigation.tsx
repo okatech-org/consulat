@@ -28,7 +28,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { CountBadge } from '@/components/layouts/count-badge';
-import { useCurrentUser } from './use-role-data';
+import { useCurrentUser } from './use-current-user';
 import { api } from '@/trpc/react';
 
 export type NavMainItem = {

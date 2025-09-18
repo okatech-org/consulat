@@ -22,7 +22,7 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { UserRole } from '@prisma/client';
 import { LogoutButton } from './logout-button';
 

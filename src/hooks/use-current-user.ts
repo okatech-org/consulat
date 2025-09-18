@@ -1,32 +1,8 @@
 'use client';
 
-import { useRoleDataContext } from '@/contexts/role-data-context';
 import type { SessionUser } from '@/types';
-import type { RoleData, AdminData, SuperAdminData } from '@/types/role-data';
 import { useUser } from '@clerk/nextjs';
 import type { UserRole } from '@prisma/client';
-
-// Hook générique
-export function useRoleData<T extends RoleData = RoleData>(): T | null {
-  const context = useRoleDataContext();
-  return context as T | null;
-}
-
-export function useAdminData(): AdminData {
-  const data = useRoleData();
-  if (data?.role !== 'ADMIN') {
-    throw new Error("Vous n'avez pas les permissions pour accéder à cette page.");
-  }
-  return data as AdminData;
-}
-
-export function useSuperAdminData(): SuperAdminData {
-  const data = useRoleData();
-  if (data?.role !== 'SUPER_ADMIN') {
-    throw new Error("Vous n'avez pas les permissions pour accéder à cette page");
-  }
-  return data;
-}
 
 export function useCurrentUser() {
   const user = useUser();

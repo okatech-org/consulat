@@ -1,29 +1,27 @@
-import { getTranslations } from 'next-intl/server';
+'use client';
+
 import { StatsCard } from '@/components/ui/stats-card';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { getServiceRequestsByUser } from '@/actions/service-requests';
 import { format } from 'date-fns';
 import { ArrowRight, Calendar, CheckCircle, Clock, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { getUserAppointments } from '@/actions/appointments';
 import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useTranslations } from 'next-intl';
+import type { AgentStats } from '@/server/api/routers/dashboard/types';
+import { useDashboard } from '@/hooks/use-dashboard';
 
-export default async function AgentDashboard() {
-  const t = await getTranslations('agent.dashboard');
-  const t_common = await getTranslations('common');
-
-  const currentUser = await getCurrentUser();
-
-  if (!currentUser) {
-    return null;
-  }
+export default function AgentDashboard() {
+  const { user } = useCurrentUser();
+  const t = useTranslations('agent.dashboard');
+  const t_common = useTranslations('common');
+  const { data: agentStats } = useDashboard<AgentStats>();
 
   // Fetch agent's assigned requests
-  const assignedRequests = await getServiceRequestsByUser(currentUser.id);
+  const assignedRequests = agentStats.recentRequests || [];
 
   // Count requests by status
   const pendingRequests = assignedRequests.filter((req) =>
@@ -39,27 +37,17 @@ export default async function AgentDashboard() {
     ].includes(req.status),
   ).length;
 
-  const completedRequests = currentUser.completedRequests || 0;
-
-  // Fetch agent's appointments
-  const appointmentsResponse = await getUserAppointments({ agentId: currentUser.id });
-  const appointments = appointmentsResponse.data || {
-    upcoming: [],
-    past: [],
-    cancelled: [],
-  };
-
   return (
     <PageContainer
       title={t('title')}
       description={t('welcome', {
-        name: currentUser.name || '',
+        name: user.name || '',
       })}
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t('stats.appointments')}
-          value={appointments.upcoming.length}
+          value={agentStats.stats.upcomingAppointments}
           description={t('stats.appointments_description')}
           icon={Calendar}
           className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm"
@@ -83,7 +71,7 @@ export default async function AgentDashboard() {
         />
         <StatsCard
           title={t('stats.completed')}
-          value={completedRequests}
+          value={agentStats.stats.completedRequests}
           description={t('stats.completed_description')}
           icon={CheckCircle}
           className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm"
@@ -182,9 +170,9 @@ export default async function AgentDashboard() {
             </Button>
           }
         >
-          {appointments.upcoming.length > 0 ? (
+          {agentStats.appointments.upcoming.length > 0 ? (
             <div className="space-y-4">
-              {appointments.upcoming.slice(0, 5).map((appointment) => (
+              {agentStats.appointments.upcoming.slice(0, 5).map((appointment) => (
                 <div
                   key={appointment.id}
                   className="flex items-start space-x-3 border-b pb-3 last:border-0"
@@ -194,7 +182,7 @@ export default async function AgentDashboard() {
                   </div>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium">
-                      {appointment.request?.service?.name || t('appointments.title')}
+                      {appointment.service?.name || t('appointments.title')}
                     </p>
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Clock className="mr-1 h-3 w-3" />

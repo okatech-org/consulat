@@ -12,7 +12,7 @@ import CardContainer from '@/components/layouts/card-container';
 import type { AppointmentListItem } from '@/server/api/routers/appointments/misc';
 import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export const dynamic = 'force-dynamic';
 

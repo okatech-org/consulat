@@ -6,7 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, User, Calendar, Plus, Shield, FileText, Eye, ChevronRight, Home } from 'lucide-react';
+import {
+  ArrowLeft,
+  User,
+  Calendar,
+  Plus,
+  Shield,
+  FileText,
+  Eye,
+  ChevronRight,
+  Home,
+} from 'lucide-react';
 import { IntelligenceNotesSection } from '@/components/intelligence/intelligence-notes-section';
 import { ROUTES } from '@/schemas/routes';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
@@ -21,7 +31,7 @@ import {
 } from '@/components/ui/sheet';
 import { IntelligenceNoteForm } from '@/components/intelligence/intelligence-note-form';
 import CardContainer from '@/components/layouts/card-container';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import IntelAgentLayout from '@/components/layouts/intel-agent-layout';
 
 interface ProfileIntelligenceDetailsPageProps {
@@ -86,8 +96,8 @@ export function ProfileIntelligenceDetailsPage({
           <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-xl font-semibold mb-2">Profil non trouvé</h2>
           <p className="text-muted-foreground mb-4">
-            Le profil demandé n&apos;existe pas ou vous n&apos;avez pas l&apos;autorisation
-            de le consulter.
+            Le profil demandé n&apos;existe pas ou vous n&apos;avez pas
+            l&apos;autorisation de le consulter.
           </p>
           <Button onClick={() => router.push(ROUTES.dashboard.profiles)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -108,20 +118,20 @@ export function ProfileIntelligenceDetailsPage({
       {/* Header personnalisé avec meilleure ergonomie */}
       <div className="mb-8">
         {/* Breadcrumb élégant */}
-        <div 
+        <div
           className="flex items-center gap-2 text-sm mb-4 p-3 rounded-lg"
           style={{
             background: 'var(--bg-glass-light)',
             border: '1px solid var(--border-glass-secondary)',
           }}
         >
-          <Home 
-            className="h-4 w-4 cursor-pointer hover:opacity-70 transition-opacity" 
+          <Home
+            className="h-4 w-4 cursor-pointer hover:opacity-70 transition-opacity"
             style={{ color: 'var(--accent-intel)' }}
             onClick={() => router.push('/intel')}
           />
           <ChevronRight className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-          <span 
+          <span
             className="cursor-pointer hover:opacity-70 transition-opacity font-medium"
             style={{ color: 'var(--accent-intel)' }}
             onClick={() => router.push('/intel/profiles')}
@@ -129,7 +139,7 @@ export function ProfileIntelligenceDetailsPage({
             Profils consulaires
           </span>
           <ChevronRight className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
-          <span 
+          <span
             className="font-medium truncate max-w-[200px]"
             style={{ color: 'var(--text-secondary)' }}
             title={`${profile.firstName} ${profile.lastName}`}
@@ -139,7 +149,7 @@ export function ProfileIntelligenceDetailsPage({
         </div>
 
         {/* En-tête principal amélioré */}
-        <div 
+        <div
           className="relative p-6 rounded-2xl overflow-hidden"
           style={{
             background: 'var(--bg-glass-primary)',
@@ -150,14 +160,15 @@ export function ProfileIntelligenceDetailsPage({
           }}
         >
           {/* Animation de scan */}
-          <div 
+          <div
             className="absolute inset-0 opacity-10"
             style={{
-              background: 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent)',
-              animation: 'scan-animation 4s ease-in-out infinite'
+              background:
+                'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent)',
+              animation: 'scan-animation 4s ease-in-out infinite',
             }}
           />
-          
+
           {/* Contenu de l'en-tête */}
           <div className="relative z-10">
             <div className="flex flex-col lg:flex-row lg:items-start gap-6">
@@ -177,7 +188,7 @@ export function ProfileIntelligenceDetailsPage({
                   <ArrowLeft className="h-4 w-4" />
                   <span className="hidden sm:inline">Retour</span>
                 </Button>
-                
+
                 <Avatar className="h-24 w-24 bg-muted border-4 border-white/30 shadow-lg">
                   <AvatarImage
                     src={profile.identityPicture?.fileUrl || ''}
@@ -185,34 +196,32 @@ export function ProfileIntelligenceDetailsPage({
                   />
                 </Avatar>
               </div>
-              
+
               {/* Informations principales */}
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                   <div>
-                    <h1 
+                    <h1
                       className="text-3xl lg:text-4xl font-bold mb-2 tracking-tight"
                       style={{ color: 'var(--text-primary)' }}
                     >
                       {profile.firstName} {profile.lastName}
                     </h1>
-                    <p 
+                    <p
                       className="text-lg mb-3"
                       style={{ color: 'var(--text-secondary)' }}
                     >
                       Profil gabonais - Consultation des renseignements
                     </p>
                   </div>
-                  
+
                   {/* Badges de statut */}
                   <div className="flex flex-wrap gap-2">
-                    <Badge 
-                      className="bg-blue-100 text-blue-800 border-blue-200 px-3 py-1.5 text-sm font-medium hover:bg-blue-200 transition-colors"
-                    >
+                    <Badge className="bg-blue-100 text-blue-800 border-blue-200 px-3 py-1.5 text-sm font-medium hover:bg-blue-200 transition-colors">
                       <Shield className="h-4 w-4 mr-2" />
                       Surveillance Active
                     </Badge>
-                    <Badge 
+                    <Badge
                       variant="outline"
                       className="border-green-200 text-green-700 bg-green-50 px-3 py-1.5 text-sm font-medium hover:bg-green-100 transition-colors"
                     >
@@ -221,68 +230,70 @@ export function ProfileIntelligenceDetailsPage({
                     </Badge>
                   </div>
                 </div>
-                
+
                 {/* Informations rapides en grille */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {profile.birthDate && (
-                    <div 
+                    <div
                       className="flex items-center gap-3 p-3 rounded-lg"
-                      style={{ 
+                      style={{
                         background: 'var(--bg-glass-light)',
-                        border: '1px solid var(--border-glass-secondary)' 
+                        border: '1px solid var(--border-glass-secondary)',
                       }}
                     >
-                      <div 
+                      <div
                         className="p-2 rounded-lg"
                         style={{ background: 'var(--accent-intel)', opacity: 0.1 }}
                       >
-                        <Calendar 
-                          className="h-4 w-4" 
-                          style={{ color: 'var(--accent-intel)' }} 
+                        <Calendar
+                          className="h-4 w-4"
+                          style={{ color: 'var(--accent-intel)' }}
                         />
                       </div>
                       <div>
-                        <p 
+                        <p
                           className="text-xs font-medium uppercase tracking-wider"
                           style={{ color: 'var(--text-muted)' }}
                         >
                           Date de naissance
                         </p>
-                        <p 
+                        <p
                           className="text-sm font-semibold"
                           style={{ color: 'var(--text-secondary)' }}
                         >
-                          {format(new Date(profile.birthDate), 'dd MMMM yyyy', { locale: fr })}
+                          {format(new Date(profile.birthDate), 'dd MMMM yyyy', {
+                            locale: fr,
+                          })}
                         </p>
                       </div>
                     </div>
                   )}
-                  
+
                   {profile.birthPlace && (
-                    <div 
+                    <div
                       className="flex items-center gap-3 p-3 rounded-lg"
-                      style={{ 
+                      style={{
                         background: 'var(--bg-glass-light)',
-                        border: '1px solid var(--border-glass-secondary)' 
+                        border: '1px solid var(--border-glass-secondary)',
                       }}
                     >
-                      <div 
+                      <div
                         className="p-2 rounded-lg"
                         style={{ background: 'var(--accent-warning)', opacity: 0.1 }}
                       >
-                        <FileText 
-                          className="h-4 w-4" 
-                          style={{ color: 'var(--accent-warning)' }} 
+                        <FileText
+                          className="h-4 w-4"
+                          style={{ color: 'var(--accent-warning)' }}
                         />
                       </div>
                       <div>
-                        <p 
+                        <p
                           className="text-xs font-medium uppercase tracking-wider"
                           style={{ color: 'var(--text-muted)' }}
                         >
                           Lieu de naissance
                         </p>
-                        <p 
+                        <p
                           className="text-sm font-semibold"
                           style={{ color: 'var(--text-secondary)' }}
                         >
@@ -300,12 +311,10 @@ export function ProfileIntelligenceDetailsPage({
 
       {/* Layout en grille 2/3 - 1/3 */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        
         {/* Section Principale (2/3) - RENSEIGNEMENTS MISE EN AVANT */}
         <div className="xl:col-span-2 space-y-6">
-          
           {/* Section RENSEIGNEMENTS PRIORITAIRE */}
-          <div 
+          <div
             className="relative p-6 rounded-2xl overflow-hidden"
             style={{
               background: 'var(--bg-glass-secondary)',
@@ -316,22 +325,23 @@ export function ProfileIntelligenceDetailsPage({
             }}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 
+              <h2
                 className="text-2xl font-bold flex items-center gap-3"
                 style={{ color: 'var(--text-primary)' }}
               >
-                <div 
+                <div
                   className="p-2 rounded-lg"
                   style={{
-                    background: 'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
+                    background:
+                      'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
                   }}
                 >
                   <Shield className="h-6 w-6 text-white" />
                 </div>
                 Renseignements
               </h2>
-              
-              <Badge 
+
+              <Badge
                 variant="outline"
                 className="px-3 py-1 text-xs font-medium border-blue-200 text-blue-700 bg-blue-50"
               >
@@ -349,9 +359,8 @@ export function ProfileIntelligenceDetailsPage({
 
         {/* Sidebar d'actions (1/3) */}
         <div className="space-y-6">
-          
           {/* Actions principales avec boutons gradient */}
-          <div 
+          <div
             className="p-6 rounded-2xl space-y-4"
             style={{
               background: 'var(--bg-glass-primary)',
@@ -361,14 +370,14 @@ export function ProfileIntelligenceDetailsPage({
               boxShadow: 'var(--shadow-glass)',
             }}
           >
-            <h3 
+            <h3
               className="text-lg font-semibold flex items-center gap-2"
               style={{ color: 'var(--text-primary)' }}
             >
               <Plus className="h-5 w-5" />
               Actions Prioritaires
             </h3>
-            
+
             <div className="space-y-3">
               {/* Bouton AJOUTER UNE NOTE - Mise en avant */}
               <Sheet>
@@ -376,7 +385,8 @@ export function ProfileIntelligenceDetailsPage({
                   <Button
                     className="w-full text-white font-semibold transition-all duration-300 hover:scale-105"
                     style={{
-                      background: 'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
+                      background:
+                        'linear-gradient(135deg, var(--accent-intel), var(--accent-warning))',
                       boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
                     }}
                   >
@@ -400,7 +410,7 @@ export function ProfileIntelligenceDetailsPage({
                   </div>
                 </SheetContent>
               </Sheet>
-              
+
               <ProfileLookupSheet
                 profileId={profileId}
                 triggerLabel="Voir le Profil Complet"
@@ -411,7 +421,7 @@ export function ProfileIntelligenceDetailsPage({
           </div>
 
           {/* Informations de base */}
-          <div 
+          <div
             className="p-6 rounded-2xl"
             style={{
               background: 'var(--bg-glass-secondary)',
@@ -421,23 +431,23 @@ export function ProfileIntelligenceDetailsPage({
               boxShadow: 'var(--shadow-glass)',
             }}
           >
-            <h3 
+            <h3
               className="text-lg font-semibold mb-4"
               style={{ color: 'var(--text-primary)' }}
             >
               Informations de Base
             </h3>
-            
+
             <div className="space-y-4">
               {profile.birthDate && (
                 <div>
-                  <label 
+                  <label
                     className="text-xs font-medium uppercase tracking-wider"
                     style={{ color: 'var(--text-muted)' }}
                   >
                     Date de naissance
                   </label>
-                  <p 
+                  <p
                     className="text-sm font-medium flex items-center gap-2 mt-1"
                     style={{ color: 'var(--text-secondary)' }}
                   >
@@ -449,13 +459,13 @@ export function ProfileIntelligenceDetailsPage({
 
               {profile.birthPlace && (
                 <div>
-                  <label 
+                  <label
                     className="text-xs font-medium uppercase tracking-wider"
                     style={{ color: 'var(--text-muted)' }}
                   >
                     Lieu de naissance
                   </label>
-                  <p 
+                  <p
                     className="text-sm font-medium mt-1"
                     style={{ color: 'var(--text-secondary)' }}
                   >
@@ -467,12 +477,12 @@ export function ProfileIntelligenceDetailsPage({
           </div>
         </div>
       </div>
-      
+
       {/* Styles CSS pour l'animation de scan optimisée */}
       <style jsx>{`
         @keyframes scan-animation {
-          0% { 
-            transform: translateX(-100%); 
+          0% {
+            transform: translateX(-100%);
             opacity: 0;
           }
           20% {
@@ -481,12 +491,12 @@ export function ProfileIntelligenceDetailsPage({
           80% {
             opacity: 1;
           }
-          100% { 
-            transform: translateX(300%); 
+          100% {
+            transform: translateX(300%);
             opacity: 0;
           }
         }
-        
+
         @media (prefers-reduced-motion: reduce) {
           .scan-animation {
             animation: none !important;

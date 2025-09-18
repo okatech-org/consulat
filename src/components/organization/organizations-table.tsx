@@ -15,10 +15,12 @@ import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useState } from 'react';
 import { DataTableColumnHeader } from '../data-table/data-table-column-header';
-import { useSuperAdminData } from '@/hooks/use-role-data';
+import { api } from '@/trpc/react';
 
 export function OrganizationsTable() {
-  const { organizations, countries, superAdminStats } = useSuperAdminData();
+  const { data: superAdminStats } = api.dashboard.getSuperAdminStats.useQuery();
+  const { data: organizations } = api.organizations.getList.useQuery();
+  const { data: countries } = api.countries.getList.useQuery();
 
   const t = useTranslations('organization');
   const t_common = useTranslations('common');
@@ -179,23 +181,24 @@ export function OrganizationsTable() {
       label: t('table.country'),
       defaultValue: [],
       onChange: () => {},
-      options: countries.map((country) => ({
-        value: country.code,
-        label: country.name,
-      })),
+      options:
+        countries?.items.map((country) => ({
+          value: country.code,
+          label: country.name,
+        })) || [],
     },
   ];
 
   return (
     <>
       <div className="mb-4 text-sm text-muted-foreground">
-        {superAdminStats.totalOrganizations} organisations total •{' '}
-        {superAdminStats.activeOrganizations} actives •{' '}
+        {superAdminStats?.stats.totalOrganizations} organisations total •{' '}
+        {superAdminStats?.stats.activeOrganizations} actives •{' '}
       </div>
       <DataTable<OrganizationListingItem, unknown>
         filters={localFilters}
         columns={columns}
-        data={organizations}
+        data={organizations || []}
       />{' '}
       {selectedOrganization && (
         <ConfirmDialog

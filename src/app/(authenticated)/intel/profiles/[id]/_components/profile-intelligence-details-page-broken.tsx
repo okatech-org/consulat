@@ -34,7 +34,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { IntelligenceNoteForm } from '@/components/intelligence/intelligence-note-form';
 import CardContainer from '@/components/layouts/card-container';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { toast } from 'sonner';
 import { useCallback, useState, useEffect } from 'react';
 

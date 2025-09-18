@@ -15,7 +15,7 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { UserSettingsForm } from './_utils/user-settings-form';
 import type { SessionUser } from '@/types/user';
 import { useTranslations } from 'next-intl';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function SettingsPage() {
   const { user } = useCurrentUser();

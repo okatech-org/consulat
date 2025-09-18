@@ -9,11 +9,19 @@ import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layouts/page-container';
 import { LeafletDashboardWrapper } from '@/components/dashboards/leaflet-dashboard-wrapper';
 import { useTranslations } from 'next-intl';
-import { useAdminData } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import CardContainer from '../layouts/card-container';
+import { api } from '@/trpc/react';
+import { useDashboard } from '@/hooks/use-dashboard';
+import type { AdminStats } from '@/server/api/routers/dashboard/types';
 
 export default function AdminDashboard() {
-  const { user, adminStats, profilesGeographicData, recentData } = useAdminData();
+  const { data: adminStats } = useDashboard<AdminStats>();
+  const { user } = useCurrentUser();
+  const { data: profilesGeographicData } =
+    api.dashboard.getProfilesGeographicData.useQuery({
+      organizationId: user.organizationId || undefined,
+    });
   const t = useTranslations('admin.dashboard');
   const t_appointments = useTranslations('admin.appointments');
 
@@ -27,9 +35,9 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t('stats.completed_requests')}
-          value={adminStats.completedRequests}
+          value={adminStats?.stats.completedRequests}
           description={t('stats.active_profiles', {
-            count: adminStats.completedRequests,
+            count: adminStats?.stats.completedRequests,
           })}
           icon={CheckCircle}
           className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm"
@@ -37,9 +45,9 @@ export default function AdminDashboard() {
         />
         <StatsCard
           title={t('stats.processing_requests')}
-          value={adminStats.processingRequests}
+          value={adminStats?.stats.processingRequests}
           description={t('stats.processing_requests', {
-            count: adminStats.processingRequests,
+            count: adminStats?.stats.processingRequests,
           })}
           icon={Clock}
           className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/30 shadow-sm"
@@ -47,9 +55,9 @@ export default function AdminDashboard() {
         />
         <StatsCard
           title={t('stats.pending_requests')}
-          value={adminStats.pendingRequests}
+          value={adminStats?.stats.pendingRequests}
           description={t('stats.pending_requests', {
-            count: adminStats.pendingRequests,
+            count: adminStats?.stats.pendingRequests,
           })}
           icon={FileText}
           className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm"
@@ -57,9 +65,9 @@ export default function AdminDashboard() {
         />
         <StatsCard
           title={t('stats.total_profiles')}
-          value={adminStats.totalProfiles}
+          value={adminStats?.stats.totalProfiles}
           description={t('stats.total_profiles', {
-            count: adminStats.totalProfiles,
+            count: adminStats?.stats.totalProfiles,
           })}
           icon={Users}
           className="bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/30 shadow-sm"
@@ -73,7 +81,7 @@ export default function AdminDashboard() {
             Visualisation des concentrations de profils par ville
           </p>
         </div>
-        <LeafletDashboardWrapper data={profilesGeographicData} height="600px" />
+        <LeafletDashboardWrapper data={profilesGeographicData || []} height="600px" />
       </CardContainer>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -98,9 +106,10 @@ export default function AdminDashboard() {
             </Button>
           }
         >
-          {recentData.upcomingAppointments.length > 0 ? (
+          {adminStats?.recentData?.upcomingAppointments &&
+          adminStats.recentData.upcomingAppointments.length > 0 ? (
             <div className="space-y-4">
-              {recentData.upcomingAppointments.map((appointment) => (
+              {adminStats.recentData.upcomingAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
                   className="flex items-start space-x-3 border-b pb-3 last:border-0"

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { ChatToggle } from '../chat/chat-toggle';
 import { Fragment } from 'react';
 import { type NavMainItem } from '@/hooks/use-navigation';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { useUserNavigation } from '@/hooks/use-navigation';
 
 import { UserMobileDrawer } from '../layouts/user-mobile-drawer';

@@ -49,7 +49,7 @@ import {
   SheetTitle,
   Sheet,
 } from '@/components/ui/sheet';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import type { RequestListItem } from '@/server/api/routers/requests/types';

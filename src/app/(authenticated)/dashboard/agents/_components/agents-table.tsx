@@ -11,7 +11,7 @@ import {
   type Pagination,
   useTableSearchParams,
 } from '@/hooks/use-table-search-params';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import type { OrganizationListingItem } from '@/types/organization';
 import { type User, UserRole } from '@prisma/client';
 import { useEffect, useState, useMemo } from 'react';

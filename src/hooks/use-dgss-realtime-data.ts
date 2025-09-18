@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/trpc/react';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export interface DGSSRealTimeData {
   // Données principales

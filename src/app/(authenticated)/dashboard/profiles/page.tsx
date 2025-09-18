@@ -85,7 +85,7 @@ import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { api } from '@/trpc/react';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {

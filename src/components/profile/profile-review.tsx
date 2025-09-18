@@ -26,7 +26,7 @@ import { StatusTimeline } from '@/components/consular/status-timeline';
 import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { hasAnyRole, hasRole } from '@/lib/permissions/utils';
 import type { SessionUser } from '@/types';
 import type { RequestDetails } from '@/server/api/routers/requests/types';

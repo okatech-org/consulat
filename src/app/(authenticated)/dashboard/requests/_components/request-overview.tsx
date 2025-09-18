@@ -16,7 +16,7 @@ import { CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import type { RequestDetails } from '@/server/api/routers/requests/misc';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 interface RequestOverviewProps {
   request: NonNullable<RequestDetails>;

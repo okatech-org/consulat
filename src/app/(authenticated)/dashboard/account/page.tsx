@@ -23,7 +23,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { hasRole } from '@/lib/permissions/utils';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function AdminAccountPage() {
   const t_messages = useTranslations('messages');
