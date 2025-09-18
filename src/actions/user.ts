@@ -2,8 +2,9 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
-import type { User } from '@prisma/client';
+import { type User, UserRole } from '@prisma/client';
 import type { SessionUser } from '@/types';
+import { createClerkClient } from '@clerk/nextjs/server';
 
 export const getCurrentUser = async (): Promise<SessionUser | null> => {
   const session = await auth();
@@ -49,3 +50,55 @@ export const updateUserData = async (userId: string, data: Partial<User>) => {
     },
   });
 };
+
+export async function syncUserWithDatabase(userId: string | null) {
+  console.log('Syncing user with database', userId);
+  if (!userId) {
+    return;
+  }
+
+  const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+  const user = await db.user.findUnique({
+    where: { clerkId: userId },
+  });
+
+  if (user) {
+    console.log('User already exists in database');
+  }
+
+  if (!user) {
+    console.log('User not found in database, syncing with Clerk');
+    const clerkUser = await clerkClient.users.getUser(userId);
+
+    if (!clerkUser) {
+      console.log('User not found in Clerk');
+      return;
+    }
+
+    console.log('User found in Clerk', clerkUser);
+
+    const email = clerkUser.phoneNumbers[0]?.phoneNumber;
+    const phoneNumber = clerkUser.phoneNumbers[0]?.phoneNumber;
+
+    if (!email && !phoneNumber) {
+      console.log('User has no email or phone number');
+      return;
+    }
+
+    const roles = clerkUser.publicMetadata.roles as UserRole[] | undefined;
+
+    try {
+      await db.user.create({
+        data: {
+          clerkId: userId,
+          email: email,
+          name: clerkUser.firstName,
+          phoneNumber: phoneNumber,
+          roles: roles || [UserRole.USER],
+        },
+      });
+    } catch (error) {
+      console.error('Error syncing user with database', error);
+    }
+  }
+}

@@ -29,6 +29,7 @@ export const ROUTES = {
     base: '/auth' as Route<string>,
     login: '/sign-in' as Route<string>,
     register: '/registration' as Route<string>,
+    register_sync: '/registration/sync' as Route<string>,
     auth_error: '/sign-in' as Route<string>,
     unauthorized: '/unauthorized' as Route<string>,
   },

@@ -22,7 +22,6 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { phoneCountries } from '@/lib/autocomplete-datas';
 import { RegistrationSchema, type RegistrationInput } from '@/schemas/user';
 import { ROUTES } from '@/schemas/routes';
 import type { Country } from '@prisma/client';
@@ -48,7 +47,6 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
   const router = useRouter();
-  const createUserMutation = api.auth.createUser.useMutation();
   const { isLoaded, signUp, setActive } = useSignUp();
   const { toast } = useToast();
 
@@ -71,18 +69,6 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
     },
     mode: 'onChange',
   });
-
-  // Fonction pour extraire le code pays à partir du numéro de téléphone
-  const getCountryCodeFromPhoneNumber = (phoneNumber: string): string => {
-    if (!phoneNumber) return 'FR';
-
-    const match = phoneNumber.match(/^\+(\d{1,4})/);
-    if (!match) return 'FR';
-
-    const callingCode = `+${match[1]}`;
-    const country = phoneCountries.find((c) => c.value === callingCode);
-    return country?.countryCode || 'FR';
-  };
 
   // Cooldown effect
   React.useEffect(() => {
@@ -117,45 +103,30 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
     }
   }, [error, step, form, toast, tAuth]);
 
-  // Gérer la création d'utilisateur après vérification complète
+  // Gérer la redirection après vérification complète
   React.useEffect(() => {
     if (signUp?.status === 'complete' && signUp.createdSessionId) {
-      const createUser = async () => {
+      const redirectToProfile = async () => {
         try {
-          const countryCode = signUp.phoneNumber
-            ? getCountryCodeFromPhoneNumber(signUp.phoneNumber)
-            : 'FR';
-
-          await createUserMutation.mutateAsync({
-            firstName: signUp.firstName || '',
-            lastName: signUp.lastName || '',
-            email: signUp.emailAddress || undefined,
-            phoneNumber: signUp.phoneNumber || undefined,
-            countryCode: countryCode,
-            clerkId: signUp.createdUserId || '',
-          });
-
           await setActive?.({ session: signUp.createdSessionId });
           setStep('SUCCESS');
 
-          // Auto-redirect after 3 seconds
-          setTimeout(() => {
-            router.push(ROUTES.user.profile_form);
-            router.refresh();
-          }, 3000);
+          // Redirection directe
+          router.push(ROUTES.user.profile_form);
+          router.refresh();
         } catch (error) {
-          console.error("Erreur lors de la création de l'utilisateur:", error);
+          console.error("Erreur lors de l'activation de la session:", error);
           toast({
             title: tAuth('errors.error_title'),
-            description: tAuth('errors.user_creation_failed'),
+            description: 'Erreur lors de la connexion',
             variant: 'destructive',
           });
         }
       };
 
-      createUser();
+      redirectToProfile();
     }
-  }, [signUp?.status, signUp?.createdSessionId, setActive, router, createUserMutation, toast, tAuth]);
+  }, [signUp?.status, signUp?.createdSessionId, setActive, router, toast, tAuth]);
 
   // Fonction pour mapper les erreurs Clerk vers les clés de traduction
   const mapClerkErrorToTranslation = (error: any): string => {
@@ -364,11 +335,6 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
 
           {step === 'FORM' && (
             <div className="form-fields space-y-6">
-              <div className="text-center space-y-2">
-                <h1 className="text-2xl font-bold">{t('newProfile.title')}</h1>
-                <p className="text-muted-foreground">{t('newProfile.description')}</p>
-              </div>
-
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -437,7 +403,9 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
                           onChange={field.onChange}
                           disabled={isLoading}
                           placeholder={t('phone.placeholder')}
-                          countries={availableCountries?.map((country) => country.code as any)}
+                          countries={availableCountries?.map(
+                            (country) => country.code as any,
+                          )}
                           defaultCountry={availableCountries?.[0]?.code as any}
                         />
                       </FormControl>
@@ -454,7 +422,8 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
               <div className="text-center">
                 <h3 className="text-lg font-semibold">Vérifiez votre téléphone</h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Nous avons envoyé un code de vérification par SMS à votre numéro de téléphone
+                  Nous avons envoyé un code de vérification par SMS à votre numéro de
+                  téléphone
                 </p>
               </div>
 

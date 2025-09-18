@@ -3,6 +3,9 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 import { createClerkClient } from '@clerk/backend';
+import { getCountryCodeFromInternationPhoneNumber } from '@/lib/autocomplete-datas';
+import { tryCatch } from '@/lib/utils';
+import { getTranslations } from 'next-intl/server';
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
@@ -130,4 +133,140 @@ export const authRouter = createTRPCRouter({
       });
     }
   }),
+
+  handleNewUser: publicProcedure
+    .input(
+      z.object({
+        clerkId: z.string().min(1, 'Clerk ID requis'),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const t = await getTranslations('auth.login.errors');
+
+      // Vérifier si l'utilisateur existe déjà
+      const { error: userCheckError, data: existingUser } = await tryCatch(
+        ctx.db.user.findFirst({
+          where: { clerkId: input.clerkId },
+        }),
+      );
+
+      if (userCheckError) {
+        console.error('Erreur vérification utilisateur existant:', userCheckError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: t('user_verification_failed'),
+        });
+      }
+
+      if (existingUser) {
+        return;
+      }
+
+      // Récupérer les données utilisateur depuis Clerk
+      const { error: clerkError, data: clerkUser } = await tryCatch(
+        clerkClient.users.getUser(input.clerkId),
+      );
+
+      if (clerkError || !clerkUser) {
+        console.error('Erreur récupération utilisateur Clerk:', clerkError);
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: t('user_not_found_clerk'),
+        });
+      }
+
+      // Extraire et valider les données
+      const email = clerkUser.emailAddresses[0]?.emailAddress;
+      const phoneNumber = clerkUser.phoneNumbers[0]?.phoneNumber;
+
+      if (!email && !phoneNumber) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: t('user_missing_contact'),
+        });
+      }
+
+      const countryCode = getCountryCodeFromInternationPhoneNumber(phoneNumber || '');
+
+      if (!countryCode) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: t('country_code_not_found'),
+        });
+      }
+
+      // Créer l'utilisateur et son profil en transaction
+      const { error: createError, data: result } = await tryCatch(
+        ctx.db.$transaction(async (tx) => {
+          // Créer l'utilisateur
+          const newUser = await tx.user.create({
+            data: {
+              clerkId: input.clerkId,
+              email: email,
+              phoneNumber: phoneNumber,
+              name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+              roles: [UserRole.USER],
+              countryCode: countryCode,
+              emailVerified: email ? new Date() : null,
+              phoneNumberVerified: phoneNumber ? true : false,
+            },
+          });
+
+          // Créer le profil associé
+          const profile = await tx.profile.create({
+            data: {
+              userId: newUser.id,
+              firstName: clerkUser.firstName,
+              lastName: clerkUser.lastName,
+              email: email,
+              phoneNumber: phoneNumber,
+              residenceCountyCode: countryCode,
+              category: 'ADULT',
+            },
+          });
+
+          // Mettre à jour l'utilisateur avec l'ID du profil
+          const updatedUser = await tx.user.update({
+            where: { id: newUser.id },
+            data: { profileId: profile.id },
+          });
+
+          return {
+            user: updatedUser,
+            profile: profile,
+          };
+        }),
+      );
+
+      if (createError || !result) {
+        console.error('Erreur création utilisateur:', createError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: t('user_creation_failed'),
+        });
+      }
+
+      // Mettre à jour les métadonnées publiques dans Clerk
+      const { error: metadataError } = await tryCatch(
+        clerkClient.users.updateUserMetadata(input.clerkId, {
+          publicMetadata: {
+            profileId: result.profile.id,
+            roles: [UserRole.USER],
+            countryCode: countryCode,
+            userId: result.user.id,
+          },
+        }),
+      );
+
+      if (metadataError) {
+        console.error('Erreur mise à jour métadonnées Clerk:', metadataError);
+        // Ne pas faire échouer la création pour une erreur de métadonnées
+      }
+
+      return {
+        userId: result.user.id,
+        profileId: result.profile.id,
+        message: t('user_creation_success'),
+      };
+    }),
 });
