@@ -1,93 +1,90 @@
 'use client';
 
-import React from 'react';
+import * as React from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useSignUp } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
-import { Input } from '@/components/ui/input';
+import { useSignUp } from '@clerk/nextjs';
+import { useState, useEffect } from 'react';
+import { Loader2, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import { CountrySelect } from '@/components/ui/country-select';
-import { type CountryCode } from '@/lib/autocomplete-datas';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  CountryCodeSchema,
-  EmailSchema,
-  NameSchema,
-  E164PhoneSchema,
-} from '@/schemas/inputs';
-import { z } from 'zod';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
-import type { Country } from '@prisma/client';
-import { ROUTES } from '@/schemas/routes';
-import Link from 'next/link';
-import { toast } from '@/hooks/use-toast';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '../ui/input-otp';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { phoneCountries } from '@/lib/autocomplete-datas';
+import { RegistrationSchema, type RegistrationInput } from '@/schemas/user';
+import { ROUTES } from '@/schemas/routes';
+import type { Country } from '@prisma/client';
+import { z } from 'zod';
 
-export function NewProfileForm({
-  availableCountries,
-}: {
+// Types
+type RegistrationStep = 'FORM' | 'VERIFICATION' | 'SUCCESS';
+
+// Schema factory
+function getRegistrationSchema(showOTP: boolean) {
+  return RegistrationSchema.extend({
+    otp: showOTP
+      ? z.string().min(6, { message: 'Code de vérification requis' })
+      : z.string().optional(),
+  });
+}
+
+interface NewProfileFormProps {
   availableCountries: Country[];
-}) {
-  const params = useSearchParams();
-  const countryCode = params.get('countryCode') as CountryCode;
-  const router = useRouter();
+}
+
+export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
   const t = useTranslations('inputs');
   const tAuth = useTranslations('auth.login');
-  const { signUp, setActive } = useSignUp();
+  const router = useRouter();
   const createUserMutation = api.auth.createUser.useMutation();
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const { toast } = useToast();
 
   // State
-  const [resendCooldown, setResendCooldown] = React.useState(0);
-  const [canResend, setCanResend] = React.useState(true);
-  const [showOTP, setShowOTP] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [step, setStep] = useState<RegistrationStep>('FORM');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const CreateProfileSchema = z.object({
-    firstName: NameSchema,
-    lastName: NameSchema,
-    residenceCountyCode: CountryCodeSchema,
-    email: EmailSchema.optional(),
-    phoneNumber: E164PhoneSchema,
-    type: z.enum(['EMAIL', 'PHONE']),
-    otp: z.string().optional(),
-  });
-
-  type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
-
-  const form = useForm<CreateProfileInput>({
-    resolver: zodResolver(
-      showOTP
-        ? CreateProfileSchema.extend({
-            otp: z.string().length(6, { message: 'messages.errors.otp_length' }),
-          })
-        : CreateProfileSchema,
-    ),
+  // Form
+  const form = useForm<RegistrationInput>({
+    resolver: zodResolver(getRegistrationSchema(step === 'VERIFICATION')),
     defaultValues: {
       firstName: '',
       lastName: '',
-      type: 'PHONE',
       email: '',
       phoneNumber: '',
       otp: '',
-      residenceCountyCode: countryCode ?? availableCountries?.[0]?.code ?? '',
     },
     mode: 'onChange',
   });
 
-  // Cooldown timer for resend
+  // Fonction pour extraire le code pays à partir du numéro de téléphone
+  const getCountryCodeFromPhoneNumber = (phoneNumber: string): string => {
+    if (!phoneNumber) return 'FR';
+
+    const match = phoneNumber.match(/^\+(\d{1,4})/);
+    if (!match) return 'FR';
+
+    const callingCode = `+${match[1]}`;
+    const country = phoneCountries.find((c) => c.value === callingCode);
+    return country?.countryCode || 'FR';
+  };
+
+  // Cooldown effect
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
     if (resendCooldown > 0) {
@@ -104,28 +101,92 @@ export function NewProfileForm({
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  // Surveiller le statut du signUp
+  // Error handling effect
   React.useEffect(() => {
-    if (signUp?.status === 'complete' && showOTP) {
-      // Si la vérification est complète, procéder automatiquement
-      const data = form.getValues();
-      createUserInDatabase(data)
-        .then(() => {
-          setActive?.({ session: signUp.createdSessionId }).then(() => {
+    if (error) {
+      if (step === 'FORM') {
+        // Set general form error or field-specific errors
+        toast({
+          title: tAuth('errors.error_title'),
+          description: error,
+          variant: 'destructive',
+        });
+      } else {
+        form.setError('otp', { message: error });
+      }
+    }
+  }, [error, step, form, toast, tAuth]);
+
+  // Gérer la création d'utilisateur après vérification complète
+  React.useEffect(() => {
+    if (signUp?.status === 'complete' && signUp.createdSessionId) {
+      const createUser = async () => {
+        try {
+          const countryCode = signUp.phoneNumber
+            ? getCountryCodeFromPhoneNumber(signUp.phoneNumber)
+            : 'FR';
+
+          await createUserMutation.mutateAsync({
+            firstName: signUp.firstName || '',
+            lastName: signUp.lastName || '',
+            email: signUp.emailAddress || undefined,
+            phoneNumber: signUp.phoneNumber || undefined,
+            countryCode: countryCode,
+            clerkId: signUp.createdUserId || '',
+          });
+
+          await setActive?.({ session: signUp.createdSessionId });
+          setStep('SUCCESS');
+
+          // Auto-redirect after 3 seconds
+          setTimeout(() => {
             router.push(ROUTES.user.profile_form);
             router.refresh();
+          }, 3000);
+        } catch (error) {
+          console.error("Erreur lors de la création de l'utilisateur:", error);
+          toast({
+            title: tAuth('errors.error_title'),
+            description: tAuth('errors.user_creation_failed'),
+            variant: 'destructive',
           });
-        })
-        .catch((error) => {
-          console.error('Erreur automatique:', error);
-          setError('Erreur lors de la finalisation automatique');
-        });
-    }
-  }, [signUp?.status, showOTP, setActive, router, form]);
+        }
+      };
 
-  const sendOTPCode = async (data: CreateProfileInput) => {
+      createUser();
+    }
+  }, [signUp?.status, signUp?.createdSessionId, setActive, router, createUserMutation, toast, tAuth]);
+
+  // Fonction pour mapper les erreurs Clerk vers les clés de traduction
+  const mapClerkErrorToTranslation = (error: any): string => {
+    const clerkError = error?.errors?.[0];
+    if (!clerkError) return tAuth('errors.validation_error');
+
+    // Mapper les codes d'erreur Clerk vers nos clés de traduction
+    switch (clerkError.code) {
+      case 'form_phone_number_exists':
+        return tAuth('errors.phone_taken');
+      case 'form_email_address_exists':
+        return tAuth('errors.email_taken');
+      case 'form_phone_number_invalid':
+        return tAuth('errors.invalid_phone');
+      case 'form_email_address_invalid':
+        return tAuth('errors.invalid_email');
+      case 'form_password_pwned':
+        return tAuth('errors.password_compromised');
+      case 'form_username_exists':
+        return tAuth('errors.username_taken');
+      default:
+        return (
+          clerkError.longMessage || clerkError.message || tAuth('errors.validation_error')
+        );
+    }
+  };
+
+  // Handlers
+  const handleSendVerification = async (data: RegistrationInput) => {
     if (!signUp) {
-      setError('Inscription non disponible');
+      setError('SignUp not available');
       return;
     }
 
@@ -133,467 +194,350 @@ export function NewProfileForm({
     setError(null);
 
     try {
-      const identifier = data.type === 'EMAIL' ? data.email : data.phoneNumber;
-
-      if (!identifier) {
-        setError('Identifiant requis');
-        return;
-      }
-
-      // Créer le sign-up avec toutes les informations requises
-      if (data.type === 'EMAIL') {
-        await signUp.create({
-          emailAddress: identifier,
-          firstName: data.firstName,
-          lastName: data.lastName,
-        });
-        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      } else {
-        await signUp.create({
-          phoneNumber: identifier,
-          firstName: data.firstName,
-          lastName: data.lastName,
-        });
-        await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
-      }
-
-      setShowOTP(true);
-      setCanResend(false);
-      setResendCooldown(60);
-      toast({ title: tAuth('messages.otp_sent'), variant: 'default' });
-    } catch (error: unknown) {
-      console.error('Erreur envoi OTP:', error);
-      const errorMessage =
-        (error as any)?.errors?.[0]?.longMessage ||
-        (error as any)?.message ||
-        "Erreur lors de l'envoi du code";
-      setError(errorMessage);
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const validateOTPAndCreateProfile = async (data: CreateProfileInput) => {
-    if (!signUp || !setActive) {
-      setError('SignUp or setActive not available');
-      return;
-    }
-
-    // Vérifier si la vérification est déjà complète
-    if (signUp.status === 'complete') {
-      try {
-        // Créer l'utilisateur en base de données
-        await createUserInDatabase(data);
-
-        // Activer la session
-        await setActive({ session: signUp.createdSessionId });
-
-        // Rediriger vers le formulaire de profil
-        router.push(ROUTES.user.profile_form);
-        router.refresh();
-        return;
-      } catch (error) {
-        console.error('Erreur après vérification complète:', error);
-        setError("Erreur lors de la finalisation de l'inscription");
-        return;
-      }
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      let result;
-
-      if (data.type === 'EMAIL') {
-        result = await signUp.attemptEmailAddressVerification({
-          code: data.otp!,
-        });
-      } else {
-        result = await signUp.attemptPhoneNumberVerification({
-          code: data.otp!,
-        });
-      }
-
-      if (result.status === 'complete') {
-        // Créer l'utilisateur en base de données
-        await createUserInDatabase(data);
-
-        // Activer la session
-        await setActive({ session: result.createdSessionId });
-
-        // Rediriger vers le formulaire de profil
-        router.push(ROUTES.user.profile_form);
-        router.refresh();
-      } else {
-        // Gérer les autres statuts possibles
-        if (result.status === 'missing_requirements') {
-          // Essayer de compléter les informations manquantes
-          try {
-            await signUp.update({
-              firstName: data.firstName,
-              lastName: data.lastName,
-            });
-            // Réessayer la vérification
-            if (data.type === 'EMAIL') {
-              await signUp.attemptEmailAddressVerification({ code: data.otp! });
-            } else {
-              await signUp.attemptPhoneNumberVerification({ code: data.otp! });
-            }
-          } catch (updateError) {
-            console.error('Erreur mise à jour signup:', updateError);
-            setError('messages.errors.missing_requirements');
-          }
-        } else if (result.status === 'abandoned') {
-          setError('messages.errors.signup_abandoned');
-        } else {
-          setError('messages.errors.verification_in_progress');
-        }
-        return;
-      }
-    } catch (error: unknown) {
-      console.error('Erreur validation OTP:', error);
-
-      // Gérer les erreurs spécifiques de Clerk
-      if ((error as any)?.errors?.[0]) {
-        const clerkError = (error as any).errors[0];
-
-        // Mapper les codes d'erreur Clerk vers nos messages
-        switch (clerkError.code) {
-          case 'form_code_incorrect':
-            setError('messages.errors.invalid_code');
-            break;
-          case 'form_code_expired':
-            setError('messages.errors.code_expired');
-            break;
-          case 'form_code_max_attempts_reached':
-            setError('messages.errors.too_many_attempts');
-            break;
-          default:
-            setError(
-              clerkError.longMessage ||
-                clerkError.message ||
-                'messages.errors.validation_error',
-            );
-        }
-      } else {
-        setError((error as any)?.message || 'messages.errors.validation_error');
-      }
-
-      form.setValue('otp', '');
-      toast({
-        title: 'Erreur de validation',
-        description: 'Veuillez vérifier votre code et réessayer',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const createUserInDatabase = async (data: CreateProfileInput) => {
-    try {
-      await createUserMutation.mutateAsync({
+      // Créer le sign-up avec les données du formulaire
+      await signUp.create({
         firstName: data.firstName,
         lastName: data.lastName,
-        email: data.email,
+        emailAddress: data.email,
         phoneNumber: data.phoneNumber,
-        countryCode: data.residenceCountyCode,
       });
-    } catch (error) {
-      console.error('Erreur création utilisateur:', error);
-      throw error;
+
+      // Préparer la vérification par téléphone uniquement
+      await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
+
+      setStep('VERIFICATION');
+      setCanResend(false);
+      setResendCooldown(60);
+      toast({
+        title: 'Code envoyé',
+        description: tAuth('messages.otp_sent'),
+      });
+    } catch (error: unknown) {
+      const errorMessage = mapClerkErrorToTranslation(error);
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleValidateOTP = async (otp: string) => {
+    if (!signUp) {
+      setError('SignUp not available');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Vérifier le code OTP par téléphone uniquement
+      const result = await signUp.attemptPhoneNumberVerification({
+        code: otp,
+      });
+
+      if (result?.status === 'complete') {
+        toast({
+          title: tAuth('messages.login_success'),
+          description: 'Vérification réussie!',
+        });
+      } else {
+        throw new Error('Validation incomplète');
+      }
+    } catch (error: unknown) {
+      const clerkError = (error as any)?.errors?.[0];
+      let errorMessage = tAuth('errors.validation_error');
+
+      // Mapper les erreurs de vérification OTP
+      if (clerkError) {
+        switch (clerkError.code) {
+          case 'form_code_incorrect':
+            errorMessage = tAuth('errors.invalid_code');
+            break;
+          case 'form_code_expired':
+            errorMessage = tAuth('errors.code_expired');
+            break;
+          case 'form_code_max_attempts_reached':
+            errorMessage = tAuth('errors.too_many_attempts');
+            break;
+          default:
+            errorMessage =
+              clerkError.longMessage ||
+              clerkError.message ||
+              tAuth('errors.validation_error');
+        }
+      }
+
+      setError(errorMessage);
+      form.setValue('otp', '');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleResendOTP = async () => {
     if (!canResend || !signUp) return;
 
-    const data = form.getValues();
     setIsLoading(true);
     setError(null);
 
     try {
-      // Vérifier le statut avant de renvoyer
-      if (signUp.status === 'complete') {
-        setError('La vérification est déjà complète');
-        return;
-      }
-
-      if (data.type === 'EMAIL') {
-        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      } else {
-        await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
-      }
+      // Renvoyer le code OTP par téléphone uniquement
+      await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
 
       setCanResend(false);
       setResendCooldown(60);
-      toast({ title: tAuth('messages.otp_sent'), variant: 'default' });
+      toast({
+        title: 'Code renvoyé',
+        description: tAuth('messages.otp_sent'),
+      });
     } catch (error: unknown) {
-      const errorMessage =
-        (error as any)?.errors?.[0]?.longMessage ||
-        (error as any)?.message ||
-        'Erreur lors du renvoi';
+      const errorMessage = mapClerkErrorToTranslation(error);
       setError(errorMessage);
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const onFinalSubmit = async (data: CreateProfileInput) => {
-    if (!showOTP) {
-      // Send OTP
-      await sendOTPCode(data);
-    } else {
-      // Validate OTP and create profile
-      await validateOTPAndCreateProfile(data);
-    }
-  };
-
-  const goBack = () => {
-    setShowOTP(false);
+  const handleGoBack = () => {
+    setStep('FORM');
     setError(null);
     form.clearErrors();
   };
 
-  // Display errors in the form
-  React.useEffect(() => {
-    if (error) {
-      if (!showOTP) {
-        // Error when sending OTP
-        const fieldName = form.watch('type') === 'EMAIL' ? 'email' : 'phoneNumber';
-        form.setError(fieldName, { message: error });
-      } else if (showOTP) {
-        // Error when validating OTP
-        form.setError('otp', { message: error });
-      }
+  const onSubmit = async (data: RegistrationInput) => {
+    if (step === 'FORM') {
+      await handleSendVerification(data);
+    } else if (step === 'VERIFICATION' && data.otp) {
+      await handleValidateOTP(data.otp);
     }
-  }, [error, showOTP, form]);
+  };
+
+  // Gérer l'état de chargement
+  if (!isLoaded) {
+    return (
+      <div className="w-full flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onFinalSubmit)}
-        className={'w-full flex flex-col gap-6'}
-      >
-        <div className="grid gap-4 lg:grid-cols-2">
-          {!showOTP && (
-            <>
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem className="lg:col-span-1">
-                    <FormLabel>{t('firstName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder={t('firstName.placeholder')}
-                        {...field}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
+          {step === 'SUCCESS' && (
+            <div className="success-state space-y-6 text-center">
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800">
+                    Compte créé avec succès!
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Redirection vers votre espace...
+                  </p>
+                </div>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem className="lg:col-span-1">
-                    <FormLabel>{t('lastName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder={t('lastName.placeholder')}
-                        {...field}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  size="mobile"
+                  weight="medium"
+                  fullWidthOnMobile={true}
+                  variant="default"
+                  leftIcon={<CheckCircle2 className="size-4" />}
+                  rightIcon={<ArrowRight className="size-4" />}
+                  onClick={() => router.push(ROUTES.user.profile_form)}
+                >
+                  Accéder à mon espace
+                </Button>
 
-              <FormField
-                control={form.control}
-                name="residenceCountyCode"
-                render={({ field }) => (
-                  <FormItem className="lg:col-span-full">
-                    <FormLabel>{t('residenceCounty.label')}</FormLabel>
-                    <FormControl>
-                      <CountrySelect
-                        type="single"
-                        selected={field.value as CountryCode}
-                        onChange={(value) => field.onChange(value)}
-                        options={
-                          countryCode
-                            ? [countryCode]
-                            : availableCountries?.map((item) => item.code as CountryCode)
-                        }
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('email.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder={t('email.placeholder')}
-                        {...field}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>{t('phone.label')}</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        value={field.value}
-                        onChange={field.onChange}
-                        disabled={isLoading}
-                        placeholder={t('phone.placeholder')}
-                        defaultCountry={countryCode as any}
-                        countries={availableCountries?.map(
-                          (country) => country.code as any,
-                        )}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
+                <p className="text-xs text-muted-foreground">
+                  Redirection automatique dans quelques secondes...
+                </p>
+              </div>
+            </div>
           )}
-          {showOTP && (
-            <div className="otp lg:col-span-2">
+
+          {step === 'FORM' && (
+            <div className="form-fields space-y-6">
+              <div className="text-center space-y-2">
+                <h1 className="text-2xl font-bold">{t('newProfile.title')}</h1>
+                <p className="text-muted-foreground">{t('newProfile.description')}</p>
+              </div>
+
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('firstName.label')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder={t('firstName.placeholder')}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('lastName.label')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder={t('lastName.placeholder')}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('email.label')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder={t('email.placeholder')}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('phone.label')}</FormLabel>
+                      <FormControl>
+                        <PhoneInput
+                          value={field.value}
+                          onChange={field.onChange}
+                          disabled={isLoading}
+                          placeholder={t('phone.placeholder')}
+                          countries={availableCountries?.map((country) => country.code as any)}
+                          defaultCountry={availableCountries?.[0]?.code as any}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 'VERIFICATION' && (
+            <div className="otp space-y-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold">Vérifiez votre téléphone</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Nous avons envoyé un code de vérification par SMS à votre numéro de téléphone
+                </p>
+              </div>
+
               <FormField
                 control={form.control}
                 name="otp"
                 render={({ field }) => (
                   <FormItem className="space-y-4">
-                    <FormLabel className="text-xl font-semibold">
-                      {t('otp.label')}
-                    </FormLabel>
                     <FormControl>
-                      <InputOTP
-                        maxLength={6}
-                        {...field}
-                        autoComplete="one-time-code"
-                        disabled={isLoading}
-                        autoFocus
-                      >
-                        <InputOTPGroup>
-                          <InputOTPSlot className="w-12" index={0} />
-                          <InputOTPSlot className="w-12" index={1} />
-                          <InputOTPSlot className="w-12" index={2} />
-                          <InputOTPSlot className="w-12" index={3} />
-                          <InputOTPSlot className="w-12" index={4} />
-                          <InputOTPSlot className="w-12" index={5} />
-                        </InputOTPGroup>
-                      </InputOTP>
+                      <div className="flex justify-center">
+                        <InputOTP
+                          autoFocus
+                          maxLength={6}
+                          {...field}
+                          autoComplete="one-time-code"
+                          disabled={isLoading}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot className="w-12 h-12" index={0} />
+                            <InputOTPSlot className="w-12 h-12" index={1} />
+                            <InputOTPSlot className="w-12 h-12" index={2} />
+                            <InputOTPSlot className="w-12 h-12" index={3} />
+                            <InputOTPSlot className="w-12 h-12" index={4} />
+                            <InputOTPSlot className="w-12 h-12" index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
                     </FormControl>
-                    <FormDescription>
-                      {form.watch('type') === 'PHONE'
-                        ? t('otp.phone_description')
-                        : t('otp.email_description')}
-                    </FormDescription>
                     <TradFormMessage />
                   </FormItem>
                 )}
               />
             </div>
           )}
-        </div>
 
-        <div className="actions flex flex-col gap-4">
-          <Button
-            variant="default"
-            type="submit"
-            disabled={isLoading || !form.formState.isValid}
-          >
-            <span>
-              {showOTP
-                ? 'Continuer mon inscription'
-                : "Recevoir un code d'accès" +
-                  (form.watch('type') === 'EMAIL' ? ' par email' : ' par SMS')}
-            </span>
-            {!isLoading && <ArrowRight className="size-icon" />}
-            {isLoading && <Loader2 className="size-icon animate-spin" />}
-          </Button>
+          {(step === 'FORM' || step === 'VERIFICATION') && (
+            <div className="actions flex flex-col gap-4">
+              <Button
+                variant="default"
+                type="submit"
+                disabled={isLoading || !form.formState.isValid}
+                size="mobile"
+                weight="medium"
+                fullWidthOnMobile={true}
+                loading={isLoading}
+                rightIcon={!isLoading ? <ArrowRight className="size-4" /> : undefined}
+              >
+                {step === 'VERIFICATION' ? 'Vérifier' : 'Créer mon compte'}
+              </Button>
 
-          {showOTP && (
-            <div className="flex justify-between items-center">
-              <Button
-                type="button"
-                variant="link"
-                className="text-muted-foreground p-0"
-                disabled={isLoading}
-                onClick={goBack}
-              >
-                <ArrowLeft className="size-icon" />
-                {'Retour'}
-              </Button>
-              <Button
-                variant="link"
-                className="text-muted-foreground p-0"
-                disabled={!canResend || isLoading}
-                onClick={handleResendOTP}
-              >
-                {'Renvoyer le code'}
-                {resendCooldown > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    {tAuth('resend_cooldown', { cooldown: resendCooldown })}
-                  </span>
-                )}
-              </Button>
+              {step === 'VERIFICATION' && (
+                <div className="flex justify-between items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isLoading}
+                    onClick={handleGoBack}
+                    leftIcon={<ArrowLeft className="size-4" />}
+                    className="flex-shrink-0"
+                  >
+                    Retour
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!canResend || isLoading}
+                    onClick={handleResendOTP}
+                    className="flex-shrink-0"
+                  >
+                    Renvoyer le code
+                    {resendCooldown > 0 && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({resendCooldown}s)
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
-          {!showOTP && (
-            <Button
-              type="button"
-              variant="link"
-              disabled={isLoading}
-              onClick={() => {
-                form.setValue('type', form.watch('type') === 'EMAIL' ? 'PHONE' : 'EMAIL');
-              }}
-            >
-              <span className="text-muted-foreground">
-                {form.watch('type') === 'EMAIL'
-                  ? "Recevoir un code d'accès par téléphone"
-                  : "Recevoir un code d'accès par email"}
-              </span>
-            </Button>
-          )}
-        </div>
-
-        <div className="subactions flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            <span>Vous avez déjà une demande en cours ?</span>
-            <Link
-              className={buttonVariants({ variant: 'link' }) + ' !p-0 !px-1 h-min'}
-              href={`${ROUTES.auth.login}?callbackUrl=${ROUTES.registration}`}
-            >
-              {'Continuer mon inscription'}
-            </Link>
-          </p>
         </div>
       </form>
     </Form>

@@ -71,3 +71,13 @@ export const AdminSettingsSchema = UserSettingsSchema.extend({
 });
 
 export type AdminSettings = z.infer<typeof AdminSettingsSchema>;
+
+export const RegistrationSchema = z.object({
+  firstName: NameSchema,
+  lastName: NameSchema,
+  email: EmailSchema,
+  phoneNumber: E164PhoneSchema,
+  otp: z.string().optional(),
+});
+
+export type RegistrationInput = z.infer<typeof RegistrationSchema>;

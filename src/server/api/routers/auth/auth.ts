@@ -12,6 +12,7 @@ const CreateUserSchema = z.object({
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
   countryCode: z.string().min(1, 'Code pays requis'),
+  clerkId: z.string().min(1, 'Clerk ID requis'),
 });
 
 export const authRouter = createTRPCRouter({
@@ -66,7 +67,7 @@ export const authRouter = createTRPCRouter({
         // Créer l'utilisateur
         const newUser = await tx.user.create({
           data: {
-            clerkId: ctx.auth.id,
+            clerkId: input.clerkId,
             email: input.email || null,
             phoneNumber: input.phoneNumber || null,
             name: `${input.firstName} ${input.lastName}`,
