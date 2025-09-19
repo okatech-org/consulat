@@ -17,6 +17,9 @@ export const ROUTES = {
     networks: '/intel/networks' as Route<string>,
     projects: '/intel/projects' as Route<string>,
     associations: '/intel/associations' as Route<string>,
+    maps: {
+      associations: '/intel/maps/associations' as Route<string>,
+    },
   },
   api: {
     base: '/api' as Route<string>,

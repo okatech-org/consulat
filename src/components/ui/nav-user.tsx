@@ -21,10 +21,9 @@ import {
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { ROUTES } from '@/schemas/routes';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { UserRole } from '@prisma/client';
 import { LogoutButton } from './logout-button';
+import { getDashboardUrl } from '@/lib/utils';
 
 export function NavUser() {
   const { user } = useCurrentUser();
@@ -40,27 +39,6 @@ export function NavUser() {
     .map((name) => name[0])
     .join('. ');
   const name = user.name?.split(' ').slice(1).join(' ').trim();
-
-  const dashboardUrl: Record<UserRole, string> = {
-    [UserRole.ADMIN]: ROUTES.dashboard.base,
-    [UserRole.AGENT]: ROUTES.dashboard.base,
-    [UserRole.MANAGER]: ROUTES.dashboard.base,
-    [UserRole.SUPER_ADMIN]: ROUTES.dashboard.base,
-    [UserRole.INTEL_AGENT]: ROUTES.intel.base,
-    [UserRole.USER]: ROUTES.user.base,
-    [UserRole.EDUCATION_AGENT]: ROUTES.dashboard.base,
-  };
-
-  function getDashboardUrl() {
-    if (!user) {
-      return ROUTES.user.base;
-    }
-    if (!user?.roles) {
-      return ROUTES.user.base;
-    }
-
-    return dashboardUrl[user?.roles[0] as UserRole];
-  }
 
   return (
     <SidebarMenu>
@@ -120,7 +98,7 @@ export function NavUser() {
                   className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   asChild
                 >
-                  <Link href={getDashboardUrl()}>
+                  <Link href={getDashboardUrl(user)}>
                     <HomeIcon className="size-icon" />
                     {t('navigation.my_space')}
                   </Link>

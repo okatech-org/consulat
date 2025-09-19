@@ -16,12 +16,15 @@ import { useDashboard } from '@/hooks/use-dashboard';
 
 export default function AgentDashboard() {
   const { user } = useCurrentUser();
+  if (!user) {
+    return null;
+  }
   const t = useTranslations('agent.dashboard');
   const t_common = useTranslations('common');
   const { data: agentStats } = useDashboard<AgentStats>();
 
   // Fetch agent's assigned requests
-  const assignedRequests = agentStats.recentRequests || [];
+  const assignedRequests = agentStats?.recentRequests || [];
 
   // Count requests by status
   const pendingRequests = assignedRequests.filter((req) =>
@@ -47,7 +50,7 @@ export default function AgentDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t('stats.appointments')}
-          value={agentStats.stats.upcomingAppointments}
+          value={agentStats?.stats.upcomingAppointments}
           description={t('stats.appointments_description')}
           icon={Calendar}
           className="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/30 shadow-sm"
@@ -71,7 +74,7 @@ export default function AgentDashboard() {
         />
         <StatsCard
           title={t('stats.completed')}
-          value={agentStats.stats.completedRequests}
+          value={agentStats?.stats.completedRequests}
           description={t('stats.completed_description')}
           icon={CheckCircle}
           className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800/30 shadow-sm"
@@ -103,7 +106,7 @@ export default function AgentDashboard() {
             </Button>
           }
         >
-          {assignedRequests.length > 0 ? (
+          {assignedRequests?.length > 0 ? (
             <div className="space-y-4">
               {assignedRequests.slice(0, 5).map((request) => (
                 <div
@@ -170,7 +173,7 @@ export default function AgentDashboard() {
             </Button>
           }
         >
-          {agentStats.appointments.upcoming.length > 0 ? (
+          {agentStats?.appointments.upcoming.length > 0 ? (
             <div className="space-y-4">
               {agentStats.appointments.upcoming.slice(0, 5).map((appointment) => (
                 <div

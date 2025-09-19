@@ -5,8 +5,6 @@ import { api } from '@/trpc/react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import { usePrefetchIntelData, usePrefetchPage } from '@/hooks/use-prefetch-intel';
-import { useToast } from '@/hooks/use-toast';
-import { ToastContainer } from '@/components/ui/toast-notification';
 import DashboardCompactMap from '@/components/intelligence/dashboard-compact-map';
 import MiniMapWidget from '@/components/intelligence/mini-map-widget';
 import { RealTimeStatusWidget } from '@/components/intelligence/realtime-status-widget';
@@ -24,6 +22,8 @@ import {
   Clipboard,
   Lock,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { ROUTES } from '@/schemas/routes';
 
 // Fonction utilitaire pour formater les nombres de manière cohérente
 const formatNumber = (num: number): string => {
@@ -39,14 +39,9 @@ export default function IntelAgentDashboardContent() {
   usePrefetchIntelData();
 
   const { prefetch: prefetchProfiles } = usePrefetchPage('profiles');
-  const { prefetch: prefetchNotes } = usePrefetchPage('notes');
-  const { prefetch: prefetchCarte } = usePrefetchPage('carte');
   const { prefetch: prefetchAssociations } = usePrefetchPage('associations');
   const { prefetch: prefetchCompetences } = usePrefetchPage('competences');
   const { prefetch: prefetchAnalytics } = usePrefetchPage('analytics');
-
-  const { toasts, removeToast, success, error } = useToast();
-  const { user: currentUserData } = useCurrentUser();
 
   const { data: dashboardStats } = useIntelligenceDashboardStats('month');
 
@@ -85,29 +80,33 @@ export default function IntelAgentDashboardContent() {
       switch (index) {
         case 0: // Profils
           await prefetchProfiles();
-          router.push('/dashboard/profiles');
+          router.push(ROUTES.dashboard.profiles);
           break;
         case 1: // Carte des Associations
           await prefetchAssociations();
-          router.push('/dashboard/maps/associations');
+          router.push(ROUTES.intel.maps.associations);
           break;
         case 2: // Annuaire Compétences
           await prefetchCompetences();
-          router.push('/dashboard/competences');
+          router.push(ROUTES.intel.competences);
           break;
         case 3: // Analyses Avancées
           await prefetchAnalytics();
-          router.push('/dashboard/analytics');
+          router.push(ROUTES.intel.analytics);
           break;
         default:
           if (path) {
             router.push(path);
           } else {
-            success(`Action: ${title}`, 'Action exécutée avec succès');
+            toast.success(`Action: ${title}`, {
+              description: 'Action exécutée avec succès',
+            });
           }
       }
-    } catch (err) {
-      error('Erreur', "Impossible d'exécuter l'action");
+    } catch (error) {
+      toast.error("Erreur: Impossible d'exécuter l'action ", {
+        description: "Erreur: Impossible d'exécuter l'action",
+      });
     } finally {
       setTimeout(() => {
         setIsNavigating(false);
@@ -115,8 +114,6 @@ export default function IntelAgentDashboardContent() {
       }, 1000);
     }
   };
-
-  const currentUser = currentUserData || { name: 'Agent Intelligence', id: 'default' };
 
   const stats = {
     profiles: dashboardStats?.totalProfiles || 2226,
@@ -435,9 +432,6 @@ export default function IntelAgentDashboardContent() {
             />
           </div>
         </div>
-
-        {/* Toast notifications */}
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
       </div>
     </>
   );
