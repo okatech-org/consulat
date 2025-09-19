@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Info, ArrowRight } from 'lucide-react';
 import { UserDocument } from '../documents/user-document';
 import { type AppUserDocument } from '@/types/profile';
-import { PhoneNumberInput } from '../ui/phone-number';
+import { PhoneInput } from '../ui/phone-input';
 import { Textarea } from '../ui/textarea';
 import { MultiSelect } from '../ui/multi-select';
 import { type ServiceForm } from '@/hooks/use-service-form';
@@ -214,10 +214,7 @@ function getFieldComponent(
       );
     case 'phone':
       return (
-        <PhoneNumberInput
-          onChangeAction={formField.onChange}
-          value={formField.value as string}
-        />
+        <PhoneInput value={formField.value as string} onChange={formField.onChange} />
       );
     case 'select':
       return (

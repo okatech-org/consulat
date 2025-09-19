@@ -37,7 +37,7 @@ export const agentsRouter = createTRPCRouter({
 
     // Filtres par défaut selon le rôle
     if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
-      where.managedByUserId = ctx.user.id;
+      where.managedByUserId = ctx.auth.userId;
     }
 
     if (managedByUserId?.length) {
@@ -432,7 +432,7 @@ export const agentsRouter = createTRPCRouter({
           data: {
             type: RequestActionType.ASSIGNMENT,
             requestId,
-            userId: ctx.auth.userId,
+            userId: ctx.auth.userId ?? '',
             data: {
               previousStatus: request.status,
               newStatus: 'PENDING',
@@ -552,7 +552,7 @@ export const agentsRouter = createTRPCRouter({
           data: {
             type: RequestActionType.ASSIGNMENT,
             requestId,
-            userId: ctx.auth.userId,
+            userId: ctx.auth.userId ?? '',
             data: {
               previousAgentId: fromAgentId,
               newAgentId: toAgentId,

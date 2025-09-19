@@ -28,13 +28,13 @@ import { getCurrentUser } from '@/lib/auth/utils';
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const { sessionId, getToken } = await auth();
+  const { sessionId, getToken, userId } = await auth();
   const user = await getCurrentUser();
 
   return {
     db,
     auth: {
-      ...user,
+      userId,
       sessionId,
       getToken,
     },
@@ -127,13 +127,13 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (!ctx.auth?.id || !ctx.user) {
+    if (!ctx.auth?.userId || !ctx.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
     return next({
       ctx: {
         // infers the `auth` and `user` as non-nullable
-        auth: { ...ctx.auth, userId: ctx.auth.id },
+        auth: ctx.auth,
         user: ctx.user,
       },
     });
