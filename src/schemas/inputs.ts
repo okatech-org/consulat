@@ -64,7 +64,7 @@ export const DocumentFileSchema = z
   );
 
 export const GenderSchema = z.nativeEnum(Gender, {
-  required_error: 'messages.errors.field_required',
+  error: 'messages.errors.field_required',
 });
 
 export const PictureFileSchema = DocumentFileSchema;
@@ -79,7 +79,7 @@ export const CountryCodeSchema = z
 
 export const CountryIndicatorSchema = z
   .string({
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
   })
   .refine((val) => countryIndicators.includes(val as CountryIndicator), {
     message: 'messages.errors.invalid_country_indicator',
@@ -87,8 +87,8 @@ export const CountryIndicatorSchema = z
 
 export const EmailSchema = z
   .string({
+    error: 'messages.errors.field_required',
     invalid_type_error: 'messages.errors.invalid_email',
-    required_error: 'messages.errors.field_required',
   })
   .email('messages.errors.invalid_email')
   .max(VALIDATION_RULES.EMAIL_MAX_LENGTH, 'messages.errors.email_too_long');
@@ -96,7 +96,7 @@ export const EmailSchema = z
 export const AddressSchema = z.object({
   firstLine: z
     .string({
-      required_error: 'messages.errors.field_required',
+      error: 'messages.errors.field_required',
       invalid_type_error: 'messages.errors.invalid_field',
     })
     .min(1, 'messages.errors.field_required')
@@ -104,6 +104,7 @@ export const AddressSchema = z.object({
 
   secondLine: z
     .string({
+      error: 'messages.errors.field_required',
       invalid_type_error: 'messages.errors.invalid_field',
     })
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH)
@@ -112,13 +113,14 @@ export const AddressSchema = z.object({
 
   city: z
     .string({
-      required_error: 'messages.errors.field_required',
+      error: 'messages.errors.field_required',
       invalid_type_error: 'messages.errors.invalid_field',
     })
     .min(1, 'messages.errors.field_required'),
 
   zipCode: z
     .string({
+      error: 'messages.errors.field_required',
       invalid_type_error: 'messages.errors.invalid_field',
     })
     .nullable()
@@ -154,19 +156,17 @@ export const BasicAddressSchema = z.object({
   country: z.string().optional(),
 });
 
-// Schéma pour le format legacy avec tiret (+33-612250393)
-export const PhoneNumberSchema = z
-  .string({ required_error: 'messages.errors.field_required' })
-  .regex(/^\+?[1-9][0-9]{7,14}$/, 'messages.errors.invalid_phone_number');
-
 // Schéma pour le format Clerk sans tiret (+33612250393)
 export const PhoneSchema = z
-  .string({ required_error: 'messages.errors.field_required' })
+  .string({ error: 'messages.errors.field_required' })
   .regex(VALIDATION_RULES.PHONE_REGEX, 'messages.errors.invalid_phone');
+
+// Schéma pour le format legacy avec tiret (+33-612250393)
+export const PhoneNumberSchema = PhoneSchema;
 
 // Schéma pour react-phone-number-input (format E.164)
 export const E164PhoneSchema = z
-  .string({ required_error: 'messages.errors.field_required' })
+  .string({ error: 'messages.errors.field_required' })
   .refine(
     (value) => {
       // Format E.164: +33612250393
@@ -178,21 +178,21 @@ export const E164PhoneSchema = z
 
 export const PhoneValueSchema = z.object({
   number: z
-    .string({ required_error: 'messages.errors.field_required' })
+    .string({ error: 'messages.errors.field_required' })
     .regex(/^[0-9]{9,10}$/, 'messages.errors.invalid_phone_number'),
   countryCode: CountryIndicatorSchema,
 });
 
 export const NameSchema = z
   .string({
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
   })
   .min(2, 'messages.errors.field_too_short')
   .max(50, 'messages.errors.field_too_long');
 
 export const DateSchema = z
   .string({
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
     invalid_type_error: 'messages.errors.invalid_date',
   })
   .min(1, 'messages.errors.field_required');
@@ -218,7 +218,7 @@ export const EmergencyContactSchema = z.object({
   firstName: NameSchema,
   lastName: NameSchema,
   relationship: z.nativeEnum(FamilyLink, {
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
   }),
   email: EmailSchema.nullable().optional(),
   phoneNumber: PhoneNumberSchema.nullable(),
@@ -229,19 +229,19 @@ export type AddressInput = z.infer<typeof AddressSchema>;
 
 export const UserDocumentSchema = z.object({
   id: z.string({
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
     invalid_type_error: 'messages.errors.invalid_field',
   }),
   type: z.nativeEnum(DocumentType, {
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
     invalid_type_error: 'messages.errors.invalid_field',
   }),
   status: z.nativeEnum(DocumentStatus, {
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
     invalid_type_error: 'messages.errors.invalid_field',
   }),
   fileUrl: z.string({
-    required_error: 'messages.errors.field_required',
+    error: 'messages.errors.field_required',
     invalid_type_error: 'messages.errors.invalid_field',
   }),
   issuedAt: DateSchema.nullable().optional(),

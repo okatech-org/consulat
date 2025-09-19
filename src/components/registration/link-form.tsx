@@ -17,10 +17,10 @@ import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
-import { LinkFormData } from '@/schemas/child-registration';
+import { type LinkFormData } from '@/schemas/child-registration';
 import { Separator } from '../ui/separator';
 import { CardTitle } from '../ui/card';
-import { PhoneNumberInput } from '../ui/phone-number';
+import { PhoneInput } from '../ui/phone-input';
 
 interface LinkFormProps {
   form: UseFormReturn<LinkFormData>;
@@ -136,9 +136,9 @@ export function LinkForm({ form, onSubmit, isLoading = false }: LinkFormProps) {
                   <FormItem className="sm:col-span-1">
                     <FormLabel>{tBase('inputs.phone.label')}</FormLabel>
                     <FormControl>
-                      <PhoneNumberInput
-                        value={field.value ?? '+33-'}
-                        onChangeAction={field.onChange}
+                      <PhoneInput
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
                         disabled={isLoading}
                       />
                     </FormControl>
