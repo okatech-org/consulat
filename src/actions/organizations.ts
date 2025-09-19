@@ -15,6 +15,7 @@ import {
   UserRole,
   Prisma,
   type User,
+  type PrismaClient,
 } from '@prisma/client';
 
 import type { AgentFormData } from '@/schemas/user';
@@ -34,9 +35,11 @@ import {
   type BaseAgent,
   BaseAgentInclude,
   FullAgentInclude,
+  type FullAgent,
   type AgentWithIncludes,
   createAgentInclude,
 } from '@/types/organization';
+import { createClerkClient } from '@clerk/nextjs/server';
 
 export async function getOrganizations(
   organizationId?: string,
@@ -84,7 +87,6 @@ export async function createOrganization(data: CreateOrganizationInput) {
         data: {
           email: data.adminEmail,
           roles: [UserRole.ADMIN],
-          role: UserRole.ADMIN,
           managedOrganization: {
             connect: { id: organization.id },
           },
@@ -269,60 +271,67 @@ export async function getAvailableServiceCategories(
   return categories.map(({ category }) => category);
 }
 
-export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
+// Helper function to validate environment variables
+function validateClerkEnvironment(): string {
+  const clerkSecretKey = process.env.CLERK_SECRET_KEY;
+  if (!clerkSecretKey) {
+    throw new Error('CLERK_SECRET_KEY environment variable is required');
+  }
+  return clerkSecretKey;
+}
+
+// Helper function to create Clerk user
+async function createClerkUser(
+  firstName: string,
+  lastName: string,
+  email?: string,
+  phoneNumber?: string,
+  roles?: UserRole[],
+  agentId?: string,
+  assignedOrganizationId?: string,
+  managedByUserId?: string,
+  managedAgentIds?: string[],
+) {
+  const clerkSecretKey = validateClerkEnvironment();
+  const clerkClient = createClerkClient({ secretKey: clerkSecretKey });
+
+  const clerkUser = await clerkClient.users.createUser({
+    firstName,
+    lastName,
+    emailAddress: email ? [email] : undefined,
+    phoneNumber: phoneNumber ? [phoneNumber] : undefined,
+  });
+
+  await clerkClient.users.updateUserMetadata(clerkUser.id, {
+    publicMetadata: {
+      userId: agentId,
+      roles,
+      assignedOrganizationId,
+      managedByUserId,
+      managedAgentIds,
+    },
+  });
+
+  return clerkUser;
+}
+
+// Helper function to send welcome notification
+async function sendAgentWelcomeNotification(
+  agent: FullAgent,
+  currentUser: User,
+  serviceIds: string[],
+) {
   const baseUrl = env.NEXT_PUBLIC_URL;
   const t = await getTranslations('agent.notifications');
 
-  const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-
-  const {
-    countryIds,
-    serviceIds,
-    firstName,
-    lastName,
-    role,
-    managedByUserId,
-    managedAgentIds,
-    ...rest
-  } = data;
-
-  const agent = await db.user.create({
-    data: {
-      ...rest,
-      name: `${firstName} ${lastName}`,
-      roles: [role || UserRole.AGENT],
-      role: role || UserRole.AGENT,
-      ...(managedByUserId && { managedByUserId }),
-      linkedCountries: {
-        connect: countryIds.map((id) => ({ id })),
-      },
-      ...(serviceIds[0] && {
-        assignedServices: {
-          connect: serviceIds.map((id) => ({ id })),
-        },
-      }),
-    },
-    ...FullAgentInclude,
-  });
-
-  // If creating a manager, assign the agents to them
-  if (role === UserRole.MANAGER && managedAgentIds && managedAgentIds.length > 0) {
-    await db.user.updateMany({
-      where: {
-        id: { in: managedAgentIds },
-      },
-      data: {
-        managedByUserId: agent.id,
-      },
-    });
-  }
+  const organizationName = agent.assignedOrganization?.name ?? 'N/A';
 
   await notify({
     userId: agent.id,
-    type: 'FEEDBACK', // Utiliser un type existant approprié
+    type: 'FEEDBACK',
     title: t('welcome.title'),
     message: t('welcome.message', {
-      organization: agent.assignedOrganization?.name ?? 'N/A',
+      organization: organizationName,
     }),
     channels: [NotificationChannel.APP, NotificationChannel.EMAIL],
     email: agent.email || undefined,
@@ -335,14 +344,185 @@ export async function createNewAgent(data: AgentFormData): Promise<BaseAgent> {
       },
     ],
     metadata: {
-      createdBy: currentUser?.id,
-      createdByName: `${currentUser?.name || ''}`.trim(),
+      createdBy: currentUser.id,
+      createdByName: currentUser.name?.trim() || '',
       assignedServices: serviceIds,
-      organization: agent.assignedOrganization?.name ?? 'N/A',
+      organization: organizationName,
     },
   });
+}
 
-  return agent;
+// Helper function to assign agents to manager
+async function assignAgentsToManager(
+  tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>,
+  managerId: string,
+  agentIds: string[]
+) {
+  if (agentIds.length === 0) return;
+
+  await tx.user.updateMany({
+    where: {
+      id: { in: agentIds },
+    },
+    data: {
+      managedByUserId: managerId,
+    },
+  });
+}
+
+// Helper function to cleanup Clerk user if needed
+async function cleanupClerkUser(clerkUserId: string) {
+  try {
+    const clerkSecretKey = validateClerkEnvironment();
+    const clerkClient = createClerkClient({ secretKey: clerkSecretKey });
+    await clerkClient.users.deleteUser(clerkUserId);
+  } catch (error) {
+    console.error('Failed to cleanup Clerk user:', error);
+  }
+}
+
+export async function createNewAgent(data: AgentFormData): Promise<FullAgent> {
+  // Validate required data
+  if (!data.firstName?.trim() || !data.lastName?.trim()) {
+    throw new Error('First name and last name are required');
+  }
+
+  if (!data.email?.trim() && !data.phoneNumber?.trim()) {
+    throw new Error('Either email or phone number is required');
+  }
+
+  const { user: currentUser } = await checkAuth([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
+
+  if (!currentUser?.id) {
+    throw new Error('Current user not found');
+  }
+
+  const {
+    countryIds,
+    serviceIds,
+    firstName,
+    lastName,
+    roles,
+    managedByUserId,
+    managedAgentIds,
+    ...rest
+  } = data;
+
+  const finalRoles = roles ?? [UserRole.AGENT];
+  let agent: FullAgent | undefined;
+  let clerkUser: { id: string } | null = null;
+
+  try {
+    // Start database transaction
+    agent = await db.$transaction(async (tx) => {
+      // Create the agent in database
+      const newAgent = await tx.user.create({
+        data: {
+          ...rest,
+          name: `${firstName.trim()} ${lastName.trim()}`,
+          roles: finalRoles,
+          ...(managedByUserId && { managedByUserId }),
+          linkedCountries: {
+            connect: countryIds.map((id) => ({ id })),
+          },
+          ...(serviceIds.length > 0 && {
+            assignedServices: {
+              connect: serviceIds.map((id) => ({ id })),
+            },
+          }),
+        },
+        ...FullAgentInclude,
+      });
+
+      // If creating a manager, assign the agents to them
+      if (
+        finalRoles.includes(UserRole.MANAGER) &&
+        managedAgentIds &&
+        managedAgentIds.length > 0
+      ) {
+        await assignAgentsToManager(tx, newAgent.id, managedAgentIds);
+      }
+
+      return newAgent;
+    });
+
+    // Create Clerk user (outside transaction to allow rollback)
+    try {
+      const createdClerkUser = await createClerkUser(
+        firstName,
+        lastName,
+        data.email,
+        data.phoneNumber,
+        finalRoles,
+        agent.id,
+        agent.assignedOrganizationId || undefined,
+        managedByUserId,
+        managedAgentIds,
+      );
+      clerkUser = { id: createdClerkUser.id };
+
+      // Update agent with Clerk ID
+      await db.user.update({
+        where: { id: agent.id },
+        data: { clerkId: createdClerkUser.id },
+      });
+
+      // Refresh agent data to include clerkId
+      const updatedAgent = await db.user.findUnique({
+        where: { id: agent.id },
+        ...FullAgentInclude,
+      });
+
+      if (!updatedAgent) {
+        throw new Error('Failed to retrieve updated agent');
+      }
+
+      agent = updatedAgent;
+
+    } catch (clerkError) {
+      // Rollback database changes if Clerk operations fail
+      if (agent?.id) {
+        await db.user.delete({ where: { id: agent.id } });
+      }
+      throw new Error(`Failed to create Clerk user: ${clerkError instanceof Error ? clerkError.message : 'Unknown error'}`);
+    }
+
+    // Send welcome notification (non-critical, don't fail if this errors)
+    try {
+      await sendAgentWelcomeNotification(agent, currentUser as User, serviceIds);
+    } catch (notificationError) {
+      console.error('Failed to send welcome notification:', notificationError);
+      // Continue execution - notification failure shouldn't break agent creation
+    }
+
+    if (!agent) {
+      throw new Error('Agent creation failed');
+    }
+
+    return agent;
+
+  } catch (error) {
+    // Cleanup Clerk user if it was created but database operations failed
+    if (clerkUser) {
+      try {
+        await cleanupClerkUser((clerkUser as { id: string }).id);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup Clerk user:', cleanupError);
+      }
+    }
+
+    // Cleanup database agent if it was created
+    if (agent) {
+      try {
+        await db.user.delete({ where: { id: agent.id } });
+      } catch (deleteError) {
+        console.error('Failed to cleanup agent:', deleteError);
+      }
+    }
+
+    console.error('Failed to create agent:', error);
+    throw new Error(`Failed to create agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 export async function updateAgent(id: string, data: Partial<AgentFormData>) {

@@ -72,7 +72,7 @@ export function AgentForm({
       ...initialData,
       countryIds: initialData?.countryIds ?? [],
       serviceIds: initialData?.serviceIds ?? [],
-      phoneNumber: initialData?.phoneNumber ?? '+33-',
+      phoneNumber: initialData?.phoneNumber,
       roles: initialData?.roles ?? [UserRole.AGENT],
     },
     mode: 'onSubmit',
