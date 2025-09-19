@@ -7,11 +7,7 @@ import {
   CreateProfileSchema,
   BasicInfoSchema,
 } from '@/schemas/registration';
-import {
-  FullProfileInclude,
-  DashboardProfileSelect,
-  BaseProfileInclude,
-} from '@/types/profile';
+import { FullProfileInclude, DashboardProfileSelect } from '@/types/profile';
 import {
   createUserProfile,
   updateProfile as updateProfileAction,
@@ -52,7 +48,7 @@ export const profileRouter = createTRPCRouter({
   getDashboard: protectedProcedure.query(async ({ ctx }) => {
     try {
       const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
+        where: { userId: ctx.auth.userId },
         ...DashboardProfileSelect,
       });
 
@@ -75,7 +71,7 @@ export const profileRouter = createTRPCRouter({
 
   getCurrentOrganizationContactData: protectedProcedure.query(async ({ ctx }) => {
     const profile = await ctx.db.profile.findFirst({
-      where: { userId: ctx.session.user.id },
+      where: { userId: ctx.auth.userId },
       select: {
         id: true,
         firstName: true,
@@ -113,7 +109,9 @@ export const profileRouter = createTRPCRouter({
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
     try {
       const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.session.user.id },
+        where: {
+          OR: [{ userId: ctx.auth.userId }, { id: ctx.user?.profileId ?? '' }],
+        },
         ...FullProfileInclude,
       });
       const registrationRequest = await ctx.db.serviceRequest.findFirst({
@@ -252,7 +250,7 @@ export const profileRouter = createTRPCRouter({
     .input(CreateProfileSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        const profile = await createUserProfile(input, ctx.session.user.id);
+        const profile = await createUserProfile(input, ctx.auth.userId);
         return profile;
       } catch (error) {
         throw new TRPCError({
@@ -313,7 +311,7 @@ export const profileRouter = createTRPCRouter({
       const profile = await ctx.db.profile.findFirst({
         where: {
           id: profileId,
-          userId: ctx.session.user.id,
+          userId: ctx.auth.userId,
         },
       });
 
@@ -385,13 +383,10 @@ export const profileRouter = createTRPCRouter({
         .optional(),
     )
     .query(async ({ ctx, input }) => {
-      const parentId = input?.parentId || ctx.session.user.id;
+      const parentId = input?.parentId || ctx.auth.userId;
 
       // Vérifier que l'utilisateur peut voir ces profils
-      if (
-        parentId !== ctx.session.user.id &&
-        !ctx.session.user.roles?.includes('ADMIN')
-      ) {
+      if (parentId !== ctx.auth.userId && !ctx.user.roles?.includes('ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Non autorisé à voir ces profils enfants',
@@ -427,7 +422,7 @@ export const profileRouter = createTRPCRouter({
    * Récupérer la liste des profils publics
    */
   getList: publicProcedure.input(GetProfileListInput).query(async ({ ctx, input }) => {
-    const user = ctx.session?.user;
+    const user = ctx.user;
 
     if (!user) {
       throw new TRPCError({
@@ -464,8 +459,18 @@ export const profileRouter = createTRPCRouter({
           // Recherche combinée prénom + nom
           {
             AND: [
-              { firstName: { contains: searchTerm.split(' ')[0] || '', mode: 'insensitive' } },
-              { lastName: { contains: searchTerm.split(' ')[1] || '', mode: 'insensitive' } },
+              {
+                firstName: {
+                  contains: searchTerm.split(' ')[0] || '',
+                  mode: 'insensitive',
+                },
+              },
+              {
+                lastName: {
+                  contains: searchTerm.split(' ')[1] || '',
+                  mode: 'insensitive',
+                },
+              },
             ],
           },
         ];
@@ -492,14 +497,23 @@ export const profileRouter = createTRPCRouter({
 
       // Vérifier que le champ de tri est valide
       const validSortFields = [
-        'id', 'firstName', 'lastName', 'email', 'phoneNumber',
-        'createdAt', 'updatedAt', 'cardNumber', 'cardPin',
-        'status', 'category', 'gender', 'birthDate'
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'phoneNumber',
+        'createdAt',
+        'updatedAt',
+        'cardNumber',
+        'cardPin',
+        'status',
+        'category',
+        'gender',
+        'birthDate',
       ];
-      
-      const sortField = sort?.field && validSortFields.includes(sort.field) 
-        ? sort.field 
-        : 'createdAt';
+
+      const sortField =
+        sort?.field && validSortFields.includes(sort.field) ? sort.field : 'createdAt';
       const sortOrder = sort?.order || 'desc';
 
       const result = await ctx.db.$transaction([
@@ -557,7 +571,7 @@ export const profileRouter = createTRPCRouter({
           data: {
             content: notificationContent,
             receiverId: userId,
-            senderId: ctx.session.user.id,
+            senderId: ctx.auth.userId,
           },
         });
 
@@ -574,7 +588,7 @@ export const profileRouter = createTRPCRouter({
             email: recipientEmail,
             metadata: {
               messageId: createdMessage.id,
-              senderId: ctx.session.user.id,
+              senderId: ctx.auth.userId,
               senderName: from,
             },
           });
@@ -607,7 +621,7 @@ export const profileRouter = createTRPCRouter({
           // 1. Créer le profil enfant
           const profile = await tx.profile.create({
             data: {
-              residenceCountyCode: ctx.session.user.countryCode || '',
+              residenceCountyCode: ctx.user.countryCode || '',
               category: 'MINOR',
               status: RequestStatus.DRAFT,
             },
@@ -617,7 +631,7 @@ export const profileRouter = createTRPCRouter({
           await tx.parentalAuthority.create({
             data: {
               profileId: profile.id,
-              parentUserId: ctx.session.user.id,
+              parentUserId: ctx.auth.userId,
               role: input.parentRole,
               isActive: true,
             },
@@ -682,12 +696,12 @@ export const profileRouter = createTRPCRouter({
         const hasAuthority = await ctx.db.parentalAuthority.findFirst({
           where: {
             profileId: input.id,
-            parentUserId: ctx.session.user.id,
+            parentUserId: ctx.auth.userId,
             isActive: true,
           },
         });
 
-        if (!hasAuthority && !ctx.session.user.roles?.includes('ADMIN')) {
+        if (!hasAuthority && !ctx.user.roles?.includes('ADMIN')) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Non autorisé à supprimer ce profil',
@@ -800,12 +814,12 @@ export const profileRouter = createTRPCRouter({
         const hasAuthority = await ctx.db.parentalAuthority.findFirst({
           where: {
             profileId: input.id,
-            parentUserId: ctx.session.user.id,
+            parentUserId: ctx.auth.userId,
             isActive: true,
           },
         });
 
-        if (!hasAuthority && !ctx.session.user.roles?.includes('ADMIN')) {
+        if (!hasAuthority && !ctx.user.roles?.includes('ADMIN')) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Non autorisé à soumettre ce profil',
@@ -855,7 +869,7 @@ export const profileRouter = createTRPCRouter({
         await checkExistingRegistrationRequest(input.id);
 
         const registrationService = await getRegistrationServiceForUser(
-          ctx.session.user.countryCode!,
+          ctx.user.countryCode!,
         );
 
         if (!registrationService) {
@@ -871,8 +885,8 @@ export const profileRouter = createTRPCRouter({
             data: {
               serviceCategory: 'REGISTRATION',
               organizationId: registrationService.organizationId || '',
-              countryCode: ctx.session.user.countryCode!,
-              submittedById: ctx.session.user.id,
+              countryCode: ctx.user.countryCode!,
+              submittedById: ctx.auth.userId,
               serviceId: registrationService.id,
               requestedForId: input.id,
             },
@@ -926,12 +940,12 @@ export const profileRouter = createTRPCRouter({
         const hasAuthority = await ctx.db.parentalAuthority.findFirst({
           where: {
             profileId: input.id,
-            parentUserId: ctx.session.user.id,
+            parentUserId: ctx.auth.userId,
             isActive: true,
           },
         });
 
-        if (!hasAuthority && !ctx.session.user.roles?.includes('ADMIN')) {
+        if (!hasAuthority && !ctx.user.roles?.includes('ADMIN')) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Non autorisé à modifier ce profil',
@@ -1005,8 +1019,7 @@ export const profileRouter = createTRPCRouter({
 
         // Seul un parent ou un admin peut modifier
         const canModify =
-          ctx.session.user.id === input.parentUserId ||
-          ctx.session.user.roles?.includes('ADMIN');
+          ctx.auth.userId === input.parentUserId || ctx.user.roles?.includes('ADMIN');
 
         if (!canModify) {
           throw new TRPCError({
@@ -1049,7 +1062,7 @@ export const profileRouter = createTRPCRouter({
   getChildProfileStats: protectedProcedure
     .input(z.object({ parentId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
-      const parentId = input?.parentId || ctx.session.user.id;
+      const parentId = input?.parentId || ctx.auth.userId;
 
       try {
         const [total, byStatus] = await Promise.all([
@@ -1107,13 +1120,10 @@ export const profileRouter = createTRPCRouter({
   getChildrenForDashboard: protectedProcedure
     .input(z.object({ parentId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
-      const parentId = input?.parentId || ctx.session.user.id;
+      const parentId = input?.parentId || ctx.auth.userId;
 
       // Vérifier que l'utilisateur peut voir ces profils
-      if (
-        parentId !== ctx.session.user.id &&
-        !ctx.session.user.roles?.includes('ADMIN')
-      ) {
+      if (parentId !== ctx.auth.userId && !ctx.user.roles?.includes('ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Non autorisé à voir ces profils enfants',

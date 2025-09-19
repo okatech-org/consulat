@@ -17,28 +17,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { updateUserData } from '@/actions/user';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ServiceCategory } from '@prisma/client';
 import { PageContainer } from '@/components/layouts/page-container';
 import type { UserSettings } from '@/schemas/user';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { hasRole } from '@/lib/permissions/utils';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function AdminAccountPage() {
   const t_messages = useTranslations('messages');
   const t_actions = useTranslations('common.actions');
   const t = useTranslations('account');
-  const t_inputs = useTranslations('inputs');
   const { user } = useCurrentUser();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -156,27 +146,6 @@ export default function AdminAccountPage() {
                   />
                 </div>
 
-                {(isAgent || isManager) && (
-                  <div className="space-y-2">
-                    <Label>{t('specializations')}</Label>
-                    <Select
-                      name="specialization"
-                      defaultValue={user.specializations?.[0]}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_specialization')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(ServiceCategory).map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {t_inputs(`serviceCategory.options.${category}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
                 <Button type="submit" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {t('save_changes')}
@@ -185,47 +154,6 @@ export default function AdminAccountPage() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {(isAgent || isManager) && (
-          <TabsContent value="performance" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('performance_metrics')}</CardTitle>
-                <CardDescription>{t('performance_description')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Label>{t('completed_requests')}</Label>
-                    <span className="font-medium">{user.completedRequests}</span>
-                  </div>
-                  <Progress value={75} />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Label>{t('average_processing_time')}</Label>
-                    <span className="font-medium">
-                      {user.averageProcessingTime
-                        ? `${Math.round(user.averageProcessingTime)} ${t('hours')}`
-                        : t('not_available')}
-                    </span>
-                  </div>
-                  <Progress value={85} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t('active_requests_limit')}</Label>
-                  <Input
-                    type="number"
-                    name="maxActiveRequests"
-                    defaultValue={user.maxActiveRequests || 10}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
 
         <TabsContent value="preferences" className="space-y-4">
           <Card>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { AircallConfig } from '@/schemas/aircall';
 
 declare global {

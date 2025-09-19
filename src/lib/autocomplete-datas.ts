@@ -170,3 +170,46 @@ export const getCountryIndicator = (
   const country = phoneCountries.find((c) => c.countryCode === countryCode);
   return country?.value;
 };
+
+export function getCountryCodeFromInternationPhoneNumber(
+  phoneNumber: string,
+): CountryCode | undefined {
+  if (!phoneNumber || !phoneNumber.startsWith('+')) {
+    return undefined;
+  }
+
+  // Trier les indicatifs par longueur décroissante pour gérer les cas comme +1 (US/CA) vs +1234
+  const sortedCountries = [...phoneCountries].sort(
+    (a, b) => b.value.length - a.value.length,
+  );
+
+  for (const country of sortedCountries) {
+    if (phoneNumber.startsWith(country.value)) {
+      return country.countryCode as CountryCode;
+    }
+  }
+
+  return undefined;
+}
+
+export function getAreaCodeFromInternationPhoneNumber(
+  phoneNumber: string,
+): string | undefined {
+  if (!phoneNumber || !phoneNumber.startsWith('+')) {
+    return undefined;
+  }
+
+  // Trier les indicatifs par longueur décroissante pour gérer les cas comme +1 (US/CA) vs +1234
+  const sortedCountries = [...phoneCountries].sort(
+    (a, b) => b.value.length - a.value.length,
+  );
+
+  for (const country of sortedCountries) {
+    if (phoneNumber.startsWith(country.value)) {
+      // Retourner le numéro sans l'indicatif pays
+      return phoneNumber.substring(country.value.length);
+    }
+  }
+
+  return undefined;
+}

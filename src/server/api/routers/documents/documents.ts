@@ -50,7 +50,7 @@ export const documentsRouter = createTRPCRouter({
       try {
         const documents = await ctx.db.userDocument.findMany({
           where: {
-            userId: ctx.session.user.id,
+            userId: ctx.auth.userId,
             ...(type && { type }),
           },
           ...DashboardDocumentSelect,
@@ -67,7 +67,7 @@ export const documentsRouter = createTRPCRouter({
 
         const totalCount = await ctx.db.userDocument.count({
           where: {
-            userId: ctx.session.user.id,
+            userId: ctx.auth.userId,
             ...(type && { type }),
           },
         });
@@ -119,7 +119,7 @@ export const documentsRouter = createTRPCRouter({
       }
 
       // Vérifier l'autorisation
-      if (document.userId !== ctx.session.user.id) {
+      if (document.userId !== ctx.auth.userId) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'Non autorisé à accéder à ce document',
@@ -153,7 +153,7 @@ export const documentsRouter = createTRPCRouter({
             size: input.size,
             fileKey: input.key,
           },
-          userId: ctx.session.user.id,
+          userId: ctx.auth.userId,
         },
       });
 
@@ -183,7 +183,7 @@ export const documentsRouter = createTRPCRouter({
         });
       }
 
-      if (document.userId !== ctx.session.user.id) {
+      if (document.userId !== ctx.auth.userId) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'Non autorisé à modifier ce document',
@@ -219,7 +219,7 @@ export const documentsRouter = createTRPCRouter({
         });
       }
 
-      if (document.userId !== ctx.session.user.id) {
+      if (document.userId !== ctx.auth.userId) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'Non autorisé à supprimer ce document',

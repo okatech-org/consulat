@@ -32,7 +32,7 @@ import { MetadataForm } from '@/components/documents/metadata-form';
 import { FileInput } from '../ui/file-input';
 import { type FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
 import { ImageCropper } from '../ui/image-cropper';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';

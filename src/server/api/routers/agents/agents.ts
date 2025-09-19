@@ -19,16 +19,6 @@ import { AgentListItemSelect } from './misc';
 export const agentsRouter = createTRPCRouter({
   // Récupérer la liste des agents avec filtres et pagination
   getList: protectedProcedure.input(agentFiltersSchema).query(async ({ ctx, input }) => {
-    // Vérifier les permissions
-    const user = ctx.session.user;
-    const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
-    if (!user.roles.some((role) => allowedRoles.includes(role))) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Insufficient permissions to view agents',
-      });
-    }
-
     const {
       search,
       linkedCountries,
@@ -46,8 +36,8 @@ export const agentsRouter = createTRPCRouter({
     };
 
     // Filtres par défaut selon le rôle
-    if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
-      where.managedByUserId = user.id;
+    if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
+      where.managedByUserId = ctx.auth.userId;
     }
 
     if (managedByUserId?.length) {
@@ -106,10 +96,9 @@ export const agentsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
       const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
 
-      if (!user.roles.some((role) => allowedRoles.includes(role))) {
+      if (!ctx.user.roles.some((role) => allowedRoles.includes(role))) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Insufficient permissions to view agent details',
@@ -130,8 +119,8 @@ export const agentsRouter = createTRPCRouter({
         }
 
         // Vérifier si un manager peut voir cet agent
-        if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
-          if (agent.managedByUserId !== user.id && agent.id !== user.id) {
+        if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
+          if (agent.managedByUserId !== ctx.auth.userId && agent.id !== ctx.auth.userId) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'You can only view agents you manage',
@@ -152,8 +141,7 @@ export const agentsRouter = createTRPCRouter({
 
   // Créer un nouvel agent
   create: protectedProcedure.input(createAgentSchema).mutation(async ({ ctx, input }) => {
-    const user = ctx.session.user;
-    if (!user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))) {
+    if (!ctx.user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Insufficient permissions to create agents',
@@ -165,7 +153,7 @@ export const agentsRouter = createTRPCRouter({
       lastName,
       countryIds,
       serviceIds,
-      role,
+      roles,
       managedByUserId,
       managedAgentIds,
       ...rest
@@ -176,8 +164,7 @@ export const agentsRouter = createTRPCRouter({
         data: {
           ...rest,
           name: `${firstName} ${lastName}`,
-          roles: [role],
-          role,
+          roles: roles,
           ...(managedByUserId && { managedByUserId }),
           linkedCountries: {
             connect: countryIds.map((id) => ({ id })),
@@ -192,7 +179,7 @@ export const agentsRouter = createTRPCRouter({
       });
 
       // Si c'est un manager, assigner les agents
-      if (role === UserRole.MANAGER && managedAgentIds?.length) {
+      if (roles?.includes(UserRole.MANAGER) && managedAgentIds?.length) {
         await ctx.db.user.updateMany({
           where: {
             id: { in: managedAgentIds },
@@ -223,8 +210,8 @@ export const agentsRouter = createTRPCRouter({
           },
         ],
         metadata: {
-          createdBy: user.id,
-          createdByName: user.name || '',
+          createdBy: ctx.auth.userId,
+          createdByName: ctx.user.name || '',
           assignedServices: serviceIds,
         },
       });
@@ -248,9 +235,8 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
       if (
-        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+        !ctx.user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -275,8 +261,8 @@ export const agentsRouter = createTRPCRouter({
         }
 
         // Vérifier les permissions pour les managers
-        if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
-          if (existingAgent.managedByUserId !== user.id) {
+        if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
+          if (existingAgent.managedByUserId !== ctx.auth.userId) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'You can only update agents you manage',
@@ -289,7 +275,7 @@ export const agentsRouter = createTRPCRouter({
         if (data.name) updateData.name = data.name;
         if (data.email) updateData.email = data.email;
         if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
-        if (data.role) updateData.role = data.role;
+        if (data.roles) updateData.roles = data.roles;
 
         if (data.managedByUserId !== undefined) {
           if (data.managedByUserId) {
@@ -312,7 +298,7 @@ export const agentsRouter = createTRPCRouter({
         }
 
         // Gérer les agents managés pour les managers
-        if (data.managedAgentIds && data.role === UserRole.MANAGER) {
+        if (data.managedAgentIds && data.roles?.includes(UserRole.MANAGER)) {
           // Mettre à jour les agents managés
           await ctx.db.user.updateMany({
             where: {
@@ -366,9 +352,8 @@ export const agentsRouter = createTRPCRouter({
   assignRequest: protectedProcedure
     .input(assignRequestSchema)
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
       if (
-        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+        !ctx.user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -417,8 +402,8 @@ export const agentsRouter = createTRPCRouter({
         }
 
         // Vérifier les permissions pour les managers
-        if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
-          if (agent.managedByUserId !== user.id) {
+        if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
+          if (agent.managedByUserId !== ctx.auth.userId) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'You can only assign requests to agents you manage',
@@ -434,7 +419,7 @@ export const agentsRouter = createTRPCRouter({
             assignedAt: new Date(),
             status: 'PENDING',
             lastActionAt: new Date(),
-            lastActionBy: user.id,
+            lastActionBy: ctx.auth.userId,
           },
           include: {
             assignedTo: true,
@@ -447,7 +432,7 @@ export const agentsRouter = createTRPCRouter({
           data: {
             type: RequestActionType.ASSIGNMENT,
             requestId,
-            userId: user.id,
+            userId: ctx.auth.userId ?? '',
             data: {
               previousStatus: request.status,
               newStatus: 'PENDING',
@@ -504,9 +489,8 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
       if (
-        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+        !ctx.user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -518,7 +502,7 @@ export const agentsRouter = createTRPCRouter({
 
       try {
         // Vérifier que les agents sont managés par ce manager (si applicable)
-        if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
+        if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
           const [fromAgent, toAgent] = await Promise.all([
             ctx.db.user.findUnique({
               where: { id: fromAgentId },
@@ -538,8 +522,8 @@ export const agentsRouter = createTRPCRouter({
           }
 
           if (
-            fromAgent.managedByUserId !== user.id ||
-            toAgent.managedByUserId !== user.id
+            fromAgent.managedByUserId !== ctx.auth.userId ||
+            toAgent.managedByUserId !== ctx.auth.userId
           ) {
             throw new TRPCError({
               code: 'FORBIDDEN',
@@ -555,7 +539,7 @@ export const agentsRouter = createTRPCRouter({
             assignedToId: toAgentId,
             assignedAt: new Date(),
             lastActionAt: new Date(),
-            lastActionBy: user.id,
+            lastActionBy: ctx.auth.userId,
           },
           include: {
             assignedTo: true,
@@ -568,11 +552,11 @@ export const agentsRouter = createTRPCRouter({
           data: {
             type: RequestActionType.ASSIGNMENT,
             requestId,
-            userId: user.id,
+            userId: ctx.auth.userId ?? '',
             data: {
               previousAgentId: fromAgentId,
               newAgentId: toAgentId,
-              reassignedBy: user.id,
+              reassignedBy: ctx.auth.userId,
               reason: 'Manager reassignment',
             },
           },
@@ -599,9 +583,8 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
       if (
-        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+        !ctx.user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -666,9 +649,8 @@ export const agentsRouter = createTRPCRouter({
   getPerformanceMetrics: protectedProcedure
     .input(z.object({ agentId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
       if (
-        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+        !ctx.user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -699,8 +681,8 @@ export const agentsRouter = createTRPCRouter({
         }
 
         // Vérifier les permissions pour les managers
-        if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
-          if (agent.managedByUserId !== user.id) {
+        if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
+          if (agent.managedByUserId !== ctx.auth.userId) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'You can only view metrics for agents you manage',
@@ -801,9 +783,8 @@ export const agentsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const user = ctx.session.user;
       if (
-        !user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
+        !ctx.user.roles.some((role) => ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role))
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -821,8 +802,8 @@ export const agentsRouter = createTRPCRouter({
         };
 
         // Filtres selon les permissions
-        if (user.roles.includes('MANAGER') && !user.roles.includes('ADMIN')) {
-          where.managedByUserId = user.id;
+        if (ctx.user.roles.includes('MANAGER') && !ctx.user.roles.includes('ADMIN')) {
+          where.managedByUserId = ctx.auth.userId;
         } else {
           if (organizationId) {
             where.assignedOrganizationId = organizationId;

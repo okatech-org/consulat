@@ -43,8 +43,8 @@ const feedbackListSchema = z.object({
 export const feedbackRouter = createTRPCRouter({
   // Créer un feedback (public ou authentifié)
   create: publicProcedure.input(feedbackCreateSchema).mutation(async ({ ctx, input }) => {
-    const userId = ctx.session?.user?.id;
-    const userEmail = ctx.session?.user?.email || input.email;
+    const userId = ctx.user?.id;
+    const userEmail = ctx.user?.email || input.email;
 
     try {
       // Créer le feedback dans la base de données
@@ -119,7 +119,7 @@ export const feedbackRouter = createTRPCRouter({
     try {
       const feedbacks = await ctx.db.feedback.findMany({
         where: {
-          userId: ctx.session.user.id,
+          userId: ctx.auth.userId,
         },
         include: {
           service: {
@@ -160,14 +160,6 @@ export const feedbackRouter = createTRPCRouter({
   getAdminList: protectedProcedure
     .input(feedbackListSchema)
     .query(async ({ ctx, input }) => {
-      // Vérifier que l'utilisateur est SUPER_ADMIN
-      if (ctx.session.user.role !== 'SUPER_ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions pour accéder à cette page.",
-        });
-      }
-
       try {
         const { page, limit, status, category, organizationId } = input;
         const skip = (page - 1) * limit;
@@ -246,14 +238,6 @@ export const feedbackRouter = createTRPCRouter({
   respondToFeedback: protectedProcedure
     .input(feedbackResponseSchema)
     .mutation(async ({ ctx, input }) => {
-      // Vérifier que l'utilisateur est SUPER_ADMIN
-      if (ctx.session.user.role !== 'SUPER_ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
-        });
-      }
-
       try {
         const { feedbackId, response, notifyUser, channels } = input;
 
@@ -285,7 +269,7 @@ export const feedbackRouter = createTRPCRouter({
           data: {
             response,
             respondedBy: {
-              connect: { id: ctx.session.user.id },
+              connect: { id: ctx.auth.userId },
             },
             respondedAt: new Date(),
             status: 'RESOLVED',
@@ -362,14 +346,6 @@ export const feedbackRouter = createTRPCRouter({
   updateStatus: protectedProcedure
     .input(feedbackStatusUpdateSchema)
     .mutation(async ({ ctx, input }) => {
-      // Vérifier que l'utilisateur est SUPER_ADMIN
-      if (ctx.session.user.role !== 'SUPER_ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
-        });
-      }
-
       try {
         const { feedbackId, status } = input;
 
@@ -399,14 +375,6 @@ export const feedbackRouter = createTRPCRouter({
 
   // Obtenir les statistiques des feedbacks (pour les admins)
   getStats: protectedProcedure.query(async ({ ctx }) => {
-    // Vérifier que l'utilisateur a les permissions
-    if (!['SUPER_ADMIN', 'ADMIN'].includes(ctx.session.user.role)) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Accès non autorisé',
-      });
-    }
-
     try {
       const [total, byCategory, byStatus, recentFeedbacks, ratingsData] =
         await Promise.all([

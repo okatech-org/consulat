@@ -11,7 +11,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { ArrowUpRightIcon } from 'lucide-react';
 import * as React from 'react';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 
 export default async function CtaContact() {
   const t = await getTranslations('home');

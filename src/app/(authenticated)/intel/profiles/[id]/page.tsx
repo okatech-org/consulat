@@ -1,5 +1,5 @@
 import { ServerRoleGuard } from '@/lib/permissions/utils';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import type { SessionUser } from '@/types/user';
 import { ProfileIntelligenceDetailsPage } from './_components/profile-intelligence-details-page';
 

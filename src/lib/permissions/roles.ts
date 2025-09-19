@@ -331,4 +331,9 @@ export const ROLES: RolesConfig = {
       manage: false,
     },
   },
+  EDUCATION_AGENT: {
+    profiles: {
+      view: true,
+    },
+  },
 };

@@ -2,20 +2,31 @@
 
 import { getOrganizationIdFromUser } from '@/lib/utils';
 import { api } from '@/trpc/react';
-import { useSession } from 'next-auth/react';
 import { useMemo } from 'react';
+import { useCurrentUser } from './use-current-user';
+import type { UserRole } from '@prisma/client';
+import type { TRPCClientErrorLike } from '@trpc/client';
+import type { InferrableClientTypes } from '@trpc/server/unstable-core-do-not-import';
 
 // Hook principal pour le dashboard - détecte automatiquement le rôle
-export function useDashboard(options?: {
+export function useDashboard<T>(options?: {
   agentId?: string;
   managerId?: string;
   startDate?: Date;
   endDate?: Date;
   enabled?: boolean;
-}) {
-  const { data: session } = useSession();
-  const userRoles = session?.user?.roles || [];
-  const organizationId = getOrganizationIdFromUser(session?.user || null);
+}): {
+  data: T;
+  isLoading: boolean;
+  error: TRPCClientErrorLike<InferrableClientTypes> | null;
+  dashboardType: string;
+  userRoles: UserRole[];
+  refresh: () => void;
+} {
+  const { user } = useCurrentUser();
+  
+  const userRoles = user?.roles || [];
+  const organizationId = getOrganizationIdFromUser(user || null);
 
   // Déterminer quel type de dashboard utiliser
   const dashboardType = useMemo(() => {
@@ -106,7 +117,11 @@ export function useDashboard(options?: {
     }
   };
 
-  const currentStats = getCurrentStats();
+  const currentStats = getCurrentStats() as {
+    data: T;
+    isLoading: boolean;
+    error: TRPCClientErrorLike<InferrableClientTypes> | null;
+  };
 
   return {
     ...currentStats,

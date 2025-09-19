@@ -43,7 +43,9 @@ export default function OrganizationSettingsPage() {
             countries: organization.countries ?? [],
             services: organization.services ?? [],
             agents:
-              organization.agents.filter((agent) => agent.role === UserRole.AGENT) ?? [],
+              organization.agents.filter((agent) =>
+                agent.roles?.includes(UserRole.AGENT),
+              ) ?? [],
           }}
         />
       )}

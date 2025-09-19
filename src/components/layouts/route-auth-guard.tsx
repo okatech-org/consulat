@@ -2,8 +2,8 @@ import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { getCurrentUser } from '@/actions/user';
 import { headers } from 'next/headers';
+import { currentUser } from '@clerk/nextjs/server';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ export async function RouteAuthGuard({
   fallbackUrl,
   fallbackComponent,
 }: BaseLayoutProps) {
-  const user = await getCurrentUser();
+  const user = await currentUser();
 
   if (!user) {
     const headersList = await headers();

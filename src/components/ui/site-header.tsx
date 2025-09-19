@@ -1,18 +1,14 @@
 'use client';
 
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { BreadcrumbMenu } from '../layouts/breadcrumb-menu';
 import { usePathname } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
-import { useCurrentUser } from '@/hooks/use-role-data';
 
 export function SiteHeader() {
-  const { user: currentUserData } = useCurrentUser();
   const pathname = usePathname();
   const isDashboard =
-    pathname.startsWith(ROUTES.dashboard.base) ||
-    pathname.startsWith(ROUTES.user.base);
-  
+    pathname.startsWith(ROUTES.dashboard.base) || pathname.startsWith(ROUTES.user.base);
+
   // Désactiver le breadcrumb automatique sur toutes les pages Intel (nous avons notre propre navigation)
   const isIntelPage = pathname.startsWith(ROUTES.intel.base);
   const showBreadcrumb = isDashboard && !isIntelPage;

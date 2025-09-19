@@ -1,13 +1,25 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+const isPublicRoute = createRouteMatcher([
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/registration(.*)',
+  'feedback',
+  'legal(.*)',
+  'unauthorized',
+  'listing(.*)',
+  '/',
+]);
+
+
+// Fonction pour gérer les fonctionnalités personnalisées existantes
+function handleCustomFeatures(request: NextRequest, response: NextResponse) {
   const { pathname } = request.nextUrl;
-
-  const response = NextResponse.next();
-
   const searchParams = request.nextUrl.searchParams.toString();
 
+  // Préserver le header x-current-path existant
   response.headers.set(
     'x-current-path',
     pathname + (searchParams ? `?${searchParams}` : ''),
@@ -21,7 +33,7 @@ export async function middleware(request: NextRequest) {
     response.cookies.set('theme', theme, {
       path: '/',
       maxAge: 31536000, // 1 an
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
     });
   }
@@ -29,16 +41,25 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+export default clerkMiddleware(async (auth, req) => {
+  const isPublic = isPublicRoute(req);
+
+  if (!isPublic) {
+    await auth.protect();
+  }
+
+  // Récupérer la réponse de Clerk
+  const response = NextResponse.next();
+
+  // Appliquer les fonctionnalités personnalisées existantes
+  return handleCustomFeatures(req, response);
+});
+
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (auth API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
-     */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
   ],
 };

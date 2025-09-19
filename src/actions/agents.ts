@@ -471,7 +471,7 @@ interface UpdateAgentData {
   countryIds?: string[];
   serviceIds?: string[];
   managedByUserId?: string | null;
-  role?: UserRole;
+  roles?: UserRole[];
   managedAgentIds?: string[];
 }
 
@@ -501,8 +501,8 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
       };
     }
 
-    if (data.role) {
-      updateData.role = data.role;
+    if (data.roles) {
+      updateData.roles = data.roles;
     }
 
     if (data.countryIds) {
@@ -518,7 +518,7 @@ export async function updateAgent(id: string, data: UpdateAgentData) {
     }
 
     // Handle managed agents for managers
-    if (data.managedAgentIds && data.role === 'MANAGER') {
+    if (data.managedAgentIds && data.roles?.includes('MANAGER')) {
       // Update the managed agents to have this manager
       await db.user.updateMany({
         where: {

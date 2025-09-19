@@ -31,6 +31,9 @@ export default {
     otp_length: 'Le code OTP doit contenir 6 chiffres',
     otp_generation_rate_limit:
       'Trop de tentatives de génération de code. Veuillez patienter avant de redemander un code.',
+    missing_requirements: "Informations manquantes pour finaliser l'inscription",
+    signup_abandoned: "Le processus d'inscription a été interrompu",
+    verification_in_progress: 'Vérification en cours, veuillez patienter',
     otp_generation_error: 'Erreur lors de la génération du code OTP. Veuillez réessayer.',
     missing_otp: 'Paramètres manquants pour la validation du code OTP',
     otp_validation_rate_limit:

@@ -1,6 +1,6 @@
 'use server';
 
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { db } from '@/server/db';
 import { tryCatch } from '@/lib/utils';
 import { UserRole } from '@prisma/client';
@@ -19,7 +19,7 @@ export async function getManagerDashboardData() {
       const managedAgents = await db.user.findMany({
         where: {
           managedByUserId: currentUser.id,
-          role: UserRole.AGENT,
+          roles: { has: UserRole.AGENT },
         },
         include: {
           _count: {
@@ -156,7 +156,7 @@ export async function getAgentPerformanceMetrics(agentId: string) {
     (async () => {
       const currentUser = await getCurrentUser();
 
-      if (!currentUser || currentUser.role !== UserRole.MANAGER) {
+      if (!currentUser || !currentUser.roles?.includes(UserRole.MANAGER)) {
         throw new Error('Unauthorized');
       }
 
@@ -225,7 +225,7 @@ export async function reassignRequest(requestId: string, newAgentId: string) {
     (async () => {
       const currentUser = await getCurrentUser();
 
-      if (!currentUser || currentUser.role !== UserRole.MANAGER) {
+      if (!currentUser || !currentUser.roles?.includes(UserRole.MANAGER)) {
         throw new Error('Unauthorized');
       }
 

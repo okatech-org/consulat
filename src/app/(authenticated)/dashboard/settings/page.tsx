@@ -1,7 +1,7 @@
 import { getOrganizationById } from '@/actions/organizations';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { SettingsTabs } from '@/components/organization/settings-tabs';
 import { PageContainer } from '@/components/layouts/page-container';
 import { getActiveCountries } from '@/actions/countries';
@@ -45,10 +45,13 @@ export default async function OrganizationSettingsPage() {
             countries: organization.countries ?? [],
             services: organization.services ?? [],
             agents:
-              organization.agents.filter((agent) => agent.role === UserRole.AGENT) ?? [],
+              organization.agents.filter((agent) =>
+                agent.roles?.includes(UserRole.AGENT),
+              ) ?? [],
             managers:
-              organization.agents.filter((agent) => agent.role === UserRole.MANAGER) ??
-              [],
+              organization.agents.filter((agent) =>
+                agent.roles?.includes(UserRole.MANAGER),
+              ) ?? [],
           }}
           availableCountries={countries}
         />

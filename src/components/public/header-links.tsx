@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ROUTES } from "@/schemas/routes";
 import { ThemeToggleSingle } from "../layouts/theme-toggle-single";
 import { useTranslations } from "next-intl";
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function HeaderLinks() {
   const { user } = useCurrentUser();

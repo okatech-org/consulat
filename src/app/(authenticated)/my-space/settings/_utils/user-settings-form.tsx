@@ -12,7 +12,7 @@ import {
   Form,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PhoneNumberInput } from '@/components/ui/phone-number';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { toast } from '@/hooks/use-toast';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
@@ -40,6 +40,8 @@ const schemByRole: Record<UserRole, z.ZodSchema> = {
   [UserRole.ADMIN]: AdminSettingsSchema,
   [UserRole.SUPER_ADMIN]: UserSettingsSchema,
   [UserRole.MANAGER]: UserSettingsSchema,
+  [UserRole.INTEL_AGENT]: UserSettingsSchema,
+  [UserRole.EDUCATION_AGENT]: UserSettingsSchema,
 };
 
 export function UserSettingsForm({ user, availableCountries }: UserSettingsFormProps) {
@@ -136,11 +138,12 @@ export function UserSettingsForm({ user, availableCountries }: UserSettingsFormP
             <FormItem className="sm:col-span-1">
               <FormLabel>{tInput('phone.label')}</FormLabel>
               <FormControl>
-                <PhoneNumberInput
-                  value={field.value ?? '+33-'}
-                  onChangeAction={field.onChange}
+                <PhoneInput
+                  value={field.value}
+                  onChange={field.onChange}
                   disabled={isLoading}
-                  options={availableCountries?.map((item) => item.code as CountryCode)}
+                  countries={availableCountries?.map((item) => item.code as any)}
+                  defaultCountry={availableCountries?.[0]?.code as any}
                 />
               </FormControl>
               <TradFormMessage />

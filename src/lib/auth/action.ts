@@ -1,18 +1,17 @@
 import { UserRole } from '@prisma/client';
 import { hasAnyRole } from '../permissions/utils';
-import type { SessionUser } from '@/types';
-import { auth } from '@/server/auth';
+import { getCurrentUser } from '@/lib/auth/utils';
 
 export async function checkAuth(roles?: UserRole[]) {
-  const session = await auth();
+  const user = await getCurrentUser();
 
-  if (!session?.user) {
+  if (!user) {
     throw new Error('unauthorized');
   }
 
-  if (roles && !hasAnyRole(session?.user as unknown as SessionUser, roles)) {
+  if (roles && !hasAnyRole(user, roles)) {
     throw new Error('forbidden');
   }
 
-  return { user: session.user };
+  return { user };
 }

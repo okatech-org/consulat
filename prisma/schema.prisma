@@ -10,9 +10,9 @@ generator client {
 
 model User {
     id                  String     @id @default(cuid())
+    clerkId             String?    @unique // ID utilisateur Clerk
     name                String?
     roles               UserRole[] @default([USER])
-    role                UserRole   @default(USER)
     email               String?    @unique
     phoneNumber         String?    @unique
     phoneNumberVerified Boolean    @default(false)
@@ -20,8 +20,6 @@ model User {
     image               String?
     createdAt           DateTime   @default(now())
     updatedAt           DateTime   @updatedAt
-    sessions            Session[]
-    accounts            Account[]
 
     // Relations
     profile   Profile? @relation(fields: [profileId], references: [id])
@@ -78,68 +76,13 @@ model User {
     authoredIntelligenceNotes IntelligenceNote[]
     intelligenceNoteHistory   IntelligenceNoteHistory[]
 
-    @@index([role])
+    @@index([roles])
     @@index([assignedOrganizationId])
     @@index([createdAt])
     @@index([countryCode])
     @@index([profileId])
     @@index([email])
     @@index([phoneNumber])
-}
-
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique @map("session_token")
-    userId       String   @map("user_id")
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@map("sessions")
-}
-
-model Account {
-    id                String  @id @default(cuid())
-    userId            String  @map("user_id")
-    type              String
-    provider          String
-    providerAccountId String  @map("provider_account_id")
-    refresh_token     String? @db.Text
-    access_token      String? @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? @db.Text
-    session_state     String?
-
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@unique([provider, providerAccountId])
-    @@map("accounts")
-}
-
-model VerificationToken {
-    identifier String
-    token      String
-    expires    DateTime
-
-    @@unique([identifier, token])
-    @@map("verificationtokens")
-}
-
-// Table pour les codes OTP
-model OTPCode {
-    id         String   @id @default(cuid())
-    identifier String // email ou phone
-    code       String
-    type       String // 'EMAIL' ou 'SMS'
-    attempts   Int      @default(0)
-    verified   Boolean  @default(false)
-    expires    DateTime
-    createdAt  DateTime @default(now()) @map("created_at")
-    updatedAt  DateTime @updatedAt @map("updated_at")
-
-    @@unique([identifier, type])
-    @@map("otp_codes")
 }
 
 enum UserRole {
@@ -149,6 +92,7 @@ enum UserRole {
     AGENT
     USER
     INTEL_AGENT
+    EDUCATION_AGENT
 }
 
 enum ServiceCategory {

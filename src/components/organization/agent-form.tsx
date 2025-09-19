@@ -24,8 +24,6 @@ import { createNewAgent } from '@/actions/organizations';
 import { updateAgent } from '@/actions/agents';
 import { type Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
-import { PhoneNumberInput } from '../ui/phone-number';
-import { type CountryCode } from '@/lib/autocomplete-datas';
 import {
   Select,
   SelectTrigger,
@@ -36,6 +34,7 @@ import {
 import { UserRole } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import CardContainer from '@/components/layouts/card-container';
+import { PhoneInput } from '../ui/phone-input';
 
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
@@ -73,13 +72,13 @@ export function AgentForm({
       ...initialData,
       countryIds: initialData?.countryIds ?? [],
       serviceIds: initialData?.serviceIds ?? [],
-      phoneNumber: initialData?.phoneNumber ?? '+33-',
-      role: initialData?.role ?? UserRole.AGENT,
+      phoneNumber: initialData?.phoneNumber,
+      roles: initialData?.roles ?? [UserRole.AGENT],
     },
     mode: 'onSubmit',
   });
 
-  const watchedRole = form.watch('role');
+  const watchedRole = form.watch('roles');
 
   // Find current manager info for display
   const currentManager = React.useMemo(() => {
@@ -101,10 +100,11 @@ export function AgentForm({
           phoneNumber: data.phoneNumber,
           countryIds: data.countryIds,
           serviceIds: data.serviceIds || [],
-          managedByUserId:
-            watchedRole === UserRole.AGENT ? data.managedByUserId : undefined,
-          role: data.role,
-          managedAgentIds: watchedRole === UserRole.MANAGER ? managedAgents : [],
+          managedByUserId: watchedRole?.includes(UserRole.AGENT)
+            ? data.managedByUserId
+            : undefined,
+          roles: data.roles || [UserRole.AGENT],
+          managedAgentIds: watchedRole?.includes(UserRole.MANAGER) ? managedAgents : [],
         };
 
         const result = await tryCatch(updateAgent(agentId, updateData));
@@ -123,7 +123,7 @@ export function AgentForm({
         // Create new agent
         const createData = {
           ...data,
-          managedAgentIds: watchedRole === UserRole.MANAGER ? managedAgents : [],
+          managedAgentIds: watchedRole?.includes(UserRole.MANAGER) ? managedAgents : [],
         };
 
         const result = await tryCatch(createNewAgent(createData));
@@ -217,11 +217,13 @@ export function AgentForm({
                 <FormItem className="col-span-full">
                   <FormLabel>{t_inputs('phone.label')}</FormLabel>
                   <FormControl>
-                    <PhoneNumberInput
-                      value={field.value ?? '+33-'}
-                      onChangeAction={field.onChange}
+                    <PhoneInput
+                      value={field.value}
+                      onChange={field.onChange}
                       disabled={isLoading}
-                      options={countries.map((country) => country.code as CountryCode)}
+                      placeholder={t_inputs('phone.placeholder')}
+                      countries={countries?.map((country) => country.code as any)}
+                      defaultCountry={countries?.[0]?.code as any}
                     />
                   </FormControl>
                   <TradFormMessage />
@@ -239,24 +241,20 @@ export function AgentForm({
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="role"
+              name="roles"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rôle</FormLabel>
                   <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un rôle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={UserRole.AGENT}>Agent</SelectItem>
-                        <SelectItem value={UserRole.MANAGER}>Manager</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <MultiSelect<UserRole>
+                      options={Object.values(UserRole).map((role) => ({
+                        label: role,
+                        value: role,
+                      }))}
+                      selected={field.value}
+                      type="multiple"
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -264,7 +262,7 @@ export function AgentForm({
             />
 
             {/* Manager assignment for AGENT role */}
-            {watchedRole === UserRole.AGENT && (
+            {watchedRole?.includes(UserRole.AGENT) && (
               <div className="space-y-4">
                 {/* Current manager display (edit mode) */}
                 {isEditMode && currentManager && (
@@ -321,7 +319,7 @@ export function AgentForm({
             )}
 
             {/* Agent assignment for MANAGER role */}
-            {watchedRole === UserRole.MANAGER && (
+            {watchedRole?.includes(UserRole.MANAGER) && (
               <FormField
                 control={form.control}
                 name="managedAgentIds"

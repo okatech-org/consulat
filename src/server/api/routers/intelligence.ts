@@ -18,11 +18,6 @@ export const intelligenceRouter = createTRPCRouter({
   getDashboardStats: protectedProcedure
     .input(getIntelligenceDashboardStatsSchema)
     .query(async ({ ctx, input }) => {
-      // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'profiles', 'view')) {
-        throw new Error('Permissions insuffisantes');
-      }
-
       const now = new Date();
       const periodStart = new Date();
 
@@ -108,9 +103,9 @@ export const intelligenceRouter = createTRPCRouter({
   // Carte des profils avec données de renseignement
   getProfilesMap: protectedProcedure
     .input(getIntelligenceMapDataSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx }) => {
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'profiles', 'view')) {
+      if (!hasPermission(ctx.user, 'profiles', 'view')) {
         throw new Error('Permissions insuffisantes');
       }
 
@@ -150,14 +145,17 @@ export const intelligenceRouter = createTRPCRouter({
       });
 
       // Debug simplifié
-      const profilesWithRealAddress = profiles.filter(p => 
-        p.address && 
-        p.address.city && 
-        p.address.city.trim() !== '' &&
-        p.address.country && 
-        p.address.country.trim() !== ''
+      const profilesWithRealAddress = profiles.filter(
+        (p) =>
+          p.address &&
+          p.address.city &&
+          p.address.city.trim() !== '' &&
+          p.address.country &&
+          p.address.country.trim() !== '',
       );
-      console.log(`📊 Carte Intelligence: ${profiles.length} profils total → ${profilesWithRealAddress.length} avec adresses valides`);
+      console.log(
+        `📊 Carte Intelligence: ${profiles.length} profils total → ${profilesWithRealAddress.length} avec adresses valides`,
+      );
 
       return profiles;
     }),
@@ -166,7 +164,7 @@ export const intelligenceRouter = createTRPCRouter({
     .input(getProfilesWithIntelligenceSchema)
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'profiles', 'view')) {
+      if (!hasPermission(ctx.user, 'profiles', 'view')) {
         throw new Error('Permissions insuffisantes');
       }
 
@@ -242,7 +240,7 @@ export const intelligenceRouter = createTRPCRouter({
     .input(z.object({ profileId: z.string() }))
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'profiles', 'view')) {
+      if (!hasPermission(ctx.user, 'profiles', 'view')) {
         throw new Error('Permissions insuffisantes');
       }
 
@@ -304,7 +302,7 @@ export const intelligenceRouter = createTRPCRouter({
     .input(getIntelligenceNotesSchema)
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'intelligenceNotes', 'view')) {
+      if (!hasPermission(ctx.user, 'intelligenceNotes', 'view')) {
         throw new Error('Permissions insuffisantes');
       }
 
@@ -317,7 +315,9 @@ export const intelligenceRouter = createTRPCRouter({
           ...(input.filters.search && {
             OR: [
               { title: { contains: input.filters.search, mode: 'insensitive' as const } },
-              { content: { contains: input.filters.search, mode: 'insensitive' as const } },
+              {
+                content: { contains: input.filters.search, mode: 'insensitive' as const },
+              },
             ],
           }),
         }),
@@ -358,7 +358,7 @@ export const intelligenceRouter = createTRPCRouter({
     .input(createIntelligenceNoteSchema)
     .mutation(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'intelligenceNotes', 'create')) {
+      if (!hasPermission(ctx.user, 'intelligenceNotes', 'create')) {
         throw new Error('Permissions insuffisantes');
       }
 
@@ -366,7 +366,7 @@ export const intelligenceRouter = createTRPCRouter({
       const note = await ctx.db.intelligenceNote.create({
         data: {
           ...input,
-          authorId: ctx.session.user.id,
+          authorId: ctx.auth.userId,
         },
         include: {
           author: {
@@ -392,7 +392,7 @@ export const intelligenceRouter = createTRPCRouter({
           intelligenceNoteId: note.id,
           action: 'created',
           newContent: note.content,
-          changedById: ctx.session.user.id,
+          changedById: ctx.auth.userId,
         },
       });
 
@@ -414,7 +414,7 @@ export const intelligenceRouter = createTRPCRouter({
       }
 
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'intelligenceNotes', 'update', existingNote)) {
+      if (!hasPermission(ctx.user, 'intelligenceNotes', 'update', existingNote)) {
         throw new Error('Permissions insuffisantes');
       }
 
@@ -447,7 +447,7 @@ export const intelligenceRouter = createTRPCRouter({
           action: 'updated',
           previousContent: existingNote.content,
           newContent: updatedNote.content,
-          changedById: ctx.session.user.id,
+          changedById: ctx.auth.userId,
         },
       });
 
@@ -467,7 +467,7 @@ export const intelligenceRouter = createTRPCRouter({
       }
 
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'intelligenceNotes', 'delete', existingNote)) {
+      if (!hasPermission(ctx.user, 'intelligenceNotes', 'delete', existingNote)) {
         throw new Error('Permissions insuffisantes');
       }
 
@@ -477,7 +477,7 @@ export const intelligenceRouter = createTRPCRouter({
           intelligenceNoteId: input.noteId,
           action: 'deleted',
           previousContent: existingNote.content,
-          changedById: ctx.session.user.id,
+          changedById: ctx.auth.userId,
         },
       });
 
@@ -493,7 +493,7 @@ export const intelligenceRouter = createTRPCRouter({
     .input(getIntelligenceNoteHistorySchema)
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (!hasPermission(ctx.session.user, 'intelligenceNotes', 'viewHistory')) {
+      if (!hasPermission(ctx.user, 'intelligenceNotes', 'viewHistory')) {
         throw new Error('Permissions insuffisantes');
       }
 

@@ -1,9 +1,15 @@
 import * as z from 'zod';
 import { ServiceCategory, UserRole } from '@prisma/client';
-import { DateSchema, EmailSchema, NameSchema, PhoneNumberSchema } from '@/schemas/inputs';
+import {
+  DateSchema,
+  EmailSchema,
+  NameSchema,
+  PhoneNumberSchema,
+  E164PhoneSchema,
+} from '@/schemas/inputs';
 
 export const LoginWithPhoneSchema = z.object({
-  phoneNumber: PhoneNumberSchema,
+  phoneNumber: E164PhoneSchema,
   type: z.literal('PHONE'),
   otp: z.string().optional(),
 });
@@ -23,7 +29,7 @@ export const AgentSchema = z.object({
   lastName: NameSchema,
   email: EmailSchema.optional(),
   phoneNumber: PhoneNumberSchema.optional(),
-  role: z.nativeEnum(UserRole).default(UserRole.AGENT),
+  roles: z.array(z.nativeEnum(UserRole)).default([UserRole.AGENT]),
   managedByUserId: z.string().optional(),
   countryIds: z.array(z.string()).min(1, {
     message: 'Vous devez sélectionner au moins un pays.',
@@ -65,3 +71,13 @@ export const AdminSettingsSchema = UserSettingsSchema.extend({
 });
 
 export type AdminSettings = z.infer<typeof AdminSettingsSchema>;
+
+export const RegistrationSchema = z.object({
+  firstName: NameSchema,
+  lastName: NameSchema,
+  email: EmailSchema,
+  phoneNumber: E164PhoneSchema,
+  otp: z.string().optional(),
+});
+
+export type RegistrationInput = z.infer<typeof RegistrationSchema>;

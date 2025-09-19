@@ -8,29 +8,7 @@ export const userRouter = createTRPCRouter({
   getDocumentsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.userDocument.count({
       where: {
-        userId: ctx.session.user.id,
-      },
-    });
-    return count;
-  }),
-
-  getChildrenCount: protectedProcedure.query(async ({ ctx }) => {
-    const count = await ctx.db.parentalAuthority.count({
-      where: {
-        parentUserId: ctx.session.user.id,
-      },
-    });
-    return count;
-  }),
-
-  getUpcomingAppointmentsCount: protectedProcedure.query(async ({ ctx }) => {
-    const count = await ctx.db.appointment.count({
-      where: {
-        attendeeId: ctx.session.user.id,
-        status: 'CONFIRMED',
-        startTime: {
-          gte: new Date(),
-        },
+        userId: ctx.auth.userId,
       },
     });
     return count;
@@ -39,7 +17,7 @@ export const userRouter = createTRPCRouter({
   getActiveRequestsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.serviceRequest.count({
       where: {
-        submittedById: ctx.session.user.id,
+        submittedById: ctx.auth.userId,
         status: {
           in: [
             'DRAFT',
@@ -74,7 +52,7 @@ export const userRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) =>
+        !ctx.user?.roles?.some((role) =>
           ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -105,7 +83,7 @@ export const userRouter = createTRPCRouter({
             { phoneNumber: { contains: search, mode: 'insensitive' as const } },
           ],
         }),
-        ...(roles && roles.length > 0 && { role: { in: roles } }),
+        ...(roles && roles.length > 0 && { roles: { hasSome: roles } }),
         ...(countryCode &&
           countryCode.length > 0 && { countryCode: { in: countryCode } }),
         ...(organizationId &&
@@ -131,7 +109,6 @@ export const userRouter = createTRPCRouter({
             email: true,
             phoneNumber: true,
             roles: true,
-            role: true,
             createdAt: true,
             country: {
               select: {
@@ -168,7 +145,10 @@ export const userRouter = createTRPCRouter({
       ]);
 
       return {
-        items: items as UserListItem[],
+        items: items.map((item) => ({
+          ...item,
+          role: item.roles[0] || 'USER',
+        })) as UserListItem[],
         total,
         pages: Math.ceil(total / limit),
         currentPage: page,
@@ -180,7 +160,7 @@ export const userRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
       if (
-        !ctx.session?.user?.roles?.some((role) =>
+        !ctx.user?.roles?.some((role) =>
           ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
         )
       ) {
@@ -200,7 +180,6 @@ export const userRouter = createTRPCRouter({
           phoneNumberVerified: true,
           emailVerified: true,
           roles: true,
-          role: true,
           createdAt: true,
           updatedAt: true,
           country: {
@@ -294,6 +273,9 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      return user as UserDetails;
+      return {
+        ...user,
+        role: user.roles[0] || 'USER',
+      } as UserDetails;
     }),
 });

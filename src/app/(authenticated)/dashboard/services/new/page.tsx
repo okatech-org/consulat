@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { PageContainer } from '@/components/layouts/page-container';
 import { ROUTES } from '@/schemas/routes';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { hasAnyRole } from '@/lib/permissions/utils';
 
 import {

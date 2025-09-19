@@ -17,6 +17,9 @@ export const ROUTES = {
     networks: '/intel/networks' as Route<string>,
     projects: '/intel/projects' as Route<string>,
     associations: '/intel/associations' as Route<string>,
+    maps: {
+      associations: '/intel/maps/associations' as Route<string>,
+    },
   },
   api: {
     base: '/api' as Route<string>,
@@ -27,10 +30,11 @@ export const ROUTES = {
 
   auth: {
     base: '/auth' as Route<string>,
-    login: '/auth/login' as Route<string>,
+    login: '/sign-in' as Route<string>,
     register: '/registration' as Route<string>,
-    auth_error: '/auth/error' as Route<string>,
-    unauthorized: '/auth/unauthorized' as Route<string>,
+    register_sync: '/registration/sync' as Route<string>,
+    auth_error: '/sign-in' as Route<string>,
+    unauthorized: '/unauthorized' as Route<string>,
   },
 
   dashboard: {

@@ -20,14 +20,14 @@ declare module 'next-auth' {
   }
 
   interface User {
-    role?: UserRole;
+    roles?: UserRole[];
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    role: UserRole;
+    roles: UserRole[];
     email: string;
     name: string;
     image: string;
@@ -54,14 +54,14 @@ export const authConfig = {
     jwt: async ({ token, user }) => {
       if (user) {
         token.id = user.id as string;
-        token.role = user.role as UserRole;
+        token.roles = user.roles as UserRole[];
       }
 
       return token;
     },
     session: async ({ session, token }) => {
       // Récupérer les données complètes de l'utilisateur depuis la base de données
-      if (token?.id && token?.role && typeof token.id === 'string') {
+      if (token?.id && token?.roles && typeof token.id === 'string') {
         const user = await getUserById(token.id);
         if (user) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

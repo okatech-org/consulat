@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import { getOrganizationByCountry } from '@/actions/organizations';
 import { ROUTES } from '@/schemas/routes';
 import { redirect } from 'next/navigation';

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
-import { getCurrentUser } from "@/actions/user";
+import { getCurrentUser } from "@/lib/auth/utils";
 import { ChatToggle } from "../chat/chat-toggle";
 
 export async function PublicFooter() {

@@ -45,16 +45,14 @@ import { tryCatch } from '@/lib/utils';
 import { FileInput } from '@/components/ui/file-input';
 import { useFile } from '@/hooks/use-file';
 import type { OrganizationDetails } from '@/server/api/routers/organizations/types';
-import { useRoleData } from '@/hooks/use-role-data';
-import type { SuperAdminData, AdminData } from '@/types/role-data';
+import { api } from '@/trpc/react';
 
 interface OrganizationSettingsProps {
   organization: OrganizationDetails;
 }
 
 export function OrganizationSettings({ organization }: OrganizationSettingsProps) {
-  const roleData = useRoleData<SuperAdminData | AdminData>();
-  const activeCountries = roleData?.activeCountries;
+  const { data: activeCountries } = api.countries.getActive.useQuery();
   const { handleFileUpload, handleFileDelete, isLoading: fileLoading } = useFile();
   const schema = generateOrganizationSettingsSchema(organization.countries);
   const t = useTranslations('organization');

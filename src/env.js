@@ -12,16 +12,15 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     DIRECT_URL: z.string().url(),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    VONAGE_API_KEY: z.string(),
-    VONAGE_API_SECRET: z.string(),
-    VONAGE_APPLICATION_ID: z.string(),
-    VONAGE_PRIVATE_KEY: z.string(),
+
+    // Clerk Authentication
+    CLERK_SECRET_KEY: z.string(),
+    CLERK_WEBHOOK_SECRET: z.string().optional(),
 
     // UploadThing
     UPLOADTHING_TOKEN: z.string(),
 
     // AI APIs
-    OPENAI_API_KEY: z.string(),
     GEMINI_API_KEY: z.string(),
     REMOVEBG_API_KEY: z.string(),
 
@@ -63,6 +62,9 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_NAME: z.string(),
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: z.string().optional(),
     NEXT_PUBLIC_GEMINI_API_KEY: z.string(),
+
+    // Clerk Authentication
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
   },
 
   /**
@@ -73,12 +75,7 @@ export const env = createEnv({
     AUTH_SECRET: process.env.AUTH_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    VONAGE_API_KEY: process.env.VONAGE_API_KEY,
-    VONAGE_API_SECRET: process.env.VONAGE_API_SECRET,
-    VONAGE_APPLICATION_ID: process.env.VONAGE_APPLICATION_ID,
-    VONAGE_PRIVATE_KEY: process.env.VONAGE_PRIVATE_KEY,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     REMOVEBG_API_KEY: process.env.REMOVEBG_API_KEY,
     SMS_PROVIDER: process.env.SMS_PROVIDER,
@@ -101,7 +98,11 @@ export const env = createEnv({
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
     DIRECT_URL: process.env.DIRECT_URL,
     PASS_SECRET: process.env.PASS_SECRET,
-    PASS_SECRET: process.env.PASS_SECRET,
+
+    // Clerk Authentication
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -1,6 +1,6 @@
 'use client';
 
-import { HomeIcon, LogOut, MoonIcon, MoreVerticalIcon, SunIcon } from 'lucide-react';
+import { HomeIcon, MoonIcon, MoreVerticalIcon, SunIcon } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -21,13 +21,15 @@ import {
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { ROUTES } from '@/schemas/routes';
-import { useCurrentUser } from '@/hooks/use-role-data';
-import { signOut } from 'next-auth/react';
-import { UserRole } from '@prisma/client';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { LogoutButton } from './logout-button';
+import { getDashboardUrl } from '@/lib/utils';
 
 export function NavUser() {
   const { user } = useCurrentUser();
+  if (!user) {
+    return undefined;
+  }
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
@@ -37,15 +39,6 @@ export function NavUser() {
     .map((name) => name[0])
     .join('. ');
   const name = user.name?.split(' ').slice(1).join(' ').trim();
-
-  const dashboardUrl: Record<UserRole, string> = {
-    [UserRole.ADMIN]: ROUTES.dashboard.base,
-    [UserRole.AGENT]: ROUTES.dashboard.base,
-    [UserRole.MANAGER]: ROUTES.dashboard.base,
-    [UserRole.SUPER_ADMIN]: ROUTES.dashboard.base,
-    [UserRole.INTEL_AGENT]: ROUTES.intel.base,
-    [UserRole.USER]: ROUTES.user.base,
-  };
 
   return (
     <SidebarMenu>
@@ -105,7 +98,7 @@ export function NavUser() {
                   className="items-center w-full gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   asChild
                 >
-                  <Link href={dashboardUrl[user.role]}>
+                  <Link href={getDashboardUrl(user)}>
                     <HomeIcon className="size-icon" />
                     {t('navigation.my_space')}
                   </Link>
@@ -138,13 +131,8 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={async () => {
-                await signOut({ redirectTo: '/' });
-              }}
-            >
-              <LogOut className="size-icon" />
-              {t('auth.actions.logout')}
+            <DropdownMenuItem asChild>
+              <LogoutButton customClass="w-full" />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

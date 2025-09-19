@@ -1,6 +1,6 @@
 import { ServerRoleGuard } from '@/lib/permissions/utils';
 import SuperAdminDashboard from '../../../components/dashboards/superadmin-dashboard';
-import { getCurrentUser } from '@/actions/user';
+import { getCurrentUser } from '@/lib/auth/utils';
 import AgentDashboard from '../../../components/dashboards/agent-dashboard';
 import AdminDashboard from '../../../components/dashboards/admin-dashboard';
 import { ManagerDashboard } from '../../../components/dashboards/manager-dashboard';
@@ -11,11 +11,11 @@ import { redirect } from 'next/navigation';
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
-  if (user?.role === 'INTEL_AGENT') {
+  if (user?.roles?.includes('INTEL_AGENT')) {
     redirect(ROUTES.intel.base);
   }
 
-  if (user?.role === 'USER') {
+  if (user?.roles?.includes('USER')) {
     redirect(ROUTES.user.base);
   }
 

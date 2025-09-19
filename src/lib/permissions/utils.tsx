@@ -1,7 +1,7 @@
 import { UserRole } from '@prisma/client';
 import { ROLES } from './roles';
 import type { ResourceType } from './types';
-import { useCurrentUser } from '@/hooks/use-role-data';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import type { SessionUser } from '@/types';
 
 export function hasPermission<Resource extends keyof ResourceType>(
@@ -10,7 +10,7 @@ export function hasPermission<Resource extends keyof ResourceType>(
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
 ): boolean {
-  return [user.role].some((role) => {
+  return user.roles.some((role) => {
     const permission = ROLES[role]?.[resource]?.[action];
 
     if (permission == null) return false;
@@ -58,20 +58,20 @@ export function usePermission<Resource extends keyof ResourceType>(
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a un rôle spécifique
 export function hasRole(user: SessionUser | null, role: UserRole): boolean {
-  if (!user?.role) return false;
-  return user.role === role;
+  if (!user?.roles) return false;
+  return user.roles.includes(role);
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a l'un des rôles spécifiés
 export function hasAnyRole(user: SessionUser | null, roles: UserRole[]): boolean {
-  if (!user?.role || !roles) return false;
-  return [user.role].some((role) => roles.includes(role));
+  if (!user?.roles || !roles) return false;
+  return user.roles.some((role) => roles.includes(role));
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a tous les rôles spécifiés
 export function hasAllRoles(user: SessionUser | null, roles: UserRole[]): boolean {
-  if (!user?.role) return false;
-  return [user.role].every((role) => roles.includes(role));
+  if (!user?.roles) return false;
+  return user.roles.every((role) => roles.includes(role));
 }
 
 type Props = {

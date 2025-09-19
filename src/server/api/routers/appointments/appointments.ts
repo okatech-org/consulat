@@ -87,7 +87,7 @@ export const appointmentsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const params = {
-        userId: input?.userId || ctx.session.user.id,
+        userId: input?.userId || ctx.auth.userId,
         agentId: input?.agentId,
       };
 
@@ -116,7 +116,7 @@ export const appointmentsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const params = {
-        userId: input?.userId || ctx.session.user.id,
+        userId: input?.userId || ctx.auth.userId,
         agentId: input?.agentId,
         limit: input?.limit || 10,
       };
@@ -160,7 +160,7 @@ export const appointmentsRouter = createTRPCRouter({
       try {
         const appointment = await createAppointmentAction({
           ...input,
-          attendeeId: input.attendeeId || ctx.session.user.id,
+          attendeeId: input.attendeeId || ctx.auth.userId,
         });
 
         return appointment;
@@ -193,8 +193,8 @@ export const appointmentsRouter = createTRPCRouter({
 
       // Vérifier les permissions
       if (
-        appointment.attendeeId !== ctx.session.user.id &&
-        appointment.agentId !== ctx.session.user.id
+        appointment.attendeeId !== ctx.auth.userId &&
+        appointment.agentId !== ctx.auth.userId
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -238,8 +238,8 @@ export const appointmentsRouter = createTRPCRouter({
 
       // Vérifier les permissions
       if (
-        appointment.attendeeId !== ctx.session.user.id &&
-        appointment.agentId !== ctx.session.user.id
+        appointment.attendeeId !== ctx.auth.userId &&
+        appointment.agentId !== ctx.auth.userId
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -284,7 +284,7 @@ export const appointmentsRouter = createTRPCRouter({
       }
 
       // Seul l'agent assigné peut marquer le rendez-vous comme terminé
-      if (appointment.agentId !== ctx.session.user.id) {
+      if (appointment.agentId !== ctx.auth.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You are not authorized to complete this appointment',
@@ -322,7 +322,7 @@ export const appointmentsRouter = createTRPCRouter({
       }
 
       // Seul l'agent assigné peut marquer le rendez-vous comme manqué
-      if (appointment.agentId !== ctx.session.user.id) {
+      if (appointment.agentId !== ctx.auth.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You are not authorized to mark this appointment as missed',
@@ -425,8 +425,8 @@ export const appointmentsRouter = createTRPCRouter({
       } else {
         // Si aucun filtre spécifique, utiliser l'utilisateur courant
         whereClause.OR = [
-          { attendeeId: ctx.session.user.id },
-          { agentId: ctx.session.user.id },
+          { attendeeId: ctx.auth.userId },
+          { agentId: ctx.auth.userId },
         ];
       }
 
