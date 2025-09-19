@@ -69,7 +69,7 @@ export async function syncUserWithDatabase(userId: string | null) {
 
     console.log('User found in Clerk', clerkUser);
 
-    const email = clerkUser.phoneNumbers[0]?.phoneNumber;
+    const email = clerkUser.emailAddresses[0]?.emailAddress;
     const phoneNumber = clerkUser.phoneNumbers[0]?.phoneNumber;
 
     if (!email && !phoneNumber) {
