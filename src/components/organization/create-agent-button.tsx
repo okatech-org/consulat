@@ -6,13 +6,13 @@ import { Plus } from 'lucide-react';
 import { AgentForm } from './agent-form'; // Import AgentForm
 import { type AgentFormData } from '@/schemas/user';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { type Organization } from '@/types/organization';
 
 import { getServicesForOrganization } from '@/actions/agents';
@@ -63,19 +63,19 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
   }, [initialData?.assignedOrganizationId]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button leftIcon={<Plus className="size-4" />}>
           <span className={'mobile-hide-inline'}>Ajouter</span>
         </Button>
-      </DialogTrigger>
-      <DialogContent className="w-full max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Créer un utilisateur</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent className="min-w-[50%] max-w-3xl overflow-y-auto">
+        <SheetHeader className="pb-4">
+          <SheetTitle className="text-left">Créer un utilisateur</SheetTitle>
+          <SheetDescription>
             Ajouter un nouvel agent ou manager à votre organisation
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <AgentForm
           initialData={initialData}
           countries={countries}
@@ -87,7 +87,7 @@ export function CreateAgentButton({ initialData, countries }: CreateAgentButtonP
             window.location.reload();
           }}
         />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

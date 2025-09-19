@@ -24,6 +24,7 @@ export function useDashboard<T>(options?: {
   refresh: () => void;
 } {
   const { user } = useCurrentUser();
+  
   const userRoles = user?.roles || [];
   const organizationId = getOrganizationIdFromUser(user || null);
 

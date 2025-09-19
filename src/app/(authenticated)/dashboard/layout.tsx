@@ -11,9 +11,11 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-background">
+      <SidebarInset className="bg-background overflow-hidden">
         <SiteHeader />
-        <div className="pt-14 pb-safe md:pb-6 container">{children}</div>
+        <div className="absolute pt-14 pb-safe md:pb-6! inset-0 overflow-y-scroll overflow-x-hidden container">
+          {children}
+        </div>
         <BottomNavigation />
       </SidebarInset>
     </SidebarProvider>

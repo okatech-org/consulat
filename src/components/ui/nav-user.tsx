@@ -28,6 +28,9 @@ import { LogoutButton } from './logout-button';
 
 export function NavUser() {
   const { user } = useCurrentUser();
+  if (!user) {
+    return undefined;
+  }
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();

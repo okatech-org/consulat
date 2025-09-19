@@ -14,28 +14,6 @@ export const userRouter = createTRPCRouter({
     return count;
   }),
 
-  getChildrenCount: protectedProcedure.query(async ({ ctx }) => {
-    const count = await ctx.db.parentalAuthority.count({
-      where: {
-        parentUserId: ctx.auth.userId,
-      },
-    });
-    return count;
-  }),
-
-  getUpcomingAppointmentsCount: protectedProcedure.query(async ({ ctx }) => {
-    const count = await ctx.db.appointment.count({
-      where: {
-        attendeeId: ctx.auth.userId,
-        status: 'CONFIRMED',
-        startTime: {
-          gte: new Date(),
-        },
-      },
-    });
-    return count;
-  }),
-
   getActiveRequestsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.serviceRequest.count({
       where: {
