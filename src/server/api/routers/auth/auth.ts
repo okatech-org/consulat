@@ -144,7 +144,7 @@ export const authRouter = createTRPCRouter({
       const t = await getTranslations('auth.login.errors');
 
       // Vérifier si l'utilisateur existe déjà
-      const { error: userCheckError, data: existingUser } = await tryCatch(
+      const { error: userCheckError, data: existingUserData } = await tryCatch(
         ctx.db.user.findFirst({
           where: { clerkId: input.clerkId },
         }),
@@ -158,7 +158,7 @@ export const authRouter = createTRPCRouter({
         });
       }
 
-      if (existingUser) {
+      if (existingUserData) {
         return;
       }
 
@@ -193,6 +193,40 @@ export const authRouter = createTRPCRouter({
           code: 'BAD_REQUEST',
           message: t('country_code_not_found'),
         });
+      }
+
+      // Check for existing users before creation
+      const existingUser = await ctx.db.user.findFirst({
+        where: {
+          OR: [
+            { clerkId: input.clerkId },
+            ...(email ? [{ email }] : []),
+            ...(phoneNumber ? [{ phoneNumber }] : []),
+          ],
+        },
+      });
+
+      if (existingUser) {
+        if (existingUser.clerkId === input.clerkId) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Ce compte existe déjà. Veuillez vous connecter.',
+          });
+        }
+        if (existingUser.email === email) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message:
+              'Cette adresse email est déjà associée à un compte existant. Veuillez utiliser une autre adresse ou vous connecter avec le compte existant.',
+          });
+        }
+        if (existingUser.phoneNumber === phoneNumber) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message:
+              'Ce numéro de téléphone est déjà associé à un compte existant. Veuillez utiliser un autre numéro ou vous connecter avec le compte existant.',
+          });
+        }
       }
 
       // Créer l'utilisateur et son profil en transaction
@@ -240,6 +274,32 @@ export const authRouter = createTRPCRouter({
 
       if (createError || !result) {
         console.error('Erreur création utilisateur:', createError);
+
+        // Check if it's a unique constraint violation
+        if (createError && 'code' in createError && createError.code === 'P2002') {
+          const meta = createError.meta as { target?: string[] };
+          if (meta?.target?.includes('phoneNumber')) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Ce numéro de téléphone est déjà associé à un compte existant. Veuillez utiliser un autre numéro ou vous connecter avec le compte existant.',
+            });
+          }
+          if (meta?.target?.includes('email')) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Cette adresse email est déjà associée à un compte existant. Veuillez utiliser une autre adresse ou vous connecter avec le compte existant.',
+            });
+          }
+          if (meta?.target?.includes('clerkId')) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Ce compte existe déjà. Veuillez vous connecter.',
+            });
+          }
+        }
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: t('user_creation_failed'),
