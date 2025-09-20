@@ -146,8 +146,8 @@ export default {
     },
   },
   signup: {
-    title: 'Créer votre compte',
-    description: 'Bienvenue ! Veuillez remplir les détails pour commencer.',
+    title: 'Créez votre espace consulaire',
+    description: 'Bienvenue ! Veuillez remplir vos informations pour commencer.',
     verify_phone_title: 'Vérifiez votre téléphone',
     verify_phone_description:
       'Saisissez le code de vérification envoyé à votre téléphone',
@@ -195,6 +195,9 @@ export default {
       invalid_password: 'Le mot de passe doit contenir au moins 8 caractères',
       password_mismatch: 'Les mots de passe ne correspondent pas',
     },
+    registration_success: 'Inscription réussie !',
+    redirecting_message: 'Vous allez être redirigé automatiquement...',
+    continue_setup: 'Continuer la configuration',
   },
   actions: {
     otp: 'Code de vérification',
