@@ -366,7 +366,7 @@ export const intelligenceRouter = createTRPCRouter({
       const note = await ctx.db.intelligenceNote.create({
         data: {
           ...input,
-          authorId: ctx.auth.userId,
+          authorId: ctx.user.id,
         },
         include: {
           author: {
@@ -392,7 +392,7 @@ export const intelligenceRouter = createTRPCRouter({
           intelligenceNoteId: note.id,
           action: 'created',
           newContent: note.content,
-          changedById: ctx.auth.userId,
+          changedById: ctx.user.id,
         },
       });
 
@@ -447,7 +447,7 @@ export const intelligenceRouter = createTRPCRouter({
           action: 'updated',
           previousContent: existingNote.content,
           newContent: updatedNote.content,
-          changedById: ctx.auth.userId,
+          changedById: ctx.user.id,
         },
       });
 
@@ -477,7 +477,7 @@ export const intelligenceRouter = createTRPCRouter({
           intelligenceNoteId: input.noteId,
           action: 'deleted',
           previousContent: existingNote.content,
-          changedById: ctx.auth.userId,
+          changedById: ctx.user.id,
         },
       });
 

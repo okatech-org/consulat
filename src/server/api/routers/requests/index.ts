@@ -142,7 +142,7 @@ export const requestsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       // Vérifier les permissions
       if (
-        input.userId !== ctx.auth.userId &&
+        input.userId !== ctx.user.id &&
         !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
         )
@@ -556,7 +556,7 @@ export const requestsRouter = createTRPCRouter({
             content: input.content,
             type: input.type,
             serviceRequestId: input.requestId,
-            authorId: ctx.auth.userId,
+            authorId: ctx.user.id,
           },
           include: {
             author: {

@@ -8,7 +8,7 @@ export const userRouter = createTRPCRouter({
   getDocumentsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.userDocument.count({
       where: {
-        userId: ctx.auth.userId,
+        userId: ctx.user.id,
       },
     });
     return count;
@@ -17,7 +17,7 @@ export const userRouter = createTRPCRouter({
   getActiveRequestsCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.serviceRequest.count({
       where: {
-        submittedById: ctx.auth.userId,
+        submittedById: ctx.user.id,
         status: {
           in: [
             'DRAFT',
