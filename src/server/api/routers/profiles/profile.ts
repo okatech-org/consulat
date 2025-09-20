@@ -48,7 +48,7 @@ export const profileRouter = createTRPCRouter({
   getDashboard: protectedProcedure.query(async ({ ctx }) => {
     try {
       const profile = await ctx.db.profile.findFirst({
-        where: { userId: ctx.auth.userId },
+        where: { userId: ctx.user.id },
         ...DashboardProfileSelect,
       });
 
@@ -71,7 +71,7 @@ export const profileRouter = createTRPCRouter({
 
   getCurrentOrganizationContactData: protectedProcedure.query(async ({ ctx }) => {
     const profile = await ctx.db.profile.findFirst({
-      where: { userId: ctx.auth.userId },
+      where: { userId: ctx.user.id },
       select: {
         id: true,
         firstName: true,
@@ -110,7 +110,7 @@ export const profileRouter = createTRPCRouter({
     try {
       const profile = await ctx.db.profile.findFirst({
         where: {
-          OR: [{ userId: ctx.auth.userId }, { id: ctx.user?.profileId ?? '' }],
+          OR: [{ userId: ctx.user.id }, { id: ctx.user?.profileId ?? '' }],
         },
         ...FullProfileInclude,
       });
@@ -250,7 +250,7 @@ export const profileRouter = createTRPCRouter({
     .input(CreateProfileSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        const profile = await createUserProfile(input, ctx.auth.userId);
+        const profile = await createUserProfile(input, ctx.user.id);
         return profile;
       } catch (error) {
         throw new TRPCError({
@@ -311,7 +311,7 @@ export const profileRouter = createTRPCRouter({
       const profile = await ctx.db.profile.findFirst({
         where: {
           id: profileId,
-          userId: ctx.auth.userId,
+          userId: ctx.user.id,
         },
       });
 
@@ -383,10 +383,10 @@ export const profileRouter = createTRPCRouter({
         .optional(),
     )
     .query(async ({ ctx, input }) => {
-      const parentId = input?.parentId || ctx.auth.userId;
+      const parentId = input?.parentId || ctx.user.id;
 
       // Vérifier que l'utilisateur peut voir ces profils
-      if (parentId !== ctx.auth.userId && !ctx.user.roles?.includes('ADMIN')) {
+      if (parentId !== ctx.user.id && !ctx.user.roles?.includes('ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Non autorisé à voir ces profils enfants',
@@ -571,7 +571,7 @@ export const profileRouter = createTRPCRouter({
           data: {
             content: notificationContent,
             receiverId: userId,
-            senderId: ctx.auth.userId,
+            senderId: ctx.user.id,
           },
         });
 
@@ -588,7 +588,7 @@ export const profileRouter = createTRPCRouter({
             email: recipientEmail,
             metadata: {
               messageId: createdMessage.id,
-              senderId: ctx.auth.userId,
+              senderId: ctx.user.id,
               senderName: from,
             },
           });
@@ -631,7 +631,7 @@ export const profileRouter = createTRPCRouter({
           await tx.parentalAuthority.create({
             data: {
               profileId: profile.id,
-              parentUserId: ctx.auth.userId,
+              parentUserId: ctx.user.id,
               role: input.parentRole,
               isActive: true,
             },
@@ -696,7 +696,7 @@ export const profileRouter = createTRPCRouter({
         const hasAuthority = await ctx.db.parentalAuthority.findFirst({
           where: {
             profileId: input.id,
-            parentUserId: ctx.auth.userId,
+            parentUserId: ctx.user.id,
             isActive: true,
           },
         });
@@ -814,7 +814,7 @@ export const profileRouter = createTRPCRouter({
         const hasAuthority = await ctx.db.parentalAuthority.findFirst({
           where: {
             profileId: input.id,
-            parentUserId: ctx.auth.userId,
+            parentUserId: ctx.user.id,
             isActive: true,
           },
         });
@@ -886,7 +886,7 @@ export const profileRouter = createTRPCRouter({
               serviceCategory: 'REGISTRATION',
               organizationId: registrationService.organizationId || '',
               countryCode: ctx.user.countryCode!,
-              submittedById: ctx.auth.userId,
+              submittedById: ctx.user.id,
               serviceId: registrationService.id,
               requestedForId: input.id,
             },
@@ -940,7 +940,7 @@ export const profileRouter = createTRPCRouter({
         const hasAuthority = await ctx.db.parentalAuthority.findFirst({
           where: {
             profileId: input.id,
-            parentUserId: ctx.auth.userId,
+            parentUserId: ctx.user.id,
             isActive: true,
           },
         });
@@ -1019,7 +1019,7 @@ export const profileRouter = createTRPCRouter({
 
         // Seul un parent ou un admin peut modifier
         const canModify =
-          ctx.auth.userId === input.parentUserId || ctx.user.roles?.includes('ADMIN');
+          ctx.user.id === input.parentUserId || ctx.user.roles?.includes('ADMIN');
 
         if (!canModify) {
           throw new TRPCError({
@@ -1062,7 +1062,7 @@ export const profileRouter = createTRPCRouter({
   getChildProfileStats: protectedProcedure
     .input(z.object({ parentId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
-      const parentId = input?.parentId || ctx.auth.userId;
+      const parentId = input?.parentId || ctx.user.id;
 
       try {
         const [total, byStatus] = await Promise.all([
@@ -1120,10 +1120,10 @@ export const profileRouter = createTRPCRouter({
   getChildrenForDashboard: protectedProcedure
     .input(z.object({ parentId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
-      const parentId = input?.parentId || ctx.auth.userId;
+      const parentId = input?.parentId || ctx.user.id;
 
       // Vérifier que l'utilisateur peut voir ces profils
-      if (parentId !== ctx.auth.userId && !ctx.user.roles?.includes('ADMIN')) {
+      if (parentId !== ctx.user.id && !ctx.user.roles?.includes('ADMIN')) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Non autorisé à voir ces profils enfants',

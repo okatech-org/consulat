@@ -24,9 +24,7 @@ export const dashboardRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       // Vérifier les permissions
-      if (
-        !ctx.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
-      ) {
+      if (!ctx.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -181,11 +179,11 @@ export const dashboardRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const agentId = input.agentId || ctx.auth.userId;
+      const agentId = input.agentId || ctx.user.id;
 
       // Vérifier les permissions
       if (
-        agentId !== ctx.auth.userId &&
+        agentId !== ctx.user.id &&
         !ctx.user.roles?.some((role) =>
           ['ADMIN', 'SUPER_ADMIN', 'MANAGER'].includes(role),
         )
@@ -315,11 +313,11 @@ export const dashboardRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const managerId = input.managerId || ctx.auth.userId;
+      const managerId = input.managerId || ctx.user.id;
 
       // Vérifier les permissions
       if (
-        managerId !== ctx.auth.userId &&
+        managerId !== ctx.user.id &&
         !ctx.user.roles?.some((role) => ['ADMIN', 'SUPER_ADMIN'].includes(role))
       ) {
         throw new TRPCError({

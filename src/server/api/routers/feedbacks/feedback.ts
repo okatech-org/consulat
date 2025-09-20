@@ -119,7 +119,7 @@ export const feedbackRouter = createTRPCRouter({
     try {
       const feedbacks = await ctx.db.feedback.findMany({
         where: {
-          userId: ctx.auth.userId,
+          userId: ctx.user.id,
         },
         include: {
           service: {
@@ -269,7 +269,7 @@ export const feedbackRouter = createTRPCRouter({
           data: {
             response,
             respondedBy: {
-              connect: { id: ctx.auth.userId },
+              connect: { id: ctx.user.id },
             },
             respondedAt: new Date(),
             status: 'RESOLVED',

@@ -191,7 +191,7 @@ export const servicesRouter = createTRPCRouter({
 
       try {
         const where = {
-          submittedById: ctx.auth.userId,
+          submittedById: ctx.user.id,
           ...(status && status.length > 0 && { status: { in: status } }),
           ...(search && {
             OR: [
@@ -221,7 +221,7 @@ export const servicesRouter = createTRPCRouter({
         const stats = await Promise.all([
           ctx.db.serviceRequest.count({
             where: {
-              submittedById: ctx.auth.userId,
+              submittedById: ctx.user.id,
               status: {
                 in: [
                   'DRAFT',
@@ -237,13 +237,13 @@ export const servicesRouter = createTRPCRouter({
           }),
           ctx.db.serviceRequest.count({
             where: {
-              submittedById: ctx.auth.userId,
+              submittedById: ctx.user.id,
               status: { in: ['COMPLETED', 'READY_FOR_PICKUP'] },
             },
           }),
           ctx.db.serviceRequest.count({
             where: {
-              submittedById: ctx.auth.userId,
+              submittedById: ctx.user.id,
               status: { in: ['PENDING_COMPLETION', 'READY_FOR_PICKUP'] },
             },
           }),
@@ -381,7 +381,7 @@ export const servicesRouter = createTRPCRouter({
       try {
         const request = await submitServiceRequest({
           ...input,
-          submittedById: ctx.auth.userId,
+          submittedById: ctx.user.id,
           status: 'SUBMITTED',
           formData: input.formData as Prisma.JsonObject,
           requiredDocuments: input.requiredDocuments?.map((doc) => ({ id: doc.id })),
