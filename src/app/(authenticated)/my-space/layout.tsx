@@ -18,10 +18,6 @@ export default async function MySpaceLayout({
 }>) {
   const user = await getCurrentUser();
 
-  if (!user) {
-    redirect(ROUTES.user.base);
-  }
-
   if (user?.roles?.includes('INTEL_AGENT')) {
     redirect(ROUTES.intel.base);
   }

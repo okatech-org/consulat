@@ -47,11 +47,11 @@ export const requestsRouter = createTRPCRouter({
         const where: Prisma.ServiceRequestWhereInput = {};
 
         if (ctx.user.roles.includes(UserRole.AGENT)) {
-          where.assignedToId = { in: [ctx.auth.userId] };
+          where.assignedToId = { in: [ctx.user.id] };
         }
 
         if (ctx.user.roles.includes(UserRole.USER)) {
-          where.submittedById = ctx.auth.userId;
+          where.submittedById = ctx.user.id;
         }
 
         if (userId) where.submittedById = userId;
@@ -654,7 +654,7 @@ export const requestsRouter = createTRPCRouter({
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
     const request = await ctx.db.serviceRequest.findFirst({
       where: {
-        submittedById: ctx.auth.userId,
+        submittedById: ctx.user.id,
       },
       orderBy: {
         createdAt: 'desc',
