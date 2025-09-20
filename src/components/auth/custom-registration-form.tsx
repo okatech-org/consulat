@@ -17,79 +17,193 @@ import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Loader2, Phone, CheckCircle2, RefreshCw, Clock, WifiOff, AlertCircle } from 'lucide-react';
+import {
+  ArrowRight,
+  Loader2,
+  Phone,
+  CheckCircle2,
+  RefreshCw,
+  Clock,
+  WifiOff,
+  AlertCircle,
+} from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { getActiveCountries } from '@/actions/countries';
-import type { Country } from '@prisma/client';
 import { api } from '@/trpc/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useActiveCountries } from '@/hooks/use-countries';
+
+// Constants
+const RESEND_COOLDOWN_SECONDS = 60;
+const MAX_RETRY_ATTEMPTS = 3;
+const SYNC_TIMEOUT_MS = 30000;
+const REDIRECT_DELAY_MS = 1500;
 
 // Types
 type RegistrationStep = 'DETAILS' | 'VERIFICATION' | 'SYNCING' | 'SUCCESS';
 type SyncState = 'loading' | 'success' | 'error' | 'timeout' | 'retrying';
 
-// Schema
+interface ClerkError {
+  errors?: Array<{ longMessage?: string }>;
+  message?: string;
+}
+
+// Enhanced Schema with better validation
 const RegistrationSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required' }),
-  lastName: z.string().min(1, { message: 'Last name is required' }),
-  emailAddress: z.string().email({ message: 'Invalid email address' }),
-  phoneNumber: z.string().min(1, { message: 'Phone number is required' }),
-  code: z.string().optional(),
+  firstName: z
+    .string()
+    .min(1, { message: 'First name is required' })
+    .max(50, { message: 'First name must be less than 50 characters' })
+    .regex(/^[a-zA-ZÀ-ÿ\s-']+$/, { message: 'First name contains invalid characters' }),
+  lastName: z
+    .string()
+    .min(1, { message: 'Last name is required' })
+    .max(50, { message: 'Last name must be less than 50 characters' })
+    .regex(/^[a-zA-ZÀ-ÿ\s-']+$/, { message: 'Last name contains invalid characters' }),
+  emailAddress: z
+    .string()
+    .email({ message: 'Invalid email address' })
+    .max(254, { message: 'Email address is too long' }),
+  phoneNumber: z
+    .string()
+    .min(1, { message: 'Phone number is required' })
+    .regex(/^\+?[1-9]\d{1,14}$/, { message: 'Invalid phone number format' }),
+  code: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^\d{6}$/.test(val), {
+      message: 'Verification code must be 6 digits',
+    }),
 });
 
 type RegistrationInput = z.infer<typeof RegistrationSchema>;
 
-// Function to translate Clerk errors
-function translateClerkError(error: string, t: (key: string) => string): string {
-  const errorTranslations: Record<string, string> = {
-    'That phone number is taken. Please try another.': t('errors.phone_taken'),
-    'That email address is taken. Please try another.': t('errors.email_taken'),
-    'Invalid phone number format.': t('errors.invalid_phone'),
-    'Phone number must be a valid phone number according to E.164 international standard.':
-      t('errors.invalid_phone_e164'),
-    'Invalid email address format.': t('errors.invalid_email'),
-    'Phone number is required.': t('errors.required_field'),
-    'Email address is required.': t('errors.required_field'),
-    'First name is required.': t('errors.required_field'),
-    'Last name is required.': t('errors.required_field'),
-    'Invalid verification code.': t('errors.invalid_code'),
-    'Verification code expired.': t('errors.code_expired'),
-    'Too many failed attempts.': t('errors.too_many_attempts'),
-    'SignUp not available': t('errors.missing_action'),
-    'SignUp or setActive not available': t('errors.missing_action'),
+// Error translation utility
+const createErrorTranslator = (t: (key: string) => string) => {
+  const errorMap = new Map([
+    ['That phone number is taken. Please try another.', 'errors.phone_taken'],
+    ['That email address is taken. Please try another.', 'errors.email_taken'],
+    ['Invalid phone number format.', 'errors.invalid_phone'],
+    [
+      'Phone number must be a valid phone number according to E.164 international standard.',
+      'errors.invalid_phone_e164',
+    ],
+    ['Invalid email address format.', 'errors.invalid_email'],
+    ['Phone number is required.', 'errors.required_field'],
+    ['Email address is required.', 'errors.required_field'],
+    ['First name is required.', 'errors.required_field'],
+    ['Last name is required.', 'errors.required_field'],
+    ['Invalid verification code.', 'errors.invalid_code'],
+    ['Verification code expired.', 'errors.code_expired'],
+    ['Too many failed attempts.', 'errors.too_many_attempts'],
+    ['SignUp not available', 'errors.missing_action'],
+    ['SignUp or setActive not available', 'errors.missing_action'],
+  ]);
+
+  const keywordPatterns = [
+    { keywords: ['phone', 'taken'], translation: 'errors.phone_taken' },
+    { keywords: ['email', 'taken'], translation: 'errors.email_taken' },
+    { keywords: ['invalid', 'phone'], translation: 'errors.invalid_phone' },
+    { keywords: ['invalid', 'email'], translation: 'errors.invalid_email' },
+    { keywords: ['verification', 'code'], translation: 'errors.invalid_code' },
+  ];
+
+  return (error: string): string => {
+    // Exact match
+    const exactTranslation = errorMap.get(error);
+    if (exactTranslation) return t(exactTranslation);
+
+    // Keyword match
+    const lowerError = error.toLowerCase();
+    const keywordMatch = keywordPatterns.find(({ keywords }) =>
+      keywords.every((keyword) => lowerError.includes(keyword)),
+    );
+
+    return keywordMatch ? t(keywordMatch.translation) : error;
   };
+};
 
-  // Search for exact translation
-  if (errorTranslations[error]) {
-    return errorTranslations[error];
-  }
+// Custom hooks for better separation of concerns
+const useResendCooldown = (initialCooldown = RESEND_COOLDOWN_SECONDS) => {
+  const [cooldown, setCooldown] = React.useState(0);
+  const [canResend, setCanResend] = React.useState(true);
 
-  // Search for keywords for partial translations
-  const lowerError = error.toLowerCase();
-  if (lowerError.includes('phone') && lowerError.includes('taken')) {
-    return t('errors.phone_taken');
-  }
-  if (lowerError.includes('email') && lowerError.includes('taken')) {
-    return t('errors.email_taken');
-  }
-  if (lowerError.includes('invalid') && lowerError.includes('phone')) {
-    return t('errors.invalid_phone');
-  }
-  if (lowerError.includes('invalid') && lowerError.includes('email')) {
-    return t('errors.invalid_email');
-  }
-  if (lowerError.includes('verification') && lowerError.includes('code')) {
-    return t('errors.invalid_code');
-  }
+  const startCooldown = React.useCallback(() => {
+    setCooldown(initialCooldown);
+    setCanResend(false);
+  }, [initialCooldown]);
 
-  // Return original message if no translation found
-  return error;
-}
+  React.useEffect(() => {
+    if (cooldown <= 0) return;
 
+    const interval = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [cooldown]);
+
+  return { cooldown, canResend, startCooldown };
+};
+
+const useSyncManager = () => {
+  const [syncState, setSyncState] = React.useState<SyncState>('loading');
+  const [errorMessage, setErrorMessage] = React.useState('');
+  const [retryCount, setRetryCount] = React.useState(0);
+  const [timeoutId, setTimeoutId] = React.useState<NodeJS.Timeout | null>(null);
+
+  const clearLocalTimeout = React.useCallback(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      setTimeoutId(null);
+    }
+  }, [timeoutId]);
+
+  const startTimeout = React.useCallback(() => {
+    clearLocalTimeout();
+    const id = setTimeout(() => setSyncState('timeout'), SYNC_TIMEOUT_MS);
+    setTimeoutId(id);
+  }, [clearLocalTimeout]);
+
+  const retry = React.useCallback(() => {
+    setRetryCount((prev) => prev + 1);
+    setSyncState('retrying');
+    setErrorMessage('');
+  }, []);
+
+  const reset = React.useCallback(() => {
+    clearLocalTimeout();
+    setRetryCount(0);
+    setErrorMessage('');
+  }, [clearTimeout]);
+
+  React.useEffect(() => {
+    return () => clearLocalTimeout();
+  }, [clearLocalTimeout]);
+
+  return {
+    syncState,
+    setSyncState,
+    errorMessage,
+    setErrorMessage,
+    retryCount,
+    startTimeout,
+    retry,
+    reset,
+    clearLocalTimeout,
+  };
+};
+
+// Main component
 export function CustomRegistrationForm() {
   const router = useRouter();
   const t = useTranslations('auth.signup');
@@ -101,39 +215,28 @@ export function CustomRegistrationForm() {
   const [step, setStep] = React.useState<RegistrationStep>('DETAILS');
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [resendCooldown, setResendCooldown] = React.useState(0);
-  const [canResend, setCanResend] = React.useState(true);
-  const [countries, setCountries] = React.useState<Country[]>([]);
 
-  // Sync state
-  const [syncState, setSyncState] = React.useState<SyncState>('loading');
-  const [syncErrorMessage, setSyncErrorMessage] = React.useState<string>('');
-  const [retryCount, setRetryCount] = React.useState(0);
-  const [timeoutId, setTimeoutId] = React.useState<NodeJS.Timeout | null>(null);
+  // Custom hooks
+  const { cooldown, canResend, startCooldown } = useResendCooldown();
+  const syncManager = useSyncManager();
 
-  // Sync mutation
-  const { mutate: syncUser, isPending: isSyncPending } = api.auth.handleNewUser.useMutation({
-    onSuccess: () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      setSyncState('success');
-      setTimeout(() => {
-        setStep('SUCCESS');
-      }, 1500);
-    },
-    onError: (error) => {
-      if (timeoutId) clearTimeout(timeoutId);
-      setSyncState('error');
-      setSyncErrorMessage(error.message || 'Une erreur inattendue s\'est produite');
-    },
-  });
-
-  // Load countries
-  React.useEffect(() => {
-    getActiveCountries().then(setCountries).catch(() => {
-      setCountries([]);
+  // API
+  const { countries } = useActiveCountries();
+  const { mutate: syncUser, isPending: isSyncPending } =
+    api.auth.handleNewUser.useMutation({
+      onSuccess: () => {
+        syncManager.clearLocalTimeout();
+        syncManager.setSyncState('success');
+        setTimeout(() => setStep('SUCCESS'), REDIRECT_DELAY_MS);
+      },
+      onError: (error) => {
+        syncManager.clearLocalTimeout();
+        syncManager.setSyncState('error');
+        syncManager.setErrorMessage(
+          error.message || "Une erreur inattendue s'est produite",
+        );
+      },
     });
-  }, []);
-
 
   // Form
   const form = useForm<RegistrationInput>({
@@ -148,80 +251,60 @@ export function CustomRegistrationForm() {
     mode: 'onChange',
   });
 
-  // Cooldown effect
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (resendCooldown > 0) {
-      interval = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            setCanResend(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendCooldown]);
-
-  // Sync retry handler
-  const handleSyncRetry = React.useCallback(() => {
-    if (!user) return;
-
-    setRetryCount(prev => prev + 1);
-    setSyncState('retrying');
-    setSyncErrorMessage('');
-
-    setTimeout(() => {
-      syncUser({ clerkId: user.id });
-      setSyncState('loading');
-
-      const timeout = setTimeout(() => {
-        setSyncState('timeout');
-      }, 30000);
-      setTimeoutId(timeout);
-    }, 500);
-  }, [user, syncUser]);
+  // Error translator
+  const translateError = React.useMemo(() => createErrorTranslator(t), [t]);
 
   // Auto-retry on connection restore
   React.useEffect(() => {
     const handleOnline = () => {
-      if (syncState === 'error' && navigator.onLine) {
+      if (syncManager.syncState === 'error' && navigator.onLine) {
         handleSyncRetry();
       }
     };
 
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [syncState, handleSyncRetry]);
+  }, [syncManager.syncState]);
 
   // Error handling effect
   React.useEffect(() => {
-    if (error) {
-      const translatedError = translateClerkError(error, t);
-      if (step === 'DETAILS') {
-        // Try to set error on the appropriate field
-        if (error.toLowerCase().includes('email')) {
-          form.setError('emailAddress', { message: translatedError });
-        } else if (error.toLowerCase().includes('phone')) {
-          form.setError('phoneNumber', { message: translatedError });
-        } else if (error.toLowerCase().includes('first')) {
-          form.setError('firstName', { message: translatedError });
-        } else if (error.toLowerCase().includes('last')) {
-          form.setError('lastName', { message: translatedError });
-        } else {
-          toast({
-            title: 'Erreur',
-            description: translatedError,
-            variant: 'destructive',
-          });
-        }
+    if (!error) return;
+
+    const translatedError = translateError(error);
+
+    if (step === 'DETAILS') {
+      const errorLower = error.toLowerCase();
+      if (errorLower.includes('email')) {
+        form.setError('emailAddress', { message: translatedError });
+      } else if (errorLower.includes('phone')) {
+        form.setError('phoneNumber', { message: translatedError });
+      } else if (errorLower.includes('first')) {
+        form.setError('firstName', { message: translatedError });
+      } else if (errorLower.includes('last')) {
+        form.setError('lastName', { message: translatedError });
       } else {
-        form.setError('code', { message: translatedError });
+        toast({
+          title: 'Erreur',
+          description: translatedError,
+          variant: 'destructive',
+        });
       }
+    } else {
+      form.setError('code', { message: translatedError });
     }
-  }, [error, step, form, t, toast]);
+  }, [error, step, form, translateError, toast]);
+
+  // Enhanced error extraction
+  const extractErrorMessage = (error: unknown): string => {
+    if (typeof error === 'string') return error;
+
+    const clerkError = error as ClerkError;
+    return (
+      clerkError?.errors?.[0]?.longMessage ||
+      clerkError?.message ||
+      "Une erreur inattendue s'est produite"
+    );
+  };
 
   // Handlers
   const handleCreateAccount = async (data: RegistrationInput) => {
@@ -235,27 +318,22 @@ export function CustomRegistrationForm() {
 
     try {
       await signUp.create({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        emailAddress: data.emailAddress,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        emailAddress: data.emailAddress.trim().toLowerCase(),
         phoneNumber: data.phoneNumber,
       });
 
       await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
 
       setStep('VERIFICATION');
-      setResendCooldown(60);
-      setCanResend(false);
+      startCooldown();
       toast({
         title: 'Code envoyé',
         description: t('verification_code_sent'),
       });
-    } catch (error: unknown) {
-      const errorMessage =
-        (error as { errors?: Array<{ longMessage?: string }> })?.errors?.[0]?.longMessage ||
-        (error as { message?: string })?.message ||
-        'Erreur lors de la création du compte';
-      setError(errorMessage);
+    } catch (error) {
+      setError(extractErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -271,35 +349,25 @@ export function CustomRegistrationForm() {
     setError(null);
 
     try {
-      const result = await signUp.attemptPhoneNumberVerification({
-        code,
-      });
+      const result = await signUp.attemptPhoneNumberVerification({ code });
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
         setStep('SYNCING');
-        setSyncState('loading');
+        syncManager.setSyncState('loading');
 
-        // Start sync process
+        // Start sync process with delay
         setTimeout(() => {
           if (result.createdUserId) {
             syncUser({ clerkId: result.createdUserId });
-
-            const timeout = setTimeout(() => {
-              setSyncState('timeout');
-            }, 30000);
-            setTimeoutId(timeout);
+            syncManager.startTimeout();
           }
         }, 500);
       } else {
         throw new Error('Verification incomplète');
       }
-    } catch (error: unknown) {
-      const errorMessage =
-        (error as { errors?: Array<{ longMessage?: string }> })?.errors?.[0]?.longMessage ||
-        (error as { message?: string })?.message ||
-        'Erreur de vérification';
-      setError(errorMessage);
+    } catch (error) {
+      setError(extractErrorMessage(error));
       form.setValue('code', '');
     } finally {
       setIsLoading(false);
@@ -314,22 +382,29 @@ export function CustomRegistrationForm() {
 
     try {
       await signUp.preparePhoneNumberVerification({ strategy: 'phone_code' });
-      setResendCooldown(60);
-      setCanResend(false);
+      startCooldown();
       toast({
         title: 'Code renvoyé',
         description: t('verification_code_sent'),
       });
-    } catch (error: unknown) {
-      const errorMessage =
-        (error as { errors?: Array<{ longMessage?: string }> })?.errors?.[0]?.longMessage ||
-        (error as { message?: string })?.message ||
-        'Erreur lors du renvoi';
-      setError(errorMessage);
+    } catch (error) {
+      setError(extractErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleSyncRetry = React.useCallback(() => {
+    if (!user || syncManager.retryCount >= MAX_RETRY_ATTEMPTS) return;
+
+    syncManager.retry();
+
+    setTimeout(() => {
+      syncUser({ clerkId: user.id });
+      syncManager.setSyncState('loading');
+      syncManager.startTimeout();
+    }, 500);
+  }, [user, syncUser, syncManager]);
 
   const onSubmit = async (data: RegistrationInput) => {
     if (step === 'DETAILS') {
@@ -339,17 +414,20 @@ export function CustomRegistrationForm() {
     }
   };
 
-  // Render sync status
-  const renderSyncStatus = () => {
-    switch (syncState) {
+  // Enhanced sync status component
+  const SyncStatusComponent = React.memo(function SyncStatusComponent() {
+    const isNetworkError =
+      !navigator.onLine ||
+      syncManager.errorMessage.includes('network') ||
+      syncManager.errorMessage.includes('connexion');
+
+    switch (syncManager.syncState) {
       case 'loading':
         return (
           <div className="w-full flex flex-col justify-center gap-4 items-center">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <div className="text-center space-y-2">
-              <p className="text-lg font-medium">
-                Création de votre espace consulaire
-              </p>
+              <p className="text-lg font-medium">Création de votre espace consulaire</p>
               <p className="text-sm text-muted-foreground">
                 Veuillez patienter, cela peut prendre quelques instants...
               </p>
@@ -362,11 +440,9 @@ export function CustomRegistrationForm() {
           <div className="w-full flex flex-col justify-center gap-4 items-center">
             <RefreshCw className="h-12 w-12 animate-spin text-primary" />
             <div className="text-center space-y-2">
-              <p className="text-lg font-medium">
-                Nouvelle tentative en cours...
-              </p>
+              <p className="text-lg font-medium">Nouvelle tentative en cours...</p>
               <p className="text-sm text-muted-foreground">
-                Tentative {retryCount}/3
+                Tentative {syncManager.retryCount}/{MAX_RETRY_ATTEMPTS}
               </p>
             </div>
           </div>
@@ -380,9 +456,7 @@ export function CustomRegistrationForm() {
               <p className="text-lg font-medium text-green-700">
                 Espace consulaire créé avec succès !
               </p>
-              <p className="text-sm text-muted-foreground">
-                Redirection en cours...
-              </p>
+              <p className="text-sm text-muted-foreground">Redirection en cours...</p>
             </div>
           </div>
         );
@@ -394,14 +468,14 @@ export function CustomRegistrationForm() {
               <Clock className="h-4 w-4" />
               <AlertTitle>Délai d&apos;attente dépassé</AlertTitle>
               <AlertDescription>
-                La création de votre espace prend plus de temps que prévu.
-                Veuillez réessayer ou vérifier votre connexion internet.
+                La création de votre espace prend plus de temps que prévu. Veuillez
+                réessayer ou vérifier votre connexion internet.
               </AlertDescription>
             </Alert>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 onClick={handleSyncRetry}
-                disabled={isSyncPending}
+                disabled={isSyncPending || syncManager.retryCount >= MAX_RETRY_ATTEMPTS}
                 className="flex-1 sm:flex-none"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
@@ -411,9 +485,7 @@ export function CustomRegistrationForm() {
           </div>
         );
 
-      case 'error': {
-        const isNetworkError = !navigator.onLine || syncErrorMessage.includes('network') || syncErrorMessage.includes('connexion');
-
+      case 'error':
         return (
           <div className="w-full space-y-4">
             <Alert variant="destructive">
@@ -426,7 +498,7 @@ export function CustomRegistrationForm() {
                 {isNetworkError ? 'Problème de connexion' : 'Erreur de synchronisation'}
               </AlertTitle>
               <AlertDescription className="space-y-2">
-                <p>{syncErrorMessage}</p>
+                <p>{syncManager.errorMessage}</p>
                 {isNetworkError && (
                   <p className="text-sm">
                     Vérifiez votre connexion internet et réessayez.
@@ -438,45 +510,47 @@ export function CustomRegistrationForm() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 onClick={handleSyncRetry}
-                disabled={isSyncPending || retryCount >= 3}
+                disabled={isSyncPending || syncManager.retryCount >= MAX_RETRY_ATTEMPTS}
                 className="flex-1 sm:flex-none"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                {retryCount >= 3 ? 'Limite atteinte' : 'Réessayer'}
+                {syncManager.retryCount >= MAX_RETRY_ATTEMPTS
+                  ? 'Limite atteinte'
+                  : 'Réessayer'}
               </Button>
 
-              {retryCount >= 3 && (
+              {syncManager.retryCount >= MAX_RETRY_ATTEMPTS && (
                 <Button
                   variant="outline"
                   onClick={() => router.push(ROUTES.base)}
                   className="flex-1 sm:flex-none"
                 >
-                  Retour à l'accueil
+                  Retour à l&apos;accueil
                 </Button>
               )}
             </div>
 
-            {retryCount > 0 && (
+            {syncManager.retryCount > 0 && (
               <p className="text-xs text-center text-muted-foreground">
-                Tentatives: {retryCount}/3
+                Tentatives: {syncManager.retryCount}/{MAX_RETRY_ATTEMPTS}
               </p>
             )}
           </div>
         );
-      }
 
       default:
         return null;
     }
-  };
+  });
 
   return (
     <div className="flex flex-col w-full grow items-center sm:justify-center">
+      <div id="clerk-captcha"></div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4">
           {step === 'SYNCING' && (
             <div className="w-full space-y-4">
-              {renderSyncStatus()}
+              <SyncStatusComponent />
             </div>
           )}
 
@@ -527,6 +601,7 @@ export function CustomRegistrationForm() {
                           type="text"
                           placeholder={t('placeholders.firstName')}
                           disabled={isLoading}
+                          autoComplete="given-name"
                         />
                       </FormControl>
                       <TradFormMessage />
@@ -546,6 +621,7 @@ export function CustomRegistrationForm() {
                           type="text"
                           placeholder={t('placeholders.lastName')}
                           disabled={isLoading}
+                          autoComplete="family-name"
                         />
                       </FormControl>
                       <TradFormMessage />
@@ -565,6 +641,7 @@ export function CustomRegistrationForm() {
                           type="email"
                           placeholder={t('placeholders.email')}
                           disabled={isLoading}
+                          autoComplete="email"
                         />
                       </FormControl>
                       <TradFormMessage />
@@ -667,8 +744,8 @@ export function CustomRegistrationForm() {
                     disabled={!canResend || isLoading}
                     onClick={handleResendCode}
                   >
-                    {resendCooldown > 0
-                      ? t('resend_code_fallback', { seconds: resendCooldown })
+                    {cooldown > 0
+                      ? t('resend_code_fallback', { seconds: cooldown })
                       : t('resend_code')}
                   </Button>
                 </div>
