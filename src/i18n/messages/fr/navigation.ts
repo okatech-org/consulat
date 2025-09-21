@@ -44,6 +44,7 @@ export default {
     'intel-associations': 'Carte des Associations',
     associations: 'Associations',
     map: 'Carte des profils',
+    form: 'Formulaire',
   },
   dashboard: {
     title: 'Accueil',

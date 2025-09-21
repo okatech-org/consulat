@@ -27,7 +27,7 @@ export default async function RegistrationPage() {
               src={appLogo}
               width={200}
               height={200}
-              alt={t('page.image_alt')}
+              alt="Consulat.ga"
               className="relative h-20 w-20 rounded-md transition-transform duration-500 group-hover:scale-105"
             />
           </div>

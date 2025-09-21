@@ -100,6 +100,7 @@ export default {
       email_taken: 'Cette adresse email est déjà utilisée',
       phone_taken: 'Ce numéro de téléphone est déjà utilisé',
       no_code_pending: "Aucun code d'inscription en attente",
+      account_not_found: "Nous n'avons pas trouvé de compte associé à cet email",
     },
     back_home: "Retour à l'accueil",
     hero: {
@@ -157,6 +158,8 @@ export default {
     verify_button: 'Vérifier',
     resend_code: "Vous n'avez pas reçu de code ? Renvoyer",
     resend_code_fallback: "Vous n'avez pas reçu de code ? Renvoyer ({seconds}s)",
+    rate_limit_cooldown: 'Trop de tentatives - Patientez {minutes}min {seconds}s',
+    verification_code_sent: 'Code de vérification envoyé avec succès',
     fields: {
       email: 'Adresse email',
       firstName: 'Prénom',
@@ -194,10 +197,15 @@ export default {
       required_field: 'Ce champ est requis',
       invalid_password: 'Le mot de passe doit contenir au moins 8 caractères',
       password_mismatch: 'Les mots de passe ne correspondent pas',
+      rate_limited: 'Trop de tentatives. Veuillez patienter avant de réessayer.',
+      rate_limited_description:
+        'Vous avez effectué trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.',
     },
     registration_success: 'Inscription réussie !',
     redirecting_message: 'Vous allez être redirigé automatiquement...',
-    continue_setup: 'Continuer la configuration',
+    redirecting_in_seconds:
+      'Redirection dans {seconds} seconde{seconds, plural, =1 {} other {s}}...',
+    continue_setup: 'Continuer la création de compte',
   },
   actions: {
     otp: 'Code de vérification',

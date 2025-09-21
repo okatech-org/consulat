@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
+import type { CountryCode } from 'libphonenumber-js';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import {
@@ -34,13 +35,14 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/trpc/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useActiveCountries } from '@/hooks/use-countries';
+import { useCountriesList } from '@/hooks/use-countries';
 
 // Constants
 const RESEND_COOLDOWN_SECONDS = 60;
 const MAX_RETRY_ATTEMPTS = 3;
 const SYNC_TIMEOUT_MS = 30000;
 const REDIRECT_DELAY_MS = 1500;
+const RATE_LIMIT_COOLDOWN_SECONDS = 300; // 5 minutes for rate limit
 
 // Types
 type RegistrationStep = 'DETAILS' | 'VERIFICATION' | 'SYNCING' | 'SUCCESS';
@@ -101,6 +103,9 @@ const createErrorTranslator = (t: (key: string) => string) => {
     ['Too many failed attempts.', 'errors.too_many_attempts'],
     ['SignUp not available', 'errors.missing_action'],
     ['SignUp or setActive not available', 'errors.missing_action'],
+    ['Identifier must be a valid email address.', 'errors.invalid_identifier'],
+    ['Request was throttled.', 'errors.rate_limited'],
+    ['Too many requests', 'errors.rate_limited'],
   ]);
 
   const keywordPatterns = [
@@ -109,6 +114,10 @@ const createErrorTranslator = (t: (key: string) => string) => {
     { keywords: ['invalid', 'phone'], translation: 'errors.invalid_phone' },
     { keywords: ['invalid', 'email'], translation: 'errors.invalid_email' },
     { keywords: ['verification', 'code'], translation: 'errors.invalid_code' },
+    { keywords: ['invalid', 'identifier'], translation: 'errors.invalid_identifier' },
+    { keywords: ['throttled'], translation: 'errors.rate_limited' },
+    { keywords: ['too', 'many', 'requests'], translation: 'errors.rate_limited' },
+    { keywords: ['rate', 'limit'], translation: 'errors.rate_limited' },
   ];
 
   return (error: string): string => {
@@ -130,11 +139,17 @@ const createErrorTranslator = (t: (key: string) => string) => {
 const useResendCooldown = (initialCooldown = RESEND_COOLDOWN_SECONDS) => {
   const [cooldown, setCooldown] = React.useState(0);
   const [canResend, setCanResend] = React.useState(true);
+  const [isRateLimited, setIsRateLimited] = React.useState(false);
 
-  const startCooldown = React.useCallback(() => {
-    setCooldown(initialCooldown);
-    setCanResend(false);
-  }, [initialCooldown]);
+  const startCooldown = React.useCallback(
+    (isRateLimit = false) => {
+      const cooldownTime = isRateLimit ? RATE_LIMIT_COOLDOWN_SECONDS : initialCooldown;
+      setCooldown(cooldownTime);
+      setCanResend(false);
+      setIsRateLimited(isRateLimit);
+    },
+    [initialCooldown],
+  );
 
   React.useEffect(() => {
     if (cooldown <= 0) return;
@@ -143,6 +158,7 @@ const useResendCooldown = (initialCooldown = RESEND_COOLDOWN_SECONDS) => {
       setCooldown((prev) => {
         if (prev <= 1) {
           setCanResend(true);
+          setIsRateLimited(false);
           return 0;
         }
         return prev - 1;
@@ -152,7 +168,7 @@ const useResendCooldown = (initialCooldown = RESEND_COOLDOWN_SECONDS) => {
     return () => clearInterval(interval);
   }, [cooldown]);
 
-  return { cooldown, canResend, startCooldown };
+  return { cooldown, canResend, startCooldown, isRateLimited };
 };
 
 const useSyncManager = () => {
@@ -215,13 +231,14 @@ export function CustomRegistrationForm() {
   const [step, setStep] = React.useState<RegistrationStep>('DETAILS');
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = React.useState<number>(0);
 
   // Custom hooks
-  const { cooldown, canResend, startCooldown } = useResendCooldown();
+  const { cooldown, canResend, startCooldown, isRateLimited } = useResendCooldown();
   const syncManager = useSyncManager();
 
   // API
-  const { countries } = useActiveCountries();
+  const { countries } = useCountriesList();
   const { mutate: syncUser, isPending: isSyncPending } =
     api.auth.handleNewUser.useMutation({
       onSuccess: () => {
@@ -266,6 +283,35 @@ export function CustomRegistrationForm() {
     return () => window.removeEventListener('online', handleOnline);
   }, [syncManager.syncState]);
 
+  // Auto-redirect after successful registration
+  React.useEffect(() => {
+    if (step === 'SUCCESS') {
+      // Start countdown
+      setRedirectCountdown(Math.ceil(REDIRECT_DELAY_MS / 1000));
+
+      // Update countdown every second
+      const countdownInterval = setInterval(() => {
+        setRedirectCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Redirect after delay
+      const redirectTimer = setTimeout(() => {
+        router.push(ROUTES.user.profile_form);
+      }, REDIRECT_DELAY_MS);
+
+      return () => {
+        clearTimeout(redirectTimer);
+        clearInterval(countdownInterval);
+      };
+    }
+  }, [step, router]);
+
   // Error handling effect
   React.useEffect(() => {
     if (!error) return;
@@ -306,6 +352,17 @@ export function CustomRegistrationForm() {
     );
   };
 
+  // Check if error is rate limiting
+  const isRateLimitError = (error: string): boolean => {
+    const lowerError = error.toLowerCase();
+    return (
+      lowerError.includes('429') ||
+      lowerError.includes('too many requests') ||
+      lowerError.includes('throttled') ||
+      lowerError.includes('rate limit')
+    );
+  };
+
   // Handlers
   const handleCreateAccount = async (data: RegistrationInput) => {
     if (!signUp) {
@@ -333,7 +390,18 @@ export function CustomRegistrationForm() {
         description: t('verification_code_sent'),
       });
     } catch (error) {
-      setError(extractErrorMessage(error));
+      const errorMessage = extractErrorMessage(error);
+      setError(errorMessage);
+
+      // Handle rate limiting with longer cooldown
+      if (isRateLimitError(errorMessage)) {
+        startCooldown(true);
+        toast({
+          title: 'Trop de tentatives',
+          description: t('errors.rate_limited_description'),
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -388,7 +456,18 @@ export function CustomRegistrationForm() {
         description: t('verification_code_sent'),
       });
     } catch (error) {
-      setError(extractErrorMessage(error));
+      const errorMessage = extractErrorMessage(error);
+      setError(errorMessage);
+
+      // Handle rate limiting with longer cooldown
+      if (isRateLimitError(errorMessage)) {
+        startCooldown(true);
+        toast({
+          title: 'Trop de tentatives',
+          description: t('errors.rate_limited_description'),
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -565,7 +644,9 @@ export function CustomRegistrationForm() {
                     {t('registration_success')}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2">
-                    {t('redirecting_message')}
+                    {redirectCountdown > 0
+                      ? t('redirecting_in_seconds', { seconds: redirectCountdown })
+                      : t('redirecting_message')}
                   </p>
                 </div>
               </div>
@@ -661,8 +742,10 @@ export function CustomRegistrationForm() {
                           onChange={field.onChange}
                           disabled={isLoading}
                           placeholder={t('placeholders.phoneNumber')}
-                          countries={countries?.map((country) => country.code as any)}
-                          defaultCountry={countries?.[0]?.code as any}
+                          countries={countries?.map(
+                            (country) => country.code as CountryCode,
+                          )}
+                          defaultCountry={countries?.[0]?.code as CountryCode}
                         />
                       </FormControl>
                       <TradFormMessage />
@@ -745,7 +828,12 @@ export function CustomRegistrationForm() {
                     onClick={handleResendCode}
                   >
                     {cooldown > 0
-                      ? t('resend_code_fallback', { seconds: cooldown })
+                      ? isRateLimited
+                        ? t('rate_limit_cooldown', {
+                            minutes: Math.ceil(cooldown / 60),
+                            seconds: cooldown % 60,
+                          })
+                        : t('resend_code_fallback', { seconds: cooldown })
                       : t('resend_code')}
                   </Button>
                 </div>

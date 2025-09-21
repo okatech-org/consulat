@@ -29,7 +29,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { z } from 'zod';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { toast } from 'sonner';
-import { useActiveCountries } from '@/hooks/use-countries';
+import { useCountriesList } from '@/hooks/use-countries';
 
 // Constants
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -140,7 +140,7 @@ export function CustomSignInForm() {
 
   // Custom hooks
   const { cooldown, canResend, startCooldown } = useResendCooldown();
-  const { countries } = useActiveCountries();
+  const { countries } = useCountriesList();
 
   // Computed values
   const callbackUrl = searchParams.get('redirect_url');
