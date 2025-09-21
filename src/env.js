@@ -7,8 +7,6 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    AUTH_SECRET:
-      process.env.NODE_ENV === 'production' ? z.string() : z.string().optional(),
     DATABASE_URL: z.string().url(),
     DIRECT_URL: z.string().url(),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
