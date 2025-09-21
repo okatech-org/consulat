@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { countrySchema } from '@/schemas/country';
 import { revalidatePath } from 'next/cache';
@@ -128,7 +128,7 @@ export const countriesRouter = createTRPCRouter({
   /**
    * Récupérer les pays actifs (pour les formulaires)
    */
-  getActive: protectedProcedure
+  getActive: publicProcedure
     .input(z.object({ organizationId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
       const where = {
@@ -310,9 +310,7 @@ export const countriesRouter = createTRPCRouter({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier les permissions
     if (
-      !ctx.user?.roles?.some((role) =>
-        ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role),
-      )
+      !ctx.user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role))
     ) {
       throw new TRPCError({
         code: 'FORBIDDEN',

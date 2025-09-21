@@ -2,8 +2,10 @@
 
 import { api } from '@/trpc/react';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { ROUTES } from '@/schemas/routes';
+import { useEffect, useState } from 'react';
+import type { Country } from '@/types/country';
+import { getActiveCountries } from '@/actions/countries';
+import { tryCatch } from '@/lib/utils';
 
 /**
  * Hook principal pour la gestion des pays avec optimistic updates
@@ -216,21 +218,6 @@ export function useCountries(options?: {
 }
 
 /**
- * Hook pour récupérer un pays spécifique
- */
-export function useCountry(id: string) {
-  const countryQuery = api.countries.getById.useQuery({ id }, { enabled: !!id });
-
-  return {
-    country: countryQuery.data,
-    isLoading: countryQuery.isLoading,
-    isError: countryQuery.isError,
-    error: countryQuery.error,
-    refetch: countryQuery.refetch,
-  };
-}
-
-/**
  * Hook pour récupérer les pays actifs (pour les formulaires)
  */
 export function useActiveCountries(organizationId?: string) {
@@ -247,95 +234,32 @@ export function useActiveCountries(organizationId?: string) {
   };
 }
 
-/**
- * Hook pour les statistiques des pays
- */
-export function useCountriesStats() {
-  const statsQuery = api.countries.getStats.useQuery(undefined);
+export function useCountriesList() {
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const fetchCountries = async () => {
+      const countries = await tryCatch(getActiveCountries());
+
+      if (countries.error) {
+        setIsError(true);
+        setError(countries.error);
+      } else {
+        setCountries(countries.data as Country[]);
+      }
+      setIsLoading(false);
+    };
+    fetchCountries();
+  }, []);
 
   return {
-    stats: statsQuery.data,
-    isLoading: statsQuery.isLoading,
-    isError: statsQuery.isError,
-    error: statsQuery.error,
-    refetch: statsQuery.refetch,
-  };
-}
-
-/**
- * Hook pour les actions de création avec navigation
- */
-export function useCountryCreation() {
-  const { toast } = useToast();
-  const router = useRouter();
-  const utils = api.useUtils();
-
-  const createMutation = api.countries.create.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: 'Pays créé avec succès',
-        description: `Le pays ${data.name} a été créé.`,
-      });
-
-      // Invalider les caches
-      utils.countries.getList.invalidate();
-      utils.countries.getStats.invalidate();
-
-      // Naviguer vers la page d'édition ou la liste
-      router.push(ROUTES.sa.countries);
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erreur lors de la création',
-        description:
-          error.message || 'Une erreur est survenue lors de la création du pays.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  return {
-    createCountry: createMutation.mutate,
-    createCountryAsync: createMutation.mutateAsync,
-    isCreating: createMutation.isPending,
-    error: createMutation.error,
-  };
-}
-
-/**
- * Hook pour les actions de mise à jour avec navigation
- */
-export function useCountryUpdate(id: string) {
-  const { toast } = useToast();
-  const router = useRouter();
-  const utils = api.useUtils();
-
-  const updateMutation = api.countries.update.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: 'Pays mis à jour',
-        description: `Le pays ${data.name} a été mis à jour avec succès.`,
-      });
-
-      // Invalider les caches
-      utils.countries.getList.invalidate();
-      utils.countries.getById.invalidate({ id });
-      utils.countries.getStats.invalidate();
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erreur lors de la mise à jour',
-        description:
-          error.message || 'Une erreur est survenue lors de la mise à jour du pays.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  return {
-    updateCountry: updateMutation.mutate,
-    updateCountryAsync: updateMutation.mutateAsync,
-    isUpdating: updateMutation.isPending,
-    error: updateMutation.error,
+    countries,
+    isLoading,
+    isError,
+    error,
   };
 }
