@@ -2,7 +2,7 @@
 
 import { db } from '@/server/db';
 import { tryCatch } from '@/lib/utils';
-import { auth } from '@/server/auth';
+import { auth } from '@clerk/nextjs/server';
 import { hasPermission } from '@/lib/permissions/utils';
 import {
   createIntelligenceNoteSchema,
@@ -229,8 +229,18 @@ export async function getIntelligenceNotes(data: GetIntelligenceNotesInput) {
         }),
         ...(validatedData.filters.search && {
           OR: [
-            { title: { contains: validatedData.filters.search, mode: 'insensitive' as const } },
-            { content: { contains: validatedData.filters.search, mode: 'insensitive' as const } },
+            {
+              title: {
+                contains: validatedData.filters.search,
+                mode: 'insensitive' as const,
+              },
+            },
+            {
+              content: {
+                contains: validatedData.filters.search,
+                mode: 'insensitive' as const,
+              },
+            },
           ],
         }),
       }),
@@ -575,14 +585,17 @@ export async function getIntelligenceMapData(data: GetIntelligenceMapDataInput) 
     });
 
     // Debug simplifié
-    const profilesWithRealAddress = profiles.filter(p => 
-      p.address && 
-      p.address.city && 
-      p.address.city.trim() !== '' &&
-      p.address.country && 
-      p.address.country.trim() !== ''
+    const profilesWithRealAddress = profiles.filter(
+      (p) =>
+        p.address &&
+        p.address.city &&
+        p.address.city.trim() !== '' &&
+        p.address.country &&
+        p.address.country.trim() !== '',
     );
-    console.log(`📊 Action Intelligence: ${profiles.length} profils total → ${profilesWithRealAddress.length} avec adresses valides`);
+    console.log(
+      `📊 Action Intelligence: ${profiles.length} profils total → ${profilesWithRealAddress.length} avec adresses valides`,
+    );
 
     return profiles;
   });
