@@ -6,13 +6,12 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/registration(.*)',
-  'feedback',
-  'legal(.*)',
-  'unauthorized',
-  'listing(.*)',
+  '/feedback(.*)',
+  '/legal(.*)',
+  '/unauthorized(.*)',
+  '/listing(.*)',
   '/',
 ]);
-
 
 // Fonction pour gérer les fonctionnalités personnalisées existantes
 function handleCustomFeatures(request: NextRequest, response: NextResponse) {

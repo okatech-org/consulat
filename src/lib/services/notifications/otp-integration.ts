@@ -3,7 +3,12 @@
 import { sendOTPEmail } from './providers/emails';
 import { sendSMS } from './providers/sms';
 import { tryCatch } from '@/lib/utils';
-import type { OTPSendFunction } from '@/server/auth/otp-auth-provider';
+// Type pour la fonction d'envoi OTP
+type OTPSendFunction = (
+  channel: 'email' | 'sms',
+  target: string,
+  code: string,
+) => Promise<{ success: boolean; error?: string }>;
 
 /**
  * Fonction d'envoi OTP qui utilise les services de notifications existants
