@@ -7,9 +7,12 @@ import { TRPCReactProvider } from '@/trpc/react';
 import { env } from '@/env';
 import { getLocale, getMessages } from 'next-intl/server';
 import ErrorBoundary from '@/components/error-boundary';
-import { ClerkProvider } from '@clerk/nextjs';
+import { ClerkProvider, useAuth } from '@clerk/nextjs';
 import { frFR, enUS } from '@clerk/localizations';
 import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl';
+import { ConvexReactClient } from 'convex/react';
+import { ConvexProviderWithClerk } from 'convex/react-clerk';
+
 import { cookies } from 'next/headers';
 import { getServerTheme } from '@/lib/theme-server';
 import { getCurrentUser } from '@/lib/auth/utils';
@@ -140,6 +143,8 @@ const geist = Geist({
   variable: '--font-geist-sans',
 });
 
+const convex = new ConvexReactClient(env.CONVEX_URL as string);
+
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -154,50 +159,52 @@ export default async function RootLayout({
   return (
     <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
       <ClerkProvider localization={localizations[locale as keyof typeof localizations]}>
-        <html lang={locale} className={geist.variable} suppressHydrationWarning>
-          <body suppressHydrationWarning>
-            <ErrorBoundary>
-              <TRPCReactProvider>
-                <AuthProvider user={user}>
-                  <SidebarProvider
-                    defaultOpen={
-                      cookieStore?.get('sidebar_state')?.value
-                        ? cookieStore.get('sidebar_state')?.value === 'true'
-                        : true
-                    }
-                    style={
-                      {
-                        '--sidebar-width': 'calc(var(--spacing) * 64)',
-                        '--header-height': 'calc(var(--spacing) * 12)',
-                      } as React.CSSProperties
-                    }
-                  >
-                    <SpeedInsights />
-                    <Analytics />
-
-                    <ThemeProvider
-                      attribute="class"
-                      defaultTheme={serverTheme}
-                      enableSystem
-                      enableColorScheme={false}
-                      disableTransitionOnChange
-                      storageKey="theme"
+        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+          <html lang={locale} className={geist.variable} suppressHydrationWarning>
+            <body suppressHydrationWarning>
+              <ErrorBoundary>
+                <TRPCReactProvider>
+                  <AuthProvider user={user}>
+                    <SidebarProvider
+                      defaultOpen={
+                        cookieStore?.get('sidebar_state')?.value
+                          ? cookieStore.get('sidebar_state')?.value === 'true'
+                          : true
+                      }
+                      style={
+                        {
+                          '--sidebar-width': 'calc(var(--spacing) * 64)',
+                          '--header-height': 'calc(var(--spacing) * 12)',
+                        } as React.CSSProperties
+                      }
                     >
-                      <ThemeWrapper>
-                        <ChatProvider>
-                          <ThemeSync />
-                          <ViewportDetector />
-                          {children}
-                          <Toaster />
-                        </ChatProvider>
-                      </ThemeWrapper>
-                    </ThemeProvider>
-                  </SidebarProvider>
-                </AuthProvider>
-              </TRPCReactProvider>
-            </ErrorBoundary>
-          </body>
-        </html>
+                      <SpeedInsights />
+                      <Analytics />
+
+                      <ThemeProvider
+                        attribute="class"
+                        defaultTheme={serverTheme}
+                        enableSystem
+                        enableColorScheme={false}
+                        disableTransitionOnChange
+                        storageKey="theme"
+                      >
+                        <ThemeWrapper>
+                          <ChatProvider>
+                            <ThemeSync />
+                            <ViewportDetector />
+                            {children}
+                            <Toaster />
+                          </ChatProvider>
+                        </ThemeWrapper>
+                      </ThemeProvider>
+                    </SidebarProvider>
+                  </AuthProvider>
+                </TRPCReactProvider>
+              </ErrorBoundary>
+            </body>
+          </html>
+        </ConvexProviderWithClerk>
       </ClerkProvider>
     </NextIntlClientProvider>
   );
