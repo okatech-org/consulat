@@ -14,7 +14,7 @@ export default async function DashboardLayout({
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect(ROUTES.user.base);
+    redirect(ROUTES.auth.login);
   }
 
   if (user?.roles?.includes('INTEL_AGENT')) {

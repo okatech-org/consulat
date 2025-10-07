@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 export default function UserAppointmentsPage() {
   const { user } = useCurrentUser();
   const { data: appointments, isLoading } = api.appointments.getList.useQuery({
-    userId: user.id,
+    userId: user?.id,
   });
   const t = useTranslations('appointments');
 

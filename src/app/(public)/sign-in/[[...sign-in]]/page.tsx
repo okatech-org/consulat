@@ -2,8 +2,8 @@ import { env } from '@/env';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { BetaBanner } from '@/components/ui/beta-banner';
-import { CustomSignInForm } from '@/components/auth/custom-sign-in-form';
 import { PageContainer } from '@/components/layouts/page-container';
+import { SignIn } from '@clerk/nextjs';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
@@ -30,9 +30,20 @@ export default async function LoginPage() {
             </p>
           </header>
           <div className="w-full flex justify-center items-center">
-            <CustomSignInForm />
+            <SignIn
+              appearance={{
+                elements: {
+                  rootBox: 'w-full',
+                  card: 'shadow-none w-full !p-6',
+                },
+              }}
+              routing="path"
+              path="/sign-in"
+              signUpUrl="/sign-up"
+              fallbackRedirectUrl="/"
+            />
           </div>
-          <BetaBanner className="mt-4" />
+          <BetaBanner />
         </div>
       </div>
       <div className="w-full h-full overflow-hidden rounded-lg hidden md:block">

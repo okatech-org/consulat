@@ -206,6 +206,10 @@ export default {
     redirecting_in_seconds:
       'Redirection dans {seconds} seconde{seconds, plural, =1 {} other {s}}...',
     continue_setup: 'Continuer la création de compte',
+    sync: {
+      title: 'Finalisation de votre compte',
+      description: 'Création de votre espace consulaire en cours...',
+    },
   },
   actions: {
     otp: 'Code de vérification',
