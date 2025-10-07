@@ -89,7 +89,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://api.clerk.dev https://*.api.clerk.dev wss:",
+              "connect-src 'self' https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://api.clerk.dev https://*.api.clerk.dev https://clerk-telemetry.com https://va.vercel-scripts.com wss:",
               "frame-src 'self' https://challenges.cloudflare.com https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga",
               "worker-src 'self' blob:",
               "object-src 'none'",

@@ -70,7 +70,7 @@ export function RegistrationSync() {
       const id = setTimeout(() => setSyncState('timeout'), SYNC_TIMEOUT_MS);
       setTimeoutId(id);
     } else if (isLoaded && !user) {
-      router.push('/sign-up');
+      router.push(ROUTES.auth.signup);
     }
 
     return () => {
