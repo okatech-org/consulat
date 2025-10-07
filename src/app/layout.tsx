@@ -10,8 +10,6 @@ import ErrorBoundary from '@/components/error-boundary';
 import { ClerkProvider, useAuth } from '@clerk/nextjs';
 import { frFR, enUS } from '@clerk/localizations';
 import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl';
-import { ConvexReactClient } from 'convex/react';
-import { ConvexProviderWithClerk } from 'convex/react-clerk';
 
 import { cookies } from 'next/headers';
 import { getServerTheme } from '@/lib/theme-server';
@@ -26,6 +24,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
+import { ConvexProvider } from './convex-provider';
 
 const localizations = {
   fr: frFR,
@@ -143,8 +142,6 @@ const geist = Geist({
   variable: '--font-geist-sans',
 });
 
-const convex = new ConvexReactClient(env.CONVEX_URL as string);
-
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -159,7 +156,7 @@ export default async function RootLayout({
   return (
     <NextIntlClientProvider messages={messages as AbstractIntlMessages}>
       <ClerkProvider localization={localizations[locale as keyof typeof localizations]}>
-        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <ConvexProvider>
           <html lang={locale} className={geist.variable} suppressHydrationWarning>
             <body suppressHydrationWarning>
               <ErrorBoundary>
@@ -204,7 +201,7 @@ export default async function RootLayout({
               </ErrorBoundary>
             </body>
           </html>
-        </ConvexProviderWithClerk>
+        </ConvexProvider>
       </ClerkProvider>
     </NextIntlClientProvider>
   );
