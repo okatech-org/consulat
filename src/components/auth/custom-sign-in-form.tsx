@@ -549,7 +549,7 @@ export function CustomSignInForm() {
                   className={
                     buttonVariants({ variant: 'link', size: 'sm' }) + ' !p-0 !h-auto'
                   }
-                  href={ROUTES.registration}
+                  href={ROUTES.auth.signup}
                 >
                   {t('create_consular_space')}
                 </Link>

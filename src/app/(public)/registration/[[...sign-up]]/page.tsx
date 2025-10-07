@@ -3,16 +3,22 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { getCurrentUser } from '@/lib/auth/utils';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
-import { CustomRegistrationForm } from '@/components/auth/custom-registration-form';
+import { RegistrationSync } from '@/components/auth/registration-sync';
 import Image from 'next/image';
 import { env } from '@/env';
 import { getTranslations } from 'next-intl/server';
+import { auth } from '@clerk/nextjs/server';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
 export default async function RegistrationPage() {
+  const { userId } = await auth();
   const currentUser = await getCurrentUser();
   const t = await getTranslations('auth.signup');
+
+  if (!userId) {
+    redirect(ROUTES.auth.signup);
+  }
 
   if (currentUser) {
     redirect(ROUTES.user.profile_form);
@@ -31,12 +37,10 @@ export default async function RegistrationPage() {
               className="relative h-20 w-20 rounded-md transition-transform duration-500 group-hover:scale-105"
             />
           </div>
-          <h1 className="text-xl mb-2 font-bold">{t('title')}</h1>
-          <p className="text-lg text-muted-foreground">
-            {t('description', { appName: env.NEXT_PUBLIC_APP_NAME })}
-          </p>
+          <h1 className="text-xl mb-2 font-bold">{t('sync.title')}</h1>
+          <p className="text-lg text-muted-foreground">{t('sync.description')}</p>
         </header>
-        <CustomRegistrationForm />
+        <RegistrationSync />
         <BetaBanner className="mt-4" />
       </div>
     </PageContainer>
