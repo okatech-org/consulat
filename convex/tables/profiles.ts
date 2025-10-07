@@ -1,0 +1,84 @@
+import { defineTable } from 'convex/server'
+import { v } from 'convex/values'
+import {
+  addressValidator,
+  emergencyContactValidator,
+  genderValidator,
+  maritalStatusValidator,
+  nationalityAcquisitionValidator,
+  profileCategoryValidator,
+  profileStatusValidator,
+  workStatusValidator,
+} from '../lib/validators'
+
+// Table Profiles - Données personnelles
+export const profiles = defineTable({
+  userId: v.id('users'),
+  // Carte consulaire
+  consularCard: v.object({
+    cardPin: v.optional(v.string()), // NIP de 6 chiffres
+    cardNumber: v.optional(v.string()),
+    cardIssuedAt: v.optional(v.number()),
+    cardExpiresAt: v.optional(v.number()),
+  }),
+
+  personal: v.object({
+    // Informations personnelles
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    birthDate: v.optional(v.number()),
+    birthPlace: v.optional(v.string()),
+    birthCountry: v.optional(v.string()),
+    gender: v.optional(genderValidator),
+    nationality: v.optional(v.string()),
+    maritalStatus: v.optional(maritalStatusValidator),
+    workStatus: v.optional(workStatusValidator),
+    acquisitionMode: v.optional(nationalityAcquisitionValidator),
+    address: v.optional(addressValidator),
+  }),
+
+  family: v.object({
+    father: v.optional(
+      v.object({
+        firstName: v.optional(v.string()),
+        lastName: v.optional(v.string()),
+      }),
+    ),
+    mother: v.optional(
+      v.object({
+        firstName: v.optional(v.string()),
+        lastName: v.optional(v.string()),
+      }),
+    ),
+    spouse: v.optional(
+      v.object({
+        firstName: v.optional(v.string()),
+        lastName: v.optional(v.string()),
+      }),
+    ),
+  }),
+
+  // Contacts d'urgence
+  emergencyContacts: v.array(emergencyContactValidator),
+
+  professionSituation: v.object({
+    profession: v.optional(v.string()),
+    employer: v.optional(v.string()),
+    employerAddress: v.optional(v.string()),
+  }),
+
+  // Documents liés (références)
+  documentIds: v.array(v.id('documents')),
+
+  // Statut du profil
+  category: profileCategoryValidator,
+  status: profileStatusValidator,
+
+  residenceCountry: v.optional(v.string()),
+
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index('by_user', ['userId'])
+  .index('by_status', ['status'])
+  .index('by_card', ['consularCard.cardNumber'])

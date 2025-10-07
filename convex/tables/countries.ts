@@ -1,0 +1,15 @@
+import { defineTable } from 'convex/server'
+import { v } from 'convex/values'
+import { countryStatusValidator } from '../lib/validators'
+
+export const countries = defineTable({
+  name: v.string(),
+  code: v.string(),
+  status: countryStatusValidator,
+  flag: v.optional(v.string()),
+
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index('by_code', ['code'])
+  .index('by_status', ['status'])
