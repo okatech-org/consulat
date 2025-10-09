@@ -1,15 +1,21 @@
 'use client';
 
-import { useAuth } from '@/contexts/auth-context';
+import { api } from 'convex/_generated/api';
+import { useQuery } from 'convex/react';
+import { useAuth } from '@clerk/nextjs';
 
 export function useCurrentUser() {
-  const { user } = useAuth();
+  const { userId } = useAuth();
 
-  if (!user) {
+  if (!userId) {
     return {
       user: null,
     };
   }
+
+  const user = useQuery(api.functions.user.getUserByClerkId, {
+    clerkUserId: userId,
+  });
 
   return {
     user,

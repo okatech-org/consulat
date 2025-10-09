@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server'
 import { v } from 'convex/values'
-import { userRoleValidator, userStatusValidator } from '../lib/validators'
+import { UserRole, UserStatus } from '../lib/constants'
 
 // Table Users - Données d'authentification
 export const users = defineTable({
@@ -13,8 +13,22 @@ export const users = defineTable({
   phoneNumber: v.optional(v.string()),
 
   // Rôles et permissions
-  roles: v.array(userRoleValidator),
-  status: userStatusValidator,
+  roles: v.array(
+    v.union(
+      v.literal(UserRole.User),
+      v.literal(UserRole.Agent),
+      v.literal(UserRole.Admin),
+      v.literal(UserRole.SuperAdmin),
+      v.literal(UserRole.Manager),
+      v.literal(UserRole.IntelAgent),
+      v.literal(UserRole.EducationAgent),
+    )
+  ),
+  status: v.union(
+    v.literal(UserStatus.Active),
+    v.literal(UserStatus.Inactive),
+    v.literal(UserStatus.Suspended),
+  ),
 
   // Relations
   profileId: v.optional(v.id('profiles')),

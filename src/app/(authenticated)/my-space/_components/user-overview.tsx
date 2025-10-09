@@ -6,14 +6,16 @@ import { useDateLocale } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useQuery } from 'convex/react';
-import { api as convexApi } from 'convex/_generated/api';
+import { api } from 'convex/_generated/api';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function UserOverview() {
-  const dashboard = useQuery(convexApi.functions.user.getDashboardData.getDashboardData);
-  const isLoading = dashboard === undefined;
+  const { user } = useCurrentUser();
+  const profile = useQuery(api.functions.user.getUserProfile, { userId: user?._id });
+  const isLoading = user === undefined;
   const { formatDate } = useDateLocale();
   const t = useTranslations('dashboard.unified.user_overview');
-  const requestStats = dashboard?.stats || {
+  const requestStats = {
     inProgress: 0,
     completed: 0,
     pending: 0,
@@ -22,12 +24,6 @@ export function UserOverview() {
   if (isLoading) {
     return <LoadingSkeleton variant="card" className="!w-full h-48" />;
   }
-
-  const profile = dashboard?.profile as any;
-  const firstName = profile?.personal?.firstName ?? profile?.firstName;
-  const lastName = profile?.personal?.lastName ?? profile?.lastName;
-  const documentsCount = dashboard?.documentsCount || 0;
-  const childrenCount = profile?.parentAuthorities?.length || 0;
 
   // Générer les initiales à partir du profil
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -98,13 +94,13 @@ export function UserOverview() {
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-amber-600">{documentsCount}</div>
+            <div className="text-2xl font-bold text-amber-600">{0}</div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.documents')}
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-cyan-600">{childrenCount}</div>
+            <div className="text-2xl font-bold text-cyan-600">{0}</div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.children')}
             </div>

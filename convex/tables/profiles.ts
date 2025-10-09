@@ -1,15 +1,14 @@
-import { defineTable } from 'convex/server'
-import { v } from 'convex/values'
+import { defineTable } from 'convex/server';
+import { v } from 'convex/values';
+import { addressValidator, emergencyContactValidator } from '../lib/validators';
 import {
-  addressValidator,
-  emergencyContactValidator,
-  genderValidator,
-  maritalStatusValidator,
-  nationalityAcquisitionValidator,
-  profileCategoryValidator,
-  profileStatusValidator,
-  workStatusValidator,
-} from '../lib/validators'
+  Gender,
+  MaritalStatus,
+  NationalityAcquisition,
+  ProfileCategory,
+  ProfileStatus,
+  WorkStatus,
+} from '../lib/constants';
 
 // Table Profiles - Données personnelles
 export const profiles = defineTable({
@@ -29,11 +28,37 @@ export const profiles = defineTable({
     birthDate: v.optional(v.number()),
     birthPlace: v.optional(v.string()),
     birthCountry: v.optional(v.string()),
-    gender: v.optional(genderValidator),
+    gender: v.optional(v.union(v.literal(Gender.Male), v.literal(Gender.Female))),
     nationality: v.optional(v.string()),
-    maritalStatus: v.optional(maritalStatusValidator),
-    workStatus: v.optional(workStatusValidator),
-    acquisitionMode: v.optional(nationalityAcquisitionValidator),
+    maritalStatus: v.optional(
+      v.union(
+        v.literal(MaritalStatus.Single),
+        v.literal(MaritalStatus.Married),
+        v.literal(MaritalStatus.Divorced),
+        v.literal(MaritalStatus.Widowed),
+        v.literal(MaritalStatus.CivilUnion),
+        v.literal(MaritalStatus.Cohabiting),
+      ),
+    ),
+    workStatus: v.optional(
+      v.union(
+        v.literal(WorkStatus.SelfEmployed),
+        v.literal(WorkStatus.Employee),
+        v.literal(WorkStatus.Entrepreneur),
+        v.literal(WorkStatus.Unemployed),
+        v.literal(WorkStatus.Retired),
+        v.literal(WorkStatus.Student),
+        v.literal(WorkStatus.Other),
+      ),
+    ),
+    acquisitionMode: v.optional(
+      v.union(
+        v.literal(NationalityAcquisition.Birth),
+        v.literal(NationalityAcquisition.Naturalization),
+        v.literal(NationalityAcquisition.Marriage),
+        v.literal(NationalityAcquisition.Other),
+      ),
+    ),
     address: v.optional(addressValidator),
   }),
 
@@ -71,8 +96,13 @@ export const profiles = defineTable({
   documentIds: v.array(v.id('documents')),
 
   // Statut du profil
-  category: profileCategoryValidator,
-  status: profileStatusValidator,
+  category: v.union(v.literal(ProfileCategory.Adult), v.literal(ProfileCategory.Minor)),
+  status: v.union(
+    v.literal(ProfileStatus.Active),
+    v.literal(ProfileStatus.Inactive),
+    v.literal(ProfileStatus.Pending),
+    v.literal(ProfileStatus.Suspended),
+  ),
 
   residenceCountry: v.optional(v.string()),
 
@@ -81,4 +111,4 @@ export const profiles = defineTable({
 })
   .index('by_user', ['userId'])
   .index('by_status', ['status'])
-  .index('by_card', ['consularCard.cardNumber'])
+  .index('by_card', ['consularCard.cardNumber']);

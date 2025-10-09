@@ -1,17 +1,23 @@
 import { defineTable } from 'convex/server'
 import { v } from 'convex/values'
-import {
-  organizationSettingsValidator,
-  organizationStatusValidator,
-  organizationTypeValidator,
-} from '../lib/validators'
+import { OrganizationType, OrganizationStatus } from '../lib/constants'
 
 export const organizations = defineTable({
   code: v.string(), // Code unique
   name: v.string(),
   logo: v.optional(v.string()), // URL du logo
-  type: organizationTypeValidator, // "EMBASSY" | "CONSULATE" | etc.
-  status: organizationStatusValidator, // Type-safe avec enum
+  type: v.union(
+    v.literal(OrganizationType.Embassy),
+    v.literal(OrganizationType.Consulate),
+    v.literal(OrganizationType.GeneralConsulate),
+    v.literal(OrganizationType.HonoraryConsulate),
+    v.literal(OrganizationType.ThirdParty),
+  ),
+  status: v.union(
+    v.literal(OrganizationStatus.Active),
+    v.literal(OrganizationStatus.Inactive),
+    v.literal(OrganizationStatus.Suspended),
+  ),
 
   // Hiérarchie
   parentId: v.optional(v.id('organizations')),
@@ -23,7 +29,11 @@ export const organizations = defineTable({
   serviceIds: v.array(v.id('services')),
 
   // Configuration
-  settings: organizationSettingsValidator,
+  settings: v.object({
+    appointmentSettings: v.optional(v.any()),
+    workflowSettings: v.optional(v.any()),
+    notificationSettings: v.optional(v.any()),
+  }),
 
   metadata: v.optional(v.any()),
   createdAt: v.number(),

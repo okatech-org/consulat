@@ -1,11 +1,14 @@
 import { defineTable } from 'convex/server'
 import { v } from 'convex/values'
-import { countryStatusValidator } from '../lib/validators'
+import { CountryStatus } from '../lib/constants'
 
 export const countries = defineTable({
   name: v.string(),
   code: v.string(),
-  status: countryStatusValidator,
+  status: v.union(
+    v.literal(CountryStatus.Active),
+    v.literal(CountryStatus.Inactive),
+  ),
   flag: v.optional(v.string()),
 
   createdAt: v.number(),

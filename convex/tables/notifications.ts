@@ -1,27 +1,45 @@
 import { defineTable } from 'convex/server'
 import { v } from 'convex/values'
-import {
-  deliveryStatusValidator,
-  notificationChannelValidator,
-  notificationStatusValidator,
-  notificationTypeValidator,
-} from '../lib/validators'
+import { NotificationChannel, NotificationStatus, NotificationType } from '../lib/constants'
 
 export const notifications = defineTable({
   userId: v.id('users'),
 
   // Contenu
-  type: notificationTypeValidator,
+  type: v.union(
+    v.literal(NotificationType.Updated),
+    v.literal(NotificationType.Reminder),
+    v.literal(NotificationType.Confirmation),
+    v.literal(NotificationType.Cancellation),
+    v.literal(NotificationType.Communication),
+    v.literal(NotificationType.ImportantCommunication),
+  ),
   title: v.string(),
   content: v.string(),
 
   // État
-  status: notificationStatusValidator,
+  status: v.union(
+    v.literal(NotificationStatus.Pending),
+    v.literal(NotificationStatus.Sent),
+    v.literal(NotificationStatus.Delivered),
+    v.literal(NotificationStatus.Failed),
+    v.literal(NotificationStatus.Read),
+  ),
   readAt: v.optional(v.number()),
 
   // Multi-canal
-  channels: v.array(notificationChannelValidator), // Type-safe avec enum
-  deliveryStatus: deliveryStatusValidator,
+  channels: v.array(
+    v.union(
+      v.literal(NotificationChannel.App),
+      v.literal(NotificationChannel.Email),
+      v.literal(NotificationChannel.Sms),
+    )
+  ),
+  deliveryStatus: v.object({
+    app: v.optional(v.boolean()),
+    email: v.optional(v.boolean()),
+    sms: v.optional(v.boolean()),
+  }),
 
   // Programmation
   scheduledFor: v.optional(v.number()),
