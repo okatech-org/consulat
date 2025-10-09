@@ -12,13 +12,17 @@ import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import type { RequestStatus } from '@prisma/client';
 import { EmptyState } from './empty-state';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api as convexApi } from 'convex/_generated/api';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useDateLocale } from '@/lib/utils';
 
 export function CurrentRequestCard() {
   const { formatDate } = useDateLocale();
-  const { data: currentRequest, isLoading } = api.requests.getCurrent.useQuery();
+  const currentRequest = useQuery(
+    convexApi.functions.requests.getCurrentRequest.getCurrentRequest,
+  );
+  const isLoading = currentRequest === undefined;
   const t = useTranslations('dashboard.unified.current_request');
 
   if (isLoading) {

@@ -1,0 +1,612 @@
+import { v } from "convex/values";
+import { mutation, query } from "../_generated/server";
+import { ProfileStatus } from "../lib/constants";
+import type { ProfileCategory, ProfileStatus as ProfileStatusType } from "../lib/constants";
+import type { Doc } from "../_generated/dataModel";
+import {
+  addressValidator,
+  emergencyContactValidator,
+  genderValidator,
+  maritalStatusValidator,
+  workStatusValidator,
+  nationalityAcquisitionValidator,
+} from "../lib/validators";
+
+// Mutations
+export const createProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    category: v.string(),
+    status: v.optional(v.string()),
+    personal: v.optional(
+      v.object({
+        firstName: v.optional(v.string()),
+        lastName: v.optional(v.string()),
+        birthDate: v.optional(v.number()),
+        birthPlace: v.optional(v.string()),
+        birthCountry: v.optional(v.string()),
+        gender: v.optional(genderValidator),
+        nationality: v.optional(v.string()),
+        maritalStatus: v.optional(maritalStatusValidator),
+        workStatus: v.optional(workStatusValidator),
+        acquisitionMode: v.optional(nationalityAcquisitionValidator),
+        address: v.optional(addressValidator),
+      }),
+    ),
+    family: v.optional(
+      v.object({
+        father: v.optional(
+          v.object({
+            firstName: v.optional(v.string()),
+            lastName: v.optional(v.string()),
+          }),
+        ),
+        mother: v.optional(
+          v.object({
+            firstName: v.optional(v.string()),
+            lastName: v.optional(v.string()),
+          }),
+        ),
+        spouse: v.optional(
+          v.object({
+            firstName: v.optional(v.string()),
+            lastName: v.optional(v.string()),
+          }),
+        ),
+      }),
+    ),
+    emergencyContacts: v.optional(v.array(emergencyContactValidator)),
+    professionSituation: v.optional(
+      v.object({
+        profession: v.optional(v.string()),
+        employer: v.optional(v.string()),
+        employerAddress: v.optional(v.string()),
+      }),
+    ),
+    residenceCountry: v.optional(v.string()),
+    consularCard: v.optional(
+      v.object({
+        cardPin: v.optional(v.string()),
+        cardNumber: v.optional(v.string()),
+        cardIssuedAt: v.optional(v.number()),
+        cardExpiresAt: v.optional(v.number()),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const existingProfile = await ctx.db
+      .query("profiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (existingProfile) {
+      throw new Error("User already has a profile");
+    }
+
+    const profileId = await ctx.db.insert("profiles", {
+      userId: args.userId,
+      consularCard: args.consularCard || {
+        cardPin: undefined,
+        cardNumber: undefined,
+        cardIssuedAt: undefined,
+        cardExpiresAt: undefined,
+      },
+      personal: args.personal || {
+        firstName: undefined,
+        lastName: undefined,
+        birthDate: undefined,
+        birthPlace: undefined,
+        birthCountry: undefined,
+        gender: undefined,
+        nationality: undefined,
+        maritalStatus: undefined,
+        workStatus: undefined,
+        acquisitionMode: undefined,
+        address: undefined,
+      },
+      family: args.family || {
+        father: undefined,
+        mother: undefined,
+        spouse: undefined,
+      },
+      emergencyContacts: args.emergencyContacts || [],
+      professionSituation: args.professionSituation || {
+        profession: undefined,
+        employer: undefined,
+        employerAddress: undefined,
+      },
+      documentIds: [],
+      category: args.category as ProfileCategory,
+      status: args.status ?? ProfileStatus.Pending,
+      residenceCountry: args.residenceCountry,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.patch(args.userId, {
+      profileId: profileId,
+      updatedAt: Date.now(),
+    });
+
+    return profileId;
+  },
+});
+
+export const updateProfile = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    personal: v.optional(
+      v.object({
+        firstName: v.optional(v.string()),
+        lastName: v.optional(v.string()),
+        birthDate: v.optional(v.number()),
+        birthPlace: v.optional(v.string()),
+        birthCountry: v.optional(v.string()),
+        gender: v.optional(genderValidator),
+        nationality: v.optional(v.string()),
+        maritalStatus: v.optional(maritalStatusValidator),
+        workStatus: v.optional(workStatusValidator),
+        acquisitionMode: v.optional(nationalityAcquisitionValidator),
+        address: v.optional(addressValidator),
+      }),
+    ),
+    family: v.optional(
+      v.object({
+        father: v.optional(
+          v.object({
+            firstName: v.optional(v.string()),
+            lastName: v.optional(v.string()),
+          }),
+        ),
+        mother: v.optional(
+          v.object({
+            firstName: v.optional(v.string()),
+            lastName: v.optional(v.string()),
+          }),
+        ),
+        spouse: v.optional(
+          v.object({
+            firstName: v.optional(v.string()),
+            lastName: v.optional(v.string()),
+          }),
+        ),
+      }),
+    ),
+    emergencyContacts: v.optional(v.array(emergencyContactValidator)),
+    professionSituation: v.optional(
+      v.object({
+        profession: v.optional(v.string()),
+        employer: v.optional(v.string()),
+        employerAddress: v.optional(v.string()),
+      }),
+    ),
+    residenceCountry: v.optional(v.string()),
+    consularCard: v.optional(
+      v.object({
+        cardPin: v.optional(v.string()),
+        cardNumber: v.optional(v.string()),
+        cardIssuedAt: v.optional(v.number()),
+        cardExpiresAt: v.optional(v.number()),
+      }),
+    ),
+    status: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existingProfile = await ctx.db.get(args.profileId);
+    if (!existingProfile) {
+      throw new Error("Profile not found");
+    }
+
+    const updateData = {
+      ...(args.personal && {
+        personal: { ...existingProfile.personal, ...args.personal },
+      }),
+      ...(args.family && {
+        family: { ...existingProfile.family, ...args.family },
+      }),
+      ...(args.emergencyContacts && {
+        emergencyContacts: args.emergencyContacts,
+      }),
+      ...(args.professionSituation && {
+        professionSituation: {
+          ...existingProfile.professionSituation,
+          ...args.professionSituation,
+        },
+      }),
+      ...(args.residenceCountry !== undefined && {
+        residenceCountry: args.residenceCountry,
+      }),
+      ...(args.consularCard && {
+        consularCard: { ...existingProfile.consularCard, ...args.consularCard },
+      }),
+      ...(args.status && { status: args.status as ProfileStatusType }),
+      updatedAt: Date.now(),
+    };
+
+    await ctx.db.patch(args.profileId, updateData);
+    return args.profileId;
+  },
+});
+
+export const updatePersonalInfo = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    personal: v.object({
+      firstName: v.optional(v.string()),
+      lastName: v.optional(v.string()),
+      birthDate: v.optional(v.number()),
+      birthPlace: v.optional(v.string()),
+      birthCountry: v.optional(v.string()),
+      gender: v.optional(genderValidator),
+      nationality: v.optional(v.string()),
+      maritalStatus: v.optional(maritalStatusValidator),
+      workStatus: v.optional(workStatusValidator),
+      acquisitionMode: v.optional(nationalityAcquisitionValidator),
+      address: v.optional(addressValidator),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    await ctx.db.patch(args.profileId, {
+      personal: { ...profile.personal, ...args.personal },
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const updateFamilyInfo = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    family: v.object({
+      father: v.optional(
+        v.object({
+          firstName: v.optional(v.string()),
+          lastName: v.optional(v.string()),
+        }),
+      ),
+      mother: v.optional(
+        v.object({
+          firstName: v.optional(v.string()),
+          lastName: v.optional(v.string()),
+        }),
+      ),
+      spouse: v.optional(
+        v.object({
+          firstName: v.optional(v.string()),
+          lastName: v.optional(v.string()),
+        }),
+      ),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    await ctx.db.patch(args.profileId, {
+      family: { ...profile.family, ...args.family },
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const addEmergencyContact = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    emergencyContact: emergencyContactValidator,
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    await ctx.db.patch(args.profileId, {
+      emergencyContacts: [...profile.emergencyContacts, args.emergencyContact],
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const updateEmergencyContact = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    contactIndex: v.number(),
+    emergencyContact: emergencyContactValidator,
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    if (
+      args.contactIndex < 0 ||
+      args.contactIndex >= profile.emergencyContacts.length
+    ) {
+      throw new Error("Invalid contact index");
+    }
+
+    const updatedContacts = [...profile.emergencyContacts];
+    updatedContacts[args.contactIndex] = args.emergencyContact;
+
+    await ctx.db.patch(args.profileId, {
+      emergencyContacts: updatedContacts,
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const removeEmergencyContact = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    contactIndex: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    if (
+      args.contactIndex < 0 ||
+      args.contactIndex >= profile.emergencyContacts.length
+    ) {
+      throw new Error("Invalid contact index");
+    }
+
+    const updatedContacts = profile.emergencyContacts.filter(
+      (_, index) => index !== args.contactIndex,
+    );
+
+    await ctx.db.patch(args.profileId, {
+      emergencyContacts: updatedContacts,
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const updateConsularCard = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    consularCard: v.object({
+      cardPin: v.optional(v.string()),
+      cardNumber: v.optional(v.string()),
+      cardIssuedAt: v.optional(v.number()),
+      cardExpiresAt: v.optional(v.number()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    await ctx.db.patch(args.profileId, {
+      consularCard: { ...profile.consularCard, ...args.consularCard },
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const addDocumentToProfile = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    documentId: v.id("documents"),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    if (profile.documentIds.includes(args.documentId)) {
+      throw new Error("Document already exists in profile");
+    }
+
+    await ctx.db.patch(args.profileId, {
+      documentIds: [...profile.documentIds, args.documentId],
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const removeDocumentFromProfile = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    documentId: v.id("documents"),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    await ctx.db.patch(args.profileId, {
+      documentIds: profile.documentIds.filter((id) => id !== args.documentId),
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+export const updateProfileStatus = mutation({
+  args: {
+    profileId: v.id("profiles"),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.profileId, {
+      status: args.status as ProfileStatusType,
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
+  },
+});
+
+// Queries
+export const getProfile = query({
+  args: { profileId: v.id("profiles") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.profileId);
+  },
+});
+
+export const getProfileByUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("profiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+  },
+});
+
+export const getAllProfiles = query({
+  args: {
+    status: v.optional(v.string()),
+    category: v.optional(v.string()),
+    residenceCountry: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    let profiles: Array<Doc<"profiles">> = [];
+
+    if (args.status) {
+      profiles = await ctx.db
+        .query("profiles")
+        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .order("desc")
+        .collect();
+    } else {
+      profiles = await ctx.db.query("profiles").order("desc").collect();
+    }
+
+    if (args.category) {
+      profiles = profiles.filter(
+        (profile) => profile.category === args.category,
+      );
+    }
+
+    if (args.residenceCountry) {
+      profiles = profiles.filter(
+        (profile) => profile.residenceCountry === args.residenceCountry,
+      );
+    }
+
+    if (args.limit) {
+      profiles = profiles.slice(0, args.limit);
+    }
+
+    return profiles;
+  },
+});
+
+export const getProfilesByStatus = query({
+  args: { status: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("profiles")
+      .withIndex("by_status", (q) => q.eq("status", args.status))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getProfilesByCategory = query({
+  args: { category: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("profiles")
+      .filter((q) => q.eq(q.field("category"), args.category))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getProfilesByResidenceCountry = query({
+  args: { residenceCountry: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("profiles")
+      .filter((q) => q.eq(q.field("residenceCountry"), args.residenceCountry))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getProfileWithDocuments = query({
+  args: { profileId: v.id("profiles") },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) return null;
+
+    const documents = await Promise.all(
+      profile.documentIds.map((id) => ctx.db.get(id)),
+    );
+
+    return {
+      ...profile,
+      documents: documents.filter(Boolean),
+    };
+  },
+});
+
+export const searchProfiles = query({
+  args: {
+    searchTerm: v.string(),
+    status: v.optional(v.string()),
+    category: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let profiles: Array<Doc<"profiles">> = [];
+
+    if (args.status) {
+      profiles = await ctx.db
+        .query("profiles")
+        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .collect();
+    } else {
+      profiles = await ctx.db.query("profiles").collect();
+    }
+
+    if (args.category) {
+      profiles = profiles.filter(
+        (profile) => profile.category === args.category,
+      );
+    }
+
+    return profiles.filter((profile) => {
+      const searchLower = args.searchTerm.toLowerCase();
+      return (
+        (profile.personal?.firstName &&
+          profile.personal.firstName.toLowerCase().includes(searchLower)) ||
+        (profile.personal?.lastName &&
+          profile.personal.lastName.toLowerCase().includes(searchLower)) ||
+        (profile.consularCard?.cardNumber &&
+          profile.consularCard.cardNumber.toLowerCase().includes(searchLower))
+      );
+    });
+  },
+});

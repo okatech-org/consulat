@@ -4,44 +4,30 @@ import { Card } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import type { RequestListItem } from '@/server/api/routers/requests/misc';
-
-interface Stats {
-  inProgress: number;
-  completed: number;
-  pending: number;
-}
-
-function calculateRequestStats(requests: RequestListItem[]): Stats {
-  if (!requests) return { inProgress: 0, completed: 0, pending: 0 };
-
-  return {
-    inProgress: requests.filter((req) =>
-      ['SUBMITTED', 'VALIDATED', 'PROCESSING'].includes(req.status),
-    ).length,
-    completed: requests.filter((req) => req.status === 'COMPLETED').length,
-    pending: requests.filter((req) => req.status === 'DRAFT').length,
-  };
-}
+import { useQuery } from 'convex/react';
+import { api as convexApi } from 'convex/_generated/api';
 
 export function UserOverview() {
-  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery();
-  const { data: requestsData, isLoading: requestsLoading } =
-    api.requests.getList.useQuery({});
-  const { data: documents, isLoading: documentsLoading } =
-    api.documents.getUserDocuments.useQuery();
-
-  const requests = requestsData?.items || [];
-  const isLoading = profileLoading || requestsLoading || documentsLoading;
+  const dashboard = useQuery(convexApi.functions.user.getDashboardData.getDashboardData);
+  const isLoading = dashboard === undefined;
   const { formatDate } = useDateLocale();
   const t = useTranslations('dashboard.unified.user_overview');
-  const requestStats = calculateRequestStats(requests);
+  const requestStats = dashboard?.stats || {
+    inProgress: 0,
+    completed: 0,
+    pending: 0,
+  };
 
   if (isLoading) {
     return <LoadingSkeleton variant="card" className="!w-full h-48" />;
   }
+
+  const profile = dashboard?.profile as any;
+  const firstName = profile?.personal?.firstName ?? profile?.firstName;
+  const lastName = profile?.personal?.lastName ?? profile?.lastName;
+  const documentsCount = dashboard?.documentsCount || 0;
+  const childrenCount = profile?.parentAuthorities?.length || 0;
 
   // Générer les initiales à partir du profil
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -75,19 +61,14 @@ export function UserOverview() {
         <div className="flex items-center gap-4">
           <Avatar className="size-12 bg-muted md:size-20">
             {profile?.identityPicture ? (
-              <AvatarImage
-                src={profile?.identityPicture.fileUrl}
-                alt={profile?.firstName || ''}
-              />
+              <AvatarImage src={profile?.identityPicture.fileUrl} alt={firstName || ''} />
             ) : (
-              <AvatarFallback>
-                {getInitials(profile?.firstName, profile?.lastName)}
-              </AvatarFallback>
+              <AvatarFallback>{getInitials(firstName, lastName)}</AvatarFallback>
             )}
           </Avatar>
           <div>
             <h3 className="font-semibold text-lg">
-              {getDisplayName(profile?.firstName, profile?.lastName)}
+              {getDisplayName(firstName, lastName)}
             </h3>
             {profile?.status && (
               <p className="text-sm text-muted-foreground">
@@ -117,17 +98,13 @@ export function UserOverview() {
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-amber-600">
-              {documents?.length || 0}
-            </div>
+            <div className="text-2xl font-bold text-amber-600">{documentsCount}</div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.documents')}
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-cyan-600">
-              {profile?.parentAuthorities?.length || 0}
-            </div>
+            <div className="text-2xl font-bold text-cyan-600">{childrenCount}</div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.children')}
             </div>

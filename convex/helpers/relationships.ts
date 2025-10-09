@@ -1,17 +1,17 @@
-import type { Doc, Id } from '../_generated/dataModel'
+import type { Doc, Id } from '../_generated/dataModel';
 
 // Helper pour récupérer les services d'une organisation
 export async function getOrganizationServicesHelper(
   ctx: { db: any },
   organizationId: Id<'organizations'>,
 ): Promise<Array<Doc<'services'>>> {
-  const org = await ctx.db.get(organizationId)
-  if (!org) return []
+  const org = await ctx.db.get(organizationId);
+  if (!org) return [];
 
   const services = await Promise.all(
     org.serviceIds.map((id: Id<'services'>) => ctx.db.get(id)),
-  )
-  return services.filter(Boolean)
+  );
+  return services.filter(Boolean);
 }
 
 // Helper pour récupérer les membres d'une organisation (via memberships)
@@ -23,7 +23,7 @@ export async function getOrganizationMembers(
     .query('memberships')
     .filter((q: any) => q.eq(q.field('organizationId'), organizationId))
     .filter((q: any) => q.eq(q.field('status'), 'active'))
-    .collect()
+    .collect();
 }
 
 // Helper pour récupérer les utilisateurs d'une organisation
@@ -31,11 +31,9 @@ export async function getOrganizationUsers(
   ctx: { db: any },
   organizationId: Id<'organizations'>,
 ): Promise<Array<Doc<'users'>>> {
-  const members = await getOrganizationMembers(ctx, organizationId)
-  const users = await Promise.all(
-    members.map((member) => ctx.db.get(member.userId)),
-  )
-  return users.filter(Boolean)
+  const members = await getOrganizationMembers(ctx, organizationId);
+  const users = await Promise.all(members.map((member) => ctx.db.get(member.userId)));
+  return users.filter(Boolean);
 }
 
 // Helper pour récupérer les demandes d'un utilisateur
@@ -47,7 +45,7 @@ export async function getUserRequestsHelper(
     .query('requests')
     .withIndex('by_requester', (q: any) => q.eq('requesterId', userId))
     .order('desc')
-    .collect()
+    .collect();
 }
 
 // Helper pour récupérer les documents d'une entité
@@ -61,7 +59,7 @@ export async function getEntityDocuments(
     .withIndex('by_owner', (q: any) =>
       q.eq('ownerId', ownerId).eq('ownerType', ownerType),
     )
-    .collect()
+    .collect();
 }
 
 // Helper pour récupérer le profil d'un utilisateur
@@ -69,10 +67,10 @@ export async function getUserProfileHelper(
   ctx: { db: any },
   userId: Id<'users'>,
 ): Promise<Doc<'profiles'> | null> {
-  const user = await ctx.db.get(userId)
-  if (!user || !user.profileId) return null
+  const user = await ctx.db.get(userId);
+  if (!user || !user.profileId) return null;
 
-  return await ctx.db.get(user.profileId)
+  return await ctx.db.get(user.profileId);
 }
 
 // Helper pour récupérer les notifications non lues d'un utilisateur
@@ -86,7 +84,7 @@ export async function getUnreadNotifications(
       q.eq('userId', userId).eq('readAt', undefined),
     )
     .order('desc')
-    .collect()
+    .collect();
 }
 
 // Helper pour récupérer les rendez-vous d'un utilisateur
@@ -95,16 +93,11 @@ export async function getUserAppointments(
   userId: Id<'users'>,
 ): Promise<Array<Doc<'appointments'>>> {
   // Pour les arrays d'objets, nous devons filtrer manuellement
-  const appointments = await ctx.db
-    .query('appointments')
-    .order('desc')
-    .collect()
+  const appointments = await ctx.db.query('appointments').order('desc').collect();
 
   return appointments.filter((appointment: Doc<'appointments'>) =>
-    appointment.participants.some(
-      (participant: any) => participant.userId === userId,
-    ),
-  )
+    appointment.participants.some((participant: any) => participant.userId === userId),
+  );
 }
 
 // Helper pour récupérer les organisations d'un utilisateur
@@ -112,13 +105,13 @@ export async function getUserOrganizations(
   ctx: { db: any },
   userId: Id<'users'>,
 ): Promise<Array<Doc<'organizations'>>> {
-  const user = await ctx.db.get(userId)
-  if (!user) return []
+  const user = await ctx.db.get(userId);
+  if (!user) return [];
 
   const organizations = await Promise.all(
     user.organizationIds.map((id: Id<'organizations'>) => ctx.db.get(id)),
-  )
-  return organizations.filter(Boolean)
+  );
+  return organizations.filter(Boolean);
 }
 
 // Helper pour ajouter un membre à une organisation
@@ -135,10 +128,10 @@ export async function addMemberToOrganization(
     .filter((q: any) => q.eq(q.field('userId'), userId))
     .filter((q: any) => q.eq(q.field('organizationId'), organizationId))
     .filter((q: any) => q.eq(q.field('status'), 'active'))
-    .first()
+    .first();
 
   if (existingMembership) {
-    throw new Error('User is already a member of this organization')
+    throw new Error('User is already a member of this organization');
   }
 
   // Créer l'appartenance
@@ -151,9 +144,9 @@ export async function addMemberToOrganization(
     joinedAt: Date.now(),
     createdAt: Date.now(),
     updatedAt: Date.now(),
-  })
+  });
 
-  return membershipId
+  return membershipId;
 }
 
 // Helper pour retirer un membre d'une organisation
@@ -168,7 +161,7 @@ export async function removeMemberFromOrganization(
     .filter((q: any) => q.eq(q.field('userId'), userId))
     .filter((q: any) => q.eq(q.field('organizationId'), organizationId))
     .filter((q: any) => q.eq(q.field('status'), 'active'))
-    .first()
+    .first();
 
   if (membership) {
     // Marquer comme inactif
@@ -176,6 +169,6 @@ export async function removeMemberFromOrganization(
       status: 'inactive',
       leftAt: Date.now(),
       updatedAt: Date.now(),
-    })
+    });
   }
 }

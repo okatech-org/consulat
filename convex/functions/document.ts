@@ -1,0 +1,379 @@
+import { v } from 'convex/values';
+import { mutation, query } from '../_generated/server';
+import { DocumentStatus } from '../lib/constants';
+import type { DocumentType, OwnerType, ValidationStatus } from '../lib/constants';
+import { Doc } from '../_generated/dataModel';
+
+// Mutations
+export const createDocument = mutation({
+  args: {
+    type: v.string(),
+    fileName: v.string(),
+    fileType: v.string(),
+    fileSize: v.optional(v.number()),
+    checksum: v.optional(v.string()),
+    storageId: v.optional(v.string()),
+    fileUrl: v.optional(v.string()),
+    ownerId: v.string(),
+    ownerType: v.string(),
+    issuedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    metadata: v.optional(v.record(v.string(), v.any())),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const documentId = await ctx.db.insert('documents', {
+      type: args.type as DocumentType,
+      status: DocumentStatus.Pending,
+      storageId: args.storageId,
+      fileUrl: args.fileUrl,
+      fileName: args.fileName,
+      fileType: args.fileType,
+      fileSize: args.fileSize,
+      checksum: args.checksum,
+      version: 1,
+      previousVersionId: undefined,
+      ownerId: args.ownerId,
+      ownerType: args.ownerType as OwnerType,
+      issuedAt: args.issuedAt,
+      expiresAt: args.expiresAt,
+      validations: [],
+      metadata: args.metadata || {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return documentId;
+  },
+});
+
+export const updateDocument = mutation({
+  args: {
+    documentId: v.id('documents'),
+    fileName: v.optional(v.string()),
+    fileType: v.optional(v.string()),
+    fileSize: v.optional(v.number()),
+    checksum: v.optional(v.string()),
+    storageId: v.optional(v.string()),
+    fileUrl: v.optional(v.string()),
+    issuedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    metadata: v.optional(v.record(v.string(), v.any())),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const existingDocument = await ctx.db.get(args.documentId);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    const updateData = {
+      ...(args.fileName && { fileName: args.fileName }),
+      ...(args.fileType && { fileType: args.fileType }),
+      ...(args.fileSize !== undefined && { fileSize: args.fileSize }),
+      ...(args.checksum && { checksum: args.checksum }),
+      ...(args.storageId && { storageId: args.storageId }),
+      ...(args.fileUrl && { fileUrl: args.fileUrl }),
+      ...(args.issuedAt !== undefined && { issuedAt: args.issuedAt }),
+      ...(args.expiresAt !== undefined && { expiresAt: args.expiresAt }),
+      ...(args.metadata && { metadata: args.metadata }),
+      updatedAt: Date.now(),
+    };
+
+    await ctx.db.patch(args.documentId, updateData);
+    return args.documentId;
+  },
+});
+
+export const validateDocument = mutation({
+  args: {
+    documentId: v.id('documents'),
+    validatorId: v.id('users'),
+    status: v.string(),
+    comments: v.optional(v.string()),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    const validation = {
+      validatorId: args.validatorId,
+      status: args.status as ValidationStatus,
+      comments: args.comments,
+      timestamp: Date.now(),
+    };
+
+    const newStatus =
+      args.status === 'approved'
+        ? DocumentStatus.Validated
+        : args.status === 'rejected'
+          ? DocumentStatus.Rejected
+          : document.status;
+
+    await ctx.db.patch(args.documentId, {
+      status: newStatus,
+      validations: [...document.validations, validation],
+      updatedAt: Date.now(),
+    });
+
+    return args.documentId;
+  },
+});
+
+export const createDocumentVersion = mutation({
+  args: {
+    documentId: v.id('documents'),
+    fileName: v.string(),
+    fileType: v.string(),
+    fileSize: v.optional(v.number()),
+    checksum: v.optional(v.string()),
+    storageId: v.optional(v.string()),
+    fileUrl: v.optional(v.string()),
+    metadata: v.optional(v.record(v.string(), v.any())),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const existingDocument = await ctx.db.get(args.documentId);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    const newVersionId = await ctx.db.insert('documents', {
+      type: existingDocument.type,
+      status: DocumentStatus.Pending,
+      storageId: args.storageId,
+      fileUrl: args.fileUrl,
+      fileName: args.fileName,
+      fileType: args.fileType,
+      fileSize: args.fileSize,
+      checksum: args.checksum,
+      version: existingDocument.version + 1,
+      previousVersionId: args.documentId,
+      ownerId: existingDocument.ownerId,
+      ownerType: existingDocument.ownerType,
+      issuedAt: existingDocument.issuedAt,
+      expiresAt: existingDocument.expiresAt,
+      validations: [],
+      metadata: args.metadata || existingDocument.metadata,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return newVersionId;
+  },
+});
+
+export const updateDocumentStatus = mutation({
+  args: {
+    documentId: v.id('documents'),
+    status: v.string(),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.documentId, {
+      status: args.status as DocumentStatus,
+      updatedAt: Date.now(),
+    });
+
+    return args.documentId;
+  },
+});
+
+export const deleteDocument = mutation({
+  args: { documentId: v.id('documents') },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.documentId);
+    return args.documentId;
+  },
+});
+
+export const markDocumentAsExpiring = mutation({
+  args: {
+    documentId: v.id('documents'),
+    daysBeforeExpiry: v.optional(v.number()),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    if (!document.expiresAt) {
+      throw new Error('Document has no expiry date');
+    }
+
+    const daysBeforeExpiry = args.daysBeforeExpiry || 30;
+    const expiryThreshold = Date.now() + daysBeforeExpiry * 24 * 60 * 60 * 1000;
+
+    if (document.expiresAt <= expiryThreshold) {
+      await ctx.db.patch(args.documentId, {
+        status: DocumentStatus.Expiring,
+        updatedAt: Date.now(),
+      });
+    }
+
+    return args.documentId;
+  },
+});
+
+// Queries
+export const getDocument = query({
+  args: { documentId: v.id('documents') },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.documentId);
+  },
+});
+
+export const getDocumentsByOwner = query({
+  args: {
+    ownerId: v.string(),
+    ownerType: v.string(),
+    type: v.optional(v.string()),
+    status: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const documents = await ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', args.ownerId).eq('ownerType', args.ownerType),
+      )
+      .collect();
+
+    let filteredDocuments = documents;
+
+    if (args.type) {
+      filteredDocuments = filteredDocuments.filter((doc) => doc.type === args.type);
+    }
+
+    if (args.status) {
+      filteredDocuments = filteredDocuments.filter((doc) => doc.status === args.status);
+    }
+
+    return filteredDocuments.sort((a, b) => b._creationTime - a._creationTime);
+  },
+});
+
+export const getAllDocuments = query({
+  args: {
+    type: v.optional(v.string()),
+    status: v.optional(v.string()),
+    ownerType: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    let documents: Array<Doc<'documents'>>;
+
+    if (args.type && args.status) {
+      documents = await ctx.db
+        .query('documents')
+        .withIndex('by_type', (q) => q.eq('type', args.type!))
+        .filter((q) => q.eq(q.field('status'), args.status!))
+        .order('desc')
+        .collect();
+    } else if (args.type) {
+      documents = await ctx.db
+        .query('documents')
+        .withIndex('by_type', (q) => q.eq('type', args.type!))
+        .order('desc')
+        .collect();
+    } else if (args.status) {
+      documents = await ctx.db
+        .query('documents')
+        .withIndex('by_status', (q) => q.eq('status', args.status!))
+        .order('desc')
+        .collect();
+    } else {
+      documents = await ctx.db.query('documents').order('desc').collect();
+    }
+
+    return args.limit ? documents.slice(0, args.limit) : documents;
+  },
+});
+
+export const getDocumentsByType = query({
+  args: { type: v.string() },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('documents')
+      .withIndex('by_type', (q) => q.eq('type', args.type))
+      .order('desc')
+      .collect();
+  },
+});
+
+export const getDocumentsByStatus = query({
+  args: { status: v.string() },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('documents')
+      .withIndex('by_status', (q) => q.eq('status', args.status))
+      .order('desc')
+      .collect();
+  },
+});
+
+export const searchDocuments = query({
+  args: {
+    searchTerm: v.string(),
+    ownerType: v.optional(v.string()),
+    type: v.optional(v.string()),
+  },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    let documents: Array<Doc<'documents'>> = [];
+
+    if (args.type) {
+      documents = await ctx.db
+        .query('documents')
+        .withIndex('by_type', (q) => q.eq('type', args.type!))
+        .collect();
+    } else {
+      documents = await ctx.db.query('documents').collect();
+    }
+
+    if (args.ownerType) {
+      documents = documents.filter((doc) => doc.ownerType === args.ownerType);
+    }
+
+    return documents.filter(
+      (doc) =>
+        doc.fileName.toLowerCase().includes(args.searchTerm.toLowerCase()) ||
+        (doc.metadata &&
+          JSON.stringify(doc.metadata)
+            .toLowerCase()
+            .includes(args.searchTerm.toLowerCase())),
+    );
+  },
+});
+
+export const getDocumentVersions = query({
+  args: { documentId: v.id('documents') },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    const document = await ctx.db.get(args.documentId);
+    if (!document) return [];
+
+    const versions = [document];
+    let currentDoc = document;
+
+    while (currentDoc.previousVersionId) {
+      const previousVersion = await ctx.db.get(currentDoc.previousVersionId);
+      if (previousVersion) {
+        versions.unshift(previousVersion);
+        currentDoc = previousVersion;
+      } else {
+        break;
+      }
+    }
+
+    return versions;
+  },
+});

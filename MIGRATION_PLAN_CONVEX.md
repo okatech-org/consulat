@@ -96,6 +96,7 @@ src/actions/auth.ts
 
 - **Actuel**: `checkUserExists` (Server Action)
 - **Migration vers**: `convex/functions/users/checkUserExists.ts`
+
   ```typescript
   export const checkUserExists = query({
     args: {
@@ -219,6 +220,7 @@ const { data: documents } = api.documents.getUserDocuments.useQuery();
    ```
 
 2. **Utilisation optimisée dans le composant**
+
    ```typescript
    // src/app/(authenticated)/my-space/_components/user-overview.tsx
    export function UserOverview() {
@@ -2171,7 +2173,7 @@ const dashboard = useQuery(api.users.getDashboardData);
 
 ---
 
-## 📝 Checklist de migration
+## 📝 Checklist de migration (mise à jour de la règle UI)
 
 ### Phase 1 : Préparation
 

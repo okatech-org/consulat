@@ -1,0 +1,468 @@
+import { v } from "convex/values";
+import { mutation, query } from "../_generated/server";
+import { validateService } from "../helpers/validation";
+import { ServiceStatus } from "../lib/constants";
+import type { ServiceCategory } from "../lib/constants";
+import type { Doc } from "../_generated/dataModel";
+import { serviceStepTypeValidator } from "../lib/validators";
+
+// Mutations
+export const createService = mutation({
+  args: {
+    code: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    category: v.string(),
+    status: v.optional(v.string()),
+    organizationId: v.id("organizations"),
+    config: v.object({
+      requiredDocuments: v.array(v.string()),
+      optionalDocuments: v.array(v.string()),
+      steps: v.array(
+        v.object({
+          order: v.number(),
+          name: v.string(),
+          type: v.string(),
+          required: v.boolean(),
+          fields: v.optional(v.record(v.string(), v.any())),
+        }),
+      ),
+      pricing: v.optional(
+        v.object({
+          amount: v.number(),
+          currency: v.string(),
+        }),
+      ),
+    }),
+    steps: v.array(
+      v.object({
+        order: v.number(),
+        title: v.string(),
+        description: v.optional(v.string()),
+        isRequired: v.boolean(),
+        type: serviceStepTypeValidator,
+        fields: v.optional(v.record(v.string(), v.any())),
+        validations: v.optional(v.record(v.string(), v.any())),
+      }),
+    ),
+    processingMode: v.string(),
+    deliveryModes: v.array(v.string()),
+    requiresAppointment: v.boolean(),
+    appointmentDuration: v.optional(v.number()),
+    appointmentInstructions: v.optional(v.string()),
+    deliveryAppointment: v.boolean(),
+    deliveryAppointmentDuration: v.optional(v.number()),
+    deliveryAppointmentDesc: v.optional(v.string()),
+    isFree: v.boolean(),
+    price: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    workflowId: v.optional(v.id("workflows")),
+  },
+  handler: async (ctx, args) => {
+    const serviceData = {
+      name: args.name,
+      code: args.code,
+      price: args.price,
+    };
+
+    const validationErrors = validateService(serviceData);
+    if (validationErrors.length > 0) {
+      throw new Error(
+        `Validation failed: ${validationErrors.map((e) => e.message).join(", ")}`,
+      );
+    }
+
+    const serviceId = await ctx.db.insert("services", {
+      code: args.code,
+      name: args.name,
+      description: args.description,
+      category: args.category as ServiceCategory,
+      status: args.status ?? ServiceStatus.Active,
+      organizationId: args.organizationId,
+      config: args.config,
+      steps: args.steps,
+      processingMode: args.processingMode,
+      deliveryModes: args.deliveryModes,
+      requiresAppointment: args.requiresAppointment,
+      appointmentDuration: args.appointmentDuration,
+      appointmentInstructions: args.appointmentInstructions,
+      deliveryAppointment: args.deliveryAppointment,
+      deliveryAppointmentDuration: args.deliveryAppointmentDuration,
+      deliveryAppointmentDesc: args.deliveryAppointmentDesc,
+      isFree: args.isFree,
+      price: args.price,
+      currency: args.currency,
+      workflowId: args.workflowId,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    const organization = await ctx.db.get(args.organizationId);
+    if (organization) {
+      await ctx.db.patch(args.organizationId, {
+        serviceIds: [...organization.serviceIds, serviceId],
+        updatedAt: Date.now(),
+      });
+    }
+
+    return serviceId;
+  },
+});
+
+export const updateService = mutation({
+  args: {
+    serviceId: v.id("services"),
+    code: v.optional(v.string()),
+    name: v.optional(v.string()),
+    description: v.optional(v.string()),
+    category: v.optional(v.string()),
+    status: v.optional(v.string()),
+    config: v.optional(
+      v.object({
+        requiredDocuments: v.array(v.string()),
+        optionalDocuments: v.array(v.string()),
+        steps: v.array(
+          v.object({
+            order: v.number(),
+            name: v.string(),
+            type: v.string(),
+            required: v.boolean(),
+            fields: v.optional(v.record(v.string(), v.any())),
+          }),
+        ),
+        pricing: v.optional(
+          v.object({
+            amount: v.number(),
+            currency: v.string(),
+          }),
+        ),
+      }),
+    ),
+    steps: v.optional(
+      v.array(
+        v.object({
+          order: v.number(),
+          title: v.string(),
+          description: v.optional(v.string()),
+          isRequired: v.boolean(),
+          type: serviceStepTypeValidator,
+          fields: v.optional(v.record(v.string(), v.any())),
+          validations: v.optional(v.record(v.string(), v.any())),
+        }),
+      ),
+    ),
+    processingMode: v.optional(v.string()),
+    deliveryModes: v.optional(v.array(v.string())),
+    requiresAppointment: v.optional(v.boolean()),
+    appointmentDuration: v.optional(v.number()),
+    appointmentInstructions: v.optional(v.string()),
+    deliveryAppointment: v.optional(v.boolean()),
+    deliveryAppointmentDuration: v.optional(v.number()),
+    deliveryAppointmentDesc: v.optional(v.string()),
+    isFree: v.optional(v.boolean()),
+    price: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    workflowId: v.optional(v.id("workflows")),
+  },
+  handler: async (ctx, args) => {
+    const existingService = await ctx.db.get(args.serviceId);
+    if (!existingService) {
+      throw new Error("Service not found");
+    }
+
+    if (args.name || args.code || args.price !== undefined) {
+      const serviceData = {
+        name: args.name || existingService.name,
+        code: args.code || existingService.code,
+        price: args.price !== undefined ? args.price : existingService.price,
+      };
+
+      const validationErrors = validateService(serviceData);
+      if (validationErrors.length > 0) {
+        throw new Error(
+          `Validation failed: ${validationErrors.map((e) => e.message).join(", ")}`,
+        );
+      }
+    }
+
+    const updateData = {
+      ...(args.code && { code: args.code }),
+      ...(args.name && { name: args.name }),
+      ...(args.description !== undefined && { description: args.description }),
+      ...(args.category && { category: args.category as ServiceCategory }),
+      ...(args.status && { status: args.status as ServiceStatus }),
+      ...(args.config && { config: args.config }),
+      ...(args.steps && { steps: args.steps }),
+      ...(args.processingMode && { processingMode: args.processingMode }),
+      ...(args.deliveryModes && { deliveryModes: args.deliveryModes }),
+      ...(args.requiresAppointment !== undefined && {
+        requiresAppointment: args.requiresAppointment,
+      }),
+      ...(args.appointmentDuration !== undefined && {
+        appointmentDuration: args.appointmentDuration,
+      }),
+      ...(args.appointmentInstructions !== undefined && {
+        appointmentInstructions: args.appointmentInstructions,
+      }),
+      ...(args.deliveryAppointment !== undefined && {
+        deliveryAppointment: args.deliveryAppointment,
+      }),
+      ...(args.deliveryAppointmentDuration !== undefined && {
+        deliveryAppointmentDuration: args.deliveryAppointmentDuration,
+      }),
+      ...(args.deliveryAppointmentDesc !== undefined && {
+        deliveryAppointmentDesc: args.deliveryAppointmentDesc,
+      }),
+      ...(args.isFree !== undefined && { isFree: args.isFree }),
+      ...(args.price !== undefined && { price: args.price }),
+      ...(args.currency !== undefined && { currency: args.currency }),
+      ...(args.workflowId !== undefined && { workflowId: args.workflowId }),
+      updatedAt: Date.now(),
+    };
+
+    await ctx.db.patch(args.serviceId, updateData);
+    return args.serviceId;
+  },
+});
+
+export const updateServiceSteps = mutation({
+  args: {
+    serviceId: v.id("services"),
+    steps: v.array(
+      v.object({
+        order: v.number(),
+        title: v.string(),
+        description: v.optional(v.string()),
+        isRequired: v.boolean(),
+        type: serviceStepTypeValidator,
+        fields: v.optional(v.record(v.string(), v.any())),
+        validations: v.optional(v.record(v.string(), v.any())),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.serviceId, {
+      steps: args.steps,
+      updatedAt: Date.now(),
+    });
+    return args.serviceId;
+  },
+});
+
+export const updateServiceConfig = mutation({
+  args: {
+    serviceId: v.id("services"),
+    config: v.object({
+      requiredDocuments: v.array(v.string()),
+      optionalDocuments: v.array(v.string()),
+      steps: v.array(
+        v.object({
+          order: v.number(),
+          name: v.string(),
+          type: v.string(),
+          required: v.boolean(),
+          fields: v.optional(v.record(v.string(), v.any())),
+        }),
+      ),
+      pricing: v.optional(
+        v.object({
+          amount: v.number(),
+          currency: v.string(),
+        }),
+      ),
+    }),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.serviceId, {
+      config: args.config,
+      updatedAt: Date.now(),
+    });
+    return args.serviceId;
+  },
+});
+
+export const toggleServiceStatus = mutation({
+  args: { serviceId: v.id("services") },
+  handler: async (ctx, args) => {
+    const service = await ctx.db.get(args.serviceId);
+    if (!service) {
+      throw new Error("Service not found");
+    }
+
+    const newStatus =
+      service.status === ServiceStatus.Active
+        ? ServiceStatus.Inactive
+        : ServiceStatus.Active;
+
+    await ctx.db.patch(args.serviceId, {
+      status: newStatus,
+      updatedAt: Date.now(),
+    });
+
+    return { serviceId: args.serviceId, newStatus };
+  },
+});
+
+// Queries
+export const getService = query({
+  args: { serviceId: v.id("services") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.serviceId);
+  },
+});
+
+export const getServiceByCode = query({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("services")
+      .withIndex("by_code", (q) => q.eq("code", args.code))
+      .first();
+  },
+});
+
+export const getAllServices = query({
+  args: {
+    status: v.optional(v.string()),
+    category: v.optional(v.string()),
+    organizationId: v.optional(v.id("organizations")),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    let services: Array<Doc<"services">> = [];
+
+    if (args.organizationId && args.category && args.status) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", args.organizationId!),
+        )
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("category"), args.category!),
+            q.eq(q.field("status"), args.status!),
+          ),
+        )
+        .order("desc")
+        .collect();
+    } else if (args.organizationId && args.category) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", args.organizationId!),
+        )
+        .filter((q) => q.eq(q.field("category"), args.category!))
+        .order("desc")
+        .collect();
+    } else if (args.organizationId && args.status) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", args.organizationId!),
+        )
+        .filter((q) => q.eq(q.field("status"), args.status!))
+        .order("desc")
+        .collect();
+    } else if (args.category && args.status) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_category", (q) => q.eq("category", args.category!))
+        .filter((q) => q.eq(q.field("status"), args.status!))
+        .order("desc")
+        .collect();
+    } else if (args.organizationId) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", args.organizationId!),
+        )
+        .order("desc")
+        .collect();
+    } else if (args.category) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_category", (q) => q.eq("category", args.category!))
+        .order("desc")
+        .collect();
+    } else if (args.status) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .order("desc")
+        .collect();
+    } else {
+      services = await ctx.db.query("services").order("desc").collect();
+    }
+
+    return args.limit ? services.slice(0, args.limit) : services;
+  },
+});
+
+export const getServicesByOrganization = query({
+  args: { organizationId: v.id("organizations") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("services")
+      .withIndex("by_organization", (q) =>
+        q.eq("organizationId", args.organizationId),
+      )
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getServicesByCategory = query({
+  args: { category: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("services")
+      .withIndex("by_category", (q) => q.eq("category", args.category))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const searchServices = query({
+  args: {
+    searchTerm: v.string(),
+    organizationId: v.optional(v.id("organizations")),
+    category: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let services: Array<Doc<"services">> = [];
+
+    if (args.organizationId && args.category) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", args.organizationId!),
+        )
+        .filter((q) => q.eq(q.field("category"), args.category!))
+        .collect();
+    } else if (args.organizationId) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", args.organizationId!),
+        )
+        .collect();
+    } else if (args.category) {
+      services = await ctx.db
+        .query("services")
+        .withIndex("by_category", (q) => q.eq("category", args.category!))
+        .collect();
+    } else {
+      services = await ctx.db.query("services").collect();
+    }
+
+    return services.filter(
+      (service) =>
+        service.name.toLowerCase().includes(args.searchTerm.toLowerCase()) ||
+        service.code.toLowerCase().includes(args.searchTerm.toLowerCase()) ||
+        (service.description &&
+          service.description
+            .toLowerCase()
+            .includes(args.searchTerm.toLowerCase())),
+    );
+  },
+});

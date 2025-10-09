@@ -10,14 +10,16 @@ import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
 import type { RequestStatus } from '@prisma/client';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api as convexApi } from 'convex/_generated/api';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export function RecentHistory() {
-  const { data: requestsData, isLoading } = api.requests.getList.useQuery({
-    limit: 5,
-  });
-  const requests = requestsData?.items || [];
+  const requests = useQuery(
+    convexApi.functions.requests.getRecentRequests.getRecentRequests,
+    { limit: 5 },
+  );
+  const isLoading = requests === undefined;
   const t = useTranslations('dashboard.unified.recent_history');
   const tStatus = useTranslations('dashboard.unified.current_request.status');
 
